@@ -8,6 +8,8 @@ export const metadata = {
     "Retrieves chart data (daily, weekly, or monthly performance) for the authenticated creator's ICO offerings based on a specified time range.",
   operationId: "getCreatorStatsChart",
   tags: ["ICO", "Creator", "Stats"],
+  logModule: "ICO",
+  logTitle: "Get Creator Performance",
   requiresAuth: true,
   parameters: [
     {
@@ -174,10 +176,13 @@ async function getCreatorMonthlyChartData(
 }
 
 export default async (data: Handler): Promise<ChartDataPoint[]> => {
-  const { user, query } = data;
+  const { user, query, ctx } = data as any;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Fetching get creator performance");
   const userId = user.id;
   const now = new Date();
   const range: string = (query?.range as string) || "30d";
@@ -241,5 +246,6 @@ export default async (data: Handler): Promise<ChartDataPoint[]> => {
     throw createError({ statusCode: 400, message: "Invalid range parameter" });
   }
 
+  ctx?.success(`Retrieved ${chartData.length} data points for ${range} period`);
   return chartData;
 };

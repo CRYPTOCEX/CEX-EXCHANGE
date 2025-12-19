@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
     "Fetches a list of all active ecommerce products, including their categories and aggregated review stats.",
   operationId: "getEcommerceProducts",
   tags: ["Ecommerce", "Products"],
+  logModule: "ECOM",
+  logTitle: "Get Products",
   responses: {
     200: {
       description: "Products retrieved successfully",
@@ -42,6 +44,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step("Fetching Products");
+
   try {
     // Fetch all active products
     const products = await models.ecommerceProduct.findAll({
@@ -82,6 +88,9 @@ export default async (data: Handler) => {
         reviewsCount: reviews.length,
       };
     });
+
+    ctx?.success("Get Products fetched successfully");
+
 
     return JSON.parse(JSON.stringify(productsData));
   } catch (error) {

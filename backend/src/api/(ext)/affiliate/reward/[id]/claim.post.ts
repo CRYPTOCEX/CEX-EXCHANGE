@@ -21,6 +21,9 @@ export const metadata: OperationObject = {
   description: "Processes the claim of a specified referral reward.",
   operationId: "claimReward",
   tags: ["MLM", "Rewards"],
+  requiresAuth: true,
+  logModule: "AFFILIATE",
+  logTitle: "Claim affiliate reward",
   parameters: [
     {
       name: "id",
@@ -47,17 +50,17 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("Affiliate Reward"),
     500: serverErrorResponse,
   },
-  requiresAuth: true,
 };
 
 export default async (data: Handler) => {
-  const { params, user } = data;
+  const { params, user, ctx } = data;
   const { id } = params;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Fetching reward details and validating ownership");
   const reward = await models.mlmReferralReward.findOne({
     where: { id, isClaimed: false, referrerId: user.id },
     include: [{ model: models.mlmReferralCondition, as: "condition" }],
@@ -67,6 +70,7 @@ export default async (data: Handler) => {
 
   let updatedWallet: any;
 
+  ctx?.step(`Retrieving or creating ${reward.condition.rewardWalletType} wallet for ${reward.condition.rewardCurrency}`);
   // Handle ECO wallet creation logic differently
   if (reward.condition.rewardWalletType === "ECO") {
     // Check if ecosystem extension is available
@@ -124,8 +128,10 @@ export default async (data: Handler) => {
   if (!updatedWallet)
     throw new Error("Wallet not found or could not be created");
 
+  ctx?.step("Processing reward claim in transaction");
   await sequelize.transaction(async (transaction) => {
     // Re-check the reward status within the transaction to prevent race conditions
+    ctx?.step("Verifying reward is still available (preventing race conditions)");
     const rewardToUpdate = await models.mlmReferralReward.findOne({
       where: { id, isClaimed: false, referrerId: user.id },
       transaction,
@@ -136,11 +142,14 @@ export default async (data: Handler) => {
       throw new Error("Reward not found or already claimed");
     }
 
+    ctx?.step(`Updating wallet balance: adding ${rewardToUpdate.reward} ${reward.condition.rewardCurrency}`);
     const newBalance = updatedWallet.balance + rewardToUpdate.reward;
     await updatedWallet.update({ balance: newBalance }, { transaction });
 
+    ctx?.step("Marking reward as claimed");
     await rewardToUpdate.update({ isClaimed: true }, { transaction });
 
+    ctx?.step("Recording claim transaction");
     await models.transaction.create(
       {
         userId: user.id,
@@ -155,5 +164,6 @@ export default async (data: Handler) => {
     );
   });
 
+  ctx?.success(`Claimed ${reward.reward} ${reward.condition.rewardCurrency} in referral rewards`);
   return { message: "Reward claimed successfully" };
 };

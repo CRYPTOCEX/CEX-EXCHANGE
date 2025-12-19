@@ -25,7 +25,7 @@ export default function PlanSelector({
   isLoadingPlans,
   selectedPlanId,
 }: PlanSelectorProps) {
-  const t = useTranslations("ext");
+  const tTradeComponents = useTranslations("trade_components");
   const setSelectedPlan = useAiInvestmentStore(
     (state) => state.setSelectedPlan
   );
@@ -36,7 +36,7 @@ export default function PlanSelector({
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <div className="text-sm font-medium">
-            {t("select_investment_strategy")}
+            {tTradeComponents("select_investment_strategy")}
           </div>
         </div>
         <div className="space-y-2">
@@ -55,7 +55,7 @@ export default function PlanSelector({
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <div className="text-sm font-medium text-zinc-900 dark:text-white">
-          {t("select_investment_strategy")}
+          {tTradeComponents("select_investment_strategy")}
         </div>
       </div>
       <div className="space-y-3">
@@ -75,7 +75,7 @@ export default function PlanSelector({
 }
 
 function PlanCard({ plan, isSelected, onSelect }) {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [isHovered, setIsHovered] = useState(false);
 
   // Format currency with appropriate decimals
@@ -175,7 +175,7 @@ function PlanCard({ plan, isSelected, onSelect }) {
                   <div className="flex items-center text-xs text-zinc-600 dark:text-muted-foreground">
                     <Users className="mr-1 h-3 w-3" />
                     <span>
-                      {t("invested")}
+                      {tCommon("invested")}
                       {plan.invested}
                     </span>
                   </div>
@@ -188,7 +188,7 @@ function PlanCard({ plan, isSelected, onSelect }) {
               {plan.trending && (
                 <div className="px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-500 flex items-center gap-1 mb-1">
                   <TrendingUp className="h-3 w-3" />
-                  {t("Trending")}
+                  {tCommon("trending")}
                 </div>
               )}
               <div className="flex items-baseline">
@@ -200,7 +200,7 @@ function PlanCard({ plan, isSelected, onSelect }) {
                 </span>
               </div>
               <div className="text-xs text-emerald-700 dark:text-emerald-400">
-                {t("expected_profit")}
+                {tCommon("expected_profit")}
               </div>
             </div>
           </div>
@@ -218,7 +218,7 @@ function PlanCard({ plan, isSelected, onSelect }) {
             <div className="flex flex-col">
               <div className="flex items-center text-xs text-zinc-500 dark:text-muted-foreground mb-1">
                 <Clock className="mr-1 h-3 w-3" />
-                {t("Duration")}
+                {tCommon("duration")}
               </div>
               <div className="text-sm font-medium text-zinc-900 dark:text-white">
                 {getDurationLabel(plan.durations)}
@@ -228,7 +228,7 @@ function PlanCard({ plan, isSelected, onSelect }) {
             {/* Min Investment */}
             <div className="flex flex-col">
               <div className="flex items-center text-xs text-zinc-500 dark:text-muted-foreground mb-1">
-                {t("Min")}
+                {tCommon("min")}
               </div>
               <div className="text-sm font-medium text-zinc-900 dark:text-white">
                 {formatCurrency(plan.minAmount)}
@@ -238,7 +238,7 @@ function PlanCard({ plan, isSelected, onSelect }) {
             {/* Max Investment */}
             <div className="flex flex-col">
               <div className="flex items-center text-xs text-zinc-500 dark:text-muted-foreground mb-1">
-                {t("Max")}
+                {tCommon("max")}
               </div>
               <div className="text-sm font-medium text-zinc-900 dark:text-white">
                 {formatCurrency(plan.maxAmount)}

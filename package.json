@@ -2,14 +2,14 @@
   "id": "7848B8AC",
   "name": "bicrypto-v5",
   "private": true,
-  "version": "5.7.7",
+  "version": "6.0.2",
   "scripts": {
     "dev": "concurrently \"pnpm --filter frontend dev\" \"pnpm --filter backend dev\"",
     "dev:backend": "pnpm --filter backend dev",
     "dev:frontend": "pnpm --filter frontend dev",
-    "build:all": "pnpm --filter frontend build && pnpm --filter backend build",
+    "build:all": "cross-env NODE_ENV=production pnpm --filter frontend build && pnpm --filter backend build",
     "build:backend": "pnpm --filter backend build",
-    "build:frontend": "pnpm --filter frontend build",
+    "build:frontend": "cross-env NODE_ENV=production pnpm --filter frontend build",
     "build:permission": "node tools/build-permission.js",
     "start": "pm2 start production.config.js --env production",
     "start:thread": "pm2 start production.thread.config.js --env production",
@@ -42,10 +42,11 @@
     "@next/eslint-plugin-next": "^15.5.7",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.21",
-    "@types/node": "^22.19.1",
+    "@types/node": "^22.19.2",
     "@typescript-eslint/eslint-plugin": "8.0.0-alpha.26",
     "@typescript-eslint/parser": "8.0.0-alpha.26",
     "concurrently": "^7.6.0",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-import": "^2.32.0",
@@ -59,7 +60,7 @@
     "prettier-plugin-tailwindcss": "^0.6.14",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.48.1"
+    "typescript-eslint": "^8.49.0"
   },
   "_moduleAliases": {
     "@": "frontend",
@@ -72,7 +73,7 @@
     "@reown/appkit-adapter-wagmi": "^1.8.14",
     "@tanstack/react-query": "^5.90.12",
     "@vitalets/google-translate-api": "^9.2.1",
-    "ccxt": "^4.5.24",
+    "ccxt": "^4.5.26",
     "dotenv": "^16.6.1",
     "jose": "^5.10.0",
     "mysql2": "^3.15.3",
@@ -96,8 +97,17 @@
       "form-data": "^4.0.4",
       "xlsx": "^0.18.5",
       "nth-check": "^2.1.1",
-      "@reown/appkit-pay": "^1.7.17",
-      "@reown/appkit-scaffold-ui": "^1.7.17"
+      "@walletconnect/ethereum-provider": "2.23.1",
+      "@reown/appkit": "1.8.15",
+      "@reown/appkit-adapter-wagmi": "1.8.15",
+      "@reown/appkit-pay": "1.8.15",
+      "@reown/appkit-scaffold-ui": "1.8.15",
+      "@reown/appkit-controllers": "1.8.15",
+      "@reown/appkit-ui": "1.8.15",
+      "@reown/appkit-utils": "1.8.15",
+      "@reown/appkit-core": "1.8.15",
+      "@reown/appkit-common": "1.8.15",
+      "@reown/appkit-wallet": "1.8.15"
     },
     "peerDependencyRules": {
       "ignoreMissing": [
@@ -120,6 +130,6 @@
       "sharp"
     ]
   },
-  "lastCommit": "cce5c239553ca360d866c6674e90ee4720069944",
-  "lastCommitDate": "2025-12-07T02:40:11.297Z"
+  "lastCommit": "4cb69a3806abdf7743d6c7a32858a4cdbecccac1",
+  "lastCommitDate": "2025-12-17T12:01:28.100Z"
 }

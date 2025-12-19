@@ -21,7 +21,9 @@ export default function RiskSettingsSection({
   settings = {},
   onUpdate,
 }: RiskSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const safeSettings = {
     MinLiquidity: settings.MinLiquidity ?? 100,
     MaxDailyLossPercent: settings.MaxDailyLossPercent ?? 5,
@@ -62,12 +64,12 @@ export default function RiskSettingsSection({
               step="10"
             />
             <p className="text-xs text-muted-foreground">
-              {t("minimum_quote_currency_balance_required_in")} {t("for_example_100_means_the_pool")}
+              {t("minimum_quote_currency_balance_required_in")} {t("for_example_100_means_the_pool")} ({t("for_example_100_note")})
             </p>
           </div>
           <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
             <p className="text-xs text-amber-600 dark:text-amber-400">
-              <strong>{t("note")}</strong> {t("this_value_is_compared_directly_to")} {t("set_appropriately_based_on_your_markets")}
+              <strong>{tCommon("note")}</strong> {t("this_value_is_compared_directly_to")} {t("set_appropriately_based_on_your_markets")}
             </p>
           </div>
         </div>
@@ -126,7 +128,7 @@ export default function RiskSettingsSection({
               </svg>
             </div>
             <div>
-              <h5 className="text-sm font-medium text-warning-700 dark:text-warning-300">{t("risk_warning")}</h5>
+              <h5 className="text-sm font-medium text-warning-700 dark:text-warning-300">{tExt("risk_warning")}</h5>
               <p className="text-xs text-warning-600 dark:text-warning-400 mt-1">
                 {t("adjusting_these_settings_affects_the_risk")} {t("lower_thresholds_provide_more_protection_but")} {t("higher_thresholds_allow_more_aggressive_trading")}
               </p>

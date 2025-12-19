@@ -1,13 +1,13 @@
-import { models, sequelize } from "@b/db";
+import { models } from "@b/db";
 import { createError } from "@b/utils/error";
-import { fn, literal, Op } from "sequelize";
+import { fn, col, literal, Op } from "sequelize";
 
 export const metadata = {
-  summary: "Get Forex Dashboard Statistics",
+  summary: "Retrieves Forex dashboard statistics",
   description:
     "Retrieves statistics for the Forex admin dashboard including total investments, active users, active plans, total accounts, investment growth chart data (with timeframe options: 1m, 3m, 1y), plan distribution, and recent investments.",
   operationId: "getForexDashboardStats",
-  tags: ["Forex", "Dashboard"],
+  tags: ["Admin", "Forex", "Dashboard"],
   requiresAuth: true,
   parameters: [
     {
@@ -18,6 +18,8 @@ export const metadata = {
       schema: { type: "string", enum: ["1m", "3m", "1y"] },
     },
   ],
+  logModule: "ADMIN_FOREX",
+  logTitle: "Get Forex Dashboard",
   responses: {
     200: {
       description: "Forex dashboard statistics retrieved successfully.",
@@ -100,7 +102,7 @@ interface Handler {
 }
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data as any;
   const { timeframe = "1y" } = query;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -331,8 +333,8 @@ export default async (data: Handler) => {
   // === CHART DATA ===
   const chartDataRaw = await models.forexInvestment.findAll({
     attributes: [
-      [fn("DATE_FORMAT", sequelize.col("createdAt"), groupFormat), "period"],
-      [fn("SUM", sequelize.col("amount")), "totalInvested"],
+      [fn("DATE_FORMAT", col("createdAt"), groupFormat), "period"],
+      [fn("SUM", col("amount")), "totalInvested"],
     ],
     where: {
       status: { [Op.ne]: "REJECTED" },
@@ -356,7 +358,7 @@ export default async (data: Handler) => {
     attributes: [
       "name",
       [
-        fn("COALESCE", fn("SUM", sequelize.col("investments.amount")), 0),
+        fn("COALESCE", fn("SUM", col("investments.amount")), 0),
         "totalInvested",
       ],
     ],

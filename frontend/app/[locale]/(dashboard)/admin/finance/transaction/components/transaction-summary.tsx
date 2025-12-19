@@ -31,7 +31,7 @@ interface TransactionSummaryProps {
 export const TransactionSummary: React.FC<TransactionSummaryProps> = ({
   transaction,
 }) => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
   const parsedMetadata = parseMetadata(transaction.metadata);
   const rejectionMessage =
     transaction.status === "REJECTED" && parsedMetadata?.message

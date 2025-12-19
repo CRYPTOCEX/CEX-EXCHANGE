@@ -80,9 +80,9 @@ export default function LiveStatsBar() {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="sticky top-16 md:top-20 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40 shadow-sm"
+      className="bg-background/80 backdrop-blur-xl border-b border-border/40 shadow-sm"
     >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container">
         {/* Desktop Stats - Horizontal Scroll */}
         <div className="hidden md:flex items-center justify-between py-3 gap-8">
           {liveStats.map((stat, index) => (

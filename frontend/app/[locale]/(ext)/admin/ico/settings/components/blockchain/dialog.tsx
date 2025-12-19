@@ -39,7 +39,9 @@ export default function BlockchainDialog({
   onClose,
   onSuccess,
 }: BlockchainDialogProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const isEdit = mode === "edit";
 
   const [name, setName] = useState("");
@@ -143,14 +145,14 @@ export default function BlockchainDialog({
             id="blockchain-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Solana"
-            label="Display Name"
+            placeholder={t("e_g_solana")}
+            label={tExt("display_name")}
           />
           <Input
             id="blockchain-value"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder="e.g. SOL"
+            placeholder={t("e_g_sol")}
             label="Value"
           />
           <div className="flex items-center space-x-2">
@@ -164,7 +166,7 @@ export default function BlockchainDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={isSaving}>
-            {t("Cancel")}
+            {tCommon("cancel")}
           </Button>
           <Button onClick={handleSave} disabled={isSaving}>
             {isSaving
@@ -180,13 +182,13 @@ export default function BlockchainDialog({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("discard_unsaved_changes")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("you_have_unsaved_changes")}.{" "}
+              {tCommon("you_have_unsaved_changes")}.{" "}
               {t("are_you_sure_you_want_to_discard_them")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={cancelAction}>
-              {t("No")}
+              {tCommon("no")}
             </AlertDialogCancel>
             <AlertDialogAction onClick={confirmAction} variant="destructive">
               {t("yes_discard")}

@@ -5,17 +5,22 @@ import {
 } from "@b/utils/query";
 import { createError } from "@b/utils/error";
 import { models } from "@b/db";
+import {
+  unauthorizedResponse as unauthorizedError,
+  serverErrorResponse as serverError,
+  notFoundResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata: OperationObject = {
-  summary: "Retrieves a list of ecommerce categories",
+  summary: "Gets ecommerce category options for selection",
   description:
-    "This endpoint retrieves active ecommerce categories for selection in the UI. Only categories with status true are returned.",
+    "Retrieves a list of active ecommerce categories formatted as value-label pairs for use in dropdown menus and selection components. Only returns categories with status set to true.",
   operationId: "getEcommerceCategoryOptions",
-  tags: ["Ecommerce", "Category"],
+  tags: ["Admin", "Ecommerce", "Category"],
   requiresAuth: true,
   responses: {
     200: {
-      description: "Ecommerce categories retrieved successfully",
+      description: "Category options retrieved successfully",
       content: {
         "application/json": {
           schema: {
@@ -23,38 +28,52 @@ export const metadata: OperationObject = {
             items: {
               type: "object",
               properties: {
-                value: { type: "string" },
-                label: { type: "string" },
+                value: {
+                  type: "string",
+                  description: "Category ID",
+                },
+                label: {
+                  type: "string",
+                  description: "Category name",
+                },
               },
+              required: ["value", "label"],
             },
           },
         },
       },
     },
-    401: unauthorizedResponse,
-    404: notFoundMetadataResponse("EcommerceCategory"),
-    500: serverErrorResponse,
+    401: unauthorizedError,
+    404: notFoundResponse("Ecommerce category"),
+    500: serverError,
   },
+  logModule: "ADMIN_ECOM",
+  logTitle: "Get category options",
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
+
   if (!user?.id) throw createError(401, "Unauthorized");
 
   try {
+    ctx?.step("Fetching active categories");
     const categories = await models.ecommerceCategory.findAll({
       where: { status: true },
       attributes: ["id", "name"],
       order: [["name", "ASC"]],
     });
 
+    ctx?.step("Formatting category options");
     const formatted = categories.map((category) => ({
       value: category.id,
       label: category.name,
     }));
 
+    ctx?.success(`Retrieved ${formatted.length} category options`);
     return formatted;
   } catch (error) {
+    ctx?.fail("Failed to fetch category options");
     throw createError(
       500,
       "An error occurred while fetching ecommerce categories"

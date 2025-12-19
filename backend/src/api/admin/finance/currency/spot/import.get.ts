@@ -12,7 +12,8 @@ import {
   standardizeXtData,
 } from "../../exchange/utils";
 import { Op } from "sequelize";
-import { processCurrenciesPrices } from "@b/utils/cron";
+import { processCurrenciesPrices } from "@b/cron";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Import Exchange Currencies",
@@ -43,7 +44,8 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const exchange = await ExchangeManager.startExchange();
+  const { ctx } = data;
+  const exchange = await ExchangeManager.startExchange(ctx);
   const provider = await ExchangeManager.getProvider();
   if (!exchange) {
     throw new Error(`Failed to start exchange provider: ${provider}`);
@@ -113,7 +115,7 @@ export default async (data: Handler) => {
   try {
     await processCurrenciesPrices();
   } catch (error) {
-    console.error("Error processing currencies prices", error);
+    logger.error("CURRENCY", "Error processing currencies prices", error);
   }
 
   return {

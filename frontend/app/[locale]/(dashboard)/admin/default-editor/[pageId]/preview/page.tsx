@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Edit3, ExternalLink } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { $fetch } from "@/lib/api";
+import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 interface PageContent {
   id: string;
@@ -21,6 +23,8 @@ interface PageContent {
 }
 
 export default function PreviewDefaultPage() {
+  const t = useTranslations("dashboard_admin");
+  const tDashboard = useTranslations("dashboard");
   const params = useParams();
   const pageId = params.pageId as string;
   
@@ -133,11 +137,11 @@ export default function PreviewDefaultPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className={`container ${PAGE_PADDING}`}>
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-muted-foreground mt-2">Loading preview...</p>
+            <p className="text-muted-foreground mt-2">{t("loading_preview_ellipsis")}</p>
           </div>
         </div>
       </div>
@@ -146,14 +150,14 @@ export default function PreviewDefaultPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto p-6">
+      <div className={`container ${PAGE_PADDING}`}>
         <div className="text-center py-8">
-          <p className="text-red-600 font-medium">Error loading preview</p>
+          <p className="text-red-600 font-medium">{t("error_loading_preview")}</p>
           <p className="text-red-500 text-sm mt-1">{error}</p>
           <Link href="/admin/default-editor">
             <Button variant="outline" className="mt-4">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Editor
+              {t("back_to_editor")}
             </Button>
           </Link>
         </div>
@@ -171,14 +175,14 @@ export default function PreviewDefaultPage() {
               <Link href="/admin/default-editor">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Editor
+                  {t("back_to_editor")}
                 </Button>
               </Link>
               <div>
                 <h1 className="text-lg font-semibold">
                   {pageContent?.title || `${actualPageId.charAt(0).toUpperCase() + actualPageId.slice(1)} Page`}
                 </h1>
-                <p className="text-sm text-muted-foreground">Preview Mode</p>
+                <p className="text-sm text-muted-foreground">{t("preview_mode")}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -188,7 +192,7 @@ export default function PreviewDefaultPage() {
               <Link href={`/admin/default-editor/${pageId}/edit`}>
                 <Button size="sm">
                   <Edit3 className="w-4 h-4 mr-2" />
-                  Edit Page
+                  {t("edit_page")}
                 </Button>
               </Link>
               {/* Link to actual page if it exists */}
@@ -196,7 +200,7 @@ export default function PreviewDefaultPage() {
                 <Link href={`/${actualPageId}`} target="_blank">
                   <Button variant="outline" size="sm">
                     <ExternalLink className="w-4 h-4 mr-2" />
-                    View Live
+                    {t("view_live")}
                   </Button>
                 </Link>
               )}
@@ -206,22 +210,21 @@ export default function PreviewDefaultPage() {
       </div>
 
       {/* Preview Content */}
-      <div className="container mx-auto p-6">
+      <div className={`container ${PAGE_PADDING}`}>
         <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="p-8">
             {isHomePage ? (
               // For home page, we would need to render the variable-based content
               // This is more complex and would require the same rendering logic as the actual home page
               <div className="text-center py-8">
-                <h2 className="text-xl font-semibold mb-4">Home Page Preview</h2>
+                <h2 className="text-xl font-semibold mb-4">{t("home_page_preview")}</h2>
                 <p className="text-muted-foreground">
-                  Home page preview is complex due to its variable-based structure. 
-                  Please use the "View Live" link to see the actual rendered page.
+                  {t("home_page_preview_is_complex_due")} {t("please_use_the_view_live_link")}
                 </p>
                 <Link href="/" target="_blank">
                   <Button className="mt-4">
                     <ExternalLink className="w-4 h-4 mr-2" />
-                    View Live Home Page
+                    {t("view_live_home_page")}
                   </Button>
                 </Link>
               </div>
@@ -245,13 +248,13 @@ export default function PreviewDefaultPage() {
               <h3 className="text-lg font-semibold mb-4">SEO Preview</h3>
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Page Title</label>
+                  <label className="text-sm font-medium text-muted-foreground">{tDashboard("page_title")}</label>
                   <p className="text-blue-600 dark:text-blue-400 text-lg">
                     {pageContent.meta.seoTitle || pageContent.title}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Meta Description</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t("meta_description")}</label>
                   <p className="text-gray-600 dark:text-gray-400">
                     {pageContent.meta.seoDescription || 'No meta description provided'}
                   </p>

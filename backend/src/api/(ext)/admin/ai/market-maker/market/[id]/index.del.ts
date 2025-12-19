@@ -1,10 +1,11 @@
 import { models, sequelize } from "@b/db";
 import {
   unauthorizedResponse,
-  notFoundMetadataResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+  notFoundResponse,
+} from "@b/utils/schema/errors";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 import {
   cleanupMarketMakerData,
   getOpenBotEcosystemOrderIds,
@@ -14,9 +15,13 @@ import { getWalletByUserIdAndCurrency } from "@b/api/(ext)/ecosystem/utils/walle
 import MarketMakerEngine from "../../utils/engine/MarketMakerEngine";
 
 export const metadata: OperationObject = {
-  summary: "Delete AI Market Maker (auto-withdraws pool to admin wallet)",
-  operationId: "deleteAiMarketMaker",
-  tags: ["Admin", "AI Market Maker", "Market Maker"],
+  summary: "Delete AI Market Maker market",
+  operationId: "deleteAiMarketMakerMarket",
+  tags: ["Admin", "AI Market Maker", "Market"],
+  description:
+    "Permanently deletes an AI Market Maker market. Automatically stops the market if active, cancels all open ecosystem orders, withdraws remaining pool balances to admin wallet, cleans up all ScyllaDB and MySQL data including trade history, and creates withdrawal transaction records. This operation cannot be undone.",
+  logModule: "ADMIN_MM",
+  logTitle: "Delete AI Market Maker",
   parameters: [
     {
       index: 0,
@@ -62,7 +67,7 @@ export const metadata: OperationObject = {
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("AI Market Maker"),
+    404: notFoundResponse("AI Market Maker Market"),
     500: serverErrorResponse,
   },
   requiresAuth: true,
@@ -70,12 +75,13 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, user } = data;
+  const { params, user, ctx } = data;
 
   if (!user?.id) {
     throw createError(401, "Unauthorized");
   }
 
+  ctx?.step("Fetch market maker with related data");
   const marketMaker = await models.aiMarketMaker.findByPk(params.id, {
     include: [
       { model: models.aiMarketMakerPool, as: "pool" },
@@ -94,6 +100,7 @@ export default async (data: Handler) => {
   const symbol = market ? `${market.currency}/${market.pair}` : null;
   const ecosystemMarketId = marketMakerAny.marketId;
 
+  ctx?.step("Stop market maker if active");
   // ============================================
   // Step 1: Stop market maker if active (with proper engine sync)
   // ============================================
@@ -103,13 +110,13 @@ export default async (data: Handler) => {
     const marketManager = engine.getMarketManager();
 
     if (marketManager && marketManager.isMarketActive(params.id)) {
-      console.info(`[AI Market Maker Delete] Stopping market maker ${params.id} through engine...`);
+      logger.info("AI_MM", `Delete: Stopping market maker ${params.id} through engine...`);
 
       // Stop the market through the engine (this properly cancels orders and cleans up)
       const stopped = await marketManager.stopMarket(params.id);
 
       if (!stopped) {
-        console.warn(`[AI Market Maker Delete] Engine stopMarket returned false, forcing stop...`);
+        logger.warn("AI_MM", `Delete: Engine stopMarket returned false, forcing stop...`);
       }
 
       // Wait for engine to acknowledge shutdown with timeout
@@ -119,7 +126,7 @@ export default async (data: Handler) => {
       while (Date.now() - startTime < maxWaitMs) {
         const status = marketManager.getMarketStatus(params.id);
         if (!status || status === "STOPPED") {
-          console.info(`[AI Market Maker Delete] Engine confirmed market stopped`);
+          logger.info("AI_MM", `Delete: Engine confirmed market stopped`);
           break;
         }
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -128,9 +135,10 @@ export default async (data: Handler) => {
 
     // Update database status regardless
     await marketMaker.update({ status: "STOPPED" });
-    console.info(`[AI Market Maker Delete] Stopped market maker ${params.id}`);
+    logger.info("AI_MM", `Delete: Stopped market maker ${params.id}`);
   }
 
+  ctx?.step("Cancel open ecosystem orders");
   // ============================================
   // Step 2: Cancel any open ecosystem orders placed by bots
   // This returns locked funds back to the pool
@@ -167,26 +175,22 @@ export default async (data: Handler) => {
             }
           } else {
             // Promise itself rejected (shouldn't happen with our wrapper, but just in case)
-            console.warn(`[AI Market Maker Delete] Order cancellation promise rejected:`, result.reason);
+            logger.warn("AI_MM", `Delete: Order cancellation promise rejected: ${result.reason}`);
           }
         }
 
-        console.info(
-          `[AI Market Maker Delete] Cancelled ${ecosystemOrdersCancelled}/${totalOrdersFound} orders for ${symbol}`
-        );
+        logger.info("AI_MM", `Delete: Cancelled ${ecosystemOrdersCancelled}/${totalOrdersFound} orders for ${symbol}`);
 
         if (failedCancellations.length > 0) {
-          console.warn(
-            `[AI Market Maker Delete] Failed to cancel ${failedCancellations.length} orders:`,
-            failedCancellations.map((f) => f.orderId).join(", ")
-          );
+          logger.warn("AI_MM", `Delete: Failed to cancel ${failedCancellations.length} orders: ${failedCancellations.map((f) => f.orderId).join(", ")}`);
         }
       }
     } catch (error) {
-      console.error(`[AI Market Maker Delete] Failed to cancel orders:`, error);
+      logger.error("AI_MM", `Delete: Failed to cancel orders: ${error}`);
     }
   }
 
+  ctx?.step("Auto-withdraw pool balances to admin wallet");
   // ============================================
   // Step 3: Auto-withdraw all pool balances to admin wallet
   // ============================================
@@ -212,16 +216,12 @@ export default async (data: Handler) => {
             { where: { id: baseWallet.id } }
           );
           withdrawal.baseAmount = baseBalance;
-          console.info(
-            `[AI Market Maker Delete] Withdrawn ${baseBalance} ${market.currency} to admin wallet`
-          );
+          logger.info("AI_MM", `Delete: Withdrawn ${baseBalance} ${market.currency} to admin wallet`);
         } else {
-          console.warn(
-            `[AI Market Maker Delete] Admin wallet not found for ${market.currency}, funds will be lost`
-          );
+          logger.warn("AI_MM", `Delete: Admin wallet not found for ${market.currency}, funds will be lost`);
         }
       } catch (error) {
-        console.error(`[AI Market Maker Delete] Failed to withdraw base currency:`, error);
+        logger.error("AI_MM", `Delete: Failed to withdraw base currency: ${error}`);
       }
     }
 
@@ -236,20 +236,17 @@ export default async (data: Handler) => {
             { where: { id: quoteWallet.id } }
           );
           withdrawal.quoteAmount = quoteBalance;
-          console.info(
-            `[AI Market Maker Delete] Withdrawn ${quoteBalance} ${market.pair} to admin wallet`
-          );
+          logger.info("AI_MM", `Delete: Withdrawn ${quoteBalance} ${market.pair} to admin wallet`);
         } else {
-          console.warn(
-            `[AI Market Maker Delete] Admin wallet not found for ${market.pair}, funds will be lost`
-          );
+          logger.warn("AI_MM", `Delete: Admin wallet not found for ${market.pair}, funds will be lost`);
         }
       } catch (error) {
-        console.error(`[AI Market Maker Delete] Failed to withdraw quote currency:`, error);
+        logger.error("AI_MM", `Delete: Failed to withdraw quote currency: ${error}`);
       }
     }
   }
 
+  ctx?.step("Clean up ScyllaDB data");
   // ============================================
   // Step 4: Clean up ScyllaDB data
   // ============================================
@@ -265,11 +262,12 @@ export default async (data: Handler) => {
     try {
       cleanupStats = await cleanupMarketMakerData(ecosystemMarketId, symbol);
     } catch (error) {
-      console.error(`[AI Market Maker Delete] ScyllaDB cleanup failed:`, error);
+      logger.error("AI_MM", `Delete: ScyllaDB cleanup failed: ${error}`);
       // Continue with MySQL cleanup even if ScyllaDB cleanup fails
     }
   }
 
+  ctx?.step("Clean up MySQL data");
   // ============================================
   // Step 5: Clean up MySQL data in transaction
   // ============================================
@@ -342,6 +340,7 @@ export default async (data: Handler) => {
 
     await transaction.commit();
 
+    ctx?.success("AI Market Maker deleted successfully");
     return {
       message: "AI Market Maker deleted successfully",
       withdrawal: {

@@ -43,7 +43,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAdminOfferStore } from "@/store/ico/admin/admin-offer-store";
+import { useTranslations } from "next-intl";
 export function OfferingTimeline() {
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   // Use the timeline events directly from the store
   const { timeline = [], fetchCurrentOffer, offering } = useAdminOfferStore();
   const [activeTab, setActiveTab] = useState("all");
@@ -150,7 +154,7 @@ export function OfferingTimeline() {
           <div className="flex items-center gap-2 justify-between w-full">
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-muted-foreground" />
-              <span>Activity Timeline</span>
+              <span>{tCommon("activity_timeline")}</span>
             </div>
             <TooltipProvider>
               <Tooltip>
@@ -164,7 +168,7 @@ export function OfferingTimeline() {
                     <RefreshCw className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Refresh timeline</TooltipContent>
+                <TooltipContent>{t("refresh_timeline")}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
@@ -199,7 +203,7 @@ export function OfferingTimeline() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setActiveTab("all")}>
-                  All Events
+                  {t("all_events")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setActiveTab("submission")}>
                   Submissions
@@ -367,7 +371,7 @@ export function OfferingTimeline() {
                           >
                             <div className="rounded-md bg-muted/50 p-3">
                               <div className="text-xs text-muted-foreground mb-1">
-                                Full Details:
+                                {t("full_details_1")}:
                               </div>
                               <p className="text-sm">{event.details}</p>
                               <div className="flex flex-wrap gap-2 mt-3">
@@ -375,10 +379,10 @@ export function OfferingTimeline() {
                                   ID: {event.id}
                                 </div>
                                 <div className="text-xs bg-muted rounded px-2 py-1">
-                                  Offering: {event.offeringName}
+                                  {tExt("offering")}: {event.offeringName}
                                 </div>
                                 <div className="text-xs bg-muted rounded px-2 py-1">
-                                  Time: {formatDate(event.timestamp)}
+                                  {tCommon("time")}: {formatDate(event.timestamp)}
                                 </div>
                               </div>
                             </div>
@@ -396,7 +400,7 @@ export function OfferingTimeline() {
               <div className="rounded-full bg-muted p-3 mb-3">
                 <AlertTriangle className="h-6 w-6 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-medium">No events found</h3>
+              <h3 className="text-lg font-medium">{t("no_events_found")}</h3>
               <p className="text-sm text-muted-foreground mt-1">
                 {activeTab === "all"
                   ? "There are no timeline events for this offering yet."
@@ -408,7 +412,7 @@ export function OfferingTimeline() {
                 className="mt-4"
                 onClick={() => setActiveTab("all")}
               >
-                View all events
+                {t("view_all_events")}
               </Button>
             </div>
           )}

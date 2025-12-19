@@ -128,6 +128,7 @@ const ActiveMarketTab = memo(({
   isDarkTheme: boolean;
 }) => {
   const t = useTranslations("common");
+  const tBinaryComponents = useTranslations("binary_components");
   
   const symbol = market.symbol;
   const baseCurrency = extractBaseCurrency(symbol);
@@ -218,6 +219,7 @@ const MarketCard = memo(({
   index: number;
 }) => {
   const t = useTranslations("common");
+  const tBinaryComponents = useTranslations("binary_components");
   const symbol = market.symbol || `${market.currency}${market.pair}`;
   
   const formatPrice = (price: number) => {
@@ -275,7 +277,7 @@ const MarketCard = memo(({
               <div
                 className={`text-xs font-medium ${isDarkTheme ? "text-zinc-400" : "text-zinc-500"}`}
               >
-                {t("binary_options")}
+                {tBinaryComponents("binary_options")}
               </div>
             </div>
           </div>
@@ -362,7 +364,7 @@ const MarketCard = memo(({
                 : "bg-zinc-100 text-zinc-800 hover:bg-zinc-200 border border-zinc-300"
           } hover:scale-105 active:scale-95`}
         >
-          {isAlreadyAdded ? t("select") : t("add_to_trading")}
+          {isAlreadyAdded ? t("select") : tBinaryComponents("add_to_trading")}
         </button>
       </div>
     </motion.div>
@@ -396,6 +398,7 @@ export default function MarketSelector({
   handleMarketSelect,
 }: MarketSelectorProps) {
   const t = useTranslations("common");
+  const tBinaryComponents = useTranslations("binary_components");
   // Use the binary store
   const {
     activeMarkets: storeActiveMarkets,
@@ -832,7 +835,7 @@ export default function MarketSelector({
                   }`}
                 >
                   <TrendingUp size={10} className="mr-1" />
-                  {t("Trending")}
+                  {t("trending")}
                 </span>
               )}
               {market.isHot && (
@@ -844,7 +847,7 @@ export default function MarketSelector({
                   }`}
                 >
                   <Flame size={10} className="mr-1" />
-                  {t("Hot")}
+                  {t("hot")}
                 </span>
               )}
             </div>
@@ -1013,13 +1016,13 @@ export default function MarketSelector({
                   <h2
                     className={`text-2xl font-bold ${isDarkTheme ? "text-white" : "text-zinc-800"}`}
                   >
-                    {t("Discover")}{" "}
-                    <span className="text-[#F7941D]">{t("Markets")}</span>
+                    {t("discover")}{" "}
+                    <span className="text-[#F7941D]">{t("markets")}</span>
                   </h2>
                   <p
                     className={`text-sm ${isDarkTheme ? "text-zinc-400" : "text-zinc-600"}`}
                   >
-                    {t("add_new_trading_pairs_to_your_workspace")}
+                    {tBinaryComponents("add_new_trading_pairs_to_your_workspace")}
                   </p>
                 </div>
               </div>
@@ -1039,7 +1042,7 @@ export default function MarketSelector({
                   />
                   <input
                     type="text"
-                    placeholder="Search markets, symbols, or pairs..."
+                    placeholder={tBinaryComponents("search_markets_symbols_or_pairs_ellipsis")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className={`w-full pl-12 pr-4 py-4 bg-transparent ${
@@ -1175,7 +1178,7 @@ export default function MarketSelector({
                   <p
                     className={`${isDarkTheme ? "text-zinc-400" : "text-gray-600"}`}
                   >
-                    {t("try_adjusting_your_different_categories")}
+                    {tBinaryComponents("try_adjusting_your_different_categories")}
                   </p>
                 </motion.div>
               )}
@@ -1189,7 +1192,7 @@ export default function MarketSelector({
                 <div
                   className={`text-sm ${isDarkTheme ? "text-zinc-400" : "text-gray-600"}`}
                 >
-                  {filteredMarkets.length} {t("markets_available")}
+                  {filteredMarkets.length} {tBinaryComponents("markets_available")}
                 </div>
                 <div className="flex space-x-2">
                   <motion.button
@@ -1210,7 +1213,7 @@ export default function MarketSelector({
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setShowAddModal(false)}
                   >
-                    {t("Done")}
+                    {t("done")}
                   </motion.button>
                 </div>
               </div>

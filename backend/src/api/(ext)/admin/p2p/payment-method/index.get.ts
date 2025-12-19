@@ -21,7 +21,7 @@ export const metadata: OperationObject = {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -38,14 +38,20 @@ export const metadata: OperationObject = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "ADMIN_P2P",
+  logTitle: "Get P2P Payment Methods",
   permission: "view.p2p.payment_method",
+  demoMask: ["items.user.email"],
 };
 
 export default async (data: Handler) => {
-  const { query, user } = data;
-  if (!user?.id)
+  const { query, user, ctx } = data;
+  
+  ctx?.step("Fetching data");
+    if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
+    ctx?.success("Operation completed successfully");
   return getFiltered({
     model: models.p2pPaymentMethod,
     query,

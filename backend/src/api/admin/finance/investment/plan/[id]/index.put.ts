@@ -5,6 +5,8 @@ export const metadata = {
   summary: "Updates a specific Investment Plan",
   operationId: "updateInvestmentPlan",
   tags: ["Admin", "Investment Plans"],
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Investment Plan",
   parameters: [
     {
       index: 0,
@@ -31,7 +33,7 @@ export const metadata = {
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     name,
@@ -53,6 +55,8 @@ export default async (data) => {
     walletType,
   } = body;
 
+  ctx?.step("Preparing investment plan update", { id, name, title });
+
   const relations = durations
     ? [
         {
@@ -67,7 +71,13 @@ export default async (data) => {
       ]
     : [];
 
-  return await updateRecord(
+  if (durations) {
+    ctx?.step("Updating plan durations", { durationsCount: durations.length });
+  }
+
+  ctx?.step("Updating investment plan");
+
+  const result = await updateRecord(
     "investmentPlan",
     id,
     {
@@ -91,4 +101,7 @@ export default async (data) => {
     undefined,
     relations
   );
+
+  ctx?.success("Investment plan updated successfully");
+  return result;
 };

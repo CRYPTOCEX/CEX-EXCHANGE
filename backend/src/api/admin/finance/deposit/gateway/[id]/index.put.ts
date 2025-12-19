@@ -30,10 +30,12 @@ export const metadata = {
   responses: updateRecordResponses("Deposit Gateway"),
   requiresAuth: true,
   permission: "edit.deposit.gateway",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update deposit gateway",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     title,
@@ -48,8 +50,10 @@ export default async (data: Handler) => {
     status,
   } = body;
 
+  ctx?.step("Fetching deposit gateway record");
+
   // Ensure currencies is properly formatted as an array
-  const formattedCurrencies = Array.isArray(currencies) ? currencies : 
+  const formattedCurrencies = Array.isArray(currencies) ? currencies :
     (typeof currencies === 'string' ? currencies.split(',').map(c => c.trim()) : null);
 
   // Ensure fee and limit values are properly formatted
@@ -60,7 +64,7 @@ export default async (data: Handler) => {
       // Try to parse as number first
       const parsed = parseFloat(value);
       if (!isNaN(parsed)) return parsed;
-      
+
       // If not a number, try to parse as JSON (for object strings)
       try {
         const jsonParsed = JSON.parse(value);
@@ -74,7 +78,8 @@ export default async (data: Handler) => {
     return 0;
   };
 
-  return await updateRecord("depositGateway", id, {
+  ctx?.step("Updating deposit gateway");
+  const result = await updateRecord("depositGateway", id, {
     title,
     description,
     image,
@@ -86,4 +91,7 @@ export default async (data: Handler) => {
     maxAmount: formatFeeValue(maxAmount),
     status,
   });
+
+  ctx?.success("Deposit gateway updated successfully");
+  return result;
 };

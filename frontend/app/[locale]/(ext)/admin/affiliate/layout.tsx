@@ -1,53 +1,28 @@
 "use client";
 
 import type { ReactNode } from "react";
-
-import Footer from "@/components/partials/footer";
-import { usePathname } from "@/i18n/routing";
 import SiteHeader from "@/components/partials/header/site-header";
+import Footer from "@/components/partials/footer";
+import { menu, colorSchema } from "./menu";
+import { usePathname } from "@/i18n/routing";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default function AdminAffiliateLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const pathname = usePathname();
+  const isSettingsPage = pathname.endsWith("/settings");
 
-  const menuItems: MenuItem[] = [
-    {
-      key: "dashboard",
-      title: "Dashboard",
-      href: "/admin/affiliate",
-      icon: "lucide:layout-dashboard",
-    },
-    {
-      key: "referrals",
-      title: "Referrals",
-      href: "/admin/affiliate/referral",
-      icon: "lucide:user-plus",
-    },
-    {
-      key: "conditions",
-      title: "Conditions",
-      href: "/admin/affiliate/condition",
-      icon: "lucide:bar-chart-3",
-    },
-    {
-      key: "rewards",
-      title: "Rewards",
-      href: "/admin/affiliate/reward",
-      icon: "lucide:trophy",
-    },
-    {
-      key: "settings",
-      title: "Settings",
-      href: "/admin/affiliate/settings",
-      icon: "lucide:settings",
-    },
-  ];
+  // Full-screen layout for settings page
+  if (isSettingsPage) {
+    return <>{children}</>;
+  }
 
   return (
     <>
-      <SiteHeader title="Affiliate" menu={menuItems} />
-      <main className="flex-1 mx-auto container space-y-8 py-30">
-        {children}
-      </main>
+      <SiteHeader menu={menu} colorSchema={colorSchema} userPath="/affiliate" />
+      <main className="flex-1 mx-auto">{children}</main>
       <Footer />
     </>
   );

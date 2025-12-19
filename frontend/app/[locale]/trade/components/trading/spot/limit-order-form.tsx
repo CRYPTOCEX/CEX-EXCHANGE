@@ -29,7 +29,8 @@ export default function LimitOrderForm({
   takerFee = 0.001,
   makerFee = 0.001,
 }: OrderFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tTradeComponents = useTranslations("trade_components");
   const [price, setPrice] = useState(marketPrice);
   const [amount, setAmount] = useState("");
   const [total, setTotal] = useState("");
@@ -291,7 +292,7 @@ export default function LimitOrderForm({
           )}
           onClick={() => setBuyMode(true)}
         >
-          {t("Buy")}
+          {t("buy")}
         </Button>
         <Button
           className={cn(
@@ -302,14 +303,14 @@ export default function LimitOrderForm({
           )}
           onClick={() => setBuyMode(false)}
         >
-          {t("Sell")}
+          {t("sell")}
         </Button>
       </div>
 
       <div className="space-y-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-muted-foreground dark:text-zinc-400">
-            {t("Price")}
+            {t("price")}
           </label>
           <div className="flex items-center space-x-1">
             <button
@@ -370,7 +371,7 @@ export default function LimitOrderForm({
 
       <div className="space-y-1">
         <label className="text-xs font-medium text-muted-foreground dark:text-zinc-400">
-          {t("Amount")}
+          {t("amount")}
         </label>
         <div className="relative">
           <input
@@ -395,7 +396,7 @@ export default function LimitOrderForm({
 
       <div className="space-y-1">
         <label className="text-xs font-medium text-muted-foreground dark:text-zinc-400">
-          {t("Total")}
+          {t("total")}
         </label>
         <div className="relative">
           <input
@@ -416,7 +417,7 @@ export default function LimitOrderForm({
       {/* Fee Display */}
       {amount && price && Number(amount) > 0 && (
         <div className="flex items-center justify-between px-1 py-0.5 text-[10px] text-muted-foreground dark:text-zinc-500">
-          <span>{t("est_fee")} ({(takerFee * 100).toFixed(2)}%):</span>
+          <span>{tTradeComponents("est_fee")} ({(takerFee * 100).toFixed(2)}%):</span>
           <span>
             {(Number(price.replace(/,/g, "")) * Number(amount) * takerFee).toFixed(pricePrecision)} {pair}
           </span>
@@ -443,7 +444,7 @@ export default function LimitOrderForm({
           {isSubmitting ? (
             <span className="flex items-center">
               <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-              {t("Processing")}.
+              {t("processing")}.
             </span>
           ) : (
             <span className="flex items-center justify-center">

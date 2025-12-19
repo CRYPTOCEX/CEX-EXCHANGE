@@ -30,7 +30,9 @@ interface CreatedKeys {
 }
 
 export default function CreateApiKeyClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_gateway");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { mode } = useMerchantMode();
   const [creating, setCreating] = useState(false);
@@ -77,7 +79,7 @@ export default function CreateApiKeyClient() {
   // Show created keys page
   if (createdKeys) {
     return (
-      <div className="space-y-6 max-w-2xl mx-auto">
+      <div className="space-y-6 container mx-auto pt-24 pb-12">
         {/* Success Header */}
         <div className="text-center space-y-4 py-6">
           <div className="inline-flex p-4 rounded-full bg-emerald-500/10">
@@ -94,7 +96,7 @@ export default function CreateApiKeyClient() {
         <Alert variant="destructive" className="border-red-500/50 bg-red-500/5">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            <strong>{t("Important")}:</strong> {t("copy_your_secret_key_now_and_store_it_securely")} {t("you_wont_be_able_to_see")}
+            <strong>{tExt("important")}:</strong> {t("copy_your_secret_key_now_and_store_it_securely")} {t("you_wont_be_able_to_see")}
           </AlertDescription>
         </Alert>
 
@@ -105,7 +107,7 @@ export default function CreateApiKeyClient() {
                 <Key className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <CardTitle>{t("your_api_keys")}</CardTitle>
+                <CardTitle>{tCommon("your_api_keys")}</CardTitle>
                 <CardDescription>{t("use_these_keys_to_integrate_with_your_application")}</CardDescription>
               </div>
             </div>
@@ -195,7 +197,7 @@ export default function CreateApiKeyClient() {
               <div className="flex items-start gap-3">
                 <ShieldCheck className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">{t("security_best_practices")}</p>
+                  <p className="text-sm font-medium">{tExt("security_best_practices")}</p>
                   <ul className="text-xs text-muted-foreground space-y-1">
                     <li>{t("store_secret_keys_in_environment_variables")}</li>
                     <li>{t("never_log_or_expose_secret_keys_in_error_messages")}</li>
@@ -212,7 +214,7 @@ export default function CreateApiKeyClient() {
           <Link href="/gateway/settings?tab=api-keys" className="flex-1">
             <Button variant="outline" className="w-full">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {t("back_to_settings")}
+              {tExt("back_to_settings")}
             </Button>
           </Link>
           <Button
@@ -232,7 +234,7 @@ export default function CreateApiKeyClient() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="container mx-auto pt-24 pb-12">
       <div className="mb-6">
         <div className="flex items-center gap-4">
           <Link href="/gateway/settings?tab=api-keys">
@@ -241,9 +243,9 @@ export default function CreateApiKeyClient() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">{t("create_api_key")}</h1>
+            <h1 className="text-2xl font-bold">{tCommon("create_api_key")}</h1>
             <p className="text-muted-foreground">
-              {t("create_a_new")} {mode === "LIVE" ? "live" : "test"} API key pair for your integration
+              {tCommon("create_a_new")} {mode === "LIVE" ? "live" : "test"} API key pair for your integration
             </p>
           </div>
         </div>

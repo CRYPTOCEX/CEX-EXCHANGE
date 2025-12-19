@@ -14,7 +14,8 @@ export function PricingSettings({
   settings,
   onSettingChange,
 }: SettingsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const moveFeature = (index: number, direction: "up" | "down") => {
     if (!settings.features) return;
     const features = [...settings.features];
@@ -32,7 +33,7 @@ export function PricingSettings({
       <div className="grid grid-cols-2 gap-3">
         <LabeledInput
           id="planName"
-          label="Plan Name"
+          label={tCommon("plan_name")}
           value={settings.planName || "Basic Plan"}
           onChange={(e) => onSettingChange("planName", e.target.value)}
           className="h-8 text-sm"
@@ -57,7 +58,7 @@ export function PricingSettings({
       </div>
       <div className="space-y-1">
         <div className="flex items-center justify-between mb-1">
-          <Label className="text-xs font-medium">{t("Features")}</Label>
+          <Label className="text-xs font-medium">{tCommon("features")}</Label>
           <Button
             size="sm"
             variant="outline"

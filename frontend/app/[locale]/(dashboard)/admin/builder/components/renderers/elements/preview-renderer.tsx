@@ -271,9 +271,9 @@ const renderFeature = (element: Element) => {
   );
 };
 
-// Main element renderer function
-export function renderElement(element: Element) {
-  const t = useTranslations("dashboard");
+// Component for rendering an element
+const ElementRenderer = ({ element }: { element: Element }) => {
+  const t = useTranslations("dashboard_admin");
   if (!element) return null;
 
   switch (element.type) {
@@ -298,9 +298,14 @@ export function renderElement(element: Element) {
         <div className="p-4 border border-dashed border-gray-300 rounded bg-gray-50 text-center">
           <p className="text-sm text-gray-500">
             {element.type}
-            {t("element_(preview_not_available)")}
+            {t("element_preview_not_available")}
           </p>
         </div>
       );
   }
+};
+
+// Main element renderer function (wrapper for backward compatibility)
+export function renderElement(element: Element) {
+  return <ElementRenderer element={element} />;
 }

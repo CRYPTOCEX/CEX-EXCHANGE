@@ -1,15 +1,24 @@
 // /api/admin/mailwizard/templates/store.post.ts
 
-import { storeRecord, storeRecordResponses } from "@b/utils/query";
+import { storeRecord } from "@b/utils/query";
+import {
+  badRequestResponse,
+  unauthorizedResponse,
+  conflictResponse,
+  serverErrorResponse,
+  singleItemResponse,
+} from "@b/utils/schema/errors";
 import {
   mailwizardTemplateCreateSchema,
-  mailwizardTemplateStoreSchema,
+  mailwizardTemplateSchema,
 } from "./utils";
 
 export const metadata = {
-  summary: "Stores a new Mailwizard Template",
-  operationId: "storeMailwizardTemplate",
-  tags: ["Admin", "Mailwizard Templates"],
+  summary: "Import a Mailwizard template",
+  operationId: "importMailwizardTemplate",
+  tags: ["Admin", "Mailwizard", "Templates"],
+  description:
+    "Imports a new Mailwizard email template with content and design configuration. This endpoint is used to import pre-designed templates with both HTML content and visual design data.",
   requestBody: {
     required: true,
     content: {
@@ -18,19 +27,31 @@ export const metadata = {
       },
     },
   },
-  responses: storeRecordResponses(
-    mailwizardTemplateStoreSchema,
-    "Mailwizard Template"
-  ),
+  responses: {
+    200: singleItemResponse(
+      {
+        type: "object",
+        properties: mailwizardTemplateSchema,
+      },
+      "Mailwizard template imported successfully"
+    ),
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    409: conflictResponse("Mailwizard Template"),
+    500: serverErrorResponse,
+  },
   requiresAuth: true,
   permission: "create.mailwizard.template",
+  logModule: "ADMIN_MAIL",
+  logTitle: "Import template",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { name, content, design } = body;
 
-  return await storeRecord({
+  ctx?.step("Importing template");
+  const result = await storeRecord({
     model: "mailwizardTemplate",
     data: {
       name,
@@ -38,4 +59,7 @@ export default async (data: Handler) => {
       design,
     },
   });
+
+  ctx?.success("Template imported successfully");
+  return result;
 };

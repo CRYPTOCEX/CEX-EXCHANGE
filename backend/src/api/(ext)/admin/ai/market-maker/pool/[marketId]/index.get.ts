@@ -2,15 +2,17 @@ import { models } from "@b/db";
 import { aiMarketMakerPoolSchema } from "../../utils";
 import {
   unauthorizedResponse,
-  notFoundMetadataResponse,
+  notFoundResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+} from "@b/utils/schema/errors";
 import { createError } from "@b/utils/error";
 
 export const metadata: OperationObject = {
-  summary: "Get AI Market Maker pool status",
-  operationId: "getAiMarketMakerPool",
+  summary: "Get AI Market Maker pool details",
+  operationId: "getMarketMakerPool",
   tags: ["Admin", "AI Market Maker", "Pool"],
+  description:
+    "Retrieves detailed information about an AI Market Maker pool, including current balances, total value locked (TVL), and profit/loss summary. Returns pool status with market information and calculated P&L metrics.",
   parameters: [
     {
       index: 0,
@@ -23,7 +25,7 @@ export const metadata: OperationObject = {
   ],
   responses: {
     200: {
-      description: "Pool status and balances",
+      description: "Pool details retrieved successfully",
       content: {
         "application/json": {
           schema: {
@@ -32,15 +34,33 @@ export const metadata: OperationObject = {
               ...aiMarketMakerPoolSchema,
               market: {
                 type: "object",
-                description: "Market information",
+                description: "Associated ecosystem market information",
+              },
+              marketMakerStatus: {
+                type: "string",
+                description: "Current status of the market maker",
+                enum: ["ACTIVE", "PAUSED", "STOPPED"],
               },
               pnlSummary: {
                 type: "object",
+                description: "Profit and loss summary",
                 properties: {
-                  unrealizedPnL: { type: "number" },
-                  realizedPnL: { type: "number" },
-                  totalPnL: { type: "number" },
-                  pnlPercent: { type: "number" },
+                  unrealizedPnL: {
+                    type: "number",
+                    description: "Unrealized profit/loss",
+                  },
+                  realizedPnL: {
+                    type: "number",
+                    description: "Realized profit/loss",
+                  },
+                  totalPnL: {
+                    type: "number",
+                    description: "Total profit/loss (realized + unrealized)",
+                  },
+                  pnlPercent: {
+                    type: "string",
+                    description: "P&L as percentage of initial investment",
+                  },
                 },
               },
             },
@@ -49,15 +69,19 @@ export const metadata: OperationObject = {
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("AI Market Maker Pool"),
+    404: notFoundResponse("AI Market Maker Pool"),
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "ADMIN_AI",
+  logTitle: "Get Market Maker Pool",
   permission: "view.ai.market-maker.pool",
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
+
+  ctx?.step("Get Market Maker Pool");
 
   const marketMaker = await models.aiMarketMaker.findByPk(params.marketId, {
     include: [
@@ -89,6 +113,7 @@ export default async (data: Handler) => {
     Number(pool.initialBaseBalance) + Number(pool.initialQuoteBalance);
   const pnlPercent = initialValue > 0 ? (totalPnL / initialValue) * 100 : 0;
 
+  ctx?.success("Get Market Maker Pool retrieved successfully");
   return {
     ...pool.toJSON(),
     market: marketMaker.market,

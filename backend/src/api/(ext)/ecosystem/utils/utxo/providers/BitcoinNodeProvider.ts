@@ -7,7 +7,7 @@
 import { IUTXOProvider, UTXOTransaction, UTXOTransactionDetails, UTXO, UTXOInput, UTXOOutput } from './IUTXOProvider';
 import { BitcoinNodeService } from '../btc-node';
 import { BitcoinZMQService } from '../btc-zmq';
-import { logError } from '@b/utils/logger';
+import { logger } from '@b/utils/console';
 
 export class BitcoinNodeProvider implements IUTXOProvider {
   private nodeService: BitcoinNodeService;
@@ -28,9 +28,9 @@ export class BitcoinNodeProvider implements IUTXOProvider {
     if (process.env.BTC_ZMQ_RAWTX) {
       try {
         this.zmqService = await BitcoinZMQService.getInstance();
-        console.log('[BTC_NODE_PROVIDER] ZMQ service initialized');
+        logger.success("BTC_NODE_PROVIDER", "ZMQ service initialized");
       } catch (error) {
-        console.warn('[BTC_NODE_PROVIDER] ZMQ service failed to initialize, falling back to polling:', error.message);
+        logger.warn("BTC_NODE_PROVIDER", `ZMQ service failed to initialize, falling back to polling: ${error.message}`);
       }
     }
   }
@@ -65,7 +65,7 @@ export class BitcoinNodeProvider implements IUTXOProvider {
         confirmations: tx.confirmations || 0,
       }));
     } catch (error) {
-      logError('bitcoin_node_fetch_transactions', error, __filename);
+      logger.error("BTC_NODE_PROVIDER", "Failed to fetch transactions", error);
       return [];
     }
   }
@@ -134,7 +134,7 @@ export class BitcoinNodeProvider implements IUTXOProvider {
         outputs: outputs,
       };
     } catch (error) {
-      logError('bitcoin_node_fetch_transaction', error, __filename);
+      logger.error("BTC_NODE_PROVIDER", "Failed to fetch transaction", error);
       return null;
     }
   }
@@ -148,7 +148,7 @@ export class BitcoinNodeProvider implements IUTXOProvider {
       const tx = await this.nodeService.getRawTransaction(txHash, false);
       return tx;
     } catch (error) {
-      logError('bitcoin_node_fetch_raw_transaction', error, __filename);
+      logger.error("BTC_NODE_PROVIDER", "Failed to fetch raw transaction", error);
       throw error;
     }
   }
@@ -162,7 +162,7 @@ export class BitcoinNodeProvider implements IUTXOProvider {
       const balanceBTC = await this.nodeService.getAddressBalance(address);
       return balanceBTC * 100000000; // Convert BTC to satoshis
     } catch (error) {
-      logError('bitcoin_node_get_balance', error, __filename);
+      logger.error("BTC_NODE_PROVIDER", "Failed to get balance", error);
       return 0;
     }
   }
@@ -183,7 +183,7 @@ export class BitcoinNodeProvider implements IUTXOProvider {
         script: utxo.scriptPubKey,
       }));
     } catch (error) {
-      logError('bitcoin_node_get_utxos', error, __filename);
+      logger.error("BTC_NODE_PROVIDER", "Failed to get UTXOs", error);
       return [];
     }
   }
@@ -201,7 +201,7 @@ export class BitcoinNodeProvider implements IUTXOProvider {
         txid: txid,
       };
     } catch (error) {
-      logError('bitcoin_node_broadcast_transaction', error, __filename);
+      logger.error("BTC_NODE_PROVIDER", "Failed to broadcast transaction", error);
       return {
         success: false,
         txid: null,
@@ -226,7 +226,7 @@ export class BitcoinNodeProvider implements IUTXOProvider {
 
       return 1; // Default 1 sat/byte
     } catch (error) {
-      logError('bitcoin_node_get_fee_rate', error, __filename);
+      logger.error("BTC_NODE_PROVIDER", "Failed to get fee rate", error);
       return 1;
     }
   }

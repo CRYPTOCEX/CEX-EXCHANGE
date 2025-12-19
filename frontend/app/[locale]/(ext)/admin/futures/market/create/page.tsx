@@ -13,6 +13,7 @@ import FuturesMetadataStep from "@/app/[locale]/(ext)/admin/futures/market/compo
 import FuturesFeesStep from "@/app/[locale]/(ext)/admin/futures/market/components/step-3";
 import Stepper from "@/components/ui/stepper";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 /* ----------------- Types and Initial Values ----------------- */
 
@@ -65,7 +66,8 @@ const initialFormValues: FuturesMarketForm = {
 const TOTAL_STEPS = 3;
 
 const CreateFuturesMarket = () => {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [formData, setFormData] =
     useState<FuturesMarketForm>(initialFormValues);
@@ -165,7 +167,7 @@ const CreateFuturesMarket = () => {
 
   return (
     <div
-      className="p-5 space-y-6"
+      className={`container ${PAGE_PADDING} space-y-6`}
       onKeyDown={(e) => {
         if (e.key === "Enter" && step < TOTAL_STEPS) {
           e.preventDefault();
@@ -177,7 +179,7 @@ const CreateFuturesMarket = () => {
         <Link href="/admin/ecosystem/token">
           <Button variant="outline">
             <Icon icon="akar-icons:arrow-left" className="mr-2" />
-            {t("Back")}
+            {tCommon("back")}
           </Button>
         </Link>
       </div>
@@ -190,6 +192,7 @@ const CreateFuturesMarket = () => {
         onNext={nextStep}
         onSubmit={handleFinalSubmit}
         isSubmitting={isSubmitting}
+        showStepDescription={true}
       >
         {step === 1 && (
           <FuturesBasicInfoStep

@@ -3,7 +3,9 @@ import { updateRecordResponses, updateStatus } from "@b/utils/query";
 export const metadata: OperationObject = {
   summary: "Bulk updates the status of ecommerce discounts",
   operationId: "bulkUpdateEcommerceDiscountStatus",
-  tags: ["Admin", "Ecommerce Discounts"],
+  description:
+    "Updates the active/inactive status of multiple ecommerce discounts simultaneously. This allows enabling or disabling multiple discount codes in a single operation. Inactive discounts cannot be used by customers during checkout.",
+  tags: ["Admin", "Ecommerce", "Discount"],
   requestBody: {
     required: true,
     content: {
@@ -30,10 +32,19 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Ecommerce Discount"),
   requiresAuth: true,
   permission: "edit.ecommerce.discount",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Bulk update discount status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("ecommerceDiscount", ids, status);
+
+  ctx?.step(`Validating ${ids.length} discount IDs`);
+  ctx?.step(`Updating status to ${status} for ${ids.length} discounts`);
+
+  const result = await updateStatus("ecommerceDiscount", ids, status);
+
+  ctx?.success(`Successfully updated status for ${ids.length} discounts`);
+  return result;
 };

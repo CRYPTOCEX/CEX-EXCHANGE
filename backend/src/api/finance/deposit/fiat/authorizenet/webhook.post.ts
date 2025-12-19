@@ -8,6 +8,7 @@ import {
   verifyWebhookSignature,
   AuthorizeNetWebhookPayload,
 } from "./utils";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Handle Authorize.Net webhook notifications",
@@ -15,6 +16,8 @@ export const metadata: OperationObject = {
     "Processes Authorize.Net webhook notifications for payment events including authorizations, captures, refunds, and cancellations.",
   operationId: "handleAuthorizeNetWebhook",
   tags: ["Finance", "Webhook"],
+  logModule: "WEBHOOK",
+  logTitle: "AuthorizeNet webhook",
   requiresAuth: false,
   requestBody: {
     required: true,
@@ -91,7 +94,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, headers } = data;
+  const { body, headers, ctx } = data;
 
   try {
     // Verify webhook signature if signature key is configured
@@ -107,7 +110,7 @@ export default async (data: Handler) => {
       );
 
       if (!isValidSignature) {
-        console.error("Invalid Authorize.Net webhook signature");
+        logger.error("AUTH_NET", "Invalid webhook signature");
         return {
           status: 400,
           body: { error: "Invalid webhook signature" },
@@ -118,11 +121,7 @@ export default async (data: Handler) => {
     const webhookData = body as AuthorizeNetWebhookPayload;
     const { eventType, payload: eventPayload } = webhookData;
 
-    console.log(`Processing Authorize.Net webhook: ${eventType}`, {
-      notificationId: webhookData.notificationId,
-      entityName: eventPayload.entityName,
-      id: eventPayload.id,
-    });
+    logger.info("AUTH_NET", `Processing webhook: ${eventType} | notificationId: ${webhookData.notificationId}, id: ${eventPayload.id}`);
 
     // Handle different event types
     switch (eventType) {
@@ -151,7 +150,7 @@ export default async (data: Handler) => {
         break;
 
       default:
-        console.log(`Unhandled Authorize.Net webhook event type: ${eventType}`);
+        logger.info("AUTH_NET", `Unhandled webhook event type: ${eventType}`);
         break;
     }
 
@@ -161,7 +160,7 @@ export default async (data: Handler) => {
     };
 
   } catch (error) {
-    console.error("Authorize.Net webhook processing error:", error);
+    logger.error("AUTH_NET", "Webhook processing error", error);
     throw new Error(error instanceof Error ? error.message : "Failed to process webhook");
   }
 };
@@ -171,7 +170,7 @@ async function handleAuthorizationCreated(payload: any) {
   const { id: transactionId, merchantReferenceId, authAmount, responseCode } = payload;
 
   if (!merchantReferenceId) {
-    console.log("No merchant reference ID found in authorization webhook");
+    logger.info("AUTH_NET", "No merchant reference ID found in authorization webhook");
     return;
   }
 
@@ -180,7 +179,7 @@ async function handleAuthorizationCreated(payload: any) {
   });
 
   if (!transaction) {
-    console.log(`Transaction not found for reference ID: ${merchantReferenceId}`);
+    logger.info("AUTH_NET", `Transaction not found for reference ID: ${merchantReferenceId}`);
     return;
   }
 
@@ -201,7 +200,7 @@ async function handleAuthorizationCreated(payload: any) {
     }
   );
 
-  console.log(`Authorization ${responseCode === 1 ? "approved" : "declined"} for transaction ${merchantReferenceId}`);
+  logger.info("AUTH_NET", `Authorization ${responseCode === 1 ? "approved" : "declined"} for transaction ${merchantReferenceId}`);
 }
 
 // Handler for capture created events (payment completed)
@@ -209,7 +208,7 @@ async function handleCaptureCreated(payload: any) {
   const { id: transactionId, merchantReferenceId, authAmount, responseCode } = payload;
 
   if (!merchantReferenceId) {
-    console.log("No merchant reference ID found in capture webhook");
+    logger.info("AUTH_NET", "No merchant reference ID found in capture webhook");
     return;
   }
 
@@ -224,12 +223,12 @@ async function handleCaptureCreated(payload: any) {
   });
 
   if (!transaction) {
-    console.log(`Transaction not found for reference ID: ${merchantReferenceId}`);
+    logger.info("AUTH_NET", `Transaction not found for reference ID: ${merchantReferenceId}`);
     return;
   }
 
   if (transaction.status === "COMPLETED") {
-    console.log(`Transaction ${merchantReferenceId} already completed`);
+    logger.info("AUTH_NET", `Transaction ${merchantReferenceId} already completed`);
     return;
   }
 
@@ -254,7 +253,7 @@ async function handleCaptureCreated(payload: any) {
   });
 
   if (!currencyData) {
-    console.error(`Currency ${currency} not found`);
+    logger.error("AUTH_NET", `Currency ${currency} not found`);
     return;
   }
 
@@ -310,7 +309,7 @@ async function handleCaptureCreated(payload: any) {
           { transaction: dbTransaction }
         );
       } catch (profitError) {
-        console.error("Failed to record admin profit:", profitError);
+        logger.error("AUTH_NET", "Failed to record admin profit", profitError);
         // Continue without failing the transaction
       }
     }
@@ -331,10 +330,10 @@ async function handleCaptureCreated(payload: any) {
       );
     }
   } catch (emailError) {
-    console.error("Failed to send transaction email:", emailError);
+    logger.error("AUTH_NET", "Failed to send transaction email", emailError);
   }
 
-  console.log(`Payment captured for transaction ${merchantReferenceId}, amount: ${depositAmount} ${currency}`);
+  logger.success("AUTH_NET", `Payment captured for transaction ${merchantReferenceId}, amount: ${depositAmount} ${currency}`);
 }
 
 // Handler for refund created events
@@ -342,7 +341,7 @@ async function handleRefundCreated(payload: any) {
   const { id: refundId, merchantReferenceId, authAmount } = payload;
 
   if (!merchantReferenceId) {
-    console.log("No merchant reference ID found in refund webhook");
+    logger.info("AUTH_NET", "No merchant reference ID found in refund webhook");
     return;
   }
 
@@ -351,7 +350,7 @@ async function handleRefundCreated(payload: any) {
   });
 
   if (!transaction) {
-    console.log(`Transaction not found for reference ID: ${merchantReferenceId}`);
+    logger.info("AUTH_NET", `Transaction not found for reference ID: ${merchantReferenceId}`);
     return;
   }
 
@@ -371,7 +370,7 @@ async function handleRefundCreated(payload: any) {
     }
   );
 
-  console.log(`Refund processed for transaction ${merchantReferenceId}, amount: ${authAmount}`);
+  logger.info("AUTH_NET", `Refund processed for transaction ${merchantReferenceId}, amount: ${authAmount}`);
 }
 
 // Handler for void created events
@@ -379,7 +378,7 @@ async function handleVoidCreated(payload: any) {
   const { id: voidId, merchantReferenceId } = payload;
 
   if (!merchantReferenceId) {
-    console.log("No merchant reference ID found in void webhook");
+    logger.info("AUTH_NET", "No merchant reference ID found in void webhook");
     return;
   }
 
@@ -388,7 +387,7 @@ async function handleVoidCreated(payload: any) {
   });
 
   if (!transaction) {
-    console.log(`Transaction not found for reference ID: ${merchantReferenceId}`);
+    logger.info("AUTH_NET", `Transaction not found for reference ID: ${merchantReferenceId}`);
     return;
   }
 
@@ -407,7 +406,7 @@ async function handleVoidCreated(payload: any) {
     }
   );
 
-  console.log(`Transaction voided: ${merchantReferenceId}`);
+  logger.info("AUTH_NET", `Transaction voided: ${merchantReferenceId}`);
 }
 
 // Handler for fraud approved events
@@ -415,7 +414,7 @@ async function handleFraudApproved(payload: any) {
   const { merchantReferenceId } = payload;
 
   if (!merchantReferenceId) {
-    console.log("No merchant reference ID found in fraud approved webhook");
+    logger.info("AUTH_NET", "No merchant reference ID found in fraud approved webhook");
     return;
   }
 
@@ -424,7 +423,7 @@ async function handleFraudApproved(payload: any) {
   });
 
   if (!transaction) {
-    console.log(`Transaction not found for reference ID: ${merchantReferenceId}`);
+    logger.info("AUTH_NET", `Transaction not found for reference ID: ${merchantReferenceId}`);
     return;
   }
 
@@ -441,7 +440,7 @@ async function handleFraudApproved(payload: any) {
     }
   );
 
-  console.log(`Fraud check approved for transaction ${merchantReferenceId}`);
+  logger.info("AUTH_NET", `Fraud check approved for transaction ${merchantReferenceId}`);
 }
 
 // Handler for fraud declined events
@@ -449,7 +448,7 @@ async function handleFraudDeclined(payload: any) {
   const { merchantReferenceId } = payload;
 
   if (!merchantReferenceId) {
-    console.log("No merchant reference ID found in fraud declined webhook");
+    logger.info("AUTH_NET", "No merchant reference ID found in fraud declined webhook");
     return;
   }
 
@@ -458,7 +457,7 @@ async function handleFraudDeclined(payload: any) {
   });
 
   if (!transaction) {
-    console.log(`Transaction not found for reference ID: ${merchantReferenceId}`);
+    logger.info("AUTH_NET", `Transaction not found for reference ID: ${merchantReferenceId}`);
     return;
   }
 
@@ -477,5 +476,5 @@ async function handleFraudDeclined(payload: any) {
     }
   );
 
-  console.log(`Transaction declined by fraud detection: ${merchantReferenceId}`);
+  logger.warn("AUTH_NET", `Transaction declined by fraud detection: ${merchantReferenceId}`);
 } 

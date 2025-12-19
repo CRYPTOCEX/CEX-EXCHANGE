@@ -2,6 +2,7 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { Op, Sequelize } from "sequelize";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Get Unified Blog Dashboard Data",
@@ -78,16 +79,21 @@ export const metadata = {
     500: { description: "Internal Server Error" },
   },
   permission: "access.blog",
+  logModule: "ADMIN_BLOG",
+  logTitle: "Get blog dashboard stats",
 };
 
-export default async (data: { user?: any }) => {
-  const { user } = data;
+export default async (data: { user?: any; ctx?: any }) => {
+  const { user, ctx } = data;
+
+  ctx?.step("Validating user authorization");
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   try {
     // 1) Posts: counts & recent
+    ctx?.step("Fetching post statistics");
     const publishedCount = await models.post.count({
       where: { status: "PUBLISHED" },
     });
@@ -116,6 +122,7 @@ export default async (data: { user?: any }) => {
     });
 
     // 2) Authors: counts & recent pending
+    ctx?.step("Fetching author statistics");
     const approvedCount = await models.author.count({
       where: { status: "APPROVED" },
     });
@@ -136,6 +143,7 @@ export default async (data: { user?: any }) => {
     });
 
     // 3) Categories: total + top 5
+    ctx?.step("Fetching category statistics");
     const totalCategories = await models.category.count();
     const topCategories = await models.category.findAll({
       subQuery: false, // <--- IMPORTANT
@@ -160,6 +168,7 @@ export default async (data: { user?: any }) => {
     });
 
     // 4) Tags: total + top 10 by post count
+    ctx?.step("Fetching tag statistics");
     const totalTags = await models.tag.count();
     const topTags = await models.tag.findAll({
       subQuery: false,
@@ -184,6 +193,7 @@ export default async (data: { user?: any }) => {
     });
 
     // 5) Overall stats
+    ctx?.step("Calculating overall statistics");
     const totalComments = await models.comment.count();
     const totalReaders = 0; // or however you track readers
     const stats = {
@@ -192,6 +202,8 @@ export default async (data: { user?: any }) => {
       totalAuthors: approvedCount,
       totalReaders,
     };
+
+    ctx?.success("Dashboard statistics retrieved successfully");
 
     return {
       posts: {
@@ -215,7 +227,8 @@ export default async (data: { user?: any }) => {
       stats,
     };
   } catch (error) {
-    console.error("Error fetching dashboard data:", error);
+    ctx?.fail("Failed to fetch dashboard data");
+    logger.error("BLOG", "Error fetching dashboard data", error);
     throw createError({
       statusCode: 500,
       message: "Failed to fetch dashboard data",

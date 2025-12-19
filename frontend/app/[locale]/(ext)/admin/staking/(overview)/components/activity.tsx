@@ -66,7 +66,7 @@ export function getActivityColor(action: string) {
     case "reject":
       return "text-red-500 bg-red-500/20";
     case "distribute":
-      return "text-purple-500 bg-purple-500/20";
+      return "text-violet-500 bg-violet-500/20";
     default:
       return "text-gray-500 bg-gray-500/20";
   }
@@ -108,7 +108,8 @@ export default function AdminActivityList({
   adminActivities,
   isLoading,
 }: AdminActivityListProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
   return (
     <Card>
       <CardHeader>
@@ -127,7 +128,7 @@ export default function AdminActivityList({
         ) : adminActivities.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <Clock className="h-10 w-10 text-muted-foreground mb-2" />
-            <h3 className="font-medium">{t("no_activity_yet")}</h3>
+            <h3 className="font-medium">{tExt("no_activity_yet")}</h3>
             <p className="text-sm text-muted-foreground mt-1">
               {t("admin_actions_will_appear_here")}
             </p>

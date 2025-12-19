@@ -6,6 +6,8 @@ export const metadata = {
   operationId: "listAffiliateReferrals",
   tags: ["Affiliate", "Referral"],
   requiresAuth: true,
+  logModule: "AFFILIATE",
+  logTitle: "List affiliate referrals",
   parameters: [
     { name: "page", in: "query", required: false, schema: { type: "number" } },
     {
@@ -23,14 +25,18 @@ export const metadata = {
 };
 
 export default async function handler(data: Handler) {
-  const { user } = data;
+  const { user, ctx } = data;
+
   if (!user) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Validating and sanitizing pagination parameters");
   // Validate and sanitize pagination parameters to prevent DoS attacks
   const page = Math.max(1, Math.min(parseInt((data.query.page as string) || "1", 10) || 1, 1000));
   const perPage = Math.max(1, Math.min(parseInt((data.query.perPage as string) || "10", 10) || 10, 100));
 
+  ctx?.step(`Fetching referrals (page ${page}, ${perPage} per page)`);
   // fetch count + rows in one go
   const { count: totalItems, rows: referrals } =
     await models.mlmReferral.findAndCountAll({
@@ -47,6 +53,7 @@ export default async function handler(data: Handler) {
       limit: perPage,
     });
 
+  ctx?.success(`Retrieved ${referrals.length} referrals (total: ${totalItems})`);
   return {
     referrals,
     pagination: {

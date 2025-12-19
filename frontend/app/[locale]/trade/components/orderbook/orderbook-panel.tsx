@@ -50,7 +50,8 @@ export default function OrderBookPanel({
   currency,
   pair,
 }: OrderBookPanelProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("trade_components");
+  const tCommon = useTranslations("common");
   const { theme } = useNextTheme();
   const [currentSymbol, setCurrentSymbol] = useState<Symbol>(symbol);
   const [currentMarketType, setCurrentMarketType] =
@@ -850,7 +851,7 @@ export default function OrderBookPanel({
         {/* Header */}
         <div className="grid grid-cols-3 p-2 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-xs flex-shrink-0">
           <div className="text-zinc-600 dark:text-zinc-400 text-left font-medium">
-            Price ({quoteCurrency})
+            {tCommon("price")}{quoteCurrency})
           </div>
           <div className="text-zinc-600 dark:text-zinc-400 text-center font-medium">
             Amount
@@ -971,7 +972,7 @@ export default function OrderBookPanel({
             {t("order_book")}
           </TabTrigger>
           <TabTrigger value="trades" icon={<Clock className="h-3 w-3" />}>
-            {t("recent_trades")}
+            {tCommon("recent_trades")}
           </TabTrigger>
         </TabsList>
 
@@ -1109,10 +1110,10 @@ export default function OrderBookPanel({
               <div className="border-r border-zinc-200 dark:border-zinc-800 flex flex-col h-full overflow-hidden">
                 <div className="grid grid-cols-3 p-1 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-[10px] flex-shrink-0">
                   <div className="text-zinc-600 dark:text-zinc-400 text-center font-medium">
-                    {t("Price")} ({quoteCurrency})
+                    {tCommon("price")} ({quoteCurrency})
                   </div>
                   <div className="text-zinc-600 dark:text-zinc-400 text-center font-medium">
-                    {t("Amount")}
+                    {tCommon("amount")}
                   </div>
                   <div className="text-zinc-600 dark:text-zinc-400 text-center font-medium">
                     {showCumulativeVolume ? "Total" : "Value"}
@@ -1161,10 +1162,10 @@ export default function OrderBookPanel({
               <div className="flex flex-col h-full overflow-hidden">
                 <div className="grid grid-cols-3 p-1 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-[10px] flex-shrink-0">
                   <div className="text-zinc-600 dark:text-zinc-400 text-center font-medium">
-                    {t("Price")} ({quoteCurrency})
+                    {tCommon("price")} ({quoteCurrency})
                   </div>
                   <div className="text-zinc-600 dark:text-zinc-400 text-center font-medium">
-                    {t("Amount")}
+                    {tCommon("amount")}
                   </div>
                   <div className="text-zinc-600 dark:text-zinc-400 text-center font-medium">
                     {showCumulativeVolume ? "Total" : "Value"}
@@ -1218,13 +1219,13 @@ export default function OrderBookPanel({
         >
           <div className="grid grid-cols-3 p-1 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 flex-shrink-0">
             <div className="text-[10px] text-zinc-600 dark:text-zinc-400 text-center font-medium">
-              {t("Price")} ({quoteCurrency})
+              {tCommon("price")} ({quoteCurrency})
             </div>
             <div className="text-[10px] text-zinc-600 dark:text-zinc-400 text-center font-medium">
-              {t("Amount")}
+              {tCommon("amount")}
             </div>
             <div className="text-[10px] text-zinc-600 dark:text-zinc-400 text-center font-medium">
-              {t("Time")}
+              {tCommon("time")}
             </div>
           </div>
           <div className="overflow-y-auto flex-grow scrollbar-none">
@@ -1232,7 +1233,7 @@ export default function OrderBookPanel({
               <div className="flex items-center justify-center h-32 text-zinc-500 dark:text-zinc-500">
                 <div className="text-center">
                   <Clock className="h-5 w-5 mx-auto mb-2 opacity-30" />
-                  <p className="text-xs">{t("no_recent_trades")}</p>
+                  <p className="text-xs">{tCommon("no_recent_trades")}</p>
                 </div>
               </div>
             ) : (

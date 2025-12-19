@@ -22,7 +22,9 @@ export function TradeDisputeView({
   details,
   trade,
 }: TradeDisputeViewProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
 
   // Determine who filed the dispute
   const disputeFiledById = trade.disputeFiledBy || trade.dispute?.reportedById;
@@ -36,7 +38,7 @@ export function TradeDisputeView({
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
           <div>
-            <h3 className="font-medium text-red-800 dark:text-red-300">{t("dispute_reason")}</h3>
+            <h3 className="font-medium text-red-800 dark:text-red-300">{tExt("dispute_reason")}</h3>
             <p className="mt-1 text-red-800 dark:text-red-300">{reason}</p>
           </div>
         </div>
@@ -58,10 +60,10 @@ export function TradeDisputeView({
               href={`/admin/crm/user/${filedBy.id}`}
               className="text-primary hover:underline"
             >
-              {getFullName(filedBy)} ({filedByBuyer ? t("Buyer") : t("Seller")})
+              {getFullName(filedBy)} ({filedByBuyer ? tExt("buyer") : tCommon("seller")})
             </Link>
           ) : (
-            <span className="text-muted-foreground">{t("Unknown")}</span>
+            <span className="text-muted-foreground">{t("unknown")}</span>
           )}
         </div>
       </div>

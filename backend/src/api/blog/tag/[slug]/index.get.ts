@@ -58,8 +58,13 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
-  return getTag(params.slug, query.posts === "true");
+  const { params, query, ctx } = data;
+
+  ctx?.step(`Fetching tag ${params.slug}`);
+  const tag = await getTag(params.slug, query.posts === "true");
+
+  ctx?.success("Tag retrieved successfully");
+  return tag;
 };
 export async function getTag(
   slug: string,

@@ -22,7 +22,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 export function ExtensionTable() {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const { filteredExtensions, isLoading, error, toggleExtension, fetchExtensions } =
     useExtensionStore();
   if (error) {
@@ -111,13 +114,13 @@ export function ExtensionTable() {
                           </TooltipTrigger>
                           <TooltipContent>
                             <div className="text-sm">
-                              <div className="font-medium">New version available: {extension.licenseVersion}</div>
+                              <div className="font-medium">{t("new_version_available")}: {extension.licenseVersion}</div>
                               {extension.licenseSummary && (
                                 <div className="text-muted-foreground mt-1">{extension.licenseSummary}</div>
                               )}
                               {extension.licenseReleaseDate && (
                                 <div className="text-muted-foreground text-xs mt-1">
-                                  Released: {new Date(extension.licenseReleaseDate).toLocaleDateString()}
+                                  {tCommon("released")}: {new Date(extension.licenseReleaseDate).toLocaleDateString()}
                                 </div>
                               )}
                             </div>
@@ -144,8 +147,7 @@ export function ExtensionTable() {
                           </TooltipTrigger>
                           <TooltipContent>
                             <span className="text-xs">
-                              You need to activate and install the extension to
-                              the latest version before enabling it.
+                              {t("you_need_to_activate_and_install")}
                             </span>
                           </TooltipContent>
                         </Tooltip>
@@ -164,7 +166,7 @@ export function ExtensionTable() {
           }) : (
             <TableRow>
               <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                No extensions available
+                {t("no_extensions_available")}
               </TableCell>
             </TableRow>
           )}

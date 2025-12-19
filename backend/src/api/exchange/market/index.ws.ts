@@ -1,8 +1,8 @@
-import { logError } from "@b/utils/logger";
 import ExchangeManager from "@b/utils/exchange";
 import { messageBroker, hasClients } from "@b/handler/Websocket";
 import { saveBanStatus, loadBanStatus, handleExchangeError } from "@b/api/exchange/utils";
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 
 export const metadata = {};
 
@@ -204,20 +204,20 @@ class UnifiedMarketDataHandler {
               streamKey: originalLimit ? `orderbook:${originalLimit}` : 'orderbook' // Use original limit in stream key
             };
           } else {
-            console.warn(`[WARN] Invalid orderbook data structure for ${symbol}:`, orderbookResult);
+            logger.warn("EXCHANGE", `Invalid orderbook data structure for ${symbol}`);
             return {
               msg: { asks: [], bids: [], timestamp: Date.now(), symbol },
-              payload: { 
-                type: 'orderbook', 
+              payload: {
+                type: 'orderbook',
                 ...(originalLimit ? { limit: originalLimit } : {}),
-                symbol 
+                symbol
               },
               streamKey: originalLimit ? `orderbook:${originalLimit}` : 'orderbook'
             };
           }
         } catch (error) {
-          console.error(`[ERROR] watchOrderBook failed for ${symbol} (provider: ${provider}):`, error.message);
-          console.error(`[ERROR] Full error:`, error);
+          logger.error("EXCHANGE", `watchOrderBook failed for ${symbol} (provider: ${provider}): ${error.message}`);
+          logger.debug("EXCHANGE", `Full error: ${JSON.stringify(error)}`);
           throw error;
         }
       },
@@ -248,7 +248,7 @@ class UnifiedMarketDataHandler {
             try {
               return await this.fetchDataWithRetries(() => fetchDataMap[type]());
             } catch (error) {
-              console.error(`Error fetching ${type} data for ${symbol}:`, error);
+              logger.error("EXCHANGE", `Error fetching ${type} data for ${symbol}`, error);
               return null;
             }
           }
@@ -263,13 +263,13 @@ class UnifiedMarketDataHandler {
             const { msg, payload, streamKey } = result.value;
             this.accumulatedBuffer[streamKey] = { symbol, msg, payload };
           } else if (result.status === 'rejected') {
-            console.error(`[ERROR] Failed to fetch data for ${symbol}:`, result.reason);
+            logger.error("EXCHANGE", `Failed to fetch data for ${symbol}: ${result.reason}`);
           }
         });
 
         await new Promise((resolve) => setTimeout(resolve, 250));
       } catch (error) {
-        logError("exchange", error, __filename);
+        logger.error("EXCHANGE", "Error in unified subscription loop", error);
         const result = await handleExchangeError(error, ExchangeManager);
         if (typeof result === "number") {
           this.unblockTime = result;
@@ -281,7 +281,7 @@ class UnifiedMarketDataHandler {
       }
     }
 
-    console.log(`[INFO] Subscription loop ended for ${symbol}`);
+    logger.info("EXCHANGE", `Subscription loop ended for ${symbol}`);
     this.activeSubscriptions.delete(symbol);
   }
 
@@ -297,26 +297,26 @@ class UnifiedMarketDataHandler {
 
       // Validate that the symbol exists in the database and is enabled
       if (!symbol) {
-        console.warn("No symbol provided in subscription request");
+        logger.warn("EXCHANGE", "No symbol provided in subscription request");
         return;
       }
 
       const [currency, pair] = symbol.split("/");
       if (!currency || !pair) {
-        console.warn(`Invalid symbol format: ${symbol}. Expected format: CURRENCY/PAIR`);
+        logger.warn("EXCHANGE", `Invalid symbol format: ${symbol}. Expected format: CURRENCY/PAIR`);
         return;
       }
 
       const market = await models.exchangeMarket.findOne({
-        where: { 
-          currency, 
+        where: {
+          currency,
           pair,
           status: true // Only allow enabled markets
         }
       });
 
       if (!market) {
-        console.warn(`Market ${symbol} not found in database or is disabled. Skipping subscription.`);
+        logger.warn("EXCHANGE", `Market ${symbol} not found in database or is disabled. Skipping subscription.`);
         return;
       }
 
@@ -343,14 +343,14 @@ class UnifiedMarketDataHandler {
       };
 
       if (!this.exchange.has[typeMap[type]]) {
-        console.info(`Endpoint ${type} is not available`);
+        logger.info("EXCHANGE", `Endpoint ${type} is not available`);
         return;
       }
 
       // Special handling for KuCoin orderbook
       if (type === 'orderbook' && provider === 'kucoin') {
         if (!this.exchange.has['watchOrderBook']) {
-          console.warn(`KuCoin watchOrderBook not supported, skipping orderbook subscription for ${symbol}`);
+          logger.warn("EXCHANGE", `KuCoin watchOrderBook not supported, skipping orderbook subscription for ${symbol}`);
           return;
         }
       }
@@ -368,7 +368,7 @@ class UnifiedMarketDataHandler {
         this.activeSubscriptions.get(symbol)!.add(type);
       }
     } catch (error) {
-      logError("exchange", error, __filename);
+      logger.error("EXCHANGE", "Failed to add subscription to market data handler", error);
     }
   }
 
@@ -381,9 +381,9 @@ class UnifiedMarketDataHandler {
       // If no more data types for this symbol, remove the symbol entirely
       if (this.activeSubscriptions.get(symbol)!.size === 0) {
         this.activeSubscriptions.delete(symbol);
-        console.log(`Removed all subscriptions for ${symbol}`);
+        logger.debug("EXCHANGE", `Removed all subscriptions for ${symbol}`);
       } else {
-        console.log(`Removed ${type} subscription for ${symbol}. Remaining types:`, Array.from(this.activeSubscriptions.get(symbol)!));
+        logger.debug("EXCHANGE", `Removed ${type} subscription for ${symbol}. Remaining types: ${Array.from(this.activeSubscriptions.get(symbol)!)}`);
       }
     }
   }
@@ -408,7 +408,7 @@ export default async (data: Handler, message: any) => {
     try {
       parsedMessage = JSON.parse(message);
     } catch (error) {
-      logError("Invalid JSON message", error, __filename);
+      logger.error("EXCHANGE", "Invalid JSON message", error);
       return;
     }
   } else {
@@ -417,7 +417,7 @@ export default async (data: Handler, message: any) => {
 
   // Validate payload exists before destructuring
   if (!parsedMessage || !parsedMessage.payload) {
-    logError("Invalid message structure: payload is missing", new Error("Missing payload"), __filename);
+    logger.error("EXCHANGE", "Invalid message structure: payload is missing", new Error("Missing payload"));
     return;
   }
 
@@ -426,7 +426,7 @@ export default async (data: Handler, message: any) => {
 
   // Validate type exists
   if (!type) {
-    logError("Invalid message structure: type is missing", new Error("Missing type field"), __filename);
+    logger.error("EXCHANGE", "Invalid message structure: type is missing", new Error("Missing type field"));
     return;
   }
 
@@ -435,7 +435,7 @@ export default async (data: Handler, message: any) => {
   // Handle different actions
   if (action === "UNSUBSCRIBE") {
     if (!symbol) {
-      logError("Invalid unsubscribe message: symbol is missing", new Error("Missing symbol"), __filename);
+      logger.error("EXCHANGE", "Invalid unsubscribe message: symbol is missing", new Error("Missing symbol"));
       return;
     }
     await handler.removeSubscription(symbol, type);

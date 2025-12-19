@@ -1,52 +1,58 @@
+"use client";
+
 import React from "react";
 import { Activity, Coins, User, DollarSign, Calendar, Hash } from "lucide-react";
+import type { ColumnDefinition, FormConfig } from "@/components/blocks/data-table/types/table";
 
-export const columns = [
+import { useTranslations } from "next-intl";
+export function useColumns() {
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
+  const tExt = useTranslations("ext");
+  return [
   {
     key: "id",
-    title: "ID",
+    title: tCommon("id"),
     type: "text",
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "Unique activity identifier",
+    description: t("unique_identifier_for_this_blockchain_activity"),
     priority: 4,
-    editable: false,
-    usedInCreate: false,
     expandedOnly: true,
   },
   {
     key: "type",
-    title: "Activity Type",
+    title: t("activity_type"),
     type: "select",
     sortable: true,
     filterable: true,
-    editable: false,
-    usedInCreate: false,
     icon: Activity,
+    description: t("type_of_blockchain_event_mint_transfer"),
     options: [
-      { value: "MINT", label: "Mint", color: "green" },
-      { value: "TRANSFER", label: "Transfer", color: "blue" },
-      { value: "SALE", label: "Sale", color: "purple" },
-      { value: "LIST", label: "List", color: "orange" },
-      { value: "DELIST", label: "Delist", color: "red" },
-      { value: "BID", label: "Bid", color: "yellow" },
-      { value: "OFFER", label: "Offer", color: "cyan" },
-      { value: "BURN", label: "Burn", color: "gray" }
+      { value: "MINT", label: t("mint"), color: "success" },
+      { value: "TRANSFER", label: tCommon("transfer"), color: "blue" },
+      { value: "SALE", label: t("sale"), color: "purple" },
+      { value: "LIST", label: tDashboardAdmin("list"), color: "warning" },
+      { value: "DELIST", label: t("delist"), color: "secondary" },
+      { value: "BID", label: t("bid"), color: "yellow" },
+      { value: "OFFER", label: tExt("offer"), color: "cyan" },
+      { value: "BURN", label: t("burn"), color: "destructive" }
     ],
     render: {
       type: "badge",
       config: {
         variant: (value) => {
           const variants = {
-            MINT: "green",
+            MINT: "success",
             TRANSFER: "blue",
             SALE: "purple",
-            LIST: "orange",
-            DELIST: "red",
+            LIST: "warning",
+            DELIST: "secondary",
             BID: "yellow",
             OFFER: "cyan",
-            BURN: "gray"
+            BURN: "destructive"
           };
           return variants[value] || "secondary";
         }
@@ -56,14 +62,13 @@ export const columns = [
   },
   {
     key: "token",
-    title: "NFT Token",
+    title: t("nft_token"),
     type: "compound",
     sortable: true,
     searchable: true,
     filterable: true,
-    editable: false,
-    usedInCreate: false,
     icon: Coins,
+    description: t("digital_artwork_or_collectible_involved_in"),
     priority: 1,
     sortKey: "token.name",
     render: {
@@ -73,30 +78,23 @@ export const columns = [
           key: "image",
           fallback: "/img/placeholder.svg",
           type: "image",
-          title: "Token Image",
-          description: "NFT token image",
-          editable: false,
-          usedInCreate: false,
+          title: t("token_image"),
+          description: t("nft_token_image"),
         },
         primary: {
           key: "name",
-          title: "Token",
-          editable: false,
-          usedInCreate: false,
+          title: t("token"),
         },
         secondary: {
           key: "tokenId",
-          title: "Token ID",
-          editable: false,
-          usedInCreate: false,
+          title: tExt("token_id"),
         },
         metadata: [
           {
             key: "collection",
-            title: "Collection",
+            title: tCommon("collection"),
             type: "custom",
             render: (value, row) => {
-              // Check both token.collection and collection at root level
               const collectionName = row.token?.collection?.name || row.collection?.name;
               if (!collectionName) return null;
               return <span className="text-xs">{collectionName}</span>;
@@ -108,15 +106,14 @@ export const columns = [
   },
   {
     key: "fromUser",
-    title: "From",
+    title: tCommon("from"),
     type: "compound",
     sortable: true,
     searchable: true,
     filterable: true,
-    editable: false,
-    usedInCreate: false,
     icon: User,
-    priority: 1,
+    description: t("user_or_address_that_initiated_this_activity"),
+    priority: 2,
     sortKey: "fromUser.firstName",
     render: {
       type: "compound",
@@ -125,38 +122,31 @@ export const columns = [
           key: "avatar",
           fallback: "/img/placeholder.svg",
           type: "image",
-          title: "Avatar",
-          description: "User's profile picture",
-          editable: false,
-          usedInCreate: false,
+          title: tCommon("avatar"),
+          description: tCommon("users_profile_picture"),
         },
         primary: {
           key: ["firstName", "lastName"],
-          title: ["First Name", "Last Name"],
-          editable: false,
-          usedInCreate: false,
+          title: [tCommon("first_name"), tCommon("last_name")],
           icon: User,
         },
         secondary: {
           key: "email",
-          title: "Email",
-          editable: false,
-          usedInCreate: false,
+          title: tCommon("email"),
         },
       }
     }
   },
   {
     key: "toUser",
-    title: "To",
+    title: tCommon("to"),
     type: "compound",
     sortable: true,
     searchable: true,
     filterable: true,
-    editable: false,
-    usedInCreate: false,
     icon: User,
-    priority: 1,
+    description: t("user_or_address_that_received_this_activity"),
+    priority: 2,
     sortKey: "toUser.firstName",
     render: {
       type: "compound",
@@ -165,38 +155,30 @@ export const columns = [
           key: "avatar",
           fallback: "/img/placeholder.svg",
           type: "image",
-          title: "Avatar",
-          description: "User's profile picture",
-          editable: false,
-          usedInCreate: false,
+          title: tCommon("avatar"),
+          description: tCommon("users_profile_picture"),
         },
         primary: {
           key: ["firstName", "lastName"],
-          title: ["First Name", "Last Name"],
-          editable: false,
-          usedInCreate: false,
+          title: [tCommon("first_name"), tCommon("last_name")],
           icon: User,
         },
         secondary: {
           key: "email",
-          title: "Email",
-          editable: false,
-          usedInCreate: false,
+          title: tCommon("email"),
         },
       }
     }
   },
   {
     key: "price",
-    title: "Price",
+    title: tCommon("price"),
     type: "number",
     sortable: true,
     filterable: true,
-    editable: false,
-    usedInCreate: false,
     icon: DollarSign,
-    description: "Transaction price",
-    priority: 2,
+    description: t("transaction_price_in_cryptocurrency_if_applicable"),
+    priority: 1,
     render: {
       type: "custom",
       render: (value, row) => {
@@ -217,12 +199,11 @@ export const columns = [
   },
   {
     key: "currency",
-    title: "Currency",
+    title: tCommon("currency"),
     type: "select",
     sortable: true,
     filterable: true,
-    editable: false,
-    usedInCreate: false,
+    description: t("cryptocurrency_used_for_this_transaction"),
     options: [
       { value: "ETH", label: "ETH", color: "blue" },
       { value: "USDC", label: "USDC", color: "green" },
@@ -236,7 +217,7 @@ export const columns = [
         variant: (value) => {
           const variants = {
             ETH: "blue",
-            USDC: "green", 
+            USDC: "green",
             USDT: "green",
             BNB: "yellow",
             MATIC: "purple"
@@ -250,15 +231,13 @@ export const columns = [
   },
   {
     key: "transactionHash",
-    title: "TX Hash",
+    title: t("tx_hash"),
     type: "text",
     sortable: false,
     searchable: true,
     filterable: false,
-    editable: false,
-    usedInCreate: false,
     icon: Hash,
-    description: "Blockchain transaction hash",
+    description: t("blockchain_transaction_hash_for_verification_on"),
     priority: 4,
     render: {
       type: "custom",
@@ -270,16 +249,13 @@ export const columns = [
     },
     expandedOnly: true,
   },
-
   {
     key: "blockNumber",
-    title: "Block",
+    title: t("block"),
     type: "number",
     sortable: true,
     filterable: true,
-    editable: false,
-    usedInCreate: false,
-    description: "Blockchain block number",
+    description: t("blockchain_block_number_where_this_transaction"),
     priority: 4,
     render: {
       type: "number",
@@ -289,17 +265,34 @@ export const columns = [
   },
   {
     key: "createdAt",
-    title: "Timestamp",
+    title: tCommon("timestamp"),
     type: "date",
     sortable: true,
     filterable: true,
-    editable: false,
-    usedInCreate: false,
     icon: Calendar,
+    description: t("date_and_time_when_this_activity"),
     render: {
       type: "date",
       format: "MMM dd, yyyy HH:mm:ss"
     },
     priority: 1,
   }
-]; 
+] as ColumnDefinition[];
+}
+
+// Form configuration - no create/edit forms needed (view-only)
+export function useFormConfig() {
+  const t = useTranslations("ext_admin");
+  return {
+    create: {
+      title: t("create_new_activity"),
+      description: t("record_a_new_nft_blockchain_activity"),
+      groups: [],
+    },
+    edit: {
+      title: t("edit_activity"),
+      description: t("modify_nft_activity_record_details_and"),
+      groups: [],
+    },
+  } as FormConfig;
+}

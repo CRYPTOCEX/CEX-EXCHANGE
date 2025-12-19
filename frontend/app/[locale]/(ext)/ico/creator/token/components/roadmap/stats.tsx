@@ -27,7 +27,9 @@ export function RoadmapStats({
   upcomingItems,
   overdueItems,
 }: RoadmapStatsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtIco = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
   const stats = [
     {
       title: "Total Items",
@@ -66,7 +68,7 @@ export function RoadmapStats({
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
-              {t("roadmap_progress")}
+              {tExtIco("roadmap_progress")}
             </h3>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold">
@@ -80,12 +82,12 @@ export function RoadmapStats({
 
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{t("Progress")}</span>
+              <span className="text-muted-foreground">{t("progress")}</span>
               <span className="font-medium">
                 {completedItems}
                 {t("of")}
                 {totalItems}
-                {t("items")}
+                {tExt("items")}
               </span>
             </div>
             <div className="relative h-4 w-full overflow-hidden rounded-full bg-muted">

@@ -18,7 +18,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "next-intl";
 
 export function NotificationsSettings() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const { toast } = useToast();
   const [emailSettings, setEmailSettings] = useState({
     investment: true,
@@ -58,7 +60,7 @@ export function NotificationsSettings() {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="email" className="flex items-center gap-2">
               <Mail className="h-4 w-4" />
-              {t("Email")}
+              {tCommon("email")}
             </TabsTrigger>
             <TabsTrigger
               value="push"
@@ -66,7 +68,7 @@ export function NotificationsSettings() {
               disabled
             >
               <Smartphone className="h-4 w-4" />
-              {t("Push")}
+              {tDashboardAdmin("push")}
             </TabsTrigger>
             <TabsTrigger
               value="web"
@@ -74,7 +76,7 @@ export function NotificationsSettings() {
               disabled
             >
               <Globe className="h-4 w-4" />
-              {t("Web")}
+              {t("web")}
             </TabsTrigger>
           </TabsList>
 
@@ -274,7 +276,7 @@ export function NotificationsSettings() {
                       {t("investment_notifications")}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {t("show_in-app_notifications_for_new_investments")}
+                      {t("show_in_app_notifications_for_new_investments")}
                     </p>
                   </div>
                 </div>
@@ -294,7 +296,7 @@ export function NotificationsSettings() {
                       {t("message_notifications")}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {t("show_in-app_notifications_for_new_messages")}
+                      {t("show_in_app_notifications_for_new_messages")}
                     </p>
                   </div>
                 </div>
@@ -314,7 +316,7 @@ export function NotificationsSettings() {
                       {t("alert_notifications")}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {t("show_in-app_notifications_for_important_alerts")}
+                      {t("show_in_app_notifications_for_important_alerts")}
                     </p>
                   </div>
                 </div>
@@ -334,7 +336,7 @@ export function NotificationsSettings() {
                       {t("system_notifications")}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {t("show_in-app_notifications_for_system_updates")}
+                      {t("show_in_app_notifications_for_system_updates")}
                     </p>
                   </div>
                 </div>

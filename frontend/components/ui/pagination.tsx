@@ -70,16 +70,16 @@ function PaginationPrevious({
   className,
   ...props
 }: React.ComponentProps<typeof PaginationLink>) {
-  const t = useTranslations("common");
+  const tCommon = useTranslations("common");
   return (
     <PaginationLink
-      aria-label="Go to previous page"
+      aria-label={tCommon("go_to_previous_page")}
       size="default"
       className={cn("gap-1 px-2.5 ltr:sm:pl-2.5 rtl:sm:pr-2.5", className)}
       {...props}
     >
       <ChevronLeftIcon className="rtl:rotate-180" />
-      <span className="hidden sm:block">{t("Previous")}</span>
+      <span className="hidden sm:block">{tCommon('prev')}</span>
     </PaginationLink>
   );
 }
@@ -91,12 +91,12 @@ function PaginationNext({
   const t = useTranslations("common");
   return (
     <PaginationLink
-      aria-label="Go to next page"
+      aria-label={t("go_to_next_page")}
       size="default"
       className={cn("gap-1 px-2.5 ltr:sm:pr-2.5 rtl:sm:pl-2.5", className)}
       {...props}
     >
-      <span className="hidden sm:block">{t("Next")}</span>
+      <span className="hidden sm:block">{t("next")}</span>
       <ChevronRightIcon className="rtl:rotate-180" />
     </PaginationLink>
   );

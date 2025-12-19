@@ -15,7 +15,7 @@ interface EmergencySettingsSectionProps {
 export default function EmergencySettingsSection({
   onStatusChange,
 }: EmergencySettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const [stopping, setStopping] = useState(false);
   const [pausing, setPausing] = useState(false);
   const [resuming, setResuming] = useState(false);

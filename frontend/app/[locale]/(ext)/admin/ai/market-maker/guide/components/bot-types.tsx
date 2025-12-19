@@ -24,7 +24,9 @@ interface BotType {
 }
 
 export default function BotTypesSection() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [selectedBot, setSelectedBot] = useState<string>("MARKET_MAKER");
 
   const botTypes: BotType[] = [
@@ -78,7 +80,7 @@ export default function BotTypesSection() {
       id: "SWING",
       name: "Swing Trader Bot",
       icon: "mdi:chart-bell-curve",
-      color: "blue",
+      color: "purple",
       description: "Medium-term trader that captures larger price movements over longer periods.",
       tradingStyle: "Holds positions longer to capture significant price swings, trading less frequently but with larger profit targets.",
       howItWorks: [
@@ -149,7 +151,7 @@ export default function BotTypesSection() {
 
   const colorClasses: Record<string, { bg: string; text: string; border: string; iconBg: string }> = {
     yellow: { bg: "bg-yellow-500/10 dark:bg-yellow-500/20", text: "text-yellow-500", border: "border-yellow-500/30", iconBg: "bg-yellow-500/20 dark:bg-yellow-500/30" },
-    blue: { bg: "bg-blue-500/10 dark:bg-blue-500/20", text: "text-blue-500", border: "border-blue-500/30", iconBg: "bg-blue-500/20 dark:bg-blue-500/30" },
+    cyan: { bg: "bg-cyan-500/10 dark:bg-cyan-500/20", text: "text-cyan-500", border: "border-cyan-500/30", iconBg: "bg-cyan-500/20 dark:bg-cyan-500/30" },
     green: { bg: "bg-green-500/10 dark:bg-green-500/20", text: "text-green-500", border: "border-green-500/30", iconBg: "bg-green-500/20 dark:bg-green-500/30" },
     red: { bg: "bg-red-500/10 dark:bg-red-500/20", text: "text-red-500", border: "border-red-500/30", iconBg: "bg-red-500/20 dark:bg-red-500/30" },
     purple: { bg: "bg-purple-500/10 dark:bg-purple-500/20", text: "text-purple-500", border: "border-purple-500/30", iconBg: "bg-purple-500/20 dark:bg-purple-500/30" },
@@ -175,7 +177,7 @@ export default function BotTypesSection() {
                 {t("bot_personality_types")}
               </h2>
               <p className="text-muted-600 dark:text-muted-400 mt-1">
-                {t("each_market_has_multiple_bots_with")} {t("the_system_automatically_creates_6_bots")}
+                {t("each_market_has_multiple_bots_with")} {t("the_system_automatically_creates_6_bots")} ({t("the_system_bots_details")})
               </p>
             </div>
           </div>
@@ -230,13 +232,13 @@ export default function BotTypesSection() {
 
             {/* Trading Style */}
             <div className={`p-4 rounded-lg ${colorClasses[selectedBotData.color].bg}`}>
-              <h4 className="font-semibold text-muted-800 dark:text-muted-100 mb-1">{t("trading_style")}</h4>
+              <h4 className="font-semibold text-muted-800 dark:text-muted-100 mb-1">{tExt("trading_style")}</h4>
               <p className="text-sm text-muted-600 dark:text-muted-400">{selectedBotData.tradingStyle}</p>
             </div>
 
             {/* How It Works */}
             <div>
-              <h4 className="font-semibold text-muted-800 dark:text-muted-100 mb-3">{t("how_it_works")}</h4>
+              <h4 className="font-semibold text-muted-800 dark:text-muted-100 mb-3">{tExt("how_it_works")}</h4>
               <ul className="space-y-2">
                 {selectedBotData.howItWorks.map((step, index) => (
                   <li key={index} className="flex items-start gap-3">
@@ -286,15 +288,15 @@ export default function BotTypesSection() {
       )}
 
       {/* P&L Tracking Section */}
-      <Card className="border-blue-500/20">
+      <Card className="border-purple-500/20">
         <CardContent className="pt-6">
           <h3 className="font-semibold text-muted-800 dark:text-muted-100 mb-4 flex items-center gap-2">
-            <Icon icon="mdi:chart-line" className="w-5 h-5 text-blue-500" />
-            {t("understanding_bot_p_l_profit_loss")}
+            <Icon icon="mdi:chart-line" className="w-5 h-5 text-purple-500" />
+            {t("understanding_bot_p_l_profit_loss")} ({tCommon("profit_loss")})
           </h3>
 
           <div className="space-y-4">
-            <div className="p-4 bg-blue-500/5 dark:bg-blue-500/10 rounded-lg">
+            <div className="p-4 bg-purple-500/5 dark:bg-purple-500/10 rounded-lg">
               <h4 className="font-medium text-muted-800 dark:text-muted-100 mb-2">{t("how_p_l_is_tracked")}</h4>
               <p className="text-sm text-muted-600 dark:text-muted-400">
                 {t("p_l_is_only_calculated_from")} <strong>{t("real_users")}</strong>{t("ai_to_ai_trades_bots_trading")}
@@ -305,11 +307,11 @@ export default function BotTypesSection() {
               <div className="p-4 border rounded-lg">
                 <h4 className="font-medium text-muted-800 dark:text-muted-100 mb-2 flex items-center gap-2">
                   <Icon icon="mdi:wallet" className="w-4 h-4 text-amber-500" />
-                  {t("position_inventory")}
+                  {t("position_inventory")} ({t("inventory")})
                 </h4>
                 <ul className="text-sm text-muted-600 dark:text-muted-400 space-y-1">
-                  <li><strong>{t("positive")}</strong> {t("bot_holds_base_currency_bought_more_than_sold")}</li>
-                  <li><strong>{t("negative")}</strong> {t("bot_owes_base_currency_sold_more_than_bought")}</li>
+                  <li><strong>{t("positive")}</strong> {t("bot_holds_base_currency_bought_more_than_sold")} ({t("bought_more_than_sold")})</li>
+                  <li><strong>{t("negative")}</strong> {t("bot_owes_base_currency_sold_more_than_bought")} ({t("sold_more_than_bought")})</li>
                   <li><strong>{t("zero")}</strong> {t("bot_is_balanced")}</li>
                 </ul>
               </div>
@@ -356,7 +358,7 @@ export default function BotTypesSection() {
 
           <div className="space-y-4">
             <p className="text-sm text-muted-600 dark:text-muted-400">
-              {t("each_bot_has_a")} <strong>{t("max_daily_trades")}</strong> {t("limit_that_controls_how_many_trades")} {t("this_prevents_runaway_trading_and_helps")}
+              {t("each_bot_has_a")} <strong>{tCommon("max_daily_trades")}</strong> {t("limit_that_controls_how_many_trades")} {t("this_prevents_runaway_trading_and_helps")}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

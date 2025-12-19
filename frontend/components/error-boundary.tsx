@@ -205,7 +205,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               </div>
 
               <div className="text-center text-sm text-muted-foreground">
-                If this error persists, please contact support with Event ID: <code>{eventId}</code>
+                If this error persists, please contact support with reference: <code>{eventId}</code>
               </div>
             </CardContent>
           </Card>

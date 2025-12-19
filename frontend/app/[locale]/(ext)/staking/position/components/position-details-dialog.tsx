@@ -32,18 +32,18 @@ import { useTranslations } from "next-intl";
 // New StatusBadge component with proper styling.
 function StatusBadge({ status }: { status: string }) {
   const statusMap: Record<string, { label: string; className: string }> = {
-    ACTIVE: { label: "Active", className: "bg-green-100 text-green-800" },
+    ACTIVE: { label: "Active", className: "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800" },
     PENDING_WITHDRAWAL: {
       label: "Pending Withdrawal",
-      className: "bg-yellow-100 text-yellow-800",
+      className: "bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800",
     },
-    COMPLETED: { label: "Completed", className: "bg-blue-100 text-blue-800" },
-    CANCELLED: { label: "Cancelled", className: "bg-red-100 text-red-800" },
+    COMPLETED: { label: "Completed", className: "bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800" },
+    CANCELLED: { label: "Cancelled", className: "bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800" },
   };
 
   const { label, className } = statusMap[status] || {
     label: status,
-    className: "bg-gray-100 text-gray-800",
+    className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
   };
 
   return (
@@ -72,7 +72,9 @@ export function PositionDetailsDialog({
   isWithdrawing = false,
   isClaiming = false,
 }: PositionDetailsDialogProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_staking");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   // Subscribe to earnings for this position from the store.
   const positionEarnings = userStakingStore((state) => state.positionEarnings);
   const earnings = positionEarnings[position.id] || [];
@@ -132,21 +134,21 @@ export function PositionDetailsDialog({
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">
-            {t("position_details")}
+            {tCommon("position_details")}
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="overview">{t("Overview")}</TabsTrigger>
-            <TabsTrigger value="earnings">{t("earnings_history")}</TabsTrigger>
+            <TabsTrigger value="overview">{tCommon("overview")}</TabsTrigger>
+            <TabsTrigger value="earnings">{tExt("earnings_history")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6 pt-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">
-                  {t("position_id")}
+                  {tCommon("position_id")}
                 </p>
                 <Link
                   href={`/staking/pool/${position.poolId}`}
@@ -160,7 +162,7 @@ export function PositionDetailsDialog({
                 </Link>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">{t("Status")}</p>
+                <p className="text-sm text-muted-foreground">{tCommon("status")}</p>
                 <StatusBadge status={position.status} />
               </div>
             </div>
@@ -168,18 +170,18 @@ export function PositionDetailsDialog({
             <Separator />
 
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">{t("staking_details")}</h3>
+              <h3 className="text-lg font-medium">{tExt("staking_details")}</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">
-                    {t("staked_amount")}
+                    {tCommon("staked_amount")}
                   </p>
                   <p className="text-lg font-semibold">
                     {position.amount} {position.pool?.symbol || ""}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">{t("APR")}</p>
+                  <p className="text-sm text-muted-foreground">{tCommon("apr")}</p>
                   <p className="text-lg font-semibold flex items-center gap-1">
                     <TrendingUp className="h-4 w-4 text-green-500" />
                     {position.pool?.apr || 0}%
@@ -200,7 +202,7 @@ export function PositionDetailsDialog({
                 {position.completedAt && (
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">
-                      {t("completed_on")}
+                      {tExt("completed_on")}
                     </p>
                     <p className="flex items-center gap-1">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -214,7 +216,7 @@ export function PositionDetailsDialog({
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      {t("lock_period")}
+                      {tCommon("lock_period")}
                     </span>
                     <span className="font-medium">{timeRemaining}</span>
                   </div>
@@ -236,11 +238,11 @@ export function PositionDetailsDialog({
             <Separator />
 
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">{t("Rewards")}</h3>
+              <h3 className="text-lg font-medium">{tExt("rewards")}</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">
-                    {t("pending_rewards")}
+                    {tExt("pending_rewards")}
                   </p>
                   <p className="text-lg font-semibold flex items-center gap-1">
                     <CoinsIcon className="h-4 w-4 text-yellow-500" />
@@ -272,7 +274,7 @@ export function PositionDetailsDialog({
                       {isWithdrawing && (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
                       )}
-                      {t("Withdraw")}
+                      {tCommon("withdraw")}
                     </Button>
                   )}
                   {onClaimRewards && (
@@ -305,7 +307,7 @@ export function PositionDetailsDialog({
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium">
-                    {t("earnings_history")}
+                    {tExt("earnings_history")}
                   </h3>
                   <Badge variant="outline" className="flex items-center gap-1">
                     <History className="h-3.5 w-3.5" />
@@ -355,15 +357,15 @@ export function PositionDetailsDialog({
       <ConfirmDialog
         open={showWithdrawConfirm}
         onOpenChange={setShowWithdrawConfirm}
-        title="Confirm Withdraw"
-        description="Are you sure you want to withdraw your funds?"
+        title={tExt("confirm_withdraw")}
+        description={tExt("are_you_sure_you_want_to_withdraw_your_funds")}
         onConfirm={onWithdraw!}
       />
       <ConfirmDialog
         open={showClaimConfirm}
         onOpenChange={setShowClaimConfirm}
-        title="Confirm Claim Rewards"
-        description="Are you sure you want to claim your rewards?"
+        title={tExt("confirm_claim_rewards")}
+        description={tExt("are_you_sure_you_want_to_claim_your_rewards")}
         onConfirm={onClaimRewards!}
       />
     </Dialog>

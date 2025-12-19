@@ -15,6 +15,8 @@ export const metadata = {
   operationId: "submitP2PGuidedMatching",
   tags: ["P2P", "Guided Matching"],
   requiresAuth: true,
+  logModule: "P2P_MATCHING",
+  logTitle: "Submit guided matching criteria",
   requestBody: {
     description: "Guided matching criteria",
     required: true,
@@ -84,15 +86,17 @@ async function getMarketPrice(currency: string, walletType: string) {
   }
 }
 
-export default async (data: { body: any; user?: any }) => {
-  const { body, user } = data;
+export default async (data: { body: any; user?: any; ctx?: any }) => {
+  const { body, user, ctx } = data;
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
+  ctx?.step("Parsing matching criteria");
   try {
     // Parse amount as number
     const amount = parseFloat(body.amount) || 0;
 
+    ctx?.step(`Finding ${body.tradeType} offers for ${body.cryptocurrency}`);
     // Fetch all eligible offers in one query, with associated user and payment methods
     const offers = await models.p2pOffer.findAll({
       where: {
@@ -180,6 +184,7 @@ export default async (data: { body: any; user?: any }) => {
     // Prepare user criteria payment method ids (as string, since IDs may be UUIDs)
     const userMethodIds = new Set(body.paymentMethods);
 
+    ctx?.step(`Scoring and ranking ${offers.length} matching offers`);
     // Transform and score offers
     const scoredOffers = offers.map((offer) => {
       // Parse JSON configs with robust parser
@@ -281,6 +286,8 @@ export default async (data: { body: any; user?: any }) => {
       estimatedSavings =
         Math.round((estimatedSavings + Number.EPSILON) * 100) / 100;
     }
+
+    ctx?.success(`Found ${scoredOffers.length} matching offers (savings: ${estimatedSavings})`);
 
     return {
       matches: scoredOffers,

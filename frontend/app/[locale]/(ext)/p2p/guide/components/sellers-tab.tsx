@@ -20,7 +20,8 @@ import {
 import { useTranslations } from "next-intl";
 
 export function SellersTab() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
   return (
     <Card>
       <CardHeader>
@@ -30,7 +31,7 @@ export function SellersTab() {
       <CardContent className="space-y-6">
         <div className="space-y-4">
           <h3 className="text-lg font-medium">
-            {t("step-by-step_selling_process")}
+            {t("step_by_step_selling_process")}
           </h3>
           <div className="space-y-4">
             <div className="bg-muted/30 p-4 rounded-lg border">
@@ -177,7 +178,7 @@ export function SellersTab() {
                     <li className="flex items-start gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
                       <span>
-                        <strong>{t("important")}</strong>
+                        <strong>{tExt("important")}</strong>
                         {t("verify_the_payment_releasing_funds")}
                       </span>
                     </li>

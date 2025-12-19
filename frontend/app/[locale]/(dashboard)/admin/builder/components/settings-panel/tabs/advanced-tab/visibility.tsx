@@ -6,13 +6,13 @@ import type { ComponentProps } from "./types";
 import { useTranslations } from "next-intl";
 
 export function Visibility({ settings, onSettingChange }: ComponentProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <Label htmlFor="visibleDesktop" className="text-xs">
-            {t("Desktop")}
+            {t("desktop")}
           </Label>
           <p className="text-xs text-muted-foreground">
             {t("screen_width_greater_than_1024px")}
@@ -29,7 +29,7 @@ export function Visibility({ settings, onSettingChange }: ComponentProps) {
       <div className="flex items-center justify-between">
         <div>
           <Label htmlFor="visibleTablet" className="text-xs">
-            {t("Tablet")}
+            {t("tablet")}
           </Label>
           <p className="text-xs text-muted-foreground">
             {t("screen_width_768px_to_1024px")}
@@ -46,7 +46,7 @@ export function Visibility({ settings, onSettingChange }: ComponentProps) {
       <div className="flex items-center justify-between">
         <div>
           <Label htmlFor="visibleMobile" className="text-xs">
-            {t("Mobile")}
+            {t("mobile")}
           </Label>
           <p className="text-xs text-muted-foreground">
             {t("screen_width_less_than_768px")}

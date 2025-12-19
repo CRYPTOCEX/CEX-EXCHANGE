@@ -28,7 +28,8 @@ export function FeatureSettings({
   settings: rawSettings,
   onSettingChange,
 }: SettingsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
 
@@ -51,16 +52,16 @@ export function FeatureSettings({
         rows={3}
       />
       <div className="space-y-2">
-        <Label className="text-xs font-medium">{t("Icon")}</Label>
+        <Label className="text-xs font-medium">{t("icon")}</Label>
         <IconPicker
           selectedIcon={settings.icon || "star"}
           onSelectIcon={(iconName) => onSettingChange("icon", iconName)}
         />
       </div>
       <div className="space-y-2">
-        <Label className="text-xs font-medium">{t("icon_color")}</Label>
+        <Label className="text-xs font-medium">{tDashboardAdmin("icon_color")}</Label>
         <ColorPicker
-          label="Icon Color"
+          label={tDashboardAdmin("icon_color")}
           colorVariable="iconColor"
           value={settings.iconColor || (isDarkMode ? "#A78BFA" : "#7c3aed")}
           onChange={(lightColor, darkColor, tailwindClass) =>

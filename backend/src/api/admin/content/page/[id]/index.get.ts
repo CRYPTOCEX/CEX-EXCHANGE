@@ -40,10 +40,16 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.page",
+  logModule: "ADMIN_CMS",
+  logTitle: "Get page details",
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("page", params.id);
+  ctx?.step(`Fetching page with ID: ${params.id}`);
+  const page = await getRecord("page", params.id);
+
+  ctx?.success("Page retrieved successfully");
+  return page;
 };

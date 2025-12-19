@@ -1,17 +1,20 @@
+import { getRecord } from "@b/utils/query";
 import {
-  getRecord,
   unauthorizedResponse,
-  notFoundMetadataResponse,
+  notFoundResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+  singleItemResponse,
+} from "@b/utils/schema/errors";
 import { baseMailwizardCampaignSchema } from "../utils";
 import { models } from "@b/db";
+import { applyDemoMask } from "@b/utils/demoMask";
 
 export const metadata = {
-  summary:
-    "Retrieves detailed information of a specific Mailwizard Campaign by ID",
+  summary: "Get a Mailwizard campaign",
   operationId: "getMailwizardCampaignById",
-  tags: ["Admin","Marketing", "Mailwizard Campaigns"],
+  tags: ["Admin", "Mailwizard", "Campaigns"],
+  description:
+    "Retrieves detailed information about a specific Mailwizard campaign including its configuration, status, targets, and associated template details.",
   parameters: [
     {
       index: 0,
@@ -23,33 +26,57 @@ export const metadata = {
     },
   ],
   responses: {
-    200: {
-      description: "Mailwizard Campaign details",
-      content: {
-        "application/json": {
-          schema: {
+    200: singleItemResponse(
+      {
+        type: "object",
+        properties: {
+          ...baseMailwizardCampaignSchema,
+          template: {
             type: "object",
-            properties: baseMailwizardCampaignSchema, // Define this schema in your utils if it's not already defined
+            properties: {
+              id: { type: "string", description: "Template ID" },
+              name: { type: "string", description: "Template name" },
+            },
           },
         },
       },
-    },
+      "Mailwizard campaign retrieved successfully"
+    ),
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("Mailwizard Campaign"),
+    404: notFoundResponse("Mailwizard Campaign"),
     500: serverErrorResponse,
   },
   permission: "view.mailwizard.campaign",
   requiresAuth: true,
+  logModule: "ADMIN_MAIL",
+  logTitle: "Get Mail Campaign",
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
+  ctx?.step("Fetch mail campaign by ID");
 
-  return await getRecord("mailwizardCampaign", params.id, [
+  const result = await getRecord("mailwizardCampaign", params.id, [
     {
       model: models.mailwizardTemplate,
       as: "template",
       attributes: ["id", "name"],
     },
   ]);
+
+  // Parse targets JSON and apply demo mask
+  if (result && (result as any).targets) {
+    try {
+      const targets = JSON.parse((result as any).targets);
+      // Apply demo mask to email fields in targets array
+      const maskedTargets = applyDemoMask(targets, ["email"]);
+      (result as any).targets = JSON.stringify(maskedTargets);
+    } catch (error) {
+      // If parsing fails, leave targets as is
+      console.error("Failed to parse targets for email masking:", error);
+    }
+  }
+
+  ctx?.success("Get Mail Campaign retrieved successfully");
+  return result;
 };

@@ -18,7 +18,8 @@ export function Countdown({
   showWarning = true,
   warningThreshold = 300, // 5 minutes default
 }: CountdownProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components");
+  const tCommon = useTranslations("common");
   const [timeLeft, setTimeLeft] = useState(initialTimeInSeconds);
   const [isWarning, setIsWarning] = useState(false);
 
@@ -71,7 +72,7 @@ export function Countdown({
             {minutes.toString().padStart(2, "0")}
           </div>
           <span className="text-xs mt-1 text-zinc-500 dark:text-zinc-400">
-            {t("MIN")}
+            {tCommon("min")}
           </span>
         </div>
         <span
@@ -96,7 +97,7 @@ export function Countdown({
             {seconds.toString().padStart(2, "0")}
           </div>
           <span className="text-xs mt-1 text-zinc-500 dark:text-zinc-400">
-            {t("SEC")}
+            {t("sec")}
           </span>
         </div>
       </div>

@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "getPoolAnalytics",
   tags: ["Staking", "Admin", "Pools", "Analytics"],
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Get Pool Analytics",
   parameters: [
     {
       index: 0,
@@ -42,8 +44,8 @@ export const metadata = {
   permission: "view.staking.pool",
 };
 
-export default async (data: { user?: any; params?: any; query?: any }) => {
-  const { user, params, query } = data;
+export default async (data: { user?: any; params?: any; query?: any, ctx }) => {
+  const { user, params, query, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -59,6 +61,7 @@ export default async (data: { user?: any; params?: any; query?: any }) => {
   const { startDate, endDate } = getTimeRangeDates(timeRange);
 
   try {
+    ctx?.step("Fetching data");
     // Check if the pool exists
     const pool = await models.stakingPool.findByPk(poolId);
     if (!pool) {
@@ -87,6 +90,7 @@ export default async (data: { user?: any; params?: any; query?: any }) => {
       timeRange
     );
 
+    ctx?.success("Pool analytics retrieved successfully");
     return {
       timeSeriesData,
       metrics,

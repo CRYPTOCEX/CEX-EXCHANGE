@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FAQDetailLoading() {
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4 sm:px-6 animate-in fade-in duration-500">
+    <div className="container max-w-4xl mx-auto pt-20 py-8 px-4 sm:px-6 animate-in fade-in duration-500">
       <div className="space-y-6">
         <div className="space-y-2">
           <Skeleton className="h-10 w-3/4" />

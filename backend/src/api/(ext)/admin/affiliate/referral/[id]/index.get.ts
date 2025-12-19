@@ -2,33 +2,63 @@ import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { CacheManager } from "@b/utils/cache";
 import { Op, fn, col, literal } from "sequelize";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  notFoundResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Get Affiliate Detail",
+  summary: "Gets detailed affiliate referral information",
   description:
-    "Retrieves detail data for a specific affiliate referral record, including referrer profile, network, rewards, and earnings history, based on MLM system.",
-  operationId: "getAffiliateDetail",
-  tags: ["Affiliate", "Admin", "Detail"],
+    "Retrieves comprehensive information about a specific affiliate referral, including referrer profile, network structure, rewards history, and earnings. The network structure varies based on MLM system (DIRECT/BINARY/UNILEVEL).",
+  operationId: "getAffiliateReferralDetail",
+  tags: ["Admin", "Affiliate", "Referral"],
   requiresAuth: true,
   permission: "view.affiliate.referral",
+  demoMask: ["affiliate.email", "affiliate.phone", "network.email"],
   parameters: [
-    { name: "id", in: "path", required: true, schema: { type: "string" } },
+    {
+      name: "id",
+      in: "path",
+      required: true,
+      schema: { type: "string", format: "uuid" },
+      description: "The affiliate referral ID",
+    },
   ],
   responses: {
-    200: { description: "Affiliate detail retrieved successfully." },
-    401: { description: "Unauthorized – Admin privileges required." },
-    404: { description: "Referral record not found." },
-    500: { description: "Internal Server Error" },
+    200: {
+      description: "Affiliate referral details retrieved successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              affiliate: { type: "object", description: "Referrer user information and metrics" },
+              network: { type: "array", description: "Network of referred users" },
+              rewards: { type: "array", description: "Reward history" },
+              monthlyEarnings: { type: "array", description: "Last 6 months earnings" },
+            },
+          },
+        },
+      },
+    },
+    401: unauthorizedResponse,
+    404: notFoundResponse("Affiliate Referral"),
+    500: serverErrorResponse,
   },
+  logModule: "ADMIN_AFFILIATE",
+  logTitle: "Get affiliate referral details",
 };
 
 interface Handler {
   user?: { id: string };
   params: { id: string };
+  ctx?: any;
 }
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
   if (!user?.id) {
     throw createError({
       statusCode: 401,
@@ -37,6 +67,7 @@ export default async (data: Handler) => {
   }
   const referralId = params.id;
 
+  ctx?.step(`Loading referral record with ID: ${referralId}`);
   // Load referral record and referrer user
   const referralRecord = await models.mlmReferral.findOne({
     where: { id: referralId },
@@ -58,6 +89,7 @@ export default async (data: Handler) => {
   const referrer = referralRecord.referrer;
   const affiliateUserId = referrer.id;
 
+  ctx?.step("Building affiliate profile");
   // Basic affiliate profile
   const affiliate = {
     id: affiliateUserId,
@@ -70,6 +102,7 @@ export default async (data: Handler) => {
     referralCode: referralRecord.id,
   };
 
+  ctx?.step("Calculating summary metrics");
   // Summary metrics
   const referralsCount = await models.mlmReferral.count({
     where: { referrerId: affiliateUserId },
@@ -92,6 +125,7 @@ export default async (data: Handler) => {
     conversionRate,
   });
 
+  ctx?.step("Determining MLM system");
   // Determine MLM system
   const cache = CacheManager.getInstance();
   const settings = await cache.getSettings();
@@ -99,6 +133,7 @@ export default async (data: Handler) => {
     ? settings.get("mlmSystem")
     : "DIRECT";
 
+  ctx?.step(`Building network structure for ${mlmSystem} system`);
   // Build network based on system
   let network: any[] = [];
   if (mlmSystem === "UNILEVEL") {
@@ -243,6 +278,7 @@ export default async (data: Handler) => {
     }));
   }
 
+  ctx?.step("Enriching network with metrics");
   // Enrich network metrics
   if (network.length) {
     const [refAll, earnAll] = await Promise.all([
@@ -270,6 +306,7 @@ export default async (data: Handler) => {
     }));
   }
 
+  ctx?.step("Fetching reward history");
   // Reward history
   const rewardsRaw = await models.mlmReferralReward.findAll({
     where: { referrerId: affiliateUserId },
@@ -292,6 +329,7 @@ export default async (data: Handler) => {
     amount: r.reward,
   }));
 
+  ctx?.step("Calculating monthly earnings");
   // Monthly earnings (last 6)
   const months: string[] = [];
   for (let i = 5; i >= 0; i--) {
@@ -324,5 +362,6 @@ export default async (data: Handler) => {
     earnings: earnMonthMap[m] || 0,
   }));
 
+  ctx?.success("Affiliate details retrieved successfully");
   return { affiliate, network, rewards, monthlyEarnings };
 };

@@ -1,4 +1,5 @@
 import { messageBroker } from "@b/handler/Websocket";
+import { logger } from "@b/utils/console";
 
 // Safe import for ecosystem modules
 let fromBigInt: any;
@@ -14,12 +15,12 @@ try {
 export async function handleOrderBookBroadcast(symbol: string, book: any) {
   try {
     if (!book) {
-      console.error("Book is undefined");
+      logger.error("FUTURES_WS", "Book is undefined", new Error("Book is undefined"));
       return;
     }
 
     if (!fromWei) {
-      console.warn("Ecosystem extension not available for order book broadcast");
+      logger.warn("FUTURES_WS", "Ecosystem extension not available for order book broadcast");
       return;
     }
 
@@ -49,13 +50,13 @@ export async function handleOrderBookBroadcast(symbol: string, book: any) {
       }
     );
   } catch (error) {
-    console.error(`Failed to fetch and broadcast order book: ${error}`);
+    logger.error("FUTURES_WS", "Failed to fetch and broadcast order book", error);
   }
 }
 
 export async function handleOrderBroadcast(order: any) {
   if (!fromBigInt) {
-    console.warn("Ecosystem extension not available for order broadcast");
+    logger.warn("FUTURES_WS", "Ecosystem extension not available for order broadcast");
     return;
   }
 
@@ -77,6 +78,17 @@ export async function handleOrderBroadcast(order: any) {
       : undefined,
   };
 
+  // Broadcast to /api/futures/order for user's order list (like ecosystem)
+  messageBroker.broadcastToSubscribedClients(
+    `/api/futures/order`,
+    { type: "orders", userId: order.userId },
+    {
+      stream: "orders",
+      data: [filteredOrder],
+    }
+  );
+
+  // Also broadcast to market-specific route for trading view
   messageBroker.broadcastToSubscribedClients(
     `/api/futures/market/${order.symbol}`,
     { type: "orders", userId: order.userId },
@@ -115,7 +127,7 @@ export async function handleCandleBroadcast(
   candle: any
 ) {
   if (!candle || !candle.createdAt) {
-    console.error("Candle data or createdAt property is missing");
+    logger.error("FUTURES_WS", "Candle data or createdAt property is missing", new Error("Missing candle data"));
     return;
   }
 
@@ -151,7 +163,7 @@ export async function handleTickersBroadcast(tickers: any) {
 
 export async function handlePositionBroadcast(position: any) {
   if (!fromBigInt) {
-    console.warn("Ecosystem extension not available for position broadcast");
+    logger.warn("FUTURES_WS", "Ecosystem extension not available for position broadcast");
     return;
   }
 

@@ -67,7 +67,7 @@ export function GasEstimator({
   onEstimateUpdate,
   showDetails = true
 }: GasEstimatorProps) {
-  const t = useTranslations("nft");
+  const t = useTranslations("ext_nft");
   const [estimate, setEstimate] = useState<GasEstimateResponse | null>(null);
   const [gasPrices, setGasPrices] = useState<GasPricesResponse | null>(null);
   const [loading, setLoading] = useState(false);

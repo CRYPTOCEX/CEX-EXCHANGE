@@ -1,5 +1,6 @@
 import { createError } from '@b/utils/error'
 import { models } from '@b/db'
+import { logger } from '@b/utils/console'
 import {
   makeApiRequest,
   validateMollieConfig,
@@ -169,7 +170,7 @@ export default async (data: Handler) => {
       }
     } catch (mollieError) {
       // If Mollie API fails, return local data
-      console.warn('Failed to fetch from Mollie API:', mollieError.message)
+      logger.warn("MOLLIE", `Failed to fetch from Mollie API: ${mollieError.message}`)
       
       return {
         success: true,
@@ -192,7 +193,7 @@ export default async (data: Handler) => {
       }
     }
   } catch (error) {
-    console.error('Mollie status check error:', error)
+    logger.error("MOLLIE", "Status check error", error)
 
     if (error.statusCode) {
       throw error

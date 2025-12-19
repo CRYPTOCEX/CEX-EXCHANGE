@@ -6,6 +6,8 @@ export const metadata: OperationObject = {
   summary: "Update Status for a Post",
   operationId: "updatePostStatus",
   tags: ["Content", "Author", "Post"],
+  logModule: "BLOG",
+  logTitle: "Update post status",
   parameters: [
     {
       index: 0,
@@ -39,19 +41,27 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { body, params, user } = data;
+  const { body, params, user, ctx } = data;
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
   const { id } = params;
+
+  ctx?.step("Verifying author credentials");
   const author = await models.author.findOne({
     where: { userId: user.id },
   });
 
   if (!author)
     throw createError({ statusCode: 404, message: "Author not found" });
+
   const { status } = body;
-  return updateStatus("post", id, status, undefined, undefined, undefined, {
+
+  ctx?.step(`Updating post ${id} status to ${status}`);
+  const result = await updateStatus("post", id, status, undefined, undefined, undefined, {
     authorId: author.id,
   });
+
+  ctx?.success(`Post ${id} status updated to ${status} by author ${author.id}`);
+  return result;
 };

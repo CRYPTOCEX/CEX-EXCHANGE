@@ -1,6 +1,6 @@
 import { baseTickerSchema } from "@b/api/exchange/utils";
 import ExchangeManager from "@b/utils/exchange";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 import {
   notFoundMetadataResponse,
@@ -19,6 +19,8 @@ export const metadata: OperationObject = {
   operationId: "getMarketTicker",
   tags: ["Exchange", "Markets"],
   description: "Retrieves ticker information for a specific market pair.",
+  logModule: "EXCHANGE",
+  logTitle: "Get Ticker for Pair",
   parameters: [
     {
       name: "currency",
@@ -54,18 +56,20 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { currency, pair } = data.params;
+  const { params, ctx } = data;
+  const { currency, pair } = params;
   const symbol = `${currency}/${pair}`;
 
   try {
+    ctx?.step(`Fetching ticker for ${symbol}`);
     const unblockTime = await loadBanStatus();
     if (await handleBanStatus(unblockTime)) {
       return serverErrorResponse;
     }
 
-    const exchange = await ExchangeManager.startExchange();
+    const exchange = await ExchangeManager.startExchange(ctx);
     if (!exchange) {
-      logError("exchange", new Error("Failed to start exchange"), __filename);
+      logger.error("EXCHANGE", "Failed to start exchange");
       return serverErrorResponse;
     }
 
@@ -75,6 +79,7 @@ export default async (data: Handler) => {
       return notFoundMetadataResponse("Ticker");
     }
 
+    ctx?.success(`Ticker retrieved for ${symbol}`);
     return {
       symbol: ticker.symbol,
       bid: ticker.bid,
@@ -90,7 +95,7 @@ export default async (data: Handler) => {
     if (typeof result === "number") {
       return serverErrorResponse;
     }
-    logError("exchange", error, __filename);
+    logger.error("EXCHANGE", "Failed to fetch ticker", error);
     return serverErrorResponse;
   }
 };

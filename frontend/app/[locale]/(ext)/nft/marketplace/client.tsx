@@ -42,7 +42,9 @@ import { useInView } from "react-intersection-observer";
 import { cn } from "@/lib/utils";
 
 export default function MarketplaceClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_nft");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
 
   const {
     listings,
@@ -79,10 +81,10 @@ export default function MarketplaceClient() {
   const fetchSortOptions = useCallback(async () => {
     setSortOptions([
       { value: "recently_listed", label: t("recently_listed") },
-      { value: "price_low_high", label: t("price_low_to_high") },
-      { value: "price_high_low", label: t("price_high_to_low") },
-      { value: "ending_soon", label: t("ending_soon") },
-      { value: "most_viewed", label: t("most_viewed") },
+      { value: "price_low_high", label: tExt("price_low_to_high") },
+      { value: "price_high_low", label: tExt("price_high_to_low") },
+      { value: "ending_soon", label: tCommon("ending_soon") },
+      { value: "most_viewed", label: tExt("most_viewed") },
     ]);
   }, [t]);
 
@@ -141,7 +143,7 @@ export default function MarketplaceClient() {
       >
         <Card className="group hover:shadow-2xl transition-all duration-300 border-2 hover:border-primary/50 overflow-hidden bg-card">
           <Link href={`/nft/token/${listing.token.id}`}>
-            <div className="aspect-square relative bg-gradient-to-br from-primary/10 via-purple-600/10 to-pink-600/10 overflow-hidden">
+            <div className={`aspect-square relative bg-gradient-to-br from-primary/10 via-purple-600/10 to-pink-600/10 overflow-hidden`}>
               {listing.token.image ? (
                 <Image
                   src={listing.token.image}
@@ -163,13 +165,13 @@ export default function MarketplaceClient() {
                 {isAuction && (
                   <Badge className="bg-orange-500 text-white border-0 shadow-lg">
                     <Flame className="h-3 w-3 mr-1" />
-                    {t("Auction")}
+                    {tCommon("auction")}
                   </Badge>
                 )}
                 {listing.type === "BUNDLE" && (
-                  <Badge className="bg-purple-500 text-white border-0 shadow-lg">
+                  <Badge className={`bg-purple-500 text-white border-0 shadow-lg`}>
                     <Zap className="h-3 w-3 mr-1" />
-                    {t("Bundle")}
+                    {tCommon("bundle")}
                   </Badge>
                 )}
                 {listing.token.collection?.isVerified && (
@@ -204,7 +206,7 @@ export default function MarketplaceClient() {
               {hasEnded && (
                 <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center">
                   <div className="bg-red-500 text-white px-6 py-3 rounded-xl font-bold text-lg shadow-xl">
-                    {t("ENDED")}
+                    {tExt("ended")}
                   </div>
                 </div>
               )}
@@ -268,7 +270,7 @@ export default function MarketplaceClient() {
                 <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 sm:gap-0">
                   <div>
                     <p className="text-[10px] text-muted-foreground mb-0.5 sm:mb-1 uppercase font-semibold tracking-wide">
-                      {isAuction ? (hasEnded ? t("final_bid") : t("current_bid")) : t("Price")}
+                      {isAuction ? (hasEnded ? t("final_bid") : tCommon("current_bid")) : tCommon("price")}
                     </p>
                     <div className="flex items-baseline gap-1">
                       <p className="font-bold text-lg sm:text-xl text-foreground">
@@ -279,7 +281,7 @@ export default function MarketplaceClient() {
                   </div>
 
                   {!hasEnded && (
-                    <Button size="sm" className="h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-lg w-full sm:w-auto">
+                    <Button size="sm" className={`h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-lg w-full sm:w-auto`}>
                       {isAuction ? (
                         <>
                           <Gavel className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-1.5" />
@@ -330,11 +332,11 @@ export default function MarketplaceClient() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section ref={heroRef} className="relative pt-32 py-20 overflow-hidden bg-gradient-to-b from-primary/5 via-purple-600/5 to-background">
+      <section ref={heroRef} className={`relative pt-32 py-20 overflow-hidden bg-gradient-to-b from-primary/5 via-purple-600/5 to-background`}>
         {/* Animated background */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-purple-600/10 to-transparent rounded-full blur-3xl animate-pulse delay-1000" />
+          <div className={`absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-purple-600/10 to-transparent rounded-full blur-3xl animate-pulse delay-1000`} />
         </div>
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -354,7 +356,7 @@ export default function MarketplaceClient() {
               <span className="text-sm font-semibold text-primary">{t("explore_the_marketplace")}</span>
             </motion.div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-primary to-purple-600 bg-clip-text text-transparent">
+            <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-primary to-purple-600 bg-clip-text text-transparent`}>
               {t("discover_collect_sell")}
               <br />
               <span className="text-primary">{t("extraordinary_nfts")}</span>
@@ -371,7 +373,7 @@ export default function MarketplaceClient() {
                   const filtersSection = document.querySelector('#marketplace-filters');
                   filtersSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }}
-                className="gap-2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl h-12 px-8"
+                className={`gap-2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl h-12 px-8`}
               >
                 <Zap className="w-5 h-5" />
                 {t("explore_nfts")}
@@ -391,7 +393,7 @@ export default function MarketplaceClient() {
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder={t("search_nfts_collections_or_creators")}
+                placeholder={tCommon("search_nfts_collections_or_creators")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-12 h-12 border-2 focus-visible:ring-2 focus-visible:ring-primary/50"
@@ -407,7 +409,7 @@ export default function MarketplaceClient() {
                 className="flex items-center gap-2 h-12 border-2"
               >
                 <Clock className="h-4 w-4" />
-                {t("ending_soon")}
+                {tCommon("ending_soon")}
               </Button>
               <Button
                 variant={hasOffers ? "default" : "outline"}
@@ -427,7 +429,7 @@ export default function MarketplaceClient() {
               className="flex items-center gap-2 h-12 border-2"
             >
               <SlidersHorizontal className="h-4 w-4" />
-              {t("Filters")}
+              {tCommon("filters")}
               {showFilters && <X className="h-4 w-4 ml-1" />}
             </Button>
 
@@ -467,13 +469,13 @@ export default function MarketplaceClient() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Category Filter */}
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold">{t("Category")}</label>
+                        <label className="text-sm font-semibold">{tCommon("category")}</label>
                         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                           <SelectTrigger className="h-12 border-2">
-                            <SelectValue placeholder={t("all_categories")} />
+                            <SelectValue placeholder={tCommon("all_categories")} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">{t("all_categories")}</SelectItem>
+                            <SelectItem value="all">{tCommon("all_categories")}</SelectItem>
                             {Array.isArray(categories) && categories.map((category) => (
                               <SelectItem key={category.id} value={category.id}>
                                 {category.name}
@@ -485,13 +487,13 @@ export default function MarketplaceClient() {
 
                       {/* Collection Filter */}
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold">{t("Collection")}</label>
+                        <label className="text-sm font-semibold">{tCommon("collection")}</label>
                         <Select value={selectedCollection} onValueChange={setSelectedCollection}>
                           <SelectTrigger className="h-12 border-2">
-                            <SelectValue placeholder={t("all_collections")} />
+                            <SelectValue placeholder={tExt("all_collections")} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">{t("all_collections")}</SelectItem>
+                            <SelectItem value="all">{tExt("all_collections")}</SelectItem>
                             {Array.isArray(collections) && collections.map((collection) => (
                               <SelectItem key={collection.id} value={collection.id}>
                                 {collection.name}
@@ -506,7 +508,7 @@ export default function MarketplaceClient() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Price Range */}
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold">{t("price_range")} {t("eth")}</label>
+                        <label className="text-sm font-semibold">{tExt("price_range")} (ETH)</label>
                         <div className="grid grid-cols-2 gap-3">
                           <Input
                             type="number"
@@ -527,7 +529,7 @@ export default function MarketplaceClient() {
 
                       {/* Sort */}
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold">{t("sort_by")}</label>
+                        <label className="text-sm font-semibold">{tCommon("sort_by")}</label>
                         <Select value={sortBy} onValueChange={setSortBy}>
                           <SelectTrigger className="h-12 border-2">
                             <SelectValue />
@@ -558,7 +560,7 @@ export default function MarketplaceClient() {
                         className="flex items-center gap-2 h-11 border-2"
                       >
                         <X className="h-4 w-4" />
-                        {t("clear_all_filters")}
+                        {tExt("clear_all_filters")}
                       </Button>
                       <div className="text-sm font-medium text-muted-foreground">
                         <span className="text-primary font-bold text-lg">{Array.isArray(listings) ? listings.length : 0}</span> {t("results_found")}
@@ -582,11 +584,11 @@ export default function MarketplaceClient() {
               </TabsTrigger>
               <TabsTrigger value="AUCTION" className="flex items-center gap-2 data-[state=active]:bg-background">
                 <Gavel className="h-4 w-4" />
-                {t("Auctions")}
+                {t("auctions")}
               </TabsTrigger>
               <TabsTrigger value="BUNDLE" className="flex items-center gap-2 data-[state=active]:bg-background">
                 <Zap className="h-4 w-4" />
-                {t("Bundles")}
+                {t("bundles")}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -595,9 +597,9 @@ export default function MarketplaceClient() {
         {/* Results */}
         <div className="mb-6 flex items-center justify-between">
           <p className="text-sm font-medium text-muted-foreground">
-            {t("Showing")}{" "}
+            {tCommon("showing")}{" "}
             <span className="text-foreground font-bold">{Array.isArray(listings) ? listings.length : 0}</span>{" "}
-            {t("results")}
+            {tCommon("results")}
           </p>
         </div>
 
@@ -655,7 +657,7 @@ export default function MarketplaceClient() {
             <Card className="text-center py-20 border-2">
               <CardContent>
                 <div className="max-w-lg mx-auto">
-                  <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <div className={`w-24 h-24 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-6`}>
                     <Gavel className="h-12 w-12 text-primary" />
                   </div>
                   <h3 className="text-2xl font-bold mb-3">{t("no_listings_found")}</h3>
@@ -703,12 +705,12 @@ export default function MarketplaceClient() {
               {loading ? (
                 <>
                   <LoadingSpinner />
-                  {t("loading")}
+                  {tCommon("loading")}
                 </>
               ) : (
                 <>
                   <TrendingUp className="h-5 w-5 mr-2" />
-                  {t("load_more")}
+                  {tCommon("load_more")}
                 </>
               )}
             </Button>

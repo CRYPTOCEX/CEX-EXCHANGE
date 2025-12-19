@@ -14,7 +14,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 export function NotificationsTab() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
   const { user, updateUser } = useUserStore();
   const [isUpdating, setIsUpdating] = useState(false);
 

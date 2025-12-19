@@ -11,9 +11,9 @@ import {
 } from "../../utils";
 
 export const metadata = {
-  summary: "Updates an existing transaction",
-  operationId: "updateTransaction",
-  tags: ["Admin", "Wallets", "Transactions"],
+  summary: "Updates a Forex deposit",
+  operationId: "updateForexDeposit",
+  tags: ["Admin", "Forex", "Deposit"],
   parameters: [
     {
       index: 0,
@@ -38,10 +38,12 @@ export const metadata = {
   responses: updateRecordResponses("Transaction"),
   requiresAuth: true,
   permission: "edit.forex.deposit",
+  logModule: "ADMIN_FOREX",
+  logTitle: "Update forex deposit",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     status,
@@ -52,6 +54,7 @@ export default async (data: Handler) => {
     metadata: requestMetadata,
   } = body;
 
+  ctx?.step(`Validating forex deposit ${id}`);
   const transaction = await models.transaction.findOne({
     where: { id },
   });
@@ -69,11 +72,13 @@ export default async (data: Handler) => {
       message: "Only pending transactions can be updated",
     });
   }
+  ctx?.step("Updating transaction fields");
   transaction.amount = amount;
   transaction.fee = fee;
   transaction.description = description;
   transaction.referenceId = referenceId;
 
+  ctx?.step("Processing deposit status update");
   return await sequelize.transaction(async (t) => {
     const metadata: any = parseMetadata(transaction.metadata);
 
@@ -103,11 +108,14 @@ export default async (data: Handler) => {
       }
 
       if (status === "REJECTED") {
-        await updateWalletBalance(wallet, cost, true, t);
+        ctx?.step("Refunding to wallet");
+        await updateWalletBalance(wallet, cost, true, t, ctx);
       } else if (status === "COMPLETED") {
-        await updateForexAccountBalance(account, cost, true, t);
+        ctx?.step("Updating forex account balance");
+        await updateForexAccountBalance(account, cost, true, t, ctx);
       }
 
+      ctx?.step("Sending notification email");
       const user = await models.user.findOne({
         where: { id: transaction.userId },
       });
@@ -117,7 +125,8 @@ export default async (data: Handler) => {
           transaction,
           account,
           wallet.currency,
-          transaction.type as "FOREX_DEPOSIT"
+          transaction.type as "FOREX_DEPOSIT",
+          ctx
         );
       }
     }
@@ -129,8 +138,10 @@ export default async (data: Handler) => {
     transaction.metadata = JSON.stringify(metadata);
 
     transaction.status = status;
+    ctx?.step("Saving transaction");
     await transaction.save({ transaction: t });
 
+    ctx?.success("Forex deposit updated successfully");
     return { message: "Transaction updated successfully" };
   });
 };

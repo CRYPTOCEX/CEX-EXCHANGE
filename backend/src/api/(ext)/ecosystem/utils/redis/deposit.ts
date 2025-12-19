@@ -3,6 +3,7 @@ import { messageBroker } from "@b/handler/Websocket";
 import { handleEcosystemDeposit } from "@b/api/(ext)/ecosystem/utils/wallet";
 import { createNotification } from "@b/utils/notifications";
 import { unlockAddress } from "@b/api/(ext)/ecosystem/wallet/utils";
+import { logger } from "@b/utils/console";
 
 const redis = RedisSingleton.getInstance();
 const setAsync = (key: string, value: string) => redis.set(key, value);
@@ -12,11 +13,11 @@ const keysAsync = (pattern: string) => redis.keys(pattern);
 
 export async function storeAndBroadcastTransaction(txDetails, txHash, isPending = false) {
   try {
-    console.log(`[INFO] Processing deposit for immediate broadcast: ${txHash}`);
+    logger.info("DEPOSIT", `Processing deposit for immediate broadcast: ${txHash}`);
 
     // Check if this is a pending transaction update (for confirmations)
     if (isPending && txDetails.type === "pending_confirmation") {
-      console.log(`[INFO] Broadcasting pending transaction update for ${txHash}`);
+      logger.info("DEPOSIT", `Broadcasting pending transaction update for ${txHash}`);
 
       const address = txDetails.address?.toLowerCase() || txDetails.to?.toLowerCase();
 
@@ -30,7 +31,7 @@ export async function storeAndBroadcastTransaction(txDetails, txHash, isPending 
         address: address,
       };
 
-      console.log(`[WS_DEBUG] Broadcasting to subscribed clients with payload:`, JSON.stringify(broadcastPayload));
+      logger.debug("DEPOSIT", `Broadcasting to subscribed clients with payload: ${JSON.stringify(broadcastPayload)}`);
 
       messageBroker.broadcastToSubscribedClients(
         "/api/ecosystem/deposit",
@@ -52,7 +53,7 @@ export async function storeAndBroadcastTransaction(txDetails, txHash, isPending 
         }
       );
 
-      console.log(`[SUCCESS] Broadcasted pending transaction ${txHash} with ${txDetails.confirmations}/${txDetails.requiredConfirmations} confirmations to currency:${currency}, chain:${txDetails.chain}, address:${address}`);
+      logger.success("DEPOSIT", `Broadcasted pending transaction ${txHash} with ${txDetails.confirmations}/${txDetails.requiredConfirmations} confirmations to currency:${currency}, chain:${txDetails.chain}, address:${address}`);
       return;
     }
 
@@ -61,9 +62,7 @@ export async function storeAndBroadcastTransaction(txDetails, txHash, isPending 
 
     if (response.transaction) {
       // Success! Broadcast immediately to connected clients
-      console.log(
-        `[SUCCESS] Deposit processed immediately for ${txHash}, broadcasting to WebSocket`
-      );
+      logger.success("DEPOSIT", `Deposit processed immediately for ${txHash}, broadcasting to WebSocket`);
 
       // Handle address - it could be a string or array
       let address: string;
@@ -106,13 +105,9 @@ export async function storeAndBroadcastTransaction(txDetails, txHash, isPending 
       if (txDetails.contractType === "NO_PERMIT" && txDetails.to) {
         try {
           await unlockAddress(txDetails.to);
-          console.log(
-            `[SUCCESS] Address ${txDetails.to} unlocked for NO_PERMIT transaction ${txHash}`
-          );
+          logger.success("DEPOSIT", `Address ${txDetails.to} unlocked for NO_PERMIT transaction ${txHash}`);
         } catch (unlockError) {
-          console.error(
-            `[ERROR] Failed to unlock address ${txDetails.to}: ${unlockError.message}`
-          );
+          logger.error("DEPOSIT", `Failed to unlock address ${txDetails.to}`, unlockError);
         }
       }
 
@@ -134,34 +129,24 @@ export async function storeAndBroadcastTransaction(txDetails, txHash, isPending 
               },
             ],
           });
-          console.log(
-            `[SUCCESS] Notification created for user ${response.wallet.userId}`
-          );
+          logger.success("DEPOSIT", `Notification created for user ${response.wallet.userId}`);
         } catch (notificationError) {
-          console.error(
-            `[ERROR] Failed to create notification: ${notificationError.message}`
-          );
+          logger.error("DEPOSIT", "Failed to create notification", notificationError);
         }
       }
 
       // Don't store as pending since it's already processed
-      console.log(
-        `[SUCCESS] Deposit ${txHash} processed and broadcast immediately`
-      );
+      logger.success("DEPOSIT", `Deposit ${txHash} processed and broadcast immediately`);
       return;
     } else {
-      console.log(
-        `[INFO] Deposit ${txHash} couldn't be processed immediately, storing as pending`
-      );
+      logger.info("DEPOSIT", `Deposit ${txHash} couldn't be processed immediately, storing as pending`);
     }
   } catch (error) {
-    console.error(
-      `[ERROR] Error in immediate deposit processing for ${txHash}: ${error.message}`
-    );
+    logger.error("DEPOSIT", `Error in immediate deposit processing for ${txHash}`, error);
   }
 
   // Fallback: Store as pending for the verification worker to handle later
-  console.log(`[INFO] Storing ${txHash} as pending for verification worker`);
+  logger.info("DEPOSIT", `Storing ${txHash} as pending for verification worker`);
   const pendingTransactions =
     (await loadFromRedis("pendingTransactions")) || {};
   pendingTransactions[txHash] = txDetails;
@@ -178,7 +163,7 @@ export async function loadKeysFromRedis(pattern: string): Promise<string[]> {
     const keys = await keysAsync(pattern);
     return keys;
   } catch (error) {
-    console.error("Failed to fetch keys:", error);
+    logger.error("REDIS", "Failed to fetch keys", error);
     return [];
   }
 }
@@ -189,7 +174,7 @@ export async function loadFromRedis(identifier: string): Promise<any | null> {
   try {
     return JSON.parse(dataStr);
   } catch (error) {
-    console.error("Failed to parse JSON:", error);
+    logger.error("REDIS", "Failed to parse JSON", error);
     return null;
   }
 }
@@ -197,8 +182,8 @@ export async function loadFromRedis(identifier: string): Promise<any | null> {
 export async function removeFromRedis(key: string): Promise<void> {
   try {
     const delResult = await delAsync(key);
-    console.log(`Delete Result for key ${key}: `, delResult);
+    logger.debug("REDIS", `Delete Result for key ${key}: ${delResult}`);
   } catch (error) {
-    console.error(`Failed to delete key ${key}:`, error);
+    logger.error("REDIS", `Failed to delete key ${key}`, error);
   }
 }

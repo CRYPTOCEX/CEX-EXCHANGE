@@ -1,30 +1,35 @@
+"use client";
+
 import React from "react";
 import { Gavel, Tag, DollarSign, Clock, Calendar, TrendingUp, User } from "lucide-react";
+import type { ColumnDefinition, FormConfig } from "@/components/blocks/data-table/types/table";
 
-export const columns = [
+import { useTranslations } from "next-intl";
+export function useColumns() {
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
+  return [
   {
     key: "id",
-    title: "ID",
+    title: tCommon("id"),
     type: "text",
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "Unique auction identifier",
+    description: t("unique_identifier_for_this_nft_auction_listing"),
     priority: 4,
-    editable: false,
-    usedInCreate: false,
-    expandedOnly: true,
+    expandedOnly: true
   },
   {
     key: "token",
-    title: "NFT Token",
+    title: t("nft_token"),
     type: "compound",
     sortable: true,
     searchable: true,
     filterable: true,
-    editable: false,
-    usedInCreate: false,
     icon: Tag,
+    description: t("digital_artwork_or_collectible_being_auctioned"),
     priority: 1,
     sortKey: "token.name",
     render: {
@@ -34,43 +39,36 @@ export const columns = [
           key: "image",
           fallback: "/img/placeholder.svg",
           type: "image",
-          title: "Token Image",
-          description: "NFT token image",
-          editable: false,
-          usedInCreate: false,
+          title: t("token_image"),
+          description: t("nft_token_image")
         },
         primary: {
           key: "name",
-          title: "Token",
-          editable: false,
-          usedInCreate: false,
+          title: t("token")
         },
         secondary: {
           key: "tokenId",
-          title: "Token ID",
-          editable: false,
-          usedInCreate: false,
+          title: tExt("token_id")
         },
         metadata: [
-          { key: "collection.name", title: "Collection", type: "text" }
+          { key: "collection.name", title: tCommon("collection"), type: "text" }
         ]
       }
     }
   },
   {
     key: "status",
-    title: "Status",
+    title: tCommon("status"),
     type: "select",
     sortable: true,
     filterable: true,
-    editable: true,
-    usedInCreate: true,
     icon: Gavel,
+    description: t("current_auction_state_active_bids_completed"),
     options: [
-      { value: "ACTIVE", label: "Active", color: "success" },
-      { value: "ENDED", label: "Ended", color: "secondary" },
-      { value: "CANCELLED", label: "Cancelled", color: "destructive" },
-      { value: "PENDING", label: "Pending", color: "outline" }
+      { value: "ACTIVE", label: tCommon("active"), color: "success" },
+      { value: "ENDED", label: tExt("ended"), color: "secondary" },
+      { value: "CANCELLED", label: tCommon("cancelled"), color: "destructive" },
+      { value: "PENDING", label: tCommon("pending"), color: "warning" }
     ],
     render: {
       type: "badge",
@@ -80,25 +78,24 @@ export const columns = [
             ACTIVE: "success",
             ENDED: "secondary",
             CANCELLED: "destructive",
-            PENDING: "outline"
+            PENDING: "warning"
           };
           return variants[value] || "secondary";
         }
       }
     },
-    priority: 1,
+    priority: 1
   },
   {
     key: "seller",
-    title: "Seller",
+    title: tCommon("seller"),
     type: "compound",
     sortable: true,
     searchable: true,
     filterable: true,
-    editable: false,
-    usedInCreate: false,
     icon: User,
-    priority: 1,
+    description: t("nft_owner_who_initiated_this_auction"),
+    priority: 2,
     sortKey: "seller.firstName",
     render: {
       type: "compound",
@@ -107,37 +104,29 @@ export const columns = [
           key: "avatar",
           fallback: "/img/placeholder.svg",
           type: "image",
-          title: "Avatar",
-          description: "User's profile picture",
-          editable: false,
-          usedInCreate: false,
+          title: tCommon("avatar"),
+          description: tCommon("users_profile_picture")
         },
         primary: {
           key: ["firstName", "lastName"],
-          title: ["First Name", "Last Name"],
-          editable: false,
-          usedInCreate: false,
-          icon: User,
+          title: [tCommon("first_name"), tCommon("last_name")],
+          icon: User
         },
         secondary: {
           key: "email",
-          title: "Email",
-          editable: false,
-          usedInCreate: false,
-        },
+          title: tCommon("email")
+        }
       }
     }
   },
   {
     key: "price",
-    title: "Starting Price",
+    title: t("starting_price"),
     type: "number",
     sortable: true,
     filterable: true,
-    editable: true,
-    usedInCreate: true,
     icon: DollarSign,
-    description: "Auction starting price",
+    description: t("initial_minimum_bid_amount_to_start_the_auction"),
     priority: 1,
     render: {
       type: "number",
@@ -146,99 +135,146 @@ export const columns = [
   },
   {
     key: "reservePrice",
-    title: "Reserve Price",
+    title: t("reserve_price"),
     type: "number",
     sortable: true,
     filterable: true,
-    editable: true,
-    usedInCreate: true,
     icon: TrendingUp,
-    description: "Minimum auction price",
-    priority: 2,
+    description: t("minimum_acceptable_sale_price_auction_wont"),
+    priority: 3,
     render: {
       type: "number",
       format: { style: "currency", currency: "USD" }
     },
-    expandedOnly: true,
+    expandedOnly: true
   },
   {
     key: "buyNowPrice",
-    title: "Buy Now Price",
+    title: t("buy_now_price"),
     type: "number",
     sortable: true,
     filterable: true,
-    editable: true,
-    usedInCreate: false,
-    description: "Instant purchase price",
+    icon: DollarSign,
+    description: t("optional_instant_purchase_price_to_skip"),
     priority: 3,
     render: {
       type: "number",
       format: { style: "currency", currency: "USD" }
     },
-    expandedOnly: true,
+    expandedOnly: true
   },
   {
     key: "endTime",
-    title: "Ends At",
+    title: t("ends_at"),
     type: "date",
     sortable: true,
     filterable: true,
-    editable: true,
-    usedInCreate: true,
     icon: Clock,
-    description: "Auction end time",
+    description: t("auction_closing_date_and_time_when_bidding_stops"),
     render: {
       type: "date",
       format: "MMM dd, yyyy HH:mm"
     },
-    priority: 2,
+    priority: 2
   },
   {
     key: "startTime",
-    title: "Starts At",
+    title: t("starts_at"),
     type: "date",
     sortable: true,
     filterable: true,
-    editable: true,
-    usedInCreate: false,
     icon: Clock,
-    description: "Auction start time",
+    description: t("auction_opening_date_and_time_when_bidding_begins"),
     render: {
       type: "date",
       format: "MMM dd, yyyy HH:mm"
     },
     priority: 3,
-    expandedOnly: true,
+    expandedOnly: true
   },
   {
     key: "createdAt",
-    title: "Created",
+    title: tCommon("created"),
     type: "date",
     sortable: true,
     filterable: true,
-    editable: false,
-    usedInCreate: false,
     icon: Calendar,
+    description: t("when_this_auction_listing_was_first_created"),
     render: {
       type: "date",
       format: "MMM dd, yyyy"
     },
     priority: 3,
+    expandedOnly: true
   },
   {
     key: "updatedAt",
-    title: "Updated",
+    title: tCommon("updated"),
     type: "date",
     sortable: true,
     filterable: true,
-    editable: false,
-    usedInCreate: false,
     icon: Calendar,
+    description: t("most_recent_modification_date_for_auction_details"),
     render: {
       type: "date",
       format: "MMM dd, yyyy"
     },
     priority: 4,
-    expandedOnly: true,
+    expandedOnly: true
   }
-];
+] as ColumnDefinition[];
+}
+
+// Form configuration
+export function useFormConfig() {
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
+  return {
+    edit: {
+      title: t("edit_auction"),
+      description: t("modify_auction_settings_including_status_pricing"),
+      groups: [
+        {
+          id: "nft-details",
+          title: t("nft_auction_details"),
+          icon: Gavel,
+          priority: 1,
+          fields: [
+            {
+              key: "status",
+              required: true,
+              options: [
+                { value: "ACTIVE", label: tCommon("active") },
+                { value: "ENDED", label: tExt("ended") },
+                { value: "CANCELLED", label: tCommon("cancelled") },
+                { value: "PENDING", label: tCommon("pending") }
+              ]
+            },
+          ]
+        },
+        {
+          id: "pricing",
+          title: t("pricing_bidding"),
+          icon: DollarSign,
+          priority: 2,
+          fields: [
+            { key: "price", required: true, min: 0 },
+            { key: "reservePrice", required: true, min: 0 },
+            { key: "buyNowPrice", min: 0 },
+          ]
+        },
+        {
+          id: "timing",
+          title: t("auction_schedule"),
+          icon: Clock,
+          priority: 3,
+          fields: [
+            { key: "startTime" },
+            { key: "endTime", required: true },
+          ]
+        },
+      ]
+    }
+  } as FormConfig;
+}

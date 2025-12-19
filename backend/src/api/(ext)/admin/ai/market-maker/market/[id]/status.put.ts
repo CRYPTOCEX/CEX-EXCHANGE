@@ -2,17 +2,22 @@ import { models } from "@b/db";
 import { statusChangeSchema } from "../../utils";
 import {
   unauthorizedResponse,
-  notFoundMetadataResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+  notFoundResponse,
+  badRequestResponse,
+} from "@b/utils/schema/errors";
 import { createError } from "@b/utils/error";
 import MarketMakerEngine from "../../utils/engine/MarketMakerEngine";
 import { CacheManager } from "@b/utils/cache";
 
 export const metadata: OperationObject = {
-  summary: "Change AI Market Maker status (start/pause/stop/resume)",
-  operationId: "updateAiMarketMakerStatus",
-  tags: ["Admin", "AI Market Maker", "Market Maker"],
+  summary: "Update AI Market Maker market status",
+  operationId: "updateAiMarketMakerMarketStatus",
+  tags: ["Admin", "AI Market Maker", "Market"],
+  description:
+    "Changes the operational status of an AI Market Maker market (START/PAUSE/STOP/RESUME). Validates state transitions, checks minimum liquidity requirements for START action, synchronizes with the MarketMakerEngine, updates bot statuses accordingly, and logs all status changes to history. Enforces proper lifecycle management.",
+  logModule: "ADMIN_MM",
+  logTitle: "Update Market Maker Status",
   parameters: [
     {
       index: 0,
@@ -46,8 +51,9 @@ export const metadata: OperationObject = {
         },
       },
     },
+    400: badRequestResponse,
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("AI Market Maker"),
+    404: notFoundResponse("AI Market Maker Market"),
     500: serverErrorResponse,
   },
   requiresAuth: true,
@@ -55,9 +61,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, body } = data;
+  const { params, body, ctx } = data;
   const { action } = body;
 
+  ctx?.step("Fetch market maker with related data");
   const marketMaker = await models.aiMarketMaker.findByPk(params.id, {
     include: [
       { model: models.aiMarketMakerPool, as: "pool" },
@@ -72,6 +79,7 @@ export default async (data: Handler) => {
   const pool = marketMaker.pool as any;
   const currentStatus = marketMaker.status;
 
+  ctx?.step("Validate state transition");
   // Validate state transitions
   const validTransitions: Record<string, string[]> = {
     STOPPED: ["START"],
@@ -124,6 +132,7 @@ export default async (data: Handler) => {
     }
   }
 
+  ctx?.step("Execute status change through engine");
   // Get the market manager from the engine
   const engine = MarketMakerEngine;
   const marketManager = engine.getMarketManager();
@@ -219,6 +228,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.success("Market maker status updated successfully");
   return {
     message: `AI Market Maker ${action.toLowerCase()}ed successfully`,
     status: newStatus,

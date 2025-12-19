@@ -44,12 +44,17 @@ export const metadata = {
   responses: updateRecordResponses("Wallet"),
   requiresAuth: true,
   permission: "edit.wallet",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Wallet Balance",
 };
 
 export default async (data: Handler) => {
   const { id } = data.params;
   const { type, amount } = data.body;
+  const { ctx } = data;
+  ctx?.step("Updating wallet balance");
   await updateWalletBalance(id, type, amount);
+  ctx?.success("Wallet balance updated successfully");
   return {
     message: "Wallet balance updated successfully",
   };

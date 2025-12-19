@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { logger } from "@b/utils/console";
 
 // Adyen configuration interface
 export interface AdyenConfig {
@@ -94,10 +95,10 @@ export const verifyHmacSignature = (
     const hmac = crypto.createHmac("sha256", Buffer.from(hmacKey, "hex"));
     hmac.update(payload, "utf8");
     const computedSignature = hmac.digest("base64");
-    
+
     return computedSignature === signature;
   } catch (error) {
-    console.error("Error verifying HMAC signature:", error);
+    logger.error("ADYEN", "Error verifying HMAC signature", error);
     return false;
   }
 };

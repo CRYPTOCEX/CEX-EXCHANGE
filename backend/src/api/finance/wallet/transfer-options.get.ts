@@ -1,5 +1,6 @@
 import { models } from "@b/db";
 import { CacheManager } from "@b/utils/cache";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Get wallet types available for transfers",
@@ -60,7 +61,7 @@ export default async () => {
       types.push({ id: "FUTURES", name: "Futures" });
     }
   } catch (error) {
-    console.warn("Error checking wallet settings:", error.message);
+    logger.warn("WALLET", "Error checking wallet settings", error);
     // Continue with what we have
   }
 
@@ -72,7 +73,7 @@ export default async () => {
       types.push({ id: "ECO", name: "Eco" });
     }
   } catch (error) {
-    console.warn("Error checking ecosystem extension:", error.message);
+    logger.warn("WALLET", "Error checking ecosystem extension", error);
     // Continue without ECO if extension check fails
   }
 

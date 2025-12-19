@@ -1,20 +1,22 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useTranslations } from "next-intl";
 
 export default function ConfigurationsLoading() {
-  const t = useTranslations("ext");
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto pt-20 py-8">
       <Skeleton className="h-10 w-64 mb-6" />
 
       <Tabs defaultValue="blockchains" className="w-full">
         <TabsList className="mb-4">
-          <TabsTrigger value="blockchains">{t("Blockchains")}</TabsTrigger>
-          <TabsTrigger value="token-types">{t("token_types")}</TabsTrigger>
+          <TabsTrigger value="blockchains">
+            <Skeleton className="h-4 w-20" />
+          </TabsTrigger>
+          <TabsTrigger value="token-types">
+            <Skeleton className="h-4 w-24" />
+          </TabsTrigger>
           <TabsTrigger value="platform-settings">
-            {t("platform_settings")}
+            <Skeleton className="h-4 w-32" />
           </TabsTrigger>
         </TabsList>
 

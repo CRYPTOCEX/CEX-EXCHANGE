@@ -1,16 +1,17 @@
 import { updateStatus, updateRecordResponses } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Updates the status of an E-commerce Product",
+  summary: "Updates the status of a specific ecommerce product",
   operationId: "updateEcommerceProductStatus",
-  tags: ["Admin", "Ecommerce Products"],
+  tags: ["Admin", "Ecommerce", "Product"],
+  description: "Updates the active/inactive status of a single ecommerce product. Use this to enable or disable a product from being displayed or purchased.",
   parameters: [
     {
-      index: 0, // Ensuring the parameter index is specified as requested
+      index: 0,
       name: "id",
       in: "path",
       required: true,
-      description: "ID of the E-commerce product to update",
+      description: "ID of the ecommerce product to update",
       schema: { type: "string" },
     },
   ],
@@ -24,7 +25,7 @@ export const metadata: OperationObject = {
             status: {
               type: "boolean",
               description:
-                "New status to apply to the E-commerce product (true for active, false for inactive)",
+                "New status to apply to the ecommerce product (true for active, false for inactive)",
             },
           },
           required: ["status"],
@@ -32,14 +33,21 @@ export const metadata: OperationObject = {
       },
     },
   },
-  responses: updateRecordResponses("E-commerce Product"),
+  responses: updateRecordResponses("Ecommerce Product"),
   requiresAuth: true,
   permission: "edit.ecommerce.product",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Update Ecommerce Product Status",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
-  return updateStatus("ecommerceProduct", id, status);
+
+  ctx?.step("Updating E-commerce product status");
+  const result = await updateStatus("ecommerceProduct", id, status);
+
+  ctx?.success("Successfully updated E-commerce product status");
+  return result;
 };

@@ -1,11 +1,12 @@
-import { models, sequelize } from "@b/db";
+import { models } from "@b/db";
 import { unauthorizedResponse, serverErrorResponse } from "@b/utils/query";
-import { Op } from "sequelize";
+import { fn, col, literal, Op } from "sequelize";
 import {
   getFiatPriceInUSD,
   getSpotPriceInUSD,
   getEcoPriceInUSD,
 } from "@b/api/finance/currency/utils";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Get P2P Dashboard Data",
@@ -13,6 +14,8 @@ export const metadata = {
     "Retrieves dashboard data including notifications, portfolio, stats, trading activity, and transactions for the authenticated user.",
   operationId: "getP2PDashboardData",
   tags: ["P2P", "Dashboard"],
+  logModule: "P2P",
+  logTitle: "Get dashboard data",
   responses: {
     200: { description: "Dashboard data retrieved successfully." },
     401: unauthorizedResponse,
@@ -21,12 +24,13 @@ export const metadata = {
   requiresAuth: true,
 };
 
-export default async (data: { user?: any }) => {
-  const { user } = data;
+export default async (data: { user?: any; ctx?: any }) => {
+  const { user, ctx } = data;
   if (!user?.id) {
     throw new Error("Unauthorized");
   }
-  
+
+  ctx?.step("Initializing dashboard data fetch");
   try {
     // For example purposes, many of these fields are placeholders or basic aggregates.
     const notifications = 0; // Replace with your notification logic if available
@@ -38,6 +42,7 @@ export default async (data: { user?: any }) => {
     let transactions: any[] = [];
 
     // Fetch user wallets for P2P trading first (needed for stats calculation)
+    ctx?.step("Fetching user wallets");
     let wallets: any[] = [];
     try {
       wallets = await models.wallet.findAll({
@@ -56,16 +61,17 @@ export default async (data: { user?: any }) => {
         raw: true,
       });
     } catch (walletsError) {
-      console.error("Error fetching user wallets:", walletsError);
+      logger.error("P2P", `Error fetching user wallets: ${walletsError}`);
       wallets = [];
     }
 
+    ctx?.step("Calculating portfolio data");
     try {
       // Portfolio: aggregate total value of completed trades (user is buyer or seller)
       portfolioResult = await models.p2pTrade.findOne({
         attributes: [
           [
-            sequelize.fn("SUM", sequelize.col("total")),
+            fn("SUM", col("total")),
             "totalValue",
           ],
         ],
@@ -76,17 +82,18 @@ export default async (data: { user?: any }) => {
         raw: true,
       });
     } catch (portfolioError) {
-      console.error("Error fetching portfolio data:", portfolioError);
+      logger.error("P2P", `Error fetching portfolio data: ${portfolioError}`);
       portfolioResult = { totalValue: 0 };
     }
 
+    ctx?.step("Calculating dashboard statistics");
     try {
       // Dashboard stats: count total trades and calculate stats
       const tradeStats = await models.p2pTrade.findOne({
         attributes: [
-          [sequelize.fn("COUNT", sequelize.col("id")), "tradeCount"],
+          [fn("COUNT", col("id")), "tradeCount"],
           [
-            sequelize.fn("COUNT", sequelize.literal("CASE WHEN status = 'COMPLETED' THEN 1 END")),
+            fn("COUNT", literal("CASE WHEN status = 'COMPLETED' THEN 1 END")),
             "completedCount"
           ],
         ],
@@ -123,13 +130,13 @@ export default async (data: { user?: any }) => {
               price = await getEcoPriceInUSD(wallet.currency) || 0;
             }
           } catch (priceError: any) {
-            console.warn(`Failed to fetch price for ${wallet.currency} (${type}): ${priceError.message || priceError}`);
+            logger.warn("P2P", `Failed to fetch price for ${wallet.currency} (${type}): ${priceError.message || priceError}`);
             price = wallet.currency === 'USD' ? 1 : 0;
           }
 
           totalBalance += balance * price;
         } catch (walletCalcError: any) {
-          console.warn(`Error calculating wallet balance: ${walletCalcError.message || walletCalcError}`);
+          logger.warn("P2P", `Error calculating wallet balance: ${walletCalcError.message || walletCalcError}`);
         }
       }
 
@@ -169,10 +176,11 @@ export default async (data: { user?: any }) => {
         },
       ];
     } catch (statsError) {
-      console.error("Error fetching stats data:", statsError);
+      logger.error("P2P", `Error fetching stats data: ${statsError}`);
       statsResult = [];
     }
 
+    ctx?.step("Fetching trading activity");
     try {
       // Trading Activity: recent trades for the user (not activity logs which may be empty)
       const trades = await models.p2pTrade.findAll({
@@ -245,10 +253,11 @@ export default async (data: { user?: any }) => {
         };
       }));
     } catch (activityError) {
-      console.error("Error fetching activity data:", activityError);
+      logger.error("P2P", `Error fetching activity data: ${activityError}`);
       activity = [];
     }
 
+    ctx?.step("Fetching recent transactions");
     try {
       // Transactions: recent trades for the user
       transactions = await models.p2pTrade.findAll({
@@ -260,10 +269,11 @@ export default async (data: { user?: any }) => {
         raw: true,
       });
     } catch (transactionsError) {
-      console.error("Error fetching transactions data:", transactionsError);
+      logger.error("P2P", `Error fetching transactions data: ${transactionsError}`);
       transactions = [];
     }
 
+    ctx?.success("Dashboard data retrieved successfully");
     return {
       notifications,
       portfolio: portfolioResult || { totalValue: 0 },
@@ -281,6 +291,7 @@ export default async (data: { user?: any }) => {
       })),
     };
   } catch (err: any) {
+    ctx?.fail(err.message || "Failed to retrieve dashboard data");
     throw new Error("Internal Server Error: " + err.message);
   }
 };

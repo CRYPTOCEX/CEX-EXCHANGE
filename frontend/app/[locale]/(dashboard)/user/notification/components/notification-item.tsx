@@ -40,14 +40,13 @@ import {
   BarChart,
   Gift,
   Award,
-  Share2,
   Copy,
-  AlertTriangle,
+  ChevronDown,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow, isToday, isYesterday } from "date-fns";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 
 interface NotificationItemProps {
@@ -74,7 +73,8 @@ export function NotificationItem({
   onDelete,
   index = 0,
 }: NotificationItemProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -154,77 +154,75 @@ export function NotificationItem({
   const getTypeColor = (type: string) => {
     switch (type) {
       case "investment":
-        return "border-green-500 hover:bg-green-50 dark:hover:bg-green-950/30";
+        return "border-green-500/50 hover:border-green-500";
       case "message":
-        return "border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/30";
+        return "border-blue-500/50 hover:border-blue-500";
       case "user":
-        return "border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/30";
+        return "border-purple-500/50 hover:border-purple-500";
       case "alert":
-        return "border-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-950/30";
+        return "border-yellow-500/50 hover:border-yellow-500";
       case "system":
-        return "border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-950/30";
+        return "border-gray-500/50 hover:border-gray-500";
       default:
-        return "border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-950/30";
+        return "border-gray-500/50 hover:border-gray-500";
     }
   };
 
   const getIconBackground = (type: string) => {
     switch (type) {
       case "investment":
-        return "bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20";
+        return "bg-gradient-to-br from-green-500/20 to-green-600/20 ring-green-500/30";
       case "message":
-        return "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20";
+        return "bg-gradient-to-br from-blue-500/20 to-blue-600/20 ring-blue-500/30";
       case "user":
-        return "bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20";
+        return "bg-gradient-to-br from-purple-500/20 to-purple-600/20 ring-purple-500/30";
       case "alert":
-        return "bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20";
+        return "bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 ring-yellow-500/30";
       case "system":
-        return "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/20";
+        return "bg-gradient-to-br from-gray-500/20 to-gray-600/20 ring-gray-500/30";
       case "info":
-        return "bg-gradient-to-br from-sky-50 to-sky-100 dark:from-sky-900/20 dark:to-sky-800/20";
+        return "bg-gradient-to-br from-sky-500/20 to-sky-600/20 ring-sky-500/30";
       case "event":
-        return "bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20";
+        return "bg-gradient-to-br from-indigo-500/20 to-indigo-600/20 ring-indigo-500/30";
       case "document":
-        return "bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20";
+        return "bg-gradient-to-br from-orange-500/20 to-orange-600/20 ring-orange-500/30";
       case "analytics":
-        return "bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-900/20 dark:to-violet-800/20";
+        return "bg-gradient-to-br from-violet-500/20 to-violet-600/20 ring-violet-500/30";
       case "reward":
-        return "bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/20";
+        return "bg-gradient-to-br from-pink-500/20 to-pink-600/20 ring-pink-500/30";
       case "achievement":
-        return "bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20";
+        return "bg-gradient-to-br from-amber-500/20 to-amber-600/20 ring-amber-500/30";
       default:
-        return "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/20";
+        return "bg-gradient-to-br from-gray-500/20 to-gray-600/20 ring-gray-500/30";
     }
   };
 
-  const getBorderGradient = (type: string) => {
-    if (!isHovered && !isExpanded) return "";
-
+  const getExpandedBg = (type: string) => {
     switch (type) {
       case "investment":
-        return "hover:border-l-green-500 hover:border-b-green-400";
+        return "bg-green-500/5";
       case "message":
-        return "hover:border-l-blue-500 hover:border-b-blue-400";
+        return "bg-blue-500/5";
       case "user":
-        return "hover:border-l-purple-500 hover:border-b-purple-400";
+        return "bg-purple-500/5";
       case "alert":
-        return "hover:border-l-yellow-500 hover:border-b-yellow-400";
+        return "bg-yellow-500/5";
       case "system":
-        return "hover:border-l-gray-500 hover:border-b-gray-400";
+        return "bg-gray-500/5";
       case "info":
-        return "hover:border-l-sky-500 hover:border-b-sky-400";
+        return "bg-sky-500/5";
       case "event":
-        return "hover:border-l-indigo-500 hover:border-b-indigo-400";
+        return "bg-indigo-500/5";
       case "document":
-        return "hover:border-l-orange-500 hover:border-b-orange-400";
+        return "bg-orange-500/5";
       case "analytics":
-        return "hover:border-l-violet-500 hover:border-b-violet-400";
+        return "bg-violet-500/5";
       case "reward":
-        return "hover:border-l-pink-500 hover:border-b-pink-400";
+        return "bg-pink-500/5";
       case "achievement":
-        return "hover:border-l-amber-500 hover:border-b-amber-400";
+        return "bg-amber-500/5";
       default:
-        return "hover:border-l-gray-500 hover:border-b-gray-400";
+        return "bg-gray-500/5";
     }
   };
 
@@ -280,15 +278,12 @@ export function NotificationItem({
     const currentTouch = e.targetTouches[0].clientX;
     const diff = touchStart - currentTouch;
 
-    // Determine swipe direction
     if (diff > 0) {
       setSwipeDirection("left");
-      // Calculate progress as a percentage (0-100)
       const progress = Math.min(Math.abs(diff) / 150, 1) * 100;
       setSwipeProgress(progress);
     } else {
       setSwipeDirection("right");
-      // Calculate progress as a percentage (0-100)
       const progress = Math.min(Math.abs(diff) / 150, 1) * 100;
       setSwipeProgress(progress);
     }
@@ -305,13 +300,10 @@ export function NotificationItem({
     const isSwipeLeft = diff > 0;
     const isSwipeRight = diff < 0;
 
-    // If the swipe is significant enough (more than 100px)
     if (Math.abs(diff) > 100) {
       if (isSwipeLeft) {
-        // Swiped left - delete
         setShowDeleteDialog(true);
       } else if (isSwipeRight) {
-        // Swiped right - mark as read/unread
         if (notification.read) {
           onMarkAsUnread();
         } else {
@@ -320,31 +312,33 @@ export function NotificationItem({
       }
     }
 
-    // Reset touch values
     setTouchStart(null);
     setTouchEnd(null);
     setSwipeDirection(null);
     setSwipeProgress(0);
   };
 
-  // Get action based on swipe direction
   const getSwipeAction = () => {
     if (!swipeDirection) return null;
 
     if (swipeDirection === "left") {
       return (
-        <div
-          className="absolute inset-y-0 right-0 flex items-center justify-center bg-red-500 text-white px-4"
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute inset-y-0 right-0 flex items-center justify-center bg-red-500 text-white px-4 rounded-r-xl"
           style={{ width: `${swipeProgress}%`, maxWidth: "40%" }}
         >
           <Trash className="mr-2 h-5 w-5" />
-          {swipeProgress > 50 && <span>{t("Delete")}</span>}
-        </div>
+          {swipeProgress > 50 && <span>{tCommon("delete")}</span>}
+        </motion.div>
       );
     } else {
       return (
-        <div
-          className="absolute inset-y-0 left-0 flex items-center justify-center bg-blue-500 text-white px-4"
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute inset-y-0 left-0 flex items-center justify-center bg-blue-500 text-white px-4 rounded-l-xl"
           style={{ width: `${swipeProgress}%`, maxWidth: "40%" }}
         >
           {notification.read ? (
@@ -358,7 +352,7 @@ export function NotificationItem({
               {swipeProgress > 50 && <span>{t("mark_as_read")}</span>}
             </>
           )}
-        </div>
+        </motion.div>
       );
     }
   };
@@ -367,7 +361,9 @@ export function NotificationItem({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.05 }}
+      exit={{ opacity: 0, y: -20, height: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.03 }}
+      layout
     >
       {/* Delete confirmation dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -375,225 +371,302 @@ export function NotificationItem({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("delete_notification")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("are_you_sure_be_undone")}.
+              {tCommon("are_you_sure_be_undone")}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {t("Delete")}
+              {tCommon("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Backdrop when expanded */}
-      {isExpanded && (
-        <div
-          className="fixed inset-0 z-10 bg-black/20"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsExpanded(false);
-          }}
-        />
-      )}
-      <div
+      <motion.div
+        ref={cardRef}
         className={cn(
-          "group relative flex items-center gap-4 rounded-lg border p-4 transition-all duration-200",
-          "hover:shadow-lg cursor-pointer",
+          "group relative overflow-hidden rounded-xl border transition-all duration-300",
+          "bg-card hover:shadow-lg",
           !notification.read && "border-l-4",
           getTypeColor(notification.type),
-          getBorderGradient(notification.type),
-          isHovered && "-translate-y-0.5",
-          isExpanded && "z-20"
+          isExpanded && "shadow-xl",
+          isExpanded && getExpandedBg(notification.type)
         )}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={handleClick}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        ref={cardRef}
+        layout
+        transition={{ layout: { duration: 0.3, ease: "easeInOut" } }}
       >
         {getSwipeAction()}
-        {/* Icon */}
-        <div
-          className={cn(
-            "flex h-12 w-12 shrink-0 items-center justify-center rounded-full",
-            getIconBackground(notification.type),
-            "transition-transform duration-300",
-            "group-hover:scale-110",
-            !notification.read && "ring-2 ring-primary/20"
-          )}
+
+        {/* Main Content - Always visible */}
+        <motion.div
+          className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 cursor-pointer"
+          onClick={handleClick}
+          layout="position"
         >
-          {getIcon(notification.type)}
-        </div>
+          {/* Icon */}
+          <motion.div
+            className={cn(
+              "flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-xl ring-2",
+              getIconBackground(notification.type),
+              !notification.read && "ring-primary/30"
+            )}
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          >
+            {getIcon(notification.type)}
+          </motion.div>
 
-        {/* Content */}
-        <div className="flex-1 space-y-1">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="font-medium">
-              {getTypeLabel(notification.type)}
-            </Badge>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              <span>
-                {formatDistanceToNow(notification.createdAt || Date.now(), {
-                  addSuffix: true,
-                })}
-              </span>
-            </div>
-          </div>
-
-          {notification.title && (
-            <h4 className="font-medium">{notification.title}</h4>
-          )}
-          <p className="text-sm text-muted-foreground">
-            {notification.message}
-          </p>
-        </div>
-
-        {/* Expanded content */}
-        {isExpanded && (
-          <div className="absolute left-0 right-0 top-full z-10 mt-1 rounded-lg border bg-background p-4 shadow-lg -mx-[1px]">
-            <div className="mb-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold">
-                  {notification.title || getTypeLabel(notification.type)}
-                </h4>
-                <span className="text-xs text-muted-foreground">
-                  {notification.createdAt
-                    ? formatDate(notification.createdAt)
-                    : ""}
+          {/* Content */}
+          <div className="flex-1 min-w-0 space-y-0.5 sm:space-y-1">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              <Badge
+                variant="outline"
+                className="font-medium text-[10px] sm:text-xs shrink-0 px-1.5 sm:px-2"
+              >
+                {getTypeLabel(notification.type)}
+              </Badge>
+              <div className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span className="hidden xs:inline">
+                  {formatDistanceToNow(notification.createdAt || Date.now(), {
+                    addSuffix: true,
+                  })}
+                </span>
+                <span className="xs:hidden">
+                  {formatDistanceToNow(notification.createdAt || Date.now(), {
+                    addSuffix: false,
+                  })}
                 </span>
               </div>
-              <p className="text-sm">{notification.message}</p>
-              {notification.details && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  {notification.details}
-                </p>
-              )}
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {notification.link && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => window.open(notification.link, "_blank")}
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  {t("open_link")}
-                </Button>
-              )}
-
-              <Button size="sm" variant="outline" onClick={copyToClipboard}>
-                <Copy className="mr-2 h-4 w-4" />
-                {isCopied ? "Copied!" : "Copy"}
-              </Button>
-
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-destructive"
-                onClick={() => setShowDeleteDialog(true)}
-              >
-                <Trash className="mr-2 h-4 w-4" />
-                {t("Delete")}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex shrink-0 items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              notification.read ? onMarkAsUnread() : onMarkAsRead();
-            }}
-          >
-            {notification.read ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Check className="h-4 w-4" />
-            )}
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  notification.read ? onMarkAsUnread() : onMarkAsRead();
-                }}
-              >
-                {notification.read ? (
-                  <>
-                    <EyeOff className="mr-2 h-4 w-4" />
-                    {t("mark_as_unread")}
-                  </>
-                ) : (
-                  <>
-                    <Check className="mr-2 h-4 w-4" />
-                    {t("mark_as_read")}
-                  </>
+            {notification.title && (
+              <h4
+                className={cn(
+                  "font-medium truncate text-sm sm:text-base",
+                  !notification.read && "text-foreground",
+                  notification.read && "text-muted-foreground"
                 )}
-              </DropdownMenuItem>
+              >
+                {notification.title}
+              </h4>
+            )}
+            <p
+              className={cn(
+                "text-xs sm:text-sm line-clamp-1",
+                isExpanded && "line-clamp-none",
+                notification.read
+                  ? "text-muted-foreground"
+                  : "text-muted-foreground/80"
+              )}
+            >
+              {notification.message}
+            </p>
+          </div>
 
-              {notification.link && (
+          {/* Actions */}
+          <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+            <motion.div
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </motion.div>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 sm:h-8 sm:w-8 hidden sm:flex opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                notification.read ? onMarkAsUnread() : onMarkAsRead();
+              }}
+            >
+              {notification.read ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Check className="h-4 w-4" />
+              )}
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 sm:h-8 sm:w-8"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.open(notification.link, "_blank");
+                    notification.read ? onMarkAsUnread() : onMarkAsRead();
                   }}
                 >
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  {t("open_link")}
+                  {notification.read ? (
+                    <>
+                      <EyeOff className="mr-2 h-4 w-4" />
+                      {t("mark_as_unread")}
+                    </>
+                  ) : (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      {t("mark_as_read")}
+                    </>
+                  )}
                 </DropdownMenuItem>
-              )}
 
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  copyToClipboard(e);
-                }}
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                {isCopied ? "Copied!" : "Copy text"}
-              </DropdownMenuItem>
+                {notification.link && (
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(notification.link, "_blank");
+                    }}
+                  >
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    {t("open_link")}
+                  </DropdownMenuItem>
+                )}
 
-              <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    copyToClipboard(e);
+                  }}
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  {isCopied ? "Copied!" : "Copy text"}
+                </DropdownMenuItem>
 
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowDeleteDialog(true);
-                }}
-              >
-                <Trash className="mr-2 h-4 w-4" />
-                {t("Delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+                <DropdownMenuSeparator />
 
-        {/* Unread indicator */}
-        {!notification.read && (
-          <div className="absolute right-3 top-3 h-2 w-2 rounded-full bg-primary animate-pulse" />
-        )}
-      </div>
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDeleteDialog(true);
+                  }}
+                >
+                  <Trash className="mr-2 h-4 w-4" />
+                  {tCommon("delete")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Unread indicator */}
+          {!notification.read && (
+            <motion.div
+              className="absolute right-3 top-3 h-2 w-2 rounded-full bg-primary"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+            />
+          )}
+        </motion.div>
+
+        {/* Expanded Content - Inline expansion */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-0 border-t border-border/50">
+                <motion.div
+                  initial={{ y: -10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="pt-3 sm:pt-4 space-y-3 sm:space-y-4"
+                >
+                  {/* Full details */}
+                  <div className="space-y-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
+                      <h4 className="font-semibold text-sm sm:text-base">
+                        {notification.title || getTypeLabel(notification.type)}
+                      </h4>
+                      <span className="text-[10px] sm:text-xs text-muted-foreground bg-muted px-2 py-0.5 sm:py-1 rounded-md w-fit">
+                        {notification.createdAt
+                          ? formatDate(notification.createdAt)
+                          : ""}
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                      {notification.message}
+                    </p>
+                    {notification.details && (
+                      <p className="text-xs sm:text-sm text-muted-foreground/80 bg-muted/50 rounded-lg p-2 sm:p-3 mt-2">
+                        {notification.details}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Action buttons */}
+                  <motion.div
+                    className="flex flex-wrap gap-2 pt-2"
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    {notification.link && (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(notification.link, "_blank");
+                        }}
+                        className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        {t("open_link")}
+                      </Button>
+                    )}
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={copyToClipboard}
+                      className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
+                    >
+                      <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      {isCopied ? "Copied!" : "Copy"}
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-destructive hover:text-destructive gap-1.5 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowDeleteDialog(true);
+                      }}
+                    >
+                      <Trash className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      {tCommon("delete")}
+                    </Button>
+                  </motion.div>
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </motion.div>
   );
 }

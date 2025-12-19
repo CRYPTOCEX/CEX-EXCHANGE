@@ -27,7 +27,7 @@ export default function NFTVerificationSettingsSection({
   validationErrors = {},
   hasSubmitted = false,
 }: NFTVerificationSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const { settings: platformSettings } = useConfigStore();
   const kycEnabled = isKycEnabled(platformSettings);
 
@@ -101,7 +101,7 @@ export default function NFTVerificationSettingsSection({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
-            {t("high-value_transaction_protection")}
+            {t("high_value_transaction_protection")}
           </CardTitle>
           <CardDescription>
             {t("additional_verification_requirements_for")}
@@ -119,7 +119,7 @@ export default function NFTVerificationSettingsSection({
 
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label htmlFor="requireKycHighValue">{t("require_kyc_for_high-value_sales")}</Label>
+              <Label htmlFor="requireKycHighValue">{t("require_kyc_for_high_value_sales")}</Label>
               <p className="text-sm text-muted-foreground">
                 {t("mandate_identity_verification_for")}
               </p>
@@ -141,7 +141,7 @@ export default function NFTVerificationSettingsSection({
                 </AlertDescription>
               </Alert>
 
-              <Label htmlFor="highValueThreshold">{t("High-Value Threshold (USD)")} *</Label>
+              <Label htmlFor="highValueThreshold">{t("high_value_threshold_usd")} *</Label>
               <Input
                 id="highValueThreshold"
                 type="number"

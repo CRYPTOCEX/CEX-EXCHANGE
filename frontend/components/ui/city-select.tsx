@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { getCities } from "@/lib/countries";
+import { useTranslations } from "next-intl";
 
 interface CitySelectProps {
   value?: string;
@@ -39,6 +40,7 @@ export function CitySelect({
   disabled = false,
   className,
 }: CitySelectProps) {
+  const t = useTranslations("components");
   const [open, setOpen] = React.useState(false);
   const [cities, setCities] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -83,7 +85,7 @@ export function CitySelect({
       >
         <span className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading cities...
+          {t("loading_cities_ellipsis")}
         </span>
       </Button>
     );
@@ -109,9 +111,9 @@ export function CitySelect({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
-          <CommandInput placeholder="Search city..." />
+          <CommandInput placeholder={t("search_city_ellipsis")} />
           <CommandList>
-            <CommandEmpty>No city found.</CommandEmpty>
+            <CommandEmpty>{t("no_city_found")}</CommandEmpty>
             <CommandGroup className="max-h-64 overflow-auto">
               {cities.map((city) => (
                 <CommandItem

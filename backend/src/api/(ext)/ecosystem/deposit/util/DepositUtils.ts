@@ -3,6 +3,7 @@
 import { ethers } from "ethers";
 import { storeAndBroadcastTransaction } from "@b/api/(ext)/ecosystem/utils/redis/deposit";
 import { decodeTransactionData } from "@b/api/(ext)/ecosystem/utils/blockchain";
+import { logger } from "@b/utils/console";
 
 /**
  * Decodes and validates a transaction, ensures `to` matches our target address.
@@ -21,25 +22,21 @@ export async function processTransaction(
 ): Promise<boolean> {
   // Input validation
   if (!txHash || !provider || !address || !chain || !walletId) {
-    console.error(
-      `[ERROR] Invalid parameters for processTransaction: txHash=${txHash}, address=${address}, chain=${chain}, walletId=${walletId}`
-    );
+    logger.error("DEPOSIT", `Invalid parameters for processTransaction: txHash=${txHash}, address=${address}, chain=${chain}, walletId=${walletId}`);
     return false;
   }
 
   try {
-    console.log(
-      `[INFO] Processing ${contractType} transaction ${txHash} on ${chain}`
-    );
+    logger.info("DEPOSIT", `Processing ${contractType} transaction ${txHash} on ${chain}`);
 
     const tx = await provider.getTransaction(txHash);
     if (!tx) {
-      console.error(`[ERROR] Transaction ${txHash} not found on ${chain}`);
+      logger.error("DEPOSIT", `Transaction ${txHash} not found on ${chain}`);
       return false;
     }
 
     if (!tx.data) {
-      console.error(`[ERROR] Transaction ${txHash} has no data field`);
+      logger.error("DEPOSIT", `Transaction ${txHash} has no data field`);
       return false;
     }
 
@@ -48,23 +45,19 @@ export async function processTransaction(
     const amount = decodedData.amount || tx.value;
 
     if (!realTo || !address) {
-      console.error(
-        `[ERROR] Invalid transaction data for ${txHash}: realTo=${realTo}, address=${address}`
-      );
+      logger.error("DEPOSIT", `Invalid transaction data for ${txHash}: realTo=${realTo}, address=${address}`);
       return false;
     }
 
     // Validate address match (case-insensitive)
     if (realTo.toLowerCase() !== address.toLowerCase()) {
-      console.warn(
-        `[WARN] Address mismatch for ${txHash}: expected=${address}, actual=${realTo}`
-      );
+      logger.warn("DEPOSIT", `Address mismatch for ${txHash}: expected=${address}, actual=${realTo}`);
       return false;
     }
 
     // Validate amount
     if (!amount || amount.toString() === "0") {
-      console.warn(`[WARN] Zero or invalid amount for transaction ${txHash}`);
+      logger.warn("DEPOSIT", `Zero or invalid amount for transaction ${txHash}`);
       return false;
     }
 
@@ -81,15 +74,11 @@ export async function processTransaction(
     );
 
     await storeAndBroadcastTransaction(txDetails, txHash);
-    console.log(
-      `[SUCCESS] Transaction ${txHash} processed successfully on ${chain}`
-    );
+    logger.success("DEPOSIT", `Transaction ${txHash} processed successfully on ${chain}`);
 
     return true;
   } catch (error) {
-    console.error(
-      `[ERROR] Error processing transaction ${txHash} on ${chain}: ${error.message}`
-    );
+    logger.error("DEPOSIT", `Error processing transaction ${txHash} on ${chain}: ${error.message}`);
     return false;
   }
 }
@@ -118,15 +107,11 @@ export async function createTransactionDetails(
 
     // Validate decimals
     if (decimals < 0 || decimals > 18) {
-      console.warn(
-        `[WARN] Unusual decimals value: ${decimals} for chain ${chain}`
-      );
+      logger.warn("DEPOSIT", `Unusual decimals value: ${decimals} for chain ${chain}`);
     }
 
     if (feeDecimals < 0 || feeDecimals > 18) {
-      console.warn(
-        `[WARN] Unusual fee decimals value: ${feeDecimals} for chain ${chain}`
-      );
+      logger.warn("DEPOSIT", `Unusual fee decimals value: ${feeDecimals} for chain ${chain}`);
     }
 
     // Safe amount formatting with validation
@@ -140,16 +125,12 @@ export async function createTransactionDetails(
           isNaN(parseFloat(formattedAmount)) ||
           parseFloat(formattedAmount) <= 0
         ) {
-          console.warn(
-            `[WARN] Invalid formatted amount ${formattedAmount} for transaction ${tx.hash}`
-          );
+          logger.warn("DEPOSIT", `Invalid formatted amount ${formattedAmount} for transaction ${tx.hash}`);
           formattedAmount = "0";
         }
       }
     } catch (error) {
-      console.error(
-        `[ERROR] Error formatting amount for transaction ${tx.hash}: ${error.message}`
-      );
+      logger.error("DEPOSIT", `Error formatting amount for transaction ${tx.hash}: ${error.message}`);
       formattedAmount = "0";
     }
 
@@ -160,9 +141,7 @@ export async function createTransactionDetails(
         formattedGasLimit = tx.gasLimit.toString();
       }
     } catch (error) {
-      console.warn(
-        `[WARN] Error formatting gas limit for transaction ${tx.hash}: ${error.message}`
-      );
+      logger.warn("DEPOSIT", `Error formatting gas limit for transaction ${tx.hash}: ${error.message}`);
     }
 
     // Safe gas price formatting
@@ -179,16 +158,12 @@ export async function createTransactionDetails(
           isNaN(parseFloat(formattedGasPrice)) ||
           parseFloat(formattedGasPrice) < 0
         ) {
-          console.warn(
-            `[WARN] Invalid gas price ${formattedGasPrice} for transaction ${tx.hash}`
-          );
+          logger.warn("DEPOSIT", `Invalid gas price ${formattedGasPrice} for transaction ${tx.hash}`);
           formattedGasPrice = "N/A";
         }
       }
     } catch (error) {
-      console.warn(
-        `[WARN] Error formatting gas price for transaction ${tx.hash}: ${error.message}`
-      );
+      logger.warn("DEPOSIT", `Error formatting gas price for transaction ${tx.hash}: ${error.message}`);
     }
 
     const txDetails = {
@@ -207,14 +182,10 @@ export async function createTransactionDetails(
       status: "PENDING", // Will be updated by verification process
     };
 
-    console.log(
-      `[INFO] Created transaction details for ${tx.hash}: amount=${formattedAmount}, chain=${chain}`
-    );
+    logger.debug("DEPOSIT", `Created transaction details for ${tx.hash}: amount=${formattedAmount}, chain=${chain}`);
     return txDetails;
   } catch (error) {
-    console.error(
-      `[ERROR] Error creating transaction details: ${error.message}`
-    );
+    logger.error("DEPOSIT", `Error creating transaction details: ${error.message}`);
     throw error;
   }
 }

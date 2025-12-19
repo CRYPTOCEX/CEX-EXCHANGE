@@ -70,6 +70,9 @@ const CATEGORY = {
   P2P: "p2p",
   STAKING: "staking",
   SUPPORT: "support",
+  NFT: "nft",
+  GATEWAY: "gateway",
+  COPY_TRADING: "copy_trading",
 };
 
 // Feature ID constants
@@ -110,6 +113,18 @@ const FEATURE = {
   // Support features
   ASK_FAQ: "ask_faq",
   SUPPORT_TICKET: "support_ticket",
+  // NFT features
+  VIEW_NFT: "view_nft",
+  CREATE_NFT: "create_nft",
+  BUY_NFT: "buy_nft",
+  SELL_NFT: "sell_nft",
+  // Gateway features
+  VIEW_GATEWAY: "view_gateway",
+  USE_GATEWAY: "use_gateway",
+  // Copy Trading features
+  VIEW_COPY_TRADING: "view_copy_trading",
+  COPY_TRADERS: "copy_traders",
+  BECOME_TRADER: "become_trader",
 };
 
 // Define the feature categories and their icons
@@ -163,6 +178,21 @@ const featureCategories = [
     id: CATEGORY.SUPPORT,
     name: "Support",
     icon: <TicketCheck className="h-4 w-4" />,
+  },
+  {
+    id: CATEGORY.NFT,
+    name: "NFT",
+    icon: <Layers className="h-4 w-4" />,
+  },
+  {
+    id: CATEGORY.GATEWAY,
+    name: "Gateway",
+    icon: <CreditCard className="h-4 w-4" />,
+  },
+  {
+    id: CATEGORY.COPY_TRADING,
+    name: "Copy Trading",
+    icon: <Users className="h-4 w-4" />,
   },
 ];
 
@@ -394,6 +424,81 @@ export const platformFeatures = [
     description: "Ability to create and manage support tickets",
     recommendedLevel: 1,
   },
+  // NFT features
+  {
+    id: FEATURE.VIEW_NFT,
+    name: "NFT Marketplace Access",
+    category: CATEGORY.NFT,
+    icon: <Eye className="h-4 w-4" />,
+    description: "Access to view NFT collections and marketplace listings",
+    recommendedLevel: 1,
+  },
+  {
+    id: FEATURE.CREATE_NFT,
+    name: "NFT Creation",
+    category: CATEGORY.NFT,
+    icon: <FileEdit className="h-4 w-4" />,
+    description: "Ability to mint and create new NFTs on the platform",
+    recommendedLevel: 3,
+  },
+  {
+    id: FEATURE.BUY_NFT,
+    name: "NFT Purchases",
+    category: CATEGORY.NFT,
+    icon: <ShoppingCart className="h-4 w-4" />,
+    description: "Ability to purchase NFTs from the marketplace",
+    recommendedLevel: 2,
+  },
+  {
+    id: FEATURE.SELL_NFT,
+    name: "NFT Sales",
+    category: CATEGORY.NFT,
+    icon: <DollarSign className="h-4 w-4" />,
+    description: "Ability to list and sell NFTs on the marketplace",
+    recommendedLevel: 2,
+  },
+  // Gateway features
+  {
+    id: FEATURE.VIEW_GATEWAY,
+    name: "Payment Gateway Access",
+    category: CATEGORY.GATEWAY,
+    icon: <Eye className="h-4 w-4" />,
+    description: "Access to view payment gateway options and settings",
+    recommendedLevel: 1,
+  },
+  {
+    id: FEATURE.USE_GATEWAY,
+    name: "Payment Gateway Usage",
+    category: CATEGORY.GATEWAY,
+    icon: <CreditCard className="h-4 w-4" />,
+    description: "Ability to process payments through external gateways",
+    recommendedLevel: 2,
+  },
+  // Copy Trading features
+  {
+    id: FEATURE.VIEW_COPY_TRADING,
+    name: "Copy Trading Access",
+    category: CATEGORY.COPY_TRADING,
+    icon: <Eye className="h-4 w-4" />,
+    description: "Access to view available traders and their performance",
+    recommendedLevel: 1,
+  },
+  {
+    id: FEATURE.COPY_TRADERS,
+    name: "Copy Traders",
+    category: CATEGORY.COPY_TRADING,
+    icon: <Users className="h-4 w-4" />,
+    description: "Ability to copy trades from other traders on the platform",
+    recommendedLevel: 2,
+  },
+  {
+    id: FEATURE.BECOME_TRADER,
+    name: "Become a Trader",
+    category: CATEGORY.COPY_TRADING,
+    icon: <TrendingUp className="h-4 w-4" />,
+    description: "Ability to register as a trader and allow others to copy your trades",
+    recommendedLevel: 3,
+  },
 ];
 
 // Define the interface for the component props
@@ -426,7 +531,8 @@ export function FeatureManagement({
   onSave,
   existingFeatures = [],
 }: FeatureManagementProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   // State for the active category filter
   const [activeCategory, setActiveCategory] = useState(CATEGORY.ALL);
 
@@ -452,6 +558,9 @@ export function FeatureManagement({
         FEATURE.COMMENT_BLOG,
         FEATURE.ASK_FAQ,
         FEATURE.SUPPORT_TICKET,
+        FEATURE.VIEW_NFT,
+        FEATURE.VIEW_GATEWAY,
+        FEATURE.VIEW_COPY_TRADING,
       ];
 
       // Enable features based on recommended level
@@ -616,9 +725,9 @@ export function FeatureManagement({
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-indigo-500" />
             <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {t("Level")}{" "}
+              {tCommon("level")}{" "}
               {levelNumber}{" "}
-              {t("Features")}
+              {tCommon("features")}
             </h1>
           </div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -633,7 +742,7 @@ export function FeatureManagement({
             className="bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800"
           >
             {enabledFeaturesCount}{" "}
-            {t("of")}{" "}
+            {tCommon("of")}{" "}
             {platformFeatures.length}{" "}
             {t("features_enabled")}
           </Badge>
@@ -646,9 +755,9 @@ export function FeatureManagement({
           <div className="p-3">
             <Badge className="w-full justify-center py-1 mb-2">
               {enabledFeaturesCount}{" "}
-              {t("of")}{" "}
+              {tCommon("of")}{" "}
               {platformFeatures.length}{" "}
-              {t("Enabled")}
+              {tCommon("enabled")}
             </Badge>
           </div>
 
@@ -701,7 +810,7 @@ export function FeatureManagement({
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400 dark:text-zinc-500" />
                 <Input
-                  placeholder="Search features..."
+                  placeholder={t("search_features_ellipsis")}
                   className="pl-9 bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 h-9"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -720,7 +829,7 @@ export function FeatureManagement({
                 onClick={() => setBulkActionOpen(!bulkActionOpen)}
               >
                 <Settings2 className="h-4 w-4 mr-2" />
-                {t("Bulk")}
+                {t("bulk")}
                 {selectedFeatures.length > 0 && (
                   <Badge className="ml-1 bg-indigo-600 text-white">
                     {selectedFeatures.length}
@@ -774,7 +883,7 @@ export function FeatureManagement({
                       onClick={deselectAll}
                       disabled={selectedFeatures.length === 0}
                     >
-                      {t("deselect_all")}
+                      {tCommon("deselect_all")}
                     </Button>
                     <Button
                       variant="outline"
@@ -815,7 +924,7 @@ export function FeatureManagement({
                       {t("no_features_found")}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-zinc-400 max-w-xs">
-                      {t("try_adjusting_your_search_or_filter_criteria")}
+                      {tCommon("try_adjusting_your_search_or_filter_criteria")}
                     </p>
                     <Button
                       variant="outline"
@@ -825,7 +934,7 @@ export function FeatureManagement({
                         setActiveCategory(CATEGORY.ALL);
                       }}
                     >
-                      {t("clear_filters")}
+                      {tCommon("clear_filters")}
                     </Button>
                   </div>
                 ) : (
@@ -912,7 +1021,7 @@ export function FeatureManagement({
                                   variant="outline"
                                   className="text-xs px-1.5 py-0 h-5 bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800"
                                 >
-                                  {'L'}
+                                  L
                                   {feature.recommendedLevel}+
                                 </Badge>
                               </div>
@@ -941,13 +1050,13 @@ export function FeatureManagement({
                                         {feature.description}
                                       </p>
                                       <div className="grid grid-cols-2 gap-1 text-xs">
-                                        <div>{t("category")}</div>
+                                        <div>{tCommon("category")}</div>
                                         <div className="font-medium">
                                           {feature.category}
                                         </div>
                                         <div>{t("recommended_for")}</div>
                                         <div className="font-medium">
-                                          {t("Level")}
+                                          {tCommon("level")}
                                           {feature.recommendedLevel}+
                                         </div>
                                       </div>
@@ -973,7 +1082,7 @@ export function FeatureManagement({
                 <ShieldCheck className="h-4 w-4 text-green-500" />
                 <span className="font-medium">
                   {enabledFeaturesCount}
-                  {t("Enabled")}
+                  {tCommon("enabled")}
                 </span>
               </div>
 
@@ -981,7 +1090,7 @@ export function FeatureManagement({
                 <ShieldAlert className="h-4 w-4 text-red-500" />
                 <span className="font-medium">
                   {platformFeatures.length - enabledFeaturesCount}
-                  {t("Disabled")}
+                  {tCommon("disabled")}
                 </span>
               </div>
 

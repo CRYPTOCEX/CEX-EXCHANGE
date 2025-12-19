@@ -4,6 +4,7 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 
+import { logger } from "@b/utils/console";
 import {
   getAdyenConfig,
   makeAdyenApiRequest,
@@ -19,6 +20,8 @@ export const metadata: OperationObject = {
     "Manually verifies an Adyen payment by checking the payment status and updating the transaction accordingly. This endpoint is used for manual verification when automatic webhook processing is not available.",
   operationId: "verifyAdyenPayment",
   tags: ["Finance", "Deposit"],
+  logModule: "ADYEN_DEPOSIT",
+  logTitle: "Verify Adyen payment",
   requestBody: {
     description: "Payment verification data",
     content: {
@@ -78,7 +81,8 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user) throw new Error("User not authenticated");
 
   const { reference, pspReference } = body;
@@ -221,7 +225,7 @@ export default async (data: Handler) => {
       resultCode,
     };
   } catch (error) {
-    console.error("Adyen payment verification error:", error);
+    logger.error("ADYEN", "Payment verification error", error);
     throw new Error(`Payment verification failed: ${error.message}`);
   }
 }; 

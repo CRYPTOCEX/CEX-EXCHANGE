@@ -1,5 +1,6 @@
 import { models } from '@b/db'
 import { createError } from '@b/utils/error'
+import { logger } from '@b/utils/console'
 import {
   validatePaysafeConfig,
   isCurrencySupported,
@@ -24,6 +25,8 @@ export const metadata = {
   operationId: 'createPaysafePayment',
   tags: ['Finance', 'Deposit', 'Paysafe'],
   requiresAuth: true,
+  logModule: "PAYSAFE_DEPOSIT",
+  logTitle: "Create Paysafe payment session",
   requestBody: {
     required: true,
     content: {
@@ -337,8 +340,8 @@ export default async (data: Handler) => {
     }
 
   } catch (error) {
-    console.error('Paysafe payment creation error:', error)
-    
+    logger.error('PAYSAFE', 'Payment creation error', error)
+
     if (error instanceof PaysafeError) {
       throw createError({
         statusCode: error.status,

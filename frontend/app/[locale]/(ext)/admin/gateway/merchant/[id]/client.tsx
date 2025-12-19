@@ -73,6 +73,7 @@ import {
 import { Link } from "@/i18n/routing";
 import $fetch from "@/lib/api";
 import { toast } from "sonner";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 interface AllowedWalletTypesConfig {
   [walletType: string]: {
@@ -261,7 +262,7 @@ export default function AdminMerchantDetailsClient() {
     });
 
     if (fetchError) {
-      setError(fetchError.message || "Failed to load merchant details");
+      setError(fetchError || "Failed to load merchant details");
     } else if (data) {
       setMerchant(data);
     }
@@ -316,7 +317,7 @@ export default function AdminMerchantDetailsClient() {
     });
 
     if (error) {
-      toast.error(error.message || "Failed to update status");
+      toast.error(typeof error === 'string' ? error : "Failed to update status");
     } else {
       toast.success("Status updated successfully");
       fetchMerchantDetails();
@@ -333,7 +334,7 @@ export default function AdminMerchantDetailsClient() {
     });
 
     if (error) {
-      toast.error(error.message || "Failed to verify merchant");
+      toast.error(typeof error === 'string' ? error : "Failed to verify merchant");
     } else {
       toast.success("Merchant verified successfully");
       fetchMerchantDetails();
@@ -404,7 +405,7 @@ export default function AdminMerchantDetailsClient() {
     0;
 
   return (
-    <div className="space-y-6">
+    <div className={`container ${PAGE_PADDING} pt-20 space-y-6`}>
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
         <div className="flex items-start gap-4">

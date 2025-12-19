@@ -7,6 +7,8 @@ export const metadata = {
     "Retrieves all verification results for a specific KYC application.",
   operationId: "getVerificationResults",
   tags: ["KYC", "Verification Services", "Applications"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Get verification results",
   parameters: [
     {
       index: 0,
@@ -71,9 +73,11 @@ export const metadata = {
   requiresAuth: true,
 };
 
-export default async (data: { params: { id: string } }): Promise<any> => {
-  const { id } = data.params;
+export default async (data: Handler): Promise<any> => {
+  const { params, ctx } = data;
+  const { id } = params;
 
+  ctx?.step(`Fetching verification results for application ${id}`);
   // Fetch all verification results for the given KYC application ID.
   const results = await models.kycVerificationResult.findAll({
     where: { applicationId: id },
@@ -105,5 +109,6 @@ export default async (data: { params: { id: string } }): Promise<any> => {
     };
   });
 
+  ctx?.success("Verification results retrieved successfully");
   return parsedResults;
 };

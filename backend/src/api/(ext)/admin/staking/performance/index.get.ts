@@ -1,22 +1,29 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { Op } from "sequelize";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  commonFields,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Get External Pool Performance",
+  summary: "List External Pool Performance Records",
+  operationId: "listExternalPoolPerformance",
   description:
-    "Retrieves external pool performance data with optional filtering by pool ID and date range.",
-  operationId: "getExternalPoolPerformance",
-  tags: ["Staking", "Admin", "Performance"],
+    "Retrieves historical performance data for external staking pools. Performance records track daily metrics including APR, total staked amounts, profit, and notes. Can be filtered by specific pool and date range to analyze pool performance over time.",
+  tags: ["Admin", "Staking", "Performance"],
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Get Staking Performance",
   parameters: [
     {
       index: 0,
       name: "poolId",
       in: "query",
       required: false,
-      schema: { type: "string" },
-      description: "Filter performance by pool ID",
+      schema: { type: "string", format: "uuid" },
+      description: "Filter performance records by pool ID",
     },
     {
       index: 1,
@@ -24,7 +31,7 @@ export const metadata = {
       in: "query",
       required: false,
       schema: { type: "string", format: "date" },
-      description: "Filter performance by start date",
+      description: "Filter performance records from this date onwards",
     },
     {
       index: 2,
@@ -32,7 +39,7 @@ export const metadata = {
       in: "query",
       required: false,
       schema: { type: "string", format: "date" },
-      description: "Filter performance by end date",
+      description: "Filter performance records up to this date",
     },
   ],
   responses: {
@@ -41,31 +48,54 @@ export const metadata = {
       content: {
         "application/json": {
           schema: {
-            type: "object",
-            properties: {
-              items: {
-                type: "array",
-                items: { type: "object" },
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                ...commonFields,
+                poolId: { type: "string", format: "uuid" },
+                date: { type: "string", format: "date-time" },
+                apr: {
+                  type: "number",
+                  description: "Annual Percentage Rate on this date",
+                },
+                totalStaked: {
+                  type: "number",
+                  description: "Total amount staked in the pool",
+                },
+                profit: {
+                  type: "number",
+                  description: "Profit generated on this date",
+                },
+                notes: {
+                  type: "string",
+                  description: "Additional notes about performance",
+                },
+                pool: {
+                  type: "object",
+                  description: "Associated staking pool details",
+                },
               },
             },
           },
         },
       },
     },
-    401: { description: "Unauthorized" },
-    500: { description: "Internal Server Error" },
+    401: unauthorizedResponse,
+    500: serverErrorResponse,
   },
   permission: "view.staking.performance",
 };
 
-export default async (data: { user?: any; query?: any }) => {
-  const { user, query } = data;
+export default async (data: { user?: any; query?: any, ctx }) => {
+  const { user, query, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   try {
+    ctx?.step("Fetching data");
     // Build filter conditions
     const where: any = {};
 
@@ -99,6 +129,7 @@ export default async (data: { user?: any; query?: any }) => {
       order: [["date", "DESC"]],
     });
 
+    ctx?.success("Operation completed successfully");
     return performances;
   } catch (error) {
     console.error("Error fetching external pool performance:", error);

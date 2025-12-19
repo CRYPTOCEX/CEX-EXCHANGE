@@ -1,6 +1,11 @@
+"use client";
+
 import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
 
-export const walletAnalytics: AnalyticsConfig = [
+import { useTranslations } from "next-intl";
+export function useAnalytics() {
+  const tCommon = useTranslations("common");
+  return [
   // ─────────────────────────────────────────────────────────────
   // Group 1: Wallet Overview – Counts & Financial KPIs
   // ─────────────────────────────────────────────────────────────
@@ -9,17 +14,22 @@ export const walletAnalytics: AnalyticsConfig = [
     {
       type: "kpi",
       layout: { cols: 3, rows: 1 },
+      responsive: {
+        mobile: { cols: 1, rows: 3, span: 1 },
+          tablet: { cols: 3, rows: 1, span: 2 },
+          desktop: { cols: 3, rows: 1, span: 2 },
+      },
       items: [
         {
           id: "total_wallets",
-          title: "Total Wallets",
+          title: tCommon("total_wallets"),
           metric: "total", // COUNT(*)
           model: "wallet",
           icon: "mdi:wallet",
         },
         {
           id: "active_wallets",
-          title: "Status",
+          title: tCommon("status"),
           metric: "active",
           model: "wallet",
           aggregation: { field: "status", value: "true" },
@@ -27,7 +37,7 @@ export const walletAnalytics: AnalyticsConfig = [
         },
         {
           id: "inactive_wallets",
-          title: "Inactive",
+          title: tCommon("inactive"),
           metric: "inactive",
           model: "wallet",
           aggregation: { field: "status", value: "false" },
@@ -39,17 +49,22 @@ export const walletAnalytics: AnalyticsConfig = [
     {
       type: "kpi",
       layout: { cols: 2, rows: 1 },
+      responsive: {
+        mobile: { cols: 1, rows: 2, span: 1 },
+          tablet: { cols: 2, rows: 1, span: 2 },
+          desktop: { cols: 2, rows: 1, span: 2 },
+      },
       items: [
         {
           id: "total_balance",
-          title: "Total Balance",
+          title: tCommon("total_balance"),
           metric: "balance", // SUM(balance); aggregator must sum values
           model: "wallet",
           icon: "mdi:cash",
         },
         {
           id: "inOrder_amount",
-          title: "In Order",
+          title: tCommon("in_order"),
           metric: "inOrder", // SUM(inOrder)
           model: "wallet",
           icon: "mdi:cart-outline",
@@ -65,11 +80,16 @@ export const walletAnalytics: AnalyticsConfig = [
     // Left Column: Wallet Type KPI Grid (4 cards)
     {
       type: "kpi",
-      layout: { cols: 4, rows: 1 },
+      layout: { cols: 2, rows: 2 },
+      responsive: {
+        mobile: { cols: 1, rows: 4, span: 1 },
+          tablet: { cols: 2, rows: 2, span: 2 },
+          desktop: { cols: 2, rows: 2, span: 2 },
+      },
       items: [
         {
           id: "fiat_wallets",
-          title: "FIAT",
+          title: tCommon("fiat"),
           metric: "FIAT",
           model: "wallet",
           aggregation: { field: "type", value: "FIAT" },
@@ -77,7 +97,7 @@ export const walletAnalytics: AnalyticsConfig = [
         },
         {
           id: "spot_wallets",
-          title: "SPOT",
+          title: tCommon("spot"),
           metric: "SPOT",
           model: "wallet",
           aggregation: { field: "type", value: "SPOT" },
@@ -85,7 +105,7 @@ export const walletAnalytics: AnalyticsConfig = [
         },
         {
           id: "eco_wallets",
-          title: "ECO",
+          title: tCommon("eco"),
           metric: "ECO",
           model: "wallet",
           aggregation: { field: "type", value: "ECO" },
@@ -93,7 +113,7 @@ export const walletAnalytics: AnalyticsConfig = [
         },
         {
           id: "futures_wallets",
-          title: "FUTURES",
+          title: tCommon("futures"),
           metric: "FUTURES",
           model: "wallet",
           aggregation: { field: "type", value: "FUTURES" },
@@ -104,10 +124,15 @@ export const walletAnalytics: AnalyticsConfig = [
     // Right Column: Pie Chart for Wallet Type Distribution
     {
       type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
       items: [
         {
           id: "walletTypeDistribution",
-          title: "Wallet Type Distribution",
+          title: tCommon("wallet_type_distribution"),
           type: "pie",
           model: "wallet",
           metrics: ["FIAT", "SPOT", "ECO", "FUTURES"],
@@ -116,20 +141,20 @@ export const walletAnalytics: AnalyticsConfig = [
             status: [
               {
                 value: "FIAT",
-                label: "FIAT",
+                label: tCommon("fiat"),
                 color: "gold",
                 icon: "mdi:currency-usd",
               },
               {
                 value: "SPOT",
-                label: "SPOT",
+                label: tCommon("spot"),
                 color: "blue",
                 icon: "mdi:chart-line",
               },
-              { value: "ECO", label: "ECO", color: "green", icon: "mdi:leaf" },
+              { value: "ECO", label: tCommon("eco"), color: "green", icon: "mdi:leaf" },
               {
                 value: "FUTURES",
-                label: "FUTURES",
+                label: tCommon("futures"),
                 color: "purple",
                 icon: "mdi:clock-fast",
               },
@@ -145,10 +170,15 @@ export const walletAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   {
     type: "chart",
-    items: [
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
+      items: [
       {
         id: "walletsOverTime",
-        title: "Wallets Over Time",
+        title: tCommon("wallets_over_time"),
         type: "line",
         model: "wallet",
         metrics: ["total"],
@@ -159,4 +189,5 @@ export const walletAnalytics: AnalyticsConfig = [
       },
     ],
   },
-];
+] as AnalyticsConfig;
+}

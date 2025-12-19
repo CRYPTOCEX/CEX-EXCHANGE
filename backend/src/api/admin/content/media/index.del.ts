@@ -44,16 +44,21 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "delete.content.media",
+  logModule: "ADMIN_CMS",
+  logTitle: "Bulk delete media files",
 };
 
 export default async (data: any) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids } = body;
 
+  ctx?.step("Validating image IDs");
   if (!ids || ids.length === 0) {
+    ctx?.fail("No image IDs provided");
     throw new Error("Image ids are required");
   }
 
+  ctx?.step(`Deleting ${ids.length} image file(s)`);
   for (const imagePath of ids) {
     try {
       const fullPath = join(publicDirectory, imagePath.replace(/_/g, "/"));
@@ -61,14 +66,18 @@ export default async (data: any) => {
       filterMediaCache("/uploads" + imagePath);
     } catch (error) {
       if (error.code === "ENOENT") {
+        ctx?.fail("Image file not found");
         throw new Error("Image file not found");
       } else if (error.code === "EBUSY") {
+        ctx?.fail("File is busy or locked");
         throw new Error("File is busy or locked");
       } else {
+        ctx?.fail("Failed to delete image file");
         throw new Error("Failed to delete image file");
       }
     }
   }
 
+  ctx?.success(`Successfully deleted ${ids.length} image file(s)`);
   return { message: "Image files deleted successfully" };
 };

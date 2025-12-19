@@ -12,6 +12,8 @@ export const metadata: OperationObject = {
     "Fetches a specific Know Your Customer (KYC) application, identified by ID, for the currently authenticated user. This endpoint requires user authentication and returns the KYC application details, including the verification status and other information.",
   operationId: "getUserKycApplication",
   tags: ["KYC"],
+  logModule: "USER",
+  logTitle: "Get KYC application",
   parameters: [
     {
       index: 0,
@@ -78,14 +80,18 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params, body } = data;
+  const { user, params, body, ctx } = data;
 
   if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { id } = params;
-  return getKyc(user.id, id);
+  ctx?.step("Retrieving KYC application");
+  const result = await getKyc(user.id, id);
+  ctx?.success("KYC application retrieved successfully");
+  return result;
 };
 
 export async function getKyc(

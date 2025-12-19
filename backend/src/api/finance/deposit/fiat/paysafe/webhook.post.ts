@@ -1,6 +1,7 @@
 import { models, sequelize } from '@b/db'
 import { createError } from '@b/utils/error'
 import { sendFiatTransactionEmail } from '@b/utils/emails'
+import { logger } from '@b/utils/console'
 import {
   validatePaysafeConfig,
   validateWebhookSignature,
@@ -17,6 +18,8 @@ export const metadata = {
   description: 'Processes real-time payment status updates from Paysafe via webhooks',
   operationId: 'handlePaysafeWebhook',
   tags: ['Finance', 'Deposit', 'Paysafe', 'Webhook'],
+  logModule: "WEBHOOK",
+  logTitle: "Paysafe webhook",
   requiresAuth: false, // Webhooks don't use user authentication
   requestBody: {
     required: true,
@@ -92,7 +95,7 @@ export default async (data: Handler) => {
     if (signature) {
       const rawBody = JSON.stringify(body)
       if (!validateWebhookSignature(rawBody, signature)) {
-        console.error('Invalid webhook signature')
+        logger.error("PAYSAFE", "Invalid webhook signature")
         throw createError({
           statusCode: 401,
           message: 'Invalid webhook signature',
@@ -109,16 +112,13 @@ export default async (data: Handler) => {
       })
     }
 
-    console.log(`Processing Paysafe webhook: ${webhookData.eventType}`, {
-      eventId: webhookData.eventId,
-      eventTime: webhookData.eventTime,
-    })
+    logger.info("PAYSAFE", `Processing webhook: ${webhookData.eventType} - eventId: ${webhookData.eventId}`)
 
     // Extract payment details from webhook object
     const paymentObject = webhookData.object as PaysafePayment | PaysafePaymentHandle
     
     if (!paymentObject.merchantRefNum) {
-      console.log('Webhook object missing merchantRefNum, skipping')
+      logger.debug("PAYSAFE", "Webhook object missing merchantRefNum, skipping")
       return {
         success: true,
         message: 'Webhook processed (no merchantRefNum)',
@@ -141,7 +141,7 @@ export default async (data: Handler) => {
     })
 
     if (!transaction) {
-      console.log(`Transaction not found for reference: ${paymentObject.merchantRefNum}`)
+      logger.warn("PAYSAFE", `Transaction not found for reference: ${paymentObject.merchantRefNum}`)
       return {
         success: true,
         message: 'Transaction not found',
@@ -152,7 +152,7 @@ export default async (data: Handler) => {
     // Check if this is a duplicate event by comparing status
     const currentStatus = mapPaysafeStatus(paymentObject.status)
     if (transaction.status === currentStatus) {
-      console.log(`Status unchanged for transaction ${transaction.uuid}: ${currentStatus}`)
+      logger.debug("PAYSAFE", `Status unchanged for transaction ${transaction.uuid}: ${currentStatus}`)
       return {
         success: true,
         message: 'Status unchanged',
@@ -191,7 +191,7 @@ export default async (data: Handler) => {
         break
       
       default:
-        console.log(`Unhandled event type: ${webhookData.eventType}`)
+        logger.debug("PAYSAFE", `Unhandled event type: ${webhookData.eventType}`)
         shouldUpdateWallet = false
     }
 
@@ -245,7 +245,7 @@ export default async (data: Handler) => {
           )
         }
 
-        console.log(`Updated wallet balance: +${paymentAmount} ${paymentObject.currencyCode} for user ${transaction.userId}`)
+        logger.success("PAYSAFE", `Wallet updated: +${paymentAmount} ${paymentObject.currencyCode} for user ${transaction.userId}`)
       }
     })
 
@@ -265,14 +265,14 @@ export default async (data: Handler) => {
           paymentObject.currencyCode,
           updatedWallet?.balance || paymentAmount
         )
-        console.log(`Confirmation email sent for transaction ${transaction.uuid}`)
+        logger.success("PAYSAFE", `Confirmation email sent for transaction ${transaction.uuid}`)
       } catch (emailError) {
-        console.error('Failed to send confirmation email:', emailError)
+        logger.error("PAYSAFE", "Failed to send confirmation email", emailError)
         // Don't fail the webhook if email fails
       }
     }
 
-    console.log(`Paysafe webhook processed successfully: ${webhookData.eventType} for ${transaction.uuid}`)
+    logger.success("PAYSAFE", `Webhook processed: ${webhookData.eventType} for ${transaction.uuid}`)
 
     return {
       success: true,
@@ -284,8 +284,8 @@ export default async (data: Handler) => {
     }
 
   } catch (error) {
-    console.error('Paysafe webhook processing error:', error)
-    
+    logger.error("PAYSAFE", "Webhook processing error", error)
+
     if (error instanceof PaysafeError) {
       throw createError({
         statusCode: error.status,

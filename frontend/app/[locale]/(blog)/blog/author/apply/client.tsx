@@ -17,14 +17,19 @@ import {
   PenSquare,
   ChevronRight,
   ChevronLeft,
+  Sparkles,
 } from "lucide-react";
 import { useBlogStore } from "@/store/blog/user";
 import { useConfigStore } from "@/store/config";
 import { useUserStore } from "@/store/user";
 import { useTranslations } from "next-intl";
+import { motion } from "framer-motion";
+import { FloatingShapes, InteractivePattern } from "@/components/sections/shared";
+import { PageHero } from "../../components/page-hero";
 
 export function AuthorGuidelinesClient() {
-  const t = useTranslations("blog");
+  const t = useTranslations("blog_blog");
+  const tCommon = useTranslations("common");
   const { user } = useUserStore();
   const router = useRouter();
   const { fetchAuthor, applyForAuthor, author } = useBlogStore();
@@ -78,321 +83,322 @@ export function AuthorGuidelinesClient() {
     }
   };
 
+  // Premium background wrapper component
+  const PremiumWrapper = ({ children }: { children: React.ReactNode }) => (
+    <div className="min-h-screen relative overflow-hidden bg-white dark:bg-zinc-950 pt-24">
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `linear-gradient(180deg, transparent 0%, rgba(99, 102, 241, 0.03) 10%, rgba(139, 92, 246, 0.02) 30%, transparent 60%)`,
+        }}
+      />
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
+        }}
+      />
+      <FloatingShapes
+        count={6}
+        interactive={true}
+        theme={{ primary: "indigo", secondary: "purple" }}
+      />
+      <InteractivePattern
+        config={{
+          enabled: true,
+          variant: "crosses",
+          opacity: 0.015,
+          size: 40,
+          interactive: true,
+        }}
+      />
+      <div className="relative z-10 pb-16">{children}</div>
+    </div>
+  );
+
   // If applications are disabled, show disabled view
   if (!isLoading && !settings.enableAuthorApplications) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="mb-8 inline-flex items-center justify-center p-6 bg-red-50 dark:bg-red-950/20 rounded-full">
-            <AlertCircle className="h-16 w-16 text-red-500 dark:text-red-400" />
-          </div>
-
-          <h1 className="text-3xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">
-            {t("author_applications_disabled")}
-          </h1>
-          <p className="text-xl text-zinc-600 dark:text-zinc-300 mb-8">
-            {t("were_not_accepting_this_time")}. {t("please_check_back_later")}.
-          </p>
-
-          <Button
-            variant="outline"
-            onClick={() => router.push("/blog")}
-            className="rounded-lg dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+      <PremiumWrapper>
+        <div className="container mx-auto px-4 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-3xl mx-auto text-center"
           >
-            {t("return_to_blog")}
-          </Button>
+            <div className="mb-8 inline-flex items-center justify-center p-8 bg-linear-to-br from-red-500/10 to-orange-500/10 rounded-3xl border border-red-200/50 dark:border-red-900/50">
+              <AlertCircle className="h-20 w-20 text-red-500 dark:text-red-400" />
+            </div>
+
+            <h1 className="text-4xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">
+              {t("author_applications_disabled")}
+            </h1>
+            <p className="text-xl text-zinc-600 dark:text-zinc-300 mb-8">
+              {t("were_not_accepting_this_time")}. {tCommon("please_check_back_later")}.
+            </p>
+
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => router.push("/blog")}
+              className="rounded-full dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              {t("return_to_blog")}
+            </Button>
+          </motion.div>
         </div>
-      </div>
+      </PremiumWrapper>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="mb-12 text-center">
-          <Skeleton className="h-12 w-3/4 mx-auto mb-4" />
-          <Skeleton className="h-6 w-1/2 mx-auto" />
+      <PremiumWrapper>
+        <div className="container mx-auto px-4 py-12">
+          <div className="mb-12 text-center">
+            <Skeleton className="h-12 w-3/4 mx-auto mb-4 rounded-xl" />
+            <Skeleton className="h-6 w-1/2 mx-auto rounded-lg" />
+          </div>
+          <div className="mx-auto max-w-4xl">
+            <Skeleton className="h-96 w-full rounded-3xl" />
+          </div>
         </div>
-        <div className="mx-auto max-w-4xl">
-          <Skeleton className="h-64 w-full rounded-xl" />
-        </div>
-      </div>
+      </PremiumWrapper>
     );
   }
 
   // Approved status view
   if (authorStatus === "APPROVED") {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="mb-8 inline-flex items-center justify-center p-6 bg-green-50 dark:bg-green-950/20 rounded-full">
-            <CheckCircle className="h-16 w-16 text-green-500 dark:text-green-400" />
-          </div>
+      <PremiumWrapper>
+        <div className="container mx-auto px-4 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-3xl mx-auto text-center"
+          >
+            <div className="mb-8 inline-flex items-center justify-center p-8 bg-linear-to-br from-green-500/10 to-emerald-500/10 rounded-3xl border border-green-200/50 dark:border-green-900/50">
+              <CheckCircle className="h-20 w-20 text-green-500 dark:text-green-400" />
+            </div>
 
-          <h1 className="text-3xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">
-            {t("application_approved")}
-          </h1>
-          <p className="text-xl text-zinc-600 dark:text-zinc-300 mb-8">
-            {t("congratulations_you_are_now_an_author")}
-          </p>
+            <h1 className="text-4xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">
+              {t("application_approved")}
+            </h1>
+            <p className="text-xl text-zinc-600 dark:text-zinc-300 mb-8">
+              {t("congratulations_you_are_now_an_author")}
+            </p>
 
-          <div className="bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/50 rounded-lg p-8 mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">
-              {t("what_you_can_do_now")}
-            </h2>
-            <ul className="space-y-3 text-left mb-6">
-              <li className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mr-3 mt-0.5">
-                  <span className="text-green-600 dark:text-green-400 text-sm font-bold">
-                    1
-                  </span>
-                </div>
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  {t("create_new_blog_posts_to_share_your_knowledge")}
-                </span>
-              </li>
-              <li className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mr-3 mt-0.5">
-                  <span className="text-green-600 dark:text-green-400 text-sm font-bold">
-                    2
-                  </span>
-                </div>
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  {t("manage_your_published_content_from_your_dashboard")}
-                </span>
-              </li>
-              <li className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mr-3 mt-0.5">
-                  <span className="text-green-600 dark:text-green-400 text-sm font-bold">
-                    3
-                  </span>
-                </div>
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  {t("engage_with_readers_your_articles")}
-                </span>
-              </li>
-              <li className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mr-3 mt-0.5">
-                  <span className="text-green-600 dark:text-green-400 text-sm font-bold">
-                    4
-                  </span>
-                </div>
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  {t("build_your_author_our_community")}
-                </span>
-              </li>
-            </ul>
-          </div>
+            <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-green-200/50 dark:border-green-900/50 rounded-3xl p-8 mb-8 shadow-xl">
+              <h2 className="text-xl font-semibold mb-6 text-zinc-900 dark:text-zinc-100">
+                {t("what_you_can_do_now")}
+              </h2>
+              <ul className="space-y-4 text-left">
+                {[
+                  t("create_new_blog_posts_to_share_your_knowledge"),
+                  t("manage_your_published_content_from_your_dashboard"),
+                  t("engage_with_readers_your_articles"),
+                  t("build_your_author_our_community"),
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start">
+                    <div className="shrink-0 h-8 w-8 rounded-xl bg-linear-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center mr-4 mt-0.5">
+                      <span className="text-green-600 dark:text-green-400 text-sm font-bold">
+                        {index + 1}
+                      </span>
+                    </div>
+                    <span className="text-zinc-700 dark:text-zinc-300 pt-1">
+                      {item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              variant="outline"
-              onClick={() => router.push("/blog")}
-              className="rounded-lg dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-            >
-              {t("return_to_blog")}
-            </Button>
-            <Button
-              onClick={() => router.push("/blog/author/manage/new")}
-              className="rounded-lg"
-            >
-              <PenSquare className="mr-2 h-4 w-4" />
-              {t("write_your_first_post")}
-            </Button>
-          </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => router.push("/blog")}
+                className="rounded-full dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                {t("return_to_blog")}
+              </Button>
+              <Button
+                size="lg"
+                onClick={() => router.push("/blog/author/manage/new")}
+                className="rounded-full"
+              >
+                <PenSquare className="mr-2 h-4 w-4" />
+                {t("write_your_first_post")}
+              </Button>
+            </div>
+          </motion.div>
         </div>
-      </div>
+      </PremiumWrapper>
     );
   }
 
   // Pending status view
   if (authorStatus === "PENDING") {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="mb-8 inline-flex items-center justify-center p-6 bg-yellow-50 dark:bg-yellow-950/20 rounded-full">
-            <Clock className="h-16 w-16 text-yellow-500 dark:text-yellow-400" />
-          </div>
-
-          <h1 className="text-3xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">
-            {t("application_under_review")}
-          </h1>
-          <p className="text-xl text-zinc-600 dark:text-zinc-300 mb-8">
-            {t("your_application_to_being_reviewed")}
-          </p>
-
-          <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-100 dark:border-yellow-900/50 rounded-lg p-8 mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">
-              {t("what_happens_next")}
-            </h2>
-            <ul className="space-y-3 text-left mb-6">
-              <li className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center mr-3 mt-0.5">
-                  <span className="text-yellow-600 dark:text-yellow-400 text-sm font-bold">
-                    1
-                  </span>
-                </div>
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  {t("our_editorial_team_will_review_your_application")}
-                </span>
-              </li>
-              <li className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center mr-3 mt-0.5">
-                  <span className="text-yellow-600 dark:text-yellow-400 text-sm font-bold">
-                    2
-                  </span>
-                </div>
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  {t("this_process_typically_takes_1-3_business_days")}
-                </span>
-              </li>
-              <li className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center mr-3 mt-0.5">
-                  <span className="text-yellow-600 dark:text-yellow-400 text-sm font-bold">
-                    3
-                  </span>
-                </div>
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  {t("youll_receive_an_is_made")}
-                </span>
-              </li>
-              <li className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center mr-3 mt-0.5">
-                  <span className="text-yellow-600 dark:text-yellow-400 text-sm font-bold">
-                    4
-                  </span>
-                </div>
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  {t("if_approved_youll_content_immediately")}
-                </span>
-              </li>
-            </ul>
-          </div>
-
-          <Button
-            variant="outline"
-            onClick={() => router.push("/blog")}
-            className="rounded-lg dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+      <PremiumWrapper>
+        <div className="container mx-auto px-4 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-3xl mx-auto text-center"
           >
-            {t("return_to_blog")}
-          </Button>
+            <div className="mb-8 inline-flex items-center justify-center p-8 bg-linear-to-br from-yellow-500/10 to-amber-500/10 rounded-3xl border border-yellow-200/50 dark:border-yellow-900/50">
+              <Clock className="h-20 w-20 text-yellow-500 dark:text-yellow-400" />
+            </div>
+
+            <h1 className="text-4xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">
+              {t("application_under_review")}
+            </h1>
+            <p className="text-xl text-zinc-600 dark:text-zinc-300 mb-8">
+              {t("your_application_to_being_reviewed")}
+            </p>
+
+            <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-yellow-200/50 dark:border-yellow-900/50 rounded-3xl p-8 mb-8 shadow-xl">
+              <h2 className="text-xl font-semibold mb-6 text-zinc-900 dark:text-zinc-100">
+                {tCommon("what_happens_next")}
+              </h2>
+              <ul className="space-y-4 text-left">
+                {[
+                  t("our_editorial_team_will_review_your_application"),
+                  t("this_process_typically_takes_1_3_business_days"),
+                  t("youll_receive_an_is_made"),
+                  t("if_approved_youll_content_immediately"),
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start">
+                    <div className="shrink-0 h-8 w-8 rounded-xl bg-linear-to-br from-yellow-500/20 to-amber-500/20 flex items-center justify-center mr-4 mt-0.5">
+                      <span className="text-yellow-600 dark:text-yellow-400 text-sm font-bold">
+                        {index + 1}
+                      </span>
+                    </div>
+                    <span className="text-zinc-700 dark:text-zinc-300 pt-1">
+                      {item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => router.push("/blog")}
+              className="rounded-full dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              {t("return_to_blog")}
+            </Button>
+          </motion.div>
         </div>
-      </div>
+      </PremiumWrapper>
     );
   }
 
   // Rejected status view
   if (authorStatus === "REJECTED") {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="mb-8 inline-flex items-center justify-center p-6 bg-red-50 dark:bg-red-950/20 rounded-full">
-            <AlertCircle className="h-16 w-16 text-red-500 dark:text-red-400" />
-          </div>
-
-          <h1 className="text-3xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">
-            {t("application_not_approved")}
-          </h1>
-          <p className="text-xl text-zinc-600 dark:text-zinc-300 mb-8">
-            {t("unfortunately_your_application_this_time")}
-          </p>
-
-          <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 rounded-lg p-8 mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">
-              {t("what_you_can_do")}
-            </h2>
-            <ul className="space-y-3 text-left mb-6">
-              <li className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center mr-3 mt-0.5">
-                  <span className="text-red-600 dark:text-red-400 text-sm font-bold">
-                    1
-                  </span>
-                </div>
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  {t("review_our_author_guidelines_again")}
-                </span>
-              </li>
-              <li className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center mr-3 mt-0.5">
-                  <span className="text-red-600 dark:text-red-400 text-sm font-bold">
-                    2
-                  </span>
-                </div>
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  {t("continue_engaging_with_our_community")}
-                </span>
-              </li>
-              <li className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center mr-3 mt-0.5">
-                  <span className="text-red-600 dark:text-red-400 text-sm font-bold">
-                    3
-                  </span>
-                </div>
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  {t("you_may_reapply_additional_information")}
-                </span>
-              </li>
-              <li className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center mr-3 mt-0.5">
-                  <span className="text-red-600 dark:text-red-400 text-sm font-bold">
-                    4
-                  </span>
-                </div>
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  {t("contact_our_support_team_if_you_have_questions")}
-                </span>
-              </li>
-            </ul>
-          </div>
-
-          <Button
-            variant="outline"
-            onClick={() => router.push("/blog")}
-            className="rounded-lg dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+      <PremiumWrapper>
+        <div className="container mx-auto px-4 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-3xl mx-auto text-center"
           >
-            {t("return_to_blog")}
-          </Button>
+            <div className="mb-8 inline-flex items-center justify-center p-8 bg-linear-to-br from-red-500/10 to-orange-500/10 rounded-3xl border border-red-200/50 dark:border-red-900/50">
+              <AlertCircle className="h-20 w-20 text-red-500 dark:text-red-400" />
+            </div>
+
+            <h1 className="text-4xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">
+              {t("application_not_approved")}
+            </h1>
+            <p className="text-xl text-zinc-600 dark:text-zinc-300 mb-8">
+              {t("unfortunately_your_application_this_time")}
+            </p>
+
+            <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-red-200/50 dark:border-red-900/50 rounded-3xl p-8 mb-8 shadow-xl">
+              <h2 className="text-xl font-semibold mb-6 text-zinc-900 dark:text-zinc-100">
+                {t("what_you_can_do")}
+              </h2>
+              <ul className="space-y-4 text-left">
+                {[
+                  t("review_our_author_guidelines_again"),
+                  t("continue_engaging_with_our_community"),
+                  t("you_may_reapply_additional_information"),
+                  t("contact_our_support_team_if_you_have_questions"),
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start">
+                    <div className="shrink-0 h-8 w-8 rounded-xl bg-linear-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center mr-4 mt-0.5">
+                      <span className="text-red-600 dark:text-red-400 text-sm font-bold">
+                        {index + 1}
+                      </span>
+                    </div>
+                    <span className="text-zinc-700 dark:text-zinc-300 pt-1">
+                      {item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => router.push("/blog")}
+              className="rounded-full dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              {t("return_to_blog")}
+            </Button>
+          </motion.div>
         </div>
-      </div>
+      </PremiumWrapper>
     );
   }
 
   // Default view - application form
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="mb-12 text-center">
-        <h1 className="text-4xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">
-          {t("become_an_author")}
-        </h1>
-        <p className="text-xl text-zinc-600 dark:text-zinc-300">
-          {t("share_your_knowledge_our_community")}
-        </p>
-      </div>
+    <PremiumWrapper>
+      <PageHero
+        badge={{ icon: <Sparkles className="h-3.5 w-3.5" />, text: t("become_an_author") }}
+        title={[
+          { text: "Become an " },
+          { text: "Author", gradient: "from-indigo-600 to-purple-600" },
+        ]}
+        description={t("share_your_knowledge_our_community")}
+      />
 
-      <div className="mx-auto max-w-4xl">
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm dark:shadow-zinc-900/50"
+      <div className="container mx-auto px-4 pb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mx-auto max-w-4xl"
         >
-          <TabsList className="grid w-full grid-cols-3 p-1 rounded-t-lg bg-zinc-50 dark:bg-zinc-900">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden"
+          >
+          <TabsList className="grid w-full grid-cols-3 p-2 bg-zinc-100/50 dark:bg-zinc-900/50">
             <TabsTrigger
               value="guidelines"
-              className="data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm rounded-md dark:text-zinc-300 dark:data-[state=active]:text-zinc-100"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-md rounded-xl dark:text-zinc-300 dark:data-[state=active]:text-zinc-100 transition-all duration-200"
             >
-              {t("Guidelines")}
+              {t("guidelines")}
             </TabsTrigger>
             <TabsTrigger
               value="rules"
-              className="data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm rounded-md dark:text-zinc-300 dark:data-[state=active]:text-zinc-100"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-md rounded-xl dark:text-zinc-300 dark:data-[state=active]:text-zinc-100 transition-all duration-200"
             >
-              {t("Rules")}
+              {t("rules")}
             </TabsTrigger>
             <TabsTrigger
               value="apply"
-              className="data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm rounded-md dark:text-zinc-300 dark:data-[state=active]:text-zinc-100"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-md rounded-xl dark:text-zinc-300 dark:data-[state=active]:text-zinc-100 transition-all duration-200"
             >
-              {t("Apply")}
+              {tCommon("apply")}
             </TabsTrigger>
           </TabsList>
 
@@ -408,7 +414,7 @@ export function AuthorGuidelinesClient() {
                   </h3>
                   <p className="mt-2 text-zinc-600 dark:text-zinc-300">
                     {t("our_blog_focuses_to_readers")}.{" "}
-                    {t("we_prioritize_well-researched_and_insight")}.
+                    {t("we_prioritize_well_researched_and_insight")}.
                   </p>
                   <ul className="mt-4 list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
                     <li>
@@ -517,7 +523,7 @@ export function AuthorGuidelinesClient() {
                       {t("no_hate_speech_discrimination_or_harassment")}
                     </li>
                     <li>{t("no_plagiarism_or_copyright_infringement")}</li>
-                    <li>{t("no_self-promotion_or_personal_sites")}</li>
+                    <li>{t("no_self_promotion_or_personal_sites")}</li>
                     <li>{t("no_misinformation_or_unverified_claims")}</li>
                     <li>{t("no_political_or_the_topic")}</li>
                   </ul>
@@ -561,7 +567,7 @@ export function AuthorGuidelinesClient() {
                     <li>
                       {t("initial_posts_will_be_reviewed_before_publishing")}
                     </li>
-                    <li>{t("after_establishing_a_auto-approval_status")}</li>
+                    <li>{t("after_establishing_a_auto_approval_status")}</li>
                     <li>{t("content_that_violates_with_feedback")}</li>
                     <li>{t("repeated_violations_may_author_privileges")}</li>
                     <li>{t("you_can_appeal_support_channel")}</li>
@@ -628,7 +634,7 @@ export function AuthorGuidelinesClient() {
                 </ul>
                 <p className="text-indigo-700 dark:text-indigo-300">
                   {t("once_submitted_your_editorial_team")}.{" "}
-                  {t("this_process_typically_takes_1-3_business_days")}.
+                  {t("this_process_typically_takes_1_3_business_days")}.
                 </p>
               </div>
 
@@ -677,14 +683,15 @@ export function AuthorGuidelinesClient() {
                   !acceptedRules ||
                   !acceptedTerms
                 }
-                className="rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Submitting..." : "Submit Application"}
               </Button>
             </div>
           </TabsContent>
         </Tabs>
+        </motion.div>
       </div>
-    </div>
+    </PremiumWrapper>
   );
 }

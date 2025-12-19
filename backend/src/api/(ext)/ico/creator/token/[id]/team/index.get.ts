@@ -7,6 +7,8 @@ export const metadata = {
     "Retrieves team members for the ICO offering for the authenticated creator.",
   operationId: "getCreatorTokenTeam",
   tags: ["ICO", "Creator", "Team"],
+  logModule: "ICO",
+  logTitle: "Get Token Team",
   requiresAuth: true,
   parameters: [
     {
@@ -26,11 +28,14 @@ export const metadata = {
   },
 };
 
-export default async (data: { user?: any; params?: any }) => {
-  const { user, params } = data;
+export default async (data: { user?: any; params?: any; ctx?: any }) => {
+  const { user, params, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Fetching token team");
   const { id } = params;
   if (!id) {
     throw createError({ statusCode: 400, message: "No offering ID provided" });
@@ -45,5 +50,6 @@ export default async (data: { user?: any; params?: any }) => {
     throw createError({ statusCode: 404, message: "Team members not found" });
   }
 
+  ctx?.success("Token team retrieved successfully");
   return teamMembers.map((tm: any) => tm.toJSON());
 };

@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
     "Allows administrative unlocking of a custodial wallet deposit address to make it available for reuse. This is typically used for NO_PERMIT token addresses that need to be released after deposit completion.",
   operationId: "unlockDepositAddress",
   tags: ["Wallet", "Deposit"],
+  logModule: "ECOSYSTEM",
+  logTitle: "Unlock deposit address",
   parameters: [
     {
       name: "address",
@@ -72,38 +74,43 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { query, user } = data;
-  
+  const { query, user, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { address } = query;
 
+  ctx?.step("Validating address parameter");
   // Enhanced validation
   if (!address) {
-    throw createError({ 
-      statusCode: 400, 
-      message: "Address parameter is required" 
+    ctx?.fail("Address parameter missing");
+    throw createError({
+      statusCode: 400,
+      message: "Address parameter is required"
     });
   }
 
   if (typeof address !== "string") {
-    throw createError({ 
-      statusCode: 400, 
-      message: "Address must be a string" 
+    ctx?.fail("Address parameter is not a string");
+    throw createError({
+      statusCode: 400,
+      message: "Address must be a string"
     });
   }
 
   // Basic address format validation
   const addressStr = address.trim();
   if (addressStr.length === 0) {
-    throw createError({ 
-      statusCode: 400, 
-      message: "Address cannot be empty" 
+    ctx?.fail("Address is empty");
+    throw createError({
+      statusCode: 400,
+      message: "Address cannot be empty"
     });
   }
 
+  ctx?.step("Validating address format");
   // Validate address format (basic check for common formats)
   const isValidAddress = /^0x[a-fA-F0-9]{40}$/.test(addressStr) || // Ethereum format
                         /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(addressStr) || // Bitcoin legacy
@@ -111,28 +118,25 @@ export default async (data: Handler) => {
                         /^[A-Z0-9]{26,35}$/.test(addressStr); // Generic alphanumeric (for other chains)
 
   if (!isValidAddress) {
-    throw createError({ 
-      statusCode: 400, 
-      message: "Invalid address format" 
+    ctx?.fail("Invalid address format");
+    throw createError({
+      statusCode: 400,
+      message: "Invalid address format"
     });
   }
 
   try {
-    console.log(`[INFO] Attempting to unlock address ${addressStr} for user ${user.id}`);
-    
-    await unlockAddress(addressStr);
-    
+    await unlockAddress(addressStr, ctx);
+
     const timestamp = new Date().toISOString();
-    console.log(`[SUCCESS] Address ${addressStr} unlocked successfully at ${timestamp}`);
-    
-    return { 
+
+    return {
       message: "Address unlocked successfully",
       address: addressStr,
-      timestamp 
+      timestamp
     };
   } catch (error) {
-    console.error(`[ERROR] Failed to unlock address ${addressStr}: ${error.message}`);
-    
+    ctx?.fail(`Failed to unlock address: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: `Failed to unlock address: ${error.message}`

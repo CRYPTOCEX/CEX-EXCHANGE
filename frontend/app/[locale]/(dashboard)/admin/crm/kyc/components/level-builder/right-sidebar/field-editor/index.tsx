@@ -23,7 +23,8 @@ export function FieldEditor({
   onCancel,
   allFields,
 }: FieldEditorProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [editedField, setEditedField] = useState<KycField>(field);
   const [activeTab, setActiveTab] = useState("basic");
 
@@ -64,25 +65,25 @@ export function FieldEditor({
               value="basic"
               className="text-gray-600 data-[state=active]:bg-white data-[state=active]:text-gray-900 hover:text-gray-800 rounded-sm dark:text-zinc-400 dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white dark:hover:text-zinc-300"
             >
-              {t("Basic")}
+              {tCommon("basic")}
             </TabsTrigger>
             <TabsTrigger
               value="options"
               className="text-gray-600 data-[state=active]:bg-white data-[state=active]:text-gray-900 hover:text-gray-800 rounded-sm dark:text-zinc-400 dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white dark:hover:text-zinc-300"
             >
-              {t("Options")}
+              {t("options")}
             </TabsTrigger>
             <TabsTrigger
               value="validation"
               className="text-gray-600 data-[state=active]:bg-white data-[state=active]:text-gray-900 hover:text-gray-800 rounded-sm dark:text-zinc-400 dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white dark:hover:text-zinc-300"
             >
-              {t("Validation")}
+              {t("validation")}
             </TabsTrigger>
             <TabsTrigger
               value="conditional"
               className="text-gray-600 data-[state=active]:bg-white data-[state=active]:text-gray-900 hover:text-gray-800 rounded-sm dark:text-zinc-400 dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white dark:hover:text-zinc-300"
             >
-              {t("Logic")}
+              {t("logic")}
             </TabsTrigger>
           </TabsList>
 

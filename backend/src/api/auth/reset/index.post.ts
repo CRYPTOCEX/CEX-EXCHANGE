@@ -20,6 +20,8 @@ export const metadata: OperationObject = {
   description:
     "Initiates a password reset process for a user and sends an email with a reset link",
   requiresAuth: false,
+  logModule: "PASSWORD",
+  logTitle: "Password reset request",
   requestBody: {
     required: true,
     content: {
@@ -87,59 +89,80 @@ export const metadata: OperationObject = {
 };
 
 export default (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { email, recaptchaToken } = body;
-  return resetPasswordQuery(email, recaptchaToken);
+  return resetPasswordQuery(email, recaptchaToken, ctx);
 };
 
-const resetPasswordQuery = async (email: string, recaptchaToken?: string) => {
-  // Verify reCAPTCHA if enabled (check at runtime)
-  if (isRecaptchaEnabled()) {
-    if (!recaptchaToken) {
-      throw createError({
-        statusCode: 400,
-        message: "reCAPTCHA token is required",
-      });
-    }
-    
-    const isHuman = await verifyRecaptcha(recaptchaToken);
-    if (!isHuman) {
-      throw createError({
-        statusCode: 400,
-        message: "reCAPTCHA verification failed",
-      });
-    }
-  }
-
-  const user = await models.user.findOne({ where: { email } });
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  const resetToken = await generateResetToken({
-    user: {
-      id: user.id,
-    },
-  });
-
+const resetPasswordQuery = async (email: string, recaptchaToken?: string, ctx?: any) => {
   try {
-    await emailQueue.add({
-      emailData: {
-        TO: user.email,
-        FIRSTNAME: user.firstName,
-        LAST_LOGIN: user.lastLogin,
-        TOKEN: resetToken,
+    ctx?.step("Validating password reset request");
+    if (!email) {
+      ctx?.fail("Email is required");
+      throw createError({
+        statusCode: 400,
+        message: "Email is required",
+      });
+    }
+
+    // Verify reCAPTCHA if enabled (check at runtime)
+    if (isRecaptchaEnabled()) {
+      ctx?.step("Verifying reCAPTCHA");
+      if (!recaptchaToken) {
+        throw createError({
+          statusCode: 400,
+          message: "reCAPTCHA token is required",
+        });
+      }
+
+      const isHuman = await verifyRecaptcha(recaptchaToken);
+      if (!isHuman) {
+        throw createError({
+          statusCode: 400,
+          message: "reCAPTCHA verification failed",
+        });
+      }
+    }
+
+    ctx?.step(`Looking up user: ${email}`);
+    const user = await models.user.findOne({ where: { email } });
+    if (!user) {
+      ctx?.fail("User not found");
+      throw new Error("User not found");
+    }
+
+    ctx?.step("Generating password reset token");
+    const resetToken = await generateResetToken({
+      user: {
+        id: user.id,
       },
-      emailType: "PasswordReset",
     });
 
-    return {
-      message: "Email with reset instructions sent successfully",
-    };
+    try {
+      ctx?.step("Sending password reset email");
+      await emailQueue.add({
+        emailData: {
+          TO: user.email,
+          FIRSTNAME: user.firstName,
+          LAST_LOGIN: user.lastLogin,
+          TOKEN: resetToken,
+        },
+        emailType: "PasswordReset",
+      });
+
+      ctx?.success(`Password reset email sent to ${email}`);
+      return {
+        message: "Email with reset instructions sent successfully",
+      };
+    } catch (error) {
+      ctx?.fail("Failed to send password reset email");
+      throw createError({
+        message: error.message,
+        statusCode: 500,
+      });
+    }
   } catch (error) {
-    throw createError({
-      message: error.message,
-      statusCode: 500,
-    });
+    ctx?.fail(error.message || "Password reset request failed");
+    throw error;
   }
 };

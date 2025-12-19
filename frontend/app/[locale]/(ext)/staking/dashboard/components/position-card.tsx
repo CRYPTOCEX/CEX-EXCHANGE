@@ -30,7 +30,8 @@ interface PositionCardProps {
 }
 
 export default function PositionCard({ position }: PositionCardProps) {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   // Destructure needed store state and actions.
   const pool = userStakingStore((state) =>
     state.pools.find((p) => p.id === position.poolId)
@@ -146,7 +147,7 @@ export default function PositionCard({ position }: PositionCardProps) {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">
-                {t("staked_amount")}
+                {tCommon("staked_amount")}
               </span>
               <span className="text-xl font-bold">
                 {position.amount} {pool.symbol}
@@ -154,7 +155,7 @@ export default function PositionCard({ position }: PositionCardProps) {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">
-                {t("rewards_earned")}
+                {tCommon("rewards_earned")}
               </span>
               <span className="text-lg font-semibold text-green-500">
                 {rewards} {pool.symbol}
@@ -165,7 +166,7 @@ export default function PositionCard({ position }: PositionCardProps) {
               <div className="flex items-center text-sm">
                 <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                 <span className="text-muted-foreground">
-                  {t("start_date")}
+                  {tExt("start_date")}
                 </span>
                 <span className="ml-auto">
                   {formatDate(position.startDate)}
@@ -173,55 +174,55 @@ export default function PositionCard({ position }: PositionCardProps) {
               </div>
               <div className="flex items-center text-sm">
                 <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                <span className="text-muted-foreground">{t("end_date")}</span>
+                <span className="text-muted-foreground">{tCommon("end_date")}</span>
                 <span className="ml-auto">{formatDate(position.endDate)}</span>
               </div>
             </div>
             {position.status === "ACTIVE" && (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t("Progress")}</span>
+                  <span className="text-muted-foreground">{tCommon("progress")}</span>
                   <span>
                     {daysRemaining}
-                    {t("days_remaining")}
+                    {tExt("days_remaining")}
                   </span>
                 </div>
                 <Progress value={progressPercentage} className="h-2" />
               </div>
             )}
             {position.status === "PENDING_WITHDRAWAL" && (
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-md border border-amber-200 dark:border-amber-800 text-sm">
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-md border border-amber-200/50 dark:border-amber-800/30 text-sm">
                 <div className="flex items-start">
-                  <AlertCircle className="h-4 w-4 mr-2 text-amber-500 mt-0.5" />
+                  <AlertCircle className="h-4 w-4 mr-2 text-amber-600 dark:text-amber-400 mt-0.5" />
                   <div>
-                    <p className="font-medium text-amber-800 dark:text-amber-400">
-                      {t("withdrawal_pending")}
+                    <p className="font-medium text-amber-600 dark:text-amber-400">
+                      {tCommon("withdrawal_pending")}
                     </p>
-                    <p className="text-amber-700 dark:text-amber-300">
-                      {t("your_withdrawal_request_is_being_processed")}.{" "}
-                      {t("this_typically_takes_24-48_hours")}.
+                    <p className="text-amber-600 dark:text-amber-400">
+                      {tCommon("your_withdrawal_request_is_being_processed")}.{" "}
+                      {tCommon("this_typically_takes_24_48_hours")}.
                     </p>
                   </div>
                 </div>
               </div>
             )}
             {position.status === "COMPLETED" && (
-              <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-md border border-green-200 dark:border-green-800 text-sm">
+              <div className="p-3 bg-green-50 dark:bg-green-950/30 rounded-md border border-green-200/50 dark:border-green-800/30 text-sm">
                 <div className="flex items-start">
-                  <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 mt-0.5" />
+                  <CheckCircle2 className="h-4 w-4 mr-2 text-green-600 dark:text-green-400 mt-0.5" />
                   <div>
-                    <p className="font-medium text-green-800 dark:text-green-400">
-                      {t("position_completed")}
+                    <p className="font-medium text-green-600 dark:text-green-400">
+                      {tCommon("position_completed")}
                     </p>
-                    <p className="text-green-700 dark:text-green-300">
-                      {t("this_staking_position_your_wallet")}.
+                    <p className="text-green-600 dark:text-green-400">
+                      {tExt("this_staking_position_your_wallet")}.
                     </p>
                   </div>
                 </div>
               </div>
             )}
             {error && (
-              <div className="p-3 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300 text-sm rounded-md border border-red-200 dark:border-red-800">
+              <div className="p-3 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-sm rounded-md border border-red-200/50 dark:border-red-800/30">
                 {error}
               </div>
             )}
@@ -248,7 +249,7 @@ export default function PositionCard({ position }: PositionCardProps) {
           {position.status === "PENDING_WITHDRAWAL" && (
             <Link href="/staking/pool" className="w-full">
               <Button variant="outline">
-                {t("stake_more")}
+                {tCommon("stake_more")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -256,7 +257,7 @@ export default function PositionCard({ position }: PositionCardProps) {
           {position.status === "COMPLETED" && (
             <Link href="/staking/pool" className="w-full">
               <Button>
-                {t("stake_again")}
+                {tCommon("stake_again")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -268,15 +269,15 @@ export default function PositionCard({ position }: PositionCardProps) {
       <ConfirmDialog
         open={showWithdrawConfirm}
         onOpenChange={setShowWithdrawConfirm}
-        title="Confirm Withdraw"
-        description="Are you sure you want to withdraw your funds?"
+        title={tExt("confirm_withdraw")}
+        description={tExt("are_you_sure_you_want_to_withdraw_your_funds")}
         onConfirm={handleWithdraw}
       />
       <ConfirmDialog
         open={showClaimConfirm}
         onOpenChange={setShowClaimConfirm}
-        title="Confirm Claim Rewards"
-        description="Are you sure you want to claim your rewards?"
+        title={tExt("confirm_claim_rewards")}
+        description={tExt("are_you_sure_you_want_to_claim_your_rewards")}
         onConfirm={handleClaimRewards}
       />
     </>
@@ -284,27 +285,27 @@ export default function PositionCard({ position }: PositionCardProps) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   switch (status) {
     case "ACTIVE":
       return (
-        <Badge variant="default" className="bg-green-500">
+        <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-800/30">
           <Clock className="h-3 w-3 mr-1" />
-          {t("Active")}
+          {tCommon("active")}
         </Badge>
       );
     case "PENDING_WITHDRAWAL":
       return (
-        <Badge variant="outline" className="text-amber-500 border-amber-500">
+        <Badge variant="outline" className="bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border-amber-200/50 dark:border-amber-800/30">
           <TrendingUp className="h-3 w-3 mr-1" />
-          {t("Pending")}
+          {tCommon("pending")}
         </Badge>
       );
     case "COMPLETED":
       return (
-        <Badge variant="outline" className="text-muted-foreground">
+        <Badge variant="outline" className="bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 border-green-200/50 dark:border-green-800/30">
           <CheckCircle2 className="h-3 w-3 mr-1" />
-          {t("Completed")}
+          {tCommon("completed")}
         </Badge>
       );
     default:

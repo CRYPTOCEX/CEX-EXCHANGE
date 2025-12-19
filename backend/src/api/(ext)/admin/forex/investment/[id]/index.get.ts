@@ -8,10 +8,10 @@ import { baseForexInvestmentSchema } from "../utils";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
-  summary:
-    "Retrieves detailed information of a specific forex investment by ID",
-  operationId: "getForexInvestmentById",
-  tags: ["Admin", "Forex Investments"],
+  summary: "Gets a specific Forex investment",
+  description: "Retrieves detailed information about a specific Forex investment by its ID, including associated user, plan, and duration details.",
+  operationId: "getForexInvestment",
+  tags: ["Admin", "Forex", "Investment"],
   parameters: [
     {
       index: 0,
@@ -40,12 +40,16 @@ export const metadata: OperationObject = {
   },
   permission: "view.forex.investment",
   requiresAuth: true,
+  logModule: "ADMIN_FOREX",
+  logTitle: "Get Forex Investment",
+  demoMask: ["user.email"],
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("forexInvestment", params.id, [
+  ctx?.step("Fetching forex investment record");
+  const result = await getRecord("forexInvestment", params.id, [
     {
       model: models.user,
       as: "user",
@@ -62,4 +66,7 @@ export default async (data) => {
       attributes: ["id", "duration", "timeframe"],
     },
   ]);
+
+  ctx?.success("Retrieved forex investment");
+  return result;
 };

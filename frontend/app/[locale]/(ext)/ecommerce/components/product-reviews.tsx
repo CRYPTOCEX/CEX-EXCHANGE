@@ -22,7 +22,9 @@ export default function ProductReviews({
   reviews = [],
   onReviewSubmitted,
 }: ProductReviewsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ecommerce");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { user } = useUserStore();
   const [userRating, setUserRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
@@ -111,10 +113,9 @@ export default function ProductReviews({
           ))}
         </div>
         <p className="ml-2 text-sm text-gray-700 dark:text-zinc-300">
-          {averageRating > 0 ? averageRating.toFixed(1) : "0.0"}
-          {t("out_of_5_stars_(")}
-          {activeReviews.length}
-          {t("reviews)")}
+          {averageRating > 0 ? averageRating.toFixed(1) : "0.0"}{" "}
+          {tExt("out_of_5_stars")} · {activeReviews.length}{" "}
+          {t("reviews")}
         </p>
       </div>
 
@@ -131,7 +132,7 @@ export default function ProductReviews({
           <div className="mt-4">
             <div className="flex items-center">
               <p className="mr-2 text-sm font-medium text-gray-700 dark:text-zinc-300">
-                {t("rating")}
+                {tCommon("rating")}
               </p>
               <div className="flex items-center">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -165,13 +166,12 @@ export default function ProductReviews({
                 rows={4}
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
-                placeholder="Write your review here..."
+                placeholder={t("write_your_review_here_ellipsis")}
                 className="mt-1"
                 maxLength={500}
               />
               <p className="mt-1 text-xs text-gray-500 dark:text-zinc-400">
-                {reviewText.length}
-                {t("out_of_500_characters")}
+                {reviewText.length} {t("out_of_500_characters")}
               </p>
             </div>
 
@@ -179,7 +179,7 @@ export default function ProductReviews({
               <Button
                 onClick={handleSubmitReview}
                 disabled={isSubmitting || reviewText.trim().length < 10}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="bg-amber-600 hover:bg-amber-700 text-white"
               >
                 {isSubmitting ? "Submitting..." : "Submit Review"}
               </Button>
@@ -235,7 +235,7 @@ export default function ProductReviews({
                 className="border-b border-gray-200 dark:border-zinc-700 pb-8"
               >
                 <div className="flex items-start">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-zinc-700 flex items-center justify-center">
                       <User className="h-6 w-6 text-gray-500 dark:text-zinc-400" />
                     </div>

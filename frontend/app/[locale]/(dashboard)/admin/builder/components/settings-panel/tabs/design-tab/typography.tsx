@@ -6,7 +6,7 @@ import type { TypographyProps } from "./types";
 import { useTranslations } from "next-intl";
 
 export function Typography({ settings, onSettingChange }: TypographyProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   return (
     <div className="space-y-2 max-w-full">
       <div>

@@ -2,9 +2,10 @@ import { updateRecord, updateRecordResponses } from "@b/utils/query";
 import { ecosystemMasterWalletUpdateSchema } from "../utils";
 
 export const metadata: OperationObject = {
-  summary: "Updates a specific master wallet",
+  summary: "Update master wallet",
+  description: "Updates the configuration of a specific ecosystem master wallet. Allows modification of chain, currency, address, balance, encrypted data, status, and last index values.",
   operationId: "updateEcosystemMasterWallet",
-  tags: ["Admin", "Ecosystem", "Master Wallets"],
+  tags: ["Admin", "Ecosystem", "Wallet"],
   parameters: [
     {
       index: 0,
@@ -28,10 +29,12 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Master Wallet"),
   requiresAuth: true,
   permission: "edit.ecosystem.master.wallet",
+  logModule: "ADMIN_ECO",
+  logTitle: "Update Master Wallet",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     chain,
@@ -43,7 +46,8 @@ export default async (data) => {
     lastIndex,
   } = body;
 
-  return await updateRecord("ecosystemMasterWallet", id, {
+  ctx?.step("Updating Master Wallet");
+  const result = await updateRecord("ecosystemMasterWallet", id, {
     chain,
     currency,
     address,
@@ -52,4 +56,7 @@ export default async (data) => {
     status,
     lastIndex,
   });
+
+  ctx?.success(`Master wallet ${id} updated successfully`);
+  return result;
 };

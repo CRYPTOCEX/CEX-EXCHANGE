@@ -11,11 +11,12 @@ import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 
 export function PendingTradesTab() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("pending_trades")}</CardTitle>
+        <CardTitle>{tExt("pending_trades")}</CardTitle>
         <CardDescription>
           {t("trades_that_are_waiting_to_be_started_or_accepted")}
         </CardDescription>

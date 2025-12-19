@@ -1,11 +1,15 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import { nftListingAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
+import { ShoppingBag } from "lucide-react";
 
 export default function NFTListingsPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/listing"
@@ -17,7 +21,7 @@ export default function NFTListingsPage() {
         edit: "edit.nft.listing",
         delete: "delete.nft.listing",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={false}
       canEdit={true}
       canDelete={true}
@@ -25,9 +29,16 @@ export default function NFTListingsPage() {
       isParanoid={true}
       title="NFT Listings"
       itemTitle="Listing"
-      description={t("monitor_active_marketplace_listings_auctions_and")}
+      description={t("monitor_active_marketplace_listings_and_auctions")}
       columns={columns}
+      formConfig={formConfig}
       analytics={nftListingAnalytics}
+      design={{
+        animation: "orbs",
+        primaryColor: "purple",
+        secondaryColor: "pink",
+        icon: ShoppingBag,
+      }}
     />
   );
 } 

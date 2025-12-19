@@ -28,12 +28,13 @@ export default function PhaseForm({
   onUpdate,
   onRemove,
 }: PhaseFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-4 p-4 border rounded-md">
       <div className="flex items-center justify-between">
         <h5 className="font-medium">
-          {t("Phase")}
+          {t("phase")}
           {index + 1}
         </h5>
         {canRemove && (
@@ -45,7 +46,7 @@ export default function PhaseForm({
             className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
           >
             <Trash2 className="h-4 w-4 mr-1" />
-            {t("Remove")}
+            {tCommon("remove")}
           </Button>
         )}
       </div>
@@ -54,7 +55,7 @@ export default function PhaseForm({
         <div className="space-y-2">
           <label className="text-sm font-medium">{t("phase_name")}</label>
           <Input
-            placeholder="e.g. Seed, Private, Public"
+            placeholder={t("e_g_seed_private_public")}
             value={phase.name}
             onChange={(e) => onUpdate(phase.id, "name", e.target.value)}
           />
@@ -62,13 +63,13 @@ export default function PhaseForm({
 
         <div className="space-y-2">
           <label className="text-sm font-medium">
-            {t("token_price_(usd)")}
+            {tCommon("token_price_usd")}
           </label>
           <Input
             type="number"
             step="0.0001"
             min="0"
-            placeholder="e.g. 0.05"
+            placeholder={t("e_g_0_05")}
             value={phase.tokenPrice ?? ""}
             onChange={(e) => {
               const value = e.target.value;
@@ -87,7 +88,7 @@ export default function PhaseForm({
           <label className="text-sm font-medium">{t("token_allocation")}</label>
           <Input
             type="number"
-            placeholder="e.g. 1000000"
+            placeholder={t("e_g_1000000")}
             value={phase.allocation || ""}
             onChange={(e) =>
               onUpdate(phase.id, "allocation", Number(e.target.value))
@@ -99,10 +100,10 @@ export default function PhaseForm({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t("duration_(days)")}</label>
+          <label className="text-sm font-medium">{`${t("duration_days")} (Days)`}</label>
           <Input
             type="number"
-            placeholder="e.g. 14"
+            placeholder={t("e_g_14")}
             value={phase.durationDays || ""}
             onChange={(e) =>
               onUpdate(phase.id, "durationDays", Number(e.target.value))

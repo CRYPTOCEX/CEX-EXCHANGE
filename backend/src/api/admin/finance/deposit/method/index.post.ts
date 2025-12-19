@@ -18,10 +18,12 @@ export const metadata = {
   responses: storeRecordResponses(DepositMethodSchema, "Deposit Method"),
   requiresAuth: true,
   permission: "create.deposit.method",
+  logModule: "ADMIN_FIN",
+  logTitle: "Create deposit method",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const {
     title,
     instructions,
@@ -32,6 +34,8 @@ export default async (data: Handler) => {
     maxAmount,
     customFields,
   } = body;
+
+  ctx?.step("Validating deposit method data");
 
   // Ensure customFields is an array
   let parsedCustomFields = Array.isArray(customFields) ? customFields : [];
@@ -44,7 +48,8 @@ export default async (data: Handler) => {
     }
   }
 
-  return await storeRecord({
+  ctx?.step("Creating deposit method record");
+  const result = await storeRecord({
     model: "depositMethod",
     data: {
       title,
@@ -57,4 +62,7 @@ export default async (data: Handler) => {
       customFields: parsedCustomFields,
     },
   });
+
+  ctx?.success("Deposit method created successfully");
+  return result;
 };

@@ -30,7 +30,8 @@ export function DeletePageDialog({
   onConfirm,
   isSubmitting = false,
 }: DeletePageDialogProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   if (!page) return null;
 
   return (
@@ -68,7 +69,7 @@ export function DeletePageDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
           >
-            {t("Cancel")}
+            {tCommon("cancel")}
           </Button>
           <Button
             variant="destructive"

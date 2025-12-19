@@ -12,10 +12,13 @@ import {
 import { forexInvestmentSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary: "Lists all Forex Investments with pagination and optional filtering",
+  summary: "Lists all Forex investments",
+  description: "Retrieves a paginated list of all Forex investments with filtering and sorting options. Includes user, plan, and duration details for each investment.",
   operationId: "listForexInvestments",
-  tags: ["Admin", "Forex", "Investments"],
+  tags: ["Admin", "Forex", "Investment"],
   parameters: crudParameters,
+  logModule: "ADMIN_FOREX",
+  logTitle: "Get Forex Investments",
   responses: {
     200: {
       description: "List of Forex Investments with pagination information",
@@ -24,7 +27,7 @@ export const metadata: OperationObject = {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -43,12 +46,14 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.forex.investment",
+  demoMask: ["items.user.email"],
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching forex investments");
+  const result = await getFiltered({
     model: models.forexInvestment,
     query,
     sortField: query.sortField || "createdAt",
@@ -71,4 +76,7 @@ export default async (data: Handler) => {
     ],
     numericFields: ["amount", "profit"],
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} forex investments`);
+  return result;
 };

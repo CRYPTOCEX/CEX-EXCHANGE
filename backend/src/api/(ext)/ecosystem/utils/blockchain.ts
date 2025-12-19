@@ -1,7 +1,7 @@
 import { BigNumber } from "bignumber.js";
 import { RedisSingleton } from "./redis";
 import { models } from "@b/db";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 // Fetch token decimals
 export async function getTokenDecimal() {
@@ -15,7 +15,7 @@ export async function getTokenDecimal() {
       return acc;
     }, {});
   } catch (error) {
-    logError("blockchain", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to fetch token decimals", error);
     throw new Error(`Failed to fetch token decimals: ${error.message}`);
   }
 }
@@ -164,9 +164,9 @@ export async function cacheTokenDecimals() {
     const tokenDecimals = await getTokenDecimal();
     const redis = RedisSingleton.getInstance();
     await redis.setex("token_decimals", 86000, JSON.stringify(tokenDecimals));
-    console.log("Cached token decimals");
+    logger.info("ECOSYSTEM", "Cached token decimals");
   } catch (error) {
-    logError("redis", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to cache token decimals in Redis", error);
     throw new Error(`Failed to cache token decimals: ${error.message}`);
   }
 }
@@ -180,7 +180,7 @@ export async function getCachedTokenDecimals(): Promise<{
   try {
     cachedData = await redis.get("token_decimals");
   } catch (error) {
-    logError("redis", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to get cached token decimals from Redis", error);
     throw new Error(`Failed to get cached token decimals: ${error.message}`);
   }
 
@@ -192,7 +192,7 @@ export async function getCachedTokenDecimals(): Promise<{
   try {
     await cacheTokenDecimals();
   } catch (error) {
-    logError("redis", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to populate token decimals cache", error);
     throw new Error(`Failed to cache token decimals: ${error.message}`);
   }
 
@@ -200,7 +200,7 @@ export async function getCachedTokenDecimals(): Promise<{
   try {
     cachedData = await redis.get("token_decimals");
   } catch (error) {
-    logError("redis", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to get cached token decimals after population", error);
     throw new Error(`Failed to get cached token decimals: ${error.message}`);
   }
 

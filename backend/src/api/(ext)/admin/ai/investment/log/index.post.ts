@@ -18,14 +18,19 @@ export const metadata: OperationObject = {
   responses: storeRecordResponses(aiInvestmentStoreSchema, "AI Investment"),
   requiresAuth: true,
   permission: "create.ai.investment",
+  logModule: "ADMIN_AI",
+  logTitle: "Create AI investment",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { userId, planId, durationId, symbol, amount, profit, result, status } =
     body;
 
-  return await storeRecord({
+  ctx?.step("Validating investment data");
+
+  ctx?.step("Creating investment record");
+  const investmentResult = await storeRecord({
     model: "aiInvestment",
     data: {
       userId,
@@ -38,4 +43,7 @@ export default async (data: Handler) => {
       status,
     },
   });
+
+  ctx?.success("Investment created successfully");
+  return investmentResult;
 };

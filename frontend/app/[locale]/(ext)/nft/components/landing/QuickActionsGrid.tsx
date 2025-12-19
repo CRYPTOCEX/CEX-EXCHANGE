@@ -18,7 +18,9 @@ import { useInView } from "react-intersection-observer";
 import { useTranslations } from "next-intl";
 
 export default function QuickActionsGrid() {
-  const t = useTranslations("nft");
+  const t = useTranslations("ext_nft");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { ref, inView } = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -30,8 +32,8 @@ export default function QuickActionsGrid() {
       title: "Create NFT",
       description: "Turn your art into NFTs",
       href: "/nft/create",
-      gradient: "from-pink-500 to-rose-500",
-      bgGradient: "from-pink-500/10 to-rose-500/10",
+      gradient: `from-purple-500 to-pink-500`,
+      bgGradient: `from-purple-500/10 to-pink-500/10`,
       size: "large",
     },
     {
@@ -48,8 +50,8 @@ export default function QuickActionsGrid() {
       title: "Sell Instantly",
       description: "List your NFTs",
       href: "/nft/creator",
-      gradient: "from-purple-500 to-indigo-500",
-      bgGradient: "from-purple-500/10 to-indigo-500/10",
+      gradient: `from-purple-500 to-indigo-500`,
+      bgGradient: `from-purple-500/10 to-indigo-500/10`,
       size: "medium",
     },
     {
@@ -83,7 +85,7 @@ export default function QuickActionsGrid() {
 
   return (
     <section ref={ref} className="py-20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -94,11 +96,11 @@ export default function QuickActionsGrid() {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 rounded-full mb-4 border border-primary/30">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-primary">
-              {t("quick_actions")}
+              {tCommon("quick_actions")}
             </span>
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            {t("what_would_you_like_to_do")}
+            {tExt("what_would_you_like_to_do")}
           </h2>
           <p className="text-muted-foreground">
             {t("get_started_with_nfts_in_just_a_few_clicks")}
@@ -165,7 +167,7 @@ export default function QuickActionsGrid() {
 
                     {/* Arrow Icon */}
                     <div className="flex items-center gap-2 text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                      {t("get_started")}
+                      {tCommon("get_started")}
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>

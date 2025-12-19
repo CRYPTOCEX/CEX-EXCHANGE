@@ -12,9 +12,11 @@ import type { Element } from "@/types/builder";
 import { cn } from "@/lib/utils";
 import { Star, ChevronLeft, ChevronRight, Users } from "lucide-react";
 import { getIconComponent } from "./utils";
+import { useTranslations } from "next-intl";
 
 // Optimized Testimonial Element
 export const TestimonialElement = memo(({ element }: { element: Element }) => {
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const settings = element.settings || {};
   const displayType = settings.displayType || "card";
   const testimonials = settings.testimonials || [
@@ -150,14 +152,14 @@ export const TestimonialElement = memo(({ element }: { element: Element }) => {
           <button
             onClick={goToPrevSlide}
             className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow-md hover:bg-white transition-colors"
-            aria-label="Previous testimonial"
+            aria-label={tDashboardAdmin("previous_testimonial")}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
           <button
             onClick={goToNextSlide}
             className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow-md hover:bg-white transition-colors"
-            aria-label="Next testimonial"
+            aria-label={tDashboardAdmin("next_testimonial")}
           >
             <ChevronRight className="h-5 w-5" />
           </button>

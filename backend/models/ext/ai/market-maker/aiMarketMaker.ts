@@ -3,6 +3,7 @@ import { DataTypes, Model } from "sequelize";
 import aiMarketMakerPool from "./aiMarketMakerPool";
 import aiBot from "./aiBot";
 import aiMarketMakerHistory from "./aiMarketMakerHistory";
+import { logger } from "@b/utils/console";
 
 /**
  * Status of an AI Market Maker
@@ -270,9 +271,7 @@ export default class aiMarketMaker
             const max = Number(instance.maxDailyVolume) || 0;
 
             if (max > 0 && current > max) {
-              console.warn(
-                `[AI Market Maker] currentDailyVolume (${current}) exceeds maxDailyVolume (${max})`
-              );
+              logger.warn("AI_MM", `currentDailyVolume (${current}) exceeds maxDailyVolume (${max})`);
             }
           },
         },

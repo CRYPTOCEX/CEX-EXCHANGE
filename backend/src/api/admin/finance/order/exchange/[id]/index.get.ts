@@ -41,6 +41,7 @@ export const metadata = {
   },
   requiresAuth: true,
   permission: "view.exchange.order",
+  demoMask: ["user.email"],
 };
 
 export default async (data: Handler) => {

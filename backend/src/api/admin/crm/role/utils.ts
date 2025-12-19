@@ -1,5 +1,6 @@
 import { models } from "@b/db";
 import { RedisSingleton } from "@b/utils/redis";
+import { logger } from "@b/utils/console";
 const redis = RedisSingleton.getInstance();
 
 // Function to cache the roles
@@ -8,7 +9,7 @@ export async function cacheRoles() {
     const roles = await getRoles();
     await redis.set("roles", JSON.stringify(roles), "EX", 3600);
   } catch (error) {
-    console.error("Redis error:", error);
+    logger.error("ROLE", "Redis error", error);
   }
 }
 

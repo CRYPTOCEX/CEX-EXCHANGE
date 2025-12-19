@@ -2,7 +2,15 @@ import { convertAndSortCounts } from "@b/utils";
 import { models } from "@b/db";
 import { Op } from "sequelize";
 
-export async function getUserCountsPerDay() {
+interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
+
+export async function getUserCountsPerDay(ctx?: LogContext) {
+  ctx?.step?.("Fetching user counts for the last 30 days");
+
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - 30);
 
@@ -14,6 +22,8 @@ export async function getUserCountsPerDay() {
     },
     attributes: ["createdAt", "status", "emailVerified"], // Specify which fields to fetch
   });
+
+  ctx?.step?.("Processing user count statistics");
 
   const counts = {
     registrations: {},
@@ -41,6 +51,8 @@ export async function getUserCountsPerDay() {
       counts.verifiedEmails[date] = (counts.verifiedEmails[date] || 0) + 1;
     }
   });
+
+  ctx?.success?.("User counts calculated successfully");
 
   return {
     registrations: convertAndSortCounts(counts.registrations),

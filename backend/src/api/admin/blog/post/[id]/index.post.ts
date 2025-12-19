@@ -86,16 +86,21 @@ export const metadata: OperationObject = {
     },
   },
   permission: "edit.blog.post",
+  logModule: "ADMIN_BLOG",
+  logTitle: "Update blog post with tags",
 };
 
 export default async (data) => {
-  const { params, body } = data;
+  const { params, body, ctx } = data;
 
   const { id } = params;
   const { content, tags, category, description, title, status } = body;
 
+  ctx?.step("Validating blog post ID and data");
+
   return await sequelize
     .transaction(async (transaction) => {
+      ctx?.step("Checking if post exists");
       // Check if the post exists
       const existingPost = await models.post.findOne({
         where: { id },
@@ -108,6 +113,7 @@ export default async (data) => {
           "Post not found or you don't have permission to edit it."
         );
 
+      ctx?.step("Updating post fields");
       // Update the post fields
       existingPost.title = title;
       existingPost.content = content;
@@ -119,19 +125,23 @@ export default async (data) => {
 
       // Update the category if provided
       if (category) {
+        ctx?.step("Updating post category");
         await existingPost.setCategory(category, { transaction });
       }
 
       // Update tags if provided
       if (tags) {
+        ctx?.step(`Updating ${tags.length} tags`);
         await updateTags(existingPost, tags, transaction);
       }
 
+      ctx?.success("Post updated successfully with tags");
       return {
         message: "Post updated successfully",
       };
     })
     .catch((error) => {
+      ctx?.fail("Failed to update post");
       throw error; // Rethrow error to handle it, e.g., send a response to the client
     });
 };

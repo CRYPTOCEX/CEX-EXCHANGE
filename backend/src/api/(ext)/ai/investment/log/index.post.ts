@@ -41,15 +41,19 @@ export const metadata: OperationObject = {
     },
   },
   responses: createRecordResponses("AI Investment"),
+  logModule: "AI_INVEST",
+  logTitle: "Create AI investment",
   requiresAuth: true,
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Fetching user details");
   const userPk = await models.user.findByPk(user.id);
   if (!userPk) {
     throw createError({ statusCode: 404, message: "User not found" });
@@ -57,6 +61,7 @@ export default async (data: Handler) => {
 
   const { planId, durationId, amount, currency, pair, type } = body;
 
+  ctx?.step("Validating investment plan");
   const plan = await models.aiInvestmentPlan.findByPk(planId);
   if (!plan) {
     throw createError({ statusCode: 404, message: "Plan not found" });
@@ -65,11 +70,13 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 400, message: "Plan is not active" });
   }
 
+  ctx?.step("Validating investment duration");
   const duration = await models.aiInvestmentDuration.findByPk(durationId);
   if (!duration) {
     throw createError({ statusCode: 404, message: "Duration not found" });
   }
 
+  ctx?.step("Verifying investment amount limits");
   if (plan.minAmount > amount || plan.maxAmount < amount) {
     throw createError({
       statusCode: 400,
@@ -77,7 +84,9 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Processing investment transaction");
   const investment = await sequelize.transaction(async (t) => {
+    ctx?.step("Locating user wallet");
     const wallet = await models.wallet.findOne({
       where: {
         userId: user.id,
@@ -91,6 +100,7 @@ export default async (data: Handler) => {
       throw createError({ statusCode: 404, message: "Wallet not found" });
     }
 
+    ctx?.step("Verifying wallet balance");
     if (wallet.balance < amount) {
       throw createError({
         statusCode: 400,
@@ -98,6 +108,7 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.step("Creating investment record");
     const investmentId = makeUuid();
     const investment = await models.aiInvestment.create(
       {
@@ -113,11 +124,13 @@ export default async (data: Handler) => {
       { transaction: t }
     );
 
+    ctx?.step("Deducting investment amount from wallet");
     await wallet.update(
       { balance: wallet.balance - amount },
       { transaction: t }
     );
 
+    ctx?.step("Recording transaction");
     await models.transaction.create(
       {
         userId: user.id,
@@ -134,14 +147,17 @@ export default async (data: Handler) => {
     return investment;
   });
 
+  ctx?.step("Sending confirmation email");
   try {
     await sendAiInvestmentEmail(
       userPk,
       plan,
       duration,
       investment,
-      "NewAiInvestmentCreated"
+      "NewAiInvestmentCreated",
+      ctx
     );
+    ctx?.step("Creating notification");
     await createNotification({
       userId: user.id,
       relatedId: investment.id,
@@ -160,6 +176,8 @@ export default async (data: Handler) => {
   } catch (error) {
     console.error("Failed to send email or create notification", error);
   }
+
+  ctx?.success(`Invested ${amount} ${pair} in plan "${plan.title}" for ${duration.duration} ${duration.timeframe}`);
 
   return { message: "Investment created successfully" };
 };

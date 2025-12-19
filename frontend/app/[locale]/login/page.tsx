@@ -145,10 +145,10 @@ export default function LoginPage() {
                   <Loader2 className="h-12 w-12 animate-spin text-primary" />
                 </div>
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-                  Verifying Email
+                  {t("verifying_email")}
                 </h1>
                 <p className="text-muted-foreground">
-                  Please wait while we verify your email address...
+                  {t("please_wait_while_we_verify_your")}
                 </p>
               </>
             ) : verificationStatus === 'success' ? (
@@ -157,14 +157,14 @@ export default function LoginPage() {
                   <CheckCircle2 className="h-12 w-12 text-green-500" />
                 </div>
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-green-500">
-                  Email Verified!
+                  {t("email_verified")}
                 </h1>
                 <p className="text-muted-foreground">
                   {verificationMessage}
                 </p>
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mt-4">
                   <p className="text-sm text-green-700 dark:text-green-300">
-                    You will be redirected to the home page in a few seconds...
+                    {t("you_will_be_redirected_to_the")}
                   </p>
                 </div>
               </>
@@ -174,19 +174,19 @@ export default function LoginPage() {
                   <AlertTriangle className="h-12 w-12 text-red-500" />
                 </div>
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-red-500">
-                  Verification Failed
+                  {t("verification_failed")}
                 </h1>
                 <p className="text-muted-foreground">
                   {verificationMessage}
                 </p>
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-4">
                   <p className="text-sm text-red-700 dark:text-red-300">
-                    The verification link may have expired or is invalid. Please try requesting a new one.
+                    {t("the_verification_link_may_have_expired")} {t("please_try_requesting_a_new_one")}
                   </p>
                   <div className="mt-3">
                     <Input
                       type="email"
-                      placeholder="Enter your email address"
+                      placeholder={t("enter_your_email_address")}
                       value={userEmail}
                       onChange={(e) => setUserEmail(e.target.value)}
                       className="bg-white dark:bg-red-900/10 border-red-300 dark:border-red-700 text-red-900 dark:text-red-100 placeholder-red-500 dark:placeholder-red-400 focus:ring-red-500"
@@ -203,7 +203,7 @@ export default function LoginPage() {
                 onClick={() => router.push('/')}
                 className="w-full py-6 px-8 relative overflow-hidden btn-glow transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
               >
-                Go to Home
+                {t("go_to_home")}
               </Button>
               
               {verificationStatus === 'error' && (
@@ -213,7 +213,7 @@ export default function LoginPage() {
                     onClick={() => setIsModalOpen(true)}
                     className="w-full py-6 px-8"
                   >
-                    Try Login Instead
+                    {t("try_login_instead")}
                   </Button>
                   <Button 
                     variant="outline"
@@ -257,12 +257,12 @@ export default function LoginPage() {
                 onClick={() => setIsModalOpen(true)}
                 className="px-8 py-3 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
               >
-                Open Login Form
+                {t("open_login_form")}
               </Button>
             )}
             <Link href="/">
               <Button variant="outline">
-                Return to Home
+                {t("return_to_home")}
               </Button>
             </Link>
           </div>

@@ -65,7 +65,7 @@ export default function MobileNavigation({
               size={20}
               className={`transition-transform duration-200 ${activePanel === "chart" ? "scale-110" : ""}`}
             />
-            <span className="text-xs mt-1 font-medium">{t("Chart")}</span>
+            <span className="text-xs mt-1 font-medium">{t("chart")}</span>
           </button>
 
           <button
@@ -89,7 +89,7 @@ export default function MobileNavigation({
               size={20}
               className={`transition-transform duration-200 ${activePanel === "order" ? "scale-110" : ""}`}
             />
-            <span className="text-xs mt-1 font-medium">{t("Trade")}</span>
+            <span className="text-xs mt-1 font-medium">{t("trade")}</span>
           </button>
 
           <button
@@ -118,7 +118,7 @@ export default function MobileNavigation({
               size={20}
               className={`transition-transform duration-200 ${activePanel === "positions" ? "scale-110" : ""}`}
             />
-            <span className="text-xs mt-1 font-medium">{t("Positions")}</span>
+            <span className="text-xs mt-1 font-medium">{t("positions")}</span>
           </button>
         </div>
       </div>

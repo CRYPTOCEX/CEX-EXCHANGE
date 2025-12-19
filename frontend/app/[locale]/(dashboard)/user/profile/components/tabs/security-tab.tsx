@@ -33,7 +33,8 @@ interface SecurityTabProps {
 }
 
 export function SecurityTab({ startTwoFactorSetup }: SecurityTabProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { user, securityScore, setShowTwoFactorSetup, logout, setUser } =
     useUserStore();
@@ -188,7 +189,7 @@ export function SecurityTab({ startTwoFactorSetup }: SecurityTabProps) {
             </div>
             <div>
               <div className="text-sm font-medium text-gray-500 dark:text-zinc-400">
-                {t("security_score")}
+                {tCommon("security_score")}
               </div>
               <div className={`text-xl font-bold ${getSecurityScoreColor()}`}>
                 {getSecurityScoreText()}
@@ -206,7 +207,7 @@ export function SecurityTab({ startTwoFactorSetup }: SecurityTabProps) {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base dark:text-zinc-100">
-                  {t("two-factor_auth")}
+                  {tCommon("two_factor_auth")}
                 </CardTitle>
                 <div
                   className={`h-8 w-8 rounded-full flex items-center justify-center ${
@@ -250,7 +251,7 @@ export function SecurityTab({ startTwoFactorSetup }: SecurityTabProps) {
                     isDisabling2FA ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        {t("Disabling")}.
+                        {t("disabling")}.
                       </>
                     ) : (
                       "Disable 2FA"
@@ -301,7 +302,7 @@ export function SecurityTab({ startTwoFactorSetup }: SecurityTabProps) {
                       }}
                     >
                       <LogOut className="h-4 w-4 mr-2" />
-                      {t("log_out_&_reset_password")}
+                      {t("log_out_reset_password")}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -326,7 +327,7 @@ export function SecurityTab({ startTwoFactorSetup }: SecurityTabProps) {
                 <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5" />
                 <div className="text-sm">
                   <span className="font-medium dark:text-zinc-100">
-                    {t("enable_two-factor_authentication")}
+                    {t("enable_two_factor_authentication")}
                   </span>
                   <p className="text-gray-500 dark:text-zinc-400">
                     {t("add_an_extra_layer_of_security_to_your_account")}

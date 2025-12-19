@@ -5,6 +5,11 @@ export const offersAnalytics: AnalyticsConfig = [
     {
       type: "kpi",
       layout: { cols: 2, rows: 2 },
+      responsive: {
+        mobile: { cols: 1, rows: 4, span: 1 },
+          tablet: { cols: 2, rows: 2, span: 2 },
+          desktop: { cols: 2, rows: 2, span: 2 },
+      },
       items: [
         {
           id: "total_offers",
@@ -41,6 +46,11 @@ export const offersAnalytics: AnalyticsConfig = [
     },
     {
       type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
       items: [
         {
           id: "offerStatusDistribution",
@@ -78,6 +88,11 @@ export const offersAnalytics: AnalyticsConfig = [
   [
     {
       type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
       items: [
         {
           id: "offerCreationOverTime",

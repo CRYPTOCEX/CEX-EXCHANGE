@@ -45,7 +45,7 @@ export function PlatformAnnouncement() {
 
   return (
     <Alert className="mb-4 container mt-5 relative bg-primary/10 border-primary">
-      <AlertTitle className="font-semibold">{t("Announcement")}</AlertTitle>
+      <AlertTitle className="font-semibold">{t("announcement")}</AlertTitle>
       <AlertDescription className="mt-1">{announcement}</AlertDescription>
       <Button
         variant="ghost"

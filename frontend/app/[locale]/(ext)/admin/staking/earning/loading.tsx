@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function StakingEarningsLoading() {
   return (
-    <div className="container py-8 space-y-8">
+    <div className="container pt-20 py-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <Skeleton className="h-10 w-64" />

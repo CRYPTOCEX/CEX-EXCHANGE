@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "getAdminFundingChartData",
   tags: ["ICO", "Admin", "FundingChart"],
   requiresAuth: true,
+  logModule: "ADMIN_ICO",
+  logTitle: "Get ICO Offer Funding",
   parameters: [
     {
       index: 0,
@@ -288,7 +290,8 @@ async function getMonthlyChartData(
 }
 
 export default async (data: Handler): Promise<ChartDataPoint[]> => {
-  const { user, params, query } = data;
+  const { user, params, query, ctx } = data as any;
+  ctx?.step("Validate user authentication");
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -350,5 +353,6 @@ export default async (data: Handler): Promise<ChartDataPoint[]> => {
     chartData = await getMonthlyChartData(offerId, startDateAll, now);
   }
 
+  ctx?.success("Get ICO Offer Funding retrieved successfully");
   return chartData;
 };

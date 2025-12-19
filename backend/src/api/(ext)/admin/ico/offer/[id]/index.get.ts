@@ -10,6 +10,8 @@ export const metadata = {
   operationId: "getIcoOfferingAdmin",
   tags: ["ICO", "Admin", "Offerings"],
   requiresAuth: true,
+  logModule: "ADMIN_ICO",
+  logTitle: "Get ICO Offer",
   parameters: [
     {
       name: "id",
@@ -45,7 +47,8 @@ interface Handler {
 }
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data as any;
+  ctx?.step("Validate user authentication");
   if (!user?.id) {
     throw createError({
       statusCode: 401,
@@ -286,12 +289,12 @@ export default async (data: Handler) => {
   };
 
   // --- Compute Timeline Events ---
-  const timeline = computeIcoOfferTimeline(offering);
+  const timeline = computeIcoOfferTimeline(offering, ctx);
 
   return { offering, metrics, platformMetrics, timeline };
 };
 
-function computeIcoOfferTimeline(offering: any) {
+function computeIcoOfferTimeline(offering: any, ctx?: any) {
   const timelineEvents: any[] = [];
   const msPerDay = 1000 * 60 * 60 * 24;
 
@@ -416,5 +419,6 @@ function computeIcoOfferTimeline(offering: any) {
   timelineEvents.sort(
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   );
+  ctx?.success("Get ICO Offer retrieved successfully");
   return timelineEvents;
 }

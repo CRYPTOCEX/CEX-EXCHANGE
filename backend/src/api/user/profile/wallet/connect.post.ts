@@ -7,6 +7,8 @@ export const metadata: OperationObject = {
   operationId: "registerWallet",
   tags: ["Auth"],
   requiresAuth: true,
+  logModule: "WALLET",
+  logTitle: "Connect wallet",
   requestBody: {
     required: true,
     content: {
@@ -58,10 +60,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
   const { address, chainId } = body;
 
   if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({
       statusCode: 401,
       message: "User not authenticated",
@@ -69,12 +72,14 @@ export default async (data: Handler) => {
   }
 
   if (!address || !chainId) {
+    ctx?.fail("Address or chainId missing");
     throw createError({
       statusCode: 400,
       message: "Address and chainId are required",
     });
   }
   try {
+    ctx?.step("Registering wallet address");
     const [provider, created] = await models.providerUser.findOrCreate({
       where: { providerUserId: address, userId: user.id },
       defaults: {
@@ -84,10 +89,15 @@ export default async (data: Handler) => {
       },
     });
 
-    if (!created) return { message: "Wallet already registered" };
+    if (!created) {
+      ctx?.warn("Wallet already registered");
+      return { message: "Wallet already registered" };
+    }
 
+    ctx?.success("Wallet connected successfully");
     return { message: "Wallet address registered successfully" };
   } catch (error) {
+    ctx?.fail("Failed to connect wallet");
     throw createError({
       statusCode: 500,
       message: "Internal server error",

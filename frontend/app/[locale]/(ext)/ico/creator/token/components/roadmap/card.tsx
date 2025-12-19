@@ -51,7 +51,8 @@ export default function RoadmapCard({
   handleEdit,
   itemVariants,
 }: RoadmapCardProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
   const isCompleted = !!item.completed;
 
   const getDaysFromNow = (dateString: string) => {
@@ -73,7 +74,7 @@ export default function RoadmapCard({
       return (
         <Badge className="bg-green-500/90 hover:bg-green-500 text-white transition-colors">
           <CheckCircle className="h-3 w-3 mr-1" />
-          {t("Completed")}
+          {tCommon("completed")}
         </Badge>
       );
     }
@@ -83,7 +84,7 @@ export default function RoadmapCard({
         className="bg-gray-500/90 hover:bg-gray-500 text-white transition-colors"
       >
         <CalendarDays className="h-3 w-3 mr-1" />
-        {t("Upcoming")}
+        {tCommon("upcoming")}
       </Badge>
     );
   };
@@ -138,7 +139,7 @@ export default function RoadmapCard({
                     className="text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800"
                   >
                     <AlertTriangle className="h-3 w-3 mr-1" />
-                    {t("Overdue")}
+                    {t("overdue")}
                   </Badge>
                 )}
               </div>
@@ -213,7 +214,7 @@ export default function RoadmapCard({
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleEdit}>
                     <Edit className="h-4 w-4 mr-2" />
-                    {t("Edit")}
+                    {tCommon("edit")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -221,7 +222,7 @@ export default function RoadmapCard({
                     onSelect={handleEdit}
                   >
                     <Trash2 className="h-4 w-4 mr-2 text-destructive" />
-                    {t("Delete")}
+                    {tCommon("delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -252,7 +253,7 @@ export default function RoadmapCard({
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handleEdit}>
                 <Edit className="h-3.5 w-3.5 mr-1" />
-                {t("Edit")}
+                {tCommon("edit")}
               </Button>
               <Button
                 variant={isCompleted ? "outline" : "default"}

@@ -16,6 +16,8 @@ export const metadata: OperationObject = {
   tags: ["Binary", "Orders"],
   description:
     "Retrieves a specific binary order by ID for the authenticated user.",
+  logModule: "EXCHANGE",
+  logTitle: "Get Binary Order",
   parameters: [
     {
       name: "id",
@@ -41,12 +43,13 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("Binary Order"),
     500: serverErrorResponse,
   },
+  requiresAuth: true,
 };
 
 export default async (data: Handler) => {
   if (!data.user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
-  const { user, params } = data;
+  const { user, params, ctx } = data;
   const { id } = params;
 
   if (!id) {
@@ -57,10 +60,10 @@ export default async (data: Handler) => {
     throw new Error("Unauthorized");
   }
 
-  const binaryOrder = await getBinaryOrder(user.id, id);
+  const binaryOrder = await getBinaryOrder(user.id, id, ctx);
 
   if (!binaryOrder) {
-    throw new Error(`Binary order with ID ${id} not found`);
+    throw new Error("Binary order with ID " + id + " not found");
   }
 
   return binaryOrder;

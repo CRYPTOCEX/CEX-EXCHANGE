@@ -2,6 +2,7 @@
 
 import { Request } from "@b/handler/Request";
 import { deleteSession } from "@b/utils/token";
+import { createError } from "@b/utils/error";
 
 export const metadata: OperationObject = {
   summary: "Logs out the current user",
@@ -9,6 +10,8 @@ export const metadata: OperationObject = {
   tags: ["Auth"],
   description: "Logs out the current user and clears all session tokens",
   requiresAuth: true,
+  logModule: "LOGOUT",
+  logTitle: "User logout",
   responses: {
     200: {
       description: "User logged out successfully",
@@ -33,15 +36,36 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Request) => {
-  await deleteSession(data.cookies.sessionId);
-  data.setUser(null);
-  return {
-    message: "You have been logged out",
-    cookies: {
-      accessToken: "",
-      refreshToken: "",
-      sessionId: "",
-      csrfToken: "",
-    },
-  };
+  const { ctx } = data as any;
+
+  try {
+    ctx?.step("Validating session");
+    if (!data.cookies.sessionId) {
+      ctx?.fail("No active session found");
+      throw createError({
+        statusCode: 401,
+        message: "No active session found",
+      });
+    }
+
+    ctx?.step("Deleting session");
+    await deleteSession(data.cookies.sessionId);
+
+    ctx?.step("Clearing user data");
+    data.setUser(null);
+
+    ctx?.success("User logged out successfully");
+    return {
+      message: "You have been logged out",
+      cookies: {
+        accessToken: "",
+        refreshToken: "",
+        sessionId: "",
+        csrfToken: "",
+      },
+    };
+  } catch (error) {
+    ctx?.fail(error.message || "Logout failed");
+    throw error;
+  }
 };

@@ -10,6 +10,12 @@ import {
 } from "@b/utils/schema";
 import { createError } from "@b/utils/error";
 
+interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
+
 export const baseBinaryOrderSchema = {
   id: baseStringSchema(
     "ID of the binary order",
@@ -39,28 +45,50 @@ export const baseBinaryOrderSchema = {
 
 export async function getBinaryOrder(
   userId: string,
-  id: string
+  id: string,
+  ctx?: LogContext
 ): Promise<binaryOrderAttributes> {
-  const response = await models.binaryOrder.findOne({
-    where: {
-      id,
-      userId,
-    },
-  });
+  try {
+    ctx?.step?.("Fetching binary order " + id + " for user " + userId);
 
-  if (!response) {
-    throw new Error(`Binary order with ID ${id} not found`);
+    const response = await models.binaryOrder.findOne({
+      where: {
+        id,
+        userId,
+      },
+    });
+
+    if (!response) {
+      const errorMsg = "Binary order with ID " + id + " not found";
+      ctx?.fail?.(errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    ctx?.success?.("Successfully fetched binary order " + id);
+    return response.get({ plain: true }) as unknown as binaryOrderAttributes;
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
   }
-
-  return response.get({ plain: true }) as unknown as binaryOrderAttributes;
 }
 
 export async function getBinaryOrdersByStatus(
-  status: string
+  status: string,
+  ctx?: LogContext
 ): Promise<binaryOrderAttributes[]> {
-  return (await models.binaryOrder.findAll({
-    where: { status },
-  })) as binaryOrderAttributes[];
+  try {
+    ctx?.step?.("Fetching binary orders with status: " + status);
+
+    const orders = (await models.binaryOrder.findAll({
+      where: { status },
+    })) as binaryOrderAttributes[];
+
+    ctx?.success?.("Successfully fetched " + orders.length + " binary orders with status " + status);
+    return orders;
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }
 
 // If you want to process rewards, call it here:
@@ -69,16 +97,26 @@ export async function processBinaryRewards(
   userId: string,
   amount: number,
   status: string,
-  currency: string
+  currency: string,
+  ctx?: LogContext
 ) {
-  let rewardType;
-  if (status === "WIN") {
-    rewardType = "BINARY_WIN";
-  } else if (status === "LOSS" || status === "DRAW") {
-    rewardType = "BINARY_TRADE_VOLUME";
-  }
+  try {
+    ctx?.step?.("Processing binary rewards for user " + userId + ", status: " + status);
 
-  await processRewards(userId, amount, rewardType, currency);
+    let rewardType;
+    if (status === "WIN") {
+      rewardType = "BINARY_WIN";
+    } else if (status === "LOSS" || status === "DRAW") {
+      rewardType = "BINARY_TRADE_VOLUME";
+    }
+
+    await processRewards(userId, amount, rewardType, currency);
+
+    ctx?.success?.("Successfully processed binary rewards for user " + userId);
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }
 
 export function validateBinaryProfit(value?: string): number {
@@ -90,28 +128,53 @@ export function validateBinaryProfit(value?: string): number {
 /**
  * Ensures that the user is not banned. Throws a 503 error if the service is unavailable due to a ban.
  */
-export async function ensureNotBanned() {
-  const unblockTime = await loadBanStatus();
-  if (await handleBanStatus(unblockTime)) {
-    throw createError({
-      statusCode: 503,
-      message: "Service temporarily unavailable. Please try again later.",
-    });
+export async function ensureNotBanned(ctx?: LogContext) {
+  try {
+    ctx?.step?.("Checking ban status");
+
+    const unblockTime = await loadBanStatus();
+    if (await handleBanStatus(unblockTime)) {
+      const errorMsg = "Service temporarily unavailable. Please try again later.";
+      ctx?.fail?.(errorMsg);
+      throw createError({
+        statusCode: 503,
+        message: errorMsg,
+      });
+    }
+
+    ctx?.success?.("User is not banned");
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
   }
 }
 
 /**
  * Attempts to start the exchange multiple times before giving up.
  */
-export async function ensureExchange(attempts = 3, delayMs = 500) {
-  for (let i = 0; i < attempts; i++) {
-    const exchange = await ExchangeManager.startExchange();
-    if (exchange) return exchange;
-    if (i < attempts - 1)
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
+export async function ensureExchange(attempts = 3, delayMs = 500, ctx?: LogContext) {
+  try {
+    ctx?.step?.("Starting exchange (max attempts: " + attempts + ")");
+
+    for (let i = 0; i < attempts; i++) {
+      ctx?.step?.("Exchange start attempt " + (i + 1) + "/" + attempts);
+      const exchange = await ExchangeManager.startExchange();
+      if (exchange) {
+        ctx?.success?.("Exchange started successfully");
+        return exchange;
+      }
+      if (i < attempts - 1)
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+
+    const errorMsg = "Service temporarily unavailable. Please try again later.";
+    ctx?.fail?.(errorMsg);
+    throw createError({
+      statusCode: 503,
+      message: errorMsg,
+    });
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
   }
-  throw createError({
-    statusCode: 503,
-    message: "Service temporarily unavailable. Please try again later.",
-  });
 }

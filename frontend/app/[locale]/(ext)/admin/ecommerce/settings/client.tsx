@@ -1,118 +1,78 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { $fetch } from "@/lib/api";
-import { Button } from "@/components/ui/button";
-import { Loader2, Save } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import GeneralSettingsSection from "./components/general";
-import DisplaySettingsSection from "./components/display";
+import React from "react";
+import { Loader2, Settings, Monitor } from "lucide-react";
+import {
+  SettingsPage,
+  SettingsPageConfig,
+} from "@/components/admin/settings";
+import {
+  ECOMMERCE_TABS,
+  ECOMMERCE_TAB_COLORS,
+  ECOMMERCE_FIELD_DEFINITIONS,
+  ECOMMERCE_DEFAULT_SETTINGS,
+} from "./settings";
 import { useConfigStore } from "@/store/config";
 import { useTranslations } from "next-intl";
+import { motion } from "framer-motion";
+
+const TAB_ICONS: Record<string, React.ElementType> = {
+  general: Settings,
+  display: Monitor,
+};
+
+const TAB_DESCRIPTIONS: Record<string, string> = {
+  general: "Configure tax, shipping, and general store settings",
+  display: "Configure product display and layout settings",
+};
+
+const ECOMMERCE_SETTINGS_CONFIG: SettingsPageConfig = {
+  title: "E-Commerce Settings",
+  description: "Configure your e-commerce store settings and preferences",
+  backUrl: "/admin/ecommerce",
+  apiEndpoint: "/api/admin/system/settings",
+  tabs: ECOMMERCE_TABS,
+  fields: ECOMMERCE_FIELD_DEFINITIONS,
+  tabColors: ECOMMERCE_TAB_COLORS,
+  defaultValues: ECOMMERCE_DEFAULT_SETTINGS,
+};
 
 export default function SettingsConfiguration() {
-  const t = useTranslations("ext");
-  const { settings, setSettings, updateSetting } = useConfigStore();
-  const [localSettings, setLocalSettings] = useState({
-    ecommerceDefaultTaxRate: 10,
-    ecommerceDefaultShippingCost: 10,
-    ecommerceProductsPerPage: 12,
-    ecommerceShowProductRatings: true,
-    ecommerceShowRelatedProducts: true,
-    ecommerceShowFeaturedProducts: true,
-    ecommerceShippingEnabled: true,
-    ecommerceTaxEnabled: true,
-  });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const tCommon = useTranslations("common");
+  const { settings, setSettings, settingsFetched } = useConfigStore();
 
-  useEffect(() => {
-    if (settings) {
-      setLocalSettings({
-        ecommerceDefaultTaxRate: settings.ecommerceDefaultTaxRate || 10,
-        ecommerceDefaultShippingCost:
-          settings.ecommerceDefaultShippingCost || 10,
-        ecommerceProductsPerPage: settings.ecommerceProductsPerPage || 12,
-        ecommerceShowProductRatings:
-          settings.ecommerceShowProductRatings ?? true,
-        ecommerceShowRelatedProducts:
-          settings.ecommerceShowRelatedProducts ?? true,
-        ecommerceShowFeaturedProducts:
-          settings.ecommerceShowFeaturedProducts ?? true,
-        ecommerceShippingEnabled: settings.ecommerceShippingEnabled ?? true,
-        ecommerceTaxEnabled: settings.ecommerceTaxEnabled ?? true,
-      });
-    }
-    setLoading(false);
-  }, [settings]);
-
-  const handleSaveSettings = async () => {
-    setSaving(true);
-    const { error } = await $fetch({
-      url: "/api/admin/system/settings",
-      method: "PUT",
-      body: localSettings,
-    });
-    if (!error) {
-      // Merge with existing settings to avoid overwriting other extensions' settings
-      const mergedSettings = { ...settings, ...localSettings };
-      setSettings(mergedSettings);
-      setLocalSettings(mergedSettings);
-    }
-    setSaving(false);
-  };
-
-  const handleUpdateSetting = <T extends keyof any>(key: T, value: any) => {
-    setLocalSettings(prev => ({ ...prev, [key as string]: value }));
-  };
-
-  if (loading) {
+  if (!settingsFetched || Object.keys(settings).length === 0) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center h-[80vh]">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-6"
+        >
+          <div className="relative">
+            <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full" />
+            <div className="relative p-6 bg-gradient-to-br from-orange-500/20 to-orange-500/5 rounded-2xl border">
+              <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+            </div>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-medium">{tCommon("loading")}...</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Please wait while we fetch your settings
+            </p>
+          </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {t("e-commerce_settings")}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {t("configure_your_e-commerce_store_settings")}
-          </p>
-        </div>
-        <Button
-          onClick={handleSaveSettings}
-          disabled={saving}
-        >
-          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          <Save className="mr-2 h-4 w-4" />
-          {t("save_changes")}
-        </Button>
-      </div>
-
-      <Tabs defaultValue="general">
-        <TabsList className="grid grid-cols-2 w-full">
-          <TabsTrigger value="general">{t("General")}</TabsTrigger>
-          <TabsTrigger value="display">{t("Display")}</TabsTrigger>
-        </TabsList>
-        <TabsContent value="general">
-          <GeneralSettingsSection
-            settings={localSettings}
-            onUpdate={handleUpdateSetting}
-          />
-        </TabsContent>
-        <TabsContent value="display">
-          <DisplaySettingsSection
-            settings={localSettings}
-            onUpdate={handleUpdateSetting}
-          />
-        </TabsContent>
-      </Tabs>
-    </div>
+    <SettingsPage
+      config={ECOMMERCE_SETTINGS_CONFIG}
+      settings={settings}
+      onSettingsChange={setSettings}
+      tabIcons={TAB_ICONS}
+      tabDescriptions={TAB_DESCRIPTIONS}
+    />
   );
 }

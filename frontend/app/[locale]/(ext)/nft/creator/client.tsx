@@ -53,8 +53,25 @@ import { useInView } from "react-intersection-observer";
 import { cn } from "@/lib/utils";
 
 interface CreatorDashboardData {
-  creator: any;
-  overview: {
+  creator?: any;
+  portfolio?: {
+    totalCollections: number;
+    createdNFTs: number;
+    totalVolume: number;
+    totalValue: number;
+    totalViews: number;
+  };
+  created?: {
+    collections: any[];
+    recentSales: any[];
+    recent: any[];
+    stats: {
+      totalRoyalties: number;
+      totalSales: number;
+      totalVolume: number;
+    };
+  };
+  overview?: {
     totalCollections: number;
     totalTokens: number;
     totalVolume: number;
@@ -62,13 +79,15 @@ interface CreatorDashboardData {
     averageSalePrice: number;
     totalViews: number;
   };
-  collections: any[];
-  recentSales: any[];
-  topTokens: any[];
+  collections?: any[];
+  recentSales?: any[];
+  topTokens?: any[];
 }
 
 export default function NFTDashboardClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_nft");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { user } = useUserStore();
   const searchParams = useSearchParams();
 
@@ -151,12 +170,12 @@ export default function NFTDashboardClient() {
   }, [searchParams]);
 
   const handleDeployCollection = (collectionId: string) => {
-    if (!dashboardData || !dashboardData.created || !dashboardData.created.collections) {
+    if (!dashboardData || !dashboardData.collections) {
       toast.error("Dashboard data not loaded");
       return;
     }
 
-    const collection = dashboardData.created.collections.find((c: any) => c.id === collectionId);
+    const collection = dashboardData.collections.find((c: any) => c.id === collectionId);
     if (!collection) {
       toast.error("Collection not found");
       return;
@@ -185,18 +204,18 @@ export default function NFTDashboardClient() {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen px-4 bg-gradient-to-b from-primary/5 via-purple-600/5 to-background">
+      <div className={`flex flex-col items-center justify-center min-h-screen px-4 bg-gradient-to-b from-primary/5 via-purple-600/5 to-background`}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="max-w-md w-full text-center space-y-6"
         >
-          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-full flex items-center justify-center">
+          <div className={`mx-auto w-20 h-20 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-full flex items-center justify-center`}>
             <Crown className="h-10 w-10 text-primary" />
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground via-primary to-purple-600 bg-clip-text text-transparent">
-            {t("creator_dashboard")}
+          <h1 className={`text-4xl font-bold bg-gradient-to-r from-foreground via-primary to-purple-600 bg-clip-text text-transparent`}>
+            {tExt("creator_dashboard")}
           </h1>
           <p className="text-muted-foreground text-lg">
             {t("please_sign_in_to_access_your_creator_dashboard")}
@@ -204,10 +223,10 @@ export default function NFTDashboardClient() {
           <Button
             size="lg"
             onClick={() => setIsAuthModalOpen(true)}
-            className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl"
+            className={`bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl`}
           >
             <Sparkles className="w-5 h-5 mr-2" />
-            {t("sign_in")}
+            {tCommon("sign_in")}
           </Button>
           <AuthModal
             isOpen={isAuthModalOpen}
@@ -223,8 +242,8 @@ export default function NFTDashboardClient() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen px-4">
         <div className="max-w-md w-full text-center space-y-6">
-          <h1 className="text-2xl font-bold">{t("failed_to_load_dashboard")}</h1>
-          <Button onClick={fetchDashboardData}>{t("try_again")}</Button>
+          <h1 className="text-2xl font-bold">{tExt("failed_to_load_dashboard")}</h1>
+          <Button onClick={fetchDashboardData}>{tCommon("try_again")}</Button>
         </div>
       </div>
     );
@@ -308,11 +327,11 @@ export default function NFTDashboardClient() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Header */}
-      <section ref={heroRef} className="relative pt-24 pb-12 overflow-hidden bg-gradient-to-b from-primary/5 via-purple-600/5 to-background border-b-2">
+      <section ref={heroRef} className={`relative pt-20 pb-12 overflow-hidden bg-gradient-to-b from-primary/5 via-purple-600/5 to-background border-b-2`}>
         {/* Animated background */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-purple-600/10 to-transparent rounded-full blur-3xl animate-pulse delay-1000" />
+          <div className={`absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-purple-600/10 to-transparent rounded-full blur-3xl animate-pulse delay-1000`} />
         </div>
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -330,8 +349,8 @@ export default function NFTDashboardClient() {
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
                 <Avatar className="h-24 w-24 border-4 border-primary/20 shadow-xl ring-4 ring-primary/10">
-                  <AvatarImage src={user?.avatar} />
-                  <AvatarFallback className="text-2xl bg-gradient-to-br from-primary to-purple-600 text-white">
+                  <AvatarImage src={user?.avatar || undefined} />
+                  <AvatarFallback className={`text-2xl bg-gradient-to-br from-primary to-purple-600 text-white`}>
                     {user?.firstName?.[0]}{user?.lastName?.[0]}
                   </AvatarFallback>
                 </Avatar>
@@ -339,7 +358,7 @@ export default function NFTDashboardClient() {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-foreground via-primary to-purple-600 bg-clip-text text-transparent">
+                  <h1 className={`text-3xl lg:text-4xl font-bold bg-gradient-to-r from-foreground via-primary to-purple-600 bg-clip-text text-transparent`}>
                     {dashboardData.creator?.displayName || `${user?.firstName} ${user?.lastName}`}
                   </h1>
                   {dashboardData.creator?.verificationTier === 'VERIFIED' && (
@@ -372,7 +391,7 @@ export default function NFTDashboardClient() {
               className="flex flex-wrap items-center gap-3"
             >
               <Link href="/nft/create">
-                <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl">
+                <Button size="lg" className={`bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl`}>
                   <Plus className="h-5 w-5 mr-2" />
                   {t("create_nft")}
                 </Button>
@@ -388,23 +407,23 @@ export default function NFTDashboardClient() {
 
           {/* Stats Grid */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={heroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
             className="grid grid-cols-2 lg:grid-cols-4 gap-4"
           >
             {stats.map((stat, index) => {
               const Icon = stat.icon;
               const colorClasses = {
                 blue: "from-blue-500/10 to-blue-600/10 border-blue-500/20",
-                purple: "from-purple-500/10 to-purple-600/10 border-purple-500/20",
+                purple: `from-purple-500/10 to-purple-600/10 border-purple-500/20`,
                 amber: "from-amber-500/10 to-amber-600/10 border-amber-500/20",
                 rose: "from-rose-500/10 to-rose-600/10 border-rose-500/20",
               }[stat.color];
 
               const iconColorClasses = {
                 blue: "text-blue-600",
-                purple: "text-purple-600",
+                purple: `text-purple-600`,
                 amber: "text-amber-600",
                 rose: "text-rose-600",
               }[stat.color];
@@ -412,29 +431,29 @@ export default function NFTDashboardClient() {
               return (
                 <motion.div
                   key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={heroInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
-                  whileHover={{ y: -5, scale: 1.02 }}
+                  transition={{ duration: 0.3, delay: 0.25 + index * 0.05 }}
+                  whileHover={{ y: -3, scale: 1.01 }}
                 >
-                  <Card className={cn("border-2 hover:shadow-xl transition-all duration-300 bg-gradient-to-br", colorClasses)}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className={cn("p-3 rounded-xl bg-white/50 dark:bg-black/20")}>
-                          <Icon className={cn("w-6 h-6", iconColorClasses)} />
+                  <Card className={cn("border hover:shadow-lg transition-all duration-200 bg-linear-to-br", colorClasses)}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className={cn("p-2 rounded-lg bg-white/50 dark:bg-black/20")}>
+                          <Icon className={cn("w-5 h-5", iconColorClasses)} />
                         </div>
                         {stat.change && (
                           <div className={cn(
-                            "flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full",
-                            stat.trend === "up" ? "bg-green-500/20 text-green-600" : "bg-red-500/20 text-red-600"
+                            "flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+                            stat.trend === "up" ? "bg-green-500/20 text-green-600 dark:text-green-500" : "bg-red-500/20 text-red-600 dark:text-red-500"
                           )}>
-                            {stat.trend === "up" ? <ArrowUpRight className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                            {stat.trend === "up" ? <ArrowUpRight className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
                             {stat.change}
                           </div>
                         )}
                       </div>
-                      <p className="text-2xl lg:text-3xl font-bold mb-1">{stat.value}</p>
-                      <p className="text-xs text-muted-foreground font-medium">{stat.label}</p>
+                      <p className="text-xl lg:text-2xl font-bold mb-1">{stat.value}</p>
+                      <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -497,8 +516,8 @@ export default function NFTDashboardClient() {
           <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-xl">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <div className="p-2 bg-purple-500/10 rounded-lg">
-                  <Target className="h-5 w-5 text-purple-600" />
+                <div className={`p-2 bg-purple-500/10 rounded-lg`}>
+                  <Target className={`h-5 w-5 text-purple-600`} />
                 </div>
                 Performance Metrics
               </CardTitle>
@@ -512,7 +531,7 @@ export default function NFTDashboardClient() {
               </div>
               <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                 <span className="text-sm font-medium text-muted-foreground">Total Sales</span>
-                <span className="font-bold text-lg text-purple-600">
+                <span className={`font-bold text-lg text-purple-600`}>
                   {recentSales.length}
                 </span>
               </div>
@@ -584,7 +603,7 @@ export default function NFTDashboardClient() {
                               transition={{ delay: index * 0.1 }}
                               className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted/50 transition-colors"
                             >
-                              <div className="w-14 h-14 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-xl flex-shrink-0 overflow-hidden">
+                              <div className={`w-14 h-14 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-xl flex-shrink-0 overflow-hidden`}>
                                 {sale.token?.image && (
                                   <Image
                                     src={sale.token.image}
@@ -653,7 +672,7 @@ export default function NFTDashboardClient() {
                                 transition={{ delay: index * 0.1 }}
                                 className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
                               >
-                                <div className="w-14 h-14 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-xl flex-shrink-0 overflow-hidden">
+                                <div className={`w-14 h-14 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-xl flex-shrink-0 overflow-hidden`}>
                                   {token.image && (
                                     <Image
                                       src={token.image}
@@ -702,7 +721,7 @@ export default function NFTDashboardClient() {
                   </p>
                 </div>
                 <Link href="/nft/collection/create">
-                  <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl">
+                  <Button size="lg" className={`bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl`}>
                     <Plus className="h-5 w-5 mr-2" />
                     Create Collection
                   </Button>
@@ -720,7 +739,7 @@ export default function NFTDashboardClient() {
                     >
                       <div className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-2xl hover:border-primary/50 transition-all">
                         {/* Banner */}
-                        <div className="relative h-40 bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20">
+                        <div className={`relative h-40 bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20`}>
                           {collection.bannerImage ? (
                             <Image
                               src={collection.bannerImage}
@@ -835,7 +854,7 @@ export default function NFTDashboardClient() {
                             <div className="flex flex-col gap-2">
                               <Button
                                 size="sm"
-                                className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-lg h-10"
+                                className={`w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-lg h-10`}
                                 onClick={() => handleDeployCollection(collection.id)}
                               >
                                 <Rocket className="h-4 w-4 mr-2" />
@@ -866,7 +885,7 @@ export default function NFTDashboardClient() {
                 >
                   <Card className="border-2">
                     <CardContent className="text-center py-20">
-                      <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-full flex items-center justify-center">
+                      <div className={`w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-full flex items-center justify-center`}>
                         <Package className="h-12 w-12 text-primary" />
                       </div>
                       <h3 className="text-2xl font-bold mb-3">No collections yet</h3>
@@ -874,7 +893,7 @@ export default function NFTDashboardClient() {
                         Start your creative journey by creating your first NFT collection
                       </p>
                       <Link href="/nft/collection/create">
-                        <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl h-12 px-8">
+                        <Button size="lg" className={`bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl h-12 px-8`}>
                           <Plus className="h-5 w-5 mr-2" />
                           Create Collection
                         </Button>
@@ -894,7 +913,7 @@ export default function NFTDashboardClient() {
                   </p>
                 </div>
                 <Link href="/nft/create">
-                  <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl">
+                  <Button size="lg" className={`bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl`}>
                     <Plus className="h-5 w-5 mr-2" />
                     Create NFT
                   </Button>
@@ -913,7 +932,7 @@ export default function NFTDashboardClient() {
                       <Link href={`/nft/token/${token.id}`} className="block">
                         <div className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-2xl hover:border-primary/50 transition-all">
                           {/* Image */}
-                          <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20">
+                          <div className={`relative aspect-square overflow-hidden bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20`}>
                             {token.image ? (
                               <Image
                                 src={token.image}
@@ -942,7 +961,7 @@ export default function NFTDashboardClient() {
                               </Button>
                               <Button
                                 size="icon"
-                                className="rounded-full bg-gradient-to-r from-primary to-purple-600"
+                                className={`rounded-full bg-gradient-to-r from-primary to-purple-600`}
                                 onClick={(e) => {
                                   e.preventDefault();
                                 }}
@@ -1013,7 +1032,7 @@ export default function NFTDashboardClient() {
                 >
                   <Card className="border-2">
                     <CardContent className="text-center py-20">
-                      <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-full flex items-center justify-center">
+                      <div className={`w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-full flex items-center justify-center`}>
                         <ImageIcon className="h-12 w-12 text-primary" />
                       </div>
                       <h3 className="text-2xl font-bold mb-3">No NFTs yet</h3>
@@ -1021,7 +1040,7 @@ export default function NFTDashboardClient() {
                         Create your first NFT and start building your collection
                       </p>
                       <Link href="/nft/create">
-                        <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl h-12 px-8">
+                        <Button size="lg" className={`bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl h-12 px-8`}>
                           <Plus className="h-5 w-5 mr-2" />
                           Create NFT
                         </Button>
@@ -1041,7 +1060,7 @@ export default function NFTDashboardClient() {
                 >
                   <Card className="border-2">
                     <CardContent className="p-16 text-center">
-                      <div className="mx-auto w-24 h-24 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-full flex items-center justify-center mb-8">
+                      <div className={`mx-auto w-24 h-24 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-full flex items-center justify-center mb-8`}>
                         <User className="h-12 w-12 text-primary" />
                       </div>
                       <h3 className="text-3xl font-bold mb-4">No Creator Profile Yet</h3>
@@ -1049,7 +1068,7 @@ export default function NFTDashboardClient() {
                         Create your creator profile to showcase your work, add a bio, and connect your social media accounts.
                       </p>
                       <Link href="/nft/creator/profile">
-                        <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl h-12 px-8">
+                        <Button size="lg" className={`bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl h-12 px-8`}>
                           <Edit3 className="h-5 w-5 mr-2" />
                           Create Your Profile
                         </Button>
@@ -1064,7 +1083,7 @@ export default function NFTDashboardClient() {
                     <CardContent className="p-0">
                       {/* Banner */}
                       {creatorProfile?.banner ? (
-                        <div className="relative w-full h-56 bg-gradient-to-r from-primary to-purple-600 rounded-t-xl overflow-hidden">
+                        <div className={`relative w-full h-56 bg-gradient-to-r from-primary to-purple-600 rounded-t-xl overflow-hidden`}>
                           <Image
                             src={creatorProfile.banner}
                             alt="Profile Banner"
@@ -1073,15 +1092,15 @@ export default function NFTDashboardClient() {
                           />
                         </div>
                       ) : (
-                        <div className="w-full h-56 bg-gradient-to-r from-primary via-purple-600 to-pink-600 rounded-t-xl" />
+                        <div className={`w-full h-56 bg-gradient-to-r from-primary via-purple-600 to-pink-600 rounded-t-xl`} />
                       )}
 
                       {/* Profile Info */}
                       <div className="p-8">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 -mt-24 mb-6">
                           <Avatar className="h-40 w-40 border-4 border-background shadow-2xl ring-4 ring-primary/20">
-                            <AvatarImage src={user?.avatar} />
-                            <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-purple-600 text-white">
+                            <AvatarImage src={user?.avatar || undefined} />
+                            <AvatarFallback className={`text-4xl bg-gradient-to-br from-primary to-purple-600 text-white`}>
                               {user?.firstName?.[0]}{user?.lastName?.[0]}
                             </AvatarFallback>
                           </Avatar>

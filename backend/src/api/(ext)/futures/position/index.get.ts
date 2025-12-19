@@ -19,6 +19,8 @@ export const metadata: OperationObject = {
   summary: "List Futures Positions",
   operationId: "listFuturesPositions",
   tags: ["Futures", "Positions"],
+  logModule: "FUTURES",
+  logTitle: "List futures positions",
   description:
     "Retrieves a list of futures positions for the authenticated user.",
   parameters: [
@@ -76,21 +78,29 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
-  if (!user?.id)
-    throw createError({ statusCode: 401, message: "Unauthorized" });
+  const { user, query, ctx } = data;
 
-  const { currency, pair, type } = data.query;
+  ctx?.step?.("Validating user authentication");
+  if (!user?.id) {
+    ctx?.fail?.("User not authenticated");
+    throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
+
+  const { currency, pair, type } = query;
 
   try {
     const symbol = currency && pair ? `${currency}/${pair}` : undefined;
     const status = type === "OPEN_POSITIONS" ? "OPEN" : undefined;
+
+    ctx?.step?.(`Fetching futures positions${symbol ? ` for ${symbol}` : ""}${status ? ` (${status})` : ""}`);
     const positions = await getPositions(user.id, symbol, status);
 
     if (!positions || positions.length === 0) {
+      ctx?.success?.("No positions found");
       return [];
     }
 
+    ctx?.step?.("Formatting position data");
     const result = positions.map((position) => ({
       ...position,
       entryPrice: fromBigInt ? fromBigInt(position.entryPrice) : position.entryPrice,
@@ -101,12 +111,16 @@ export default async (data: Handler) => {
       updatedAt: position.updatedAt.toISOString(),
     }));
 
+    let finalResult = result;
     if (type === "POSITIONS_HISTORY") {
-      return result.filter((position) => position.status !== "OPEN");
+      ctx?.step?.("Filtering for position history");
+      finalResult = result.filter((position) => position.status !== "OPEN");
     }
 
-    return result;
+    ctx?.success?.(`Retrieved ${finalResult.length} positions`);
+    return finalResult;
   } catch (error) {
+    ctx?.fail?.(`Failed to retrieve positions: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: `Failed to retrieve positions: ${error.message}`,

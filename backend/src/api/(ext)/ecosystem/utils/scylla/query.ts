@@ -1,5 +1,5 @@
 import client from "./client";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import { fromBigInt } from "../blockchain"; // adjust path as needed
 import { types } from "cassandra-driver";
 
@@ -223,7 +223,7 @@ export async function getFiltered({
     });
     totalItems = Number(countResult.rows[0]["count"]) || 0;
   } catch (error: any) {
-    logError("scylla", error, __filename);
+    logger.error("SCYLLA", "Error executing count query", error);
     throw new Error("Error executing count query: " + error.message);
   }
 
@@ -258,7 +258,7 @@ export async function getFiltered({
     const dataResult = await client.execute(dataCql, params, { prepare: true });
     allRows = dataResult.rows;
   } catch (error: any) {
-    logError("scylla", error, __filename);
+    logger.error("SCYLLA", "Error executing data query", error);
     throw new Error("Error executing data query: " + error.message);
   }
 

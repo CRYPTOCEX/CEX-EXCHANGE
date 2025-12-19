@@ -1,6 +1,7 @@
 import { models } from "@b/db";
 import { fn, col, Op, literal } from "sequelize";
 import { getFiatPriceInUSD, getSpotPriceInUSD, getEcoPriceInUSD } from "@b/api/finance/currency/utils";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Get Admin Dashboard Analytics",
@@ -164,7 +165,7 @@ async function convertToUSD(amount: number, currency: string, type: string): Pro
     
     return amount * priceUSD;
   } catch (error) {
-    console.warn(`Failed to convert ${currency} to USD:`, error.message);
+    logger.debug("DASHBOARD", `Failed to convert ${currency} to USD: ${error.message}`);
     return amount; // Return original amount if conversion fails
   }
 }
@@ -226,11 +227,15 @@ function fillMissingDates<T extends { date: string }>(
 }
 
 export default async (data: Handler) => {
+  const { query, ctx } = data;
+
   try {
+    ctx?.step("Fetching dashboard analytics");
+
     // Get timeframe from query params (default to monthly)
-    const timeframe = data.query?.timeframe || 'monthly';
+    const timeframe = query?.timeframe || 'monthly';
     const period = timeframe as 'monthly' | 'weekly' | 'yearly';
-    
+
     // Calculate date ranges based on period
     let dateRangeStart: Date;
     const now = new Date();
@@ -316,7 +321,7 @@ export default async (data: Handler) => {
         }
       }
     } catch (error) {
-      console.warn("Failed to calculate total revenue:", error.message);
+      logger.debug("DASHBOARD", `Failed to calculate total revenue: ${error.message}`);
     }
 
     // User registration trends with complete date range
@@ -371,7 +376,7 @@ export default async (data: Handler) => {
         });
       }
     } catch (error) {
-      console.warn("Failed to fetch user registration data:", error.message);
+      logger.debug("DASHBOARD", `Failed to fetch user registration data: ${error.message}`);
              // Generate fallback data with complete date range
        userRegistrations = fillMissingDates<{ date: string; total: number; new: number }>([], period, { total: totalUsers, new: 0 });
     }
@@ -398,7 +403,7 @@ export default async (data: Handler) => {
         });
       }
     } catch (error) {
-      console.warn("Failed to fetch KYC level data:", error.message);
+      logger.debug("DASHBOARD", `Failed to fetch KYC level data: ${error.message}`);
       usersByLevel.push({
         level: 'No KYC Data',
         count: totalUsers,
@@ -464,7 +469,7 @@ export default async (data: Handler) => {
         });
       }
     } catch (error) {
-      console.warn("Failed to fetch daily revenue data:", error.message);
+      logger.debug("DASHBOARD", `Failed to fetch daily revenue data: ${error.message}`);
              // Generate fallback data with complete date range
        dailyRevenue = fillMissingDates<{ date: string; revenue: number; profit: number }>([], period, { revenue: 0, profit: 0 });
     }
@@ -515,7 +520,7 @@ export default async (data: Handler) => {
         });
       }
     } catch (error) {
-      console.warn("Failed to fetch transaction volume data:", error.message);
+      logger.debug("DASHBOARD", `Failed to fetch transaction volume data: ${error.message}`);
     }
 
     // Trading activity with complete date range
@@ -570,7 +575,7 @@ export default async (data: Handler) => {
         });
       }
     } catch (error) {
-      console.warn("Failed to fetch daily trades data:", error.message);
+      logger.debug("DASHBOARD", `Failed to fetch daily trades data: ${error.message}`);
              // Generate fallback data with complete date range
        dailyTrades = fillMissingDates<{ date: string; count: number; volume: number }>([], period, { count: 0, volume: 0 });
     }
@@ -602,7 +607,7 @@ export default async (data: Handler) => {
         }
       }
     } catch (error) {
-      console.warn("Failed to fetch top assets data:", error.message);
+      logger.debug("DASHBOARD", `Failed to fetch top assets data: ${error.message}`);
     }
 
     // System status (mock data - replace with real monitoring data)
@@ -621,6 +626,7 @@ export default async (data: Handler) => {
       }
     };
 
+    ctx?.success("Dashboard analytics retrieved successfully");
     return {
       overview: {
         totalUsers,
@@ -656,8 +662,8 @@ export default async (data: Handler) => {
     };
 
   } catch (error) {
-    console.error("Admin dashboard error:", error);
-    
+    logger.error("DASHBOARD", "Admin dashboard error", error);
+
     // Return minimal fallback data structure with complete date ranges
     const fallbackPeriod = 'monthly';
     return {

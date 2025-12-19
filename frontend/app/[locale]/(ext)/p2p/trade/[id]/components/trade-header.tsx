@@ -38,7 +38,8 @@ export function TradeHeader({
   paymentWindow = 30, // default to 30 minutes if not provided
   onChatClick,
 }: TradeHeaderProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
   return (
     <div className="pb-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -58,19 +59,19 @@ export function TradeHeader({
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={onChatClick}>
             <MessageCircle className="mr-2 h-4 w-4" />
-            {t("Chat")}
+            {tCommon("chat")}
           </Button>
         </div>
       </div>
 
-      <div className="mt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-muted/50 rounded-lg border">
+      <div className={`mt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-muted/50 rounded-lg border-zinc-200 dark:border-zinc-800`}>
         <div className="flex items-center gap-3">
-          <Avatar className="h-12 w-12 border-2 border-primary/10">
+          <Avatar className={`h-12 w-12 border-2 border-zinc-200 dark:border-zinc-800`}>
             <AvatarImage
               src={counterparty.avatar || "/placeholder.svg"}
               alt={counterparty.name}
             />
-            <AvatarFallback className="bg-primary/10 text-primary">
+            <AvatarFallback className={`bg-blue-500/10 text-blue-500`}>
               {counterparty.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
@@ -80,7 +81,7 @@ export function TradeHeader({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Shield className="h-4 w-4 text-green-500 ml-1" />
+                    <Shield className={`h-4 w-4 ml-1 text-green-700 dark:text-green-400`} />
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{t("verified_trader")}</p>
@@ -88,7 +89,7 @@ export function TradeHeader({
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <div className="flex items-center text-sm text-muted-foreground">
+            <div className={`flex items-center text-sm text-zinc-600 dark:text-zinc-400`}>
               <div className="flex mr-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
@@ -102,7 +103,7 @@ export function TradeHeader({
                 ))}
               </div>
               <span>
-                {counterparty.completedTrades} {t("trades")} • {counterparty.completionRate}% {t("completion")}
+                {counterparty.completedTrades} {tCommon("trades")} • {counterparty.completionRate}% {tCommon("completion")}
               </span>
             </div>
           </div>

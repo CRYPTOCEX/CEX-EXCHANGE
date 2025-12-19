@@ -43,10 +43,15 @@ export const metadata = {
     500: serverErrorResponse,
   },
   permission: "view.spot.currency",
+  logModule: "ADMIN_FIN",
+  logTitle: "Fetch Missing Currencies",
 };
 
 export default async (data: Handler) => {
+  const { ctx } = data;
+
   try {
+    ctx?.step("Fetching active markets");
     // Fetch all active markets
     const activeMarkets = await models.exchangeMarket.findAll({
       attributes: ["currency", "pair"],
@@ -88,6 +93,7 @@ export default async (data: Handler) => {
       })
       .filter(Boolean); // Remove null entries
 
+    ctx?.success("Missing currencies fetched successfully");
     return missingCurrencies;
   } catch (error) {
     return {

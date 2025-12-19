@@ -42,7 +42,8 @@ import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
 export function PersonalInfoTab() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
   // Update the imports to include the updateUser function
   const { user, updateUser, updateAvatar } = useUserStore();
   const { toast } = useToast();
@@ -283,7 +284,7 @@ export function PersonalInfoTab() {
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h2 className="text-2xl font-bold dark:text-zinc-100">
-            {t("personal_information")}
+            {tCommon('personal_info')}
           </h2>
           <p className="text-muted-foreground dark:text-zinc-400">
             {t("manage_your_personal_account_preferences")}
@@ -402,7 +403,7 @@ export function PersonalInfoTab() {
                       strokeLinejoin="round"
                     />
                   </svg>
-                  {t("Level")}
+                  {tCommon("level")}
                   {kycLevel}
                 </Badge>
                 {user?.emailVerified && (
@@ -424,7 +425,7 @@ export function PersonalInfoTab() {
                         strokeLinejoin="round"
                       />
                     </svg>
-                    {t("email_verified")}
+                    {tCommon("email_verified")}
                   </Badge>
                 )}
                 {user?.phoneVerified && (
@@ -446,7 +447,7 @@ export function PersonalInfoTab() {
                         strokeLinejoin="round"
                       />
                     </svg>
-                    {t("phone_verified")}
+                    {tCommon("phone_verified")}
                   </Badge>
                 )}
               </div>
@@ -454,7 +455,7 @@ export function PersonalInfoTab() {
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground dark:text-zinc-400">
-                    {t("member_since")}
+                    {tCommon("member_since")}
                   </span>
                   <span className="font-medium dark:text-zinc-200">
                     {formatDate(user?.createdAt)}
@@ -463,7 +464,7 @@ export function PersonalInfoTab() {
                 <div className="flex items-center gap-2 text-sm">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground dark:text-zinc-400">
-                    {t("location")}
+                    {tCommon("location")}
                   </span>
                   <span className="font-medium dark:text-zinc-200">
                     {country || "Not specified"}
@@ -480,9 +481,9 @@ export function PersonalInfoTab() {
                 onValueChange={setActiveSubTab}
               >
                 <TabsList className="grid w-full grid-cols-3 mb-4">
-                  <TabsTrigger value="basic">{t("basic_info")}</TabsTrigger>
-                  <TabsTrigger value="location">{t("Location")}</TabsTrigger>
-                  <TabsTrigger value="social">{t("social_media")}</TabsTrigger>
+                  <TabsTrigger value="basic">{tCommon("basic_info")}</TabsTrigger>
+                  <TabsTrigger value="location">{tCommon("location")}</TabsTrigger>
+                  <TabsTrigger value="social">{tCommon("social_media")}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="basic" className="space-y-4 pt-2">
@@ -493,7 +494,7 @@ export function PersonalInfoTab() {
                         className="flex items-center gap-2 dark:text-zinc-200"
                       >
                         <User className="h-4 w-4 text-muted-foreground" />
-                        {t("first_name")}
+                        {tCommon("first_name")}
                       </Label>
                       <Input
                         id="firstName"
@@ -514,7 +515,7 @@ export function PersonalInfoTab() {
                         className="flex items-center gap-2 dark:text-zinc-200"
                       >
                         <User className="h-4 w-4 text-muted-foreground" />
-                        {t("last_name")}
+                        {tCommon("last_name")}
                       </Label>
                       <Input
                         id="lastName"
@@ -535,7 +536,7 @@ export function PersonalInfoTab() {
                         className="flex items-center gap-2 dark:text-zinc-200"
                       >
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        {t("email_address")}
+                        {tCommon("email_address")}
                       </Label>
                       <div className="relative">
                         <Input
@@ -554,7 +555,7 @@ export function PersonalInfoTab() {
                         className="flex items-center gap-2 dark:text-zinc-200"
                       >
                         <Phone className="h-4 w-4 text-muted-foreground" />
-                        {t("phone_number")}
+                        {tCommon("phone_number")}
                       </Label>
                       <div className="relative">
                         <Input
@@ -577,7 +578,7 @@ export function PersonalInfoTab() {
                         className="flex items-center gap-2 dark:text-zinc-200"
                       >
                         <User className="h-4 w-4 text-muted-foreground" />
-                        {t("Bio")}
+                        {tCommon("bio")}
                       </Label>
                       <Textarea
                         id="bio"
@@ -605,7 +606,7 @@ export function PersonalInfoTab() {
                         className="flex items-center gap-2 dark:text-zinc-200"
                       >
                         <MapPin className="h-4 w-4 text-muted-foreground" />
-                        {t("street_address")}
+                        {tCommon("street_address")}
                       </Label>
                       <Input
                         id="address"
@@ -633,7 +634,7 @@ export function PersonalInfoTab() {
                         className="flex items-center gap-2 dark:text-zinc-200"
                       >
                         <MapPin className="h-4 w-4 text-muted-foreground" />
-                        {t("City")}
+                        {tCommon("city")}
                       </Label>
                       <Input
                         id="city"
@@ -681,7 +682,7 @@ export function PersonalInfoTab() {
                         className="flex items-center gap-2 dark:text-zinc-200"
                       >
                         <MapPin className="h-4 w-4 text-muted-foreground" />
-                        {t("Country")}
+                        {tCommon("country")}
                       </Label>
                       {isEditing ? (
                         <Select
@@ -692,7 +693,7 @@ export function PersonalInfoTab() {
                           disabled={!isEditing}
                         >
                           <SelectTrigger id="country">
-                            <SelectValue placeholder="Select a country" />
+                            <SelectValue placeholder={t("select_a_country")} />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="United States">
@@ -702,20 +703,20 @@ export function PersonalInfoTab() {
                               {t("united_kingdom")}
                             </SelectItem>
                             <SelectItem value="Canada">
-                              {t("Canada")}
+                              {t("canada")}
                             </SelectItem>
                             <SelectItem value="Australia">
-                              {t("Australia")}
+                              {t("australia")}
                             </SelectItem>
                             <SelectItem value="Germany">
-                              {t("Germany")}
+                              {t("germany")}
                             </SelectItem>
                             <SelectItem value="France">
-                              {t("France")}
+                              {t("france")}
                             </SelectItem>
-                            <SelectItem value="Japan">{t("Japan")}</SelectItem>
+                            <SelectItem value="Japan">{t("japan")}</SelectItem>
                             <SelectItem value="Singapore">
-                              {t("Singapore")}
+                              {t("singapore")}
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -762,7 +763,7 @@ export function PersonalInfoTab() {
 
                     <div className="space-y-2">
                       <Label htmlFor="github" className="dark:text-zinc-200">
-                        {t("GitHub")}
+                        {tCommon("github")}
                       </Label>
                       <div className="relative">
                         <span className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-zinc-400">
@@ -816,7 +817,7 @@ export function PersonalInfoTab() {
 
                     <div className="space-y-2">
                       <Label htmlFor="dribbble" className="dark:text-zinc-200">
-                        {t("Dribbble")}
+                        {t("dribbble")}
                       </Label>
                       <div className="relative">
                         <span className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-zinc-400">
@@ -880,7 +881,7 @@ export function PersonalInfoTab() {
               }}
               disabled={isUpdatingProfile}
             >
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
             <Button onClick={handleUpdateProfile} disabled={isUpdatingProfile}>
               {isUpdatingProfile ? (
@@ -905,12 +906,12 @@ export function PersonalInfoTab() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  {t("Saving")}.
+                  {tCommon("saving")}.
                 </>
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
-                  {t("save_changes")}
+                  {tCommon("save_changes")}
                 </>
               )}
             </Button>
@@ -931,7 +932,7 @@ export function PersonalInfoTab() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2 p-4 rounded-lg bg-gray-50/50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-700">
               <p className="text-sm font-medium text-muted-foreground dark:text-zinc-400">
-                {t("account_id")}
+                {tCommon("account_id")}
               </p>
               <div className="flex items-center">
                 <p className="font-medium font-mono text-sm bg-gray-100 dark:bg-zinc-700 dark:text-zinc-200 py-1 px-2 rounded">
@@ -1004,7 +1005,7 @@ export function PersonalInfoTab() {
                       strokeLinejoin="round"
                     />
                   </svg>
-                  {t("Level")}
+                  {tCommon("level")}
                   {kycLevel}
                 </Badge>
                 <Link href="/user/kyc">
@@ -1013,7 +1014,7 @@ export function PersonalInfoTab() {
                     size="sm"
                     className="h-auto p-0 text-blue-600"
                   >
-                    {t("Upgrade")}
+                    {t("upgrade")}
                   </Button>
                 </Link>
               </div>
@@ -1021,7 +1022,7 @@ export function PersonalInfoTab() {
 
             <div className="space-y-2 p-4 rounded-lg bg-green-50/50 dark:bg-green-950/50 border border-green-100 dark:border-green-800">
               <p className="text-sm font-medium text-muted-foreground dark:text-zinc-400">
-                {t("member_since")}
+                {tCommon("member_since")}
               </p>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-green-600" />
@@ -1033,7 +1034,7 @@ export function PersonalInfoTab() {
 
             <div className="space-y-2 p-4 rounded-lg bg-purple-50/50 dark:bg-purple-950/50 border border-purple-100 dark:border-purple-800">
               <p className="text-sm font-medium text-muted-foreground dark:text-zinc-400">
-                {t("last_login")}
+                {tCommon("last_login")}
               </p>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-purple-600" />

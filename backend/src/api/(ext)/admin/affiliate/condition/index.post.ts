@@ -7,9 +7,11 @@ import {
 } from "./utils";
 
 export const metadata: OperationObject = {
-  summary: "Stores a new MLM Referral Condition",
-  operationId: "storeMlmReferralCondition",
-  tags: ["Admin", "MLM", "Referral Conditions"],
+  summary: "Creates a new affiliate condition",
+  description:
+    "Creates a new affiliate condition with specified reward parameters. Conditions define how affiliates earn rewards based on referral actions such as deposits, trades, investments, and more. Supports various reward types (percentage or fixed) and wallet types (FIAT, SPOT, ECO).",
+  operationId: "createAffiliateCondition",
+  tags: ["Admin", "Affiliate", "Condition"],
   requestBody: {
     required: true,
     content: {
@@ -20,14 +22,16 @@ export const metadata: OperationObject = {
   },
   responses: storeRecordResponses(
     mlmReferralConditionStoreSchema,
-    "MLM Referral Condition"
+    "Affiliate Condition"
   ),
   requiresAuth: true,
   permission: "create.affiliate.condition",
+  logModule: "ADMIN_AFFILIATE",
+  logTitle: "Create affiliate condition",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const {
     name,
     title,
@@ -42,7 +46,10 @@ export default async (data: Handler) => {
     image,
   } = body;
 
-  return await storeRecord({
+  ctx?.step("Validating condition data");
+
+  ctx?.step("Creating condition record");
+  const result = await storeRecord({
     model: "mlmReferralCondition",
     data: {
       name,
@@ -58,4 +65,7 @@ export default async (data: Handler) => {
       image,
     },
   });
+
+  ctx?.success("Condition created successfully");
+  return result;
 };

@@ -4,7 +4,8 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 
-import { 
+import { logger } from "@b/utils/console";
+import {
   getIpay88Config,
   verifyIpay88Signature,
   convertFromIpay88Amount,
@@ -20,6 +21,8 @@ export const metadata: OperationObject = {
     "Handles iPay88 payment verification from return URL. This endpoint processes the payment response from iPay88 and updates the transaction status accordingly.",
   operationId: "verifyIpay88Payment",
   tags: ["Finance", "Payment"],
+  logModule: "IPAY88_DEPOSIT",
+  logTitle: "Verify iPay88 payment",
   requestBody: {
     description: "iPay88 payment response data",
     content: {
@@ -155,7 +158,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
 
   try {
     const { 
@@ -215,12 +218,12 @@ export default async (data: Handler) => {
     );
 
     if (!isSignatureValid) {
-      console.error("iPay88 signature verification failed", {
+      logger.error("IPAY88", "Signature verification failed", {
         reference: RefNo,
         expected_signature: Signature,
         received_data: { MerchantCode, PaymentId, RefNo, Amount, Currency, Status }
       });
-      
+
       // Update transaction with failed verification
       await transaction.update({
         status: "FAILED",
@@ -322,8 +325,8 @@ export default async (data: Handler) => {
     };
 
   } catch (error) {
-    console.error("iPay88 payment verification error:", error);
-    
+    logger.error("IPAY88", "Payment verification error", error);
+
     if (error instanceof Ipay88Error) {
       throw new Error(`iPay88 Error: ${error.message}`);
     }

@@ -30,13 +30,19 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Ecommerce Shipping"),
   requiresAuth: true,
   permission: "edit.ecommerce.shipping",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Update E-commerce Shipping",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
 
-  return await updateRecord("ecommerceShipping", id, {
+  ctx?.step("Updating E-commerce shipping record");
+  const result = await updateRecord("ecommerceShipping", id, {
     ...body,
   });
+
+  ctx?.success("Successfully updated E-commerce shipping record");
+  return result;
 };

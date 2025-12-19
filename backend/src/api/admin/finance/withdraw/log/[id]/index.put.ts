@@ -3,6 +3,7 @@ import { updateRecordResponses } from "@b/utils/query";
 import { models, sequelize } from "@b/db";
 import { transactionUpdateSchema } from "@b/api/finance/transaction/utils";
 import { sendTransactionStatusUpdateEmail } from "@b/utils/emails";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Updates an existing transaction",
@@ -32,10 +33,12 @@ export const metadata = {
   responses: updateRecordResponses("Transaction"),
   requiresAuth: true,
   permission: "edit.withdraw",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Withdraw Log",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     status,
@@ -46,6 +49,7 @@ export default async (data: Handler) => {
     metadata: requestMetadata,
   } = body;
 
+  ctx?.step("Fetching transaction");
   const transaction = await models.transaction.findOne({
     where: { id },
   });
@@ -60,7 +64,8 @@ export default async (data: Handler) => {
   transaction.description = description;
   transaction.referenceId = referenceId;
 
-  return await sequelize.transaction(async (t) => {
+  ctx?.step("Updating transaction and processing wallet changes");
+  const result = await sequelize.transaction(async (t) => {
     const metadata = parseMetadata(transaction.metadata);
 
     const wallet = await models.wallet.findOne({
@@ -76,6 +81,7 @@ export default async (data: Handler) => {
         await handleWalletCompletion(wallet, t);
       }
 
+      ctx?.step("Sending status update email");
       const user = await models.user.findOne({
         where: { id: transaction.userId },
       });
@@ -101,6 +107,9 @@ export default async (data: Handler) => {
 
     return { message: "Transaction updated successfully" };
   });
+
+  ctx?.success("Withdraw log updated successfully");
+  return result;
 };
 
 function parseMetadata(metadataString) {
@@ -110,7 +119,7 @@ function parseMetadata(metadataString) {
     metadataString = metadataString.replace(/\\/g, "");
     metadata = JSON.parse(metadataString) || {};
   } catch (e) {
-    console.error("Invalid JSON in metadata:", metadataString);
+    logger.error("WITHDRAW", "Invalid JSON in metadata", e);
   }
   return metadata;
 }

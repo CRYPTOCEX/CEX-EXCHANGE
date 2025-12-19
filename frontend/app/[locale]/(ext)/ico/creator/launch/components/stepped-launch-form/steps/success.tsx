@@ -9,7 +9,8 @@ interface SuccessStepProps {
 }
 
 export default function SuccessStep({ name, symbol }: SuccessStepProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center space-y-6">
       <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center">
@@ -26,7 +27,7 @@ export default function SuccessStep({ name, symbol }: SuccessStepProps) {
       </div>
 
       <div className="bg-muted/50 p-4 rounded-lg max-w-md mx-auto w-full">
-        <h3 className="font-medium mb-2">{t("what_happens_next")}</h3>
+        <h3 className="font-medium mb-2">{tCommon("what_happens_next")}</h3>
         <ol className="text-left space-y-2 text-sm">
           <li className="flex items-start gap-2">
             <span className="bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
@@ -52,13 +53,13 @@ export default function SuccessStep({ name, symbol }: SuccessStepProps) {
       <div className="flex flex-col sm:flex-row gap-4 pt-4">
         <Link href="/ico/dashboard" className="w-full">
           <Button variant="default" className="w-full">
-            {t("go_to_dashboard")}
+            {tCommon("go_to_dashboard")}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </Link>
         <Link href="/ico/offer" className="w-full">
           <Button variant="outline" className="w-full">
-            {t("browse_offerings")}
+            {tCommon('browse_offers')}
           </Button>
         </Link>
       </div>

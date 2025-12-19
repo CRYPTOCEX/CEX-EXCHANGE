@@ -20,6 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { Icon } from "@iconify/react";
 import { Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 interface Page {
   id: string;
   title: string;
@@ -473,6 +475,8 @@ const PAGE_TEMPLATES: TemplatePageData[] = [
   },
 ];
 export default function PageBuilderPage() {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { toast } = useToast();
   const [pages, setPages] = useState<Page[]>([]);
@@ -667,25 +671,24 @@ export default function PageBuilderPage() {
     {} as Record<string, TemplatePageData[]>
   );
   return (
-    <div className="container mx-auto py-10 px-4">
+    <div className={`container ${PAGE_PADDING}`}>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Page Builder</h1>
+        <h1 className="text-3xl font-bold mb-2">{t("page_builder")}</h1>
         <p className="text-muted-foreground">
-          Create and manage your website pages. Use templates for quick setup or
-          build custom pages from scratch.
+          {t("create_and_manage_your_website_pages_1")} {t("use_templates_for_quick_setup_or")}
         </p>
       </div>
 
       <Tabs defaultValue="existing" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="existing">Existing Pages</TabsTrigger>
-          <TabsTrigger value="templates">Page Templates</TabsTrigger>
+          <TabsTrigger value="existing">{t("existing_pages")}</TabsTrigger>
+          <TabsTrigger value="templates">{t("page_templates")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="existing" className="space-y-6">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-semibold">Your Pages</h2>
+              <h2 className="text-2xl font-semibold">{t("your_pages")}</h2>
               <p className="text-muted-foreground mt-1">
                 {pagination.totalItems > 0
                   ? `${pagination.totalItems} page${pagination.totalItems === 1 ? "" : "s"} found`
@@ -701,9 +704,9 @@ export default function PageBuilderPage() {
           ) : pages.length === 0 ? (
             <Card className="text-center py-16">
               <CardContent>
-                <h3 className="text-xl font-semibold mb-2">No pages found</h3>
+                <h3 className="text-xl font-semibold mb-2">{t("no_pages_found")}</h3>
                 <p className="text-muted-foreground mb-6">
-                  Get started by creating your first page using our templates
+                  {t("get_started_by_our_templates")}
                 </p>
               </CardContent>
             </Card>
@@ -728,7 +731,7 @@ export default function PageBuilderPage() {
                                 fallbackSrc={`/placeholder.svg?height=200&width=400&text=${encodeURIComponent(page.title)}`}
                               />
                               <div className="absolute bottom-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded">
-                                Snapshot ✓
+                                {t("snapshot")}
                               </div>
                             </>
                           ) : (
@@ -736,10 +739,10 @@ export default function PageBuilderPage() {
                               <div className="text-center">
                                 <div className="text-2xl mb-2">🎨</div>
                                 <p className="text-sm text-muted-foreground">
-                                  Generating Preview...
+                                  {t("generating_preview_ellipsis")}
                                 </p>
                                 <div className="mt-2 text-xs text-muted-foreground">
-                                  Sections: {page.parsedContent?.sections?.length || 0}
+                                  {t("sections")}: {page.parsedContent?.sections?.length || 0}
                                 </div>
                               </div>
                             </div>
@@ -750,7 +753,7 @@ export default function PageBuilderPage() {
                           <div className="text-center">
                             <div className="text-2xl mb-2">📄</div>
                             <p className="text-sm text-muted-foreground">
-                              Content Page
+                              {t("content_page")}
                             </p>
                           </div>
                         </div>
@@ -798,10 +801,9 @@ export default function PageBuilderPage() {
 
         <TabsContent value="templates" className="space-y-6">
           <div>
-            <h2 className="text-2xl font-semibold mb-2">Page Templates</h2>
+            <h2 className="text-2xl font-semibold mb-2">{t("page_templates")}</h2>
             <p className="text-muted-foreground mb-6">
-              Choose from professionally designed templates to quickly create
-              essential pages for your website.
+              {t("choose_from_professionally_designed_templates_to")}
             </p>
           </div>
 
@@ -809,11 +811,10 @@ export default function PageBuilderPage() {
             <Card className="text-center py-16">
               <CardContent>
                 <h3 className="text-xl font-semibold mb-2">
-                  All templates used!
+                  {t("all_templates_used")}
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  You've already created pages for all available templates. You
-                  can edit your existing pages or create custom pages.
+                  {t("youve_already_created_pages_for_all")} {t("you_can_edit_your_existing_pages")}
                 </p>
               </CardContent>
             </Card>
@@ -873,12 +874,12 @@ export default function PageBuilderPage() {
                               {isCreatingPage === template.slug ? (
                                 <>
                                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Creating...
+                                  {tCommon("creating_ellipsis")}
                                 </>
                               ) : (
                                 <>
                                   <Plus className="mr-2 h-4 w-4" />
-                                  Create Page
+                                  {t("create_page")}
                                 </>
                               )}
                             </Button>

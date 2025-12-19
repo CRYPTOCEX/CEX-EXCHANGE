@@ -1,5 +1,5 @@
 import { models } from "@b/db";
-import { aiBotUpdateSchema } from "../../../utils";
+import { aiBotUpdateSchema, aiBotSchema } from "../../../utils";
 import {
   unauthorizedResponse,
   notFoundMetadataResponse,
@@ -8,9 +8,13 @@ import {
 import { createError } from "@b/utils/error";
 
 export const metadata: OperationObject = {
-  summary: "Update bot configuration",
-  operationId: "updateAiMarketMakerBotConfig",
+  summary: "Update AI Market Maker bot trading configuration",
+  operationId: "updateMarketMakerBotConfig",
   tags: ["Admin", "AI Market Maker", "Bot"],
+  description:
+    "Updates the trading configuration parameters for a specific AI bot. Supports modifying risk tolerance, trade frequency, order size settings, and daily trade limits. All configuration changes are tracked in the market maker history with before/after values.",
+  logModule: "ADMIN_MM",
+  logTitle: "Update Bot Configuration",
   parameters: [
     {
       index: 0,
@@ -25,7 +29,7 @@ export const metadata: OperationObject = {
       name: "botId",
       in: "path",
       required: true,
-      description: "ID of the bot",
+      description: "ID of the bot to update",
       schema: { type: "string" },
     },
   ],
@@ -39,14 +43,41 @@ export const metadata: OperationObject = {
   },
   responses: {
     200: {
-      description: "Bot configuration updated successfully",
+      description: "Bot configuration updated successfully with change details",
       content: {
         "application/json": {
           schema: {
             type: "object",
             properties: {
-              message: { type: "string" },
-              bot: { type: "object" },
+              message: {
+                type: "string",
+                description: "Success message",
+              },
+              bot: {
+                type: "object",
+                description: "Updated bot configuration",
+                properties: aiBotSchema,
+              },
+              changesApplied: {
+                type: "number",
+                description: "Number of configuration fields that were changed",
+              },
+            },
+          },
+        },
+      },
+    },
+    400: {
+      description: "Invalid configuration parameters",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              message: {
+                type: "string",
+                description: "Error message (e.g., risk tolerance out of range)",
+              },
             },
           },
         },
@@ -61,8 +92,9 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, body } = data;
+  const { params, body, ctx } = data;
 
+  ctx?.step("Fetch bot from database");
   const bot = await models.aiBot.findOne({
     where: {
       id: params.botId,
@@ -83,6 +115,7 @@ export default async (data: Handler) => {
     maxDailyTrades,
   } = body;
 
+  ctx?.step("Validate bot configuration parameters");
   // Validate risk tolerance
   if (riskTolerance !== undefined) {
     if (riskTolerance < 0 || riskTolerance > 1) {
@@ -97,6 +130,7 @@ export default async (data: Handler) => {
     }
   }
 
+  ctx?.step("Track configuration changes");
   // Track changes
   const changes: Record<string, { old: any; new: any }> = {};
 
@@ -113,6 +147,7 @@ export default async (data: Handler) => {
     changes.maxDailyTrades = { old: bot.maxDailyTrades, new: maxDailyTrades };
   }
 
+  ctx?.step("Update bot configuration");
   // Update bot
   await bot.update({
     ...(riskTolerance !== undefined && { riskTolerance }),
@@ -125,6 +160,7 @@ export default async (data: Handler) => {
 
   // Log changes if any
   if (Object.keys(changes).length > 0) {
+    ctx?.step("Create history record for configuration changes");
     const marketMaker = await models.aiMarketMaker.findByPk(params.marketId);
     await models.aiMarketMakerHistory.create({
       marketMakerId: params.marketId,
@@ -139,9 +175,11 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Fetch updated bot data");
   // Return updated bot
   const updatedBot = await models.aiBot.findByPk(params.botId);
 
+  ctx?.success("Bot configuration updated successfully");
   return {
     message: "Bot configuration updated successfully",
     bot: updatedBot,

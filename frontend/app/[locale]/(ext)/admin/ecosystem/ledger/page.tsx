@@ -1,7 +1,14 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
+import { BookOpen } from "lucide-react";
+import { useTranslations } from "next-intl";
+
 export default function EcosystemLedgerPage() {
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/ecosystem/ledger"
@@ -13,14 +20,22 @@ export default function EcosystemLedgerPage() {
         edit: "edit.ecosystem.private.ledger",
         delete: "delete.ecosystem.private.ledger",
       }}
-      pageSize={10}
-      canCreate
+      pageSize={12}
+      canCreate={false}
       canEdit
       canDelete
       canView
-      title="Ecosystem Ledger"
+      title="Ledgers"
+      description={t("view_blockchain_transaction_ledgers")}
       itemTitle="Ledger Entry"
       columns={columns}
+      formConfig={formConfig}
+      design={{
+        animation: "orbs",
+        primaryColor: "blue",
+        secondaryColor: "cyan",
+        icon: BookOpen,
+      }}
     />
   );
 }

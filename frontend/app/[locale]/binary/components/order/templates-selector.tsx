@@ -27,7 +27,7 @@ export default function TemplatesSelector({
   applyTemplate,
   darkMode = true,
 }: TemplatesSelectorProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("binary_components");
   return (
     <div
       className={`${darkMode ? "bg-zinc-900" : "bg-gray-100"} p-2 rounded-md`}
@@ -36,7 +36,7 @@ export default function TemplatesSelector({
         <div
           className={`${darkMode ? "text-gray-400" : "text-gray-500"} text-xs`}
         >
-          {t("Templates")}
+          {t("templates")}
         </div>
       </div>
       <div className="flex gap-1">

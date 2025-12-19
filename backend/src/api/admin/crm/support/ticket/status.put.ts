@@ -30,10 +30,17 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("SupportTicket"),
   requiresAuth: true,
   permission: "edit.support.ticket",
+  logModule: "ADMIN_SUP",
+  logTitle: "Bulk update ticket status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("supportTicket", ids, status);
+
+  ctx?.step("Updating ticket status");
+  const result = await updateStatus("supportTicket", ids, status);
+
+  ctx?.success("Ticket status updated");
+  return result;
 };

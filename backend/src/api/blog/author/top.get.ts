@@ -2,6 +2,7 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { fn, col, literal } from "sequelize";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Get Top Blog Authors",
@@ -105,7 +106,7 @@ export default async (data: { user?: any }) => {
       };
     });
   } catch (error) {
-    console.error("Error fetching top authors:", error);
+    logger.error("BLOG", "Error fetching top authors", error);
     throw createError({
       statusCode: 500,
       message: "Failed to fetch top authors",

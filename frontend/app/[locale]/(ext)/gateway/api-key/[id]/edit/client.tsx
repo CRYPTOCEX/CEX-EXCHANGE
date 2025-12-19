@@ -40,6 +40,8 @@ interface ApiKey {
 
 export default function EditApiKeyClient() {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExtGateway = useTranslations("ext_gateway");
   const params = useParams();
   const router = useRouter();
   const keyId = params.id as string;
@@ -100,7 +102,7 @@ export default function EditApiKeyClient() {
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto space-y-6">
+        <div className="container mx-auto pt-24 pb-12">
         <div className="flex items-center gap-4">
           <Skeleton className="h-10 w-10 rounded-lg" />
           <div className="space-y-2">
@@ -115,7 +117,7 @@ export default function EditApiKeyClient() {
 
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="container mx-auto pt-24 pb-12">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
@@ -137,7 +139,7 @@ export default function EditApiKeyClient() {
   const keyName = apiKey.name.replace(" (Public)", "").replace(" (Secret)", "");
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="container mx-auto pt-24 pb-12">
       <div className="mb-6">
         <div className="flex items-center gap-4">
           <Link href="/gateway/settings?tab=api-keys">
@@ -146,9 +148,9 @@ export default function EditApiKeyClient() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">{t("edit_api_key")}</h1>
+            <h1 className="text-2xl font-bold">{tCommon("edit_api_key")}</h1>
             <p className="text-muted-foreground">
-              {t("configure_settings_for")}: <span className="font-medium">{keyName}</span>
+              {tExtGateway("configure_settings_for")}: <span className="font-medium">{keyName}</span>
             </p>
           </div>
         </div>

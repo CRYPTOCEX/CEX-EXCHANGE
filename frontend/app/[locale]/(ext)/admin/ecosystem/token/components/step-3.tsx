@@ -13,7 +13,9 @@ import {
 import { useTranslations } from "next-intl";
 
 const StepIconAndExtras: React.FC = () => {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { register, setValue, watch, control } =
     useFormContext<DeployFormData>();
   const icon = watch("icon");
@@ -21,7 +23,7 @@ const StepIconAndExtras: React.FC = () => {
 
   return (
     <Card className="p-5 space-y-4">
-      <h2 className="text-lg font-semibold">{t("additional_information")}</h2>
+      <h2 className="text-lg font-semibold">{tCommon("additional_information")}</h2>
 
       {/* Token Icon */}
       <ImageUpload value={icon} onChange={(file) => setValue("icon", file)} />
@@ -29,7 +31,7 @@ const StepIconAndExtras: React.FC = () => {
       {/* Precision */}
       <Input
         type="number"
-        placeholder="e.g. 8"
+        placeholder={t("e_g_8")}
         title="Precision"
         {...register("precision", { required: true, valueAsNumber: true })}
       />
@@ -38,8 +40,8 @@ const StepIconAndExtras: React.FC = () => {
       <div className="grid grid-cols-2 gap-4">
         <Input
           type="number"
-          placeholder="Min deposit"
-          title="Deposit Minimum"
+          placeholder={t("min_deposit")}
+          title={t("deposit_minimum")}
           {...register("limits.deposit.min", {
             required: true,
             valueAsNumber: true,
@@ -47,8 +49,8 @@ const StepIconAndExtras: React.FC = () => {
         />
         <Input
           type="number"
-          placeholder="Max deposit"
-          title="Deposit Maximum"
+          placeholder={t("max_deposit")}
+          title={t("deposit_maximum")}
           {...register("limits.deposit.max", {
             required: true,
             valueAsNumber: true,
@@ -60,8 +62,8 @@ const StepIconAndExtras: React.FC = () => {
       <div className="grid grid-cols-2 gap-4">
         <Input
           type="number"
-          placeholder="Min withdraw"
-          title="Withdraw Minimum"
+          placeholder={t("min_withdraw")}
+          title={t("withdraw_minimum")}
           {...register("limits.withdraw.min", {
             required: true,
             valueAsNumber: true,
@@ -69,8 +71,8 @@ const StepIconAndExtras: React.FC = () => {
         />
         <Input
           type="number"
-          placeholder="Max withdraw"
-          title="Withdraw Maximum"
+          placeholder={t("max_withdraw")}
+          title={t("withdraw_maximum")}
           {...register("limits.withdraw.max", {
             required: true,
             valueAsNumber: true,
@@ -82,14 +84,14 @@ const StepIconAndExtras: React.FC = () => {
       <div className="grid grid-cols-2 gap-4">
         <Input
           type="number"
-          placeholder="Min fee"
-          title="Fee Minimum"
+          placeholder={t("min_fee")}
+          title={t("fee_minimum_1")}
           {...register("fee.min", { required: true, valueAsNumber: true })}
         />
         <Input
           type="number"
-          placeholder="Fee %"
-          title="Fee Percentage"
+          placeholder={t("fee_2")}
+          title={t('fee_percentage')}
           {...register("fee.percentage", {
             required: true,
             valueAsNumber: true,
@@ -100,11 +102,11 @@ const StepIconAndExtras: React.FC = () => {
       {/* Status using shadcn Select */}
       <Select {...register("status", { required: true })}>
         <SelectTrigger title="Status" className="w-full">
-          <SelectValue placeholder="Select status" />
+          <SelectValue placeholder={tCommon("select_status")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="true">{t("Enabled")}</SelectItem>
-          <SelectItem value="false">{t("Disabled")}</SelectItem>
+          <SelectItem value="true">{tCommon("enabled")}</SelectItem>
+          <SelectItem value="false">{tCommon("disabled")}</SelectItem>
         </SelectContent>
       </Select>
 
@@ -112,25 +114,25 @@ const StepIconAndExtras: React.FC = () => {
       {mode === "import" && (
         <div className="grid grid-cols-2 gap-4">
           <Select {...register("contractType", { required: true })}>
-            <SelectTrigger title="Contract Type" className="w-full">
-              <SelectValue placeholder="Select contract type" />
+            <SelectTrigger title={t("contract_type")} className="w-full">
+              <SelectValue placeholder={t("select_contract_type")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="PERMIT">{t("PERMIT")}</SelectItem>
+              <SelectItem value="PERMIT">{t("permit")}</SelectItem>
               <SelectItem value="NO_PERMIT">NO_PERMIT</SelectItem>
-              <SelectItem value="NATIVE">{t("NATIVE")}</SelectItem>
+              <SelectItem value="NATIVE">{t("native")}</SelectItem>
             </SelectContent>
           </Select>
           <Input
             type="text"
-            placeholder="Network (auto-filled if needed)"
+            placeholder={`${t("network_auto_filled_if_needed")} (auto-filled if needed)`}
             title="Network"
             {...register("network", { required: true })}
           />
           <Input
             type="text"
-            placeholder="e.g. ERC20, SPL, etc."
-            title="Token Type"
+            placeholder={t("e_g_erc20_spl_etc")}
+            title={tExt("token_type")}
             {...register("type", { required: true })}
             className="col-span-2"
           />

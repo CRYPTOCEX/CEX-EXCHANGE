@@ -8,6 +8,7 @@ import {
 import { useStripe } from "./utils";
 import { models, sequelize } from "@b/db";
 import { sendFiatTransactionEmail } from "@b/utils/emails";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Verifies a Stripe checkout session",
@@ -16,6 +17,8 @@ export const metadata: OperationObject = {
   operationId: "verifyStripeCheckoutSession",
   tags: ["Finance", "Deposit"],
   requiresAuth: true,
+  logModule: "STRIPE_DEPOSIT",
+  logTitle: "Verify Stripe checkout session",
   parameters: [
     {
       index: 0,
@@ -80,7 +83,8 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+
   if (!user) throw new Error("User not authenticated");
 
   const { sessionId } = query;
@@ -88,6 +92,7 @@ export default async (data: Handler) => {
 
   try {
     // Retrieve the Checkout Session
+    ctx?.step("Retrieving Stripe checkout session");
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     const paymentIntentId = session.payment_intent;
 
@@ -119,16 +124,20 @@ export default async (data: Handler) => {
     }
 
     if (status !== "succeeded") {
+      ctx?.fail("Payment not succeeded");
       throw new Error(`Payment intent not succeeded. Status: ${status}`);
     }
 
     if (status === "succeeded") {
-      const userPk = await models.user.findByPk(user.id);
+      ctx?.step("Fetching user account");
+  const userPk = await models.user.findByPk(user.id);
       if (!userPk) {
-        throw new Error("User not found");
+    ctx?.fail("User not found");
+    throw new Error("User not found");
       }
 
-      const existingTransaction = await models.transaction.findOne({
+      ctx?.step("Checking for duplicate transaction");
+    const existingTransaction = await models.transaction.findOne({
         where: { referenceId: sessionId },
       });
 
@@ -136,34 +145,41 @@ export default async (data: Handler) => {
 
       const { currency, amount } = mappedLineItems[0];
 
-      let wallet = await models.wallet.findOne({
+      ctx?.step("Finding or creating wallet");
+  let wallet = await models.wallet.findOne({
         where: { userId: user.id, currency, type: "FIAT" },
       });
 
       if (!wallet) {
-        wallet = await models.wallet.create({
+      ctx?.step("Creating new wallet");
+      wallet = await models.wallet.create({
           userId: user.id,
           currency,
           type: "FIAT",
         });
       }
 
-      const currencyData = await models.currency.findOne({
+      ctx?.step("Validating currency");
+  const currencyData = await models.currency.findOne({
         where: { id: wallet.currency },
       });
       if (!currencyData) {
-        throw new Error("Currency not found");
+    ctx?.fail("Currency not found");
+    throw new Error("Currency not found");
       }
 
-      const fee = mappedLineItems[1]?.amount || 0;
+      ctx?.step("Calculating fees");
+  const fee = mappedLineItems[1]?.amount || 0;
       let newBalance = wallet.balance;
       newBalance += Number(amount);
       newBalance = parseFloat(newBalance.toFixed(currencyData.precision || 2));
 
       // Sequelize transaction
-      const result = await sequelize.transaction(async (t) => {
+      ctx?.step("Starting database transaction");
+    const result = await sequelize.transaction(async (t) => {
         // Create a new transaction
-        const newTransaction = await models.transaction.create(
+        ctx?.step("Creating transaction record");
+      const newTransaction = await models.transaction.create(
           {
             userId: user.id,
             walletId: wallet.id,
@@ -181,7 +197,8 @@ export default async (data: Handler) => {
         );
 
         // Update the wallet's balance
-        await models.wallet.update(
+        ctx?.step("Updating wallet balance");
+      await models.wallet.update(
           {
             balance: newBalance,
           },
@@ -193,7 +210,8 @@ export default async (data: Handler) => {
 
         // **Admin Profit Recording:**
         if (fee > 0) {
-          await models.adminProfit.create(
+      ctx?.step("Recording admin profit");
+      await models.adminProfit.create(
             {
               amount: fee,
               currency: wallet.currency,
@@ -209,12 +227,15 @@ export default async (data: Handler) => {
       });
 
       try {
-        await sendFiatTransactionEmail(userPk, result, currency, newBalance);
+        ctx?.step("Sending notification email");
+    await sendFiatTransactionEmail(userPk, result, currency, newBalance);
       } catch (error) {
-        console.error("Error sending email:", error);
+        logger.error("STRIPE", "Error sending email", error);
       }
 
-      return {
+      ctx?.success("Stripe deposit completed successfully");
+
+  return {
         transaction: result,
         balance: newBalance,
         currency,

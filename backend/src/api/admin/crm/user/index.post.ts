@@ -10,6 +10,8 @@ export const metadata: OperationObject = {
   summary: "Creates a new user",
   operationId: "createUser",
   tags: ["Admin", "CRM", "User"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Create user",
   requestBody: {
     required: true,
     content: {
@@ -24,7 +26,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
   const {
     firstName,
     lastName,
@@ -37,9 +39,11 @@ export default async (data: Handler) => {
     profile,
   } = body;
 
+  ctx?.step("Validating user authorization");
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized access" });
 
+  ctx?.step("Checking for existing user");
   const existingUser = await models.user.findOne({
     where: { email },
     include: [{ model: models.role, as: "role" }],
@@ -50,6 +54,7 @@ export default async (data: Handler) => {
 
   const password = await hashPassword("12345678");
 
+  ctx?.step("Validating role assignment");
   const superAdminRole = await models.role.findOne({
     where: { name: "Super Admin" },
   });
@@ -61,6 +66,7 @@ export default async (data: Handler) => {
       message: "You cannot create a Super Admin",
     });
 
+  ctx?.step("Creating user");
   await models.user.create({
     firstName,
     lastName,
@@ -74,6 +80,7 @@ export default async (data: Handler) => {
     profile,
   });
 
+  ctx?.success();
   return {
     message: "User created successfully, Password is 12345678",
   };

@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 interface NotificationsSummaryProps {
   notifications: notificationAttributes[];
   isLoading: boolean;
@@ -39,6 +40,8 @@ export function NotificationsSummary({
   notifications,
   isLoading,
 }: NotificationsSummaryProps) {
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
   const [summaryData, setSummaryData] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState("summary");
@@ -179,13 +182,13 @@ export function NotificationsSummary({
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-10">
           <Sparkles className="h-16 w-16 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium">No summary available</h3>
+          <h3 className="text-lg font-medium">{t("no_summary_available")}</h3>
           <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Generate an AI summary of your notifications
+            {t("generate_an_ai_summary_of_your_notifications")}
           </p>
           <Button onClick={generateSummary}>
             <Sparkles className="mr-2 h-4 w-4" />
-            Generate Summary
+            {t("generate_summary")}
           </Button>
         </CardContent>
       </Card>
@@ -201,7 +204,7 @@ export function NotificationsSummary({
           <div>
             <h2 className="text-xl font-bold">AI-Generated Summary</h2>
             <p className="text-sm text-muted-foreground">
-              Last updated:{" "}
+              {tCommon('last_updated')}:{" "}
               {format(new Date(summaryData.generatedAt), "MMM d, yyyy h:mm a")}
             </p>
           </div>
@@ -244,7 +247,7 @@ export function NotificationsSummary({
         <TabsContent value="summary">
           <Card>
             <CardHeader>
-              <CardTitle>Notification Summary</CardTitle>
+              <CardTitle>{t("notification_summary")}</CardTitle>
               <CardDescription>
                 AI-generated overview of your notifications
               </CardDescription>
@@ -265,12 +268,10 @@ export function NotificationsSummary({
                 className="p-4 bg-primary/5 rounded-lg border"
               >
                 <p className="text-sm leading-relaxed">
-                  You have a total of{" "}
-                  <strong>{summaryData.overview.total} notifications</strong>,
-                  with <strong>{summaryData.overview.unread} unread</strong> and{" "}
-                  {summaryData.overview.read} read. Your most recent
-                  notification is a {summaryData.overview.mostRecent.type}{" "}
-                  notification received on{" "}
+                  {t("you_have_a_total_of")}{" "}
+                  <strong>{summaryData.overview.total} notifications</strong>{t("with")} <strong>{summaryData.overview.unread} unread</strong> and{" "}
+                  {summaryData.overview.read} {t("read_your_most_recent_notification_is_a")} {summaryData.overview.mostRecent.type}{" "}
+                  {t("notification_received_on")}{" "}
                   {summaryData.overview.mostRecent.date}.
                 </p>
 
@@ -345,7 +346,7 @@ export function NotificationsSummary({
                 </Button>
                 <Button variant="ghost" size="sm" className="gap-1">
                   <ThumbsDown className="h-4 w-4" />
-                  <span>Not Helpful</span>
+                  <span>{tCommon("not_helpful")}</span>
                 </Button>
               </div>
               <div className="flex gap-2">
@@ -365,9 +366,9 @@ export function NotificationsSummary({
         <TabsContent value="insights">
           <Card>
             <CardHeader>
-              <CardTitle>Key Insights</CardTitle>
+              <CardTitle>{t("key_insights")}</CardTitle>
               <CardDescription>
-                Important patterns and observations
+                {t("important_patterns_and_observations")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -405,7 +406,7 @@ export function NotificationsSummary({
                 className="gap-1"
               >
                 <RefreshCw className="h-4 w-4" />
-                <span>Regenerate Insights</span>
+                <span>{t("regenerate_insights")}</span>
               </Button>
             </CardFooter>
           </Card>
@@ -414,9 +415,9 @@ export function NotificationsSummary({
         <TabsContent value="actions">
           <Card>
             <CardHeader>
-              <CardTitle>Recommended Actions</CardTitle>
+              <CardTitle>{t("recommended_actions")}</CardTitle>
               <CardDescription>
-                Suggested next steps based on your notifications
+                {t("suggested_next_steps_based_on_your_notifications")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -451,7 +452,7 @@ export function NotificationsSummary({
                               size="sm"
                               className="h-auto p-0 text-xs text-muted-foreground"
                             >
-                              Mark as done
+                              {t("mark_as_done")}
                             </Button>
                           </div>
                         </motion.li>
@@ -461,9 +462,9 @@ export function NotificationsSummary({
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <CheckCircle className="h-12 w-12 text-green-500 mb-2" />
-                    <h3 className="text-lg font-medium">All caught up!</h3>
+                    <h3 className="text-lg font-medium">{t("all_caught_up")}</h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                      No action items needed at this time
+                      {t("no_action_items_needed_at_this_time")}
                     </p>
                   </div>
                 )}
@@ -472,11 +473,11 @@ export function NotificationsSummary({
             <CardFooter className="border-t pt-4 flex justify-between">
               <Button variant="outline" size="sm" className="gap-1">
                 <Clock className="h-4 w-4" />
-                <span>Snooze All</span>
+                <span>{t("snooze_all")}</span>
               </Button>
               <Button variant="default" size="sm" className="gap-1">
                 <CheckCircle className="h-4 w-4" />
-                <span>Mark All Complete</span>
+                <span>{t("mark_all_complete")}</span>
               </Button>
             </CardFooter>
           </Card>

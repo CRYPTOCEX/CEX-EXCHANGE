@@ -17,6 +17,7 @@ import type {
   VestingSchedule,
   VestingReleaseData,
 } from "@/lib/ico/token-simulator/types";
+import { useTranslations } from "next-intl";
 interface VestingTabProps {
   vestingSchedules: VestingSchedule[];
   vestingReleaseData: VestingReleaseData[];
@@ -35,10 +36,11 @@ export function VestingTab({
   projectionMonths,
   onVestingChange,
 }: VestingTabProps) {
+  const t = useTranslations("ext_ico");
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
       <div className="space-y-6">
-        <h3 className="text-lg font-medium">Vesting Parameters</h3>
+        <h3 className="text-lg font-medium">{t("vesting_parameters")}</h3>
         <div className="grid gap-6">
           {vestingSchedules.map((schedule) => {
             return (
@@ -61,7 +63,7 @@ export function VestingTab({
 
                 <div className="space-y-3">
                   <label className="text-sm font-medium">
-                    Initial Unlock (%)
+                    {`${t("initial_unlock")} (%)`}
                   </label>
                   <div className="flex items-center gap-3">
                     <Slider
@@ -95,7 +97,7 @@ export function VestingTab({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
-                      Cliff (months)
+                      {`${t("cliff_months")} (months)`}
                     </label>
                     <Input
                       type="number"
@@ -113,7 +115,7 @@ export function VestingTab({
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
-                      Vesting (months)
+                      {`${t("vesting_months")} (months)`}
                     </label>
                     <Input
                       type="number"
@@ -137,7 +139,7 @@ export function VestingTab({
       </div>
 
       <div className="space-y-6">
-        <h3 className="text-lg font-medium">Token Release Schedule</h3>
+        <h3 className="text-lg font-medium">{t("token_release_schedule")}</h3>
         <div className="aspect-4/3 w-full bg-card/50 rounded-lg p-4">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
@@ -253,7 +255,7 @@ export function VestingTab({
                             ))}
                           <div className="border-t pt-1 mt-1">
                             <div className="flex items-center justify-between font-medium">
-                              <span>Total Circulating:</span>
+                              <span>{t("total_circulating_1")}:</span>
                               <span>
                                 {formatPercentage(
                                   (payload.find(
@@ -314,7 +316,7 @@ export function VestingTab({
             </p>
           </div>
           <div className="p-4 bg-muted rounded-lg">
-            <p className="text-sm text-muted-foreground mb-1">After 1 Year</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("after_1_year")}</p>
             <p className="font-medium">
               {formatNumber(vestingReleaseData[12]?.circulatingSupply || 0)}
               <span className="text-sm text-muted-foreground ml-2">
@@ -346,11 +348,11 @@ export function VestingTab({
                     <p className="text-sm font-medium">{schedule.name}</p>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {schedule.initialUnlock}% at TGE,{" "}
+                    {schedule.initialUnlock}% {t("at_tge_1")},{" "}
                     {schedule.cliffMonths > 0
                       ? `${schedule.cliffMonths} month cliff, `
                       : ""}
-                    {schedule.vestingMonths} month vesting
+                    {schedule.vestingMonths} {t("month_vesting")}
                   </p>
                 </div>
               );

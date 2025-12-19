@@ -10,15 +10,18 @@ export const metadata: OperationObject = {
   description: "This endpoint creates a new author.",
   operationId: "createAuthor",
   tags: ["Content", "Author"],
+  logModule: "BLOG",
+  logTitle: "Apply as author",
   requiresAuth: true,
   responses: createRecordResponses("Author"),
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
+  ctx?.step("Checking author application settings");
   const cacheManager = CacheManager.getInstance();
   const settings = await cacheManager.getSettings();
   const autoApproveAuthorsRaw = settings.has("autoApproveAuthors")
@@ -29,6 +32,7 @@ export default async (data: Handler) => {
       ? autoApproveAuthorsRaw
       : Boolean(autoApproveAuthorsRaw);
 
+  ctx?.step("Checking for existing author profile");
   const author = await models.author.findOne({
     where: {
       userId: user.id,
@@ -41,11 +45,13 @@ export default async (data: Handler) => {
       message: "Author profile already exists",
     });
 
+  ctx?.step("Creating author profile");
   await models.author.create({
     userId: user.id,
     status: autoApproveAuthors ? "APPROVED" : "PENDING",
   });
 
+  ctx?.success(`Author profile created for user ${user.id} - ${autoApproveAuthors ? "auto-approved" : "pending approval"}`);
   return {
     message: "Author created successfully",
   };

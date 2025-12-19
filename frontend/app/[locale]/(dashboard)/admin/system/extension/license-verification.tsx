@@ -15,7 +15,8 @@ import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 
 export function LicenseVerification() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const [purchaseCode, setPurchaseCode] = useState("");
   const [envatoUsername, setEnvatoUsername] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,25 +48,25 @@ export function LicenseVerification() {
         )}
         <div className="space-y-2">
           <label htmlFor="purchase-code" className="text-sm font-medium">
-            {t("purchase_code")}
+            {tDashboardAdmin("purchase_code")}
           </label>
           <Input
             id="purchase-code"
             value={purchaseCode}
             onChange={(e) => setPurchaseCode(e.target.value)}
-            placeholder="Enter your purchase code"
+            placeholder={t("enter_your_purchase_code")}
             disabled={isSubmitting}
           />
         </div>
         <div className="space-y-2">
           <label htmlFor="envato-username" className="text-sm font-medium">
-            {t("envato_username")}
+            {tDashboardAdmin("envato_username")}
           </label>
           <Input
             id="envato-username"
             value={envatoUsername}
             onChange={(e) => setEnvatoUsername(e.target.value)}
-            placeholder="Enter your Envato username"
+            placeholder={t("enter_your_envato_username")}
             disabled={isSubmitting}
           />
         </div>
@@ -77,7 +78,7 @@ export function LicenseVerification() {
           {isSubmitting ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              {t("Activating")}...
+              {t('enable')}...
             </>
           ) : (
             t("activate_license")

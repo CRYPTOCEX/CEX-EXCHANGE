@@ -134,7 +134,8 @@ export default function ApiKeyForm({
   isSubmitting = false,
   submitLabel,
 }: ApiKeyFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_gateway");
+  const tCommon = useTranslations("common");
   // Form state
   const [name, setName] = useState(initialData?.name || "");
   const [successUrl, setSuccessUrl] = useState(initialData?.successUrl || "");
@@ -354,7 +355,7 @@ export default function ApiKeyForm({
                     <div className="space-y-1">
                       <p className="text-sm font-medium">{t("what_gets_created")}</p>
                       <p className="text-xs text-muted-foreground">
-                        {t("two_keys_will_be_generated_a")} <strong>{t("public_key")}</strong> {t("pk_for_client_side_use_and_a")} <strong>{t("secret_key")}</strong> {t("sk_for_server_side_operations_both")}
+                        {t("two_keys_will_be_generated_a")} <strong>{t("public_key")}</strong> (pk_*) {t("pk_for_client_side_use_and_a")} <strong>{t("secret_key")}</strong> (sk_*) {t("sk_for_server_side_operations_both")}
                       </p>
                     </div>
                   </div>
@@ -441,7 +442,7 @@ export default function ApiKeyForm({
                                         </Badge>
                                       </TooltipTrigger>
                                       <TooltipContent>
-                                        <p>{t("this_permission_only_works_with_secret_keys_sk")}</p>
+                                        <p>{t("this_permission_only_works_with_secret_keys_sk")} (sk_*)</p>
                                       </TooltipContent>
                                     </Tooltip>
                                   </TooltipProvider>
@@ -480,7 +481,7 @@ export default function ApiKeyForm({
             <CardContent className="space-y-4">
               <div className="flex gap-2">
                 <Input
-                  placeholder={t("enter_ip_address_or_cidr_e")}
+                  placeholder={`${t("enter_ip_address_or_cidr")} (${t("enter_ip_address_or_cidr_e")})`}
                   value={newIp}
                   onChange={(e) => setNewIp(e.target.value)}
                   onKeyDown={(e) => {
@@ -636,7 +637,7 @@ export default function ApiKeyForm({
                                       });
                                     }}
                                   >
-                                    {t("select_all")}
+                                    {tCommon("select_all")}
                                   </Button>
                                   <Button
                                     variant="ghost"

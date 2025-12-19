@@ -33,7 +33,8 @@ export default function ResetPasswordForm({
   onLoginClick,
   preserveToken = false,
 }: ResetPasswordFormProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components_auth");
+  const tCommon = useTranslations("common");
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -164,9 +165,14 @@ export default function ResetPasswordForm({
         }
       } else {
         const storeError = useUserStore.getState().error;
-        
+
         // Check if the error is related to invalid token
-        if (storeError && (storeError.includes("Invalid token") || storeError.includes("expired") || storeError.includes("used"))) {
+        if (
+          storeError &&
+          (storeError.includes("Invalid token") ||
+            storeError.includes("expired") ||
+            storeError.includes("used"))
+        ) {
           setTokenValid(false);
           setVerificationError(storeError);
           toast({
@@ -303,7 +309,7 @@ export default function ResetPasswordForm({
             >
               <Input
                 type={showPassword ? "text" : "password"}
-                placeholder="New Password"
+                placeholder={t("new_password")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -367,7 +373,7 @@ export default function ResetPasswordForm({
             >
               <Input
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm Password"
+                placeholder={t("confirm_password")}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -437,7 +443,7 @@ export default function ResetPasswordForm({
               </span>
             ) : (
               <span className="flex items-center justify-center">
-                {t("reset_password")}
+                {tCommon("reset_password")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </span>
             )}

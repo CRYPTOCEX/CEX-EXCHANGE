@@ -9,9 +9,10 @@ import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 
 export const metadata: OperationObject = {
-  summary: "Stores a new E-commerce Product",
-  operationId: "storeEcommerceProduct",
-  tags: ["Admin", "Ecommerce Products"],
+  summary: "Creates a new ecommerce product",
+  operationId: "createEcommerceProduct",
+  tags: ["Admin", "Ecommerce", "Product"],
+  description: "Creates a new ecommerce product with the provided details. Validates category existence and status, checks for duplicate product names, and automatically generates a unique slug from the product name.",
   requestBody: {
     required: true,
     content: {
@@ -22,14 +23,16 @@ export const metadata: OperationObject = {
   },
   responses: storeRecordResponses(
     ecommerceProductStoreSchema,
-    "E-commerce Product"
+    "Ecommerce Product"
   ),
   requiresAuth: true,
   permission: "create.ecommerce.product",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Create Ecommerce Product",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const {
     name,
     description,
@@ -53,6 +56,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Validating category");
   // Check if category exists and is active
   const category = await models.ecommerceCategory.findOne({
     where: { id: categoryId, status: true },
@@ -65,6 +69,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Checking for duplicate product");
   const existingProduct = await models.ecommerceProduct.findOne({
     where: { name },
   });
@@ -76,7 +81,8 @@ export default async (data: Handler) => {
     });
   }
 
-  return await storeRecord({
+  ctx?.step("Creating E-commerce product");
+  const result = await storeRecord({
     model: "ecommerceProduct",
     data: {
       name,
@@ -93,4 +99,7 @@ export default async (data: Handler) => {
       walletType,
     },
   });
+
+  ctx?.success("Successfully created E-commerce product");
+  return result;
 };

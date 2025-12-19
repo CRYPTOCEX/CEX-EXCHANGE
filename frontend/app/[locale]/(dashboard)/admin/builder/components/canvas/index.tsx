@@ -78,7 +78,8 @@ function CanvasContent({ canvasRef, isEditMode }: CanvasContentProps) {
 }
 
 function EmptyCanvas() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const { toggleAddSectionModal } = useBuilderStore();
 
   return (
@@ -95,7 +96,7 @@ function EmptyCanvas() {
           className="bg-purple-600 hover:bg-purple-700 h-9 text-sm text-white dark:text-white"
         >
           <Plus className="h-3.5 w-3.5 mr-1.5" />
-          {t("add_section")}
+          {tCommon("add_section")}
         </Button>
       </div>
     </div>

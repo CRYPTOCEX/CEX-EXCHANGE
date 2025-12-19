@@ -1,5 +1,6 @@
 import { models } from "@b/db";
 import { RedisSingleton } from "@b/utils/redis";
+import { logger } from "@b/utils/console";
 const redis = RedisSingleton.getInstance();
 
 // Function to cache the permissions
@@ -8,7 +9,7 @@ export async function cachePermissions() {
     const permissions = await getPermissions();
     await redis.set("permissions", JSON.stringify(permissions), "EX", 3600);
   } catch (error) {
-    console.error("Redis error:", error);
+    logger.error("PERMISSION", "Redis error", error);
   }
 }
 

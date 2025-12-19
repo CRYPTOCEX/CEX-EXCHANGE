@@ -57,7 +57,15 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
+import AffiliateRewardsLoading from "./loading";
+import AffiliateRewardsErrorState from "./error-state";
+import { RewardHero } from "./components/reward-hero";
+import { useTranslations } from "next-intl";
+
 export default function AffiliateRewardsClient() {
+  const t = useTranslations("ext_affiliate");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const {
     rewards,
     pagination,
@@ -210,54 +218,42 @@ export default function AffiliateRewardsClient() {
     return pageNumbers;
   };
   if (loading && rewards.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-6 md:px-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">
-              Your Affiliate Rewards
-            </h1>
-            <p className="text-muted-foreground">
-              Track and manage your earnings
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-        </div>
-
-        <Skeleton className="h-[400px] w-full" />
-      </div>
-    );
+    return <AffiliateRewardsLoading />;
   }
   if (error) {
-    return <div className="text-red-500 p-4">Error: {error}</div>;
+    return <AffiliateRewardsErrorState error={error} />;
   }
-  return (
-    <div className="container mx-auto px-4 py-6 md:px-6">
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">
-          Your Affiliate Rewards
-        </h1>
-        <p className="text-muted-foreground">Track and manage your earnings</p>
-      </div>
+  // Calculate stats for hero
+  const rewardCount = pagination.totalItems || 0;
+  const allTimeEarnings = rewards.reduce((sum, r) => sum + (r.reward || 0), 0);
+  const thisMonth = new Date();
+  const monthlyEarnings = rewards
+    .filter(r => new Date(r.createdAt).getMonth() === thisMonth.getMonth())
+    .reduce((sum, r) => sum + (r.reward || 0), 0);
 
+  return (
+    <div className="w-full">
+      {/* Hero Section */}
+      <RewardHero
+        totalRewards={rewardCount}
+        totalEarnings={allTimeEarnings}
+        thisMonthEarnings={monthlyEarnings}
+      />
+
+      <div className="container mx-auto pb-6 pt-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
-        <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+        <Card className="bg-linear-to-br from-blue-600/5 to-blue-600/10 border-blue-600/20">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Total Earnings
+                  {tCommon("total_earnings")}
                 </p>
                 <p className="text-2xl md:text-3xl font-bold mt-1">
                   ${totalRewards.toFixed(2)}
                 </p>
                 <p className="text-xs md:text-sm text-muted-foreground mt-1">
-                  Lifetime earnings
+                  {t("lifetime_earnings")}
                 </p>
               </div>
               <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-primary/20 flex items-center justify-center">
@@ -268,18 +264,18 @@ export default function AffiliateRewardsClient() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500/5 to-green-500/10 border-green-500/20">
+        <Card className="bg-linear-to-br from-green-500/5 to-green-500/10 border-green-500/20">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Available Balance
+                  {tCommon("available_balance")}
                 </p>
                 <p className="text-2xl md:text-3xl font-bold mt-1">
                   ${totalUnclaimedAmount.toFixed(2)}
                 </p>
                 <p className="text-xs md:text-sm text-muted-foreground mt-1">
-                  Ready to claim
+                  {tExt("ready_to_claim")}
                 </p>
               </div>
               <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-green-500/20 flex items-center justify-center">
@@ -294,22 +290,22 @@ export default function AffiliateRewardsClient() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 border-blue-500/20">
+        <Card className="bg-linear-to-br from-amber-600/5 to-amber-600/10 border-amber-600/20">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Pending Rewards
+                  {tExt("pending_rewards")}
                 </p>
                 <p className="text-2xl md:text-3xl font-bold mt-1">
                   {unclaimedRewards.length}
                 </p>
                 <p className="text-xs md:text-sm text-muted-foreground mt-1">
-                  Unclaimed rewards
+                  {t("unclaimed_rewards")}
                 </p>
               </div>
-              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-blue-500/20 flex items-center justify-center">
-                <Gift className="h-5 w-5 md:h-6 md:w-6 text-blue-500" />
+              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-amber-600/20 flex items-center justify-center">
+                <Gift className="h-5 w-5 md:h-6 md:w-6 text-amber-600" />
               </div>
             </div>
           </CardContent>
@@ -319,14 +315,14 @@ export default function AffiliateRewardsClient() {
       {/* Reward History Section */}
       <div className="mb-6">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-4">
-          <h2 className="text-xl font-bold">Reward History</h2>
+          <h2 className="text-xl font-bold">{tExt("reward_history")}</h2>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <div className="relative flex-1 md:flex-none">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search rewards..."
+                placeholder={t("search_rewards_ellipsis")}
                 className="pl-8 w-full md:w-[250px]"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -344,7 +340,7 @@ export default function AffiliateRewardsClient() {
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All Rewards</SelectItem>
+                <SelectItem value="ALL">{t("all_rewards")}</SelectItem>
                 <SelectItem value="CLAIMED">Claimed</SelectItem>
                 <SelectItem value="UNCLAIMED">Unclaimed</SelectItem>
               </SelectContent>
@@ -356,7 +352,7 @@ export default function AffiliateRewardsClient() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Reward Type</TableHead>
+                <TableHead>{tCommon("reward_type")}</TableHead>
                 <TableHead>
                   <div
                     className="flex items-center gap-1 cursor-pointer"
@@ -396,7 +392,7 @@ export default function AffiliateRewardsClient() {
                       <div className="flex flex-col items-center justify-center">
                         <Filter className="h-8 w-8 text-muted-foreground mb-2" />
                         <p className="text-muted-foreground">
-                          No rewards found
+                          {t("no_rewards_found")}
                         </p>
                         {(searchTerm || statusFilter !== "ALL") && (
                           <Button
@@ -406,7 +402,7 @@ export default function AffiliateRewardsClient() {
                               setStatusFilter("ALL");
                             }}
                           >
-                            Clear filters
+                            {tCommon("clear_filters")}
                           </Button>
                         )}
                       </div>
@@ -465,7 +461,7 @@ export default function AffiliateRewardsClient() {
                         <TableCell className="hidden sm:table-cell">
                           <Badge
                             variant="outline"
-                            className="bg-primary/5 text-xs"
+                            className="bg-amber-600/5 border-amber-600/20 text-xs"
                           >
                             {reward.condition?.rewardCurrency}
                             {reward.condition?.rewardChain &&
@@ -515,7 +511,7 @@ export default function AffiliateRewardsClient() {
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p>This reward has already been claimed</p>
+                                  <p>{t("this_reward_has_already_been_claimed")}</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -542,7 +538,7 @@ export default function AffiliateRewardsClient() {
               {/* Items per page selector */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  Items per page:
+                  {t("items_per_page_1")}:
                 </span>
                 <Select
                   value={perPage.toString()}
@@ -664,9 +660,9 @@ export default function AffiliateRewardsClient() {
       <Dialog open={isClaimDialogOpen} onOpenChange={setIsClaimDialogOpen}>
         <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Claim Reward</DialogTitle>
+            <DialogTitle>{t("claim_reward")}</DialogTitle>
             <DialogDescription>
-              Claim your reward and add it to your available balance.
+              {t("claim_your_reward_and_add_it")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -686,8 +682,7 @@ export default function AffiliateRewardsClient() {
               <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div className="text-sm text-muted-foreground">
                 <p>
-                  Claiming this reward will add it to your available balance.
-                  You can withdraw your available balance at any time.
+                  {t("claiming_this_reward_will_add_it")} {t("you_can_withdraw_your_available_balance")}
                 </p>
               </div>
             </div>
@@ -704,11 +699,12 @@ export default function AffiliateRewardsClient() {
               onClick={() => handleClaimReward(selectedReward?.id || "")}
               className="w-full sm:w-auto"
             >
-              Claim Reward
+              {t("claim_reward")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

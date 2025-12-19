@@ -3,10 +3,11 @@ import { updateRecordResponses } from "@b/utils/query";
 import { models, sequelize } from "@b/db";
 import { depositUpdateSchema } from "../utils";
 import { sendTransactionStatusUpdateEmail } from "@b/utils/emails";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Updates an existing deposit transaction",
-  operationId: "updateDepositTransaction", 
+  operationId: "updateDepositTransaction",
   tags: ["Admin", "Finance", "Deposits"],
   parameters: [
     {
@@ -32,10 +33,12 @@ export const metadata = {
   responses: updateRecordResponses("Deposit Transaction"),
   requiresAuth: true,
   permission: "edit.deposit",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update deposit transaction",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     status,
@@ -46,6 +49,7 @@ export default async (data: Handler) => {
     metadata: requestMetadata,
   } = body;
 
+  ctx?.step("Fetching deposit transaction");
   const transaction = await models.transaction.findOne({
     where: { id },
   });
@@ -63,6 +67,7 @@ export default async (data: Handler) => {
   return await sequelize.transaction(async (t) => {
     const metadata = parseMetadata(transaction.metadata);
 
+    ctx?.step("Fetching wallet");
     const wallet = await models.wallet.findOne({
       where: { id: transaction.walletId },
       transaction: t,
@@ -71,11 +76,14 @@ export default async (data: Handler) => {
 
     if (transaction.status === "PENDING") {
       if (status === "REJECTED") {
+        ctx?.step("Processing transaction rejection");
         await handleWalletRejection(wallet, t);
       } else if (status === "COMPLETED") {
+        ctx?.step("Processing transaction completion");
         await handleWalletCompletion(transaction, wallet, t);
       }
 
+      ctx?.step("Sending status update email");
       const user = await models.user.findOne({
         where: { id: transaction.userId },
       });
@@ -97,8 +105,10 @@ export default async (data: Handler) => {
     transaction.metadata = JSON.stringify(metadata);
 
     transaction.status = status;
+    ctx?.step("Saving transaction");
     await transaction.save({ transaction: t });
 
+    ctx?.success("Deposit transaction updated successfully");
     return { message: "Transaction updated successfully" };
   });
 };
@@ -110,7 +120,7 @@ function parseMetadata(metadataString) {
     metadataString = metadataString.replace(/\\/g, "");
     metadata = JSON.parse(metadataString) || {};
   } catch (e) {
-    console.error("Invalid JSON in metadata:", metadataString);
+    logger.error("DEPOSIT", "Invalid JSON in metadata", e);
   }
   return metadata;
 }

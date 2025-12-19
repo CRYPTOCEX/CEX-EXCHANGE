@@ -4,6 +4,8 @@ export const metadata = {
   summary: "Bulk updates the status of investment plans",
   operationId: "bulkUpdateInvestmentPlanStatus",
   tags: ["Admin", "Investment Plan"],
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk Update Plan Status",
   requestBody: {
     required: true,
     content: {
@@ -33,7 +35,13 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("investmentPlan", ids, status);
+
+  ctx?.step("Updating investment plan status");
+
+  const result = await updateStatus("investmentPlan", ids, status);
+
+  ctx?.success("Investment plan status updated successfully");
+  return result;
 };

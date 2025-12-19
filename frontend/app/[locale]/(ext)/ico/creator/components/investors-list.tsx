@@ -38,7 +38,10 @@ import { useInvestorsStore } from "@/store/ico/creator/investor-store";
 import { useTranslations } from "next-intl";
 
 export function CreatorInvestorsList() {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtIco = useTranslations("ext_ico");
+  const tExtAdmin = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const {
     investors,
     isLoadingInvestors,
@@ -107,11 +110,11 @@ export function CreatorInvestorsList() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold">{t("Investors")}</h2>
+        <h2 className="text-2xl font-bold">{tExtIco("investors")}</h2>
         <div className="flex items-center gap-2">
           <div className="relative w-64">
             <Input
-              placeholder="Search investors..."
+              placeholder={tExtIco("search_investors_ellipsis")}
               className="pl-8"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
@@ -126,11 +129,11 @@ export function CreatorInvestorsList() {
           {isLoadingInvestors ? (
             <div className="py-8 text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-              <p>{t("loading_investors")}.</p>
+              <p>{tExtIco("loading_investors")}.</p>
             </div>
           ) : investorsError ? (
             <div className="py-8 text-center text-red-600">
-              {t("error")}
+              {"Error"}
               {investorsError}
             </div>
           ) : investors.length > 0 ? (
@@ -143,17 +146,17 @@ export function CreatorInvestorsList() {
                       onClick={() => handleSort("user.firstName")}
                     >
                       <div className="flex items-center">
-                        {t("Investor")}
+                        {tExtIco("investor")}
                         {renderSortIcon("user.firstName")}
                       </div>
                     </TableHead>
-                    <TableHead>{t("Token")}</TableHead>
+                    <TableHead>{tExtAdmin("token")}</TableHead>
                     <TableHead
                       className="cursor-pointer hover:text-primary transition-colors"
                       onClick={() => handleSort("totalCost")}
                     >
                       <div className="flex items-center">
-                        {t("Amount")}
+                        {tCommon("amount")}
                         {renderSortIcon("totalCost")}
                       </div>
                     </TableHead>
@@ -162,7 +165,7 @@ export function CreatorInvestorsList() {
                       onClick={() => handleSort("totalTokens")}
                     >
                       <div className="flex items-center">
-                        {t("Tokens")}
+                        {tCommon("tokens")}
                         {renderSortIcon("totalTokens")}
                       </div>
                     </TableHead>
@@ -171,7 +174,7 @@ export function CreatorInvestorsList() {
                       onClick={() => handleSort("lastTransactionDate")}
                     >
                       <div className="flex items-center">
-                        {t("Date")}
+                        {tCommon("date")}
                         {renderSortIcon("lastTransactionDate")}
                       </div>
                     </TableHead>
@@ -259,13 +262,13 @@ export function CreatorInvestorsList() {
                   <div className="flex items-center justify-between px-4 py-3 border-t">
                     <div className="flex items-center gap-2">
                       <p className="text-sm text-muted-foreground">
-                        {t("Showing")}{" "}
+                        {tCommon("showing")}{" "}
                         <span className="font-medium">
                           {(investorsPagination.currentPage - 1) *
                             investorsPagination.itemsPerPage +
                             1}
                         </span>{" "}
-                        {t("to")}{" "}
+                        {tCommon("to")}{" "}
                         <span className="font-medium">
                           {Math.min(
                             investorsPagination.currentPage *
@@ -273,15 +276,15 @@ export function CreatorInvestorsList() {
                             investorsPagination.totalItems
                           )}
                         </span>{" "}
-                        {t("of")}{" "}
+                        {tCommon("of")}{" "}
                         <span className="font-medium">
                           {investorsPagination.totalItems}
                         </span>{" "}
-                        {t("results")}
+                        {tCommon("results")}
                       </p>
                       <div className="flex items-center gap-1">
                         <span className="text-sm text-muted-foreground">
-                          {t("Show")}
+                          {tCommon("show")}
                         </span>
                         <Select
                           value={investorsPagination.itemsPerPage.toString()}
@@ -398,8 +401,8 @@ export function CreatorInvestorsList() {
           ) : (
             <div className="py-8 text-center">
               <User className="h-8 w-8 mb-2 mx-auto" />
-              <p>{t("no_investors_found")}</p>
-              <p className="text-sm">{t("try_adjusting_your_search")}</p>
+              <p>{tExtIco("no_investors_found")}</p>
+              <p className="text-sm">{tCommon("try_adjusting_your_search")}</p>
             </div>
           )}
         </CardContent>

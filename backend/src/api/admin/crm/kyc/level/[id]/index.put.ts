@@ -65,14 +65,19 @@ export const metadata = {
   },
   permission: "edit.kyc.level",
   requiresAuth: true,
+  logModule: "ADMIN_CRM",
+  logTitle: "Update KYC level",
 };
 
 export default async (data: Handler): Promise<any> => {
-  const { params, body } = data;
+  const { params, body, ctx } = data;
   const { id } = params;
+
   if (!id) {
     throw createError({ statusCode: 400, message: "Missing level ID" });
   }
+
+  ctx?.step(`Fetching KYC level ${id}`);
   const levelRecord = await models.kycLevel.findByPk(id);
   if (!levelRecord) {
     throw createError({ statusCode: 404, message: "KYC level not found" });
@@ -84,16 +89,18 @@ export default async (data: Handler): Promise<any> => {
   // Validate serviceId if provided and not empty
   let validatedServiceId = null;
   if (serviceId && serviceId.trim() !== '') {
+    ctx?.step("Validating verification service");
     const service = await models.kycVerificationService.findByPk(serviceId);
     if (!service) {
-      throw createError({ 
-        statusCode: 400, 
-        message: `Invalid serviceId: ${serviceId}. Service does not exist.` 
+      throw createError({
+        statusCode: 400,
+        message: `Invalid serviceId: ${serviceId}. Service does not exist.`
       });
     }
     validatedServiceId = serviceId;
   }
 
+  ctx?.step("Updating KYC level");
   await levelRecord.update({
     name,
     description,
@@ -105,5 +112,6 @@ export default async (data: Handler): Promise<any> => {
     updatedAt: new Date(),
   });
 
+  ctx?.success("KYC level updated successfully");
   return { message: "KYC level updated successfully." };
 };

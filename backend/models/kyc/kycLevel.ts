@@ -1,6 +1,7 @@
 import * as Sequelize from "sequelize";
 import { DataTypes, Model } from "sequelize";
 import { RedisSingleton } from "@b/utils/redis";
+import { logger } from "@b/utils/console";
 
 export default class kycLevel
   extends Model<kycLevelAttributes, kycLevelCreationAttributes>
@@ -110,7 +111,7 @@ export default class kycLevel
                 await redis.del(`user:${appData.userId}:profile`);
               }
             } catch (error) {
-              console.error("Error clearing user caches after KYC level update:", error);
+              logger.error("KYC", "Error clearing user caches after KYC level update", error);
               // Don't fail the request if cache clearing fails
             }
           },
@@ -143,7 +144,7 @@ export default class kycLevel
                 }
               }
             } catch (error) {
-              console.error("Error clearing user caches after bulk KYC level update:", error);
+              logger.error("KYC", "Error clearing user caches after bulk KYC level update", error);
               // Don't fail the request if cache clearing fails
             }
           }

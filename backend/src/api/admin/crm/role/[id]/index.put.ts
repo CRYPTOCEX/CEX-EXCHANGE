@@ -8,6 +8,8 @@ export const metadata: OperationObject = {
   summary: "Updates an existing role",
   operationId: "updateRole",
   tags: ["Admin", "CRM", "Role"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Update role",
   parameters: [
     {
       index: 0,
@@ -35,10 +37,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, params, user } = data;
+  const { body, params, user, ctx } = data;
   const { id } = params;
   const { name, permissions } = body;
 
+  ctx?.step("Validating user authorization");
   // Ensure the request is made by an authenticated user
   if (!user?.id) {
     throw createError({
@@ -63,6 +66,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Fetching role");
   // Fetch the role by id, including its current permissions
   const role = await models.role.findByPk(id, {
     include: [{ model: models.permission, as: "permissions" }],
@@ -74,6 +78,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Updating role details");
   // Update role name if provided and changed
   if (name && role.name !== name) {
     await role.update({ name });
@@ -81,6 +86,7 @@ export default async (data: Handler) => {
 
   // Update permissions if provided
   if (permissions) {
+    ctx?.step("Updating role permissions");
     // Convert permission IDs (accepting both string and number) to numbers
     const permissionIds = permissions.map((permissionId: string | number) =>
       Number(permissionId)
@@ -94,8 +100,10 @@ export default async (data: Handler) => {
     include: [{ model: models.permission, as: "permissions" }],
   });
 
+  ctx?.step("Updating roles cache");
   // Update the roles cache
   await cacheRoles();
 
+  ctx?.success();
   return { message: "Role updated successfully", role: updatedRole };
 };

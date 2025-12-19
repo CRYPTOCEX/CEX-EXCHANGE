@@ -3,7 +3,7 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
-
+import { logger } from "@b/utils/console";
 import { sendFiatTransactionEmail } from "@b/utils/emails";
 import { models, sequelize } from "@b/db";
 import {
@@ -20,6 +20,8 @@ export const metadata: OperationObject = {
   operationId: "verifyAuthorizeNetTransaction",
   tags: ["Finance", "Deposit"],
   requiresAuth: true,
+  logModule: "AUTHORIZENET_DEPOSIT",
+  logTitle: "Verify Authorize.Net transaction",
   parameters: [
     {
       name: "referenceId",
@@ -82,9 +84,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+
   if (!user?.id) throw new Error("User not authenticated");
 
+  ctx?.step("Fetching user account");
   const userPk = await models.user.findByPk(user.id);
   if (!userPk) throw new Error("User not found");
 
@@ -140,11 +144,13 @@ export default async (data: Handler) => {
     }
 
     // Retrieve the user's wallet
-    let wallet = await models.wallet.findOne({
+    ctx?.step("Finding or creating wallet");
+  let wallet = await models.wallet.findOne({
       where: { userId: user.id, currency: currency },
     });
 
     if (!wallet) {
+      ctx?.step("Creating new wallet");
       wallet = await models.wallet.create({
         userId: user.id,
         currency: currency,
@@ -152,11 +158,13 @@ export default async (data: Handler) => {
       });
     }
 
-    const currencyData = await models.currency.findOne({
+    ctx?.step("Validating currency");
+  const currencyData = await models.currency.findOne({
       where: { id: wallet.currency },
     });
     if (!currencyData) {
-      throw new Error("Currency not found");
+    ctx?.fail("Currency not found");
+    throw new Error("Currency not found");
     }
 
     const depositAmount = transaction.amount;
@@ -167,6 +175,7 @@ export default async (data: Handler) => {
     newBalance = Number(newBalance.toFixed(currencyData.precision || 2));
 
     // Start a transaction to update the transaction record and wallet balance
+    ctx?.step("Starting database transaction");
     const result = await sequelize.transaction(async (dbTransaction) => {
       // Update transaction status
       await models.transaction.update(
@@ -181,6 +190,7 @@ export default async (data: Handler) => {
       );
 
       // Update the wallet's balance
+      ctx?.step("Updating wallet balance");
       await models.wallet.update(
         {
           balance: newBalance,
@@ -210,7 +220,8 @@ export default async (data: Handler) => {
 
     // Send confirmation email
     try {
-      await sendFiatTransactionEmail(
+      ctx?.step("Sending notification email");
+    await sendFiatTransactionEmail(
         userPk,
         {
           ...transaction.toJSON(),
@@ -220,7 +231,7 @@ export default async (data: Handler) => {
         newBalance
       );
     } catch (emailError) {
-      console.error("Failed to send transaction email:", emailError);
+      logger.error("AUTHORIZENET", "Failed to send transaction email", emailError);
       // Don't throw error for email failure
     }
 
@@ -239,8 +250,8 @@ export default async (data: Handler) => {
     };
 
   } catch (error) {
-    console.error("Authorize.Net transaction verification error:", error);
-    
+    logger.error("AUTHORIZENET", "Transaction verification error", error);
+
     // Update transaction status to failed
     await models.transaction.update(
       {

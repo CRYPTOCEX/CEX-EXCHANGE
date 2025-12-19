@@ -3,40 +3,24 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChartData } from "./types";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
 interface CenterContentProps {
   activeSegment: string | null;
   data: ChartData[];
   total: number;
-  loading: boolean;
-  isFirstLoad: boolean;
 }
 
 function CenterContentImpl({
   activeSegment,
   data,
   total,
-  loading,
-  isFirstLoad,
 }: CenterContentProps) {
   const t = useTranslations("common");
   return (
     <div className="absolute inset-0 flex items-center justify-center">
       <AnimatePresence mode="wait">
-        {loading && !isFirstLoad ? (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-center"
-          >
-            <Skeleton className="h-8 w-24 mx-auto mb-1" />
-            <div className="text-xs text-muted-foreground">{t("Total")}</div>
-          </motion.div>
-        ) : activeSegment ? (
+        {activeSegment ? (
           <motion.div
             key={activeSegment}
             initial={{ opacity: 0, scale: 0.95 }}
@@ -67,7 +51,7 @@ function CenterContentImpl({
             <div className="text-xl sm:text-2xl font-bold mb-1">
               {total.toLocaleString()}
             </div>
-            <div className="text-xs text-muted-foreground">{t("Total")}</div>
+            <div className="text-xs text-muted-foreground">{t("total")}</div>
           </motion.div>
         )}
       </AnimatePresence>

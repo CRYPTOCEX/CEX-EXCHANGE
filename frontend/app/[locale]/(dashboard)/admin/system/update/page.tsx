@@ -5,6 +5,7 @@ import { UpdateInfo } from "./update-info";
 import { UpdateActions } from "./update-actions";
 import { LicenseVerification } from "./license-verification";
 import { useSystemUpdateStore } from "@/store/update";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 export default function SystemUpdatePage() {
   const {
@@ -60,7 +61,7 @@ export default function SystemUpdatePage() {
   }, [productId, productVersion]);
 
   return (
-    <>
+    <div className={`container ${PAGE_PADDING}`}>
       <TopBar />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="md:col-span-2 space-y-5">
@@ -79,6 +80,6 @@ export default function SystemUpdatePage() {
           {!licenseVerified && <LicenseVerification />}
         </div>
       </div>
-    </>
+    </div>
   );
 }

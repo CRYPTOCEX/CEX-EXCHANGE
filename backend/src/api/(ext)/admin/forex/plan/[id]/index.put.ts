@@ -2,9 +2,10 @@ import { updateRecord, updateRecordResponses } from "@b/utils/query";
 import { forexPlanUpdateSchema } from "../utils";
 
 export const metadata: OperationObject = {
-  summary: "Updates a specific Forex Plan",
+  summary: "Updates a Forex plan",
+  description: "Updates an existing Forex plan by its ID. Can modify all plan settings including profit ranges, investment limits, currency, wallet type, and available durations.",
   operationId: "updateForexPlan",
-  tags: ["Admin", "Forex Plans"],
+  tags: ["Admin", "Forex", "Plan"],
   parameters: [
     {
       index: 0,
@@ -28,10 +29,12 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Forex Plan"),
   requiresAuth: true,
   permission: "edit.forex.plan",
+  logModule: "ADMIN_FOREX",
+  logTitle: "Update forex plan",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params , ctx } = data;
   const { id } = params;
   const {
     name,
@@ -52,6 +55,10 @@ export default async (data) => {
     walletType,
   } = body;
 
+  ctx?.step("Validating data");
+
+  ctx?.step(`Updating record ${id}`);
+
   const relations = durations
     ? [
         {
@@ -66,7 +73,7 @@ export default async (data) => {
       ]
     : [];
 
-  return await updateRecord(
+  const result = await updateRecord(
     "forexPlan",
     id,
     {
@@ -89,4 +96,7 @@ export default async (data) => {
     false,
     relations
   );
+
+  ctx?.success("Record updated successfully");
+  return result;
 };

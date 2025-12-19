@@ -32,7 +32,9 @@ function isImageUrl(url: string): boolean {
 }
 
 export function EvidenceTab({ dispute }: EvidenceTabProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -161,7 +163,7 @@ export function EvidenceTab({ dispute }: EvidenceTabProps) {
                 }
               }}
             >
-              {t("View")}
+              {tCommon("view")}
             </Button>
           )}
         </div>
@@ -263,7 +265,7 @@ export function EvidenceTab({ dispute }: EvidenceTabProps) {
                   <>
                     <Loader2 className="mx-auto h-8 w-8 text-muted-foreground animate-spin" />
                     <p className="mt-2 text-sm font-medium">
-                      {t("uploading")}...
+                      {tCommon('uploading_ellipsis')}...
                     </p>
                   </>
                 ) : (
@@ -273,10 +275,10 @@ export function EvidenceTab({ dispute }: EvidenceTabProps) {
                       {t("drag_and_drop_images_here")}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {t("supported_formats")}: JPEG, PNG, GIF, WebP
+                      {t("supported_formats")}{t("jpeg_png_gif_webp")}
                     </p>
                     <Button variant="outline" size="sm" className="mt-4" disabled={isUploadingEvidence}>
-                      {t("upload_image")}
+                      {tCommon("upload_image")}
                     </Button>
                   </>
                 )}
@@ -300,7 +302,7 @@ export function EvidenceTab({ dispute }: EvidenceTabProps) {
           </button>
           <img
             src={lightboxImage}
-            alt={t("full_size")}
+            alt={tExt("full_size")}
             className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           />

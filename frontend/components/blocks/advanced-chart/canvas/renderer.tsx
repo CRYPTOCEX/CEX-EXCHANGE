@@ -72,7 +72,7 @@ function adaptOrdersToPositionMarkers(orders: BinaryOrder[]): PositionMarker[] {
       }
       
       // For completed orders, show them briefly after expiry for animation
-      if (order.status === "COMPLETED" || order.status === "WIN" || order.status === "LOSS") {
+      if (order.status === "win" || order.status === "loss") {
         // Show completed orders for up to 5 seconds after expiry
         return !isExpired || (currentTimeSec - orderExpiryTimeSec < 5);
       }
@@ -91,7 +91,7 @@ function adaptOrdersToPositionMarkers(orders: BinaryOrder[]): PositionMarker[] {
       type: order.side === "RISE" ? "CALL" : "PUT",
       amount: order.amount || 0,
       status: order.status === "PENDING" ? "ACTIVE" : order.status as "ACTIVE" | "COMPLETED" | "EXPIRED" | undefined,
-      result: order.status === "WIN" ? "WIN" : order.status === "LOSS" ? "LOSS" : null,
+      result: order.status === "win" ? "WIN" : order.status === "loss" ? "LOSS" : null,
       createdAt: order.createdAt,  // Keep in milliseconds for animation timing
       side: order.side,
     }));

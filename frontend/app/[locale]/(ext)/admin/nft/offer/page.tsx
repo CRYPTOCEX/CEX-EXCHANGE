@@ -1,11 +1,15 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import { nftOfferAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
+import { Zap } from "lucide-react";
 
 export default function NFTOffersPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/offer"
@@ -17,7 +21,7 @@ export default function NFTOffersPage() {
         edit: "edit.nft.offer",
         delete: "delete.nft.offer",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={false}
       canEdit={true}
       canDelete={true}
@@ -25,9 +29,16 @@ export default function NFTOffersPage() {
       isParanoid={true}
       title="NFT Offers & Bids"
       itemTitle="Offer"
-      description={t("monitor_and_manage_nft_offers_bids")}
+      description={t("monitor_and_manage_purchase_offers_and")}
       columns={columns}
+      formConfig={formConfig}
       analytics={nftOfferAnalytics}
+      design={{
+        animation: "orbs",
+        primaryColor: "purple",
+        secondaryColor: "pink",
+        icon: Zap,
+      }}
     />
   );
 }

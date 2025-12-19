@@ -7,6 +7,7 @@ import {
 import fs from "fs/promises";
 import path from "path";
 import { sanitizeUserPath } from "@b/utils/validation";
+import { logger } from "@b/utils/console";
 
 /**
  * Generate a file URL for the uploaded file
@@ -30,6 +31,8 @@ export const metadata: OperationObject = {
   operationId: "uploadKycDocument",
   tags: ["Upload", "KYC"],
   requiresAuth: true,
+  logModule: "KYC",
+  logTitle: "Upload KYC document",
   requestBody: {
     required: true,
     content: {
@@ -95,63 +98,70 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
   if (!user) throw new Error("User not found");
 
   try {
-    console.log("KYC document upload request received:", { dir: body.dir, filename: body.filename });
+    ctx?.step("Validating upload request");
+    logger.debug("KYC", `Document upload request received: dir=${body.dir}, filename=${body.filename}`);
 
     const { dir, file: base64File, filename, oldPath } = body;
 
     if (!dir || !base64File) {
+      ctx?.fail("Missing directory or file data");
       throw new Error("No directory specified or no file provided");
     }
 
-    // Security validation for directory
+    ctx?.step("Validating directory path security");
     if (typeof dir !== 'string' || dir.length > 100) {
+      ctx?.fail("Invalid directory path format");
       throw new Error("Invalid directory path");
     }
 
-    // Check for suspicious patterns in directory
     if (dir.includes('\0') || dir.includes('%00') || dir.includes('..')) {
+      ctx?.fail("Directory path contains suspicious patterns");
       throw new Error("Invalid directory path");
     }
 
-    // Validate base64 file format
+    ctx?.step("Validating file format and encoding");
     if (typeof base64File !== 'string' || !base64File.startsWith('data:')) {
+      ctx?.fail("Invalid base64 file format");
       throw new Error("Invalid file format");
     }
 
-    // File size limit (50MB for documents)
     const base64Data = base64File.split(",")[1];
     if (!base64Data) {
+      ctx?.fail("Missing base64 file data");
       throw new Error("Invalid file data");
     }
-    
+
+    ctx?.step("Checking file size limits");
     const fileSizeBytes = (base64Data.length * 3) / 4;
     const maxSizeBytes = 50 * 1024 * 1024; // 50MB for documents
-    
+
     if (fileSizeBytes > maxSizeBytes) {
+      ctx?.fail(`File size ${Math.round(fileSizeBytes / 1024 / 1024)}MB exceeds 50MB limit`);
       throw new Error("File size exceeds maximum limit of 50MB");
     }
 
-    // Sanitize and resolve the upload directory
+    ctx?.step("Sanitizing upload directory path");
     const sanitizedDir = sanitizeUserPath(dir.replace(/-/g, "/"));
     const mediaDir = path.join(BASE_UPLOAD_DIR, sanitizedDir);
-    
-    // Additional security check: ensure resolved path is within uploads
+
     const resolvedMediaDir = path.resolve(mediaDir);
     const resolvedBaseDir = path.resolve(BASE_UPLOAD_DIR);
-    
+
     if (!resolvedMediaDir.startsWith(resolvedBaseDir + path.sep) && resolvedMediaDir !== resolvedBaseDir) {
+      ctx?.fail("Upload directory outside allowed path");
       throw new Error("Invalid upload directory");
     }
-    
+
+    ctx?.step("Creating upload directory if needed");
     await ensureDirExists(mediaDir);
 
+    ctx?.step("Validating MIME type");
     const mimeType = base64File.match(/^data:(.*);base64,/)?.[1] || "";
-    
-    // Whitelist allowed MIME types for KYC documents
+
     const allowedMimeTypes = [
       // Images
       'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
@@ -164,34 +174,34 @@ export default async (data) => {
       'text/plain', // .txt
       'text/csv', // .csv
     ];
-    
+
     if (!allowedMimeTypes.includes(mimeType)) {
+      ctx?.fail(`MIME type ${mimeType} not allowed`);
       throw new Error(`File type ${mimeType} not allowed for KYC documents`);
     }
-    
+
+    ctx?.step("Decoding file data");
     const buffer = Buffer.from(base64Data, "base64");
-    
-    console.log("File validation - MIME type:", mimeType, "Buffer length:", buffer.length);
-    
-    // CRITICAL FIX: Validate file magic numbers to prevent MIME type spoofing
+    logger.debug("KYC", `File validation - MIME type: ${mimeType}, Buffer length: ${buffer.length}`);
+
+    ctx?.step("Validating file signature against MIME type");
     const isValidFileType = validateFileSignature(buffer, mimeType);
-    console.log("File signature validation result:", isValidFileType);
-    
+    logger.debug("KYC", `File signature validation result: ${isValidFileType}`);
+
     if (!isValidFileType) {
-      // For images, be more lenient as some image files might not have perfect magic numbers
       const isImageType = mimeType.startsWith('image/');
       if (isImageType) {
-        console.log("Image type detected, allowing despite magic number mismatch");
+        logger.debug("KYC", "Image type detected, allowing despite magic number mismatch");
       } else {
+        ctx?.fail("File signature does not match MIME type");
         throw new Error("File content does not match declared MIME type. Potential security threat detected.");
       }
     }
-    
-    // Generate filename with timestamp and random string
+
+    ctx?.step("Generating secure filename");
     const timestamp = Date.now();
     const randomString = Math.round(Math.random() * 1e9);
-    
-    // Get file extension from MIME type or original filename
+
     let extension = getExtensionFromMimeType(mimeType);
     if (!extension && filename) {
       const originalExt = path.extname(filename).toLowerCase();
@@ -199,19 +209,19 @@ export default async (data) => {
         extension = originalExt;
       }
     }
-    
+
     const generatedFilename = `${timestamp}-${randomString}${extension}`;
     const filePath = path.join(mediaDir, generatedFilename);
-    
-    // Write file to disk
+
+    ctx?.step("Writing file to disk");
     await fs.writeFile(filePath, buffer);
 
-    // Handle old file deletion securely
     if (oldPath) {
+      ctx?.step("Removing old file");
       try {
         await removeOldFileSecurely(oldPath, sanitizedDir);
       } catch (error) {
-        console.error("Error removing old file:", error);
+        logger.error("KYC", "Error removing old file", error);
       }
     }
 
@@ -222,10 +232,12 @@ export default async (data) => {
       mimeType: mimeType,
     };
 
-    console.log("KYC document upload successful, returning response:", response);
+    ctx?.success(`Document uploaded successfully: ${generatedFilename}`);
+    logger.debug("KYC", `Document upload successful: ${response.filename}`);
     return response;
   } catch (error) {
-    console.error("KYC document upload error:", error);
+    ctx?.fail(`Document upload failed: ${error.message}`);
+    logger.error("KYC", "Document upload error", error);
     throw error; // Re-throw to ensure proper error handling
   }
 };
@@ -358,7 +370,7 @@ async function removeOldFileSecurely(oldPath, expectedDir) {
   } catch (error) {
     // Only log if not ENOENT (file not found)
     if (error.code !== "ENOENT") {
-      console.error("Error removing old file:", error);
+      logger.error("KYC", "Error removing old file", error);
     }
   }
 } 

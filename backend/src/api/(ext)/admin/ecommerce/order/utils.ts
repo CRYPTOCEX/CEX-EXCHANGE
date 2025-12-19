@@ -6,6 +6,12 @@ import {
   baseDateTimeSchema,
 } from "@b/utils/schema";
 
+interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
+
 const id = baseStringSchema("ID of the e-commerce order");
 const userId = baseStringSchema("User ID associated with the order");
 const status = baseEnumSchema("Status of the order", [
@@ -44,37 +50,54 @@ export const ecommerceOrderUpdateSchema = {
   required: ["status"],
 };
 
-export async function sendOrderStatusUpdateEmail(user, order, status) {
-  // Retrieve all products in the order
-  const orderItems = await models.ecommerceOrderItem.findAll({
-    where: { orderId: order.id },
-    include: [
-      {
-        model: models.ecommerceProduct,
-        as: "product",
-        attributes: ["name", "price", "currency"],
-      },
-    ],
-  });
+export async function sendOrderStatusUpdateEmail(
+  user,
+  order,
+  status,
+  ctx?: LogContext
+) {
+  try {
+    ctx?.step?.("Retrieving order items from database");
 
-  // Construct the product details string
-  const productDetails = orderItems
-    .map(
-      (item) => `
+    // Retrieve all products in the order
+    const orderItems = await models.ecommerceOrderItem.findAll({
+      where: { orderId: order.id },
+      include: [
+        {
+          model: models.ecommerceProduct,
+          as: "product",
+          attributes: ["name", "price", "currency"],
+        },
+      ],
+    });
+
+    ctx?.step?.("Constructing email data");
+
+    // Construct the product details string
+    const productDetails = orderItems
+      .map(
+        (item) => `
     <li>Product Name: ${item.product.name}</li>
     <li>Quantity: ${item.quantity}</li>
     <li>Price: ${item.product.price} ${item.product.currency}</li>
   `
-    )
-    .join("");
+      )
+      .join("");
 
-  const emailData = {
-    TO: user.email,
-    CUSTOMER_NAME: user.firstName,
-    ORDER_NUMBER: order.id,
-    ORDER_STATUS: status,
-    PRODUCT_DETAILS: productDetails, // Replacing product-specific placeholders with this
-  };
+    const emailData = {
+      TO: user.email,
+      CUSTOMER_NAME: user.firstName,
+      ORDER_NUMBER: order.id,
+      ORDER_STATUS: status,
+      PRODUCT_DETAILS: productDetails, // Replacing product-specific placeholders with this
+    };
 
-  await emailQueue.add({ emailData, emailType: "OrderStatusUpdate" });
+    ctx?.step?.("Adding email to queue");
+    await emailQueue.add({ emailData, emailType: "OrderStatusUpdate" });
+
+    ctx?.success?.("Order status update email sent successfully");
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }

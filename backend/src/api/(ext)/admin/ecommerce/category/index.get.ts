@@ -10,17 +10,23 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 import { ecommerceCategorySchema } from "./utils";
+import {
+  unauthorizedResponse as unauthorizedError,
+  serverErrorResponse as serverError,
+  notFoundResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata: OperationObject = {
-  summary:
-    "Lists all e-commerce categories with pagination and optional filtering",
+  summary: "Lists all ecommerce categories",
+  description:
+    "Retrieves a paginated list of ecommerce categories with optional filtering and sorting. Supports search, status filtering, and custom sort fields.",
   operationId: "listEcommerceCategories",
-  tags: ["Admin", "Ecommerce", "Categories"],
+  tags: ["Admin", "Ecommerce", "Category"],
   parameters: crudParameters,
   responses: {
     200: {
       description:
-        "List of e-commerce categories with optional related products and pagination",
+        "List of ecommerce categories retrieved successfully with pagination metadata",
       content: {
         "application/json": {
           schema: {
@@ -39,20 +45,28 @@ export const metadata: OperationObject = {
         },
       },
     },
-    401: unauthorizedResponse,
-    404: notFoundMetadataResponse("E-commerce Categories"),
-    500: serverErrorResponse,
+    401: unauthorizedError,
+    404: notFoundResponse("Ecommerce category"),
+    500: serverError,
   },
   requiresAuth: true,
   permission: "view.ecommerce.category",
+  logModule: "ADMIN_ECOM",
+  logTitle: "List categories",
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Parsing query parameters");
+  ctx?.step("Fetching categories from database");
+
+  const result = await getFiltered({
     model: models.ecommerceCategory,
     query,
     sortField: query.sortField || "name",
   });
+
+  ctx?.success("Categories retrieved successfully");
+  return result;
 };

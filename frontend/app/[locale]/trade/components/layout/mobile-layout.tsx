@@ -29,7 +29,7 @@ import OrderBookPanel from "../orderbook/orderbook-panel";
 
 interface MobileLayoutProps {
   currentSymbol?: Symbol;
-  onSymbolChange?: (symbol: Symbol, marketType?: "spot" | "futures") => void;
+  onSymbolChange?: (symbol: Symbol, marketType?: "spot" | "eco" | "futures") => void;
 }
 
 export default function MobileLayout({
@@ -46,7 +46,8 @@ export default function MobileLayout({
   const type = searchParams.get("type") || "spot";
   const marketType = type === "futures" ? "futures" : type === "spot-eco" ? "eco" : "spot";
   const isFutures = marketType === "futures";
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tTradeComponents = useTranslations("trade_components");
 
   useEffect(() => {
     setMounted(true);
@@ -91,7 +92,7 @@ export default function MobileLayout({
 
   const handleMarketSelect = (
     symbol: Symbol,
-    marketType?: "spot" | "futures"
+    marketType?: "spot" | "eco" | "futures"
   ) => {
     // Skip if selecting the same symbol
     if (symbol === currentSymbol) {
@@ -205,35 +206,35 @@ export default function MobileLayout({
             className="flex flex-col items-center justify-center gap-1 text-xs py-2 min-h-0"
           >
             <BarChart2 className="h-4 w-4 flex-shrink-0" />
-            <span className="text-[10px] leading-none">{t("Chart")}</span>
+            <span className="text-[10px] leading-none">{t("chart")}</span>
           </TabsTrigger>
           <TabsTrigger
             value="markets"
             className="flex flex-col items-center justify-center gap-1 text-xs py-2 min-h-0"
           >
             <Search className="h-4 w-4 flex-shrink-0" />
-            <span className="text-[10px] leading-none">{t("Markets")}</span>
+            <span className="text-[10px] leading-none">{t("markets")}</span>
           </TabsTrigger>
           <TabsTrigger
             value="trade"
             className="flex flex-col items-center justify-center gap-1 text-xs py-2 min-h-0"
           >
             <TrendingUp className="h-4 w-4 flex-shrink-0" />
-            <span className="text-[10px] leading-none">{t("Trade")}</span>
+            <span className="text-[10px] leading-none">{t("trade")}</span>
           </TabsTrigger>
           <TabsTrigger
             value="book"
             className="flex flex-col items-center justify-center gap-1 text-xs py-2 min-h-0"
           >
             <ArrowUpDown className="h-4 w-4 flex-shrink-0" />
-            <span className="text-[10px] leading-none">{t("Book")}</span>
+            <span className="text-[10px] leading-none">{tTradeComponents("book")}</span>
           </TabsTrigger>
           <TabsTrigger
             value="orders"
             className="flex flex-col items-center justify-center gap-1 text-xs py-2 min-h-0"
           >
             <History className="h-4 w-4 flex-shrink-0" />
-            <span className="text-[10px] leading-none">{t("Orders")}</span>
+            <span className="text-[10px] leading-none">{t("orders")}</span>
           </TabsTrigger>
         </TabsList>
       </Tabs>

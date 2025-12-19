@@ -16,6 +16,8 @@ export const metadata: OperationObject = {
   tags: ["Exchange", "Watchlist"],
   description:
     "Retrieves a list of watchlist items for the authenticated user.",
+  logModule: "EXCHANGE",
+  logTitle: "List Watchlist",
   responses: {
     200: {
       description: "A list of watchlist items",
@@ -39,15 +41,17 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
-  return (
-    await models.exchangeWatchlist.findAll({
-      where: {
-        userId: user.id,
-      },
-    })
-  ).map((watchlist) => watchlist.get({ plain: true }));
+  ctx?.step("Fetching watchlist items");
+  const watchlist = await models.exchangeWatchlist.findAll({
+    where: {
+      userId: user.id,
+    },
+  });
+
+  ctx?.success(`Retrieved ${watchlist.length} watchlist items`);
+  return watchlist.map((item) => item.get({ plain: true }));
 };

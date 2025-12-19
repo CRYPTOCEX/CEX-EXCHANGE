@@ -3,7 +3,7 @@ import {
   serverErrorResponse,
 } from "@b/utils/query";
 
-import { 
+import {
   makeKlarnaRequest,
   KLARNA_STATUS_MAPPING,
   KlarnaError,
@@ -11,6 +11,7 @@ import {
 } from "./utils";
 import { models, sequelize } from "@b/db";
 import { sendFiatTransactionEmail } from "@b/utils/emails";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Handles Klarna webhook notifications",
@@ -18,6 +19,8 @@ export const metadata: OperationObject = {
     "Processes webhook notifications from Klarna for order status updates and payment confirmations.",
   operationId: "klarnaWebhook",
   tags: ["Finance", "Webhook"],
+  logModule: "WEBHOOK",
+  logTitle: "Klarna webhook",
   requestBody: {
     description: "Klarna webhook notification data",
     content: {
@@ -88,15 +91,9 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, headers } = data;
+  const { body, headers, ctx } = data;
   
-  console.log("Klarna webhook received:", {
-    body,
-    headers: {
-      'user-agent': headers['user-agent'],
-      'content-type': headers['content-type'],
-    }
-  });
+  logger.info("KLARNA", `Webhook received - event: ${body.event_type}, order: ${body.order_id}`);
 
   const { order_id, event_type, event_id, timestamp } = body;
 
@@ -122,8 +119,10 @@ export default async (data: Handler) => {
     });
 
     if (!transaction) {
-      console.log(`No pending transaction found for Klarna order: ${order_id}`);
-      return {
+      logger.warn("KLARNA", `No pending transaction found for order: ${order_id}`);
+      ctx?.success("Klarna deposit completed successfully");
+
+  return {
         status: "ignored",
         message: "No matching transaction found",
       };
@@ -133,7 +132,7 @@ export default async (data: Handler) => {
     
     // Check if this order belongs to this transaction
     if (transactionMetadata.order_id !== order_id) {
-      console.log(`Order ID mismatch: expected ${transactionMetadata.order_id}, got ${order_id}`);
+      logger.debug("KLARNA", `Order ID mismatch: expected ${transactionMetadata.order_id}, got ${order_id}`);
       return {
         status: "ignored", 
         message: "Order ID does not match transaction",
@@ -141,9 +140,9 @@ export default async (data: Handler) => {
     }
 
     // Check for duplicate processing
-    if (transactionMetadata.processed_events && 
+    if (transactionMetadata.processed_events &&
         transactionMetadata.processed_events.includes(event_id)) {
-      console.log(`Event ${event_id} already processed for order ${order_id}`);
+      logger.debug("KLARNA", `Event ${event_id} already processed for order ${order_id}`);
       return {
         status: "duplicate",
         message: "Event already processed",
@@ -160,7 +159,7 @@ export default async (data: Handler) => {
       throw new Error(`Failed to retrieve order details for ${order_id}`);
     }
 
-    console.log(`Klarna order ${order_id} status: ${orderDetails.status}`);
+    logger.info("KLARNA", `Order ${order_id} status: ${orderDetails.status}`);
 
     // Map Klarna status to our internal status
     const mappedStatus = orderDetails.status ? KLARNA_STATUS_MAPPING[orderDetails.status] || "PENDING" : "PENDING";
@@ -186,24 +185,28 @@ export default async (data: Handler) => {
       const currency = transactionMetadata.purchase_currency;
 
       // Find or create wallet
-      let wallet = await models.wallet.findOne({
+      ctx?.step("Finding or creating wallet");
+  let wallet = await models.wallet.findOne({
         where: { userId: user.id, currency, type: "FIAT" },
       });
 
       if (!wallet) {
-        wallet = await models.wallet.create({
+      ctx?.step("Creating new wallet");
+      wallet = await models.wallet.create({
           userId: user.id,
           currency,
           type: "FIAT",
         });
       }
 
-      const currencyData = await models.currency.findOne({
+      ctx?.step("Validating currency");
+  const currencyData = await models.currency.findOne({
         where: { id: wallet.currency },
       });
 
       if (!currencyData) {
-        throw new Error("Currency not found");
+    ctx?.fail("Currency not found");
+    throw new Error("Currency not found");
       }
 
       const depositAmount = transaction.amount - transaction.fee;
@@ -229,7 +232,8 @@ export default async (data: Handler) => {
         );
 
         // Update wallet balance
-        await models.wallet.update(
+        ctx?.step("Updating wallet balance");
+      await models.wallet.update(
           { balance: newBalance },
           {
             where: { id: wallet.id },
@@ -253,7 +257,8 @@ export default async (data: Handler) => {
 
       // Send confirmation email
       try {
-        await sendFiatTransactionEmail(
+        ctx?.step("Sending notification email");
+    await sendFiatTransactionEmail(
           user,
           {
             ...transaction.dataValues,
@@ -266,11 +271,11 @@ export default async (data: Handler) => {
           newBalance
         );
       } catch (emailError) {
-        console.error("Failed to send confirmation email:", emailError);
+        logger.error("KLARNA", "Failed to send confirmation email", emailError);
         // Don't throw error for email failure
       }
 
-      console.log(`Klarna payment completed for user ${user.id}, order ${order_id}`);
+      logger.success("KLARNA", `Payment completed for user ${user.id}, order ${order_id}`);
 
       return {
         status: "completed",
@@ -295,7 +300,7 @@ export default async (data: Handler) => {
         }
       );
 
-      console.log(`Klarna payment failed for order ${order_id}, status: ${orderDetails.status}`);
+      logger.warn("KLARNA", `Payment failed for order ${order_id}, status: ${orderDetails.status}`);
 
       return {
         status: "failed",
@@ -315,7 +320,7 @@ export default async (data: Handler) => {
         }
       );
 
-      console.log(`Klarna order ${order_id} status updated to: ${orderDetails.status}`);
+      logger.info("KLARNA", `Order ${order_id} status updated to: ${orderDetails.status}`);
 
       return {
         status: "updated",
@@ -326,7 +331,7 @@ export default async (data: Handler) => {
     }
 
   } catch (error) {
-    console.error("Klarna webhook processing error:", error);
+    logger.error("KLARNA", "Webhook processing error", error);
     
     if (error instanceof KlarnaError) {
       throw new Error(`Klarna webhook error: ${error.message}`);

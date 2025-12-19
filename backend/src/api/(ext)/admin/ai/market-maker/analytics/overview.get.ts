@@ -23,11 +23,16 @@ export const metadata: OperationObject = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "ADMIN_AI",
+  logTitle: "Get Market Maker Overview",
   permission: "view.ai.market-maker.analytics",
 };
 
 export default async (data: Handler) => {
+  const { ctx } = data;
   // Get all market makers with pools and market info
+  ctx?.step("Get Market Maker Overview");
+
   const marketMakers = await models.aiMarketMaker.findAll({
     include: [
       {
@@ -108,6 +113,7 @@ export default async (data: Handler) => {
       : null,
   }));
 
+  ctx?.success("Get Market Maker Overview retrieved successfully");
   return {
     totalTVL,
     total24hVolume,

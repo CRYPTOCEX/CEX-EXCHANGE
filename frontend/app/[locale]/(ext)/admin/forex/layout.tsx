@@ -1,16 +1,23 @@
 import type { ReactNode } from "react";
-import AdminNavbar from "./navbar";
+import SiteHeader from "@/components/partials/header/site-header";
 import { LayoutWrapper } from "@/components/partials/dashboard/layout-wrapper";
+import Footer from "@/components/partials/footer";
+import { menu, colorSchema } from "./menu";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default function AdminForexLayout({ children }: { children: ReactNode }) {
   return (
     <>
-      <AdminNavbar />
+      <SiteHeader
+        menu={menu}
+        colorSchema={colorSchema}
+        userPath="/forex"
+      />
       <div className="content-wrapper transition-all duration-150">
-        <div className="pt-5 px-6 pb-20 page-min-height-horizontal">
+        <div className="page-min-height-horizontal">
           <LayoutWrapper>{children}</LayoutWrapper>
         </div>
       </div>
+      <Footer />
     </>
   );
 }

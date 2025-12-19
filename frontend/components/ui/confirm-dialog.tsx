@@ -36,7 +36,7 @@ export function ConfirmDialog({
         </DialogHeader>
         <DialogFooter className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("Cancel")}
+            {t("cancel")}
           </Button>
           <Button
             onClick={() => {
@@ -44,7 +44,7 @@ export function ConfirmDialog({
               onOpenChange(false);
             }}
           >
-            {t("Confirm")}
+            {t("confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

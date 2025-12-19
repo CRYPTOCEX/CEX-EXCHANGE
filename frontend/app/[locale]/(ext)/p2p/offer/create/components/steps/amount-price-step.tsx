@@ -130,47 +130,9 @@ const useMarketPrice = (currency: string, walletType: string) => {
   return { price, loading, lastUpdated };
 };
 
-// Update the formatPrice function to show "per BTC" instead of "per USD"
-const formatPrice = (price: any, currency: string, tradeData: any) => {
-  const t = useTranslations("ext");
-  const getCryptoSymbol = useCallback(() => {
-    // If we have the currency, use that
-    if (tradeData.currency) {
-      return tradeData.currency;
-    }
-
-    // Fallback to mapping common currencies
-    switch (tradeData.currency) {
-      case "bitcoin":
-        return "BTC";
-      case "ethereum":
-        return "ETH";
-      case "tether":
-        return "USDT";
-      case "bnb":
-        return "BNB";
-      case "solana":
-        return "SOL";
-      case "cardano":
-        return "ADA";
-      default:
-        return "CRYPTO";
-    }
-  }, [tradeData.currency]);
-
-  return (
-    <div className="space-y-1">
-      <div className="text-lg font-medium">
-        {price}
-        {t("usd_per")}{" "}
-        {getCryptoSymbol()}
-      </div>
-    </div>
-  );
-};
-
 export function AmountPriceStep() {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { tradeData, updateTradeData, markStepComplete } = useWizard();
   const [priceModel, setPriceModel] = useState<"FIXED" | "MARKET" | "MARGIN">(
     "FIXED"
@@ -1013,20 +975,20 @@ export function AmountPriceStep() {
   return (
     <div className="space-y-6">
       <p className="text-muted-foreground">
-        {t("specify_how_much_currency_you_want_to")}{" "}
+        {tCommon("specify_how_much_currency_you_want_to")}{" "}
         {tradeData.tradeType || "trade"}{" "}
-        {t("at_what_price_and_your_trade_limits")}.
+        {tCommon("at_what_price_and_your_trade_limits")}.
       </p>
 
       {/* Validation Errors Alert - only show if there are errors */}
       {validationErrors.length > 0 && (
-        <Alert className="bg-amber-50 border-amber-200 text-amber-800 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-amber-300">
+        <Alert className="bg-amber-50 dark:bg-amber-900/30 border-amber-200/50 dark:border-amber-700/50 text-amber-600 dark:text-amber-400">
           <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
           <AlertDescription>
-            <div className="font-medium text-amber-800 dark:text-amber-300">
-              {t("please_fix_the_following_issues")}
+            <div className="font-medium text-amber-600 dark:text-amber-400">
+              {tCommon("please_fix_the_following_issues")}
             </div>
-            <ul className="mt-2 list-disc pl-5 text-amber-700 dark:text-amber-400">
+            <ul className="mt-2 list-disc pl-5 text-amber-600 dark:text-amber-400">
               {validationErrors.map((error, index) => (
                 <li key={index}>{error}</li>
               ))}
@@ -1037,9 +999,9 @@ export function AmountPriceStep() {
             ) && (
               <button
                 onClick={adjustAmountToMeetMinimum}
-                className="mt-2 px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-zinc-700/50 dark:hover:bg-zinc-600/50 dark:text-amber-300 rounded-md text-sm font-medium transition-colors"
+                className="mt-2 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 hover:opacity-80 text-amber-600 dark:text-amber-400 rounded-md text-sm font-medium transition-colors"
               >
-                {t("automatically_adjust_amount_to_meet_minimum")}
+                {tCommon("automatically_adjust_amount_to_meet_minimum")}
               </button>
             )}
           </AlertDescription>
@@ -1049,7 +1011,7 @@ export function AmountPriceStep() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <Label htmlFor="amount">
-            {t("amount_(")} {getCryptoSymbol()})
+            {tCommon("amount")} {getCryptoSymbol()})
           </Label>
           <Input
             id="amount"
@@ -1066,7 +1028,7 @@ export function AmountPriceStep() {
             }
             className={
               validationErrors.some((e) => e.includes("Amount"))
-                ? "border-amber-500 dark:border-amber-400"
+                ? "border-amber-200/50 dark:border-amber-700/50"
                 : ""
             }
           />
@@ -1074,7 +1036,7 @@ export function AmountPriceStep() {
           {/* Show available balance for sell flow */}
           {tradeData.tradeType === "SELL" && tradeData.availableBalance && (
             <div className="mt-2 text-sm">
-              <span className="text-muted-foreground">{t("available")}{": "}</span>
+              <span className="text-muted-foreground">{tCommon("available")}{": "}</span>
               <span className="font-medium">
                 {tradeData.availableBalance.toLocaleString()}{" "}
                 {getCryptoSymbol()}
@@ -1084,7 +1046,7 @@ export function AmountPriceStep() {
 
           <div className="space-y-2 pt-4">
             <div className="flex justify-between">
-              <Label htmlFor="minLimit">{t("minimum_limit")} ({priceCurrency})</Label>
+              <Label htmlFor="minLimit">{tCommon("minimum_limit")} ({priceCurrency})</Label>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -1108,7 +1070,7 @@ export function AmountPriceStep() {
               step="1"
               className={
                 validationErrors.some((e) => e.includes("Minimum limit"))
-                  ? "border-amber-500 dark:border-amber-400"
+                  ? "border-amber-200/50 dark:border-amber-700/50"
                   : ""
               }
             />
@@ -1116,7 +1078,7 @@ export function AmountPriceStep() {
 
           <div className="space-y-2">
             <div className="flex justify-between">
-              <Label htmlFor="maxLimit">{t("maximum_limit")} ({priceCurrency})</Label>
+              <Label htmlFor="maxLimit">{tCommon("maximum_limit")} ({priceCurrency})</Label>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -1140,7 +1102,7 @@ export function AmountPriceStep() {
               step="1"
               className={
                 validationErrors.some((e) => e.includes("Maximum limit"))
-                  ? "border-amber-500 dark:border-amber-400"
+                  ? "border-amber-200/50 dark:border-amber-700/50"
                   : ""
               }
             />
@@ -1149,7 +1111,7 @@ export function AmountPriceStep() {
 
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <Label>{t("price_model")}</Label>
+            <Label>{tCommon("price_model")}</Label>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -1170,18 +1132,18 @@ export function AmountPriceStep() {
           >
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="fixed">{t("fixed_price")}</TabsTrigger>
-              <TabsTrigger value="market">{t("market_price")}</TabsTrigger>
-              <TabsTrigger value="margin">{t("margin_trading")}</TabsTrigger>
+              <TabsTrigger value="market">{tCommon("market_price")}</TabsTrigger>
+              <TabsTrigger value="margin">{tCommon('margin')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="fixed" className="space-y-4 pt-4">
               <div className="space-y-2">
                 <Label htmlFor="priceCurrency">
-                  {t("currency")}
+                  {tCommon("currency")}
                 </Label>
                 <Select value={priceCurrency} onValueChange={handlePriceCurrencyChange} disabled={loadingCurrencies}>
                   <SelectTrigger>
-                    <SelectValue placeholder={loadingCurrencies ? t("loading") + "..." : t("select_currency")} />
+                    <SelectValue placeholder={loadingCurrencies ? tCommon("loading") + "..." : tCommon("select_currency")} />
                   </SelectTrigger>
                   <SelectContent>
                     {fiatCurrencies.length === 0 ? (
@@ -1200,7 +1162,7 @@ export function AmountPriceStep() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="price">
-                  {t("price_per")}{" "}
+                  {tCommon("price_per")}{" "}
                   {getCryptoSymbol()}{" "}
                   ({priceCurrency})
                 </Label>
@@ -1214,12 +1176,12 @@ export function AmountPriceStep() {
                   step="0.01"
                   className={
                     validationErrors.some((e) => e.includes("Price"))
-                      ? "border-amber-500 dark:border-amber-400"
+                      ? "border-amber-200/50 dark:border-amber-700/50"
                       : ""
                   }
                 />
                 <p className="text-xs text-muted-foreground">
-                  {t("set_a_specific_market_fluctuations")}
+                  {tCommon("set_a_specific_market_fluctuations")}
                 </p>
               </div>
             </TabsContent>
@@ -1235,7 +1197,7 @@ export function AmountPriceStep() {
                   {isLoadingPrice ? (
                     <div className="flex items-center space-x-2">
                       <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                      <span>{t("loading_price")}.</span>
+                      <span>{tCommon("loading_price")}.</span>
                     </div>
                   ) : (
                     <>
@@ -1243,7 +1205,7 @@ export function AmountPriceStep() {
                         ${getMarketPrice().toLocaleString()}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {t("last_updated")}{": "}
+                        {tCommon("last_updated")}{": "}
                         {lastUpdated.toLocaleTimeString()}
                       </p>
                     </>
@@ -1258,7 +1220,7 @@ export function AmountPriceStep() {
             <TabsContent value="margin" className="space-y-4 pt-4">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>{t("margin_type")}</Label>
+                  <Label>{tCommon("margin_type")}</Label>
                   <RadioGroup
                     value={marginType}
                     onValueChange={(v) =>
@@ -1268,11 +1230,11 @@ export function AmountPriceStep() {
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="percentage" id="percentage" />
-                      <Label htmlFor="percentage">{t("percentage_(%)")}</Label>
+                      <Label htmlFor="percentage">{tCommon("percentage")}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="fixed" id="fixed" />
-                      <Label htmlFor="fixed">{t("fixed_amount_($)")}</Label>
+                      <Label htmlFor="fixed">{t("fixed_amount")} ($)</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -1309,10 +1271,10 @@ export function AmountPriceStep() {
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-sm font-medium">
-                          {t("calculated_price")}
+                          {tCommon("calculated_price")}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {t("based_on_current_market_conditions")}
+                          {tCommon("based_on_current_market_conditions")}
                         </p>
                       </div>
                       <div className="text-xl font-bold">
@@ -1335,7 +1297,7 @@ export function AmountPriceStep() {
             {isLoadingPrice ? (
               <div className="flex items-center space-x-2">
                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                <span>{t("loading_price")}.</span>
+                <span>{tCommon("loading_price")}.</span>
               </div>
             ) : (
               <>
@@ -1343,7 +1305,7 @@ export function AmountPriceStep() {
                   ${getMarketPrice().toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {t("last_updated")}{": "}
+                  {tCommon("last_updated")}{": "}
                   {lastUpdated.toLocaleTimeString()}
                 </p>
               </>
@@ -1353,10 +1315,10 @@ export function AmountPriceStep() {
       </div>
 
       <div
-        className={`bg-muted p-4 rounded-md ${validationErrors.some((e) => e.includes("Total value")) ? "border border-amber-500 dark:border-amber-400" : ""}`}
+        className={`bg-muted p-4 rounded-md ${validationErrors.some((e) => e.includes("Total value")) ? "border border-amber-200/50 dark:border-amber-700/50" : ""}`}
       >
         <div className="flex justify-between items-center">
-          <h4 className="font-medium">{t("total_value")}</h4>
+          <h4 className="font-medium">{tCommon("total_value")}</h4>
           <div className="text-xl font-bold">
             {tradeData.totalValue || "0.00"} {priceCurrency}
           </div>
@@ -1371,7 +1333,7 @@ export function AmountPriceStep() {
           <InfoCircle className="h-4 w-4" />
           <AlertDescription>
             {t("when_selling_currency_completes_payment")}.{" "}
-            {t("this_protects_both_parties_during_the_transaction")}.
+            {tCommon("this_protects_both_parties_during_the_transaction")}.
           </AlertDescription>
         </Alert>
       )}

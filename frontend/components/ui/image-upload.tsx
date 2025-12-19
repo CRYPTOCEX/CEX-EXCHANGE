@@ -35,8 +35,8 @@ interface ImageUploadProps {
   loading?: boolean;
   /** Optional removal callback */
   onRemove?: () => void;
-  /** Size of the image upload component: 'default', 'sm', 'lg', 'xl', or 'adaptive' */
-  size?: "xs" | "default" | "sm" | "lg" | "xl" | "adaptive";
+  /** Size of the image upload component: 'default', 'sm', 'md', 'lg', 'xl', or 'adaptive' */
+  size?: "xs" | "default" | "sm" | "md" | "lg" | "xl" | "adaptive";
   /** Aspect ratio for the upload area */
   aspectRatio?: "square" | "video" | "wide" | "tall" | "auto";
   /** Show image metadata and info */
@@ -61,7 +61,8 @@ export function ImageUpload({
   maxSize = 5,
   acceptedFormats = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"],
 }: ImageUploadProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components");
+  const tCommon = useTranslations("common");
   const [internalLoading, setInternalLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -129,7 +130,7 @@ export function ImageUpload({
       return () => {
         URL.revokeObjectURL(localUrl);
       };
-    } else if (typeof value === "string") {
+    } else if (typeof value === "string" && value.trim() !== "") {
       setPreviewUrl(value);
       setIsImageLoaded(true);
       // For URLs, we can't get metadata easily
@@ -272,7 +273,7 @@ export function ImageUpload({
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                 <div className="bg-white/90 dark:bg-gray-800/90 rounded-lg p-6 text-center space-y-3">
                   <RefreshCw className="h-8 w-8 text-primary animate-spin mx-auto" />
-                  <p className="text-sm font-medium">Processing image...</p>
+                  <p className="text-sm font-medium">{t("processing_image_ellipsis")}</p>
                   <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-primary transition-all duration-300 ease-out"
@@ -289,7 +290,7 @@ export function ImageUpload({
               <div className="bg-white/95 dark:bg-gray-800/95 rounded-xl shadow-2xl p-4 space-y-3 text-center backdrop-blur-sm transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                 <div className="flex items-center justify-center space-x-2">
                   <Upload className="h-5 w-5 text-primary" />
-                  <p className="font-medium text-sm">Drop new image to replace</p>
+                  <p className="font-medium text-sm">{t("drop_new_image_to_replace")}</p>
                 </div>
                 
                                  <div className="flex space-x-2">
@@ -350,7 +351,7 @@ export function ImageUpload({
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <p className="font-medium text-sm">Processing image...</p>
+                  <p className="font-medium text-sm">{t("processing_image_ellipsis")}</p>
                   <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-primary transition-all duration-300 ease-out"
@@ -408,7 +409,7 @@ export function ImageUpload({
                     <div className="flex items-center justify-center space-x-4 text-xs text-muted-foreground">
                       <span>Max {maxSize}MB</span>
                       <span>•</span>
-                      <span>JPG, PNG, GIF, WebP</span>
+                      <span>{t("jpg_png_gif_webp")}</span>
                     </div>
                   )}
                 </div>
@@ -422,7 +423,7 @@ export function ImageUpload({
                    onClick={(e) => e.stopPropagation()}
                  >
                    <Upload className="h-4 w-4 mr-2" />
-                   Choose File
+                   {tCommon("choose_file")}
                  </Button>
               </div>
             )}
@@ -456,7 +457,7 @@ export function ImageUpload({
                className="text-xs"
              >
                <ZoomIn className="h-3 w-3 mr-1" />
-               View Full
+               {t("view_full")}
              </Button>
            )}
         </div>

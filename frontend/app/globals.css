@@ -153,25 +153,21 @@
 /* Utility: Container */
 @utility container {
   margin-inline: auto;
-  padding-inline: 15px;
+  padding-inline: 1rem;
   @media (min-width: 640px) {
     max-width: 640px;
-    padding-inline: 15px;
   }
   @media (min-width: 768px) {
     max-width: 768px;
   }
   @media (min-width: 1024px) {
     max-width: 1024px;
-    padding-inline: 15px;
   }
   @media (min-width: 1280px) {
     max-width: 1280px;
-    padding-inline: 0;
   }
   @media (min-width: 1392px) {
     max-width: 1392px;
-    padding-inline: 0;
   }
 }
 
@@ -482,12 +478,13 @@ html[dir="rtl"] .react-select .select__loading-indicator {
   background-color: #3f3f46;
 }
 
-/* React Quill editor adjustments */
-.quillEditor .ql-toolbar.ql-snow,
+/* Old React Quill editor styles - deprecated, kept for reference only */
+/* These styles are no longer needed as we now use WysiwygEditor */
+/* .quillEditor .ql-toolbar.ql-snow,
 .quillEditor .ql-container.ql-snow {
   border: none !important;
   border-radius: 0 !important;
-}
+} */
 
 .bg-grid-white {
   background-image:
@@ -588,4 +585,369 @@ body > [data-testid*="modal"] {
   z-index: 2147483647 !important;
   position: fixed !important;
   inset: 0 !important;
+}
+
+/* ============================================
+   Legal Content Styles
+   Used for Privacy Policy, Terms, About pages
+   ============================================ */
+.legal-content {
+  /* Base text styling */
+  color: hsl(var(--foreground));
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+/* Headings */
+.legal-content h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: hsl(var(--foreground));
+}
+
+.legal-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: hsl(var(--foreground));
+}
+
+.legal-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: hsl(var(--foreground));
+}
+
+/* Paragraphs */
+.legal-content p {
+  margin-bottom: 1rem;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.75;
+}
+
+/* Lists */
+.legal-content ul,
+.legal-content ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.legal-content ul {
+  list-style-type: disc;
+}
+
+.legal-content ol {
+  list-style-type: decimal;
+}
+
+.legal-content li {
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+
+.legal-content li strong {
+  color: hsl(var(--foreground));
+}
+
+/* Links */
+.legal-content a {
+  color: hsl(var(--primary));
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.legal-content a:hover {
+  text-decoration: underline;
+}
+
+/* Sections */
+.legal-content section {
+  margin-bottom: 2rem;
+}
+
+/* Info boxes and callouts */
+.legal-content .bg-blue-50,
+.legal-content .bg-blue-950\/30 {
+  background-color: hsl(var(--primary) / 0.1);
+  border-color: hsl(var(--primary) / 0.2);
+}
+
+.legal-content .bg-muted\/50 {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+/* Strong text */
+.legal-content strong {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+/* Horizontal rules */
+.legal-content hr {
+  margin: 2rem 0;
+  border-color: hsl(var(--border));
+}
+
+/* Blockquotes */
+.legal-content blockquote {
+  border-left: 4px solid hsl(var(--primary) / 0.3);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Tables */
+.legal-content table {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  border-collapse: collapse;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.legal-content thead {
+  background-color: hsl(var(--muted));
+}
+
+.legal-content th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--foreground));
+}
+
+.legal-content tbody {
+  background-color: hsl(var(--card));
+}
+
+.legal-content td {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+
+/* Rounded containers and cards within legal content */
+.legal-content .rounded-xl,
+.legal-content .rounded-lg,
+.legal-content .rounded-2xl {
+  border-radius: 0.75rem;
+}
+
+.legal-content .bg-card {
+  background-color: hsl(var(--card));
+}
+
+.legal-content .border {
+  border: 1px solid hsl(var(--border));
+}
+
+/* Ensure proper spacing for nested divs */
+.legal-content > div {
+  margin-bottom: 1.5rem;
+}
+
+/* Fix text color inheritance for dark mode */
+.dark .legal-content p,
+.dark .legal-content li,
+.dark .legal-content td {
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .legal-content h1,
+.dark .legal-content h2,
+.dark .legal-content h3,
+.dark .legal-content strong,
+.dark .legal-content th {
+  color: hsl(var(--foreground));
+}
+
+/* =================================================================
+   WYSIWYG Editor Styles
+   ================================================================= */
+
+/* Editor container */
+.wysiwyg-editor {
+  font-family: inherit;
+}
+
+/* Editable content area - inherits legal-content styles */
+.wysiwyg-content {
+  min-height: 200px;
+  cursor: text;
+}
+
+/* Placeholder styling */
+.wysiwyg-content.empty-editor:empty::before {
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+  pointer-events: none;
+  position: absolute;
+}
+
+/* Focus styling */
+.wysiwyg-content:focus {
+  outline: none;
+}
+
+/* Selection highlighting */
+.wysiwyg-content ::selection {
+  background-color: hsl(var(--primary) / 0.2);
+}
+
+/* Ensure images are responsive in editor */
+.wysiwyg-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+/* Table styling in editor */
+.wysiwyg-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.wysiwyg-content th,
+.wysiwyg-content td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.wysiwyg-content th {
+  background-color: hsl(var(--muted));
+  font-weight: 600;
+}
+
+.wysiwyg-content td {
+  background-color: hsl(var(--card));
+}
+
+/* Code blocks */
+.wysiwyg-content pre {
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+}
+
+.wysiwyg-content code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875em;
+  background-color: hsl(var(--muted));
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.wysiwyg-content pre code {
+  background: none;
+  padding: 0;
+}
+
+/* Horizontal rule */
+.wysiwyg-content hr {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 1.5rem 0;
+}
+
+/* Link hover state in editor */
+.wysiwyg-content a {
+  color: hsl(var(--primary));
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.wysiwyg-content a:hover {
+  text-decoration: underline;
+}
+
+/* Preview mode styles */
+.wysiwyg-preview {
+  /* Inherits from legal-content */
+}
+
+/* Ensure proper spacing for nested lists */
+.wysiwyg-content ul ul,
+.wysiwyg-content ol ol,
+.wysiwyg-content ul ol,
+.wysiwyg-content ol ul {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Blockquote styling */
+.wysiwyg-content blockquote {
+  border-left: 4px solid hsl(var(--primary) / 0.3);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+.wysiwyg-content blockquote p {
+  margin-bottom: 0.5rem;
+}
+
+.wysiwyg-content blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Dark mode support for WYSIWYG editor */
+.dark .wysiwyg-editor {
+  background-color: hsl(var(--background));
+}
+
+.dark .wysiwyg-content {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.dark .wysiwyg-content.empty-editor:empty::before {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.5;
+}
+
+.dark .wysiwyg-content ::selection {
+  background-color: hsl(var(--primary) / 0.3);
+}
+
+.dark .wysiwyg-content th {
+  background-color: hsl(var(--muted) / 0.8);
+}
+
+.dark .wysiwyg-content td {
+  background-color: hsl(var(--card));
+}
+
+.dark .wysiwyg-content pre,
+.dark .wysiwyg-content code {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+.dark .wysiwyg-content blockquote {
+  border-left-color: hsl(var(--primary) / 0.4);
+  background-color: hsl(var(--muted) / 0.2);
+}
+
+.dark .wysiwyg-preview {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }

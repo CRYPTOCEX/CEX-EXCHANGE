@@ -8,6 +8,8 @@ export const metadata = {
     "Returns all shipping records for the current user, including all related order, items, products, and addresses.",
   operationId: "getUserShippingRecords",
   tags: ["Ecommerce", "Shipping", "User"],
+  logModule: "ECOM",
+  logTitle: "Get Shipping",
   requiresAuth: true,
   responses: {
     200: {
@@ -20,11 +22,12 @@ export const metadata = {
   permission: "access.ecommerce.shipping",
 };
 
-export default async function handler({ user }) {
+export default async function handler({ user, ctx }) {
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Fetching Shipping");
   try {
     const shippings = await models.ecommerceShipping.findAll({
       include: [
@@ -65,6 +68,8 @@ export default async function handler({ user }) {
     });
 
     // No additional processing, raw Sequelize structure
+    ctx?.success("Get Shipping fetched successfully");
+
     return shippings;
   } catch (err) {
     console.error("Failed to fetch shipping records", err);

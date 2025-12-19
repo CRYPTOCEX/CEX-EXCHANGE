@@ -15,7 +15,7 @@ interface MyOffersProps {
 }
 
 export function MyOffers({ offers, isLoading, error }: MyOffersProps) {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
 
   if (isLoading) {
     return <MyOffersSkeleton />;
@@ -37,15 +37,15 @@ export function MyOffers({ offers, isLoading, error }: MyOffersProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{t("my_offers")}</CardTitle>
+          <CardTitle>{tCommon("my_offers")}</CardTitle>
         </CardHeader>
         <CardContent className="py-12">
           <div className="text-center">
             <p className="text-muted-foreground mb-4">
-              {t("you_dont_have_any_offers_yet")}
+              {tCommon("you_dont_have_any_offers_yet")}
             </p>
             <Link href="/p2p/offer/create">
-              <Button>{t("create_your_first_offer")}</Button>
+              <Button>{tCommon("create_your_first_offer")}</Button>
             </Link>
           </div>
         </CardContent>
@@ -56,9 +56,9 @@ export function MyOffers({ offers, isLoading, error }: MyOffersProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>{t("my_offers")}</CardTitle>
+        <CardTitle>{tCommon("my_offers")}</CardTitle>
         <Link href="/p2p/offer/create">
-          <Button size="sm">{t("create_offer")}</Button>
+          <Button size="sm">{tCommon("create_offer")}</Button>
         </Link>
       </CardHeader>
       <CardContent>
@@ -74,6 +74,7 @@ export function MyOffers({ offers, isLoading, error }: MyOffersProps) {
 
 function OfferCard({ offer }: { offer: any }) {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
 
   const statusColor =
     offer.status === "ACTIVE"
@@ -103,7 +104,7 @@ function OfferCard({ offer }: { offer: any }) {
         <div className="text-sm text-muted-foreground space-y-1">
           <div className="flex gap-4 flex-wrap">
             <span>
-              {t("price")}: {(() => {
+              {tCommon("price")}: {(() => {
                 const priceConfig = typeof offer.priceConfig === "string"
                   ? JSON.parse(offer.priceConfig)
                   : offer.priceConfig;
@@ -113,7 +114,7 @@ function OfferCard({ offer }: { offer: any }) {
               })()}
             </span>
             <span>
-              {t("limit")}: {(() => {
+              {tCommon("limit")}: {(() => {
                 const amountConfig = typeof offer.amountConfig === "string"
                   ? JSON.parse(offer.amountConfig)
                   : offer.amountConfig;
@@ -143,13 +144,13 @@ function OfferCard({ offer }: { offer: any }) {
         <Link href={`/p2p/offer/${offer.id}`}>
           <Button variant="outline" size="sm">
             <Eye className="h-4 w-4 mr-1" />
-            {t("view")}
+            {tCommon("view")}
           </Button>
         </Link>
         <Link href={`/p2p/offer/${offer.id}/edit`}>
           <Button variant="outline" size="sm">
             <Edit className="h-4 w-4 mr-1" />
-            {t("edit")}
+            {tCommon("edit")}
           </Button>
         </Link>
       </div>

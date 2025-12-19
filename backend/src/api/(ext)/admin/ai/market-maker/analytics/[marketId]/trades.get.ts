@@ -88,11 +88,13 @@ export const metadata: OperationObject = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "ADMIN_AI",
+  logTitle: "Get Market Maker Trades",
   permission: "view.ai.market-maker.analytics",
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
+  const { params, query, ctx } = data;
   const {
     page = 1,
     perPage = 20,
@@ -100,6 +102,8 @@ export default async (data: Handler) => {
     endDate,
     botId,
   } = query;
+
+  ctx?.step("Get Market Maker Trades");
 
   const marketMaker = await models.aiMarketMaker.findByPk(params.marketId);
 
@@ -166,6 +170,7 @@ export default async (data: Handler) => {
   // Pagination
   const totalPages = Math.ceil(count / Number(perPage));
 
+  ctx?.success("Get Market Maker Trades retrieved successfully");
   return {
     data: transformedTrades,
     pagination: {

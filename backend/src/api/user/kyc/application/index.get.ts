@@ -9,9 +9,11 @@ import {
 export const metadata: OperationObject = {
   summary: "Retrieves all KYC applications for the logged-in user",
   description:
-    "Fetches all Know Your Customer (KYC) applications for the currently authenticated user. This endpoint requires user authentication and returns an array with the user’s KYC application information, including the verification status and other details.",
+    "Fetches all Know Your Customer (KYC) applications for the currently authenticated user. This endpoint requires user authentication and returns an array with the user's KYC application information, including the verification status and other details.",
   operationId: "getUserKycApplications",
   tags: ["KYC"],
+  logModule: "USER",
+  logTitle: "List KYC applications",
   responses: {
     200: {
       description: "KYC applications retrieved successfully",
@@ -71,9 +73,15 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  if (!data.user?.id)
+  const { user, ctx } = data;
+  if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
-  return getKyc(data.user.id);
+  }
+  ctx?.step("Retrieving KYC applications");
+  const result = await getKyc(user.id);
+  ctx?.success(`Retrieved ${result.length} KYC applications`);
+  return result;
 };
 
 export async function getKyc(

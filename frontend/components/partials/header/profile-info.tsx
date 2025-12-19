@@ -16,7 +16,7 @@ import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
 const ProfileInfo = () => {
-  const t = useTranslations("common");
+  const t = useTranslations("components");
   const { user, logout } = useUserStore();
   const router = useRouter();
 
@@ -29,7 +29,6 @@ const ProfileInfo = () => {
 
   const menuItems = [
     { name: "Profile", icon: "ph:user-circle-duotone", href: "/user/profile" },
-    { name: "Assets", icon: "ph:wallet", href: "/finance/wallet" },
     { name: "API Management", icon: "carbon:api", href: "/user/profile?tab=api" },
   ];
 
@@ -110,7 +109,7 @@ const ProfileInfo = () => {
           className={`${linkItemClasses} my-1`}
         >
           <Icon icon="ph:lock-duotone" className="h-4 w-4" />
-          {t("Logout")}
+          {t("logout")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -7,6 +7,8 @@ export const metadata: OperationObject = {
   description: "Generates a new API key for the authenticated user.",
   operationId: "createApiKey",
   tags: ["API Key Management"],
+  logModule: "USER",
+  logTitle: "Create API key",
   requestBody: {
     description: "Data required to create a new API key",
     content: {
@@ -63,23 +65,29 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { user, body } = data;
-  if (!user) throw createError({ statusCode: 401, message: "Unauthorized" });
+  const { user, body, ctx } = data;
+  if (!user) {
+    ctx?.fail("User not authenticated");
+    throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
   const { name, permissions, ipWhitelist, ipRestriction } = body;
 
+  ctx?.step("Checking API key limit");
   // Check the number of API keys the user has
   const existingApiKeys = await models.apiKey.count({
     where: { userId: user.id },
   });
 
   if (existingApiKeys >= 10) {
+    ctx?.fail("API key limit reached (10 keys)");
     throw createError({
       statusCode: 400,
       message: "You have reached the limit of 10 API keys.",
     });
   }
 
+  ctx?.step("Generating new API key");
   const newKey = await models.apiKey.create({
     userId: user.id,
     name: name,
@@ -90,5 +98,6 @@ export default async (data) => {
     type: "user",
   });
 
+  ctx?.success("API key created successfully");
   return newKey;
 };

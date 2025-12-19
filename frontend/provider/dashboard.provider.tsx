@@ -45,6 +45,16 @@ const DashBoardLayoutProvider = ({
   const excludedPaths = [
     "/admin/crm/kyc/level/create",
     "/admin/crm/kyc/level/[id]",
+    "/admin/crm/kyc/application/[id]",
+    "/admin/crm/support/[id]",
+    "/admin/finance/deposit/log/[id]",
+    "/admin/finance/withdraw/log/[id]",
+    "/admin/finance/transfer/[id]",
+    "/admin/default-editor",
+    "/admin/default-editor/[pageId]/edit",
+    "/admin/content/media",
+    "/admin/system/notification/template/[id]",
+    "/admin/system/settings",
   ];
 
   // Check if the current path should exclude the layout components using our helper.
@@ -114,13 +124,7 @@ const DashBoardLayoutProvider = ({
     return (
       <>
         <Header />
-        {/* Sidebar is only rendered for mobile - the Header handles desktop navigation */}
-        <Sidebar menu={menuType} />
-        <div className="content-wrapper transition-all duration-150">
-          <div className="pt-5 px-6 pb-20 page-min-height-horizontal">
-            <LayoutWrapper location={location}>{children}</LayoutWrapper>
-          </div>
-        </div>
+        <LayoutWrapper location={location}>{children}</LayoutWrapper>
         <Footer />
       </>
     );

@@ -6,7 +6,7 @@ import { getSmartContract } from "./smartContract";
 import { decrypt } from "../../../../utils/encrypt";
 import { getProvider } from "./provider";
 import { models } from "@b/db";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 const CACHE_EXPIRATION = 300; // Cache for 5 minutes
 
@@ -36,7 +36,7 @@ export async function getTokenContractAddress(
       tokenDecimals: token.decimals,
     };
   } catch (error: any) {
-    logError("get_token_contract_address", error, __filename);
+    logger.error("TOKEN_CONTRACT", `Unable to retrieve token contract details for chain "${chain}" and currency "${currency}"`, error);
 
     // Provide a user-friendly error message
     throw new Error(
@@ -90,7 +90,7 @@ export const fetchTokenHolders = async (
       const response = await fetch(apiUrl);
       data = await response.json();
     } catch (error) {
-      logError("fetch_token_holders", error, __filename);
+      logger.error("TOKEN_HOLDERS", "Failed to fetch token holders", error);
       throw new Error(
         "Failed to fetch token holders. Please check the API connection."
       );
@@ -98,7 +98,7 @@ export const fetchTokenHolders = async (
 
     // Handle API errors gracefully
     if (data.status === "0" && data.message === "NOTOK") {
-      console.error(`[ETHERSCAN_API_ERROR] Token holders for ${contract}: ${data.result}`);
+      logger.warn("TOKEN_HOLDERS", `Etherscan API error for token holders of contract ${contract}: ${data.result}`);
       return {}; // Return empty holders object
     }
 
@@ -131,7 +131,7 @@ export const fetchTokenHolders = async (
 
     return formattedHolders;
   } catch (error: any) {
-    logError("fetch_token_holders", error, __filename);
+    logger.error("TOKEN_HOLDERS", `Failed to fetch token holders for contract "${contract}" on chain "${chain}"`, error);
 
     throw new Error(
       `Failed to fetch token holders for contract "${contract}" on chain "${chain}". ${
@@ -228,7 +228,6 @@ export async function deployTokenContract(
 
     return await response.getAddress();
   } catch (error: any) {
-    // logError("deploy_token_contract", error, __filename);
     throw new Error(
       `Failed to deploy token contract on chain "${chain}". ${
         error.message || "An unknown error occurred."

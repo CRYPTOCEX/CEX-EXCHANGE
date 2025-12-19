@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, ZoomIn, ZoomOut } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ImageLightboxProps {
   src: string;
@@ -16,6 +17,7 @@ export default function ImageLightbox({
   isOpen,
   onClose,
 }: ImageLightboxProps) {
+  const t = useTranslations("ext_ecommerce");
   const [zoomLevel, setZoomLevel] = useState(1);
   const [imageSrc, setImageSrc] = useState(src || "/placeholder.svg");
 
@@ -94,7 +96,7 @@ export default function ImageLightbox({
             <button
               onClick={onClose}
               className="p-2 rounded-full hover:bg-gray-800 transition-colors"
-              aria-label="Close lightbox"
+              aria-label={t("close_lightbox")}
             >
               <X className="h-6 w-6" />
             </button>

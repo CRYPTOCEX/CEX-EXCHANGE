@@ -16,6 +16,8 @@ import { useTranslations } from "next-intl";
 
 export function UserPortfolio() {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExtIco = useTranslations("ext_ico");
   const { portfolio, fetchPortfolio } = usePortfolioStore();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -64,20 +66,20 @@ export function UserPortfolio() {
       <CardHeader>
         <CardTitle>{t("portfolio_overview")}</CardTitle>
         <CardDescription>
-          {t("your_investment_summary_and_performance")}
+          {tExtIco("your_investment_summary_and_performance")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="summary">
           <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="summary">{t("Summary")}</TabsTrigger>
-            <TabsTrigger value="performance">{t("Performance")}</TabsTrigger>
+            <TabsTrigger value="summary">{tCommon("summary")}</TabsTrigger>
+            <TabsTrigger value="performance">{t("performance")}</TabsTrigger>
           </TabsList>
           <TabsContent value="summary">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  {t("total_invested")}
+                  {tCommon("total_invested")}
                 </p>
                 <p className="text-2xl font-bold">
                   {formatCurrency(totalInvested)}
@@ -93,7 +95,7 @@ export function UserPortfolio() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">
-                  {t("total_profit_loss")}
+                  {tExtIco("total_profit_loss")}
                 </p>
                 <p
                   className={`text-2xl font-bold ${
@@ -105,7 +107,7 @@ export function UserPortfolio() {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">{t("ROI")}</p>
+                <p className="text-sm text-muted-foreground">{tCommon("roi")}</p>
                 <p
                   className={`text-2xl font-bold ${
                     Number(roi) >= 0 ? "text-green-500" : "text-red-500"

@@ -67,7 +67,9 @@ export function TradingWizard({
   children,
   initialData = {},
 }: TradingWizardProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtP2p = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
   const [currentStep, setCurrentStep] = useState(1);
   const [tradeData, setTradeData] = useState(initialData);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -203,9 +205,9 @@ export function TradingWizard({
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>{t("guided_trading")}</CardTitle>
+            <CardTitle>{tExtP2p("guided_trading")}</CardTitle>
             <div className="text-sm text-muted-foreground">
-              {t("Step")}{" "}
+              {t("step")}{" "}
               {currentStep}{" "}
               {t("of")}{" "}
               {totalSteps}
@@ -226,19 +228,19 @@ export function TradingWizard({
             {currentStep > 1 ? (
               <Button variant="outline" onClick={prevStep} disabled={isSubmittingOffer}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                {t("Back")}
+                {t("back")}
               </Button>
             ) : (
               <Button variant="outline" onClick={handleCancel} disabled={isSubmittingOffer}>
-                {t("Cancel")}
+                {t("cancel")}
               </Button>
             )}
           </div>
 
           {!isStepComplete(currentStep) && (
-            <div className="flex items-center text-amber-600 text-sm">
+            <div className="flex items-center text-amber-600 dark:text-amber-400 text-sm">
               <AlertTriangle className="h-4 w-4 mr-2" />
-              {t("please_complete_all_required_fields")}
+              {tExtP2p("please_complete_all_required_fields")}
             </div>
           )}
 
@@ -251,18 +253,18 @@ export function TradingWizard({
                 {isSubmittingOffer ? (
                   <>
                     <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
-                    {t("Creating")}...
+                    {t('creating_ellipsis')}...
                   </>
                 ) : (
                   <>
-                    {t("Complete")}
+                    {t("complete")}
                     <CheckCircle2 className="ml-2 h-4 w-4" />
                   </>
                 )}
               </>
             ) : (
               <>
-                {t("Continue")}
+                {tExt("continue")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </>
             )}

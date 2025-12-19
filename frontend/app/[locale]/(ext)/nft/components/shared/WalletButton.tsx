@@ -21,7 +21,8 @@ interface WalletButtonProps {
 }
 
 export function WalletButton({ onConnect, className = "" }: WalletButtonProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("ext_nft");
+  const tCommon = useTranslations("common");
   const { address, chainId, isConnected } = useWalletStore();
   const { open } = useAppKit();
   const { disconnect } = useDisconnect();
@@ -149,7 +150,7 @@ export function WalletButton({ onConnect, className = "" }: WalletButtonProps) {
               )}
             </button>
           </div>
-          <span className="text-xs text-muted-foreground">{t("network")} {getChainName(chainId)}</span>
+          <span className="text-xs text-muted-foreground">{tCommon("network")} {getChainName(chainId)}</span>
         </div>
 
         <DropdownMenuSeparator />

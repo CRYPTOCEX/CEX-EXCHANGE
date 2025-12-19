@@ -25,7 +25,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useCreatorStore } from "@/store/ico/creator/creator-store";
+import { useTranslations } from "next-intl";
 export function CreatorTokensList() {
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
+  const tExtAdmin = useTranslations("ext_admin");
   const searchParams = useSearchParams();
   const statusParam = searchParams.get("status") || "active";
   const [activeTab, setActiveTab] = useState(statusParam);
@@ -61,9 +66,9 @@ export function CreatorTokensList() {
         {/* Loading skeletons */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold">My Tokens</h2>
+            <h2 className="text-2xl font-bold">{t("my_tokens")}</h2>
             <p className="text-muted-foreground">
-              Manage and monitor your token offerings
+              {t("manage_and_monitor_your_token_offerings")}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -111,7 +116,7 @@ export function CreatorTokensList() {
       <div className="p-6 border-red-200 bg-red-50 rounded">
         <div className="flex items-center gap-2 text-red-600">
           <AlertCircle className="h-5 w-5" />
-          <p>Error loading tokens: {tokensError}</p>
+          <p>{t("error_loading_tokens_1")}: {tokensError}</p>
         </div>
         <Button variant="outline" className="mt-4" onClick={fetchTokens}>
           Retry
@@ -123,15 +128,15 @@ export function CreatorTokensList() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h2 className="text-2xl font-bold">My Tokens</h2>
+          <h2 className="text-2xl font-bold">{t("my_tokens")}</h2>
           <p className="text-muted-foreground">
-            Manage and monitor your token offerings
+            {t("manage_and_monitor_your_token_offerings")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative w-64">
             <Input
-              placeholder="Search tokens..."
+              placeholder={t("search_tokens_ellipsis")}
               className="pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -145,13 +150,13 @@ export function CreatorTokensList() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Sort By</DropdownMenuLabel>
+              <DropdownMenuLabel>{tCommon("sort_by")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleSort("progress")}>
                 Progress
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleSort("raised")}>
-                Amount Raised
+                {t("amount_raised")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleSort("investors")}>
                 Investors
@@ -248,7 +253,7 @@ export function CreatorTokensList() {
                               <span>investors</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <span>{daysLeft}d left</span>
+                              <span>{daysLeft}{t("d_left")}</span>
                             </div>
                           </div>
                         </div>
@@ -264,7 +269,7 @@ export function CreatorTokensList() {
                         <Progress value={progress} className="h-2" />
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>
-                            Target: ${token.targetAmount.toLocaleString()}
+                            {tExtAdmin("target")}{token.targetAmount.toLocaleString()}
                           </span>
                         </div>
                       </div>
@@ -279,7 +284,7 @@ export function CreatorTokensList() {
                                 </Button>
                               </Link>
                             </TooltipTrigger>
-                            <TooltipContent>View Details</TooltipContent>
+                            <TooltipContent>{tCommon("view_details")}</TooltipContent>
                           </Tooltip>
                         </div>
                       </TooltipProvider>
@@ -316,7 +321,7 @@ export function CreatorTokensList() {
                           </p>
                           <div className="flex items-center gap-2 mt-2">
                             <span className="text-sm text-muted-foreground">
-                              Submitted on{" "}
+                              {tCommon("submitted_on")}{" "}
                               {token.submittedAt &&
                                 new Date(
                                   token.submittedAt
@@ -327,7 +332,7 @@ export function CreatorTokensList() {
                       </div>
                       <div className="flex-1 max-w-md">
                         <div className="text-sm text-muted-foreground">
-                          Target: ${token.targetAmount.toLocaleString()}
+                          {tExtAdmin("target")}{token.targetAmount.toLocaleString()}
                         </div>
                       </div>
                       <TooltipProvider>
@@ -340,7 +345,7 @@ export function CreatorTokensList() {
                                 </Button>
                               </Link>
                             </TooltipTrigger>
-                            <TooltipContent>View Application</TooltipContent>
+                            <TooltipContent>{tCommon("view_application")}</TooltipContent>
                           </Tooltip>
                         </div>
                       </TooltipProvider>
@@ -384,7 +389,7 @@ export function CreatorTokensList() {
                               <span>investors</span>
                             </div>
                             <span>
-                              Completed on{" "}
+                              {tExt("completed_on")}{" "}
                               {token.approvedAt &&
                                 new Date(token.approvedAt).toLocaleDateString()}
                             </span>
@@ -412,7 +417,7 @@ export function CreatorTokensList() {
                                 </Button>
                               </Link>
                             </TooltipTrigger>
-                            <TooltipContent>View Details</TooltipContent>
+                            <TooltipContent>{tCommon("view_details")}</TooltipContent>
                           </Tooltip>
                         </div>
                       </TooltipProvider>

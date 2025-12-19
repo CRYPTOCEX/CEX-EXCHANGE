@@ -8,6 +8,9 @@ export const metadata: OperationObject = {
   summary: "Gets chart data for analytics",
   operationId: "getAnalyticsData",
   tags: ["User", "Analytics"],
+  requiresAuth: true,
+  logModule: "AFFILIATE",
+  logTitle: "Get affiliate analytics data",
   requestBody: {
     required: true,
     content: {
@@ -97,11 +100,11 @@ export const metadata: OperationObject = {
     },
     401: { description: "Unauthorized access" },
   },
-  requiresAuth: true,
 };
 
 export default async (data: Handler) => {
-  const { user, query, body } = data;
+  const { user, query, body, ctx } = data;
+
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
@@ -116,6 +119,7 @@ export default async (data: Handler) => {
   } = body;
   const { availableFilters } = body;
 
+  ctx?.step(`Validating analytics request for model: ${model}`);
   if (!["mlmReferral", "mlmReferralReward"].includes(model))
     throw createError(400, "Invalid model");
 
@@ -128,17 +132,21 @@ export default async (data: Handler) => {
   // Default modelConfig to an empty object if it's undefined or null.
   const additionalFilter = modelConfig || {};
 
+  ctx?.step(`Generating chart data for ${charts?.length || 0} charts and ${kpis?.length || 0} KPIs`);
   // If MySQL, ensure the model exists and call the MySQL aggregator.
   if (db === "mysql") {
     if (!models[model]) {
       throw createError(400, "Invalid or missing model");
     }
-    return getChartData({
+    const result = await getChartData({
       model: models[model],
       timeframe,
       charts,
       kpis,
       where: additionalFilter,
     });
+
+    ctx?.success(`Generated analytics data for ${model} with timeframe: ${timeframe}`);
+    return result;
   }
 };

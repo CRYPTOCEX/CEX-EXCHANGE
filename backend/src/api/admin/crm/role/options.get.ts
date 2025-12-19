@@ -35,14 +35,22 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "access.role",
+  logModule: "ADMIN_CRM",
+  logTitle: "Get Role Options",
 };
 
 export default async (data: Handler) => {
-  return await models.role.findAll({
+  const { ctx } = data;
+
+  ctx?.step("Fetching role options");
+  const roles = await models.role.findAll({
     where: {
       name: {
         [Op.ne]: "Super Admin",
       },
     },
   });
+
+  ctx?.success("Role options retrieved successfully");
+  return roles;
 };

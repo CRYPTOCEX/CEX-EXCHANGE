@@ -1,113 +1,225 @@
+"use client";
 import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+import { useTranslations } from "next-intl";
 
-export const authorAnalytics: AnalyticsConfig = [
-  // ─────────────────────────────────────────────────────────────
-  // Group 1: Author Overview – KPI Grid (Left) & Status Distribution Pie Chart (Right)
-  // ─────────────────────────────────────────────────────────────
-  [
+export function useAnalytics() {
+  const t = useTranslations("blog_admin");
+  const tCommon = useTranslations("common");
+
+  return [
+    // ─────────────────────────────────────────────────────────────
+    // Group 1: Author Status Overview – KPI Grid & Pie Chart
+    // ─────────────────────────────────────────────────────────────
+    [
+      {
+        type: "kpi",
+        layout: { cols: 2, rows: 2 },
+        responsive: {
+          mobile: { cols: 1, rows: 4, span: 1 },
+          tablet: { cols: 2, rows: 2, span: 2 },
+          desktop: { cols: 2, rows: 2, span: 2 },
+        },
+        items: [
+          {
+            id: "total_authors",
+            title: tCommon("total_authors"),
+            metric: "total",
+            model: "author",
+            icon: "mdi:account-multiple",
+          },
+          {
+            id: "pending_authors",
+            title: tCommon("pending"),
+            metric: "PENDING",
+            model: "author",
+            aggregation: { field: "status", value: "PENDING" },
+            icon: "mdi:clock-outline",
+          },
+          {
+            id: "approved_authors",
+            title: tCommon("approved"),
+            metric: "APPROVED",
+            model: "author",
+            aggregation: { field: "status", value: "APPROVED" },
+            icon: "mdi:check-circle",
+          },
+          {
+            id: "rejected_authors",
+            title: tCommon("rejected"),
+            metric: "REJECTED",
+            model: "author",
+            aggregation: { field: "status", value: "REJECTED" },
+            icon: "mdi:close-circle",
+          },
+        ],
+      },
+      {
+        type: "chart",
+        responsive: {
+          mobile: { cols: 1, rows: 1, span: 1 },
+          tablet: { cols: 1, rows: 1, span: 1 },
+          desktop: { cols: 1, rows: 1, span: 1 },
+        },
+        items: [
+          {
+            id: "authorStatusDistribution",
+            title: tCommon("status_distribution"),
+            type: "pie",
+            model: "author",
+            metrics: ["PENDING", "APPROVED", "REJECTED"],
+            config: {
+              field: "status",
+              status: [
+                {
+                  value: "PENDING",
+                  label: tCommon("pending"),
+                  color: "orange",
+                  icon: "mdi:clock-outline",
+                },
+                {
+                  value: "APPROVED",
+                  label: tCommon("approved"),
+                  color: "green",
+                  icon: "mdi:check-circle",
+                },
+                {
+                  value: "REJECTED",
+                  label: tCommon("rejected"),
+                  color: "red",
+                  icon: "mdi:close-circle",
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ],
+
+    // ─────────────────────────────────────────────────────────────
+    // Group 2: Author Approval Metrics – KPI Grid
+    // ─────────────────────────────────────────────────────────────
     {
       type: "kpi",
-      layout: { cols: 3, rows: 1 }, // 3 KPI cards in one row
+      layout: { cols: 3, rows: 1 },
+      responsive: {
+        mobile: { cols: 1, rows: 3, span: 1 },
+          tablet: { cols: 3, rows: 1, span: 2 },
+          desktop: { cols: 3, rows: 1, span: 2 },
+      },
       items: [
         {
-          id: "total_authors",
-          title: "Total Authors",
-          metric: "total", // COUNT(*) of all author records
+          id: "approval_rate",
+          title: tCommon("approval_rate"),
+          metric: "approvalRate",
           model: "author",
-          icon: "mdi:account-multiple",
+          icon: "mdi:percent",
         },
         {
-          id: "approved_authors",
-          title: "Approved",
-          metric: "APPROVED",
+          id: "rejection_rate",
+          title: t("rejection_rate"),
+          metric: "rejectionRate",
           model: "author",
-          aggregation: { field: "status", value: "APPROVED" },
-          icon: "mdi:check-circle",
+          icon: "mdi:cancel",
         },
         {
-          id: "pending_authors",
-          title: "Pending",
-          metric: "PENDING",
+          id: "pending_rate",
+          title: t("pending_rate"),
+          metric: "pendingRate",
           model: "author",
-          aggregation: { field: "status", value: "PENDING" },
-          icon: "mdi:clock-outline",
+          icon: "mdi:clock-fast",
         },
       ],
     },
+
+    // ─────────────────────────────────────────────────────────────
+    // Group 3: Author Productivity Metrics – KPI Grid
+    // ─────────────────────────────────────────────────────────────
     {
-      type: "chart",
+      type: "kpi",
+      layout: { cols: 3, rows: 1 },
+      responsive: {
+        mobile: { cols: 1, rows: 3, span: 1 },
+          tablet: { cols: 3, rows: 1, span: 2 },
+          desktop: { cols: 3, rows: 1, span: 2 },
+      },
       items: [
         {
-          id: "authorStatusDistribution",
-          title: "Status Distribution",
-          type: "pie",
+          id: "total_posts_by_authors",
+          title: t("total_posts_by_authors"),
+          metric: "totalPosts",
           model: "author",
-          metrics: ["APPROVED", "PENDING", "REJECTED"],
-          config: {
-            field: "status",
-            status: [
-              {
-                value: "APPROVED",
-                label: "Approved",
-                color: "green",
-                icon: "mdi:check-circle",
-              },
-              {
-                value: "PENDING",
-                label: "Pending",
-                color: "orange",
-                icon: "mdi:clock-outline",
-              },
-              {
-                value: "REJECTED",
-                label: "Rejected",
-                color: "red",
-                icon: "mdi:close-circle",
-              },
-            ],
+          icon: "mdi:post",
+        },
+        {
+          id: "avg_posts_per_author",
+          title: t("average_posts_per_author"),
+          metric: "averagePosts",
+          model: "author",
+          icon: "mdi:calculator",
+        },
+        {
+          id: "active_authors",
+          title: t("active_authors"),
+          metric: "activeAuthors",
+          model: "author",
+          icon: "mdi:account-check",
+        },
+      ],
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    // Group 4: Author Application Trends Over Time – Full-Width Line Chart
+    // ─────────────────────────────────────────────────────────────
+    {
+      type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
+      items: [
+        {
+          id: "authorsOverTime",
+          title: t("author_applications_over_time"),
+          type: "line",
+          model: "author",
+          metrics: ["total", "PENDING", "APPROVED", "REJECTED"],
+          timeframes: ["24h", "7d", "30d", "3m", "6m", "y"],
+          labels: {
+            total: tCommon("total_applications"),
+            PENDING: tCommon("pending"),
+            APPROVED: tCommon("approved"),
+            REJECTED: tCommon("rejected"),
           },
         },
       ],
     },
-  ],
 
-  // ─────────────────────────────────────────────────────────────
-  // Group 2: Average Posts Per Author (Optional)
-  // ─────────────────────────────────────────────────────────────
-  {
-    type: "kpi",
-    layout: { cols: 1, rows: 1 },
-    items: [
-      {
-        id: "avg_posts_per_author",
-        title: "Avg Posts/Author",
-        metric: "averagePosts", // Custom aggregator: total posts divided by total authors
-        model: "author",
-        icon: "mdi:post-outline",
+    // ─────────────────────────────────────────────────────────────
+    // Group 5: Author Status Distribution Bar Chart
+    // ─────────────────────────────────────────────────────────────
+    {
+      type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
       },
-    ],
-  },
-
-  // ─────────────────────────────────────────────────────────────
-  // Group 3: Author Trends Over Time – Full-Width Line Chart
-  // ─────────────────────────────────────────────────────────────
-  {
-    type: "chart",
-    items: [
-      {
-        id: "authorsOverTime",
-        title: "Authors Over Time",
-        type: "line",
-        model: "author",
-        metrics: ["total", "APPROVED", "PENDING", "REJECTED"],
-        timeframes: ["24h", "7d", "30d", "3m", "6m", "y"],
-        labels: {
-          total: "Total Authors",
-          APPROVED: "Approved",
-          PENDING: "Pending",
-          REJECTED: "Rejected",
+      items: [
+        {
+          id: "authorStatusBar",
+          title: t("author_status_breakdown"),
+          type: "bar",
+          model: "author",
+          metrics: ["PENDING", "APPROVED", "REJECTED"],
+          timeframes: ["7d", "30d", "3m", "6m", "y"],
+          labels: {
+            PENDING: tCommon("pending"),
+            APPROVED: tCommon("approved"),
+            REJECTED: tCommon("rejected"),
+          },
         },
-      },
-    ],
-  },
-];
+      ],
+    },
+  ] as AnalyticsConfig;
+}

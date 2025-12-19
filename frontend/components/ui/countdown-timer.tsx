@@ -2,6 +2,7 @@ import React from 'react';
 import { Timer, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCountdown } from '@/hooks/use-countdown';
+import { useTranslations } from "next-intl";
 
 interface CountdownTimerProps {
   endTime: string | Date | null | undefined;
@@ -18,6 +19,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   size = 'md',
   variant = 'default'
 }) => {
+  const t = useTranslations("common");
   const { timeLeft, isExpired, isUrgent, isCritical, formatTime } = useCountdown(endTime);
 
   if (!endTime) {
@@ -55,7 +57,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
         className
       )}>
         {showIcon && <AlertTriangle className={iconSizeClasses[size]} />}
-        <span>Auction Ended</span>
+        <span>{t("auction_ended")}</span>
       </div>
     );
   }
@@ -71,7 +73,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       <span>{formatTime()}</span>
       {isCritical && (
         <span className="text-xs font-sans text-red-600">
-          (ending soon!)
+          {t("ending_soon")}
         </span>
       )}
     </div>

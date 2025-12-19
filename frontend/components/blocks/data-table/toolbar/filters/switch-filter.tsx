@@ -6,6 +6,7 @@ import { FilterWrapper } from "./filter-wrapper";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface SwitchFilterProps {
   label: string;
@@ -25,6 +26,8 @@ export function SwitchFilter({
   onChange,
   value,
 }: SwitchFilterProps) {
+  const t = useTranslations("components_blocks");
+  const tCommon = useTranslations("common");
   const [isActive, setIsActive] = React.useState(value !== undefined);
   const [switchValue, setSwitchValue] = React.useState(value || false);
 
@@ -49,10 +52,10 @@ export function SwitchFilter({
   };
 
   const getStatusText = () => {
-    if (!isActive) return "Show all";
+    if (!isActive) return t("show_all");
     return switchValue
-      ? `Show ${label.toLowerCase()} only`
-      : `Show not ${label.toLowerCase()} only`;
+      ? `${tCommon("show")} ${label.toLowerCase()} ${t("only")}`
+      : `${t("show_not")} ${label.toLowerCase()} ${t("only")}`;
   };
 
   return (

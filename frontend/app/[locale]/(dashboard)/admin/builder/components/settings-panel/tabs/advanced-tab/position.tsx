@@ -153,7 +153,8 @@ const UNITS = [
 ];
 
 export function Position({ settings, onSettingChange }: ComponentProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   // Cast settings to our specific type
   const positionSettings = settings as PositionSettings;
 
@@ -441,7 +442,7 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
             className={`rounded-none border-b-2 ${activeTab === "basic" ? "border-purple-500" : "border-transparent"}`}
             onClick={() => setActiveTab("basic")}
           >
-            {t("Basic")}
+            {tCommon("basic")}
           </Button>
           <Button
             variant="ghost"
@@ -453,7 +454,7 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
             }`}
             onClick={() => setActiveTab("advanced")}
           >
-            {t("Advanced")}
+            {tCommon("advanced")}
           </Button>
           <Button
             variant="ghost"
@@ -492,7 +493,7 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
 
           {/* Unit Selector */}
           <div className="space-y-1">
-            <Label className="text-xs">{t("Unit")}</Label>
+            <Label className="text-xs">{t("unit")}</Label>
             <div className="flex gap-1">
               {UNITS.map((unitOption) => (
                 <Button
@@ -511,7 +512,7 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
           {/* Position Values */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs">{t("Top")}</Label>
+              <Label className="text-xs">{tCommon("top")}</Label>
               <div className="flex gap-2">
                 <LabeledInput
                   id="top-value"
@@ -542,7 +543,7 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
               </div>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">{t("Right")}</Label>
+              <Label className="text-xs">{t("right")}</Label>
               <div className="flex gap-2">
                 <LabeledInput
                   id="right-value"
@@ -573,7 +574,7 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
               </div>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">{t("Bottom")}</Label>
+              <Label className="text-xs">{t("bottom")}</Label>
               <div className="flex gap-2">
                 <LabeledInput
                   id="bottom-value"
@@ -604,7 +605,7 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
               </div>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">{t("Left")}</Label>
+              <Label className="text-xs">{t("left")}</Label>
               <div className="flex gap-2">
                 <LabeledInput
                   id="left-value"
@@ -639,7 +640,7 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
           {/* Z-Index */}
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">{t("Z-Index")}</Label>
+              <Label className="text-xs">{t("z_index")}</Label>
               <LabeledInput
                 id="z-index"
                 label=""
@@ -690,7 +691,7 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
 
           {/* Constraints */}
           <div className="space-y-1">
-            <Label className="text-xs">{t("Constraints")}</Label>
+            <Label className="text-xs">{t("constraints")}</Label>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div>
@@ -753,7 +754,7 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
               {positionSettings.responsivePosition && (
                 <div className="space-y-2 border p-2 rounded-md">
                   <Label className="text-xs">
-                    {t("mobile_position_(below_768px)")}
+                    {t("mobile_position_below_768px")}
                   </Label>
                   <LabeledSelect
                     id="mobilePosition"
@@ -794,7 +795,7 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
                       }
                       className="w-20"
                     />
-                    <span className="text-xs">{t("px")}</span>
+                    <span className="text-xs">{tCommon("px")}</span>
                   </div>
                 </div>
               </div>
@@ -868,7 +869,7 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
               }}
             >
               <AlignCenter className="h-3 w-3 mr-1" />
-              {t("Center")}
+              {t("center")}
             </Button>
             <Button
               variant="outline"

@@ -23,7 +23,7 @@ export default function ReorderControls({
   isLast,
   color = "purple",
 }: ReorderControlsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   // Get color classes based on the color prop
   const getColorClasses = () => {
     switch (color) {

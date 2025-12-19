@@ -15,23 +15,28 @@ export const metadata = {
   responses: deleteRecordResponses("Announcement"),
   permission: "delete.announcement",
   requiresAuth: true,
+  logModule: "ADMIN_SYS",
+  logTitle: "Delete announcement",
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
+  const { params, query, ctx } = data;
   const { id } = params;
 
+  ctx?.step(`Deleting announcement ${id}`);
   const message = handleSingleDelete({
     model: "announcement",
     id,
     query,
   });
 
+  ctx?.step("Broadcasting announcement deletion");
   handleBroadcastMessage({
     type: "announcements",
     method: "delete",
     id,
   });
 
+  ctx?.success("Announcement deleted successfully");
   return message;
 };

@@ -29,9 +29,11 @@ import TokenTeam from "../components/team";
 import TokenRoadmap from "../components/roadmap";
 import { TokenUpdates } from "../components/updates";
 import { useTranslations } from "next-intl";
-
 export default function TokenPageClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
+  const tExtAdmin = useTranslations("ext_admin");
   const params = useParams();
   const tokenId = params.id as string;
   const router = useRouter();
@@ -68,16 +70,16 @@ export default function TokenPageClient() {
             variant="outline"
             className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
           >
-            {t("Pending")}
+            {tCommon("pending")}
           </Badge>
         );
       case "ACTIVE":
         return (
           <Badge
             variant="outline"
-            className="bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200"
+            className={"bg-teal-100 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400"}
           >
-            {t("Active")}
+            {tCommon("active")}
           </Badge>
         );
       case "SUCCESS":
@@ -86,7 +88,7 @@ export default function TokenPageClient() {
             variant="outline"
             className="bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200"
           >
-            {t("Success")}
+            {tExt("success")}
           </Badge>
         );
       case "FAILED":
@@ -95,16 +97,16 @@ export default function TokenPageClient() {
             variant="outline"
             className="bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200"
           >
-            {t("Failed")}
+            {tCommon("failed")}
           </Badge>
         );
       case "UPCOMING":
         return (
           <Badge
             variant="outline"
-            className="bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200"
+            className={"bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400"}
           >
-            {t("Upcoming")}
+            {tCommon("upcoming")}
           </Badge>
         );
       case "REJECTED":
@@ -113,7 +115,7 @@ export default function TokenPageClient() {
             variant="outline"
             className="bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200"
           >
-            {t("Rejected")}
+            {tCommon("rejected")}
           </Badge>
         );
       default:
@@ -154,7 +156,7 @@ export default function TokenPageClient() {
   return (
     <div className="pb-16">
       {/* Hero Header */}
-      <div className="bg-gradient-to-b from-primary/10 to-background pt-8 pb-6">
+      <div className="bg-gradient-to-b from-primary/10 to-background pb-6 pt-20">
         <div className="container">
           <Link href="/ico/creator?tab=token">
             <Button variant="ghost" size="sm" className="mb-4">
@@ -255,7 +257,7 @@ export default function TokenPageClient() {
                       ${(currentToken.fundsRaised || 0).toLocaleString()}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {t("target_$")} {(currentToken.fundingGoal || 0).toLocaleString()}
+                      {tExtAdmin("target")} {(currentToken.fundingGoal || 0).toLocaleString()}
                     </p>
                     {currentToken.fundingGoal && (
                       <div className="mt-2 h-2 w-full bg-muted rounded-full overflow-hidden">
@@ -274,7 +276,7 @@ export default function TokenPageClient() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium flex items-center gap-2">
                       <Users className="h-4 w-4 text-primary" />
-                      {t("Investors")}
+                      {t("investors")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -282,7 +284,7 @@ export default function TokenPageClient() {
                       {(currentToken.investorsCount || 0).toLocaleString()}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {t("From")}{" "}
+                      {tCommon("from")}{" "}
                       {currentToken.launchDate
                         ? new Date(currentToken.launchDate).toLocaleDateString()
                         : "launch"}
@@ -299,7 +301,7 @@ export default function TokenPageClient() {
                           <Shield className="h-3 w-3 mr-1" />
                           {currentToken.plan?.name.charAt(0).toUpperCase() +
                             currentToken.plan?.name.slice(1)}{" "}
-                          {t("Plan")}
+                          {tCommon("plan")}
                         </Badge>
                       )}
                     </div>
@@ -310,7 +312,7 @@ export default function TokenPageClient() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-primary" />
-                      {t("Timeline")}
+                      {tCommon("timeline")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -335,7 +337,7 @@ export default function TokenPageClient() {
                           {currentToken.createdAt && (
                             <div className="flex justify-between items-center text-sm">
                               <span className="text-muted-foreground">
-                                {t("Created")}
+                                {tCommon("created")}
                               </span>
                               <span>
                                 {new Date(
@@ -347,7 +349,7 @@ export default function TokenPageClient() {
                           {currentToken.launchDate && (
                             <div className="flex justify-between items-center text-sm">
                               <span className="text-muted-foreground">
-                                {t("Launched")}
+                                {t("launched")}
                               </span>
                               <span>
                                 {new Date(
@@ -359,7 +361,7 @@ export default function TokenPageClient() {
                           {currentToken.endDate && (
                             <div className="flex justify-between items-center text-sm">
                               <span className="text-muted-foreground">
-                                {t("Completed")}
+                                {tCommon("completed")}
                               </span>
                               <span>
                                 {new Date(
@@ -400,15 +402,15 @@ export default function TokenPageClient() {
           <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="team" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">{t("Team")}</span>
+              <span className="hidden sm:inline">{tExt("team")}</span>
             </TabsTrigger>
             <TabsTrigger value="roadmap" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
-              <span className="hidden sm:inline">{t("Roadmap")}</span>
+              <span className="hidden sm:inline">{tExt("roadmap")}</span>
             </TabsTrigger>
             <TabsTrigger value="updates" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
-              <span className="hidden sm:inline">{t("Updates")}</span>
+              <span className="hidden sm:inline">{t("updates")}</span>
             </TabsTrigger>
           </TabsList>
 

@@ -20,13 +20,17 @@ export const metadata = {
   responses: storeRecordResponses(sliderSchema, "Slider"),
   requiresAuth: true,
   permission: "create.slider",
+  logModule: "ADMIN_CMS",
+  logTitle: "Create slider",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { image, link, status } = body;
 
-  return storeRecord({
+  ctx?.step("Validating slider data");
+  ctx?.step("Creating slider");
+  const result = await storeRecord({
     model: "slider",
     data: {
       image,
@@ -35,4 +39,7 @@ export default async (data: Handler) => {
     },
     returnResponse: true,
   });
+
+  ctx?.success("Slider created successfully");
+  return result;
 };

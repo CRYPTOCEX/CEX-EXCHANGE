@@ -1,5 +1,5 @@
 // Minimal cron utility placeholder
+// This is a stub - actual implementation should be in the ecosystem extension
 export async function processPendingEcoWithdrawals() {
-  console.log("Processing pending eco withdrawals...");
-  // Implementation would go here if ecosystem extensions are available
+  // Silent placeholder - no action needed if ecosystem extension not configured
 } 

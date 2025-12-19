@@ -34,7 +34,8 @@ export function AdminNotes({
   setNoteText,
   handleAddNote,
 }: AdminNotesProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
 
   // Get notes from dispute - could be adminNotes array or notes from timeline
   const adminNotes = dispute?.adminNotes || [];
@@ -42,7 +43,7 @@ export function AdminNotes({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("admin_notes")}</CardTitle>
+        <CardTitle>{tCommon("admin_notes")}</CardTitle>
         <CardDescription>{t("internal_notes_about_this_dispute")}</CardDescription>
       </CardHeader>
       <CardContent>
@@ -63,7 +64,7 @@ export function AdminNotes({
             <div className="rounded-md border border-dashed p-4 text-center">
               <FileText className="h-8 w-8 mx-auto mb-2 text-muted-foreground opacity-50" />
               <p className="text-sm text-muted-foreground">
-                No admin notes yet
+                {t("no_admin_notes_yet")}
               </p>
             </div>
           )}
@@ -79,7 +80,7 @@ export function AdminNotes({
             onClick={handleAddNote}
             disabled={!noteText.trim()}
           >
-            {t("add_note")}
+            {tCommon("add_note")}
           </Button>
         </div>
       </CardContent>

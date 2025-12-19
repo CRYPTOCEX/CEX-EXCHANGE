@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "addTeamMember",
   tags: ["ICO", "Creator", "Team"],
   requiresAuth: true,
+  logModule: "ICO_TEAM",
+  logTitle: "Add team member",
   parameters: [
     {
       index: 0,
@@ -59,8 +61,8 @@ export const metadata = {
   },
 };
 
-export default async (data: { user?: any; params?: any; body?: any }) => {
-  const { user, params, body } = data;
+export default async (data: { user?: any; params?: any; body?: any; ctx?: any }) => {
+  const { user, params, body, ctx } = data;
   const offeringId = params.id;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -68,6 +70,8 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
   if (!offeringId) {
     throw createError({ statusCode: 400, message: "Offering ID is required" });
   }
+
+  ctx?.step("Validating team member request");
 
   // Fetch offering with plan and current team members for limit check
   const offering = await models.icoTokenOffering.findOne({
@@ -81,6 +85,7 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     throw createError({ statusCode: 404, message: "Offering not found" });
   }
 
+  ctx?.step("Checking team member limit");
   // Check team member limit based on the launch plan's features.
   if (
     offering.plan &&
@@ -93,11 +98,13 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     });
   }
 
+  ctx?.step("Creating team member record");
   await models.icoTeamMember.create({
     ...body,
     offeringId,
   });
 
+  ctx?.step("Sending notification");
   // Create a notification about the new team member.
   try {
     await createNotification({
@@ -123,5 +130,6 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     );
   }
 
+  ctx?.success(`Added team member "${body.name}"`);
   return { message: "Team member added successfully" };
 };

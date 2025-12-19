@@ -12,6 +12,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollapsibleSection } from "../../../ui/collapsible-section";
 import type { SettingsProps } from "../settings-map";
+import { useTranslations } from "next-intl";
 
 // Define types for the image grid settings
 interface ImageObject {
@@ -67,6 +68,8 @@ export function AnimatedImageGridSettings({
   onSettingChange,
   onElementUpdate,
 }: StatsSettingsProps) {
+  const t = useTranslations("dashboard_admin")
+  const tCommon = useTranslations('common');;
   const [activeTab, setActiveTab] = useState<string>("general");
   const [openColumnIds, setOpenColumnIds] = useState<string[]>([]);
   const [editingImageIndex, setEditingImageIndex] = useState<number | null>(
@@ -357,14 +360,14 @@ export function AnimatedImageGridSettings({
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-2 mb-4">
           <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="transform">3D Transform</TabsTrigger>
+          <TabsTrigger value="transform">{`3D ${tCommon('transform')}`}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-4">
           <div className="space-y-4">
             <LabeledSlider
               id="gap"
-              label="Gap Between Columns"
+              label={t("gap_between_columns")}
               min={0}
               max={24}
               step={1}
@@ -446,7 +449,7 @@ export function AnimatedImageGridSettings({
                           onClick={() => handleAddImage(colKey)}
                           className="h-7 text-xs"
                         >
-                          <Plus className="h-3 w-3 mr-1" /> Add Image
+                          <Plus className="h-3 w-3 mr-1" /> {t("add_image")}
                         </Button>
                       </div>
 
@@ -461,7 +464,7 @@ export function AnimatedImageGridSettings({
                                 <div className="space-y-3">
                                   <div className="space-y-1">
                                     <Label className="text-xs">
-                                      Light Mode Image
+                                      {t("light_mode_image")}
                                     </Label>
                                     <div className="h-24">
                                       <ImageUpload
@@ -481,7 +484,7 @@ export function AnimatedImageGridSettings({
 
                                   <div className="space-y-1">
                                     <Label className="text-xs">
-                                      Dark Mode Image
+                                      {t("dark_mode_image")}
                                     </Label>
                                     <div className="h-24">
                                       <ImageUpload
@@ -589,7 +592,7 @@ export function AnimatedImageGridSettings({
                         {(!imageColumns[colKey] ||
                           imageColumns[colKey].length === 0) && (
                           <div className="text-center py-4 text-gray-500 text-sm">
-                            No images added yet
+                            {t("no_images_added_yet")}
                           </div>
                         )}
                       </div>
@@ -605,7 +608,7 @@ export function AnimatedImageGridSettings({
           <CollapsibleSection title="Perspective" isOpen={true}>
             <LabeledSlider
               id="perspective"
-              label="Perspective (px)"
+              label={t("perspective_px")}
               min={100}
               max={2000}
               step={50}
@@ -625,7 +628,7 @@ export function AnimatedImageGridSettings({
             <div className="space-y-4">
               <LabeledSlider
                 id="rotateX"
-                label="Rotate X (deg)"
+                label={`${t("rotate_x_deg")} (deg)`}
                 min={-45}
                 max={45}
                 step={1}
@@ -642,7 +645,7 @@ export function AnimatedImageGridSettings({
 
               <LabeledSlider
                 id="rotateY"
-                label="Rotate Y (deg)"
+                label={`${t("rotate_y_deg")} (deg)`}
                 min={-45}
                 max={45}
                 step={1}
@@ -659,7 +662,7 @@ export function AnimatedImageGridSettings({
 
               <LabeledSlider
                 id="rotateZ"
-                label="Rotate Z (deg)"
+                label={`${t("rotate_z_deg")} (deg)`}
                 min={-45}
                 max={45}
                 step={1}
@@ -680,7 +683,7 @@ export function AnimatedImageGridSettings({
             <div className="space-y-4">
               <LabeledSlider
                 id="scaleX"
-                label="Scale X"
+                label={t("scale_x")}
                 min={0.5}
                 max={1.5}
                 step={0.1}
@@ -698,7 +701,7 @@ export function AnimatedImageGridSettings({
 
               <LabeledSlider
                 id="scaleY"
-                label="Scale Y"
+                label={t("scale_y")}
                 min={0.5}
                 max={1.5}
                 step={0.1}
@@ -720,7 +723,7 @@ export function AnimatedImageGridSettings({
             <div className="space-y-4">
               <LabeledSlider
                 id="translateX"
-                label="Translate X (%)"
+                label={`${t("translate_x")} (%)`}
                 min={-20}
                 max={20}
                 step={1}
@@ -737,7 +740,7 @@ export function AnimatedImageGridSettings({
 
               <LabeledSlider
                 id="translateY"
-                label="Translate Y (%)"
+                label={`${t("translate_y")} (%)`}
                 min={-20}
                 max={20}
                 step={1}

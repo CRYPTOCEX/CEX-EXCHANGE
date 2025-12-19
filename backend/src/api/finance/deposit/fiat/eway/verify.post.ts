@@ -2,7 +2,7 @@ import {
   notFoundMetadataResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
-
+import { logger } from "@b/utils/console";
 import {
   makeEwayRequest,
   EWAY_STATUS_MAPPING,
@@ -17,6 +17,8 @@ export const metadata: OperationObject = {
   description: "Verify an eWAY payment status using access code and update transaction accordingly",
   operationId: "verifyEwayPayment",
   tags: ["Finance", "Verification"],
+  logModule: "EWAY_DEPOSIT",
+  logTitle: "Verify eWAY payment",
   requestBody: {
     description: "Payment verification request",
     content: {
@@ -79,8 +81,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw new Error("User not authenticated");
   }
 
@@ -124,8 +128,8 @@ export default async (data: Handler) => {
     ) as EwayTransactionQueryResponse;
 
     if (ewayResponse.Errors) {
-      console.error("eWAY verification error:", ewayResponse.Errors);
-      
+      logger.error("EWAY", "Verification error", ewayResponse.Errors);
+
       // Update transaction status to failed
       await transaction.update({
         status: "FAILED",
@@ -167,9 +171,10 @@ export default async (data: Handler) => {
       try {
         const currency = transaction.metadata?.currency || 'AUD';
         const newBalance = wallet.balance;
-        await sendFiatTransactionEmail(user, transaction, currency, newBalance);
+        ctx?.step("Sending notification email");
+    await sendFiatTransactionEmail(user, transaction, currency, newBalance);
       } catch (emailError) {
-        console.error("Failed to send deposit confirmation email:", emailError);
+        logger.error("EWAY", "Failed to send deposit confirmation email", emailError);
       }
     }
 
@@ -204,8 +209,8 @@ export default async (data: Handler) => {
     };
 
   } catch (error) {
-    console.error("eWAY verification error:", error);
-    
+    logger.error("EWAY", "Verification error", error);
+
     if (error instanceof EwayError) {
       throw new Error(`eWAY Error: ${error.message}`);
     }

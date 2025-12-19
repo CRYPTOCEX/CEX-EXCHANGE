@@ -73,7 +73,8 @@ function formatTimestamp(timestamp: string): string {
 }
 
 export function TradeTimelineView({ timeline }: TradeTimelineViewProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   if (!timeline || timeline.length === 0) {
@@ -189,7 +190,7 @@ export function TradeTimelineView({ timeline }: TradeTimelineViewProps) {
           </button>
           <img
             src={lightboxImage}
-            alt={t("full_size")}
+            alt={tExt("full_size")}
             className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           />
@@ -254,8 +255,8 @@ function getEventStyle(eventType: string) {
   if (type.includes("ADMIN") || type.includes("RESOLVED")) {
     return {
       icon: Shield,
-      color: "text-purple-600",
-      bgColor: "border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950",
+      color: "text-blue-600",
+      bgColor: "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950",
     };
   }
 

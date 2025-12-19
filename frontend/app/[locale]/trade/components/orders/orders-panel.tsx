@@ -31,6 +31,7 @@ import {
   type MarketType as OrdersMarketType,
   ConnectionStatus,
 } from "@/services/orders-ws";
+import { useTranslations } from "next-intl";
 interface ExchangeOrder {
   id: string;
   referenceId?: string;
@@ -137,6 +138,8 @@ export default function OrdersPanel({
   isEco = false,
   pair,
 }: OrdersPanelProps) {
+  const t = useTranslations("trade_components");
+  const tCommon = useTranslations("common");
   const searchParams = useSearchParams();
   const marketType = searchParams.get("type") || "spot";
   const isFutures = marketType === "futures";
@@ -742,7 +745,7 @@ export default function OrdersPanel({
           )}
         >
           <Clock className="h-3.5 w-3.5 mr-1.5" />
-          Open Orders
+          {tCommon("open_orders")}
         </button>
         <button
           onClick={() => setActiveTab("history")}
@@ -789,7 +792,7 @@ export default function OrdersPanel({
                   disabled={isLoading}
                 >
                   <Trash2 className="h-3 w-3 mr-1" />
-                  Cancel All
+                  {t("cancel_all")}
                 </Button>
               )}
             </div>
@@ -809,7 +812,7 @@ export default function OrdersPanel({
                         Price{pair ? ` (${pair})` : ''}
                       </th>
                       <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
-                        Filled / Amount
+                        {t("filled_amount")}
                       </th>
                       <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
                         Total
@@ -957,9 +960,9 @@ export default function OrdersPanel({
               ) : (
                 <div className="flex flex-col items-center justify-center h-full py-10 text-muted-foreground dark:text-zinc-500">
                   <Clock className="h-10 w-10 mb-3 opacity-20" />
-                  <p className="text-sm font-medium mb-1">No open orders</p>
+                  <p className="text-sm font-medium mb-1">{t("no_open_orders")}</p>
                   <p className="text-xs text-muted-foreground/70 dark:text-zinc-600 text-center max-w-[220px]">
-                    Your active orders will appear here
+                    {t("your_active_orders_will_appear_here")}
                   </p>
                 </div>
               )}
@@ -971,7 +974,7 @@ export default function OrdersPanel({
           <div className="flex flex-col flex-1 min-h-0">
             <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-200 dark:border-zinc-800 flex-shrink-0">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-medium">Order History</span>
+                <span className="text-xs font-medium">{t("order_history")}</span>
                 <Badge
                   variant="outline"
                   className="h-5 text-[10px] px-1.5 border-zinc-200 dark:border-zinc-700 text-foreground dark:text-zinc-300"
@@ -982,7 +985,7 @@ export default function OrdersPanel({
 
               <div className="flex items-center gap-1">
                 <Input
-                  placeholder="Search..."
+                  placeholder={tCommon('search')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="h-6 text-xs w-24 bg-background dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
@@ -993,10 +996,10 @@ export default function OrdersPanel({
                     <SelectValue placeholder="Time" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Time</SelectItem>
-                    <SelectItem value="24h">Last 24h</SelectItem>
-                    <SelectItem value="7d">Last 7d</SelectItem>
-                    <SelectItem value="30d">Last 30d</SelectItem>
+                    <SelectItem value="all">{tCommon("all_time")}</SelectItem>
+                    <SelectItem value="24h">{t("last_24h")}</SelectItem>
+                    <SelectItem value="7d">{t("last_7d")}</SelectItem>
+                    <SelectItem value="30d">{t("last_30d")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1018,7 +1021,7 @@ export default function OrdersPanel({
                           Price{pair ? ` (${pair})` : ''}
                         </th>
                         <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
-                          Filled / Amount
+                          {t("filled_amount")}
                         </th>
                         <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
                           Total
@@ -1240,9 +1243,9 @@ export default function OrdersPanel({
               ) : (
                 <div className="flex flex-col items-center justify-center h-full py-10 text-muted-foreground dark:text-zinc-500">
                   <History className="h-10 w-10 mb-3 opacity-20" />
-                  <p className="text-sm font-medium mb-1">No order history</p>
+                  <p className="text-sm font-medium mb-1">{t("no_order_history")}</p>
                   <p className="text-xs text-muted-foreground/70 dark:text-zinc-600 text-center max-w-[220px]">
-                    Your completed orders will appear here
+                    {t("your_completed_orders_will_appear_here")}
                   </p>
                 </div>
               )}
@@ -1255,7 +1258,7 @@ export default function OrdersPanel({
             <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-200 dark:border-zinc-800 flex-shrink-0">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-medium">
-                  Open Positions ({positions.length})
+                  {t("open_positions")}{positions.length})
                 </span>
                 {positions.length > 0 && (
                   <Badge
@@ -1287,10 +1290,10 @@ export default function OrdersPanel({
                         Size
                       </th>
                       <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
-                        Entry Price{pair ? ` (${pair})` : ''}
+                        {tCommon("entry_price")}{pair ? ` (${pair})` : ''}
                       </th>
                       <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
-                        Liq. Price{pair ? ` (${pair})` : ''}
+                        {t("liq_price")}{pair ? ` (${pair})` : ''}
                       </th>
                       <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
                         PnL
@@ -1380,9 +1383,9 @@ export default function OrdersPanel({
               ) : (
                 <div className="flex flex-col items-center justify-center h-full py-10 text-muted-foreground dark:text-zinc-500">
                   <Briefcase className="h-10 w-10 mb-3 opacity-20" />
-                  <p className="text-sm font-medium mb-1">No open positions</p>
+                  <p className="text-sm font-medium mb-1">{t("no_open_positions")}</p>
                   <p className="text-xs text-muted-foreground/70 dark:text-zinc-600 text-center max-w-[220px]">
-                    Your active positions will appear here
+                    {t("your_active_positions_will_appear_here")}
                   </p>
                 </div>
               )}

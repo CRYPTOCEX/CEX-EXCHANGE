@@ -5,6 +5,7 @@ import {
   isProviderHealthy,
 } from "@b/api/(ext)/ecosystem/utils/provider";
 import { JsonRpcProvider, WebSocketProvider } from "ethers";
+import { logger } from "@b/utils/console";
 
 export const chainProviders: Map<string, any> = new Map();
 
@@ -18,15 +19,13 @@ export async function initializeHttpProvider(
   try {
     const httpProvider = await getProvider(chain);
     if (await isProviderHealthy(httpProvider)) {
-      console.log(`Initialized HTTP provider for chain ${chain}`);
+      logger.success("ECO_PROVIDER", `Initialized HTTP provider for chain ${chain}`);
       chainProviders.set(chain, httpProvider);
       return httpProvider;
     }
     throw new Error(`HTTP provider unhealthy for chain ${chain}`);
   } catch (error) {
-    console.error(
-      `Error initializing HTTP provider for chain ${chain}: ${error.message}`
-    );
+    logger.error("ECO_PROVIDER", `Error initializing HTTP provider for chain ${chain}: ${error.message}`);
     return null;
   }
 }
@@ -44,15 +43,13 @@ export async function initializeWebSocketProvider(
   try {
     const wsProvider = getWssProvider(chain);
     if (await isProviderHealthy(wsProvider)) {
-      console.log(`Initialized WebSocket provider for chain ${chain}`);
+      logger.success("ECO_PROVIDER", `Initialized WebSocket provider for chain ${chain}`);
       chainProviders.set(chain, wsProvider);
       return wsProvider;
     }
     throw new Error(`WebSocket provider unhealthy for chain ${chain}`);
   } catch (error) {
-    console.error(
-      `Error initializing WebSocket provider for chain ${chain}: ${error.message}`
-    );
+    logger.error("ECO_PROVIDER", `Error initializing WebSocket provider for chain ${chain}: ${error.message}`);
     return null;
   }
 }

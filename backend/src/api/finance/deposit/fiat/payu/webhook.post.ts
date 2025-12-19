@@ -16,6 +16,8 @@ export const metadata = {
   description: 'Processes real-time payment notifications from PayU with hash verification and status updates',
   operationId: 'payuWebhook',
   tags: ['Finance', 'Deposit', 'PayU', 'Webhook'],
+  logModule: "WEBHOOK",
+  logTitle: "PayU webhook",
   requiresAuth: false,
   requestBody: {
     required: true,

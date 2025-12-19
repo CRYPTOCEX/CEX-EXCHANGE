@@ -9,7 +9,7 @@ import { checkPermission } from "../../../utils/permissions";
 import { processEndpointLink } from "../../../utils/cell";
 import { TooltipWrapper } from "./tooltip-wrapper";
 import { cn } from "@/lib/utils";
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
 interface ViewActionProps {
@@ -19,6 +19,7 @@ interface ViewActionProps {
 
 export function ViewAction({ row, onSelect }: ViewActionProps) {
   const t = useTranslations("common");
+  const router = useRouter();
   const handleView = useTableStore((state) => state.handleView);
   const tableConfig = useTableStore((state) => state.tableConfig);
 
@@ -40,7 +41,7 @@ export function ViewAction({ row, onSelect }: ViewActionProps) {
       onSelect();
       if (tableConfig.viewLink) {
         const viewUrl = processEndpointLink(tableConfig.viewLink, row);
-        window.location.href = viewUrl;
+        router.push(viewUrl);
       } else if (tableConfig.onViewClick) {
         handleView(row);
       }
@@ -57,7 +58,7 @@ export function ViewAction({ row, onSelect }: ViewActionProps) {
       )}
     >
       <Eye className="mr-2 h-4 w-4" />
-      {t("View")}
+      {t("view")}
     </DropdownMenuItem>
   );
 

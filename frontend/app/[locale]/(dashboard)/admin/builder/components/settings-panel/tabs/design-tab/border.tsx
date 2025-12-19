@@ -13,7 +13,8 @@ export function Border({
   activeGradientProperty,
   setActiveGradientProperty,
 }: BorderProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const { toast } = useToast();
 
   // Handle theme-aware color changes
@@ -234,7 +235,7 @@ export function Border({
 
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <Label className="text-xs mb-1 block">{t("Width")}</Label>
+          <Label className="text-xs mb-1 block">{t("width")}</Label>
           <SliderWithInput
             value={settings.borderWidth || 0}
             onChange={(value) => onSettingChange("borderWidth", value)}
@@ -243,7 +244,7 @@ export function Border({
           />
         </div>
         <div>
-          <Label className="text-xs mb-1 block">{t("Radius")}</Label>
+          <Label className="text-xs mb-1 block">{t("radius")}</Label>
           <SliderWithInput
             value={settings.borderRadius || 0}
             onChange={(value) => onSettingChange("borderRadius", value)}
@@ -254,7 +255,7 @@ export function Border({
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <Label className="text-xs mb-1 block">{t("Style")}</Label>
+          <Label className="text-xs mb-1 block">{tCommon("style")}</Label>
           <LabeledSelect
             id="borderStyle"
             label=""
@@ -275,7 +276,7 @@ export function Border({
 
       <div>
         <ColorPicker
-          label="Border Color"
+          label={t("border_color")}
           colorVariable="border-color"
           value={settings.borderColor}
           onChange={handleBorderColorChange}
@@ -285,7 +286,7 @@ export function Border({
 
       <div>
         <ColorPicker
-          label="Border Color"
+          label={t("border_color")}
           colorVariable="hover-border-color"
           value={settings.hoverBorderColor}
           onChange={handleHoverBorderColorChange}

@@ -2,18 +2,23 @@ import { models, sequelize } from "@b/db";
 import {
   unauthorizedResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+} from "@b/utils/schema/errors";
 import {
   getOpenBotEcosystemOrderIds,
   deleteAiBotOrdersByMarket,
 } from "../utils/scylla/queries";
 import { MatchingEngine } from "@b/api/(ext)/ecosystem/utils/matchingEngine";
 import { CacheManager } from "@b/utils/cache";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Emergency stop all AI Market Maker operations",
-  operationId: "emergencyStopAiMarketMaker",
+  operationId: "emergencyStopAllMarketMakers",
   tags: ["Admin", "AI Market Maker", "Emergency"],
+  description:
+    "Immediately stops all AI Market Maker operations across the platform. This emergency endpoint halts all active market makers, pauses all associated AI bots, disables the global AI Market Maker feature, and optionally cancels all open orders in the ecosystem. All actions are performed within a database transaction and logged to the market maker history. Manual intervention is required to resume operations after an emergency stop.",
+  logModule: "ADMIN_MM",
+  logTitle: "Emergency Stop All Operations",
   requestBody: {
     required: false,
     content: {
@@ -46,7 +51,9 @@ export const metadata: OperationObject = {
               marketsStopped: { type: "number" },
               botsStopped: { type: "number" },
               ordersCancelled: { type: "number" },
+              reason: { type: "string" },
               timestamp: { type: "string" },
+              warning: { type: "string" },
             },
           },
         },
@@ -60,13 +67,15 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const reason = body?.reason || "Emergency stop triggered by admin";
   const cancelOpenOrders = body?.cancelOpenOrders !== false;
 
+  ctx?.step("Initialize database transaction");
   const transaction = await sequelize.transaction();
 
   try {
+    ctx?.step("Fetch active markets and bots");
     // Get count of active markets before stopping
     const activeMarkets = await models.aiMarketMaker.findAll({
       where: { status: "ACTIVE" },
@@ -79,6 +88,7 @@ export default async (data: Handler) => {
       transaction,
     });
 
+    ctx?.step("Stop all markets and bots");
     // Stop all markets
     await models.aiMarketMaker.update(
       { status: "STOPPED" },
@@ -97,11 +107,13 @@ export default async (data: Handler) => {
       }
     );
 
+    ctx?.step("Update global settings");
     // Update global settings via centralized settings store
     const cacheManager = CacheManager.getInstance();
     await cacheManager.updateSetting("aiMarketMakerGlobalPauseEnabled", true);
     await cacheManager.updateSetting("aiMarketMakerEnabled", false);
 
+    ctx?.step("Create history records for all markets");
     // Log emergency stop for all markets in bulk (N+1 optimization)
     if (activeMarkets.length > 0) {
       const historyRecords = activeMarkets.map((market) => {
@@ -122,6 +134,7 @@ export default async (data: Handler) => {
       await models.aiMarketMakerHistory.bulkCreate(historyRecords, { transaction });
     }
 
+    ctx?.step("Cancel all open orders");
     // Cancel all open AI bot orders in Scylla and ecosystem
     let ordersCancelled = 0;
     if (cancelOpenOrders) {
@@ -154,7 +167,7 @@ export default async (data: Handler) => {
                 if (result.status === "fulfilled") {
                   ordersCancelled++;
                 } else {
-                  console.warn(`[Emergency Stop] Failed to cancel order:`, result.reason);
+                  logger.warn("AI_MM", "Failed to cancel order", result.reason);
                 }
               }
             }
@@ -162,16 +175,18 @@ export default async (data: Handler) => {
             // Delete all AI bot orders from Scylla
             await deleteAiBotOrdersByMarket(maker.marketId);
 
-            console.info(`[Emergency Stop] Cleaned up orders for ${symbol}`);
+            logger.info("AI_MM", `Cleaned up orders for ${symbol}`);
           } catch (err) {
-            console.error(`[Emergency Stop] Error cleaning up ${symbol}:`, err);
+            logger.error("AI_MM", `Error cleaning up ${symbol}`, err);
           }
         }
       }
     }
 
+    ctx?.step("Commit transaction");
     await transaction.commit();
 
+    ctx?.success("Emergency stop executed successfully");
     return {
       message: "Emergency stop executed successfully",
       marketsStopped: activeMarkets.length,

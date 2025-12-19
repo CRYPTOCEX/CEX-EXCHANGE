@@ -1,51 +1,56 @@
+import { getRecord } from "@b/utils/query";
 import {
-  getRecord,
   unauthorizedResponse,
-  notFoundMetadataResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+  notFoundResponse,
+} from "@b/utils/schema/errors";
 import { baseMlmReferralRewardSchema } from "../utils";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
-  summary:
-    "Retrieves detailed information of a specific MLM Referral Reward by ID",
-  operationId: "getMlmReferralRewardById",
-  tags: ["Admin", "MLM", "Referral Rewards"],
+  summary: "Get affiliate reward by ID",
+  operationId: "getAffiliateRewardById",
+  tags: ["Admin", "Affiliate", "Reward"],
+  description:
+    "Retrieves detailed information for a specific affiliate referral reward including the referrer user details and associated referral condition.",
   parameters: [
     {
       index: 0,
       name: "id",
       in: "path",
       required: true,
-      description: "ID of the MLM Referral Reward to retrieve",
+      description: "ID of the affiliate reward to retrieve",
       schema: { type: "string" },
     },
   ],
   responses: {
     200: {
-      description: "MLM Referral Reward details",
+      description: "Affiliate reward details retrieved successfully",
       content: {
         "application/json": {
           schema: {
             type: "object",
-            properties: baseMlmReferralRewardSchema, // Define this schema in your utils if it's not already defined
+            properties: baseMlmReferralRewardSchema,
           },
         },
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("MLM Referral Reward"),
+    404: notFoundResponse("Affiliate Reward"),
     500: serverErrorResponse,
   },
   permission: "view.affiliate.reward",
   requiresAuth: true,
+  logModule: "ADMIN_AFFILIATE",
+  logTitle: "Get affiliate reward details",
+  demoMask: ["referrer.email"],
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("mlmReferralReward", params.id, [
+  ctx?.step(`Fetching reward with ID: ${params.id}`);
+  const result = await getRecord("mlmReferralReward", params.id, [
     {
       model: models.user,
       as: "referrer",
@@ -63,4 +68,7 @@ export default async (data) => {
       ],
     },
   ]);
+
+  ctx?.success("Reward details retrieved successfully");
+  return result;
 };

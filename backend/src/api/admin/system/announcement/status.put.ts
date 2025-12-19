@@ -33,13 +33,18 @@ export const metadata = {
   responses: updateRecordResponses("Announcement"),
   requiresAuth: true,
   permission: "edit.announcement",
+  logModule: "ADMIN_SYS",
+  logTitle: "Bulk update announcement status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
+
+  ctx?.step(`Updating ${ids.length} announcements to ${status ? "active" : "inactive"}`);
   const msg = updateStatus("announcement", ids, status);
 
+  ctx?.step("Broadcasting bulk status update");
   handleBroadcastMessage({
     type: "announcements",
     model: "announcement",
@@ -48,5 +53,6 @@ export default async (data: Handler) => {
     id: ids,
   });
 
+  ctx?.success(`${ids.length} announcement statuses updated successfully`);
   return msg;
 };

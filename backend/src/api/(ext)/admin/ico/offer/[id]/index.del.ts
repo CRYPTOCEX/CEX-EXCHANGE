@@ -6,6 +6,7 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 import { Op } from "sequelize";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Delete an ICO offering",
@@ -41,10 +42,12 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("Offering"),
     500: serverErrorResponse,
   },
+  logModule: "ADMIN_ICO",
+  logTitle: "Delete ICO Offering",
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
   if (!user?.id) {
     throw createError({
       statusCode: 401,
@@ -58,6 +61,7 @@ export default async (data: Handler) => {
 
   try {
     transaction = await sequelize.transaction();
+    ctx?.step("Finding ICO offering");
     // Find the offering
     const offering = await models.icoTokenOffering.findByPk(id, {
       transaction,
@@ -67,6 +71,7 @@ export default async (data: Handler) => {
       throw createError({ statusCode: 404, message: "Offering not found" });
     }
 
+    ctx?.step("Checking for active transactions");
     // Check if offering has any active (non-completed/non-rejected) transactions
     // Only block deletion for transactions that are truly in progress
     // COMPLETED and REJECTED transactions are historical records that don't block deletion
@@ -98,6 +103,7 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.step("Deleting associated records");
     // Delete associated records in order (to handle foreign key constraints)
     // Note: Cascade delete should handle most of this, but we do it explicitly for clarity
 
@@ -144,11 +150,13 @@ export default async (data: Handler) => {
       transaction,
     });
 
+    ctx?.step("Deleting offering");
     // Finally, delete the offering itself
     await offering.destroy({ transaction });
 
     await transaction.commit();
 
+    ctx?.success("ICO offering deleted successfully");
     return {
       message: "ICO offering deleted successfully",
     };
@@ -162,12 +170,12 @@ export default async (data: Handler) => {
       } catch (rollbackError: any) {
         // Ignore rollback errors if transaction is already finished
         if (!rollbackError.message?.includes("already been finished")) {
-          console.error("Transaction rollback failed:", rollbackError.message);
+          logger.error("ADMIN_ICO_OFFER", "Transaction rollback failed", rollbackError);
         }
       }
     }
 
-    console.error("Error deleting ICO offering:", error);
+    logger.error("ADMIN_ICO_OFFER", "Error deleting ICO offering", error);
 
     // If it's already a createError, rethrow it
     if (error.statusCode) {

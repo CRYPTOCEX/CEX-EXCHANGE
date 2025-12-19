@@ -1,6 +1,7 @@
 import { models, sequelize } from "@b/db";
 import ExchangeManager from "@b/utils/exchange";
 import { handleBanStatus, loadBanStatus } from "@b/api/exchange/utils";
+import { logger } from "@b/utils/console";
 // Safe import for MatchingEngine (only available if extension is installed)
 async function getMatchingEngine() {
   try {
@@ -45,7 +46,7 @@ export async function cacheCurrencies() {
     const currencies = await getCurrencies();
     await redis.set("currencies", JSON.stringify(currencies), "EX", 300); // Cache for 5 minutes
   } catch (error) {
-    console.error("Error caching currencies", error);
+    logger.error("CURRENCY", "Error caching currencies", error);
   }
 }
 
@@ -134,7 +135,7 @@ export const getFiatPriceInUSD = async (currency) => {
 
   // If price is 0, NaN, or invalid, default to 1 for FIAT (assume 1:1 with USD as fallback)
   if (!price || isNaN(price) || price <= 0) {
-    console.warn(`Invalid price for FIAT currency ${currency}, defaulting to 1`);
+    logger.warn("CURRENCY", `Invalid price for FIAT currency ${currency}, defaulting to 1`);
     return 1;
   }
 
@@ -176,12 +177,17 @@ export const getSpotPriceInUSD = async (currency) => {
     // If price is 0, it means there's no trading activity or the token has no value
     return price;
   } catch (error: any) {
-    console.error(`[getSpotPriceInUSD] Error fetching price for ${currency}:`, error.message);
-
     if (error.statusCode === 503) {
       throw error;
     }
-    throw new Error("Error fetching market data");
+    // Don't log stack trace for common cases like missing trading pairs
+    const isMarketNotFound = error.message?.includes("market") ||
+                             error.message?.includes("symbol") ||
+                             error.message?.includes("not found");
+    if (!isMarketNotFound) {
+      logger.error("CURRENCY", `Error fetching spot price for ${currency}`, error);
+    }
+    throw new Error(`Market data unavailable for ${currency}`);
   }
 };
 
@@ -205,7 +211,13 @@ export const getEcoPriceInUSD = async (currency) => {
     // If price is 0, it means there's no trading activity or the token has no value
     return price;
   } catch (error: any) {
-    console.error(`[getEcoPriceInUSD] Error fetching price for ${currency}:`, error.message);
-    throw new Error("Error fetching market data");
+    // Don't log stack trace for common cases like missing trading pairs
+    const isMarketNotFound = error.message?.includes("market") ||
+                             error.message?.includes("symbol") ||
+                             error.message?.includes("not found");
+    if (!isMarketNotFound) {
+      logger.error("CURRENCY", `Error fetching eco price for ${currency}`, error);
+    }
+    throw new Error(`Market data unavailable for ${currency}`);
   }
 };

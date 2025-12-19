@@ -56,6 +56,8 @@ export const metadata = {
   description: "Retrieves aggregated trade data for the authenticated user.",
   operationId: "getP2PTradeDashboardData",
   tags: ["P2P", "Trade"],
+  logModule: "P2P",
+  logTitle: "Get trade dashboard",
   responses: {
     200: { description: "Trade dashboard data retrieved successfully." },
     401: unauthorizedResponse,
@@ -64,9 +66,11 @@ export const metadata = {
   requiresAuth: true,
 };
 
-export default async (data: { user?: any }) => {
-  const { user } = data;
+export default async (data: { user?: any; ctx?: any }) => {
+  const { user, ctx } = data;
   if (!user?.id) throw new Error("Unauthorized");
+
+  ctx?.step("Fetching trade statistics and activity");
   try {
     // ------ 1. TRADE STATS ------
     const [
@@ -272,6 +276,7 @@ export default async (data: { user?: any }) => {
     )].sort();
 
     // ------ 6. Prepare response ------
+    ctx?.success(`Trade dashboard retrieved (${totalTrades} total trades, ${completedTrades} completed)`);
     return {
       tradeStats: {
         activeCount: activeTrades.length,
@@ -295,6 +300,7 @@ export default async (data: { user?: any }) => {
       availableCurrencies,
     };
   } catch (err) {
+    ctx?.fail(err.message || "Failed to retrieve trade dashboard");
     throw new Error("Internal Server Error: " + err.message);
   }
 };

@@ -35,20 +35,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { imageUploader } from "@/utils/upload";
-
-// Extend the Attachment type to include an optional file property
-export type Attachment = {
-  type: "image" | "document" | "link";
-  url: string;
-  name: string;
-  file?: File;
-};
+import { useTranslations } from "next-intl";
 
 // Define form data state type explicitly
 type UpdateFormData = {
   title: string;
   content: string;
-  attachments: Attachment[];
+  attachments: IcoAttachment[];
 };
 type UpdateFormProps = {
   tokenId: string;
@@ -62,17 +55,19 @@ export function UpdateForm({
   onSuccess,
   onCancel,
 }: UpdateFormProps) {
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
   // Initialize form data with explicit type annotation.
   const [formData, setFormData] = useState<UpdateFormData>({
     title: update?.title || "",
     content: update?.content || "",
     attachments: Array.isArray(update?.attachments)
-      ? (update.attachments as Attachment[])
+      ? (update.attachments as IcoAttachment[])
       : [],
   });
 
   // New attachment state for building a new attachment.
-  const [newAttachment, setNewAttachment] = useState<Attachment>({
+  const [newAttachment, setNewAttachment] = useState<IcoAttachment>({
     type: "image",
     url: "",
     name: "",
@@ -95,7 +90,7 @@ export function UpdateForm({
       [name]: value,
     }));
   };
-  const handleAttachmentChange = (field: keyof Attachment, value: string) => {
+  const handleAttachmentChange = (field: keyof IcoAttachment, value: string) => {
     setNewAttachment((prev) => ({
       ...prev,
       [field]: value,
@@ -154,7 +149,7 @@ export function UpdateForm({
     e.preventDefault();
     try {
       // Process attachments: upload images that have a File attached.
-      const processedAttachments: Attachment[] = await Promise.all(
+      const processedAttachments: IcoAttachment[] = await Promise.all(
         formData.attachments.map(async (att) => {
           if (att.type === "image" && att.file) {
             const uploadResult = await imageUploader({
@@ -184,14 +179,14 @@ export function UpdateForm({
           ...update,
           title: formData.title,
           content: formData.content,
-          attachments: processedAttachments,
+          attachments: processedAttachments as any,
         });
       } else {
         await postUpdate({
           tokenId,
           title: formData.title,
           content: formData.content,
-          attachments: processedAttachments,
+          attachments: processedAttachments as any,
         });
       }
       if (onSuccess) {
@@ -229,7 +224,7 @@ export function UpdateForm({
           title="Title"
           value={formData.title}
           onChange={handleChange}
-          placeholder="Enter a title for your update"
+          placeholder={t("enter_a_title_for_your_update")}
           required
         />
 
@@ -255,7 +250,7 @@ export function UpdateForm({
               name="content"
               value={formData.content}
               onChange={handleChange}
-              placeholder="Share news, milestones, or important information with your investors..."
+              placeholder={t("share_news_milestones_or_important_information")}
               required
               rows={8}
               className="resize-y min-h-[200px]"
@@ -269,15 +264,14 @@ export function UpdateForm({
           >
             {/* Helper text to remind users to add the attachment */}
             <p className="text-sm text-muted-foreground">
-              After selecting an image or entering details, please click "Add
-              Attachment" to include it.
+              {t("after_selecting_an_image_or_entering")}
             </p>
 
             <div className="space-y-4">
-              <Label>Current Attachments</Label>
+              <Label>{t("current_attachments")}</Label>
               {formData.attachments.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No attachments added yet.
+                  {t("no_attachments_added_yet_1")}
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -328,7 +322,7 @@ export function UpdateForm({
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  Remove attachment
+                                  {t("remove_attachment")}
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -341,7 +335,7 @@ export function UpdateForm({
               )}
 
               <div className="border rounded-md p-4 space-y-4">
-                <Label>Add New Attachment</Label>
+                <Label>{t("add_new_attachment")}</Label>
                 <div className="grid grid-cols-2 gap-4">
                   <Select
                     value={newAttachment.type}
@@ -354,7 +348,7 @@ export function UpdateForm({
                       title="Type"
                       className="w-full"
                     >
-                      <SelectValue placeholder="Select type" />
+                      <SelectValue placeholder={tExt("select_type")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="image">Image</SelectItem>
@@ -369,7 +363,7 @@ export function UpdateForm({
                     onChange={(e) =>
                       handleAttachmentChange("name", e.target.value)
                     }
-                    placeholder="Attachment name"
+                    placeholder={t("attachment_name")}
                   />
                 </div>
 
@@ -380,7 +374,7 @@ export function UpdateForm({
                         onChange={handleImageUploadChange}
                         value={newAttachment.url}
                         loading={isUploading}
-                        title="Select Image"
+                        title={t("select_image")}
                       />
                     </div>
                   ) : (
@@ -412,7 +406,7 @@ export function UpdateForm({
                   }
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Attachment
+                  {t("add_attachment")}
                 </Button>
               </div>
             </div>

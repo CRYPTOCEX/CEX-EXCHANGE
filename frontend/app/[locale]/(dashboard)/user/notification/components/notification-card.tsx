@@ -58,7 +58,8 @@ const NotificationCardComponent = ({
   onDelete,
   index = 0,
 }: NotificationCardProps) => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
   const [isHovered, setIsHovered] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -277,7 +278,7 @@ const NotificationCardComponent = ({
               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                 <Button variant="ghost" size="sm" className="flex-1">
                   <MoreVertical className="h-4 w-4 mr-1" />
-                  {t("Actions")}
+                  {tCommon("actions")}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
@@ -302,7 +303,7 @@ const NotificationCardComponent = ({
 
                 <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                   <Star className="mr-2 h-4 w-4" />
-                  {t("Star")}
+                  {tCommon("star")}
                 </DropdownMenuItem>
 
                 {notification.link && (
@@ -327,7 +328,7 @@ const NotificationCardComponent = ({
                   }}
                 >
                   <Trash className="mr-2 h-4 w-4" />
-                  {t("Delete")}
+                  {tCommon("delete")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

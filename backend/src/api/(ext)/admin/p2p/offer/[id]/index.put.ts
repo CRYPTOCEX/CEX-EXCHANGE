@@ -2,20 +2,29 @@ import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { p2pAdminOfferRateLimit } from "@b/handler/Middleware";
 import { createNotification } from "@b/utils/notifications";
-import { 
-  sendOfferApprovalEmail, 
-  sendOfferRejectionEmail, 
-  sendOfferFlaggedEmail, 
-  sendOfferDisabledEmail 
+import { logger } from "@b/utils/console";
+import {
+  sendOfferApprovalEmail,
+  sendOfferRejectionEmail,
+  sendOfferFlaggedEmail,
+  sendOfferDisabledEmail
 } from "../../utils";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  notFoundResponse,
+  badRequestResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Update P2P Offer (Admin)",
-  description: "Updates a P2P offer with admin privileges. Automatically handles approval/rejection notifications based on status changes.",
+  summary: "Update P2P offer",
+  description: "Updates a P2P offer with admin privileges. Handles status transitions (approval, rejection, etc.), sends email notifications to users, and manages locked funds for SELL offers.",
   operationId: "updateAdminP2POffer",
-  tags: ["Admin", "Offers", "P2P"],
+  tags: ["Admin", "P2P", "Offer"],
   requiresAuth: true,
   middleware: [p2pAdminOfferRateLimit],
+  logModule: "ADMIN_P2P",
+  logTitle: "Update P2P offer",
   parameters: [
     {
       index: 0,
@@ -93,22 +102,24 @@ export const metadata = {
   },
   responses: {
     200: { description: "Offer updated successfully" },
-    401: { description: "Unauthorized" },
-    404: { description: "Offer not found" },
-    500: { description: "Internal Server Error" },
+    401: unauthorizedResponse,
+    404: notFoundResponse("Resource"),
+    500: serverErrorResponse,
   },
   permission: "edit.p2p.offer",
 };
 
 export default async (data: any) => {
-  const { params, body, user } = data;
+  const { params, body, user, ctx } = data;
   const { id } = params;
 
   try {
+    ctx?.step("Fetching P2P offer");
     // First, find the offer without associations to avoid issues
     const offer = await models.p2pOffer.findByPk(id);
 
     if (!offer) {
+      ctx?.fail("Offer not found");
       throw createError({ statusCode: 404, message: "Offer not found" });
     }
     
@@ -122,6 +133,7 @@ export default async (data: any) => {
       attributes: ["id", "firstName", "lastName", "email"],
     });
 
+    ctx?.step("Preparing update data");
     // Store original status for comparison
     const originalStatus = offer.status;
 
@@ -198,6 +210,7 @@ export default async (data: any) => {
 
     // Validate min/max trade amounts if being updated
     if (updateData.amountConfig || updateData.priceConfig) {
+      ctx?.step("Validating trade amounts");
       const { CacheManager } = await import("@b/utils/cache");
       const cacheManager = CacheManager.getInstance();
 
@@ -312,11 +325,13 @@ export default async (data: any) => {
     // Note: Activity log should be stored separately, not in the offer model
     // You could create a separate p2pOfferActivityLog table if needed
 
+    ctx?.step("Updating offer");
     // Update the offer
     await offer.update(updateData);
 
     // Handle payment methods if provided
     if (body.paymentMethodIds && Array.isArray(body.paymentMethodIds)) {
+      ctx?.step("Updating payment methods");
       try {
         // Use the offer's association methods instead of direct table manipulation
         const offerWithAssociations = await models.p2pOffer.findByPk(id);
@@ -346,13 +361,14 @@ export default async (data: any) => {
           }
         }
       } catch (pmError) {
-        console.error("Error updating payment methods:", pmError);
+        logger.error("P2P_OFFER", "Failed to update payment methods", pmError);
         // Don't fail the entire update if payment methods fail
       }
     }
 
     // Send email notification if status changed
     if (shouldSendEmail && offerUser?.email) {
+      ctx?.step("Sending email notification");
       try {
         switch (emailType) {
           case "approval":
@@ -369,7 +385,7 @@ export default async (data: any) => {
             break;
         }
       } catch (emailError) {
-        console.error("Failed to send email notification:", emailError);
+        logger.error("P2P_OFFER", "Failed to send email notification", emailError);
         // Don't throw error for email failures
       }
     }
@@ -406,10 +422,10 @@ export default async (data: any) => {
             title: notificationTitle,
             message: notificationMessage,
             link: `/p2p/offer/${offer.id}`,
-          });
+          }, ctx);
         }
       } catch (notifError) {
-        console.error("Failed to create notification:", notifError);
+        logger.error("P2P_OFFER", "Failed to create notification", notifError);
         // Don't throw error for notification failures
       }
     }
@@ -434,7 +450,7 @@ export default async (data: any) => {
         });
         updatedOffer.dataValues.paymentMethods = paymentMethods;
       } catch (pmError) {
-        console.error("Error fetching payment methods:", pmError);
+        logger.error("P2P_OFFER", "Failed to fetch payment methods", pmError);
         // Don't fail the whole request if payment methods can't be fetched
         updatedOffer.dataValues.paymentMethods = [];
       }
@@ -442,6 +458,7 @@ export default async (data: any) => {
       updatedOffer.dataValues.paymentMethods = [];
     }
 
+    ctx?.step("Logging admin action");
     // Log admin action
     try {
       const { logP2PAdminAction } = await import("../../../../p2p/utils/ownership");
@@ -464,13 +481,14 @@ export default async (data: any) => {
         }
       );
     } catch (logError) {
-      console.error("Failed to log admin action:", logError);
+      logger.error("P2P_OFFER", "Failed to log admin action", logError);
       // Don't throw error for logging failures
     }
 
+    ctx?.success("Offer updated successfully");
     return {
-      message: body.status && body.status !== originalStatus 
-        ? `Offer ${body.status.toLowerCase()} successfully` 
+      message: body.status && body.status !== originalStatus
+        ? `Offer ${body.status.toLowerCase()} successfully`
         : "Offer updated successfully",
       data: updatedOffer,
     };
@@ -478,6 +496,7 @@ export default async (data: any) => {
     if (err.statusCode) {
       throw err;
     }
+    ctx?.fail("Failed to update offer");
     throw createError({
       statusCode: 500,
       message: err.message || "Internal Server Error",

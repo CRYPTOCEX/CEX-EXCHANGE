@@ -4,11 +4,12 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 
-import { 
-  makeDLocalRequest, 
-  DLocalError 
+import {
+  makeDLocalRequest,
+  DLocalError
 } from "./utils";
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Get dLocal payment status",
@@ -108,7 +109,7 @@ export default async (data: Handler) => {
       "GET"
     );
 
-    console.log(`dLocal payment status check: ${dLocalPaymentId}, status: ${paymentData.status}`);
+    logger.info("DLOCAL", `Payment status check: ${dLocalPaymentId}, status: ${paymentData.status}`);
 
     return {
       id: paymentData.id,
@@ -129,7 +130,7 @@ export default async (data: Handler) => {
     };
 
   } catch (error) {
-    console.error("dLocal payment status check error:", error);
+    logger.error("DLOCAL", "Payment status check error", error);
 
     if (error instanceof DLocalError) {
       throw new Error(`dLocal API Error: ${error.message}`);

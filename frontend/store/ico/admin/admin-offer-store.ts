@@ -66,7 +66,7 @@ interface AdminOfferStoreState {
   flagOffering: (id: string, notes: string) => Promise<void>;
   unflagOffering: (id: string) => Promise<void>;
   deleteOffering: (id: string) => Promise<void>;
-  emergencyCancelOffering: (id: string, reason: string) => Promise<void>;
+  emergencyCancelOffering: (id: string, reason: string) => Promise<any>;
 }
 
 export interface IcoOfferResponse {

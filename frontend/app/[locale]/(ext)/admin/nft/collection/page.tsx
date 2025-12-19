@@ -1,11 +1,15 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import { nftCollectionAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
+import { Folder } from "lucide-react";
 
 export default function NFTCollectionsPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/collection"
@@ -17,7 +21,7 @@ export default function NFTCollectionsPage() {
         edit: "edit.nft.collection",
         delete: "delete.nft.collection",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={false}
       canEdit={true}
       canDelete={true}
@@ -25,9 +29,16 @@ export default function NFTCollectionsPage() {
       isParanoid={true}
       title="NFT Collections"
       itemTitle="Collection"
-      description={t("manage_nft_collections_verify_creators_and")}
+      description={t("manage_nft_collection_configurations")}
       columns={columns}
+      formConfig={formConfig}
       analytics={nftCollectionAnalytics}
+      design={{
+        animation: "orbs",
+        primaryColor: "purple",
+        secondaryColor: "pink",
+        icon: Folder,
+      }}
     />
   );
 } 

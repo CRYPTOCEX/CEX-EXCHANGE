@@ -21,7 +21,9 @@ interface TradeDetailsTabProps {
 }
 
 export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
   const priceCurrency = trade.offer?.priceCurrency || trade.priceCurrency || "USD";
@@ -40,7 +42,7 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("trade_details")}</CardTitle>
+        <CardTitle>{tCommon("trade_details")}</CardTitle>
         <CardDescription>
           {t("complete_information_about_this_trade")}
         </CardDescription>
@@ -48,7 +50,7 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
       <CardContent className="space-y-6">
         <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
           <div>
-            <p className="text-sm text-muted-foreground">{t("trade_id")}</p>
+            <p className="text-sm text-muted-foreground">{tExt("trade_id")}</p>
             <p className="font-medium">{trade.id}</p>
           </div>
           <button
@@ -67,7 +69,7 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
           <div className="space-y-4">
             <div>
               <p className="text-sm text-muted-foreground mb-1">
-                {t("trade_type")}
+                {tCommon("trade_type")}
               </p>
               <Badge
                 variant={trade.type === "buy" ? "default" : "outline"}
@@ -83,7 +85,7 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
 
             <div>
               <p className="text-sm text-muted-foreground mb-1">
-                {t("Created")}
+                {tCommon("created")}
               </p>
               <p className="font-medium">
                 {new Date(trade.createdAt).toLocaleString()}
@@ -92,7 +94,7 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
 
             <div>
               <p className="text-sm text-muted-foreground mb-1">
-                {t("last_updated")}
+                {tCommon("last_updated")}
               </p>
               <p className="font-medium">
                 {new Date(
@@ -103,7 +105,7 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
 
             <div>
               <p className="text-sm text-muted-foreground mb-1">
-                {t("escrow_fee")}
+                {tExt("escrow_fee")}
               </p>
               <p className="font-medium">
                 {trade.escrowFee || "0.1"} {trade.currency} ({currencySymbol}{((parseFloat(trade.escrowFee || "0.1") * trade.price).toFixed(2))})
@@ -114,7 +116,7 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
           <div className="space-y-4">
             <div>
               <p className="text-sm text-muted-foreground mb-1">
-                {t("payment_method")}
+                {tCommon("payment_method")}
               </p>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="bg-muted">
@@ -125,7 +127,7 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
 
             <div>
               <p className="text-sm text-muted-foreground mb-1">
-                {t("trade_terms")}
+                {tCommon("trade_terms")}
               </p>
               <p className="text-sm">
                 {trade.terms || "No specific terms provided"}
@@ -134,11 +136,11 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
 
             <div>
               <p className="text-sm text-muted-foreground mb-1">
-                {t("Counterparty")}
+                {t("counterparty")}
               </p>
               <p className="font-medium">{trade.counterparty.name}</p>
               <p className="text-xs text-muted-foreground">
-                {trade.counterparty.completedTrades} {t("trades")} • {trade.counterparty.completionRate}% {t("completion_rate")}
+                {trade.counterparty.completedTrades} {tCommon("trades")} • {trade.counterparty.completionRate}% {tCommon("completion_rate")}
               </p>
             </div>
           </div>

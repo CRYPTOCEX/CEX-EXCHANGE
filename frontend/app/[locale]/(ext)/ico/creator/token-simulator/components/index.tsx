@@ -28,7 +28,7 @@ import { debounce } from "@/utils/debounce";
 import { useTranslations } from "next-intl";
 
 export function TokenEconomicsSimulator() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
   const [activeTab, setActiveTab] = useState("distribution");
   const [state, setState] = useState<SimulatorState>(INITIAL_STATE);
 
@@ -159,7 +159,7 @@ export function TokenEconomicsSimulator() {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center">
-              {t("initial_token_price_(usd)")}
+              {t("initial_token_price_usd")}
             </label>
             <input
               type="number"

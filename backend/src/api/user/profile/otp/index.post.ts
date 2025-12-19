@@ -1,6 +1,7 @@
 import { createError } from "@b/utils/error";
 import { models } from "@b/db";
 import crypto from "crypto";
+import { logger } from "@b/utils/console";
 import {
   notFoundMetadataResponse,
   serverErrorResponse,
@@ -15,6 +16,8 @@ export const metadata: OperationObject = {
     "Saves the OTP configuration for the user and generates 12 recovery codes for recovery",
   tags: ["Profile"],
   requiresAuth: true,
+  logModule: "USER",
+  logTitle: "Save OTP configuration",
   requestBody: {
     required: true,
     content: {
@@ -77,11 +80,16 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  if (!data.user?.id)
+  const { user, body, ctx } = data;
+  if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
-  const { secret, type } = data.body;
-  const result = await saveOTPQuery(data.user.id, secret, type);
+  const { secret, type } = body;
+  ctx?.step("Saving OTP configuration");
+  const result = await saveOTPQuery(user.id, secret, type);
+  ctx?.success("OTP configuration saved successfully");
   return {
     message: "OTP configuration saved successfully",
     recoveryCodes: result.recoveryCodes,
@@ -142,7 +150,7 @@ export async function saveOTPQuery(
       otpDetails = createdRecord.get({ plain: true }) as twoFactorAttributes;
     }
   } catch (e: any) {
-    console.error(e);
+    logger.error("USER", "Error saving OTP configuration", e);
     throw createError({
       statusCode: 500,
       message: "Server error",

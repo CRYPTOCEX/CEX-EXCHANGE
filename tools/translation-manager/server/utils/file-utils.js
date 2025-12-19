@@ -17,17 +17,36 @@ function getTsxFiles(pattern = '**/*.{tsx,jsx}', baseDir = null) {
     try {
         // Simple recursive file finding without glob dependency
         const files = [];
+
+        // Parse pattern to determine which extensions to look for
+        let extensions = ['.tsx', '.jsx']; // default
+        if (pattern.includes('*.ts') && !pattern.includes('*.tsx')) {
+            // Pattern specifically asks for .ts files (not .tsx)
+            extensions = ['.ts'];
+        } else if (pattern.includes('*.{ts,tsx}') || pattern.includes('*.{tsx,ts}')) {
+            extensions = ['.ts', '.tsx'];
+        }
+
         function findFiles(dir) {
             const items = fsSync.readdirSync(dir);
             for (const item of items) {
                 const fullPath = path.join(dir, item);
                 const stat = fsSync.statSync(fullPath);
                 if (stat.isDirectory()) {
-                    if (!item.includes('node_modules') && !item.includes('dist') && !item.includes('build')) {
+                    // Skip common build/output directories, but be careful not to skip 'builder' which contains 'build'
+                    const skipDirs = ['node_modules', 'dist', '.next'];
+                    const isSkippable = skipDirs.includes(item) || item === 'build';
+                    if (!isSkippable) {
                         findFiles(fullPath);
                     }
-                } else if (item.endsWith('.tsx') || item.endsWith('.jsx')) {
-                    files.push(fullPath);
+                } else {
+                    // Check if file matches any of the target extensions
+                    for (const ext of extensions) {
+                        if (item.endsWith(ext)) {
+                            files.push(fullPath);
+                            break;
+                        }
+                    }
                 }
             }
         }

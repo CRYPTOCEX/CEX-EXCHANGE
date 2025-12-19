@@ -36,7 +36,7 @@ interface TradeDetailsProps {
   initialData: P2PTrade;
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  tabsRef?: RefObject<HTMLDivElement>;
+  tabsRef?: RefObject<HTMLDivElement | null>;
   messages?: Message[];
   setMessages?: React.Dispatch<React.SetStateAction<Message[]>>;
 }
@@ -50,7 +50,9 @@ export function TradeDetails({
   messages = [],
   setMessages,
 }: TradeDetailsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [trade, setTrade] = useState<P2PTrade>(initialData);
 
   // Sync local state with initialData when it changes (e.g., from WebSocket updates)
@@ -172,7 +174,7 @@ export function TradeDetails({
   return (
     <div className="space-y-6">
       {/* Main Trade Card */}
-      <Card className="overflow-hidden border-primary/10">
+      <Card className={`overflow-hidden border-zinc-200 dark:border-zinc-800`}>
         <CardContent className="p-6 pt-6">
           <TradeHeader
             tradeId={tradeId}
@@ -189,21 +191,21 @@ export function TradeDetails({
 
           {/* Time Remaining Alert */}
           {timeRemaining && (
-            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md p-3 flex items-center justify-between mt-4 mb-4">
+            <div className={`bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 rounded-md p-3 flex items-center justify-between mt-4 mb-4`}>
               <div className="flex items-center">
-                <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400 mr-2" />
+                <Clock className={`h-5 w-5 text-amber-700 dark:text-amber-400 mr-2`} />
                 <div>
-                  <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-                    {t("time_remaining")}
+                  <p className={`text-sm font-medium text-amber-700 dark:text-amber-400`}>
+                    {tExt("time_remaining")}
                   </p>
-                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                  <p className={`text-xs text-amber-700 dark:text-amber-400`}>
                     {t("complete_this_trade_step_before_time_expires")}
                   </p>
                 </div>
               </div>
               <Badge
                 variant="outline"
-                className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300"
+                className={`bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400`}
               >
                 {timeRemaining}
               </Badge>
@@ -239,13 +241,13 @@ export function TradeDetails({
       </Card>
 
       {/* Security Notice */}
-      <div className="bg-primary/5 border border-primary/10 rounded-lg p-4 flex items-start gap-3">
-        <Shield className="h-5 w-5 text-primary mt-0.5" />
+      <div className={`bg-blue-500/5 border-zinc-200 dark:border-zinc-800 rounded-lg p-4 flex items-start gap-3`}>
+        <Shield className={`h-5 w-5 text-blue-500 mt-0.5`} />
         <div>
           <h3 className="text-sm font-medium mb-1">
             {t("escrow_protected_trade")}
           </h3>
-          <p className="text-xs text-muted-foreground">
+          <p className={`text-xs text-zinc-600 dark:text-zinc-400`}>
             {t("this_trade_is_escrow_system")}.{" "}
             {t("the_cryptocurrency_is_is_complete")}.
           </p>
@@ -256,15 +258,15 @@ export function TradeDetails({
       <div ref={tabsRef}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="details">{t("Details")}</TabsTrigger>
+          <TabsTrigger value="details">{tCommon("details")}</TabsTrigger>
           <TabsTrigger value="chat" className="relative">
-            {t("Chat")}
+            {tCommon("chat")}
             {activeTab !== "chat" && (
-              <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary"></span>
+              <span className={`absolute -top-1 -right-1 h-2 w-2 rounded-full bg-blue-500`}></span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="payment">{t("Payment")}</TabsTrigger>
-          <TabsTrigger value="escrow">{t("Escrow")}</TabsTrigger>
+          <TabsTrigger value="payment">{tCommon("payment")}</TabsTrigger>
+          <TabsTrigger value="escrow">{t("escrow")}</TabsTrigger>
         </TabsList>
 
         <TabsContent
@@ -304,7 +306,7 @@ export function TradeDetails({
           <DisputeDialog onSubmit={handleDisputeTrade} loading={loading} userRole={trade.type === "buy" ? "buyer" : "seller"}>
             <Button
               variant="outline"
-              className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
+              className={`w-full border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20`}
             >
               <AlertCircle className="mr-2 h-4 w-4" />
               {t("report_problem_with_this_trade")}

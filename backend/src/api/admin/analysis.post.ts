@@ -18,6 +18,8 @@ export const metadata: OperationObject = {
   summary: "Gets chart data for user analytics (all in POST body)",
   operationId: "getAnalyticsData",
   tags: ["Admin", "CRM", "User", "Analytics"],
+  logModule: "ADMIN_SYS",
+  logTitle: "Run analysis",
   requestBody: {
     required: true,
     content: {
@@ -112,7 +114,7 @@ export const metadata: OperationObject = {
 };
 
 export default async function handler(data: Handler) {
-  const { body } = data;
+  const { body, ctx } = data;
   const {
     model,
     modelConfig,
@@ -123,6 +125,7 @@ export default async function handler(data: Handler) {
     kpis,
   } = body;
 
+  ctx?.step("Validating analysis request");
   if (!model) {
     throw createError(400, "Missing model parameter");
   }
@@ -132,19 +135,24 @@ export default async function handler(data: Handler) {
 
   // If MySQL, ensure the model exists and call the MySQL aggregator.
   if (db === "mysql") {
+    ctx?.step("Processing MySQL analytics");
     if (!models[model]) {
-      throw createError(400, "Invalid or missing model");
+      console.error(`Model '${model}' not found. Available models:`, Object.keys(models));
+      throw createError(400, `Invalid or missing model: ${model}`);
     }
-    return getMysqlChartData({
+    const result = await getMysqlChartData({
       model: models[model],
       timeframe,
       charts,
       kpis,
       where: additionalFilter,
     });
+    ctx?.success();
+    return result;
   }
 
   // For Scylla, determine keyspace.
+  ctx?.step("Processing Scylla analytics");
   if (!providedKeyspace) throw createError(400, "Missing keyspace parameter");
 
   const keyspace =
@@ -153,7 +161,7 @@ export default async function handler(data: Handler) {
       : process.env.SCYLLA_FUTURES_KEYSPACE || "futures";
 
   // Call the Scylla aggregator.
-  return getScyllaChartData({
+  const result = await getScyllaChartData({
     model,
     keyspace,
     timeframe,
@@ -161,4 +169,6 @@ export default async function handler(data: Handler) {
     kpis,
     where: additionalFilter,
   });
+  ctx?.success();
+  return result;
 }

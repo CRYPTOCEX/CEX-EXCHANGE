@@ -14,7 +14,7 @@ export function CssIdClasses({
   onSettingChange,
   elementId,
 }: ComponentProps & { elementId: string }) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const [cssClasses, setCssClasses] = useState<string[]>(
     settings.cssClasses || []
   );

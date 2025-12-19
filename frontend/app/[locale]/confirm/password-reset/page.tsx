@@ -3,8 +3,10 @@
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 export default function ConfirmPasswordResetRedirect() {
+  const t = useTranslations("common");
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -25,7 +27,7 @@ export default function ConfirmPasswordResetRedirect() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background/50 to-muted/30 p-4">
       <div className="text-center">
         <div className="h-12 w-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-muted-foreground">Redirecting...</p>
+        <p className="text-muted-foreground">{t("redirecting_ellipsis")}</p>
       </div>
     </div>
   );

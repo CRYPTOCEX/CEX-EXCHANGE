@@ -12,13 +12,20 @@ export const metadata: OperationObject = {
   responses: deleteRecordResponses("E-commerce wishlist entry"),
   permission: "delete.ecommerce.wishlist",
   requiresAuth: true,
+  logModule: "ADMIN_ECOM",
+  logTitle: "Delete E-commerce Wishlist Entry",
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
-  return handleSingleDelete({
+  const { params, query, ctx } = data;
+
+  ctx?.step("Deleting E-commerce wishlist entry");
+  const result = await handleSingleDelete({
     model: "ecommerceWishlist",
     id: params.id,
     query,
   });
+
+  ctx?.success("Successfully deleted E-commerce wishlist entry");
+  return result;
 };

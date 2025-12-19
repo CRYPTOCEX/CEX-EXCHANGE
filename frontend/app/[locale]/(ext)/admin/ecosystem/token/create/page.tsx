@@ -13,6 +13,7 @@ import StepReview from "@/app/[locale]/(ext)/admin/ecosystem/token/components/st
 import { imageUploader } from "@/utils/upload";
 import Stepper from "@/components/ui/stepper";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 const initialValues: DeployFormData = {
   mode: "deploy",
@@ -37,7 +38,7 @@ const initialValues: DeployFormData = {
   icon: null,
 };
 export default function CreateOrImportTokenWizard() {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -172,7 +173,7 @@ export default function CreateOrImportTokenWizard() {
       : false;
   return (
     <FormProvider {...methods}>
-      <div className="p-5 space-y-6">
+      <div className={`container space-y-6 ${PAGE_PADDING}`}>
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">
             {mode === "import"
@@ -182,7 +183,7 @@ export default function CreateOrImportTokenWizard() {
           <Link href="/admin/ecosystem/token">
             <Button variant="outline">
               <Icon icon="akar-icons:arrow-left" className="mr-2" />
-              {t("Back")}
+              {t("back")}
             </Button>
           </Link>
         </div>

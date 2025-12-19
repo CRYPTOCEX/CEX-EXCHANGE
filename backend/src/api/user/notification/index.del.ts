@@ -7,6 +7,8 @@ export const metadata = {
   operationId: "deleteAllNotifications",
   tags: ["ICO", "Creator", "Notifications"],
   requiresAuth: true,
+  logModule: "USER",
+  logTitle: "Delete all notifications",
   responses: {
     200: { description: "All notifications deleted successfully." },
     401: { description: "Unauthorized" },
@@ -14,14 +16,17 @@ export const metadata = {
   },
 };
 
-export default async (data: { user?: any }) => {
-  const { user } = data;
+export default async (data: { user?: any; ctx?: any }) => {
+  const { user, ctx } = data;
   if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+  ctx?.step("Deleting all notifications");
   await models.notification.destroy({
     where: { userId: user.id },
     force: true,
   });
+  ctx?.success("All notifications deleted successfully");
   return { message: "All notifications deleted successfully." };
 };

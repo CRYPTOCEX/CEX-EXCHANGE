@@ -8,15 +8,16 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { $fetch } from "@/lib/api";
-import { 
-  Users, 
-  TrendingUp, 
-  DollarSign, 
-  Activity, 
-  Shield, 
+import {
+  Users,
+  TrendingUp,
+  DollarSign,
+  Activity,
+  Shield,
   AlertTriangle,
   Calendar
 } from "lucide-react";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 // Import the professional analytics components
 import { KpiCard } from "@/components/blocks/data-table/analytics/kpi";
@@ -51,7 +52,8 @@ interface DashboardData {
 type TimeframeOption = 'weekly' | 'monthly' | 'yearly';
 
 export default function AdminDashboard() {
-  const t = useTranslations();
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -214,7 +216,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-8">
+      <div className={`container ${PAGE_PADDING} space-y-8`}>
         <div className="flex items-center justify-between">
           <div>
             <Skeleton className="h-9 w-[200px] mb-2" />
@@ -257,10 +259,10 @@ export default function AdminDashboard() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className={`container ${PAGE_PADDING} flex items-center justify-center min-h-[400px]`}>
         <div className="text-center space-y-4">
           <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
-          <h3 className="text-lg font-semibold">Error loading dashboard</h3>
+          <h3 className="text-lg font-semibold">{tCommon("error_loading_dashboard")}</h3>
           <p className="text-muted-foreground">{error}</p>
           <Button onClick={() => fetchDashboardData()} variant="outline">
             Retry
@@ -273,25 +275,25 @@ export default function AdminDashboard() {
   if (!data) return null;
 
   return (
-    <div className="space-y-8">
+    <div className={`container ${PAGE_PADDING} space-y-8`}>
       {/* Header with Timeframe Selector */}
       <div className="flex items-center justify-between">
     <div>
-          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{tCommon("admin_dashboard")}</h1>
           <p className="text-muted-foreground">
-            Comprehensive overview of your platform's performance and metrics
+            {t("comprehensive_overview_of_your_platforms_performance")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <Select value={timeframe} onValueChange={handleTimeframeChange}>
             <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Select timeframe" />
+              <SelectValue placeholder={tCommon("select_timeframe")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="weekly">Last 7 Days</SelectItem>
-              <SelectItem value="monthly">Last 30 Days</SelectItem>
-              <SelectItem value="yearly">Current Year</SelectItem>
+              <SelectItem value="weekly">{tCommon("last_7_days")}</SelectItem>
+              <SelectItem value="monthly">{tCommon("last_30_days")}</SelectItem>
+              <SelectItem value="yearly">{tCommon("current_year")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -384,33 +386,33 @@ export default function AdminDashboard() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="bg-transparent">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending KYC</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("pending_kyc")}</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatNumber(data.overview.pendingKYC)}</div>
             <p className="text-xs text-muted-foreground">
-              Verification requests awaiting review
+              {t("verification_requests_awaiting_review")}
             </p>
           </CardContent>
         </Card>
 
         <Card className="bg-transparent">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New Users Today</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("new_users_today")}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatNumber(data.overview.newUsersToday)}</div>
             <p className="text-xs text-muted-foreground">
-              Registered in the last 24 hours
+              {t("registered_in_the_last_24_hours")}
             </p>
           </CardContent>
         </Card>
 
         <Card className="bg-transparent">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Top Asset</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("top_asset")}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>

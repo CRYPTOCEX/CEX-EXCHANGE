@@ -1,11 +1,17 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import {
+  badRequestResponse,
+  unauthorizedResponse,
+  serverErrorResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Create Platform Settings",
-  description: "Creates a new platform settings configuration for ICO admin.",
-  operationId: "createPlatformSettings",
-  tags: ["ICO", "Admin", "PlatformSettings"],
+  summary: "Create ICO Platform Settings",
+  description:
+    "Creates or updates ICO platform settings using upsert. This endpoint initializes platform-wide configuration for ICO operations.",
+  operationId: "createIcoPlatformSettings",
+  tags: ["Admin", "ICO", "Settings"],
   requiresAuth: true,
   requestBody: {
     required: true,
@@ -14,15 +20,14 @@ export const metadata = {
         schema: {
           type: "object",
           properties: {
-            minInvestmentAmount: { type: "number" },
-            maxInvestmentAmount: { type: "number" },
-            platformFeePercentage: { type: "number" },
-            kycRequired: { type: "boolean" },
-            maintenanceMode: { type: "boolean" },
-            allowPublicOfferings: { type: "boolean" },
-            announcementMessage: { type: "string" },
-            announcementActive: { type: "boolean" },
-            // Add additional properties as needed.
+            minInvestmentAmount: { type: "number", description: "Minimum investment amount" },
+            maxInvestmentAmount: { type: "number", description: "Maximum investment amount" },
+            platformFeePercentage: { type: "number", description: "Platform fee percentage" },
+            kycRequired: { type: "boolean", description: "KYC requirement flag" },
+            maintenanceMode: { type: "boolean", description: "Maintenance mode flag" },
+            allowPublicOfferings: { type: "boolean", description: "Allow public offerings flag" },
+            announcementMessage: { type: "string", description: "Announcement message" },
+            announcementActive: { type: "boolean", description: "Announcement active flag" },
           },
           required: [
             "minInvestmentAmount",
@@ -34,17 +39,34 @@ export const metadata = {
     },
   },
   responses: {
-    200: { description: "Platform settings created successfully." },
-    401: { description: "Unauthorized – Admin privileges required." },
-    400: { description: "Bad Request" },
-    500: { description: "Internal Server Error" },
+    200: {
+      description: "Platform settings created successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              message: { type: "string" },
+            },
+          },
+        },
+      },
+    },
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    500: serverErrorResponse,
   },
   permission: "edit.ico.settings",
+  logModule: "ADMIN_ICO",
+  logTitle: "Create platform settings",
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
+  ctx?.step("Validating user permissions");
   if (!user?.id) {
+    ctx?.fail("Unauthorized access");
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
@@ -59,6 +81,7 @@ export default async (data: Handler) => {
     announcementActive,
   } = body;
 
+  ctx?.step("Preparing platform settings");
   // Prepare settings updates
   const updates = [
     { key: 'icoPlatformMinInvestmentAmount', value: minInvestmentAmount?.toString() },
@@ -71,6 +94,7 @@ export default async (data: Handler) => {
     { key: 'icoPlatformAnnouncementActive', value: announcementActive?.toString() },
   ].filter(update => update.value !== undefined);
 
+  ctx?.step(`Creating ${updates.length} platform settings`);
   // Upsert each setting
   for (const update of updates) {
     await models.settings.upsert({
@@ -79,5 +103,6 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.success("Platform settings created successfully");
   return { message: "Platform settings created successfully." };
 };

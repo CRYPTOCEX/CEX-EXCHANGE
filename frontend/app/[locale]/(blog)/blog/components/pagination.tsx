@@ -5,6 +5,7 @@ import { Link } from "@/i18n/routing";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useConfigStore } from "@/store/config";
 import { useTranslations } from "next-intl";
+import { motion } from "framer-motion";
 
 interface PaginationProps {
   currentPage: number;
@@ -17,12 +18,11 @@ export function Pagination({
   totalPages,
   baseUrl,
 }: PaginationProps) {
-  const t = useTranslations("blog");
+  const t = useTranslations("common");
   const { settings } = useConfigStore();
   const [calculatedTotalPages, setCalculatedTotalPages] = useState(totalPages);
 
   useEffect(() => {
-    // Recalculate total pages based on settings
     if (settings.postsPerPage) {
       setCalculatedTotalPages(totalPages);
     }
@@ -43,10 +43,10 @@ export function Pagination({
       <Link
         key="first"
         href={getPageUrl(1)}
-        className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+        className={`relative inline-flex items-center justify-center w-10 h-10 text-sm font-semibold rounded-xl transition-all duration-200 ${
           currentPage === 1
-            ? "bg-indigo-600 text-white focus-visible:outline-indigo-700 dark:bg-indigo-700 dark:focus-visible:outline-indigo-600"
-            : "text-zinc-900 dark:text-zinc-100 ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 focus:outline-offset-0"
+            ? "bg-linear-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25"
+            : "text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border border-zinc-200 dark:border-zinc-700"
         }`}
       >
         1
@@ -58,8 +58,10 @@ export function Pagination({
       pages.push(
         <span
           key="ellipsis-start"
-          className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300"
-        ></span>
+          className="inline-flex items-center justify-center w-10 h-10 text-sm font-medium text-zinc-400 dark:text-zinc-500"
+        >
+          ...
+        </span>
       );
     }
 
@@ -69,15 +71,15 @@ export function Pagination({
       i <= Math.min(totalPages - 1, currentPage + 1);
       i++
     ) {
-      if (i === 1 || i === totalPages) continue; // Skip first and last page as they're always shown
+      if (i === 1 || i === totalPages) continue;
       pages.push(
         <Link
           key={i}
           href={getPageUrl(i)}
-          className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+          className={`relative inline-flex items-center justify-center w-10 h-10 text-sm font-semibold rounded-xl transition-all duration-200 ${
             currentPage === i
-              ? "bg-indigo-600 text-white focus-visible:outline-indigo-700 dark:bg-indigo-700 dark:focus-visible:outline-indigo-600"
-              : "text-zinc-900 dark:text-zinc-100 ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 focus:outline-offset-0"
+              ? "bg-linear-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25"
+              : "text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border border-zinc-200 dark:border-zinc-700"
           }`}
         >
           {i}
@@ -90,8 +92,10 @@ export function Pagination({
       pages.push(
         <span
           key="ellipsis-end"
-          className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300"
-        ></span>
+          className="inline-flex items-center justify-center w-10 h-10 text-sm font-medium text-zinc-400 dark:text-zinc-500"
+        >
+          ...
+        </span>
       );
     }
 
@@ -101,10 +105,10 @@ export function Pagination({
         <Link
           key="last"
           href={getPageUrl(totalPages)}
-          className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+          className={`relative inline-flex items-center justify-center w-10 h-10 text-sm font-semibold rounded-xl transition-all duration-200 ${
             currentPage === totalPages
-              ? "bg-indigo-600 text-white focus-visible:outline-indigo-700 dark:bg-indigo-700 dark:focus-visible:outline-indigo-600"
-              : "text-zinc-900 dark:text-zinc-100 ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 focus:outline-offset-0"
+              ? "bg-linear-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25"
+              : "text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border border-zinc-200 dark:border-zinc-700"
           }`}
         >
           {totalPages}
@@ -116,40 +120,53 @@ export function Pagination({
   };
 
   return (
-    <nav className="flex items-center justify-center border-t border-zinc-200 dark:border-zinc-700 px-4 sm:px-0">
-      <div className="flex w-0 flex-1 justify-start">
+    <motion.nav
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 }}
+      className="flex items-center justify-center pt-8"
+    >
+      <div className="flex items-center gap-2 p-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl rounded-2xl border border-zinc-200/50 dark:border-zinc-800/50 shadow-lg">
+        {/* Previous Button */}
         {currentPage > 1 && (
           <Link
             href={getPageUrl(currentPage - 1)}
-            className="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-600 hover:text-zinc-700 dark:hover:text-zinc-300"
+            className="inline-flex items-center justify-center px-4 h-10 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 rounded-xl border border-zinc-200 dark:border-zinc-700 transition-all duration-200 group"
           >
             <ChevronLeft
-              className="mr-3 h-5 w-5 text-zinc-400 dark:text-zinc-500"
+              className="mr-1 h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5"
               aria-hidden="true"
             />
-            {t("Previous")}
+            {t('prev')}
           </Link>
         )}
-      </div>
-      <div className="hidden md:flex">
-        <div className="isolate inline-flex -space-x-px rounded-md shadow-sm dark:shadow-zinc-800/50">
+
+        {/* Page Numbers - Hidden on mobile */}
+        <div className="hidden md:flex items-center gap-1">
           {renderPageLinks()}
         </div>
-      </div>
-      <div className="flex w-0 flex-1 justify-end">
+
+        {/* Mobile Page Indicator */}
+        <div className="flex md:hidden items-center px-4">
+          <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+            {currentPage} / {totalPages}
+          </span>
+        </div>
+
+        {/* Next Button */}
         {currentPage < totalPages && (
           <Link
             href={getPageUrl(currentPage + 1)}
-            className="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-600 hover:text-zinc-700 dark:hover:text-zinc-300"
+            className="inline-flex items-center justify-center px-4 h-10 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 rounded-xl border border-zinc-200 dark:border-zinc-700 transition-all duration-200 group"
           >
-            {t("Next")}
+            {t("next")}
             <ChevronRight
-              className="ml-3 h-5 w-5 text-zinc-400 dark:text-zinc-500"
+              className="ml-1 h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
               aria-hidden="true"
             />
           </Link>
         )}
       </div>
-    </nav>
+    </motion.nav>
   );
 }

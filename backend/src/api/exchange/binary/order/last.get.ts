@@ -15,6 +15,8 @@ export const metadata: OperationObject = {
   tags: ["Binary", "Orders"],
   description:
     "Retrieves the non-pending binary orders for practice and non-practice accounts from the last 30 days and compares them with the previous month.",
+  logModule: "EXCHANGE",
+  logTitle: "Get Last 30 Days Binary Orders",
   responses: {
     200: {
       description: "A list of binary orders from the last 30 days",
@@ -52,10 +54,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) throw new Error("Unauthorized");
 
   try {
+    ctx?.step("Fetching binary orders for last 30 days");
     const thirtyDaysAgo = subDays(new Date(), 30);
     const sixtyDaysAgo = subDays(new Date(), 60);
 
@@ -106,6 +109,7 @@ export default async (data: Handler) => {
       practiceOrdersLast60Days.length
     );
 
+    ctx?.success(`Retrieved ${allOrdersLast30Days.length} orders (${practiceOrdersLast30Days.length} practice, ${liveOrdersLast30Days.length} live)`);
     return {
       practiceOrders: practiceOrdersLast30Days,
       nonPracticeOrders: liveOrdersLast30Days,

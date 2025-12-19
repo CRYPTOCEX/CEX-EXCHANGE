@@ -12,13 +12,20 @@ export const metadata: OperationObject = {
   responses: deleteRecordResponses("KYC application"),
   permission: "delete.kyc.application",
   requiresAuth: true,
+  logModule: "ADMIN_CRM",
+  logTitle: "Delete KYC application",
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
-  return handleSingleDelete({
+  const { params, query, ctx } = data;
+
+  ctx?.step(`Deleting KYC application ${params.id}`);
+  const result = await handleSingleDelete({
     model: "kycApplication",
     id: params.id,
     query,
   });
+
+  ctx?.success("KYC application deleted successfully");
+  return result;
 };

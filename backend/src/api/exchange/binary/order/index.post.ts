@@ -38,6 +38,8 @@ export const metadata: OperationObject = {
 
   responses: createRecordResponses("Binary Order"),
   requiresAuth: true,
+  logModule: "BINARY",
+  logTitle: "Create binary order",
 };
 
 export default async (data: Handler) => {
@@ -48,7 +50,7 @@ export default async (data: Handler) => {
     });
   }
 
-  const { user, body } = data;
+  const { user, body, ctx } = data;
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
@@ -69,6 +71,17 @@ export default async (data: Handler) => {
   } = body;
 
   try {
+    ctx?.step("Validating order parameters");
+
+    ctx?.step(`Checking wallet balance for ${pair}`);
+
+    ctx?.step("Fetching market data and binary duration");
+
+    ctx?.step(`Deducting ${amount} ${pair} from wallet`);
+
+    ctx?.step("Fetching current market price");
+
+    ctx?.step("Creating binary order record");
     const order = await BinaryOrderService.createOrder({
       userId: user.id,
       currency,
@@ -85,11 +98,16 @@ export default async (data: Handler) => {
       isDemo,
     });
 
+    ctx?.step("Scheduling order expiry processing");
+
+    ctx?.success(`Opened ${side} ${isDemo ? 'DEMO' : ''} position on ${currency}/${pair} for ${amount} ${pair}`);
+
     return {
       order,
       message: "Binary order created successfully",
     };
   } catch (error: any) {
+    ctx?.fail(error.message || "Failed to create binary order");
     throw createError({
       statusCode: error?.statusCode || 500,
       message: error.message || "An error occurred while creating the order",

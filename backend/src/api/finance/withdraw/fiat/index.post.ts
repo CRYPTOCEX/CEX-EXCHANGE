@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
   operationId: "createCustomFiatWithdraw",
   tags: ["Wallets"],
   requiresAuth: true,
+  logModule: "FIAT_WITHDRAW",
+  logTitle: "Process fiat withdrawal",
   requestBody: {
     required: true,
     content: {
@@ -57,46 +59,57 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { methodId, amount, currency, customFields } = body;
 
+  ctx?.step("Verifying user account");
   const userPk = await models.user.findByPk(user.id);
   if (!userPk) {
+    ctx?.fail("User account not found");
     throw createError({ statusCode: 404, message: "User not found" });
   }
 
+  ctx?.step("Validating withdrawal method");
   const method = await models.withdrawMethod.findByPk(methodId);
   if (!method) {
+    ctx?.fail(`Withdrawal method not found: ${methodId}`);
     throw createError({
       statusCode: 404,
       message: "Withdraw method not found",
     });
   }
 
+  ctx?.step("Validating currency");
   const currencyData = await models.currency.findOne({
     where: { id: currency },
   });
   if (!currencyData) {
+    ctx?.fail(`Currency not found: ${currency}`);
     throw createError({ statusCode: 404, message: "Currency not found" });
   }
 
+  ctx?.step("Calculating withdrawal fees");
   const totalWithdrawAmount = Math.abs(parseFloat(amount)); // Total amount user wants to withdraw
   const fixedFee = method.fixedFee || 0;
   const percentageFee = method.percentageFee || 0;
-  
+
   // Calculate fee based on the total withdrawal amount
   const feeAmount = parseFloat(
     Math.max((totalWithdrawAmount * percentageFee) / 100 + fixedFee, 0).toFixed(2)
   );
-  
+
   // Net amount user will receive after fees are deducted
   const netReceiveAmount = parseFloat((totalWithdrawAmount - feeAmount).toFixed(2));
 
+  ctx?.step("Processing withdrawal transaction");
   const result = await sequelize.transaction(async (t) => {
+    ctx?.step("Locking user wallet for update");
     // Lock wallet row for update to ensure isolation
     const wallet = await models.wallet.findOne({
       where: { userId: user.id, currency: currency, type: "FIAT" },
@@ -105,16 +118,21 @@ export default async (data: Handler) => {
     });
 
     if (!wallet) {
+      ctx?.fail(`${currency} FIAT wallet not found`);
       throw createError({ statusCode: 404, message: "Wallet not found" });
     }
 
+    ctx?.step("Checking wallet balance");
     if (wallet.balance < totalWithdrawAmount) {
+      ctx?.fail(`Insufficient balance: ${wallet.balance} < ${totalWithdrawAmount}`);
       throw createError({ statusCode: 400, message: "Insufficient funds" });
     }
 
+    ctx?.step("Deducting funds from wallet");
     wallet.balance -= totalWithdrawAmount;
     await wallet.save({ transaction: t });
 
+    ctx?.step("Creating withdrawal transaction record");
     const trx = await models.transaction.create(
       {
         userId: user.id,
@@ -133,6 +151,7 @@ export default async (data: Handler) => {
       { transaction: t }
     );
 
+    ctx?.step("Recording admin profit from fees");
     await models.adminProfit.create(
       {
         amount: feeAmount,
@@ -152,5 +171,6 @@ export default async (data: Handler) => {
     };
   });
 
+  ctx?.success(`Withdrawn ${totalWithdrawAmount} ${currency} (net: ${netReceiveAmount}) via ${method.title}`);
   return result;
 };

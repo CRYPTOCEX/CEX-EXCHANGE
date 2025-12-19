@@ -30,7 +30,8 @@ const ELEMENT_TYPES = {
 };
 
 export function StructureTab() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const builderStore = useBuilderStore();
   const selectedElementId = builderStore.selectedElementId;
   const selectedSectionId = builderStore.selectedSectionId;
@@ -218,8 +219,8 @@ export function StructureTab() {
             label="Name"
             value={elementName}
             onChange={handleNameChange}
-            placeholder="Element name"
-            tooltip="A descriptive name to help identify this element"
+            placeholder={t("element_name")}
+            tooltip={t("a_descriptive_name_to_help_identify_this_element")}
           />
 
           <LabeledSelect
@@ -228,14 +229,14 @@ export function StructureTab() {
             value={elementTag}
             onValueChange={handleTagChange}
             options={tagOptions}
-            tooltip="The HTML tag to use for this element"
+            tooltip={t("the_html_tag_to_use_for_this_element")}
           />
         </div>
 
         <Separator />
 
         <div className="space-y-2">
-          <Label className="text-xs">{t("Actions")}</Label>
+          <Label className="text-xs">{tCommon("actions")}</Label>
           <div className="grid grid-cols-2 gap-2">
             <Button
               variant="outline"
@@ -243,7 +244,7 @@ export function StructureTab() {
               className="w-full text-xs"
               onClick={handleDuplicate}
             >
-              {t("Duplicate")}
+              {t("duplicate")}
             </Button>
             <Button
               variant="outline"
@@ -251,7 +252,7 @@ export function StructureTab() {
               className="w-full text-xs text-destructive hover:text-destructive"
               onClick={handleDelete}
             >
-              {t("Delete")}
+              {tCommon("delete")}
             </Button>
             <Button
               variant="outline"
@@ -312,10 +313,10 @@ export function StructureTab() {
             <Tabs defaultValue="layout" className="w-full">
               <TabsList className="w-full grid grid-cols-2 h-8">
                 <TabsTrigger value="layout" className="text-xs">
-                  {t("Layout")}
+                  {tCommon("layout")}
                 </TabsTrigger>
                 <TabsTrigger value="content" className="text-xs">
-                  {t("Content")}
+                  {tCommon("content")}
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="layout" className="mt-2">
@@ -326,7 +327,7 @@ export function StructureTab() {
                     className="w-full text-xs"
                     onClick={() => handleAddElement(ELEMENT_TYPES.ROW)}
                   >
-                    {t("Row")}
+                    {t("row")}
                   </Button>
                   <Button
                     variant="outline"
@@ -334,7 +335,7 @@ export function StructureTab() {
                     className="w-full text-xs"
                     onClick={() => handleAddElement(ELEMENT_TYPES.CONTAINER)}
                   >
-                    {t("Container")}
+                    {t("container")}
                   </Button>
                 </div>
               </TabsContent>
@@ -346,7 +347,7 @@ export function StructureTab() {
                     className="w-full text-xs"
                     onClick={() => handleAddElement(ELEMENT_TYPES.HEADING)}
                   >
-                    {t("Heading")}
+                    {t("heading")}
                   </Button>
                   <Button
                     variant="outline"
@@ -354,7 +355,7 @@ export function StructureTab() {
                     className="w-full text-xs"
                     onClick={() => handleAddElement(ELEMENT_TYPES.TEXT)}
                   >
-                    {t("Text")}
+                    {t("text")}
                   </Button>
                   <Button
                     variant="outline"
@@ -362,7 +363,7 @@ export function StructureTab() {
                     className="w-full text-xs"
                     onClick={() => handleAddElement(ELEMENT_TYPES.IMAGE)}
                   >
-                    {t("Image")}
+                    {tCommon("image")}
                   </Button>
                   <Button
                     variant="outline"
@@ -370,7 +371,7 @@ export function StructureTab() {
                     className="w-full text-xs"
                     onClick={() => handleAddElement(ELEMENT_TYPES.BUTTON)}
                   >
-                    {t("Button")}
+                    {t("button")}
                   </Button>
                   <Button
                     variant="outline"
@@ -378,7 +379,7 @@ export function StructureTab() {
                     className="w-full text-xs"
                     onClick={() => handleAddElement(ELEMENT_TYPES.DIVIDER)}
                   >
-                    {t("Divider")}
+                    {t("divider")}
                   </Button>
                   <Button
                     variant="outline"
@@ -386,7 +387,7 @@ export function StructureTab() {
                     className="w-full text-xs"
                     onClick={() => handleAddElement(ELEMENT_TYPES.SPACER)}
                   >
-                    {t("Spacer")}
+                    {t("spacer")}
                   </Button>
                   <Button
                     variant="outline"
@@ -394,7 +395,7 @@ export function StructureTab() {
                     className="w-full text-xs"
                     onClick={() => handleAddElement(ELEMENT_TYPES.ICON)}
                   >
-                    {t("Icon")}
+                    {tCommon("icon")}
                   </Button>
                   <Button
                     variant="outline"
@@ -402,7 +403,7 @@ export function StructureTab() {
                     className="w-full text-xs"
                     onClick={() => handleAddElement(ELEMENT_TYPES.LIST)}
                   >
-                    {t("List")}
+                    {t("list")}
                   </Button>
                 </div>
               </TabsContent>

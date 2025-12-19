@@ -8,6 +8,8 @@ export const metadata = {
     "Retrieves token release transactions for a given token (offering) ID, optionally filtered by status and paginated with sorting support.",
   operationId: "getTokenReleaseTransactions",
   tags: ["ICO", "Token", "Release"],
+  logModule: "ICO",
+  logTitle: "Get Token Releases",
   requiresAuth: true,
   parameters: [
     {
@@ -94,10 +96,13 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, query, params } = data;
+  const { user, query, params, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Fetching token releases");
 
   const { id } = params;
   if (!id) {
@@ -157,6 +162,8 @@ export default async (data: Handler) => {
   });
 
   const totalPages = Math.ceil(totalItems / limit);
+
+  ctx?.success("Get Token Releases retrieved successfully");
 
   return {
     items: transactions,

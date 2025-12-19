@@ -5,6 +5,7 @@ import {
   notFoundMetadataResponse,
   serverErrorResponse,
 } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Assigns or unassigns an agent to a support ticket",
@@ -66,19 +67,22 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "edit.support.ticket",
+  logModule: "ADMIN_SUP",
+  logTitle: "Assign agent to ticket",
 };
 
 export default async (data: Handler) => {
-  const { params, body } = data;
+  const { params, body, ctx } = data;
   const { agentId } = body;
 
   try {
-    // Find the ticket
+    ctx?.step("Fetching ticket");
     const ticket = await models.supportTicket.findOne({
       where: { id: params.id },
     });
 
     if (!ticket) {
+      ctx?.fail("Ticket not found");
       throw createError({
         statusCode: 404,
         message: "Support ticket not found",
@@ -88,12 +92,14 @@ export default async (data: Handler) => {
     // If assigning an agent, verify the agent exists
     let agentName: string | null = null;
     if (agentId) {
+      ctx?.step("Verifying agent");
       const agent = await models.user.findOne({
         where: { id: agentId },
         attributes: ["id", "firstName", "lastName"],
       });
 
       if (!agent) {
+        ctx?.fail("Agent not found");
         throw createError({
           statusCode: 404,
           message: "Agent not found",
@@ -103,13 +109,14 @@ export default async (data: Handler) => {
       agentName = `${agent.firstName} ${agent.lastName}`.trim();
     }
 
-    // Update the ticket
+    ctx?.step("Updating ticket assignment");
     await ticket.update({
       agentId: agentId || null,
       agentName: agentName,
       status: agentId ? "OPEN" : "PENDING", // Auto-update status
     });
 
+    ctx?.success(agentId ? "Agent assigned successfully" : "Agent unassigned successfully");
     return {
       message: agentId ? "Agent assigned successfully" : "Agent unassigned successfully",
       data: {
@@ -119,12 +126,13 @@ export default async (data: Handler) => {
       },
     };
   } catch (error) {
-    console.error("Error assigning agent to ticket:", error);
-    
+    logger.error("SUPPORT", "Error assigning agent to ticket", error);
+
     if (error.statusCode) {
       throw error; // Re-throw createError errors
     }
-    
+
+    ctx?.fail("Internal server error");
     throw createError({
       statusCode: 500,
       message: "Internal server error",

@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 // ============================================
 // Decimal Precision Utilities
@@ -703,7 +704,7 @@ export async function collectGatewayFee(params: {
   });
 
   if (!superAdminRole) {
-    console.warn("No super admin role found for fee collection");
+    logger.warn("GATEWAY", "No super admin role found for fee collection");
     return;
   }
 
@@ -714,7 +715,7 @@ export async function collectGatewayFee(params: {
   });
 
   if (!superAdmin) {
-    console.warn("No super admin found for fee collection");
+    logger.warn("GATEWAY", "No super admin found for fee collection");
     return;
   }
 

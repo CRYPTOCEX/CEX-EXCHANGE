@@ -4,7 +4,8 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 
-import { 
+import { logger } from "@b/utils/console";
+import {
   getIpay88Config,
   makeIpay88Request,
   generateIpay88Signature,
@@ -102,6 +103,7 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("Transaction not found"),
     500: serverErrorResponse,
   },
+  requiresAuth: true,
 };
 
 export default async (data: Handler) => {
@@ -202,11 +204,11 @@ export default async (data: Handler) => {
       );
 
       if (!isSignatureValid) {
-        console.error("iPay88 requery response signature verification failed", {
+        logger.error("IPAY88", "Requery response signature verification failed", {
           reference: reference,
           response: requeryResponse,
         });
-        
+
         throw new Error("Invalid signature in iPay88 response");
       }
 
@@ -298,7 +300,7 @@ export default async (data: Handler) => {
 
     } catch (requeryError) {
       // If requery fails, return current transaction status
-      console.warn("iPay88 requery failed, returning current transaction status:", requeryError.message);
+      logger.warn("IPAY88", `Requery failed, returning current transaction status: ${requeryError.message}`);
 
       return {
         success: true,
@@ -321,8 +323,8 @@ export default async (data: Handler) => {
     }
 
   } catch (error) {
-    console.error("iPay88 status check error:", error);
-    
+    logger.error("IPAY88", "Status check error", error);
+
     if (error instanceof Ipay88Error) {
       throw new Error(`iPay88 Error: ${error.message}`);
     }

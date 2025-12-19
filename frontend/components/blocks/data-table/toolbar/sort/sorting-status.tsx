@@ -17,7 +17,8 @@ export function SortingStatus({
   sortableFields,
   onClear,
 }: SortingStatusProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components_blocks");
+  const tCommon = useTranslations("common");
   if (!selectedField) return null;
 
   const currentField = sortableFields.find((f) => f.id === selectedField);
@@ -48,7 +49,7 @@ export function SortingStatus({
         onClick={onClear}
       >
         <X className="h-3 w-3" />
-        {t("Clear")}
+        {tCommon("clear")}
       </Button>
     </div>
   );

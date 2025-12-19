@@ -1,4 +1,4 @@
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import type { MarketMakerEngine } from "./MarketMakerEngine";
 import type { MarketMakerConfig } from "./MarketInstance";
 import {
@@ -98,11 +98,11 @@ export class OrderManager {
         }
       }
 
-      console.info(
-        `[AI Market Maker] OrderManager initialized with ${this.openOrders.size} real liquidity orders for ${this.config.symbol}`
+      logger.info("AI_MM",
+        `OrderManager initialized with ${this.openOrders.size} real liquidity orders for ${this.config.symbol}`
       );
     } catch (error) {
-      logError("ai-market-maker-order-manager-init", error, __filename);
+      logger.error("AI_MM", "OrderManager initialization error", error);
       throw error;
     }
   }
@@ -118,7 +118,7 @@ export class OrderManager {
         return this.createAiOrder(params);
       }
     } catch (error) {
-      logError("ai-market-maker-create-order", error, __filename);
+      logger.error("AI_MM", "Order creation error", error);
       return null;
     }
   }
@@ -234,7 +234,7 @@ export class OrderManager {
       this.ordersCanceled++;
       return true;
     } catch (error) {
-      logError("ai-market-maker-cancel-order", error, __filename);
+      logger.error("AI_MM", "Order cancellation error", error);
       return false;
     }
   }
@@ -266,8 +266,8 @@ export class OrderManager {
     }
 
     if (expiredOrders.length > 0) {
-      console.info(
-        `[AI Market Maker] Cleaned up ${expiredOrders.length} expired orders for ${this.config.symbol}`
+      logger.info("AI_MM",
+        `Cleaned up ${expiredOrders.length} expired orders for ${this.config.symbol}`
       );
     }
   }

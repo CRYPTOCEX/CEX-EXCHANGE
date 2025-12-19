@@ -38,10 +38,18 @@ export const metadata: OperationObject = {
   },
   permission: "view.blog.comment",
   requiresAuth: true,
+  logModule: "ADMIN_BLOG",
+  logTitle: "Get comment by ID",
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("comment", params.id);
+  ctx?.step("Validating comment ID");
+
+  ctx?.step("Fetching comment");
+  const result = await getRecord("comment", params.id);
+
+  ctx?.success("Comment retrieved successfully");
+  return result;
 };

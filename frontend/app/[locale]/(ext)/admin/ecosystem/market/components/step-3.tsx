@@ -20,20 +20,21 @@ const PrecisionStep: React.FC<PrecisionStepProps> = ({
   formData,
   updateNestedField,
 }) => {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   return (
     <Card className="p-5 space-y-3">
-      <h2 className="text-lg font-semibold mb-2">{t("Precision")}</h2>
+      <h2 className="text-lg font-semibold mb-2">{tCommon("precision")}</h2>
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
         {t("configure_the_number_of_decimals_to_display")}.<br />
-        <strong>{t("price_precision")}</strong>
+        <strong>{tCommon("price_precision")}</strong>
         {t("defaults_to_6_decimals")}.<br />
-        <strong>{t("amount_precision")}</strong>
+        <strong>{tCommon("amount_precision")}</strong>
         {t("defaults_to_8_decimals")}.
       </p>
       <div className="grid grid-cols-2 gap-5">
         <div>
-          <Label>{t("amount_precision")}</Label>
+          <Label>{tCommon("amount_precision")}</Label>
           <Input
             type="number"
             value={formData.metadata.precision.amount}
@@ -43,11 +44,11 @@ const PrecisionStep: React.FC<PrecisionStepProps> = ({
                 parseInt(e.target.value) || 0
               )
             }
-            placeholder="Enter amount precision"
+            placeholder={t("enter_amount_precision")}
           />
         </div>
         <div>
-          <Label>{t("price_precision")}</Label>
+          <Label>{tCommon("price_precision")}</Label>
           <Input
             type="number"
             value={formData.metadata.precision.price}
@@ -57,7 +58,7 @@ const PrecisionStep: React.FC<PrecisionStepProps> = ({
                 parseInt(e.target.value) || 0
               )
             }
-            placeholder="Enter price precision"
+            placeholder={t("enter_price_precision")}
           />
         </div>
       </div>

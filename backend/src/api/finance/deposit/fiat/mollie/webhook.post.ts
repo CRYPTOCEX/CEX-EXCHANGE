@@ -8,12 +8,15 @@ import {
   parseMollieAmount,
   MolliePayment,
 } from './utils'
+import { logger } from '@b/utils/console'
 
 export const metadata = {
   summary: 'Handles Mollie webhook notifications',
   description: 'Processes payment status updates from Mollie backend notifications',
   operationId: 'mollieWebhook',
   tags: ['Finance', 'Deposit', 'Mollie', 'Webhook'],
+  logModule: "WEBHOOK",
+  logTitle: "Mollie webhook",
   requiresAuth: false, // Webhooks don't use user authentication
   requestBody: {
     required: true,
@@ -101,7 +104,7 @@ export default async (data: Handler) => {
       })
 
       if (!transactionByMetadata) {
-        console.warn(`No transaction found for Mollie payment ID: ${molliePaymentId}`)
+        logger.warn("MOLLIE", `No transaction found for Mollie payment ID: ${molliePaymentId}`)
         return 'OK' // Return OK to prevent Mollie from retrying
       }
     }
@@ -127,7 +130,7 @@ export default async (data: Handler) => {
     // Get user information
     const user = await models.user.findByPk(targetTransaction.userId)
     if (!user) {
-      console.error(`User not found for transaction: ${targetTransaction.uuid}`)
+      logger.error("MOLLIE", `User not found for transaction: ${targetTransaction.uuid}`)
       return 'OK'
     }
 
@@ -237,7 +240,7 @@ export default async (data: Handler) => {
           updatedWallet?.balance || 0
         )
       } catch (emailError) {
-        console.error('Failed to send confirmation email:', emailError)
+        logger.error('MOLLIE', 'Failed to send confirmation email', emailError)
         // Don't throw error for email failure
       }
     } else if (['failed', 'canceled', 'expired'].includes(molliePayment.status)) {
@@ -274,7 +277,7 @@ export default async (data: Handler) => {
           0 // No balance change for failed transactions
         )
       } catch (emailError) {
-        console.error('Failed to send failure notification email:', emailError)
+        logger.error('MOLLIE', 'Failed to send failure notification email', emailError)
       }
     } else {
       // Payment still pending or other status - update metadata only
@@ -294,11 +297,11 @@ export default async (data: Handler) => {
     }
 
     // Log webhook processing
-    console.log(`Mollie webhook processed: Payment ${molliePaymentId} status ${molliePayment.status}`)
+    logger.success("MOLLIE", `Webhook processed: Payment ${molliePaymentId} status ${molliePayment.status}`)
 
     return 'OK'
   } catch (error) {
-    console.error('Mollie webhook processing error:', error)
+    logger.error('MOLLIE', 'Webhook processing error', error)
 
     // For webhook errors, we should still return OK to prevent Mollie from retrying
     // unless it's a configuration error

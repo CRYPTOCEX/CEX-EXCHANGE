@@ -56,10 +56,12 @@ export const metadata = {
     500: serverErrorResponse,
   },
   permission: "edit.exchange",
+  logModule: "ADMIN_FIN",
+  logTitle: "Activate Exchange Provider",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { purchaseCode, envatoUsername } = body;
   const { productId } = params;
 
@@ -67,13 +69,18 @@ export default async (data: Handler) => {
     throw new Error("All fields are required for license activation.");
   }
 
+  ctx?.step("Activating license");
   const response = await activateLicense(
     productId,
     purchaseCode,
     envatoUsername
   );
+
   if (response.lic_response) {
+    ctx?.step("Saving license");
     await saveLicense(productId, envatoUsername);
   }
+
+  ctx?.success();
   return response;
 };

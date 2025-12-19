@@ -1,7 +1,11 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { Coins } from "lucide-react";
+import { useColumns } from "./columns";
+import { useTranslations } from "next-intl";
 export default function FiatCurrencyPage() {
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
   return (
     <DataTable
       apiEndpoint="/api/admin/finance/currency/fiat"
@@ -13,15 +17,20 @@ export default function FiatCurrencyPage() {
         edit: "edit.fiat.currency",
         delete: "delete.fiat.currency",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={false}
       canEdit={false}
       canDelete={false}
       canView={true}
       isParanoid={false}
-      title="Fiat Currency Management"
+      title={t("fiat_currency_management")}
+      description={t("manage_fiat_currencies_and_exchange_rates")}
       itemTitle="Currency"
       columns={columns}
+      design={{
+        animation: "orbs",
+        icon: Coins,
+      }}
     />
   );
 }

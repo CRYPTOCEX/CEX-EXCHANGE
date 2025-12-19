@@ -75,27 +75,35 @@ interface OfferStoreState {
     currentPage: number;
     totalPages: number;
     totalItems: number;
+    total: number;
   };
   upcomingPagination: {
     currentPage: number;
     totalPages: number;
     totalItems: number;
+    total: number;
   };
   completedPagination: {
     currentPage: number;
     totalPages: number;
     totalItems: number;
+    total: number;
   };
 
   // Loading states
   isLoadingActive: boolean;
   activeOfferingsFetched: boolean;
   isLoadingUpcoming: boolean;
+  upcomingOfferingsFetched: boolean;
   isLoadingCompleted: boolean;
+  completedOfferingsFetched: boolean;
 
   offering: offering | null;
   isLoading: boolean;
   error: string | null;
+
+  // Fetch initial counts for all statuses
+  fetchOfferingCounts: () => Promise<void>;
 
   // Fetch a single offering by ID.
   fetchOffering: (id: string) => Promise<void>;
@@ -125,27 +133,62 @@ export const useOfferStore = create<OfferStoreState>((set, get) => ({
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
+    total: 0,
   },
   upcomingPagination: {
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
+    total: 0,
   },
   completedPagination: {
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
+    total: 0,
   },
 
   // Loading states
   isLoadingActive: false,
   activeOfferingsFetched: false,
   isLoadingUpcoming: false,
+  upcomingOfferingsFetched: false,
   isLoadingCompleted: false,
+  completedOfferingsFetched: false,
 
   offering: null,
   isLoading: false,
   error: null,
+
+  // Fetch counts for all statuses using stats endpoint
+  fetchOfferingCounts: async () => {
+    try {
+      const { data } = await $fetch<{
+        active: number;
+        upcoming: number;
+        completed: number;
+      }>({ url: "/api/ico/offer/stats", silent: true });
+
+      if (data) {
+        set({
+          activePagination: {
+            ...get().activePagination,
+            total: data.active || 0,
+          },
+          upcomingPagination: {
+            ...get().upcomingPagination,
+            total: data.upcoming || 0,
+          },
+          completedPagination: {
+            ...get().completedPagination,
+            total: data.completed || 0,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch offering counts:", error);
+    }
+  },
 
   fetchOffering: async (id: string) => {
     set({ isLoading: true, error: null });
@@ -236,24 +279,26 @@ export const useOfferStore = create<OfferStoreState>((set, get) => ({
 
     try {
       const { data, error } = await $fetch<{
-        offerings: offering[];
+        items: offering[];
         pagination: {
           currentPage: number;
           totalPages: number;
           totalItems: number;
+          total: number;
         };
       }>({ url, silent: true });
 
       if (error) throw new Error(error);
 
       if (data) {
-        const parsedOfferings = data.offerings.map(parseTokenDetail);
+        const parsedOfferings = data.items.map(parseTokenDetail);
         set({
           activeOfferings: parsedOfferings,
           activePagination: data.pagination || {
             currentPage: page,
             totalPages: Math.ceil((parsedOfferings.length || 0) / limit),
             totalItems: parsedOfferings.length || 0,
+            total: parsedOfferings.length || 0,
           },
         });
       }
@@ -297,18 +342,19 @@ export const useOfferStore = create<OfferStoreState>((set, get) => ({
 
     try {
       const { data, error } = await $fetch<{
-        offerings: offering[];
+        items: offering[];
         pagination: {
           currentPage: number;
           totalPages: number;
           totalItems: number;
+          total: number;
         };
       }>({ url, silent: true });
 
       if (error) throw new Error(error);
 
       if (data) {
-        const parsedOfferings = data.offerings.map(parseTokenDetail);
+        const parsedOfferings = data.items.map(parseTokenDetail);
         set({
           upcomingOfferings: parsedOfferings,
           upcomingPagination: data.pagination || {
@@ -321,7 +367,7 @@ export const useOfferStore = create<OfferStoreState>((set, get) => ({
     } catch (error) {
       console.error("Failed to fetch upcoming offerings:", error);
     } finally {
-      set({ isLoadingUpcoming: false });
+      set({ isLoadingUpcoming: false, upcomingOfferingsFetched: true });
     }
   },
 
@@ -357,19 +403,20 @@ export const useOfferStore = create<OfferStoreState>((set, get) => ({
     const url = `/api/ico/offer?status=COMPLETED&${queryParams.toString()}`;
 
     try {
-      const { data, error } = await $fetch<{
-        offerings: offering[];
+      const { data, error} = await $fetch<{
+        items: offering[];
         pagination: {
           currentPage: number;
           totalPages: number;
           totalItems: number;
+          total: number;
         };
       }>({ url, silent: true });
 
       if (error) throw new Error(error);
 
       if (data) {
-        const parsedOfferings = data.offerings.map(parseTokenDetail);
+        const parsedOfferings = data.items.map(parseTokenDetail);
         set({
           completedOfferings: parsedOfferings,
           completedPagination: data.pagination || {
@@ -382,7 +429,7 @@ export const useOfferStore = create<OfferStoreState>((set, get) => ({
     } catch (error) {
       console.error("Failed to fetch completed offerings:", error);
     } finally {
-      set({ isLoadingCompleted: false });
+      set({ isLoadingCompleted: false, completedOfferingsFetched: true });
     }
   },
 

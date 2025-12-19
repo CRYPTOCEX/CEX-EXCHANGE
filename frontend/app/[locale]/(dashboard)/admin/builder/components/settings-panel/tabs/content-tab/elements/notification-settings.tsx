@@ -16,7 +16,8 @@ export function NotificationSettings({
   settings,
   onSettingChange,
 }: SettingsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-4">
       <LabeledSelect
@@ -36,18 +37,18 @@ export function NotificationSettings({
         label="Title"
         value={settings.title || ""}
         onChange={(e) => onSettingChange("title", e.target.value)}
-        placeholder="Notification title"
+        placeholder={t("notification_title")}
       />
       <LabeledTextarea
         id="notificationMessage"
         label="Message"
         value={settings.message || ""}
         onChange={(e) => onSettingChange("message", e.target.value)}
-        placeholder="Notification message"
+        placeholder={t("notification_message")}
         rows={3}
       />
       <div className="space-y-1">
-        <Label className="text-xs font-medium">{t("Icon")}</Label>
+        <Label className="text-xs font-medium">{tCommon("icon")}</Label>
         <IconPicker
           selectedIcon={settings.icon || "info"}
           onSelectIcon={(iconName) => onSettingChange("icon", iconName)}
@@ -55,20 +56,20 @@ export function NotificationSettings({
       </div>
       <LabeledSwitch
         id="allowDismiss"
-        label="Allow Dismissing"
+        label={t("allow_dismissing")}
         checked={settings.allowDismiss !== false}
         onCheckedChange={(checked) => onSettingChange("allowDismiss", checked)}
       />
       <LabeledSwitch
         id="autoHide"
-        label="Auto Hide"
+        label={t("auto_hide")}
         checked={settings.autoHide === true}
         onCheckedChange={(checked) => onSettingChange("autoHide", checked)}
       />
       {settings.autoHide && (
         <LabeledInput
           id="hideAfter"
-          label="Hide After (seconds)"
+          label={t("hide_after_seconds")}
           value={String(settings.hideAfter || 5)}
           onChange={(e) => onSettingChange("hideAfter", Number(e.target.value))}
         />

@@ -29,10 +29,12 @@ export const metadata = {
   responses: updateRecordResponses("Deposit Method"),
   requiresAuth: true,
   permission: "edit.deposit.method",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update deposit method",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     image,
@@ -45,6 +47,8 @@ export default async (data: Handler) => {
     customFields,
   } = body;
 
+  ctx?.step("Fetching deposit method record");
+
   // Parse customFields if it is a string
   let parsedCustomFields = customFields;
   if (typeof customFields === "string") {
@@ -55,7 +59,8 @@ export default async (data: Handler) => {
     }
   }
 
-  return await updateRecord("depositMethod", id, {
+  ctx?.step("Updating deposit method");
+  const result = await updateRecord("depositMethod", id, {
     image,
     title,
     instructions,
@@ -65,4 +70,7 @@ export default async (data: Handler) => {
     maxAmount,
     customFields: parsedCustomFields,
   });
+
+  ctx?.success("Deposit method updated successfully");
+  return result;
 };

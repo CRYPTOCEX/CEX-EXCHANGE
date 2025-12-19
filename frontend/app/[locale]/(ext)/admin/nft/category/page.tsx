@@ -1,11 +1,15 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import { nftCategoryAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
+import { Palette } from "lucide-react";
 
 export default function NFTCategoriesPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/category"
@@ -17,7 +21,7 @@ export default function NFTCategoriesPage() {
         edit: "edit.nft.category",
         delete: "delete.nft.category",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={true}
       canEdit={true}
       canDelete={true}
@@ -25,9 +29,16 @@ export default function NFTCategoriesPage() {
       isParanoid={true}
       title="NFT Categories"
       itemTitle="Category"
-      description={t("manage_nft_categories_and_genres_for")}
+      description={t("organize_and_manage_nft_collection_categories")}
       columns={columns}
+      formConfig={formConfig}
       analytics={nftCategoryAnalytics}
+      design={{
+        animation: "orbs",
+        primaryColor: "purple",
+        secondaryColor: "pink",
+        icon: Palette,
+      }}
     />
   );
 }

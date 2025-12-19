@@ -1,6 +1,7 @@
 import { createError } from "@b/utils/error";
 import { models } from "@b/db";
 import { stringify } from "csv-stringify/sync";
+import { applyDemoMask } from "@b/utils/demoMask";
 
 export const metadata: OperationObject = {
   summary: "Export all users as a CSV file",
@@ -122,8 +123,11 @@ export default async (data: Handler) => {
     return userData;
   });
 
+  // Apply demo masking before stringifying
+  const maskedData = applyDemoMask(csvData, ["email", "phone"]);
+
   // Convert to CSV
-  const csv = stringify(csvData, {
+  const csv = stringify(maskedData, {
     header: true,
     columns: [
       "email",

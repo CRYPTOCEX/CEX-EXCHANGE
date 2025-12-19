@@ -1,8 +1,6 @@
 // text-area.tsx
 import React from "react";
-import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
-// If you have a Textarea component in your UI library, import it:
 import { Textarea } from "@/components/ui/textarea";
 
 interface TextAreaFormControlProps {
@@ -10,6 +8,8 @@ interface TextAreaFormControlProps {
   error?: string;
   placeholder?: string;
   icon?: LucideIcon;
+  title?: string;
+  description?: string;
 }
 
 export function TextAreaFormControl({
@@ -17,6 +17,8 @@ export function TextAreaFormControl({
   error,
   placeholder,
   icon: Icon,
+  title,
+  description,
 }: TextAreaFormControlProps) {
   const safeValue = typeof field.value === "undefined" ? "" : field.value;
 
@@ -32,6 +34,8 @@ export function TextAreaFormControl({
       error={!!error}
       errorMessage={error}
       rows={5}
+      title={title}
+      description={description}
     />
   );
 }

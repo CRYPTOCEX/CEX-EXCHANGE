@@ -10,6 +10,7 @@ import {
 import { createError } from "@b/utils/error";
 import { models } from "@b/db";
 import { Op, Sequelize } from "sequelize";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Retrieves a single currency by its ID",
@@ -72,7 +73,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params, query } = data;
+  const { user, params, query, ctx } = data;
   if (!user?.id) throw createError(401, "Unauthorized");
   const { action } = query;
 
@@ -81,15 +82,15 @@ export default async (data: Handler) => {
 
   switch (action) {
     case "deposit":
-      return handleDeposit(type, code);
+      return handleDeposit(type, code, ctx);
     case "withdraw":
-      return handleWithdraw(type, code);
+      return handleWithdraw(type, code, ctx);
     default:
       throw createError(400, "Invalid action");
   }
 };
 
-async function handleDeposit(type: string, code: string) {
+async function handleDeposit(type: string, code: string, ctx?: any) {
   switch (type) {
     case "FIAT": {
       const gateways = await models.depositGateway.findAll({
@@ -106,7 +107,7 @@ async function handleDeposit(type: string, code: string) {
     }
     case "SPOT":
       {
-        const exchange = await ExchangeManager.startExchange();
+        const exchange = await ExchangeManager.startExchange(ctx);
         const provider = await ExchangeManager.getProvider();
         if (!exchange) throw createError(500, "Exchange not found");
 
@@ -205,8 +206,8 @@ async function handleDeposit(type: string, code: string) {
               fee = fee || { min: 0, percentage: 0 };
             }
           } catch (err) {
-            console.warn(`[WARN] Failed to parse fee for token ${tokenData.name} (${tokenData.chain}):`, err.message);
-            console.warn(`[WARN] Raw fee value: ${JSON.stringify(tokenData.fee)}`);
+            logger.warn("CURRENCY", `Failed to parse fee for token ${tokenData.name} (${tokenData.chain})`, err);
+            logger.warn("CURRENCY", `Raw fee value: ${JSON.stringify(tokenData.fee)}`);
           }
 
           try {
@@ -215,8 +216,8 @@ async function handleDeposit(type: string, code: string) {
               limits = limits || { deposit: { min: 1, max: 1000000 } };
             }
           } catch (err) {
-            console.warn(`[WARN] Failed to parse limits for token ${tokenData.name} (${tokenData.chain}):`, err.message);
-            console.warn(`[WARN] Raw limits value: ${JSON.stringify(tokenData.limits)}`);
+            logger.warn("CURRENCY", `Failed to parse limits for token ${tokenData.name} (${tokenData.chain})`, err);
+            logger.warn("CURRENCY", `Raw limits value: ${JSON.stringify(tokenData.limits)}`);
           }
 
           return {
@@ -238,7 +239,7 @@ async function handleDeposit(type: string, code: string) {
   }
 }
 
-async function handleWithdraw(type: string, code: string) {
+async function handleWithdraw(type: string, code: string, ctx?: any) {
   switch (type) {
     case "FIAT": {
       const methods = await models.withdrawMethod.findAll({
@@ -248,7 +249,7 @@ async function handleWithdraw(type: string, code: string) {
       return { methods };
     }
     case "SPOT": {
-      const exchange = await ExchangeManager.startExchange();
+      const exchange = await ExchangeManager.startExchange(ctx);
       const provider = await ExchangeManager.getProvider();
       if (!exchange) throw createError(500, "Exchange not found");
 
@@ -343,7 +344,7 @@ async function handleWithdraw(type: string, code: string) {
             fee = fee || { min: 0, percentage: 0 };
           }
         } catch (err) {
-          console.warn(`Failed to parse fee for token ${tokenData.name}:`, err);
+          logger.warn("CURRENCY", `Failed to parse fee for token ${tokenData.name}`, err);
         }
         
         try {
@@ -352,7 +353,7 @@ async function handleWithdraw(type: string, code: string) {
             limits = limits || { withdraw: { min: 1, max: 1000000 } };
           }
         } catch (err) {
-          console.warn(`Failed to parse limits for token ${tokenData.name}:`, err);
+          logger.warn("CURRENCY", `Failed to parse limits for token ${tokenData.name}`, err);
         }
         
         // Convert to withdrawal method format expected by frontend

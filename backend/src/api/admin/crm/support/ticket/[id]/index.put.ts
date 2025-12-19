@@ -31,13 +31,16 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Support Ticket"),
   requiresAuth: true,
   permission: "edit.support.ticket",
+  logModule: "ADMIN_SUP",
+  logTitle: "Update ticket",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { subject, importance, status, type } = body;
 
+  ctx?.step("Broadcasting update to clients");
   const payload = {
     id,
   };
@@ -53,10 +56,14 @@ export default async (data: Handler) => {
     }
   );
 
-  return await updateRecord("supportTicket", id, {
+  ctx?.step("Updating ticket");
+  const result = await updateRecord("supportTicket", id, {
     subject,
     importance,
     status,
     type,
   });
+
+  ctx?.success("Ticket updated successfully");
+  return result;
 };

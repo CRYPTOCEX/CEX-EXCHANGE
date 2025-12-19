@@ -39,6 +39,7 @@ export const metadata = {
   },
   permission: "view.investment",
   requiresAuth: true,
+  demoMask: ["user.email"],
 };
 
 export default async (data) => {

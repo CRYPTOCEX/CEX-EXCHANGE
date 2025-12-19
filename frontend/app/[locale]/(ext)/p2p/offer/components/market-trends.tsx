@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 export function TrendingOffers() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
   const { offers, isLoadingOffers, fetchOffers } = useP2PStore();
   useEffect(() => {
     fetchOffers({

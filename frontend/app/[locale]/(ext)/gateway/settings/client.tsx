@@ -11,10 +11,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
 import { CountrySelect } from "@/components/ui/country-select";
 import { StateSelect } from "@/components/ui/state-select";
 import { CitySelect } from "@/components/ui/city-select";
+import SettingsLoading from "./loading";
+import SettingsErrorState from "./error-state";
 import {
   Dialog,
   DialogContent,
@@ -38,7 +39,6 @@ import {
   CreditCard,
   Lock,
   ShieldCheck,
-  Settings,
   Globe,
   Pencil,
 } from "lucide-react";
@@ -47,6 +47,7 @@ import $fetch from "@/lib/api";
 import { toast } from "sonner";
 import { useMerchantMode } from "../context/merchant-mode";
 import { useTranslations } from "next-intl";
+import { SettingsHero } from "./components/settings-hero";
 
 const AVAILABLE_PERMISSIONS = [
   { id: "payment.create", label: "Create Payments" },
@@ -116,7 +117,10 @@ const VALID_TABS = ["general", "api-keys", "webhooks"] as const;
 type TabValue = (typeof VALID_TABS)[number];
 
 export default function MerchantSettingsClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_gateway");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
+  const tExtAdmin = useTranslations("ext_admin");
   const { mode } = useMerchantMode();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -208,7 +212,7 @@ export default function MerchantSettingsClient() {
     });
 
     if (saveError) {
-      toast.error(saveError.message);
+      toast.error(saveError);
     } else {
       toast.success("Settings saved successfully");
     }
@@ -225,7 +229,7 @@ export default function MerchantSettingsClient() {
     });
 
     if (deleteError) {
-      toast.error(deleteError.message);
+      toast.error(deleteError);
     } else {
       toast.success("API key deleted");
       fetchData();
@@ -241,7 +245,7 @@ export default function MerchantSettingsClient() {
     });
 
     if (rotateError) {
-      toast.error(rotateError.message);
+      toast.error(rotateError);
     } else {
       setRotatedKey({ key: data.key, type: data.type });
       fetchData();
@@ -255,24 +259,11 @@ export default function MerchantSettingsClient() {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-10 w-64" />
-        <div className="grid gap-4">
-          <Skeleton className="h-64" />
-          <Skeleton className="h-64" />
-        </div>
-      </div>
-    );
+    return <SettingsLoading />;
   }
 
   if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
+    return <SettingsErrorState error={error} />;
   }
 
   if (!merchant) {
@@ -295,25 +286,22 @@ export default function MerchantSettingsClient() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">{t("merchant_settings")}</h1>
-          <p className="text-muted-foreground">{t("manage_your_account_settings_and_api_credentials")}</p>
-        </div>
-        <Button onClick={handleSaveSettings} disabled={saving}>
-          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          <Save className="mr-2 h-4 w-4" />
-          {t("save_changes")}
-        </Button>
-      </div>
-
+    <div className="w-full">
+      <SettingsHero />
+      <div className="container mx-auto space-y-6 pb-12 pt-8">
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="grid grid-cols-3 w-full max-w-md">
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="api-keys">API Keys</TabsTrigger>
-          <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-        </TabsList>
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <TabsList className="grid grid-cols-3 w-full max-w-md">
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="api-keys">API Keys</TabsTrigger>
+            <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+          </TabsList>
+          <Button onClick={handleSaveSettings} disabled={saving}>
+            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Save className="mr-2 h-4 w-4" />
+            {tCommon("save_changes")}
+          </Button>
+        </div>
 
         <TabsContent value="general" className="space-y-4 mt-4">
           {merchant.verificationStatus === "PENDING" && (
@@ -336,11 +324,11 @@ export default function MerchantSettingsClient() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                {t("business_information")}
+                {tCommon("business_information")}
                 {merchant.verificationStatus === "PENDING" && (
                   <Badge variant="outline" className="text-xs text-yellow-500 border-yellow-500">
                     <Lock className="h-3 w-3 mr-1" />
-                    {t("pending_review")}
+                    {tCommon("pending_review")}
                   </Badge>
                 )}
                 {merchant.verificationStatus === "VERIFIED" && (
@@ -354,7 +342,7 @@ export default function MerchantSettingsClient() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">{t("business_name_1")}</Label>
+                  <Label htmlFor="name">{tExtAdmin('business_name')}</Label>
                   <Input
                     id="name"
                     value={merchant.name}
@@ -427,12 +415,12 @@ export default function MerchantSettingsClient() {
                     <CountrySelect
                       value={merchant.country || ""}
                       onValueChange={(value) => setMerchant({ ...merchant, country: value, state: "", city: "" })}
-                      placeholder={t("select_country_ellipsis")}
+                      placeholder={tCommon('select_country')}
                     />
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("state_province")}</Label>
+                  <Label>{tExt("state_province")}</Label>
                   {merchant.verificationStatus !== "UNVERIFIED" ? (
                     <Input value={merchant.state || ""} disabled className="bg-muted" />
                   ) : (
@@ -440,7 +428,7 @@ export default function MerchantSettingsClient() {
                       value={merchant.state || ""}
                       onValueChange={(value) => setMerchant({ ...merchant, state: value, city: "" })}
                       countryCode={merchant.country}
-                      placeholder={t("select_state_ellipsis")}
+                      placeholder={tCommon('select_state')}
                       disabled={!merchant.country}
                     />
                   )}
@@ -458,13 +446,13 @@ export default function MerchantSettingsClient() {
                       onValueChange={(value) => setMerchant({ ...merchant, city: value })}
                       countryCode={merchant.country}
                       stateName={merchant.state}
-                      placeholder={t("select_city_ellipsis")}
+                      placeholder={tCommon('select_city')}
                       disabled={!merchant.state}
                     />
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="postalCode">{t("postal_code")}</Label>
+                  <Label htmlFor="postalCode">{tExt("postal_code")}</Label>
                   <Input
                     id="postalCode"
                     value={merchant.postalCode || ""}
@@ -476,12 +464,12 @@ export default function MerchantSettingsClient() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="address">{t("street_address")}</Label>
+                <Label htmlFor="address">{tCommon("street_address")}</Label>
                 <Input
                   id="address"
                   value={merchant.address || ""}
                   onChange={(e) => setMerchant({ ...merchant, address: e.target.value })}
-                  placeholder={t("_123_business_street_suite_100")}
+                  placeholder={`123 ${tCommon('business_street_suite_100')}`}
                   disabled={merchant.verificationStatus !== "UNVERIFIED"}
                 />
               </div>
@@ -506,7 +494,7 @@ export default function MerchantSettingsClient() {
                 <CardDescription>{t("manage_your_api_keys_for_integration")}</CardDescription>
               </div>
               <Link href="/gateway/api-key/create">
-                <Button disabled={merchant.verificationStatus !== "VERIFIED"}>
+                <Button variant="outline" disabled={merchant.verificationStatus !== "VERIFIED"}>
                   <Plus className="mr-2 h-4 w-4" />
                   {t("create_key")}
                 </Button>
@@ -592,14 +580,14 @@ export default function MerchantSettingsClient() {
 
                           {hasUrls && (
                             <div className="text-xs text-muted-foreground border-t pt-2 mt-2 space-y-1">
-                              {publicKey.successUrl && <p><span className="font-medium">{t("Success")}:</span> {publicKey.successUrl}</p>}
-                              {publicKey.cancelUrl && <p><span className="font-medium">{t("Cancel")}:</span> {publicKey.cancelUrl}</p>}
+                              {publicKey.successUrl && <p><span className="font-medium">{tExt("success")}:</span> {publicKey.successUrl}</p>}
+                              {publicKey.cancelUrl && <p><span className="font-medium">{tCommon("cancel")}:</span> {publicKey.cancelUrl}</p>}
                               {publicKey.webhookUrl && <p><span className="font-medium">{t("webhook")}:</span> {publicKey.webhookUrl}</p>}
                             </div>
                           )}
 
                           <div className="flex items-center gap-1 flex-wrap mt-2">
-                            <span className="text-xs text-muted-foreground">{t("permissions")}:</span>
+                            <span className="text-xs text-muted-foreground">{tCommon("permissions")}:</span>
                             {publicKey.permissions?.includes("*") ? (
                               <Badge variant="secondary" className="text-xs">{t("full_access")}</Badge>
                             ) : (
@@ -679,7 +667,7 @@ export default function MerchantSettingsClient() {
         <TabsContent value="webhooks" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t("webhook_configuration")}</CardTitle>
+              <CardTitle>{tExt("webhook_configuration")}</CardTitle>
               <CardDescription>{t("receive_real_time_notifications_about_payment")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -740,7 +728,7 @@ export default function MerchantSettingsClient() {
           <DialogHeader>
             <DialogTitle>{t("delete_api_key_pair")}</DialogTitle>
             <DialogDescription>
-              {t("are_you_sure_you_want_to_delete_this_api_key_pair")} {t("this_will_delete_both_the_public_and_secret_keys")} {t("this_action_cannot_be_undone_1")}
+              {t("are_you_sure_you_want_to_delete_this_api_key_pair")} {t("this_will_delete_both_the_public_and_secret_keys")} {tCommon('this_action_cannot_be_undone')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -782,6 +770,7 @@ export default function MerchantSettingsClient() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

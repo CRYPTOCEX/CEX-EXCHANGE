@@ -18,9 +18,9 @@ import {
 } from "./constants";
 import { createError } from "./error";
 import { models } from "@b/db";
-import { logError } from "@b/utils/logger";
 import { CacheManager } from "@b/utils/cache";
 import { loadEmailTemplate } from "./emailTemplates";
+import { logger } from "@b/utils/console";
 
 export interface EmailOptions {
   to: string;
@@ -85,7 +85,7 @@ export async function sendEmailWithProvider(
         throw new Error("Unsupported email provider");
     }
   } catch (error) {
-    logError("email", error, __filename);
+    logger.error("EMAIL", "Failed to send email with provider", error);
     throw error;
   }
 }
@@ -138,7 +138,7 @@ async function emailWithLocalSMTP(options: EmailOptions): Promise<void> {
 
     await transporter.sendMail(mailOptions);
   } catch (error) {
-    logError("email", error, __filename);
+    logger.error("EMAIL", "Failed to send email with local SMTP", error);
     throw error;
   }
 }
@@ -164,7 +164,7 @@ export async function emailWithSendgrid(options: EmailOptions): Promise<void> {
 
     await sgMail.send(msg);
   } catch (error) {
-    logError("email", error, __filename);
+    logger.error("EMAIL", "Failed to send email with Sendgrid", error);
     throw error;
   }
 }
@@ -215,7 +215,7 @@ export async function emailWithNodemailerService(
     await transporter.verify();
     await transporter.sendMail(emailOptions);
   } catch (error) {
-    logError("email", error, __filename);
+    logger.error("EMAIL", "Failed to send email with nodemailer service", error);
     throw error;
   }
 }
@@ -278,15 +278,13 @@ export async function emailWithNodemailerSmtp(
       },
     };
 
-    // Debug logging
-    console.log(`[SMTP] Connecting to ${host}:${portNum}, secure: ${useSecure}`);
+    logger.debug("SMTP", `Connecting to ${host}:${portNum}, secure: ${useSecure}`);
 
     const transporter = await nodemailer.createTransport(transportConfig);
     await transporter.verify();
     await transporter.sendMail(emailOptions);
   } catch (error) {
-    console.error(`[SMTP] Error sending email:`, error);
-    logError("email", error, __filename);
+    logger.error("SMTP", "Error sending email", error);
     throw error;
   }
 }
@@ -364,7 +362,7 @@ export async function fetchAndProcessEmailTemplate(
 
     return { processedTemplate, processedSubject, templateRecord };
   } catch (error) {
-    logError("email", error, __filename);
+    logger.error("EMAIL", "Failed to fetch and process email template", error);
     throw error;
   }
 }
@@ -374,12 +372,12 @@ export function replaceTemplateVariables(
   variables: Record<string, string | number | undefined>
 ): string {
   if (typeof template !== "string") {
-    console.error("Template is not a string");
+    logger.error("MAILER", "Template is not a string");
     return "";
   }
   return Object.entries(variables).reduce((acc, [key, value]) => {
     if (value === undefined) {
-      console.warn(`Variable ${key} is undefined`);
+      logger.debug("MAILER", `Variable ${key} is undefined`);
       return acc;
     }
     return acc.replace(new RegExp(`%${key}%`, "g"), String(value));
@@ -392,7 +390,7 @@ function replaceAllOccurrences(
   replace: string
 ): string {
   if (str == null) {
-    console.error("Input string is null or undefined");
+    logger.error("MAILER", "Input string is null or undefined");
     return "";
   }
   const regex = new RegExp(search, "g");

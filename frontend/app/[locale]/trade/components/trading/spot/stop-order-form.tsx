@@ -30,7 +30,8 @@ export default function StopOrderForm({
   takerFee = 0.001,
   makerFee = 0.001,
 }: OrderFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("trade_components");
+  const tCommon = useTranslations("common");
   const [amount, setAmount] = useState("");
   const [stopPrice, setStopPrice] = useState("");
   const [limitPrice, setLimitPrice] = useState("");
@@ -240,7 +241,7 @@ export default function StopOrderForm({
           )}
           onClick={() => setBuyMode(true)}
         >
-          {t("Buy")}
+          {tCommon("buy")}
         </Button>
         <Button
           className={cn(
@@ -251,7 +252,7 @@ export default function StopOrderForm({
           )}
           onClick={() => setBuyMode(false)}
         >
-          {t("Sell")}
+          {tCommon("sell")}
         </Button>
       </div>
 
@@ -283,7 +284,7 @@ export default function StopOrderForm({
       <div className="space-y-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-muted-foreground dark:text-zinc-400">
-            {t("market_price")}
+            {tCommon("market_price")}
           </label>
           <div
             className={cn(
@@ -348,7 +349,7 @@ export default function StopOrderForm({
 
       <div className="space-y-1">
         <label className="text-xs font-medium text-muted-foreground dark:text-zinc-400">
-          {t("Amount")}
+          {tCommon("amount")}
         </label>
         <div className="relative">
           <input
@@ -423,7 +424,7 @@ export default function StopOrderForm({
           {isSubmitting ? (
             <span className="flex items-center">
               <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-              {t("Processing")}.
+              {tCommon("processing")}.
             </span>
           ) : (
             <span className="flex items-center justify-center">

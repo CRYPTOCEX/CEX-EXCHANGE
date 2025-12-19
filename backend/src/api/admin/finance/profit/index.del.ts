@@ -39,10 +39,12 @@ export const metadata = {
   },
   requiresAuth: true,
   permission: "delete.admin.profit",
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk Delete Admin Profits",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
 
   return handleBulkDelete({

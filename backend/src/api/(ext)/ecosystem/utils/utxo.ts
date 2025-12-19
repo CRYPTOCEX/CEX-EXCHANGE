@@ -14,8 +14,8 @@ import { models, sequelize } from "@b/db";
 import { Transaction } from "sequelize";
 import { decrypt } from "../../../../utils/encrypt";
 import { getMasterWalletByChain } from "./wallet";
-import { logError } from "@b/utils/logger";
 import { getUTXOProvider } from "./utxo/providers/UTXOProviderFactory";
+import { logger } from "@b/utils/console";
 
 class TransactionBroadcastedError extends Error {
   txid: string;
@@ -107,11 +107,11 @@ export const watchAddressBlockCypher = (chain, address, callback) => {
   });
 
   ws.on("close", function close() {
-    console.log(`WebSocket disconnected from ${chain} address: ${address}`);
+    logger.info("UTXO", `WebSocket disconnected from ${chain} address: ${address}`);
   });
 
   ws.on("error", function error(err) {
-    logError("watch_address_blockcypher", err, __filename);
+    logger.error("UTXO", "Watch address error", err);
   });
 
   const wsKey = `${chain}_${address.toLowerCase()}`;
@@ -125,16 +125,14 @@ export const cancelWatchAddress = (chain, address) => {
   if (ws) {
     try {
       ws.close();
-      console.log(
-        `WebSocket for ${chain} address ${address} has been successfully closed.`
-      );
+      logger.info("UTXO", `WebSocket for ${chain} address ${address} has been successfully closed.`);
     } catch (error) {
-      logError("cancel_watch_address", error, __filename);
+      logger.error("UTXO", "Cancel watch address error", error);
     } finally {
       wsConnections.delete(wsKey);
     }
   } else {
-    console.log(`No active WebSocket found for ${chain} address ${address}.`);
+    logger.info("UTXO", `No active WebSocket found for ${chain} address ${address}.`);
   }
 };
 
@@ -256,7 +254,7 @@ const fetchFromApi = async (url, options = {}) => {
     }
     return data;
   } catch (error) {
-    logError("fetch_from_api", error, __filename);
+    logger.error("UTXO", "Fetch from API error", error);
     throw error;
   }
 };
@@ -293,10 +291,10 @@ export const createUTXOWallet = (chain) => {
 export const fetchUTXOTransactions = async (chain, address) => {
   try {
     const provider = await getUTXOProvider(chain);
-    console.log(`[UTXO] Using ${provider.getName()} for fetching transactions`);
+    logger.info("UTXO", `Using ${provider.getName()} for fetching transactions`);
     return await provider.fetchTransactions(address);
   } catch (error) {
-    logError('fetch_utxo_transactions', error, __filename);
+    logger.error("UTXO", "Fetch transactions error", error);
     return [];
   }
 };
@@ -307,7 +305,7 @@ export const fetchUTXOWalletBalance = async (chain, address) => {
     const balanceSatoshis = await provider.getBalance(address);
     return satoshiToStandardUnit(balanceSatoshis, chain);
   } catch (error) {
-    logError("fetch_utxo_wallet_balance", error, __filename);
+    logger.error("UTXO", "Fetch wallet balance error", error);
     return 0;
   }
 };
@@ -317,7 +315,7 @@ export const fetchRawUtxoTransaction = async (txHash, chain) => {
     const provider = await getUTXOProvider(chain);
     return await provider.fetchRawTransaction(txHash);
   } catch (error) {
-    logError("fetch_raw_utxo_transaction", error, __filename);
+    logger.error("UTXO", "Fetch raw transaction error", error);
     throw error;
   }
 };
@@ -327,7 +325,7 @@ export const fetchUtxoTransaction = async (txHash, chain) => {
     const provider = await getUTXOProvider(chain);
     return await provider.fetchTransaction(txHash);
   } catch (error) {
-    logError("fetch_utxo_transaction", error, __filename);
+    logger.error("UTXO", "Fetch transaction error", error);
     return null;
   }
 };
@@ -394,7 +392,7 @@ export const verifyUTXOTransaction = async (chain, txHash) => {
         return { confirmed, fee };
       }
     } catch (error) {
-      logError("verify_utxo_transaction", error, __filename);
+      logger.error("UTXO", "Verify transaction error", error);
     }
     await new Promise((resolve) => setTimeout(resolve, retryInterval));
   }
@@ -404,9 +402,7 @@ export const verifyUTXOTransaction = async (chain, txHash) => {
 
 export const broadcastRawUtxoTransaction = async (rawTxHex, chain) => {
   if (!rawTxHex) {
-    console.error(
-      "Error broadcasting transaction: No transaction data provided"
-    );
+    logger.error("UTXO", "Error broadcasting transaction: No transaction data provided");
     return {
       success: false,
       error: "No transaction data provided",
@@ -416,10 +412,10 @@ export const broadcastRawUtxoTransaction = async (rawTxHex, chain) => {
 
   try {
     const provider = await getUTXOProvider(chain);
-    console.log(`[UTXO] Broadcasting transaction using ${provider.getName()}`);
+    logger.info("UTXO", `Broadcasting transaction using ${provider.getName()}`);
     return await provider.broadcastTransaction(rawTxHex);
   } catch (error) {
-    logError("broadcast_raw_utxo_transaction", error, __filename);
+    logger.error("UTXO", "Broadcast transaction error", error);
     return { success: false, error: error.message, txid: null };
   }
 };
@@ -461,7 +457,7 @@ export async function getCurrentUtxoFeeRatePerByte(chain) {
     const provider = await getUTXOProvider(chain);
     return await provider.getFeeRate();
   } catch (error) {
-    logError("get_current_utxo_fee_rate_per_byte", error, __filename);
+    logger.error("UTXO", "Get fee rate error", error);
     return 1; // Default 1 sat/byte
   }
 }
@@ -487,13 +483,13 @@ export async function handleUTXOWithdrawal(transaction: transactionAttributes) {
   );
 
   if (!validationResult.isEconomical) {
-    console.log(`[UTXO_WITHDRAWAL] Withdrawal validation failed:`, validationResult);
+    logger.warn("UTXO", `Withdrawal validation failed: ${JSON.stringify(validationResult)}`);
 
     // Check if we should auto-consolidate
     const shouldConsolidate = await shouldAutoConsolidateUTXOs(wallet.id, chain);
 
     if (shouldConsolidate.shouldConsolidate) {
-      console.log(`[UTXO_AUTO_CONSOLIDATION] Triggered for wallet ${wallet.id}, chain ${chain}:`, shouldConsolidate.reason);
+      logger.info("UTXO", `Auto consolidation triggered for wallet ${wallet.id}, chain ${chain}: ${shouldConsolidate.reason}`);
 
       // Attempt automatic consolidation
       const consolidationResult = await consolidateUTXOs(
@@ -503,8 +499,8 @@ export async function handleUTXOWithdrawal(transaction: transactionAttributes) {
       );
 
       if (consolidationResult.success) {
-        console.log(`[UTXO_AUTO_CONSOLIDATION] Success: ${consolidationResult.message}`);
-        console.log(`[UTXO_AUTO_CONSOLIDATION] Waiting for consolidation transaction to confirm...`);
+        logger.success("UTXO", `Auto consolidation success: ${consolidationResult.message}`);
+        logger.info("UTXO", `Waiting for consolidation transaction to confirm...`);
 
         // Wait for consolidation transaction to confirm before proceeding
         const confirmationResult = await verifyUTXOTransaction(chain, consolidationResult.txid!);
@@ -513,7 +509,7 @@ export async function handleUTXOWithdrawal(transaction: transactionAttributes) {
           throw new Error(`Consolidation transaction ${consolidationResult.txid} failed to confirm within 30 minutes. Please try withdrawal again later.`);
         }
 
-        console.log(`[UTXO_AUTO_CONSOLIDATION] Transaction confirmed. Fee: ${confirmationResult.fee} ${chain}`);
+        logger.success("UTXO", `Auto consolidation transaction confirmed. Fee: ${confirmationResult.fee} ${chain}`);
 
         // Re-validate after consolidation
         const revalidationResult = await calculateMinimumWithdrawal(
@@ -526,16 +522,16 @@ export async function handleUTXOWithdrawal(transaction: transactionAttributes) {
           throw new Error(`Even after consolidation: ${revalidationResult.reason}`);
         }
 
-        console.log(`[UTXO_WITHDRAWAL] After consolidation: withdrawal now requires ${revalidationResult.utxoCount} UTXOs`);
+        logger.info("UTXO", `After consolidation: withdrawal now requires ${revalidationResult.utxoCount} UTXOs`);
       } else {
-        console.log(`[UTXO_AUTO_CONSOLIDATION] Failed: ${consolidationResult.message}`);
+        logger.warn("UTXO", `Auto consolidation failed: ${consolidationResult.message}`);
         throw new Error(`${validationResult.reason}. Consolidation attempt failed: ${consolidationResult.message}`);
       }
     } else {
       throw new Error(validationResult.reason);
     }
   } else {
-    console.log(`[UTXO_WITHDRAWAL] Validation passed: withdrawal requires ${validationResult.utxoCount} UTXOs`);
+    logger.info("UTXO", `Withdrawal validation passed: requires ${validationResult.utxoCount} UTXOs`);
   }
 
   const masterWallet = (await getMasterWalletByChain(
@@ -639,7 +635,7 @@ export async function handleUTXOWithdrawal(transaction: transactionAttributes) {
             }
           );
           // Optionally log the error
-          logError("post_broadcast_error", error, __filename);
+          logger.error("UTXO", "Post-broadcast error", error);
           return { success: true, txid: error.txid };
         } else if (
           error.message.includes("already been spent") ||
@@ -727,22 +723,13 @@ async function createAndBroadcastTransaction(
     let requiredAmount = amountToSend + transactionFee;
     let change = totalInputValue - requiredAmount;
 
-    console.log(`[UTXO_DEBUG] Input #${psbt.inputCount}:`, {
-      utxoAmount: utxoAmountInSatoshis,
-      totalInputValue,
-      amountToSend,
-      flatFee, // For reference only, NOT added to requiredAmount
-      transactionFee,
-      requiredAmount,
-      change,
-      dustThreshold
-    });
+    logger.debug("UTXO", `Input #${psbt.inputCount}: utxo=${utxoAmountInSatoshis}, total=${totalInputValue}, amount=${amountToSend}, fee=${transactionFee}, required=${requiredAmount}, change=${change}`);
 
     // Check if change is dust
     const isChangeDust = change > 0 && change < dustThreshold;
 
     if (isChangeDust) {
-      console.log(`[UTXO_DEBUG] Change is dust (${change} < ${dustThreshold}), adding to fee`);
+      logger.debug("UTXO", `Change is dust (${change} < ${dustThreshold}), adding to fee`);
       transactionFee += change;
       requiredAmount += change;
       change = 0;
@@ -752,28 +739,24 @@ async function createAndBroadcastTransaction(
     requiredAmount = amountToSend + transactionFee;
     change = totalInputValue - requiredAmount;
 
-    console.log(`[UTXO_DEBUG] After dust adjustment:`, {
-      requiredAmount,
-      change,
-      hasEnoughFunds: totalInputValue >= requiredAmount
-    });
+    logger.debug("UTXO", `After dust adjustment: required=${requiredAmount}, change=${change}, hasEnough=${totalInputValue >= requiredAmount}`);
 
     if (totalInputValue >= requiredAmount) {
       // We have enough inputs
       // Build transaction outputs
-      const outputs: { address: string; value: number }[] = [];
+      const outputs: { address: string; value: bigint }[] = [];
 
       // Recipient output
       outputs.push({
         address: toAddress,
-        value: amountToSend,
+        value: BigInt(amountToSend),
       });
 
       // Change output if applicable
       if (change > 0) {
         outputs.push({
           address: getChangeAddress(wallet, chain),
-          value: change,
+          value: BigInt(change),
         });
       }
 
@@ -811,7 +794,7 @@ async function createAndBroadcastTransaction(
           return { success: true, txid };
         } catch (postBroadcastError) {
           // Log the error but return success
-          logError("post_broadcast_error", postBroadcastError, __filename);
+          logger.error("UTXO", "Post-broadcast error", postBroadcastError);
           return { success: true, txid };
         }
       } else {
@@ -840,14 +823,14 @@ function getChangeAddress(wallet, chain): string {
 
 async function markUsedUtxos(psbt, utxos, dbTransaction?: Transaction) {
   if (!psbt || !utxos) {
-    console.error("Cannot mark used UTXOs: psbt or utxos is undefined");
+    logger.error("UTXO", "Cannot mark used UTXOs: psbt or utxos is undefined");
     return;
   }
 
   for (let i = 0; i < psbt.inputCount; i++) {
     const input = psbt.txInputs[i];
     if (!input || !input.hash || input.index === undefined) {
-      console.error(`Input at index ${i} is undefined or missing properties`);
+      logger.error("UTXO", `Input at index ${i} is undefined or missing properties`);
       continue;
     }
 
@@ -874,21 +857,21 @@ async function markUsedUtxos(psbt, utxos, dbTransaction?: Transaction) {
         updateOptions
       );
     } else {
-      console.error(`UTXO not found for transaction ${txid} index ${index}`);
+      logger.error("UTXO", `UTXO not found for transaction ${txid} index ${index}`);
     }
   }
 }
 
 async function recordChangeUtxo(txid, changeAmount, wallet, chain, dbTransaction?: Transaction) {
   if (!txid) {
-    console.error("Cannot record change UTXO: txid is undefined");
+    logger.error("UTXO", "Cannot record change UTXO: txid is undefined");
     return;
   }
 
   const changeTxData: any = await fetchUtxoTransaction(txid, chain);
 
   if (!changeTxData || !changeTxData.outputs) {
-    console.error("Change transaction data is undefined or invalid");
+    logger.error("UTXO", "Change transaction data is undefined or invalid");
     return;
   }
 
@@ -921,7 +904,7 @@ async function recordChangeUtxo(txid, changeAmount, wallet, chain, dbTransaction
       await models.ecosystemUtxo.create(createOptions);
     }
   } else {
-    console.error("Change output not found in transaction data");
+    logger.error("UTXO", "Change output not found in transaction data");
   }
 }
 
@@ -948,13 +931,9 @@ async function markSpentUtxosFromError(error, chain, walletId) {
             where: { id: utxo.id },
           }
         );
-        console.log(
-          `Marked UTXO as spent: transactionId=${spentUtxo.transactionId}, index=${spentUtxo.index}`
-        );
+        logger.info("UTXO", `Marked UTXO as spent: txId=${spentUtxo.transactionId}, index=${spentUtxo.index}`);
       } else {
-        console.error(
-          `UTXO not found in database for transaction ${spentUtxo.transactionId} index ${spentUtxo.index}`
-        );
+        logger.error("UTXO", `UTXO not found in database for transaction ${spentUtxo.transactionId} index ${spentUtxo.index}`);
       }
     }
   }
@@ -998,8 +977,7 @@ async function markSpentUtxos(chain, walletId) {
         );
       }
     } catch (error) {
-      // If unable to fetch transaction data, log the error
-      logError("mark_spent_utxos", error, __filename);
+      // If unable to fetch transaction data, skip this UTXO
     }
   }
 }
@@ -1227,7 +1205,7 @@ export async function consolidateUTXOs(
       transaction: dbTransaction,
     });
 
-    console.log(`[UTXO_CONSOLIDATION] Found ${utxos.length} available UTXOs for wallet ${walletId}`);
+    logger.info("UTXO", `Consolidation: Found ${utxos.length} available UTXOs for wallet ${walletId}`);
 
     if (utxos.length < 2) {
       await dbTransaction.rollback();
@@ -1262,7 +1240,7 @@ export async function consolidateUTXOs(
     // Limit to 50 UTXOs per consolidation to avoid huge transactions
     const utxosToConsolidate = smallUtxos.slice(0, Math.min(50, smallUtxos.length));
 
-    console.log(`[UTXO_CONSOLIDATION] Will consolidate ${utxosToConsolidate.length} small UTXOs (out of ${utxos.length} total). Keeping ${utxos.length - utxosToConsolidate.length} larger UTXOs separate.`);
+    logger.info("UTXO", `Consolidation: Will consolidate ${utxosToConsolidate.length} small UTXOs (out of ${utxos.length} total). Keeping ${utxos.length - utxosToConsolidate.length} larger UTXOs separate.`);
 
     const psbt = new bitcoin.Psbt({ network });
     let totalInputValue = 0;
@@ -1314,7 +1292,7 @@ export async function consolidateUTXOs(
     const changeAddress = getChangeAddress(wallet, chain);
     psbt.addOutput({
       address: changeAddress,
-      value: outputAmount,
+      value: BigInt(outputAmount),
     });
 
     // Sign all inputs
@@ -1353,7 +1331,7 @@ export async function consolidateUTXOs(
 
     await dbTransaction.commit();
 
-    console.log(`[UTXO_CONSOLIDATION] Successfully consolidated ${numInputs} UTXOs into 1. TxID: ${txid}`);
+    logger.success("UTXO", `Consolidation: Successfully consolidated ${numInputs} UTXOs into 1. TxID: ${txid}`);
 
     return {
       success: true,
@@ -1362,7 +1340,7 @@ export async function consolidateUTXOs(
     };
   } catch (error) {
     await dbTransaction.rollback();
-    logError("consolidate_utxos", error, __filename);
+    logger.error("UTXO", "Consolidate UTXOs error", error);
     return {
       success: false,
       message: `Consolidation failed: ${error.message}`

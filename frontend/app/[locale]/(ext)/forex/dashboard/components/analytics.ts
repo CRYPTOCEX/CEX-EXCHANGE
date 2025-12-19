@@ -1,21 +1,32 @@
+"use client";
+
 import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
 
-export const forexInvestmentAnalytics: AnalyticsConfig = [
+import { useTranslations } from "next-intl";
+export function useAnalytics() {
+  const t = useTranslations("ext_forex");
+  const tCommon = useTranslations("common");
+  return [
   [
     {
       type: "kpi",
       layout: { cols: 2, rows: 2 },
+      responsive: {
+        mobile: { cols: 1, rows: 4, span: 1 },
+          tablet: { cols: 2, rows: 2, span: 2 },
+          desktop: { cols: 2, rows: 2, span: 2 },
+      },
       items: [
         {
           id: "total_investments",
-          title: "Total Investments",
+          title: tCommon("total_investments"),
           metric: "total",
           model: "forexInvestment",
           icon: "mdi:swap-horizontal-bold",
         },
         {
           id: "active_investments",
-          title: "Active",
+          title: tCommon("active"),
           metric: "ACTIVE",
           model: "forexInvestment",
           aggregation: { field: "status", value: "ACTIVE" },
@@ -23,7 +34,7 @@ export const forexInvestmentAnalytics: AnalyticsConfig = [
         },
         {
           id: "completed_investments",
-          title: "Completed",
+          title: tCommon("completed"),
           metric: "COMPLETED",
           model: "forexInvestment",
           aggregation: { field: "status", value: "COMPLETED" },
@@ -31,7 +42,7 @@ export const forexInvestmentAnalytics: AnalyticsConfig = [
         },
         {
           id: "cancelled_investments",
-          title: "Cancelled/Rejected",
+          title: t("cancelled_rejected"),
           metric: "CANCELLED_REJECTED",
           model: "forexInvestment",
           aggregation: { field: "status", value: "CANCELLED" },
@@ -41,10 +52,15 @@ export const forexInvestmentAnalytics: AnalyticsConfig = [
     },
     {
       type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
       items: [
         {
           id: "investmentStatusPie",
-          title: "Status Distribution",
+          title: tCommon("status_distribution"),
           type: "pie",
           model: "forexInvestment",
           metrics: ["ACTIVE", "COMPLETED", "CANCELLED", "REJECTED"],
@@ -53,25 +69,25 @@ export const forexInvestmentAnalytics: AnalyticsConfig = [
             status: [
               {
                 value: "ACTIVE",
-                label: "Active",
+                label: tCommon("active"),
                 color: "blue",
                 icon: "mdi:arrow-up-bold",
               },
               {
                 value: "COMPLETED",
-                label: "Completed",
+                label: tCommon("completed"),
                 color: "green",
                 icon: "mdi:check-bold",
               },
               {
                 value: "CANCELLED",
-                label: "Cancelled",
+                label: tCommon("cancelled"),
                 color: "red",
                 icon: "mdi:close-thick",
               },
               {
                 value: "REJECTED",
-                label: "Rejected",
+                label: tCommon("rejected"),
                 color: "orange",
                 icon: "mdi:close-thick",
               },
@@ -83,10 +99,15 @@ export const forexInvestmentAnalytics: AnalyticsConfig = [
   ],
   {
     type: "chart",
-    items: [
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
+      items: [
       {
         id: "investmentsOverTime",
-        title: "Investments Over Time",
+        title: tCommon("investments_over_time"),
         type: "line",
         model: "forexInvestment",
         metrics: ["total", "ACTIVE", "COMPLETED", "CANCELLED", "REJECTED"],
@@ -101,4 +122,5 @@ export const forexInvestmentAnalytics: AnalyticsConfig = [
       },
     ],
   },
-];
+] as AnalyticsConfig;
+}

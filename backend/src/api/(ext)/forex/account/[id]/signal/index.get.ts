@@ -11,6 +11,8 @@ export const metadata = {
   description: "Retrieves all signals associated with a specific forex account",
   operationId: "getForexAccountSignals",
   tags: ["Forex", "Account", "Signals"],
+  logModule: "FOREX",
+  logTitle: "Get Account Signals",
   requiresAuth: true,
   parameters: [
     {
@@ -57,7 +59,9 @@ interface Handler {
 }
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const {  user, params , ctx } = data as any;
+    ctx?.step("Fetching Account Signals");
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -89,6 +93,9 @@ export default async (data: Handler) => {
       attributes: ["id", "title", "description", "image", "status", "createdAt", "updatedAt"],
       order: [["createdAt", "DESC"]],
     });
+
+    ctx?.success("Get Account Signals fetched successfully");
+
 
     return signals;
   } catch (error) {

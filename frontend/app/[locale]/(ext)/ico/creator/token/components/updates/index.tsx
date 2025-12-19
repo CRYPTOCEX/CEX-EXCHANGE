@@ -60,10 +60,14 @@ import { useLaunchPlanStore } from "@/store/ico/launch-plan-store";
 import { Link } from "@/i18n/routing";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lightbox } from "@/components/ui/lightbox";
+import { useTranslations } from "next-intl";
+
 type TokenUpdatesProps = {
   tokenId: string;
 };
 export function TokenUpdates({ tokenId }: TokenUpdatesProps) {
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
   const {
     updates,
     fetchUpdates,
@@ -166,7 +170,7 @@ export function TokenUpdates({ tokenId }: TokenUpdatesProps) {
           />
         </div>
         <p className="text-muted-foreground animate-pulse">
-          Loading updates...
+          {t("loading_updates_ellipsis")}
         </p>
       </div>
     );
@@ -175,7 +179,7 @@ export function TokenUpdates({ tokenId }: TokenUpdatesProps) {
     return (
       <Alert variant="destructive" className="animate-in fade-in-50">
         <AlertCircle className="h-5 w-5" />
-        <AlertTitle>Error Loading Updates</AlertTitle>
+        <AlertTitle>{t("error_loading_updates")}</AlertTitle>
         <AlertDescription>
           {tokenError || "Failed to load token data"}
           <Button
@@ -283,10 +287,10 @@ export function TokenUpdates({ tokenId }: TokenUpdatesProps) {
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
             <MessageSquare className="h-6 w-6 text-primary" />
-            Project Updates
+            {t("project_updates")}
           </h2>
           <p className="text-muted-foreground">
-            Keep your investors informed with regular updates about your project
+            {t("keep_your_investors_your_project")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -298,15 +302,14 @@ export function TokenUpdates({ tokenId }: TokenUpdatesProps) {
                 className="shadow-sm"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Post Update
+                {t("post_update")}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
-                <DialogTitle>Post Update</DialogTitle>
+                <DialogTitle>{t("post_update")}</DialogTitle>
                 <DialogDescription>
-                  Share news, milestones, or important information with your
-                  investors.
+                  {t('share_news_milestones_or_important_information')}
                 </DialogDescription>
               </DialogHeader>
               <UpdateForm
@@ -324,14 +327,13 @@ export function TokenUpdates({ tokenId }: TokenUpdatesProps) {
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription className="flex items-center gap-2">
             <Lock className="h-4 w-4" />
-            You've reached the maximum number of updates for this month on your
-            plan.{" "}
+            {t("youve_reached_the_maximum_number_of")}{" "}
             <Link
               href={upgradeLink}
               className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
             >
               <Sparkles className="h-3.5 w-3.5" />
-              Upgrade to post more
+              {t("upgrade_to_post_more")}
             </Link>
           </AlertDescription>
         </Alert>
@@ -342,7 +344,7 @@ export function TokenUpdates({ tokenId }: TokenUpdatesProps) {
           <div className="relative w-full sm:w-auto">
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search updates..."
+              placeholder={t("search_updates_ellipsis")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-8 w-full sm:w-[250px]"
@@ -369,19 +371,19 @@ export function TokenUpdates({ tokenId }: TokenUpdatesProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Sort By</DropdownMenuLabel>
+                <DropdownMenuLabel>{tCommon("sort_by")}</DropdownMenuLabel>
                 <DropdownMenuRadioGroup
                   value={sortOrder}
                   onValueChange={(value) => setSortOrder(value as any)}
                 >
                   <DropdownMenuRadioItem value="newest">
-                    <SortDesc className="h-4 w-4 mr-2" /> Newest First
+                    <SortDesc className="h-4 w-4 mr-2" /> {tCommon("newest_first")}
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="oldest">
-                    <SortAsc className="h-4 w-4 mr-2" /> Oldest First
+                    <SortAsc className="h-4 w-4 mr-2" /> {tCommon("oldest_first")}
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="title">
-                    <Filter className="h-4 w-4 mr-2" /> Title (A-Z)
+                    <Filter className="h-4 w-4 mr-2" /> {tCommon("title")} (A-Z)
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
@@ -409,11 +411,9 @@ export function TokenUpdates({ tokenId }: TokenUpdatesProps) {
                   <Plus className="h-6 w-6 text-primary" />
                 </motion.div>
               </div>
-              <h3 className="text-xl font-medium mt-2">No updates yet</h3>
+              <h3 className="text-xl font-medium mt-2">{t("no_updates_yet")}</h3>
               <p className="text-muted-foreground max-w-md mx-auto">
-                Keep your investors informed by posting regular updates about
-                your project's progress, milestones, and important
-                announcements.
+                {t("keep_your_investors_informed_by_posting")}
               </p>
               <Button
                 variant="default"
@@ -423,7 +423,7 @@ export function TokenUpdates({ tokenId }: TokenUpdatesProps) {
                 onClick={() => setIsAddingUpdate(true)}
               >
                 <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-200" />
-                Post Your First Update
+                {t("post_your_first_update")}
               </Button>
             </div>
           </CardContent>
@@ -431,9 +431,9 @@ export function TokenUpdates({ tokenId }: TokenUpdatesProps) {
       ) : sortedUpdates.length === 0 ? (
         <Alert className="bg-muted/50">
           <Search className="h-4 w-4" />
-          <AlertTitle>No matching updates</AlertTitle>
+          <AlertTitle>{t("no_matching_updates")}</AlertTitle>
           <AlertDescription>
-            Try adjusting your search to find what you're looking for.
+            {tCommon('try_adjusting_your_looking_for')}
           </AlertDescription>
         </Alert>
       ) : (
@@ -525,44 +525,44 @@ export function TokenUpdates({ tokenId }: TokenUpdatesProps) {
                       {Array.isArray(update.attachments) &&
                         update.attachments.length > 0 && (
                           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {update.attachments.map((attachment, idx) => (
+                            {(update.attachments as IcoAttachment[]).map((attachment, idx) => (
                               <Card key={idx} className="overflow-hidden">
-                                {attachment.type === "image" ? (
+                                {(attachment as any).type === "image" ? (
                                   <div className="relative group">
                                     <Lightbox
                                       src={
-                                        attachment.url || "/img/placeholder.svg"
+                                        (attachment as any).url || "/img/placeholder.svg"
                                       }
-                                      alt={attachment.name}
+                                      alt={(attachment as any).name}
                                       className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
                                     />
                                     <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-2 text-sm truncate">
-                                      {attachment.name}
+                                      {(attachment as any).name}
                                     </div>
                                   </div>
                                 ) : (
                                   <div className="p-4 flex flex-col h-full">
                                     <div className="flex items-center gap-2 mb-2">
-                                      {attachment.type === "document" ? (
+                                      {(attachment as any).type === "document" ? (
                                         <FileText className="h-5 w-5 text-blue-500" />
                                       ) : (
                                         <LinkIcon className="h-5 w-5 text-green-500" />
                                       )}
                                       <span className="font-medium truncate">
-                                        {attachment.name}
+                                        {(attachment as any).name}
                                       </span>
                                     </div>
                                     <p className="text-sm text-muted-foreground mb-4 truncate">
-                                      {attachment.url}
+                                      {(attachment as any).url}
                                     </p>
                                     <div className="mt-auto">
                                       <a
-                                        href={attachment.url}
+                                        href={(attachment as any).url}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center gap-1 text-primary hover:underline text-sm"
                                       >
-                                        {attachment.type === "document"
+                                        {(attachment as any).type === "document"
                                           ? "View Document"
                                           : "Open Link"}
                                         <svg
@@ -610,8 +610,8 @@ export function TokenUpdates({ tokenId }: TokenUpdatesProps) {
       >
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Edit Update</DialogTitle>
-            <DialogDescription>Make changes to your update.</DialogDescription>
+            <DialogTitle>{t("edit_update")}</DialogTitle>
+            <DialogDescription>{t("make_changes_to_your_update_1")}</DialogDescription>
           </DialogHeader>
           {editingUpdate && (
             <UpdateForm
@@ -631,10 +631,9 @@ export function TokenUpdates({ tokenId }: TokenUpdatesProps) {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle>{tCommon("confirm_deletion")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this update? This action cannot be
-              undone.
+              {t("are_you_sure_you_want_to_delete_this_update")} {tCommon('this_action_cannot_be_undone')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">

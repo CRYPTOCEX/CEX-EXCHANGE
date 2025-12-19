@@ -6,6 +6,7 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 import { Op } from "sequelize";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Emergency Cancel & Refund ICO (SuperAdmin Only)",
@@ -54,10 +55,12 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("Offering"),
     500: serverErrorResponse,
   },
+  logModule: "ADMIN_ICO",
+  logTitle: "Emergency Cancel & Refund ICO",
 };
 
 export default async (data: Handler) => {
-  const { user, params, body } = data;
+  const { user, params, body, ctx } = data;
 
   if (!user?.id) {
     throw createError({
@@ -66,6 +69,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Verifying SuperAdmin privileges");
   // Verify user is SuperAdmin by checking role
   const userWithRole = await models.user.findByPk(user.id, {
     include: [{
@@ -97,6 +101,7 @@ export default async (data: Handler) => {
   try {
     transaction = await sequelize.transaction();
 
+    ctx?.step("Finding ICO offering");
     // Find the offering with details
     const offering = await models.icoTokenOffering.findByPk(id, {
       transaction,
@@ -111,6 +116,7 @@ export default async (data: Handler) => {
       throw createError({ statusCode: 404, message: "ICO offering not found" });
     }
 
+    ctx?.step("Retrieving all active investments");
     // Get all transactions (investments) that need refunds
     const transactions = await models.icoTransaction.findAll({
       where: {
@@ -125,8 +131,9 @@ export default async (data: Handler) => {
       transaction,
     });
 
-    console.log(`[ICO Emergency Cancel] Found ${transactions.length} active investments to refund`);
+    logger.info("ADMIN_ICO_CANCEL", `Found ${transactions.length} active investments to refund`);
 
+    ctx?.step(`Processing ${transactions.length} refunds`);
     let totalRefunded = 0;
     let successfulRefunds = 0;
     let failedRefunds = 0;
@@ -147,7 +154,7 @@ export default async (data: Handler) => {
         });
 
         if (!wallet) {
-          console.error(`[ICO Emergency Cancel] Wallet not found for user ${investment.userId}`);
+          logger.error("ADMIN_ICO_CANCEL", `Wallet not found for user ${investment.userId}`);
           failedRefunds++;
           refundDetails.push({
             transactionId: investment.id,
@@ -195,9 +202,9 @@ export default async (data: Handler) => {
           status: "SUCCESS",
         });
 
-        console.log(`[ICO Emergency Cancel] Refunded ${investment.amount} ${investment.purchaseCurrency} to user ${investment.userId}`);
+        logger.success("ADMIN_ICO_CANCEL", `Refunded ${investment.amount} ${investment.purchaseCurrency} to user ${investment.userId}`);
       } catch (refundError: any) {
-        console.error(`[ICO Emergency Cancel] Failed to refund investment ${investment.id}:`, refundError);
+        logger.error("ADMIN_ICO_CANCEL", `Failed to refund investment ${investment.id}`, refundError);
         failedRefunds++;
         refundDetails.push({
           transactionId: investment.id,
@@ -210,6 +217,7 @@ export default async (data: Handler) => {
       }
     }
 
+    ctx?.step("Updating offering status to CANCELLED");
     // Update offering status to CANCELLED
     await offering.update({
       status: "CANCELLED",
@@ -246,6 +254,7 @@ export default async (data: Handler) => {
 
     await transaction.commit();
 
+    ctx?.step("Sending notifications to refunded investors");
     // Send notifications to all refunded investors (non-blocking)
     for (const detail of refundDetails) {
       if (detail.status === "SUCCESS") {
@@ -258,11 +267,12 @@ export default async (data: Handler) => {
             read: false,
           });
         } catch (notifError) {
-          console.error("Failed to send refund notification:", notifError);
+          logger.error("ADMIN_ICO_CANCEL", "Failed to send refund notification", notifError);
         }
       }
     }
 
+    ctx?.success("Emergency cancellation and refunds completed successfully");
     return {
       message: "ICO offering cancelled and all investments refunded successfully",
       data: {
@@ -288,12 +298,12 @@ export default async (data: Handler) => {
       } catch (rollbackError: any) {
         // Ignore rollback errors if transaction is already finished
         if (!rollbackError.message?.includes("already been finished")) {
-          console.error("Transaction rollback failed:", rollbackError.message);
+          logger.error("ADMIN_ICO_CANCEL", "Transaction rollback failed", rollbackError);
         }
       }
     }
 
-    console.error("Error cancelling ICO offering:", error);
+    logger.error("ADMIN_ICO_CANCEL", "Error cancelling ICO offering", error);
 
     // If it's already a createError, rethrow it
     if (error.statusCode) {

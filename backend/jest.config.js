@@ -20,6 +20,9 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^@b/(.*)$': '<rootDir>/src/$1',
+    '^log-update$': '<rootDir>/tests/__mocks__/log-update.js',
+    '^cli-spinners$': '<rootDir>/tests/__mocks__/cli-spinners.js',
+    '^uuid$': '<rootDir>/tests/__mocks__/uuid.js',
   },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   testTimeout: 20000,

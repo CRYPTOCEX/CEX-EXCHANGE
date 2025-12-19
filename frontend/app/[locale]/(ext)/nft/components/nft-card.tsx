@@ -8,13 +8,13 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Heart, 
-  Eye, 
-  ShoppingCart, 
-  Timer, 
+import {
+  Heart,
+  Eye,
+  ShoppingCart,
+  Timer,
   Verified,
-  ExternalLink 
+  ExternalLink
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { useNftStore } from "@/store/nft/nft-store";
@@ -32,7 +32,8 @@ export default function NFTCard({
   showActions = true, 
   size = "md" 
 }: NFTCardProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_nft");
+  const tCommon = useTranslations("common");
   const { addToFavorites, removeFromFavorites } = useNftStore();
   const [isLiked, setIsLiked] = useState(token.isFavorited || false);
   const [likesCount, setLikesCount] = useState(token.likes || 0);
@@ -53,7 +54,7 @@ export default function NFTCard({
 
   const getRarityColor = useCallback((rarity?: string) => {
     switch (rarity) {
-      case "LEGENDARY": return "bg-yellow-500";
+      case "LEGENDARY": return "bg-pink-500";
       case "EPIC": return "bg-purple-500";
       case "RARE": return "bg-blue-500";
       case "UNCOMMON": return "bg-green-500";
@@ -111,7 +112,7 @@ export default function NFTCard({
             <Link href={`/nft/token/${token.id}`}>
               <Button variant="secondary" size="sm">
                 <Eye className="h-4 w-4 mr-2" />
-                {t("View")}
+                {tCommon("view")}
               </Button>
             </Link>
             {token.isListed && (
@@ -170,7 +171,7 @@ export default function NFTCard({
         {token.currentListing && (
           <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="text-xs text-muted-foreground">{t("current_price")}</p>
+              <p className="text-xs text-muted-foreground">{tCommon("current_price")}</p>
               <p className="font-bold text-lg">
                 {token.currentListing.price} {token.currentListing.currency}
               </p>
@@ -224,7 +225,7 @@ export default function NFTCard({
           ) : (
             <Link href={`/nft/token/${token.id}`}>
               <Button variant="outline" className="w-full">
-                {t("view_details")}
+                {tCommon("view_details")}
               </Button>
             </Link>
           )}

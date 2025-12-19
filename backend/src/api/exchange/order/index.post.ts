@@ -1,6 +1,7 @@
 // /server/api/exchange/orders/store.post.ts
 
 import { models, sequelize } from "@b/db";
+import { logger } from "@b/utils/console";
 import {
   formatWaitTime,
   handleBanStatus,
@@ -57,16 +58,19 @@ export const metadata: OperationObject = {
   },
   responses: createRecordResponses("Order"),
   requiresAuth: true,
+  logModule: "EXCHANGE",
+  logTitle: "Create exchange order",
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
   if (!user) {
     throw new Error("User not found");
   }
 
   try {
     // Step 1: Check for ban status
+    ctx?.step("Checking service availability");
     const unblockTime = await loadBanStatus();
     if (await handleBanStatus(unblockTime)) {
       const waitTime = unblockTime - Date.now();
@@ -78,6 +82,7 @@ export default async (data: Handler) => {
     }
 
     // Step 2: Validate input data
+    ctx?.step("Validating order parameters");
     const { currency, pair, amount, price, type } = body;
     const side = body.side?.toUpperCase();
     if (!currency || !pair || !type || !side || amount == null) {
@@ -94,6 +99,7 @@ export default async (data: Handler) => {
     }
 
     // Step 3: Fetch market data and metadata
+    ctx?.step(`Fetching market data for ${currency}/${pair}`);
     const symbol = `${currency}/${pair}`;
     const market = await models.exchangeMarket.findOne({
       where: { currency, pair },
@@ -117,6 +123,7 @@ export default async (data: Handler) => {
     const pricePrecision = Number(metadata.precision?.price) || 8;
 
     // Step 4: Validate amount against minimum
+    ctx?.step("Validating order limits and precision");
     if (side === "SELL" && amount < minAmount) {
       throw new Error(
         `Amount is too low, you need at least ${minAmount.toFixed(
@@ -146,13 +153,15 @@ export default async (data: Handler) => {
     }
 
     // Step 5: Initialize exchange and fetch ticker for price if market order
-    const exchange = await ExchangeManager.startExchange();
+    ctx?.step("Initializing exchange connection");
+    const exchange = await ExchangeManager.startExchange(ctx);
     const provider = await ExchangeManager.getProvider();
     if (!exchange) {
       throw new Error("Exchange service is currently unavailable");
     }
     let orderPrice = price;
     if (type.toLowerCase() === "market") {
+      ctx?.step("Fetching current market price");
       const ticker = await exchange.fetchTicker(symbol);
       if (!ticker || !ticker.last) {
         throw new Error("Unable to fetch current market price");
@@ -161,6 +170,7 @@ export default async (data: Handler) => {
     }
 
     // Step 6: Calculate and validate cost
+    ctx?.step("Calculating order cost");
     const formattedAmount = parseFloat(amount.toFixed(amountPrecision));
     const formattedPrice = parseFloat(orderPrice.toFixed(pricePrecision));
     const cost = parseFloat(
@@ -178,6 +188,7 @@ export default async (data: Handler) => {
     }
 
     // Step 7: Fetch wallets and validate balances
+    ctx?.step(`Checking wallet balances for ${currency} and ${pair}`);
     const currencyWallet = await getOrCreateWallet(user.id, currency);
     const pairWallet = await getOrCreateWallet(user.id, pair);
     if (side === "BUY" && pairWallet.balance < cost) {
@@ -201,6 +212,7 @@ export default async (data: Handler) => {
     const feeCurrency = side === "BUY" ? currency : pair;
 
     // Step 9: Create order with provider
+    ctx?.step(`Creating ${type.toLowerCase()} ${side.toLowerCase()} order on exchange`);
     let order;
     try {
       order = await exchange.createOrder(
@@ -220,6 +232,7 @@ export default async (data: Handler) => {
     }
 
     // Step 10: Fetch and adjust order data
+    ctx?.step("Fetching and adjusting order data");
     let orderData = await exchange.fetchOrder(order.id, symbol);
     if (!orderData) {
       throw new Error("Failed to fetch order");
@@ -227,6 +240,7 @@ export default async (data: Handler) => {
     orderData = adjustOrderData(orderData, provider, feeRate);
 
     // Step 11: Perform Sequelize transaction for wallet updates and order creation
+    ctx?.step("Updating wallet balances and storing order");
     const response = await sequelize.transaction(async (transaction) => {
       if (side === "BUY") {
         await updateWalletQuery(
@@ -275,6 +289,7 @@ export default async (data: Handler) => {
       return response;
     });
 
+    ctx?.step("Adding order to tracking system");
     addOrderToTrackedOrders(user.id, {
       id: response.id,
       status: response.status,
@@ -287,13 +302,11 @@ export default async (data: Handler) => {
     });
 
     addUserToWatchlist(user.id);
+
+    ctx?.success(`Order created successfully: ${side} ${formattedAmount} ${currency} @ ${type.toLowerCase() === 'market' ? 'market price' : formattedPrice + ' ' + pair}`);
     return { message: "Order created successfully" };
   } catch (error) {
-    console.error("Error creating order:", {
-      userId: user.id,
-      body,
-      error: error.message,
-    });
+    logger.error("EXCHANGE", "Error creating order", error);
     throw new Error(sanitizeErrorMessage(error.message));
   }
 };

@@ -168,6 +168,8 @@ export const metadata = {
   operationId: "createIcoOffering",
   tags: ["ICO", "Offerings"],
   requiresAuth: true,
+  logModule: "ICO_CREATE",
+  logTitle: "Create ICO offering",
   requestBody: {
     required: true,
     content: {
@@ -202,8 +204,8 @@ export const metadata = {
 export default async (data: Handler) => {
   // Apply rate limiting - stricter for ICO creation
   await rateLimiters.orderCreation(data);
-  
-  const { user, body } = data;
+
+  const { user, body, ctx } = data;
 
   if (!user?.id) {
     throw createError({
@@ -211,6 +213,8 @@ export default async (data: Handler) => {
       message: "Unauthorized: You must be logged in to create an offering.",
     });
   }
+
+  ctx?.step("Validating offering creation request");
 
   const {
     name,
@@ -241,6 +245,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Retrieving and validating launch plan");
   // Fetch the selected launch plan details.
   const launchPlan = await models.icoLaunchPlan.findOne({
     where: { id: selectedPlan },
@@ -301,6 +306,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Validating token type");
   // Find token type by ID
   const tokenTypeRecord = await models.icoTokenType.findOne({
     where: { id: tokenType },
@@ -313,11 +319,14 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Verifying wallet balance for launch fee");
   // Verify if the user has sufficient wallet balance.
   const wallet = await getWallet(
     user.id,
     launchPlan.walletType,
-    launchPlan.currency
+    launchPlan.currency,
+    false,
+    ctx
   );
   if (!wallet || wallet.balance < launchPlan.price) {
     throw createError({
@@ -329,6 +338,7 @@ export default async (data: Handler) => {
   // Wrap all DB operations in a transaction.
   const transaction = await sequelize.transaction();
   try {
+    ctx?.step("Creating ICO offering record");
     // Convert startDate string to a Date object.
     const startDateObj = new Date(startDate);
 
@@ -368,6 +378,7 @@ export default async (data: Handler) => {
       { transaction }
     );
 
+    ctx?.step("Creating token details and vesting configuration");
     // Create token detail record with vesting configuration
     await models.icoTokenDetail.create(
       {
@@ -391,6 +402,7 @@ export default async (data: Handler) => {
       { transaction }
     );
 
+    ctx?.step("Creating offering phases");
     // Create offering phases (set remaining equal to allocation).
     for (let i = 0; i < phases.length; i++) {
       const phase = phases[i];
@@ -408,6 +420,7 @@ export default async (data: Handler) => {
       );
     }
 
+    ctx?.step("Adding team members and roadmap items");
     // Create team member records if provided.
     if (Array.isArray(teamMembers)) {
       for (const member of teamMembers) {
@@ -448,6 +461,7 @@ export default async (data: Handler) => {
       }
     }
 
+    ctx?.step("Deducting launch fee from wallet");
     // Re-read the wallet record inside the transaction using a row lock.
     const walletForUpdate = await models.wallet.findOne({
       where: { id: wallet.id },
@@ -473,6 +487,7 @@ export default async (data: Handler) => {
     // Commit the transaction after successful operations.
     await transaction.commit();
 
+    ctx?.step("Sending confirmation notification");
     // Create a detailed notification for the user about the successful offering creation.
     try {
       await createNotification({
@@ -491,7 +506,7 @@ export default async (data: Handler) => {
             primary: true,
           },
         ],
-      });
+      }, ctx);
     } catch (notifErr) {
       console.error(
         "Failed to create notification for offering creation",
@@ -500,11 +515,14 @@ export default async (data: Handler) => {
       // You may decide whether a failure here should affect the response.
     }
 
+    ctx?.success(`Created ICO offering "${name}" (${symbol})`);
+
     return {
       message: "Offering created successfully.",
     };
   } catch (err: any) {
     await transaction.rollback();
+    ctx?.fail(err.message || "Failed to create ICO offering");
     throw createError({
       statusCode: 500,
       message: "Internal Server Error: " + err.message,

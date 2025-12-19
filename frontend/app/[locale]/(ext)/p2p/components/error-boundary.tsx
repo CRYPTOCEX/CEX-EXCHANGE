@@ -4,7 +4,6 @@ import React, { Component, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, RefreshCw } from "lucide-react";
-import { useTranslations } from "next-intl";
 
 interface Props {
   children: ReactNode;
@@ -66,10 +65,10 @@ export class P2PErrorBoundary extends Component<Props, State> {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-6 w-6 text-destructive" />
-                <CardTitle>{t("something_went_wrong")}</CardTitle>
+                <CardTitle>Something went wrong</CardTitle>
               </div>
               <CardDescription>
-                {t("we_encountered_an_error_while_loading")}
+                We encountered an error while loading this page.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -81,7 +80,7 @@ export class P2PErrorBoundary extends Component<Props, State> {
                   {this.state.errorInfo && (
                     <details className="mt-2">
                       <summary className="cursor-pointer text-sm text-muted-foreground">
-                        {t("component_stack")}
+                        Component Stack
                       </summary>
                       <pre className="mt-2 text-xs overflow-auto">
                         {this.state.errorInfo.componentStack}
@@ -94,13 +93,13 @@ export class P2PErrorBoundary extends Component<Props, State> {
               <div className="flex gap-2">
                 <Button onClick={this.handleReset} variant="default">
                   <RefreshCw className="mr-2 h-4 w-4" />
-                  {t("try_again")}
+                  Try Again
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => window.location.href = "/p2p"}
                 >
-                  {t("go_to_p2p_home")}
+                  Go to P2P Home
                 </Button>
               </div>
             </CardContent>

@@ -1,4 +1,4 @@
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import type { MarketMakerConfig, BotConfig } from "./MarketInstance";
 import type { OrderManager, OrderPurpose } from "./OrderManager";
 import {
@@ -57,7 +57,7 @@ export class TradeExecutor {
     try {
       const activeBots = this.config.bots.filter((b) => b.status === "ACTIVE");
       if (activeBots.length < 2) {
-        console.warn(`[AI Market Maker] Need at least 2 active bots for AI trades on ${this.config.symbol}`);
+        logger.warn("AI_MM", `Need at least 2 active bots for AI trades on ${this.config.symbol}`);
         return false;
       }
 
@@ -66,8 +66,8 @@ export class TradeExecutor {
 
       // Explicit null checks - both bots must be available for AI-to-AI trading
       if (!buyBot || !sellBot) {
-        console.warn(
-          `[AI Market Maker] Cannot execute AI trade for ${this.config.symbol}: ` +
+        logger.warn("AI_MM",
+          `Cannot execute AI trade for ${this.config.symbol}: ` +
           `insufficient bots available (buyBot: ${buyBot ? 'available' : 'null'}, sellBot: ${sellBot ? 'available' : 'null'})`
         );
         return false;
@@ -75,7 +75,7 @@ export class TradeExecutor {
 
       // Verify bots are different entities
       if (buyBot.id === sellBot.id) {
-        console.warn(`[AI Market Maker] Cannot execute AI trade: same bot selected for both sides`);
+        logger.warn("AI_MM", "Cannot execute AI trade: same bot selected for both sides");
         return false;
       }
 
@@ -129,15 +129,15 @@ export class TradeExecutor {
       // Update database statistics
       await this.updateDatabaseStats(buyBot.id, sellBot.id, tradeAmountNum, tradePriceNum);
 
-      console.info(
-        `[AI Market Maker] AI trade executed: ${this.config.symbol} ` +
+      logger.info("AI_MM",
+        `AI trade executed: ${this.config.symbol} ` +
         `${params.direction} ${tradeAmountNum.toFixed(4)} @ ${tradePriceNum.toFixed(8)} ` +
         `| Buyer: ${buyBot.name} | Seller: ${sellBot.name}`
       );
 
       // Broadcast trade event to WebSocket clients
       if (process.env.NODE_ENV === "development") {
-        console.debug(`[AI Market Maker DEBUG] Broadcasting TRADE event for market ${this.config.id}`);
+        logger.debug("AI_MM", `Broadcasting TRADE event for market ${this.config.id}`);
       }
       broadcastAiMarketMakerEvent(this.config.id, {
         type: "TRADE",
@@ -184,7 +184,7 @@ export class TradeExecutor {
 
       return true;
     } catch (error) {
-      logError("ai-market-maker-execute-trade", error, __filename);
+      logger.error("AI_MM", "AI trade execution error", error);
       return false;
     }
   }
@@ -290,7 +290,7 @@ export class TradeExecutor {
       });
     } catch (error) {
       // Log but don't fail the trade if stats update fails
-      logError("ai-market-maker-update-stats", error, __filename);
+      logger.error("AI_MM", "Stats update error", error);
     }
   }
 
@@ -304,8 +304,8 @@ export class TradeExecutor {
         (b) => b.status === "ACTIVE" && b.dailyTradeCount < b.maxDailyTrades
       );
       if (availableBots.length === 0) {
-        console.debug(
-          `[AI Market Maker] Cannot place real order for ${this.config.symbol}: ` +
+        logger.debug("AI_MM",
+          `Cannot place real order for ${this.config.symbol}: ` +
           `no bots available (all at daily limit or inactive)`
         );
         return false;
@@ -340,8 +340,8 @@ export class TradeExecutor {
 
       const orderAmountNum = Number(params.amount) / 1e18;
 
-      console.info(
-        `[AI Market Maker] Real liquidity order placed: ${this.config.symbol} ` +
+      logger.info("AI_MM",
+        `Real liquidity order placed: ${this.config.symbol} ` +
         `${params.direction} ${orderAmountNum.toFixed(4)} @ ${orderPriceNum.toFixed(8)}`
       );
 
@@ -376,7 +376,7 @@ export class TradeExecutor {
 
       return true;
     } catch (error) {
-      logError("ai-market-maker-place-real-order", error, __filename);
+      logger.error("AI_MM", "Real liquidity order placement error", error);
       return false;
     }
   }

@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
   description: "Fetches details of a specific futures market.",
   operationId: "getFuturesMarket",
   tags: ["Futures", "Markets"],
+  logModule: "FUTURES",
+  logTitle: "Get futures market by ID",
   parameters: [
     {
       name: "id",
@@ -40,16 +42,20 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
   const { id } = params;
 
+  ctx?.step?.(`Fetching futures market with ID: ${id}`);
   const market = await models.futuresMarket.findOne({
     where: { id },
     attributes: ["id", "currency", "pair", "status"],
   });
 
-  if (!market)
+  if (!market) {
+    ctx?.fail?.("Futures market not found");
     throw createError({ statusCode: 404, message: "Futures market not found" });
+  }
 
+  ctx?.success?.(`Retrieved futures market: ${market.currency}/${market.pair}`);
   return market;
 };

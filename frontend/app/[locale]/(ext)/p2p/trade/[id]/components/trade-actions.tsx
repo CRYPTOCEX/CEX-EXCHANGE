@@ -32,7 +32,8 @@ export function TradeActions({
   onCancelTrade,
   onDisputeTrade,
 }: TradeActionsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
   const router = useRouter();
 
   // Buyer waiting to confirm payment sent (PENDING status)
@@ -45,7 +46,7 @@ export function TradeActions({
           disabled={loading}
           className="flex-1 sm:flex-none"
         >
-          {t("cancel_trade")}
+          {tExt("cancel_trade")}
         </Button>
         <Button
           onClick={onConfirmPayment}
@@ -84,7 +85,7 @@ export function TradeActions({
             className="flex-1 sm:flex-none"
           >
             <AlertCircle className="mr-2 h-4 w-4" />
-            {t("Dispute")}
+            {tExt("dispute")}
           </Button>
         </DisputeDialog>
         <Button
@@ -111,7 +112,7 @@ export function TradeActions({
             className="flex-1 sm:flex-none"
           >
             <AlertCircle className="mr-2 h-4 w-4" />
-            {t("Dispute")}
+            {tExt("dispute")}
           </Button>
         </DisputeDialog>
         <div className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-md border border-yellow-200 dark:border-yellow-800">

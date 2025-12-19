@@ -23,7 +23,9 @@ import { TargetCard } from "./target";
 import { useTranslations } from "next-intl";
 
 export function CampaignTargets() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const {
     items,
     statusFilter,
@@ -53,11 +55,9 @@ export function CampaignTargets() {
       <Card>
         <CardHeader>
           <CardTitle>
-            {t("Targets")}{" "}
+            {t("targets")}{" "}
             <span className="text-sm text-zinc-500 dark:text-zinc-400">
-              (
-              {items.length}
-              )
+              ({items.length})
             </span>
           </CardTitle>
           <CardDescription>
@@ -75,16 +75,16 @@ export function CampaignTargets() {
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder={tCommon("filter_by_status")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All">{t("All")}</SelectItem>
-                  <SelectItem value="PENDING">{t("Pending")}</SelectItem>
-                  <SelectItem value="ACTIVE">{t("Active")}</SelectItem>
-                  <SelectItem value="PAUSED">{t("Paused")}</SelectItem>
-                  <SelectItem value="COMPLETED">{t("Completed")}</SelectItem>
-                  <SelectItem value="CANCELLED">{t("Canceled")}</SelectItem>
-                  <SelectItem value="STOPPED">{t("Stopped")}</SelectItem>
+                  <SelectItem value="All">{tCommon("all")}</SelectItem>
+                  <SelectItem value="PENDING">{tCommon("pending")}</SelectItem>
+                  <SelectItem value="ACTIVE">{tCommon("active")}</SelectItem>
+                  <SelectItem value="PAUSED">{tCommon("paused")}</SelectItem>
+                  <SelectItem value="COMPLETED">{tCommon("completed")}</SelectItem>
+                  <SelectItem value="CANCELLED">{tDashboardAdmin("canceled")}</SelectItem>
+                  <SelectItem value="STOPPED">{tCommon("stopped")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -102,8 +102,8 @@ export function CampaignTargets() {
         </div>
       ) : (
         <div className="mt-4 py-8 text-center text-zinc-500 dark:text-zinc-400">
-          {t("no_targets_added_yet")}. {t("Click")}
-          <strong>{t("add_targets")}</strong>
+          {t("no_targets_added_yet")}. {t("click")}{" "}
+          <strong>{t("add_targets")}</strong>{" "}
           {t("to_select_users")}.
         </div>
       )}
@@ -118,7 +118,7 @@ export function CampaignTargets() {
               onClick={() => handlePageChange(targetPagination.currentPage - 1)}
             >
               <Icon icon="lucide:chevron-left" className="mr-1 h-4 w-4" />
-              {t("Prev")}
+              {tCommon("prev")}
             </Button>
 
             {Array.from({ length: totalTargetPages }, (_, i) => i + 1).map(
@@ -144,7 +144,7 @@ export function CampaignTargets() {
               disabled={targetPagination.currentPage >= totalTargetPages}
               onClick={() => handlePageChange(targetPagination.currentPage + 1)}
             >
-              {t("Next")}
+              {tCommon("next")}
               <Icon icon="lucide:chevron-right" className="ml-1 h-4 w-4" />
             </Button>
           </div>

@@ -7,9 +7,11 @@ import {
 } from "./utils";
 
 export const metadata: OperationObject = {
-  summary: "Stores a new AI Investment Plan",
-  operationId: "storeAIInvestmentPlan",
-  tags: ["Admin", "AI Investment Plans"],
+  summary: "Creates a new AI Investment Plan",
+  operationId: "createAiInvestmentPlan",
+  tags: ["Admin", "AI Investment", "Plan"],
+  description:
+    "Creates a new AI Investment Plan with specified parameters including profit ranges, investment amounts, and associated durations. The plan can be set as trending and configured with default results.",
   requestBody: {
     required: true,
     content: {
@@ -24,10 +26,12 @@ export const metadata: OperationObject = {
   ),
   requiresAuth: true,
   permission: "create.ai.investment.plan",
+  logModule: "ADMIN_AI",
+  logTitle: "Create investment plan",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const {
     name,
     title,
@@ -46,6 +50,8 @@ export default async (data: Handler) => {
     durations,
   } = body;
 
+  ctx?.step("Validating plan data");
+
   const relations = durations
     ? [
         {
@@ -60,7 +66,8 @@ export default async (data: Handler) => {
       ]
     : [];
 
-  return await storeRecord({
+  ctx?.step("Creating plan record");
+  const result = await storeRecord({
     model: "aiInvestmentPlan",
     data: {
       name,
@@ -80,4 +87,7 @@ export default async (data: Handler) => {
     },
     relations,
   });
+
+  ctx?.success("Investment plan created successfully");
+  return result;
 };

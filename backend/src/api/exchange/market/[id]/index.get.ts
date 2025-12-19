@@ -2,6 +2,7 @@
 
 import { RedisSingleton } from "@b/utils/redis";
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 
 const redis = RedisSingleton.getInstance();
 
@@ -17,6 +18,8 @@ export const metadata: OperationObject = {
   operationId: "showMarket",
   tags: ["Exchange", "Markets"],
   description: "Retrieves details of a specific market by ID.",
+  logModule: "EXCHANGE",
+  logTitle: "Get Market Details",
   parameters: [
     {
       name: "id",
@@ -45,18 +48,27 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { id } = data.params;
+  const { params, ctx } = data;
+  const { id } = params;
+
+  ctx?.step(`Fetching market ${id}`);
   try {
     const cachedMarkets = await redis.get("exchangeMarkets");
     if (cachedMarkets) {
       const markets = JSON.parse(cachedMarkets);
       const market = markets.find((m) => m.id === id);
-      if (market) return market;
+      if (market) {
+        ctx?.success("Market retrieved from cache");
+        return market;
+      }
     }
   } catch (err) {
-    console.error("Redis error:", err);
+    logger.error("EXCHANGE", "Redis error", err);
   }
-  return await getMarket(id);
+
+  const market = await getMarket(id);
+  ctx?.success("Market retrieved successfully");
+  return market;
 };
 
 export async function getMarket(id: string): Promise<exchangeMarketAttributes> {

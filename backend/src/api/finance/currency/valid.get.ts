@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
     "This endpoint retrieves all available currencies along with their current rates.",
   operationId: "getCurrencies",
   tags: ["Finance", "Currency"],
+  logModule: "FINANCE",
+  logTitle: "Get valid currencies",
   responses: {
     200: {
       description: "Currencies retrieved successfully",
@@ -41,18 +43,19 @@ export const metadata: OperationObject = {
   },
 };
 
-export default async () => {
+export default async (data: Handler) => {
+  const { ctx } = data;
   const where = { status: true };
 
   try {
-    // Fetch currencies from all models
+    ctx?.step("Fetching currencies from all wallet types");
     const [fiatCurrencies, spotCurrencies, ecoCurrencies] = await Promise.all([
       models.currency.findAll({ where }),
       models.exchangeCurrency.findAll({ where }),
       models.ecosystemToken.findAll({ where }),
     ]);
 
-    // Format and combine all currencies into categorized objects
+    ctx?.step("Formatting currency data");
     const formattedCurrencies = {
       FIAT: fiatCurrencies.map((currency) => ({
         value: currency.id,
@@ -73,8 +76,10 @@ export default async () => {
         })),
     };
 
+    ctx?.success(`Retrieved ${fiatCurrencies.length} FIAT, ${spotCurrencies.length} SPOT, ${ecoCurrencies.length} ECO currencies`);
     return formattedCurrencies;
   } catch (error) {
+    ctx?.fail("Failed to fetch currencies");
     throw createError(500, "An error occurred while fetching currencies");
   }
 };

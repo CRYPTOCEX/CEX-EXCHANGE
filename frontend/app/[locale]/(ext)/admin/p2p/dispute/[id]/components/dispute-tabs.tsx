@@ -17,14 +17,14 @@ export function DisputeTabs({
   setActiveTab,
   dispute,
 }: DisputeTabsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
       <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="overview">{t("Overview")}</TabsTrigger>
-        <TabsTrigger value="timeline">{t("Timeline")}</TabsTrigger>
-        <TabsTrigger value="evidence">{t("Evidence")}</TabsTrigger>
+        <TabsTrigger value="overview">{t("overview")}</TabsTrigger>
+        <TabsTrigger value="timeline">{t("timeline")}</TabsTrigger>
+        <TabsTrigger value="evidence">{t('tokens')}</TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview" className="space-y-4">

@@ -1,13 +1,17 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { Op, fn, literal, col } from "sequelize";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Get FAQ Analytics",
+  summary: "Get FAQ Analytics Data",
   description:
-    "Retrieves aggregated analytics data for FAQs for admin purposes.",
-  operationId: "getFAQAnalytics",
-  tags: ["FAQ", "Admin", "Analytics"],
+    "Retrieves comprehensive analytics data for the FAQ system including total FAQs, views, feedback ratings, category distribution, top search queries, and time-series data for feedback and views.",
+  operationId: "getFaqAnalytics",
+  tags: ["Admin", "FAQ", "Analytics"],
   requiresAuth: true,
   responses: {
     200: {
@@ -17,118 +21,66 @@ export const metadata = {
           schema: {
             type: "object",
             properties: {
-              totalFaqs: { type: "number" },
-              activeFaqs: { type: "number" },
-              totalViews: { type: "number" },
-              averageRating: { type: "number" },
+              totalFaqs: { type: "number", description: "Total number of FAQs" },
+              activeFaqs: { type: "number", description: "Number of active FAQs" },
+              totalViews: { type: "number", description: "Total FAQ views" },
+              averageRating: { type: "number", description: "Average rating (0-1)" },
               positiveRatingPercentage: { type: "number" },
               negativeRatingPercentage: { type: "number" },
               viewsComparison: {
                 type: "object",
-                properties: {
-                  current: { type: "number" },
-                  previous: { type: "number" },
-                  delta: { type: "number" },
-                  percentageChange: { type: "number" },
-                },
+                description: "Current vs previous month views comparison",
               },
               feedbackComparison: {
                 type: "object",
-                properties: {
-                  positive: {
-                    type: "object",
-                    properties: {
-                      current: { type: "number" },
-                      previous: { type: "number" },
-                      delta: { type: "number" },
-                      percentageChange: { type: "number" },
-                    },
-                  },
-                  negative: {
-                    type: "object",
-                    properties: {
-                      current: { type: "number" },
-                      previous: { type: "number" },
-                      delta: { type: "number" },
-                      percentageChange: { type: "number" },
-                    },
-                  },
-                },
+                description: "Positive and negative feedback comparison",
               },
               mostViewedFaqs: {
                 type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    id: { type: "string" },
-                    title: { type: "string" },
-                    views: { type: "number" },
-                    category: { type: "string" },
-                    positiveRating: { type: "number" },
-                  },
-                },
+                description: "Top 5 most viewed FAQs",
+                items: { type: "object" },
               },
               categoryDistribution: {
                 type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    category: { type: "string" },
-                    count: { type: "number" },
-                    percentage: { type: "number" },
-                  },
-                },
+                description: "FAQ count by category",
+                items: { type: "object" },
               },
               topSearchQueries: {
                 type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    query: { type: "string" },
-                    count: { type: "number" },
-                    averageResults: { type: "number" },
-                  },
-                },
+                description: "Top 10 search queries",
+                items: { type: "object" },
               },
               feedbackOverTime: {
                 type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    date: { type: "string" },
-                    positive: { type: "number" },
-                    negative: { type: "number" },
-                  },
-                },
+                description: "Daily feedback counts",
+                items: { type: "object" },
               },
               viewsOverTime: {
                 type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    month: { type: "string" },
-                    views: { type: "number" },
-                  },
-                },
+                description: "Monthly views data",
+                items: { type: "object" },
               },
             },
           },
         },
       },
     },
-    401: { description: "Unauthorized" },
-    500: { description: "Internal Server Error" },
+    401: unauthorizedResponse,
+    500: serverErrorResponse,
   },
   permission: "access.faq",
+  logModule: "ADMIN_FAQ",
+  logTitle: "Get FAQ analytics",
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   try {
+    ctx?.step("Fetching FAQ analytics data");
     // Pre-calculate year boundaries for time-series queries.
     const currentYear = new Date().getFullYear();
     const startYear = new Date(`${currentYear}-01-01`);
@@ -407,6 +359,7 @@ export default async (data: Handler) => {
         ? 100
         : 0;
 
+    ctx?.success("FAQ analytics retrieved successfully");
     return {
       totalFaqs,
       activeFaqs,

@@ -26,7 +26,8 @@ export function TagInput({
   className,
   disabled = false,
 }: TagInputProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components");
+  const tCommon = useTranslations("common");
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const [showLimitMessage, setShowLimitMessage] = useState(false);
@@ -145,7 +146,7 @@ export function TagInput({
             id="tag-limit-message"
             className="text-amber-700 dark:text-amber-400 text-sm"
           >
-            {t("maximum_of")} {maxTags} {t("tags_reached")}.{" "}
+            {tCommon("maximum_of")} {maxTags} {t("tags_reached")}.{" "}
             {t("remove_a_tag_to_add_a_new_one")}.
           </AlertDescription>
         </Alert>
@@ -157,7 +158,7 @@ export function TagInput({
           className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1"
         >
           <AlertCircle className="h-3 w-3" />
-          {t("maximum_of")} {maxTags} {t("tags_reached")}
+          {tCommon("maximum_of")} {maxTags} {t("tags_reached")}
         </p>
       )}
     </div>

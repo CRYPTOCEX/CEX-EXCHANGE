@@ -1,33 +1,37 @@
-import React from "react";
-import { Shield, Package, User, DollarSign, Calendar, Hash } from 'lucide-react'
+"use client";
 
-export const columns = [
+import React from "react";
+import { ShoppingBag, Package, User, DollarSign, Calendar } from 'lucide-react';
+import type { ColumnDefinition } from "@/components/blocks/data-table/types/table";
+
+import { useTranslations } from "next-intl";
+export function useColumns() {
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
+  return [
   {
     key: "id",
-    title: "Sale ID",
+    title: t("sale_id"),
     type: "text",
     sortable: true,
     searchable: true,
     filterable: true,
-    icon: Shield,
-    description: "Unique sale identifier",
-    priority: 1,
-    editable: false,
-    usedInCreate: false,
+    icon: ShoppingBag,
+    description: t("unique_identifier_for_this_completed_nft"),
+    priority: 4,
     expandedOnly: true,
   },
   {
     key: "token",
-    title: "NFT",
+    title: t("nft"),
     type: "compound",
     sortable: true,
     searchable: true,
     filterable: true,
     icon: Package,
-    description: "NFT token details",
+    description: t("digital_artwork_or_collectible_that_was_sold"),
     priority: 1,
-    editable: false,
-    usedInCreate: false,
     sortKey: "token.name",
     render: {
       type: "compound",
@@ -36,41 +40,71 @@ export const columns = [
           key: "image",
           fallback: "/img/placeholder.svg",
           type: "image",
-          title: "Token Image",
-          description: "NFT token image",
-          editable: false,
-          usedInCreate: false,
+          title: t("token_image"),
+          description: t("nft_token_image"),
         },
         primary: {
           key: "name",
-          title: "Name",
-          editable: false,
-          usedInCreate: false,
+          title: tCommon("name"),
         },
         secondary: {
           key: "tokenId",
-          title: "Token ID",
-          editable: false,
-          usedInCreate: false,
+          title: tExt("token_id"),
         },
         metadata: [
-          { key: "collection.name", title: "Collection", type: "text" }
+          { key: "collection.name", title: tCommon("collection"), type: "text" }
         ]
       }
     }
   },
   {
+    key: "price",
+    title: t("sale_price"),
+    type: "number",
+    sortable: true,
+    searchable: false,
+    filterable: true,
+    icon: DollarSign,
+    description: t("final_transaction_price_paid_for_this_nft"),
+    priority: 1,
+    render: {
+      type: "number",
+      format: { style: "currency", currency: "USD" }
+    }
+  },
+  {
+    key: "status",
+    title: tCommon("status"),
+    type: "select",
+    sortable: true,
+    filterable: true,
+    description: t("transaction_status_completed_pending_failed_or"),
+    options: [
+      { value: "PENDING", label: tCommon("pending"), color: "warning" },
+      { value: "COMPLETED", label: tCommon("completed"), color: "success" },
+      { value: "FAILED", label: tCommon("failed"), color: "destructive" },
+      { value: "CANCELLED", label: tCommon("cancelled"), color: "secondary" }
+    ],
+    render: {
+      type: "badge",
+      config: {
+        variant: (value: string) => value === "COMPLETED" ? "success" :
+                           value === "PENDING" ? "warning" :
+                           value === "FAILED" ? "destructive" : "secondary"
+      }
+    },
+    priority: 1,
+  },
+  {
     key: "seller",
-    title: "Seller",
+    title: tCommon("seller"),
     type: "compound",
     sortable: true,
     searchable: true,
     filterable: true,
     icon: User,
-    description: "Seller information",
+    description: t("previous_nft_owner_who_sold_the_asset"),
     priority: 2,
-    editable: false,
-    usedInCreate: false,
     sortKey: "seller.firstName",
     render: {
       type: "compound",
@@ -79,39 +113,31 @@ export const columns = [
           key: "avatar",
           fallback: "/img/placeholder.svg",
           type: "image",
-          title: "Avatar",
-          description: "Seller's profile picture",
-          editable: false,
-          usedInCreate: false,
+          title: tCommon("avatar"),
+          description: t("sellers_profile_picture"),
         },
         primary: {
           key: ["firstName", "lastName"],
-          title: ["First Name", "Last Name"],
-          editable: false,
-          usedInCreate: false,
+          title: [tCommon("first_name"), tCommon("last_name")],
           icon: User,
         },
         secondary: {
           key: "email",
-          title: "Email",
-          editable: false,
-          usedInCreate: false,
+          title: tCommon("email"),
         }
       }
     }
   },
   {
     key: "buyer",
-    title: "Buyer",
+    title: tExt("buyer"),
     type: "compound",
     sortable: true,
     searchable: true,
     filterable: true,
     icon: User,
-    description: "Buyer information",
+    description: t("new_nft_owner_who_purchased_the_asset"),
     priority: 2,
-    editable: false,
-    usedInCreate: false,
     sortKey: "buyer.firstName",
     render: {
       type: "compound",
@@ -120,81 +146,36 @@ export const columns = [
           key: "avatar",
           fallback: "/img/placeholder.svg",
           type: "image",
-          title: "Avatar",
-          description: "Buyer's profile picture",
-          editable: false,
-          usedInCreate: false,
+          title: tCommon("avatar"),
+          description: t("buyers_profile_picture"),
         },
         primary: {
           key: ["firstName", "lastName"],
-          title: ["First Name", "Last Name"],
-          editable: false,
-          usedInCreate: false,
+          title: [tCommon("first_name"), tCommon("last_name")],
           icon: User,
         },
         secondary: {
           key: "email",
-          title: "Email",
-          editable: false,
-          usedInCreate: false,
+          title: tCommon("email"),
         }
       }
     }
   },
   {
-    key: "price",
-    title: "Sale Price",
-    type: "number",
-    sortable: true,
-    searchable: false,
-    filterable: true,
-    icon: DollarSign,
-    description: "Sale price",
-    priority: 1,
-    editable: false,
-    usedInCreate: false,
-    render: {
-      type: "number",
-      format: { style: "currency", currency: "USD" }
-    }
-  },
-  {
-    key: "status",
-    title: "Status",
-    type: "select",
-    sortable: true,
-    filterable: true,
-    editable: false,
-    usedInCreate: false,
-    options: [
-      { value: "PENDING", label: "Pending", color: "warning" },
-      { value: "COMPLETED", label: "Completed", color: "success" },
-      { value: "FAILED", label: "Failed", color: "destructive" },
-      { value: "CANCELLED", label: "Cancelled", color: "muted" }
-    ],
-    render: {
-      type: "badge",
-      config: {
-        variant: (value: string) => value === "COMPLETED" ? "success" : 
-                           value === "PENDING" ? "warning" :
-                           value === "FAILED" ? "destructive" : "muted"
-      }
-    },
-    priority: 2,
-  },
-  {
     key: "createdAt",
-    title: "Sale Date",
+    title: t("sale_date"),
     type: "date",
     sortable: true,
     filterable: true,
-    editable: false,
-    usedInCreate: false,
     icon: Calendar,
+    description: t("date_and_time_when_this_sale_was_completed"),
     render: {
       type: "date",
       format: "MMM dd, yyyy HH:mm"
     },
     priority: 2,
   }
-]; 
+] as ColumnDefinition[];
+}
+
+// Form configuration - no create/edit forms needed (view-only)

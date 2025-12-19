@@ -7,6 +7,8 @@ export const metadata = {
   operationId: "getP2PPaymentMethodById",
   tags: ["Admin", "P2P", "Payment Method"],
   requiresAuth: true,
+  logModule: "ADMIN_P2P",
+  logTitle: "Get P2P Payment Method",
   permission: "view.p2p.payment_method",
   parameters: [
     {
@@ -24,16 +26,18 @@ export const metadata = {
     404: { description: "Payment method not found." },
     500: { description: "Internal Server Error." },
   },
+  demoMask: ["user.email"],
 };
 
-export default async (data: { params: { id: string }; user?: any }) => {
-  const { params, user } = data;
+export default async (data: { params: { id: string, ctx }; user?: any }) => {
+  const { params, user, ctx } = data as any;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   try {
+    ctx?.step("Fetching data");
     const paymentMethod = await models.p2pPaymentMethod.findOne({
       where: {
         id: params.id,
@@ -54,6 +58,7 @@ export default async (data: { params: { id: string }; user?: any }) => {
       });
     }
 
+    ctx?.success("Operation completed successfully");
     return {
       id: paymentMethod.id,
       userId: paymentMethod.userId,

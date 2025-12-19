@@ -23,6 +23,7 @@ try {
   // Ecosystem extension not available
 }
 import { makeUuid } from "@b/utils/passwords";
+import { logger } from "@b/utils/console";
 import { FuturesMatchingEngine } from "../matchingEngine";
 import { getOrderbookEntry } from "./orderbook";
 import { stringify as uuidStringify } from "uuid";
@@ -106,7 +107,7 @@ export async function getOrdersByUserId(
     const result = await client.execute(query, params, { prepare: true });
     return result.rows.map(mapRowToOrder);
   } catch (error) {
-    console.error(`Failed to fetch futures orders by userId: ${error.message}`);
+    logger.error("FUTURES", `Failed to fetch futures orders by userId: ${error.message}`);
     throw new Error(
       `Failed to fetch futures orders by userId: ${error.message}`
     );
@@ -199,9 +200,7 @@ export async function cancelOrderByUuid(
       ];
     }
   } else {
-    console.warn(
-      `No orderbook entry found for symbol: ${symbol}, price: ${priceFormatted}, side: ${orderbookSide}`
-    );
+    logger.warn("FUTURES", `No orderbook entry found for symbol: ${symbol}, price: ${priceFormatted}, side: ${orderbookSide}`);
   }
 
   const deleteOrderQuery = `DELETE FROM ${scyllaFuturesKeyspace}.orders WHERE "userId" = ? AND id = ? AND "createdAt" = ?`;
@@ -217,9 +216,7 @@ export async function cancelOrderByUuid(
   try {
     await client.batch(batchQueries, { prepare: true });
   } catch (error) {
-    console.error(
-      `Failed to cancel futures order and update orderbook: ${error.message}`
-    );
+    logger.error("FUTURES", `Failed to cancel futures order and update orderbook: ${error.message}`);
     throw new Error(
       `Failed to cancel futures order and update orderbook: ${error.message}`
     );
@@ -342,7 +339,7 @@ export async function createOrder({
     matchingEngine.addToQueue(newOrder);
     return newOrder;
   } catch (error) {
-    console.error(`Failed to create futures order: ${error.message}`);
+    logger.error("FUTURES", `Failed to create futures order: ${error.message}`);
     throw new Error(`Failed to create futures order: ${error.message}`);
   }
 }
@@ -365,7 +362,7 @@ export async function getAllOpenOrders(): Promise<any[]> {
     const result = await client.execute(query, [], { prepare: true });
     return result.rows;
   } catch (error) {
-    console.error(`Failed to fetch all open futures orders: ${error.message}`);
+    logger.error("FUTURES", `Failed to fetch all open futures orders: ${error.message}`);
     throw new Error(
       `Failed to fetch all open futures orders: ${error.message}`
     );
@@ -490,7 +487,7 @@ export async function deleteAllMarketData(symbol: string) {
   try {
     await client.batch(batchQueries, { prepare: true });
   } catch (err) {
-    console.error(`Failed to delete all futures market data: ${err.message}`);
+    logger.error("FUTURES", `Failed to delete all futures market data: ${err.message}`);
   }
 }
 
@@ -498,7 +495,7 @@ async function cancelAndRefundOrder(userId, id, createdAt) {
   const order = await getOrderByUuid(userId, id, createdAt);
 
   if (!order) {
-    console.warn(`Order not found for UUID: ${id}`);
+    logger.warn("FUTURES", `Order not found for UUID: ${id}`);
     return;
   }
 
@@ -509,7 +506,7 @@ async function cancelAndRefundOrder(userId, id, createdAt) {
 
   // Calculate refund amount based on remaining amount for partially filled orders
   if (!fromBigIntMultiply || !fromBigInt || !getWalletByUserIdAndCurrency || !updateWalletBalance) {
-    console.warn("Ecosystem extension not available for wallet operations");
+    logger.warn("FUTURES", "Ecosystem extension not available for wallet operations");
     return;
   }
 
@@ -528,7 +525,7 @@ async function cancelAndRefundOrder(userId, id, createdAt) {
 
   const wallet = await getWalletByUserIdAndCurrency(userId, walletCurrency);
   if (!wallet) {
-    console.warn(`${walletCurrency} wallet not found for user ID: ${userId}`);
+    logger.warn("FUTURES", `${walletCurrency} wallet not found for user ID: ${userId}`);
     return;
   }
 
@@ -566,7 +563,7 @@ export async function getOrders(
     query += ` AND status = 'OPEN'`;
   }
 
-  query += ` ORDER BY "createdAt" DESC`;
+  query += ` ORDER BY "createdAt" DESC ALLOW FILTERING`;
 
   try {
     const result = await client.execute(query, params, { prepare: true });
@@ -587,7 +584,7 @@ export async function getOrders(
         : undefined,
     }));
   } catch (error) {
-    console.error(`Failed to fetch futures orders: ${error.message}`);
+    logger.error("FUTURES", `Failed to fetch futures orders: ${error.message}`);
     throw new Error(`Failed to fetch futures orders: ${error.message}`);
   }
 }
@@ -621,14 +618,14 @@ export async function cancelAllOrdersByUserId(userId: string): Promise<{ cancell
         );
         cancelledCount++;
       } catch (error) {
-        console.error(`Failed to cancel order ${order.id}:`, error);
+        logger.error("FUTURES", `Failed to cancel order ${order.id}: ${error}`);
         // Continue with other orders even if one fails
       }
     }
 
     return { cancelledCount };
   } catch (error) {
-    console.error(`Failed to cancel all orders for user ${userId}:`, error);
+    logger.error("FUTURES", `Failed to cancel all orders for user ${userId}: ${error}`);
     throw new Error(`Failed to cancel all orders: ${error.message}`);
   }
 }

@@ -5,6 +5,7 @@ import { fetchUTXOTransactions, fetchUtxoTransaction } from "@b/api/(ext)/ecosys
 import { chainConfigs } from "@b/api/(ext)/ecosystem/utils/chains";
 import { models } from "@b/db";
 import { satoshiToStandardUnit } from "@b/api/(ext)/ecosystem/utils/blockchain";
+import { logger } from "@b/utils/console";
 
 interface UTXOOptions {
   wallet: walletAttributes;
@@ -52,15 +53,11 @@ export class UTXODeposits implements IDepositMonitor {
 
   public async watchDeposits(): Promise<void> {
     if (!this.active) {
-      console.log(
-        `[INFO] UTXO monitor for ${this.chain} is not active, skipping watchDeposits`
-      );
+      logger.debug("UTXO_DEPOSIT", `Monitor for ${this.chain} is not active, skipping watchDeposits`);
       return;
     }
 
-    console.log(
-      `[INFO] Starting UTXO deposit monitoring for ${this.chain} address ${this.address}`
-    );
+    logger.info("UTXO_DEPOSIT", `Starting UTXO deposit monitoring for ${this.chain} address ${this.address}`);
     await this.startPolling();
   }
 
@@ -69,25 +66,21 @@ export class UTXODeposits implements IDepositMonitor {
       // Check both at the start and after processing
       if (!this.active || this.depositFound) {
         if (this.depositFound) {
-          console.log(`[UTXO_MONITOR] ${this.chain} Deposit found and confirmed, stopping monitor`);
+          logger.info("UTXO_DEPOSIT", `${this.chain} Deposit found and confirmed, stopping monitor`);
         } else {
-          console.log(`[UTXO_MONITOR] ${this.chain} Monitor inactive, skipping poll`);
+          logger.debug("UTXO_DEPOSIT", `${this.chain} Monitor inactive, skipping poll`);
         }
         return;
       }
 
       try {
-        console.log(
-          `[UTXO_MONITOR] ${this.chain} Checking deposits for address ${this.address}`
-        );
+        logger.debug("UTXO_DEPOSIT", `${this.chain} Checking deposits for address ${this.address}`);
 
         // Fetch all transactions for this address
         const transactions = await fetchUTXOTransactions(this.chain, this.address);
 
         if (!transactions || transactions.length === 0) {
-          console.log(
-            `[UTXO_MONITOR] ${this.chain} No transactions found, waiting for next poll`
-          );
+          logger.debug("UTXO_DEPOSIT", `${this.chain} No transactions found, waiting for next poll`);
           this.consecutiveErrors = 0;
         } else {
           // Count new (unprocessed) transactions
@@ -102,9 +95,7 @@ export class UTXODeposits implements IDepositMonitor {
 
           // Only log if there are new transactions to process
           if (newTransactionsCount > 0) {
-            console.log(
-              `[UTXO_MONITOR] ${this.chain} Found ${newTransactionsCount} new transactions out of ${transactions.length} total for wallet ${this.wallet.id}. Already processed: ${UTXODeposits.processedTxHashes.size}`
-            );
+            logger.info("UTXO_DEPOSIT", `${this.chain} Found ${newTransactionsCount} new transactions out of ${transactions.length} total for wallet ${this.wallet.id}. Already processed: ${UTXODeposits.processedTxHashes.size}`);
           }
 
           // Process each transaction
@@ -130,9 +121,7 @@ export class UTXODeposits implements IDepositMonitor {
               continue;
             }
 
-            console.log(
-              `[UTXO_MONITOR] ${this.chain} Processing transaction ${tx.hash.substring(0, 12)}...`
-            );
+            logger.debug("UTXO_DEPOSIT", `${this.chain} Processing transaction ${tx.hash.substring(0, 12)}...`);
 
             const requiredConfirmations = chainConfigs[this.chain]?.confirmations || 3;
             const confirmations = tx.confirmations || 0;
@@ -144,18 +133,14 @@ export class UTXODeposits implements IDepositMonitor {
             const confirmationChanged = lastConfirmations !== confirmations;
 
             if (isNew || confirmationChanged) {
-              console.log(
-                `[UTXO_MONITOR] ${this.chain} Transaction ${tx.hash.substring(0, 12)}... has ${confirmations}/${requiredConfirmations} confirmations, value: ${tx.value} for wallet ${this.wallet.id}`
-              );
+              logger.debug("UTXO_DEPOSIT", `${this.chain} Transaction ${tx.hash.substring(0, 12)}... has ${confirmations}/${requiredConfirmations} confirmations, value: ${tx.value} for wallet ${this.wallet.id}`);
             }
 
             // Broadcast pending transactions only when confirmation count changes
             if (confirmations < requiredConfirmations) {
               // Broadcast if this is a new transaction or if confirmations changed
               if (isNew || confirmationChanged) {
-                console.log(
-                  `[UTXO_MONITOR] ${this.chain} Broadcasting pending status for ${tx.hash.substring(0, 12)}... to wallet ${this.wallet.id} (${confirmations}/${requiredConfirmations} confirmations)`
-                );
+                logger.debug("UTXO_DEPOSIT", `${this.chain} Broadcasting pending status for ${tx.hash.substring(0, 12)}... to wallet ${this.wallet.id} (${confirmations}/${requiredConfirmations} confirmations)`);
 
                 const pendingTxData = {
                   walletId: this.wallet.id,
@@ -175,16 +160,12 @@ export class UTXODeposits implements IDepositMonitor {
                 await storeAndBroadcastTransaction(pendingTxData, tx.hash, true);
                 UTXODeposits.lastBroadcastedConfirmations.set(confirmationKey, confirmations);
 
-                console.log(
-                  `[UTXO_MONITOR] ${this.chain} Pending broadcast sent for ${tx.hash.substring(0, 12)}... to wallet ${this.wallet.id}`
-                );
+                logger.debug("UTXO_DEPOSIT", `${this.chain} Pending broadcast sent for ${tx.hash.substring(0, 12)}... to wallet ${this.wallet.id}`);
               }
               // Note: If confirmations haven't changed, we silently skip broadcasting (already tracked in map)
             } else {
               // Transaction is confirmed, fetch full transaction details
-              console.log(
-                `[UTXO_MONITOR] ${this.chain} Transaction ${tx.hash.substring(0, 12)}... is fully confirmed! Fetching full details...`
-              );
+              logger.info("UTXO_DEPOSIT", `${this.chain} Transaction ${tx.hash.substring(0, 12)}... is fully confirmed! Fetching full details...`);
 
               try {
                 const fullTx = await fetchUtxoTransaction(tx.hash, this.chain);
@@ -193,9 +174,7 @@ export class UTXODeposits implements IDepositMonitor {
                   throw new Error("fetchUtxoTransaction returned null/undefined");
                 }
 
-                console.log(
-                  `[UTXO_MONITOR] ${this.chain} Full transaction details received: inputs=${fullTx.inputs?.length || 0}, outputs=${fullTx.outputs?.length || 0}`
-                );
+                logger.debug("UTXO_DEPOSIT", `${this.chain} Full transaction details received: inputs=${fullTx.inputs?.length || 0}, outputs=${fullTx.outputs?.length || 0}`);
 
                 // Convert inputs and outputs from satoshis to standard units
                 const convertedInputs = (fullTx.inputs || []).map((input) => ({
@@ -233,31 +212,21 @@ export class UTXODeposits implements IDepositMonitor {
                   outputs: convertedOutputs,
                 };
 
-                console.log(
-                  `[UTXO_MONITOR] ${this.chain} Storing confirmed deposit for ${tx.hash.substring(0, 12)}... with amount ${txDetails.amount}`
-                );
+                logger.debug("UTXO_DEPOSIT", `${this.chain} Storing confirmed deposit for ${tx.hash.substring(0, 12)}... with amount ${txDetails.amount}`);
 
                 await storeAndBroadcastTransaction(txDetails, tx.hash);
                 UTXODeposits.processedTxHashes.set(walletTxKey, Date.now());
 
-                console.log(
-                  `[UTXO_MONITOR] ${this.chain} Successfully processed and stored deposit ${tx.hash.substring(0, 12)}... for wallet ${this.wallet.id} - stopping monitor`
-                );
+                logger.success("UTXO_DEPOSIT", `${this.chain} Successfully processed and stored deposit ${tx.hash.substring(0, 12)}... for wallet ${this.wallet.id} - stopping monitor`);
 
                 // Set flag and stop polling immediately
                 this.depositFound = true;
                 this.stopPolling();
                 return; // Exit immediately
               } catch (error) {
-                console.error(
-                  `[UTXO_MONITOR] ${this.chain} Failed to process confirmed transaction ${tx.hash.substring(0, 12)}... for wallet ${this.wallet.id}`
-                );
-                console.error(
-                  `[UTXO_MONITOR] ${this.chain} Error details: ${error.message}`
-                );
-                console.error(
-                  `[UTXO_MONITOR] ${this.chain} Error stack: ${error.stack}`
-                );
+                logger.error("UTXO_DEPOSIT", `${this.chain} Failed to process confirmed transaction ${tx.hash.substring(0, 12)}... for wallet ${this.wallet.id}`);
+                logger.error("UTXO_DEPOSIT", `${this.chain} Error details: ${error.message}`);
+                logger.debug("UTXO_DEPOSIT", `${this.chain} Error stack: ${error.stack}`);
                 // Don't add to processed hashes so it can be retried
                 // Continue checking other transactions in the list
                 continue;
@@ -267,16 +236,12 @@ export class UTXODeposits implements IDepositMonitor {
 
           // Only log completion if we processed new transactions and haven't found a deposit yet
           if (newTransactionsCount > 0 && !this.depositFound) {
-            console.log(
-              `[UTXO_MONITOR] ${this.chain} Finished processing ${newTransactionsCount} new transactions. Total processed in session: ${UTXODeposits.processedTxHashes.size}`
-            );
+            logger.debug("UTXO_DEPOSIT", `${this.chain} Finished processing ${newTransactionsCount} new transactions. Total processed in session: ${UTXODeposits.processedTxHashes.size}`);
           }
 
           // If deposit was found during processing, stop immediately
           if (this.depositFound) {
-            console.log(
-              `[UTXO_MONITOR] ${this.chain} Confirmed deposit found during this poll, stopping monitor`
-            );
+            logger.info("UTXO_DEPOSIT", `${this.chain} Confirmed deposit found during this poll, stopping monitor`);
             return;
           }
 
@@ -284,20 +249,12 @@ export class UTXODeposits implements IDepositMonitor {
         }
       } catch (error) {
         this.consecutiveErrors++;
-        console.error(
-          `[UTXO_MONITOR] ${this.chain} Error in polling cycle (attempt ${this.consecutiveErrors}/${this.MAX_CONSECUTIVE_ERRORS})`
-        );
-        console.error(
-          `[UTXO_MONITOR] ${this.chain} Error message: ${error.message}`
-        );
-        console.error(
-          `[UTXO_MONITOR] ${this.chain} Error stack: ${error.stack}`
-        );
+        logger.error("UTXO_DEPOSIT", `${this.chain} Error in polling cycle (attempt ${this.consecutiveErrors}/${this.MAX_CONSECUTIVE_ERRORS})`);
+        logger.error("UTXO_DEPOSIT", `${this.chain} Error message: ${error.message}`);
+        logger.debug("UTXO_DEPOSIT", `${this.chain} Error stack: ${error.stack}`);
 
         if (this.consecutiveErrors >= this.MAX_CONSECUTIVE_ERRORS) {
-          console.error(
-            `[UTXO_MONITOR] ${this.chain} Max consecutive errors reached, stopping monitor`
-          );
+          logger.error("UTXO_DEPOSIT", `${this.chain} Max consecutive errors reached, stopping monitor`);
           this.stopPolling();
           return;
         }
@@ -323,7 +280,7 @@ export class UTXODeposits implements IDepositMonitor {
   }
 
   public stopPolling(): void {
-    console.log(`[INFO] Stopping UTXO deposit monitoring for ${this.chain}`);
+    logger.info("UTXO_DEPOSIT", `Stopping UTXO deposit monitoring for ${this.chain}`);
 
     this.active = false;
 
@@ -332,6 +289,6 @@ export class UTXODeposits implements IDepositMonitor {
       this.intervalId = undefined;
     }
 
-    console.log(`[SUCCESS] UTXO deposit monitoring stopped for ${this.chain}`);
+    logger.success("UTXO_DEPOSIT", `UTXO deposit monitoring stopped for ${this.chain}`);
   }
 }

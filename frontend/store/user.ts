@@ -6,14 +6,14 @@ import { hasFeature, isUserKycApproved } from "@/utils/kyc";
 // Helper function to convert User to the format expected by KYC utils
 function convertToKycUserType(user: User | null): any {
   if (!user) return null;
-  
+
   return {
     ...user,
     kyc: {
       status: user.kyc?.status || '',
       level: {
-        level: typeof user.kyc?.level === 'number' ? user.kyc.level : user.kyc?.level?.level,
-        features: user.kyc?.level?.features || user.featureAccess || []
+        level: user.kyc?.level ?? 0,
+        features: user.featureAccess || []
       }
     }
   };
@@ -187,11 +187,6 @@ export const useUserStore = create<UserState>((set, get) => {
         label: "Transfer",
         value: "transfer",
         description: "Allows transfers between your accounts.",
-      },
-      {
-        label: "Payment",
-        value: "payment",
-        description: "Allows creating and confirming payments.",
       },
     ],
     securityScore: 0,

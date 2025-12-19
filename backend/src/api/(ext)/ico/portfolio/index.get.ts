@@ -7,6 +7,8 @@ export const metadata = {
     "Retrieves a summary of the user's ICO portfolio including total invested, pending investment, pending verification investment, received investment, rejected investment, current portfolio value, total profit/loss, and ROI. Pending investments indicate funds invested for tokens not yet received, and rejected investments indicate funds that were refunded.",
   operationId: "getUserPortfolioOverview",
   tags: ["ICO", "Portfolio"],
+  logModule: "ICO",
+  logTitle: "Get ICO Portfolio",
   requiresAuth: true,
   responses: {
     200: {
@@ -34,10 +36,14 @@ export const metadata = {
   },
 };
 
-export default async (data: { user?: any; params?: any }) => {
-  const { user } = data;
-  if (!user?.id)
+export default async (data: { user?: any; params?: any; ctx?: any }) => {
+  const { user, ctx } = data;
+
+  if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
+
+  ctx?.step("Fetching ICO portfolio");
 
   try {
     // Fetch pending transactions (status "PENDING")
@@ -137,6 +143,7 @@ export default async (data: { user?: any; params?: any }) => {
       // totalInvested += invested;
     });
 
+    ctx?.success("ICO portfolio retrieved successfully");
     return {
       totalInvested,
       pendingInvested,

@@ -12,15 +12,21 @@ export const metadata = {
   responses: deleteRecordResponses("Slider"),
   permission: "delete.slider",
   requiresAuth: true,
+  logModule: "ADMIN_CMS",
+  logTitle: "Delete slider",
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
+  const { params, query, ctx } = data;
   const { id } = params;
 
-  return handleSingleDelete({
+  ctx?.step(`Deleting slider with ID: ${id}`);
+  const result = await handleSingleDelete({
     model: "slider",
     id,
     query,
   });
+
+  ctx?.success("Slider deleted successfully");
+  return result;
 };

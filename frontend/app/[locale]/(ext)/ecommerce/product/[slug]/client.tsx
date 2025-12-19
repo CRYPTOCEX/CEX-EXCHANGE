@@ -39,7 +39,8 @@ interface Tab {
 }
 
 export default function ProductDetailClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ecommerce");
+  const tCommon = useTranslations("common");
   const { hasKyc, canAccessFeature } = useUserStore();
   const { settings } = useConfigStore();
   const { slug } = useParams() as { slug: string };
@@ -221,7 +222,7 @@ export default function ProductDetailClient() {
   if (!isInitialized || isLoadingProduct) {
     return (
       <div className="dark:bg-zinc-900 dark:text-zinc-100 pb-16 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="container py-8">
           {/* Breadcrumb skeleton */}
           <nav className="flex py-4" aria-label="Breadcrumb">
             <ol className="flex items-center space-x-2">
@@ -242,7 +243,7 @@ export default function ProductDetailClient() {
           <div className="lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
             {/* Product image skeleton */}
             <div className="flex flex-col space-y-4">
-              <div className="overflow-hidden rounded-xl relative bg-gradient-to-br from-indigo-50 to-white dark:from-zinc-800 dark:to-zinc-900 p-4">
+              <div className="overflow-hidden rounded-xl relative bg-gradient-to-br from-amber-50 to-white dark:from-zinc-800 dark:to-zinc-900 p-4">
                 <div className="relative h-[400px] w-full rounded-lg overflow-hidden bg-gray-200 dark:bg-zinc-700 animate-pulse flex items-center justify-center">
                   <div className="text-gray-400 dark:text-zinc-500">
                     <svg
@@ -348,28 +349,28 @@ export default function ProductDetailClient() {
 
   if (error || !selectedProduct) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8 dark:bg-zinc-900 dark:text-zinc-100">
+      <div className="container px-4 py-16 sm:px-6 lg:px-8 dark:bg-zinc-900 dark:text-zinc-100">
         <div className="text-center py-16 bg-gray-50 rounded-lg shadow-sm mb-24 dark:bg-zinc-800">
           <Tag className="mx-auto h-16 w-16 text-gray-400 dark:text-zinc-500" />
           <h2 className="mt-4 text-2xl font-bold text-gray-900 dark:text-zinc-100">
             {t("product_not_found")}
           </h2>
           <p className="mt-2 text-gray-500 dark:text-zinc-400 max-w-md mx-auto">
-            {t("the_product_youre_been_removed")}.
+            {t("the_product_youre_looking_for_may")}
           </p>
           <div className="mt-6 flex justify-center gap-4">
             <Link
               href="/ecommerce/product"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-amber-600 hover:bg-amber-700"
             >
-              {t("browse_all_products")}
+              {tCommon("browse_all_products")}
             </Link>
             <Link
               href="/ecommerce"
               className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700 dark:hover:bg-zinc-700"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {t("back_to_home")}
+              {tCommon("back_to_home")}
             </Link>
           </div>
         </div>
@@ -399,7 +400,7 @@ export default function ProductDetailClient() {
             href="/ecommerce"
             className="text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-300"
           >
-            {t("Home")}
+            Home
           </Link>
         </li>
         <li className="flex items-center">
@@ -408,7 +409,7 @@ export default function ProductDetailClient() {
             href="/ecommerce/product"
             className="ml-2 text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-300"
           >
-            {t("Products")}
+            Products
           </Link>
         </li>
         <li className="flex items-center">
@@ -442,14 +443,23 @@ export default function ProductDetailClient() {
   ];
 
   return (
-    <div className="dark:bg-zinc-900 dark:text-zinc-100 pb-16">
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+      className={`bg-linear-to-b from-white to-gray-50 dark:from-zinc-900 dark:to-zinc-800 min-h-screen pb-16 pt-24`}
+    >
+      {/* Subtle decorative background glows */}
+      <div className={`absolute top-20 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none`} />
+      <div className={`absolute top-1/2 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none`} />
+
+      <div className="relative container">
         {breadcrumbs}
 
         <div className="lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
           {/* Product image gallery */}
           <div className="flex flex-col space-y-4">
-            <div className="overflow-hidden rounded-xl relative group bg-gradient-to-br from-indigo-50 to-white dark:from-zinc-800 dark:to-zinc-900 p-4">
+            <div className={`overflow-hidden rounded-3xl relative group bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm border border-amber-200 dark:border-amber-700 shadow-2xl p-6`}>
               {/* Loading state */}
               {imageLoading && (
                 <div className="absolute inset-4 bg-gray-200 dark:bg-zinc-700 rounded-lg animate-pulse flex items-center justify-center z-10">
@@ -514,7 +524,13 @@ export default function ProductDetailClient() {
 
             {/* Product badges */}
             <div className="flex space-x-2">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white bg-linear-to-r ${
+                  selectedProduct.type === "DOWNLOADABLE"
+                    ? `from-emerald-500 to-green-500`
+                    : `from-amber-500 to-yellow-500`
+                }`}
+              >
                 {selectedProduct.type}
               </span>
               {selectedProduct.walletType && (
@@ -525,12 +541,12 @@ export default function ProductDetailClient() {
               {checkingPurchase && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
                   <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                  {t("Checking")}.
+                  {t("checking_ellipsis")}
                 </span>
               )}
               {hasPurchased && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                  ✓ {t("purchased")}
+                  {t("purchased")}
                 </span>
               )}
             </div>
@@ -541,8 +557,10 @@ export default function ProductDetailClient() {
             <div
               className={`${isSticky ? "lg:sticky lg:top-4" : ""} transition-all duration-300`}
             >
-              <h1 className="text-3xl font-extrabold tracking-tight text-indigo-600 dark:text-indigo-400">
-                {selectedProduct.name}
+              <h1 className="text-4xl font-extrabold tracking-tight">
+                <span className={`bg-clip-text text-transparent bg-linear-to-r from-amber-600 to-emerald-600`}>
+                  {selectedProduct.name}
+                </span>
               </h1>
 
               <div className="mt-3 flex items-end">
@@ -570,7 +588,7 @@ export default function ProductDetailClient() {
               </div>
 
               {/* Short description with styled box */}
-              <div className="mt-6 bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-lg border border-gray-100 dark:border-zinc-700/50">
+              <div className={`mt-6 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm p-6 rounded-2xl border border-amber-200 dark:border-amber-700 shadow-lg`}>
                 <p className="text-base text-gray-700 dark:text-zinc-300 leading-relaxed">
                   {selectedProduct.shortDescription ||
                     selectedProduct.description}
@@ -582,9 +600,9 @@ export default function ProductDetailClient() {
                 {features.map((feature, index) => (
                   <div
                     key={index}
-                    className="flex flex-col items-center p-4 bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700"
+                    className="flex flex-col items-center p-4 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-2xl border border-gray-100 dark:border-zinc-700 shadow-lg hover:shadow-xl transition-shadow"
                   >
-                    <div className="text-indigo-600 dark:text-indigo-400 mb-2">
+                    <div className={`text-amber-600 dark:text-amber-400 mb-2`}>
                       {feature.icon}
                     </div>
                     <span className="text-sm text-center font-medium text-gray-700 dark:text-zinc-300">
@@ -597,7 +615,7 @@ export default function ProductDetailClient() {
               <div className="mt-8">
                 <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg border border-gray-100 dark:border-zinc-700">
                   <h3 className="text-base font-medium text-gray-900 dark:text-zinc-100 mb-3">
-                    {t("Quantity")}
+                    Quantity
                   </h3>
                   <div className="flex items-center">
                     <button
@@ -653,19 +671,19 @@ export default function ProductDetailClient() {
                     disabled={
                       isAddingToCart || selectedProduct.inventoryQuantity === 0
                     }
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
+                    className={`flex-1 bg-linear-to-r from-amber-600 to-emerald-600 hover:from-amber-700 hover:to-emerald-700 border border-transparent rounded-xl py-3 px-8 flex items-center justify-center text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500/50 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed`}
                   >
                     {isAddingToCart ? (
                       <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        {t("Adding")}.
+                        {tCommon('adding')}
                       </>
                     ) : selectedProduct.inventoryQuantity === 0 ? (
                       "Out of Stock"
                     ) : (
                       <>
                         <ShoppingBag className="mr-2 h-5 w-5" />
-                        {t("add_to_cart")}
+                        {tCommon("add_to_cart")}
                       </>
                     )}
                   </button>
@@ -702,7 +720,7 @@ export default function ProductDetailClient() {
                   onClick={() => setActiveTab(tab.value)}
                   className={`py-4 px-1 flex items-center text-base font-medium border-b-2 ${
                     activeTab === tab.value
-                      ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                      ? "border-amber-500 text-amber-600 dark:text-amber-400"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:border-zinc-600"
                   }`}
                 >
@@ -724,7 +742,7 @@ export default function ProductDetailClient() {
                   transition={{ duration: 0.3 }}
                 >
                   <div
-                    className="prose max-w-none dark:prose-invert prose-indigo text-gray-700 dark:text-zinc-300"
+                    className="prose max-w-none dark:prose-invert prose-amber text-gray-700 dark:text-zinc-300"
                     dangerouslySetInnerHTML={{
                       __html:
                         selectedProduct.description ||
@@ -765,6 +783,6 @@ export default function ProductDetailClient() {
           onClose={() => setLightboxOpen(false)}
         />
       </div>
-    </div>
+    </motion.div>
   );
 }

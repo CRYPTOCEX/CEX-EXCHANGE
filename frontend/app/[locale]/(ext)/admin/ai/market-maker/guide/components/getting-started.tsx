@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 
 export default function GettingStartedSection() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const router = useRouter();
 
   const steps = [
@@ -97,7 +99,7 @@ export default function GettingStartedSection() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Icon icon="mdi:check-circle" className="w-5 h-5 text-green-500" />
-                  <span className="text-sm text-muted-600 dark:text-muted-400">{t("risk_management")}</span>
+                  <span className="text-sm text-muted-600 dark:text-muted-400">{tCommon("risk_management")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Icon icon="mdi:check-circle" className="w-5 h-5 text-green-500" />
@@ -169,8 +171,8 @@ export default function GettingStartedSection() {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center shrink-0">
-                  <Icon icon="mdi:water" className="w-5 h-5 text-blue-500" />
+                <div className="w-10 h-10 rounded-lg bg-purple-500/10 dark:bg-purple-500/20 flex items-center justify-center shrink-0">
+                  <Icon icon="mdi:water" className="w-5 h-5 text-purple-500" />
                 </div>
                 <div>
                   <h4 className="font-semibold text-muted-800 dark:text-muted-100">{t("liquidity_pool")}</h4>
@@ -189,7 +191,7 @@ export default function GettingStartedSection() {
                   <Icon icon="mdi:target" className="w-5 h-5 text-green-500" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-muted-800 dark:text-muted-100">{t("target_price")}</h4>
+                  <h4 className="font-semibold text-muted-800 dark:text-muted-100">{tExt("target_price")}</h4>
                   <p className="text-sm text-muted-500 mt-1">
                     {t("the_price_you_want_the_market_to_gravitate_towards")} {t("bots_will_place_orders_to_gradually")}
                   </p>

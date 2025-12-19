@@ -1,9 +1,18 @@
 import { models } from "@b/db";
 
+interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
+
 export async function updateTransaction(
   id: string,
-  data: Partial<transactionCreationAttributes>
+  data: Partial<transactionCreationAttributes>,
+  ctx?: LogContext
 ) {
+  ctx?.step?.(`Updating transaction ${id}`);
+
   await models.transaction.update(
     {
       ...data,
@@ -14,6 +23,8 @@ export async function updateTransaction(
       },
     }
   );
+
+  ctx?.step?.(`Fetching updated transaction ${id}`);
 
   const updatedTransaction = await models.transaction.findByPk(id, {
     include: [
@@ -31,8 +42,11 @@ export async function updateTransaction(
   });
 
   if (!updatedTransaction) {
+    ctx?.fail?.("Transaction not found");
     throw new Error("Transaction not found");
   }
+
+  ctx?.success?.(`Transaction ${id} updated successfully`);
 
   return updatedTransaction.get({
     plain: true,

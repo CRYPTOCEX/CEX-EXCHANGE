@@ -6,6 +6,7 @@ import {
   getSpotPriceInUSD,
   getEcoPriceInUSD,
 } from "@b/api/finance/currency/utils";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Get P2P Dashboard Stats",
@@ -13,6 +14,8 @@ export const metadata = {
     "Retrieves various trade counts and stats for the authenticated user.",
   operationId: "getP2PDashboardStats",
   tags: ["P2P", "Dashboard"],
+  logModule: "P2P",
+  logTitle: "Get dashboard stats",
   responses: {
     200: { description: "Dashboard stats retrieved successfully." },
     401: unauthorizedResponse,
@@ -21,8 +24,8 @@ export const metadata = {
   requiresAuth: true,
 };
 
-export default async (data: { user?: any }) => {
-  const { user } = data;
+export default async (data: { user?: any; ctx?: any }) => {
+  const { user, ctx } = data;
   if (!user?.id) {
     return {
       statusCode: 401,
@@ -30,6 +33,7 @@ export default async (data: { user?: any }) => {
     };
   }
 
+  ctx?.step("Validating P2P extension");
   try {
     // Check if P2P models exist
     if (!models.p2pTrade) {
@@ -44,6 +48,7 @@ export default async (data: { user?: any }) => {
     let completedTrades = 0;
     let wallets: any[] = [];
 
+    ctx?.step("Fetching trade statistics");
     try {
       totalTrades = await models.p2pTrade.count({
         where: {
@@ -51,7 +56,7 @@ export default async (data: { user?: any }) => {
         },
       });
     } catch (error) {
-      console.error("Error fetching total trades:", error);
+      logger.error("P2P", `Error fetching total trades: ${error}`);
     }
 
     try {
@@ -62,7 +67,7 @@ export default async (data: { user?: any }) => {
         },
       });
     } catch (error) {
-      console.error("Error fetching active trades:", error);
+      logger.error("P2P", `Error fetching active trades: ${error}`);
     }
 
     try {
@@ -73,9 +78,10 @@ export default async (data: { user?: any }) => {
         },
       });
     } catch (error) {
-      console.error("Error fetching completed trades:", error);
+      logger.error("P2P", `Error fetching completed trades: ${error}`);
     }
 
+    ctx?.step("Fetching user wallets");
     // Fetch user wallets for P2P trading
     try {
       wallets = await models.wallet.findAll({
@@ -94,10 +100,11 @@ export default async (data: { user?: any }) => {
         raw: true,
       });
     } catch (error) {
-      console.error("Error fetching user wallets:", error);
+      logger.error("P2P", `Error fetching user wallets: ${error}`);
       wallets = [];
     }
 
+    ctx?.step("Calculating total balance");
     // Calculate total balance across all wallets (converted to USD)
     let totalBalance = 0;
     for (const wallet of wallets) {
@@ -127,14 +134,14 @@ export default async (data: { user?: any }) => {
               break;
           }
         } catch (priceError) {
-          console.error(`Error getting price for ${wallet.type} ${wallet.currency}:`, priceError);
+          logger.error("P2P", `Error getting price for ${wallet.type} ${wallet.currency}: ${priceError}`);
           // Skip this wallet if we can't get the price
           continue;
         }
 
         totalBalance += availableBalance * priceInUSD;
       } catch (error) {
-        console.error(`Error processing wallet ${wallet.id}:`, error);
+        logger.error("P2P", `Error processing wallet ${wallet.id}: ${error}`);
       }
     }
 
@@ -179,7 +186,7 @@ export default async (data: { user?: any }) => {
       },
     ];
 
-    return {
+    const result = {
       stats,
       totalTrades,
       activeTrades,
@@ -194,8 +201,12 @@ export default async (data: { user?: any }) => {
         status: wallet.status,
       })),
     };
+
+    ctx?.success(`Stats retrieved (${totalTrades} total trades, ${completedTrades} completed)`);
+    return result;
   } catch (err: any) {
-    console.error("P2P Dashboard Stats API Error:", err);
+    logger.error("P2P", `Dashboard Stats API Error: ${err.message}`);
+    ctx?.fail(err.message || "Failed to retrieve dashboard stats");
     return {
       statusCode: 500,
       message: "Internal Server Error: " + err.message,

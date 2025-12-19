@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CreatorDashboardLoading() {
   return (
-    <div className="container py-8 space-y-8">
+    <div className="container pt-20 py-8 space-y-8">
       <div className="flex items-center justify-between">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-10 w-32" />

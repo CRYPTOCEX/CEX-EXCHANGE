@@ -45,7 +45,10 @@ import {
   WifiOff,
   AlertTriangle,
   Loader2,
+  Sparkles,
 } from "lucide-react";
+import { HeroSection } from "@/components/ui/hero-section";
+import { Progress } from "@/components/ui/progress";
 
 interface RecentTrade {
   id: string;
@@ -99,12 +102,12 @@ const tabs = [
 ];
 
 // Status configuration with colors and animations
-const statusConfig: Record<string, { color: string; bg: string; border: string; pulse: boolean; icon: React.ElementType }> = {
-  ACTIVE: { color: "text-green-600 dark:text-green-400", bg: "bg-green-100 dark:bg-green-500/20", border: "border-green-300 dark:border-green-500/30", pulse: true, icon: Zap },
-  PAUSED: { color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-100 dark:bg-amber-500/20", border: "border-amber-300 dark:border-amber-500/30", pulse: false, icon: Pause },
-  STOPPED: { color: "text-gray-600 dark:text-gray-400", bg: "bg-gray-100 dark:bg-gray-500/20", border: "border-gray-300 dark:border-gray-500/30", pulse: false, icon: Square },
-  INITIALIZING: { color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-100 dark:bg-blue-500/20", border: "border-blue-300 dark:border-blue-500/30", pulse: true, icon: Clock },
-  ERROR: { color: "text-red-600 dark:text-red-400", bg: "bg-red-100 dark:bg-red-500/20", border: "border-red-300 dark:border-red-500/30", pulse: true, icon: Activity },
+const statusConfig: Record<string, { color: string; bg: string; border: string; pulse: boolean; icon: React.ElementType; label: string }> = {
+  ACTIVE: { color: "text-emerald-700 dark:text-emerald-300", bg: "bg-emerald-50 dark:bg-emerald-500/10", border: "border-emerald-200 dark:border-emerald-500/20", pulse: true, icon: Zap, label: "Active" },
+  PAUSED: { color: "text-amber-700 dark:text-amber-300", bg: "bg-amber-50 dark:bg-amber-500/10", border: "border-amber-200 dark:border-amber-500/20", pulse: false, icon: Pause, label: "Paused" },
+  STOPPED: { color: "text-slate-600 dark:text-slate-400", bg: "bg-slate-50 dark:bg-slate-500/10", border: "border-slate-200 dark:border-slate-500/20", pulse: false, icon: Square, label: "Stopped" },
+  INITIALIZING: { color: "text-cyan-700 dark:text-cyan-300", bg: "bg-cyan-50 dark:bg-cyan-500/10", border: "border-cyan-200 dark:border-cyan-500/20", pulse: true, icon: Clock, label: "Initializing" },
+  ERROR: { color: "text-red-700 dark:text-red-300", bg: "bg-red-50 dark:bg-red-500/10", border: "border-red-200 dark:border-red-500/20", pulse: true, icon: Activity, label: "Error" },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -112,15 +115,15 @@ function StatusBadge({ status }: { status: string }) {
   const StatusIcon = config.icon;
 
   return (
-    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${config.bg} ${config.border}`}>
+    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border ${config.bg} ${config.border} shadow-sm`}>
       {config.pulse && (
         <span className="relative flex h-2 w-2">
-          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75`} style={{ color: 'inherit' }} />
-          <span className={`relative inline-flex rounded-full h-2 w-2 bg-current`} />
+          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${status === 'ACTIVE' ? 'bg-emerald-500' : status === 'ERROR' ? 'bg-red-500' : 'bg-cyan-500'}`} />
+          <span className={`relative inline-flex rounded-full h-2 w-2 ${status === 'ACTIVE' ? 'bg-emerald-500' : status === 'ERROR' ? 'bg-red-500' : 'bg-cyan-500'}`} />
         </span>
       )}
-      <StatusIcon className={`w-4 h-4 ${config.color}`} />
-      <span className={`text-sm font-medium ${config.color}`}>{status}</span>
+      <StatusIcon className={`w-3.5 h-3.5 ${config.color}`} />
+      <span className={`text-xs font-semibold uppercase tracking-wide ${config.color}`}>{config.label}</span>
     </div>
   );
 }
@@ -173,7 +176,9 @@ export default function MarketDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useUserStore();
@@ -206,7 +211,7 @@ export default function MarketDetailsPage({
   const seenEventKeys = useRef<Set<string>>(new Set());
 
   // Use ref for message handler to avoid WebSocket reconnection on every render
-  const handleWsMessageRef = useRef<(message: any) => void>();
+  const handleWsMessageRef = useRef<(message: any) => void>(() => {});
 
   // Update the handler ref whenever dependencies change (but don't trigger effect)
   useEffect(() => {
@@ -466,40 +471,52 @@ export default function MarketDetailsPage({
   if (loading) {
     return (
       <>
-        {/* Loading Hero - matches actual hero */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 dark:from-slate-900 dark:via-slate-950 dark:to-black shadow-xl">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Loading Hero - matches HeroSection structure */}
+        <div className="relative overflow-hidden pt-24 pb-12">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-              <div className="flex items-center gap-4">
-                <Skeleton className="w-12 h-12 rounded-xl bg-white/20" />
-                <div className="space-y-2">
-                  <Skeleton className="h-8 w-48 bg-white/20" />
-                  <Skeleton className="h-4 w-32 bg-white/20" />
-                </div>
+              <div className="space-y-4">
+                <Skeleton className="h-6 w-32 rounded-full" />
+                <Skeleton className="h-10 w-64" />
+                <Skeleton className="h-10 w-32 rounded-lg" />
               </div>
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-10 w-24 rounded-lg bg-white/20" />
-                <Skeleton className="h-10 w-28 rounded-lg bg-white/20" />
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 justify-end">
+                  <Skeleton className="h-8 w-24 rounded-full" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-24 rounded-lg" />
+                  <Skeleton className="h-10 w-28 rounded-lg" />
+                </div>
               </div>
             </div>
             {/* Volume Progress Bar skeleton */}
-            <div className="mt-6 pt-6 border-t border-white/20">
-              <div className="flex items-center justify-between mb-2">
-                <Skeleton className="h-4 w-32 bg-white/20" />
-                <Skeleton className="h-4 w-40 bg-white/20" />
-              </div>
-              <Skeleton className="h-2 w-full rounded-full bg-white/20" />
+            <div className="mt-8">
+              <Card className="bg-card/50 backdrop-blur border-cyan-500/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-40" />
+                  </div>
+                  <Skeleton className="h-2 w-full rounded-full" />
+                  <div className="flex items-center justify-between mt-2">
+                    <Skeleton className="h-3 w-16" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
 
         {/* Main Content Container */}
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <div className="container mx-auto py-8 space-y-6">
           {/* Loading Stats - matches QuickStat cards (border-0 shadow-lg) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              "from-blue-500 to-blue-600",
-              "from-blue-500 to-blue-600",
+              "from-cyan-500 to-cyan-600",
+              "from-cyan-500 to-purple-600",
               "from-purple-500 to-purple-600",
               "from-green-500 to-green-600",
             ].map((gradient, i) => (
@@ -555,7 +572,7 @@ export default function MarketDetailsPage({
         </p>
         <Button onClick={() => router.push("/admin/ai/market-maker/market")}>
           <ArrowLeft className="w-4 h-4 mr-2" />
-          {t("back_to_markets")}
+          {tCommon("back_to_markets")}
         </Button>
       </div>
     );
@@ -574,67 +591,84 @@ export default function MarketDetailsPage({
 
   return (
     <>
-      {/* Hero Header - Full width */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 dark:from-slate-900 dark:via-slate-950 dark:to-black shadow-xl">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            {/* Left: Back + Title */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => router.push("/admin/ai/market-maker/market")}
-                className="p-3 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 text-white" />
-              </button>
-
-              <div>
-                <div className="flex items-center gap-4 mb-2 flex-wrap">
-                  <h1 className="text-3xl font-bold text-white">
-                    {data.market?.currency && data.market?.pair
-                      ? `${data.market.currency}/${data.market.pair}`
-                      : "Unknown Market"}
-                  </h1>
-                  <StatusBadge status={data.status} />
-                  {/* Daily Limit Indicator - Shows when bots are at limit */}
-                  {data.status === "ACTIVE" && allBotsAtLimit && (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                      <Clock className="w-4 h-4" />
-                      <span className="text-sm font-medium">{t("idle_daily_limit")}</span>
-                    </div>
-                  )}
-                  {data.status === "ACTIVE" && !allBotsAtLimit && botsAtLimitCount > 0 && (
-                    <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 text-xs">
-                      <AlertTriangle className="w-3 h-3" />
-                      <span>{botsAtLimitCount}/{totalBotsCount} {t("at_limit")}</span>
-                    </div>
-                  )}
-                  {/* WebSocket Connection Indicator */}
-                  <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
-                    wsConnected
-                      ? "bg-green-500/20 text-green-300 border border-green-500/30"
-                      : "bg-red-500/20 text-red-300 border border-red-500/30"
-                  }`}>
-                    {wsConnected ? (
-                      <>
-                        <Wifi className="w-3 h-3" />
-                        Live
-                      </>
-                    ) : (
-                      <>
-                        <WifiOff className="w-3 h-3" />
-                        Offline
-                      </>
-                    )}
-                  </div>
+      <HeroSection
+        badge={{
+          icon: <Sparkles className="h-3.5 w-3.5" />,
+          text: "AI Market Maker",
+          gradient: "from-cyan-500/20 via-purple-500/20 to-cyan-500/20",
+          iconColor: "text-cyan-500",
+          textColor: "text-cyan-600 dark:text-cyan-400",
+        }}
+        title={[
+          {
+            text: data.market?.currency && data.market?.pair
+              ? `${data.market.currency}/${data.market.pair}`
+              : "Unknown Market",
+            gradient: "from-cyan-600 via-purple-500 to-cyan-600 dark:from-cyan-400 dark:via-purple-400 dark:to-cyan-400",
+          },
+        ]}
+        paddingTop="pt-24"
+        paddingBottom="pb-12"
+        layout="split"
+        background={{
+          orbs: [
+            { color: "#06b6d4", position: { top: "-10rem", right: "-10rem" }, size: "20rem" },
+            { color: "#a855f7", position: { bottom: "-5rem", left: "-5rem" }, size: "15rem" },
+          ],
+        }}
+        particles={{ count: 6, type: "floating", colors: ["#06b6d4", "#a855f7"], size: 8 }}
+        leftContent={
+          <Button
+            variant="outline"
+            onClick={() => router.push("/admin/ai/market-maker/market")}
+            className="border-cyan-500/50 text-cyan-600 hover:bg-cyan-500/10 dark:text-cyan-400 mb-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            {tCommon("back_to_markets")}
+          </Button>
+        }
+        rightContent={
+          <div className="flex flex-col gap-3">
+            {/* Status Indicators */}
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              <StatusBadge status={data.status} />
+              {data.status === "ACTIVE" && allBotsAtLimit && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/20 shadow-sm">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span className="text-xs font-semibold uppercase tracking-wide">{t("idle_daily_limit")}</span>
                 </div>
-                <p className="text-white/70 text-lg">
-                  AI Market Maker
-                </p>
+              )}
+              {data.status === "ACTIVE" && !allBotsAtLimit && botsAtLimitCount > 0 && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/20 shadow-sm">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span className="text-xs font-semibold uppercase tracking-wide">{botsAtLimitCount}/{totalBotsCount} {t("at_limit")}</span>
+                </div>
+              )}
+              <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border shadow-sm ${
+                wsConnected
+                  ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20"
+                  : "bg-slate-50 dark:bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-500/20"
+              }`}>
+                {wsConnected ? (
+                  <>
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                    </span>
+                    <Wifi className="w-3.5 h-3.5" />
+                    <span className="text-xs font-semibold uppercase tracking-wide">Live</span>
+                  </>
+                ) : (
+                  <>
+                    <WifiOff className="w-3.5 h-3.5" />
+                    <span className="text-xs font-semibold uppercase tracking-wide">Offline</span>
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Right: Actions */}
-            <div className="flex items-center gap-3 flex-wrap">
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 flex-wrap justify-end">
               {getStatusActions().map((action) => {
                 const ActionIcon = action.icon;
                 const requirements = action.action === "START" && action.disabled ? getStartRequirements() : [];
@@ -645,7 +679,7 @@ export default function MarketDetailsPage({
                       size="lg"
                       onClick={() => handleStatusChange(action.action)}
                       disabled={action.disabled}
-                      className={`${action.variant === "default" && !action.disabled ? "bg-white text-slate-900 hover:bg-white/90 font-semibold" : ""} ${action.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                      className={`${action.variant === "default" && !action.disabled ? "bg-linear-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 text-white font-semibold" : ""} ${action.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                       <ActionIcon className="w-5 h-5 mr-2" />
                       {action.label}
@@ -670,40 +704,44 @@ export default function MarketDetailsPage({
                 variant="outline"
                 size="lg"
                 onClick={() => router.push(`/admin/ai/market-maker/analytics?market=${id}`)}
-                className="border-white/30 text-white hover:bg-white/10"
+                className="border-cyan-500/50 text-cyan-600 hover:bg-cyan-500/10 dark:text-cyan-400"
               >
                 <BarChart3 className="w-5 h-5 mr-2" />
                 Analytics
               </Button>
             </div>
           </div>
-
-          {/* Volume Progress Bar */}
-          <div className="mt-6 pt-6 border-t border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-white/70">{t("daily_volume_usage")}</span>
-              <span className={`text-sm font-medium ${volumePercent > 100 ? "text-red-300" : "text-white"}`}>
-                {Number(data.currentDailyVolume || 0).toLocaleString()} / {Number(data.maxDailyVolume || 0).toLocaleString()} {data.market?.pair || ""}
-              </span>
-            </div>
-            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${
+        }
+        bottomSlot={
+          <Card className="bg-card/50 backdrop-blur border-cyan-500/20">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">{t("daily_volume_usage")}</span>
+                <span className={`text-sm font-medium ${volumePercent > 100 ? "text-red-500" : "text-foreground"}`}>
+                  {Number(data.currentDailyVolume || 0).toLocaleString()} / {Number(data.maxDailyVolume || 0).toLocaleString()} {data.market?.pair || ""}
+                </span>
+              </div>
+              <Progress
+                value={Math.min(volumePercent, 100)}
+                className={`h-2 ${
                   volumePercent > 100
-                    ? "bg-red-500"
+                    ? "[&>div]:bg-red-500"
                     : volumePercent > 80
-                      ? "bg-amber-400"
-                      : "bg-green-400"
+                      ? "[&>div]:bg-amber-500"
+                      : "[&>div]:bg-green-500"
                 }`}
-                style={{ width: `${Math.min(volumePercent, 100)}%` }}
               />
-            </div>
-          </div>
-        </div>
-      </div>
+              <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                <span>{volumePercent.toFixed(1)}% used</span>
+                <span>{(100 - volumePercent).toFixed(1)}% remaining</span>
+              </div>
+            </CardContent>
+          </Card>
+        }
+      />
 
       {/* Main Content Container */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="container mx-auto py-8 space-y-6">
         {/* Daily Limit Alert Banner */}
         {data.status === "ACTIVE" && allBotsAtLimit && (
           <div className="flex items-center gap-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 dark:bg-amber-500/5">
@@ -722,28 +760,28 @@ export default function MarketDetailsPage({
         {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <QuickStat
-          label={t("target_price")}
+          label={tExt("target_price")}
           value={Number(data.targetPrice || 0).toFixed(6)}
           icon={Target}
-          gradient="from-blue-500 to-blue-600"
+          gradient="from-cyan-500 to-cyan-600"
           currency={data.market?.pair}
         />
         <QuickStat
-          label={t("total_value_locked")}
+          label={tCommon("total_value_locked")}
           value={Number(data.pool?.totalValueLocked || 0).toLocaleString()}
           icon={Wallet}
-          gradient="from-blue-500 to-blue-600"
+          gradient="from-cyan-500 to-purple-600"
           currency={data.market?.pair}
         />
         <QuickStat
-          label={t("_24h_volume")}
+          label={`24h ${tCommon('volume')}`}
           value={Number(data.currentDailyVolume || 0).toLocaleString()}
           icon={Activity}
-          gradient="from-purple-500 to-purple-600"
+          gradient="from-purple-500 to-cyan-600"
           currency={data.market?.pair}
         />
         <QuickStat
-          label={t("total_p_l")}
+          label={tCommon("total_p_l")}
           value={`${totalPnL >= 0 ? "+" : ""}${Math.abs(totalPnL).toFixed(2)}`}
           icon={TrendingUp}
           trend={totalPnL}
@@ -811,8 +849,8 @@ export default function MarketDetailsPage({
                   <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
                 </div>
               ) : (
-                <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-500/20">
-                  <Play className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="p-2 rounded-full bg-cyan-100 dark:bg-cyan-500/20">
+                  <Play className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
                 </div>
               )}
               <DialogTitle>{confirmDialog.title}</DialogTitle>
@@ -837,7 +875,7 @@ export default function MarketDetailsPage({
               {isActionLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {t("processing_ellipsis")}
+                  {tCommon('processing')}
                 </>
               ) : (
                 "Confirm"

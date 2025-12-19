@@ -10,6 +10,19 @@ interface Handler {
     ip?: string;
     headers?: { [key: string]: string | string[] | undefined };
   };
+  /** Logging context - automatically provided when metadata has logModule/logTitle */
+  ctx?: {
+    /** Log a step in the operation */
+    step: (message: string, status?: "info" | "success" | "warn" | "error") => void;
+    /** Mark operation as successful */
+    success: (message?: string) => void;
+    /** Mark operation as failed */
+    fail: (message: string) => void;
+    /** Log a warning */
+    warn: (message: string) => void;
+    /** Log debug info (only in debug mode) */
+    debug: (message: string) => void;
+  };
 }
 
 type NextFunction = () => void;

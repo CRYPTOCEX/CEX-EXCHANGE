@@ -14,7 +14,8 @@ export default function ProfitDisplay({
   symbol,
   darkMode = true,
 }: ProfitDisplayProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("binary_components");
+  const tCommon = useTranslations("common");
 
   // Extract currency from symbol (e.g., "BTC/USDT" -> "USDT")
   const getCurrency = (symbol: string) => {
@@ -31,7 +32,7 @@ export default function ProfitDisplay({
           <span
             className={`${darkMode ? "text-gray-400" : "text-gray-500"} text-xs`}
           >
-            {t("Profit")}
+            {tCommon("profit")}
           </span>
         </div>
         <div className="text-[#00C896] text-sm font-bold">
@@ -54,7 +55,7 @@ export default function ProfitDisplay({
         <div
           className={`${darkMode ? "text-gray-400" : "text-gray-500"} text-xs`}
         >
-          {t("loss")}
+          {tCommon("loss")}
         </div>
         <div className="text-[#FF4D4F] text-xs font-bold">
           -{amount.toFixed(2)} {getCurrency(symbol)}

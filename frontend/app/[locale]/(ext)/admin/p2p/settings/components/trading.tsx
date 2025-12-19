@@ -21,7 +21,7 @@ export default function P2PTradingSettingsSection({
   settings = {},
   onUpdate,
 }: P2PTradingSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const safeSettings = {
     DefaultEscrowTime: settings.DefaultEscrowTime ?? 30,
     DefaultPaymentWindow: settings.DefaultPaymentWindow ?? 15,
@@ -37,7 +37,7 @@ export default function P2PTradingSettingsSection({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="defaultEscrowTime">
-              {t("default_escrow_time_(minutes)")}
+              {t("default_escrow_time_minutes")}
             </Label>
             <Input
               id="defaultEscrowTime"
@@ -56,7 +56,7 @@ export default function P2PTradingSettingsSection({
           </div>
           <div className="space-y-2">
             <Label htmlFor="defaultPaymentWindow">
-              {t("default_payment_window_(minutes)")}
+              {t("default_payment_window_minutes")}
             </Label>
             <Input
               id="defaultPaymentWindow"
@@ -79,7 +79,7 @@ export default function P2PTradingSettingsSection({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="minimumTradeAmount">
-              {t("minimum_trade_amount_($)")}
+              {t("minimum_trade_amount")} ($)
             </Label>
             <Input
               id="minimumTradeAmount"
@@ -98,7 +98,7 @@ export default function P2PTradingSettingsSection({
           </div>
           <div className="space-y-2">
             <Label htmlFor="maximumTradeAmount">
-              {t("maximum_trade_amount_($)")}
+              {t("maximum_trade_amount")} ($)
             </Label>
             <Input
               id="maximumTradeAmount"
@@ -122,7 +122,7 @@ export default function P2PTradingSettingsSection({
           <div className="flex items-center justify-between border p-4 rounded-lg">
             <div className="space-y-0.5">
               <span className="text-sm font-medium">
-                {t("auto-cancel_unpaid_trades")}
+                {t("auto_cancel_unpaid_trades")}
               </span>
               <p className="text-xs text-muted-foreground">
                 {t("automatically_cancel_trades_payment_window")}.

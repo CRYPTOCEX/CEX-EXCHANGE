@@ -68,7 +68,8 @@ export function NotificationsFilters({
   onFilterChange,
   activeFilters,
 }: NotificationsFiltersProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardUser = useTranslations("dashboard_user");
   const { stats } = useNotificationsStore();
   const counts = stats.types;
   const [selectedFilters, setSelectedFilters] =
@@ -187,7 +188,7 @@ export function NotificationsFilters({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <FilterIcon className="h-4 w-4 text-muted-foreground" />
-          <h3 className="text-sm font-medium">{t("Filters")}</h3>
+          <h3 className="text-sm font-medium">{t("filters")}</h3>
         </div>
         <div className="flex items-center gap-2">
           <TooltipProvider>
@@ -219,7 +220,7 @@ export function NotificationsFilters({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>{t("filter_actions")}</DropdownMenuLabel>
+              <DropdownMenuLabel>{tDashboardUser("filter_actions")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={selectAllFilters}>
                 <CheckIcon className="mr-2 h-4 w-4" />
@@ -252,7 +253,7 @@ export function NotificationsFilters({
             <div className="relative">
               <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search filters..."
+                placeholder={tDashboardUser("search_filters_ellipsis")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -271,11 +272,11 @@ export function NotificationsFilters({
                 >
                   <div className="flex items-center justify-between">
                     <Label className="text-xs text-muted-foreground">
-                      {t("Presets")}
+                      {t("presets")}
                     </Label>
                     <Button variant="ghost" size="sm" className="h-7 text-xs">
                       <SaveIcon className="mr-1 h-3 w-3" />
-                      {t("save_current")}
+                      {tDashboardUser("save_current")}
                     </Button>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -303,7 +304,7 @@ export function NotificationsFilters({
               <div className="flex items-center justify-between rounded-lg border bg-muted/40 px-3 py-1.5">
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">
-                    {selectedFilters.length}
+                    {selectedFilters.length}{" "}
                     {t("active")}{" "}
                     {selectedFilters.length === 1 ? "filter" : "filters"}
                   </span>
@@ -334,7 +335,7 @@ export function NotificationsFilters({
                   onClick={clearFilters}
                   className="h-6 px-2 text-xs hover:text-foreground"
                 >
-                  {t("Clear")}
+                  {t("clear")}
                 </Button>
               </div>
             )}
@@ -403,7 +404,7 @@ export function NotificationsFilters({
               {filteredOptions.length === 0 && (
                 <div className="flex items-center justify-center rounded-lg border border-dashed p-4">
                   <p className="text-sm text-muted-foreground">
-                    {t("no_matching_filters_found")}
+                    {tDashboardUser("no_matching_filters_found")}
                   </p>
                 </div>
               )}

@@ -23,9 +23,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import PaymentDetailsLoading from "./loading";
+import PaymentErrorState from "./error-state";
 import {
   ArrowLeft,
   Calendar,
@@ -172,7 +173,7 @@ export default function PaymentDetailsClient() {
     });
 
     if (fetchError) {
-      setError(fetchError.message || "Failed to load payment details");
+      setError(fetchError || "Failed to load payment details");
     } else if (data) {
       setPayment(data);
     }
@@ -219,7 +220,7 @@ export default function PaymentDetailsClient() {
     });
 
     if (refundError) {
-      toast.error(refundError.message || "Failed to process refund");
+      toast.error(refundError || "Failed to process refund");
     } else {
       toast.success(`Refund of ${formatCurrency(amount, payment.currency)} processed successfully`);
       setRefundDialogOpen(false);
@@ -264,44 +265,11 @@ export default function PaymentDetailsClient() {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-10 w-10 rounded-lg" />
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-48" />
-            <Skeleton className="h-4 w-32" />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <Skeleton className="h-48" />
-            <Skeleton className="h-64" />
-          </div>
-          <div className="space-y-6">
-            <Skeleton className="h-48" />
-            <Skeleton className="h-48" />
-          </div>
-        </div>
-      </div>
-    );
+    return <PaymentDetailsLoading />;
   }
 
   if (error || !payment) {
-    return (
-      <div className="space-y-6">
-        <Link href="/gateway/payment">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Payments
-          </Button>
-        </Link>
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error || "Payment not found"}</AlertDescription>
-        </Alert>
-      </div>
-    );
+    return <PaymentErrorState error={error || "Payment not found"} onRetry={fetchPaymentDetails} />;
   }
 
   const statusConfig = STATUS_CONFIG[payment.status] || STATUS_CONFIG.PENDING;

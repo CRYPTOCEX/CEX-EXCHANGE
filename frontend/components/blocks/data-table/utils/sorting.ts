@@ -66,9 +66,12 @@ export function resolveColumnSortKey(column: ColumnDefinition): string {
  * Build sortable fields used for sorting dropdown options.
  * For non-compound columns, uses the explicit sortKey (if any) and applies prefixing if needed.
  * For compound columns, it extracts and prefixes the primary, secondary, and metadata fields.
+ * @param columnDefs - The column definitions
+ * @param _t - Deprecated parameter, kept for backwards compatibility. Labels are now human-readable.
  */
 export function getSortableFields(
-  columnDefs: ColumnDefinition[]
+  columnDefs: ColumnDefinition[],
+  _t?: any
 ): { id: string; label: string }[] {
   const fields: { id: string; label: string }[] = [];
 
@@ -80,7 +83,7 @@ export function getSortableFields(
         : column.sortKey || column.key;
       fields.push({
         id,
-        label: column.title,
+        label: column.title || "",
       });
     }
 
@@ -99,7 +102,7 @@ export function getSortableFields(
           : config.primary.title;
         fields.push({
           id,
-          label: `${column.title} (${primaryTitle})`,
+          label: `${column.title || ""} (${primaryTitle || ""})`,
         });
       }
 
@@ -111,7 +114,7 @@ export function getSortableFields(
       ) {
         fields.push({
           id: `${column.key}.${config.secondary.key}`,
-          label: `${column.title} (${config.secondary.title})`,
+          label: `${column.title || ""} (${config.secondary.title || ""})`,
         });
       }
 
@@ -121,7 +124,7 @@ export function getSortableFields(
           if (item.sortable !== false) {
             fields.push({
               id: `${column.key}.${item.key}`,
-              label: `${column.title} (${item.title})`,
+              label: `${column.title || ""} (${item.title || ""})`,
             });
           }
         });

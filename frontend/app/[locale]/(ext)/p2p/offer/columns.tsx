@@ -1,36 +1,35 @@
+"use client";
 import React from "react";
+import { useTranslations } from "next-intl";
 import {
   User,
-  // seller
   DollarSign,
-  // price
   Coins,
-  // available
   CreditCard,
-  // payment methods
   Tag,
-  // type
-  ShieldCheck,
-  // kyc
-  Clock,
-  // auto-cancel
   MapPin,
-  // location
-  Calendar,
-  // created date
-  Eye, // views
+  ArrowLeftRight,
+  TrendingUp,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-export const columns: ColumnDefinition[] = [
+
+export function useColumns() {
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
+  return [
   // Location
   {
     key: "location",
-    title: "Location",
+    title: tCommon("location"),
     type: "custom",
     icon: MapPin,
+    sortable: false,
     searchable: true,
     filterable: true,
+    description: t("country_and_region_where_the_offer_is_available"),
+    priority: 2,
     render: {
       type: "custom",
       render: (_: any, offer: any) => {
@@ -58,12 +57,14 @@ export const columns: ColumnDefinition[] = [
   // Seller
   {
     key: "seller",
-    title: "Seller",
+    title: tCommon("seller"),
     type: "custom",
     icon: User,
     sortable: true,
     searchable: true,
     filterable: true,
+    description: t("user_offering_to_buy_or_sell_cryptocurrency"),
+    priority: 1,
     render: {
       type: "custom",
       render: (_: any, offer: any) => (
@@ -92,49 +93,72 @@ export const columns: ColumnDefinition[] = [
   // Type (BUY / SELL)
   {
     key: "type",
-    title: "Type",
-    type: "custom",
-    icon: Tag,
+    title: tCommon("type"),
+    type: "select",
+    icon: ArrowLeftRight,
     sortable: true,
+    searchable: true,
     filterable: true,
+    description: t("trade_type_buy_seller_wants_to"),
+    priority: 1,
     render: {
-      type: "custom",
-      render: (_: any, offer: any) => (
-        <Badge variant={offer.type === "BUY" ? "success" : "destructive"}>
-          {offer.type}
-        </Badge>
-      ),
+      type: "badge",
+      config: {
+        withDot: false,
+        variant: (value: string) =>
+          value?.toUpperCase() === "BUY" ? "success" : "warning",
+      },
     },
+    options: [
+      { value: "BUY", label: tCommon("buy") },
+      { value: "SELL", label: tCommon("sell") },
+    ],
   },
   // Price
   {
     key: "priceConfig",
-    title: "Price",
+    title: tCommon("price"),
     type: "custom",
     icon: DollarSign,
-    sortable: false, // Can't sort on JSON field
+    sortable: false,
+    searchable: false,
     filterable: false,
+    description: tExt("price_per_unit_of_cryptocurrency_in_fiat_currency"),
+    priority: 1,
     render: {
       type: "custom",
       render: (_: any, offer: any) => {
-        // parse if it's a string
         const cfg =
           typeof offer.priceConfig === "string"
             ? JSON.parse(offer.priceConfig)
             : offer.priceConfig;
         const price = cfg?.finalPrice ?? 0;
         const priceCurrency = offer.priceCurrency || cfg?.currency || "USD";
-        return <div>{price.toLocaleString()} {priceCurrency}</div>;
+        const model = cfg?.model || "FIXED";
+        return (
+          <div className="text-sm">
+            <div className="font-medium">
+              {price.toLocaleString()} {priceCurrency}
+            </div>
+            {model && (
+              <div className="text-xs text-muted-foreground">{model}</div>
+            )}
+          </div>
+        );
       },
     },
   },
   // Available Amount
   {
     key: "available",
-    title: "Available",
+    title: tCommon("available"),
     type: "custom",
     icon: Coins,
+    sortable: false,
+    searchable: false,
     filterable: true,
+    description: t("available_cryptocurrency_amount_and_its_fiat_value"),
+    priority: 1,
     render: {
       type: "custom",
       render: (_: any, offer: any) => {
@@ -166,10 +190,14 @@ export const columns: ColumnDefinition[] = [
   // Limits (min / max)
   {
     key: "limits",
-    title: "Limits",
+    title: tCommon("limits"),
     type: "custom",
-    icon: Clock,
-    description: "Min and Max trade size",
+    icon: TrendingUp,
+    sortable: false,
+    searchable: false,
+    filterable: false,
+    description: t("minimum_and_maximum_trade_size_allowed"),
+    priority: 2,
     render: {
       type: "custom",
       render: (_: any, offer: any) => {
@@ -178,9 +206,9 @@ export const columns: ColumnDefinition[] = [
             ? JSON.parse(offer.amountConfig)
             : offer.amountConfig;
         return (
-          <div className="flex flex-col gap-1">
-            <span>Min: {amt?.min ?? "-"} </span>
-            <span>Max: {amt?.max ?? "-"}</span>
+          <div className="flex flex-col gap-1 text-sm">
+            <span>{tCommon("min")} {amt?.min ?? "-"}</span>
+            <span>{tCommon("max")} {amt?.max ?? "-"}</span>
           </div>
         );
       },
@@ -189,14 +217,23 @@ export const columns: ColumnDefinition[] = [
   // Payment Methods
   {
     key: "paymentMethods",
-    title: "Payment Methods",
+    title: tExt("payment_methods"),
     type: "custom",
     icon: CreditCard,
+    sortable: false,
+    searchable: false,
+    filterable: false,
+    description: tExt("accepted_payment_methods_for_this_offer"),
+    priority: 3,
+    expandedOnly: true,
     render: {
       type: "custom",
       render: (_: any, offer: any) => {
+        if (!offer.paymentMethods || offer.paymentMethods.length === 0) {
+          return <span className="text-muted-foreground">{tExt("no_methods")}</span>;
+        }
         return (
-          <div className="flex flex-wrap gap-1 mt-1">
+          <div className="flex flex-wrap gap-1">
             {offer.paymentMethods?.slice(0, 2).map((m: any) => (
               <Badge key={m.id} variant="outline" className="font-normal">
                 {m.name}
@@ -212,4 +249,5 @@ export const columns: ColumnDefinition[] = [
       },
     },
   },
-];
+] as ColumnDefinition[];
+}

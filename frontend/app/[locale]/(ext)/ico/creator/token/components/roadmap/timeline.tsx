@@ -17,13 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
-type icoRoadmapItemAttributes = {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  completed: boolean;
-};
+// Uses global icoRoadmapItemAttributes from types/models.d.ts
 type RoadmapTimelineProps = {
   items: icoRoadmapItemAttributes[];
   groupedByDate: Record<string, icoRoadmapItemAttributes[]>;
@@ -38,7 +32,8 @@ export function RoadmapTimeline({
   onDelete,
   onToggleComplete,
 }: RoadmapTimelineProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtIco = useTranslations("ext_ico");
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     Object.keys(groupedByDate).reduce(
       (acc, key) => {
@@ -231,7 +226,7 @@ export function RoadmapTimeline({
                                   className="h-8"
                                 >
                                   <Edit className="h-3.5 w-3.5 mr-1" />
-                                  {t("Edit")}
+                                  {t("edit")}
                                 </Button>
                                 <Button
                                   variant={isCompleted ? "outline" : "default"}
@@ -242,12 +237,12 @@ export function RoadmapTimeline({
                                   {isCompleted ? (
                                     <>
                                       <CalendarDays className="h-3.5 w-3.5 mr-1" />
-                                      {t("mark_as_upcoming")}
+                                      {tExtIco("mark_as_upcoming")}
                                     </>
                                   ) : (
                                     <>
                                       <CheckCircle className="h-3.5 w-3.5 mr-1" />
-                                      {t("mark_as_completed")}
+                                      {tExtIco("mark_as_completed")}
                                     </>
                                   )}
                                 </Button>

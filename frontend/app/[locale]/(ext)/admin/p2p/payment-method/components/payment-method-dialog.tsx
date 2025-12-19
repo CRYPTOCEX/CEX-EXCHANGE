@@ -31,7 +31,8 @@ export default function PaymentMethodDialog({
   onClose,
   method,
 }: PaymentMethodDialogProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const [formData, setFormData] = useState({
     name: "",
     icon: "",
@@ -170,7 +171,7 @@ export default function PaymentMethodDialog({
           {/* Basic Information */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">{t("name")}</Label>
+              <Label htmlFor="name">{tCommon("name")}</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -182,7 +183,7 @@ export default function PaymentMethodDialog({
 
             {/* Icon Upload */}
             <div className="space-y-2">
-              <Label>{t("icon")}</Label>
+              <Label>{tCommon("icon")}</Label>
               <ImageUpload
                 onChange={(file) => setIconFile(file)}
                 value={iconFile}
@@ -193,7 +194,7 @@ export default function PaymentMethodDialog({
                 acceptedFormats={["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"]}
               />
               <p className="text-sm text-muted-foreground">
-                {t("upload_an_icon_for_this_payment")}
+                {t("upload_an_icon_for_this_payment")} ({t("upload_icon_requirements")})
               </p>
             </div>
           </div>
@@ -225,7 +226,7 @@ export default function PaymentMethodDialog({
           {/* Processing Time and Fees */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="processingTime">{t("processing_time")}</Label>
+              <Label htmlFor="processingTime">{tCommon("processing_time")}</Label>
               <Input
                 id="processingTime"
                 value={formData.processingTime}
@@ -273,7 +274,7 @@ export default function PaymentMethodDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="popularityRank">{t("sort_order")}</Label>
+              <Label htmlFor="popularityRank">{tCommon("sort_order")}</Label>
               <Input
                 id="popularityRank"
                 type="number"

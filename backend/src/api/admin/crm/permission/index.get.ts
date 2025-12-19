@@ -9,6 +9,8 @@ export const metadata: OperationObject = {
   operationId: "listPermissions",
   tags: ["Admin", "CRM", "Permission"],
   parameters: crudParameters,
+  logModule: "ADMIN_CRM",
+  logTitle: "List permissions",
   responses: {
     200: {
       description: "Paginated list of permissions with details",
@@ -58,9 +60,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching permissions");
+  const result = await getFiltered({
     model: models.permission,
     query,
     sortField: query.sortField || "name",
@@ -73,4 +76,7 @@ export default async (data: Handler) => {
     ],
     timestamps: false,
   });
+
+  ctx?.success("Permissions retrieved successfully");
+  return result;
 };

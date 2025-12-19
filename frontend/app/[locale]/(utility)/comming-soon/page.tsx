@@ -9,7 +9,7 @@ import { useTranslations } from "next-intl";
 import NavbarLogo from "@/components/elements/navbar-logo";
 
 const CommingSoonPage = () => {
-  const t = useTranslations("utility");
+  const t = useTranslations("common");
   const { theme } = useTheme();
   const LightImage = "/images/utility/comming-soon-light.png";
   const DarkImage = "/images/utility/comming-soon-dark.png";
@@ -52,7 +52,7 @@ const CommingSoonPage = () => {
               <div className="relative mt-5 lg:mt-12">
                 <Input
                   type="text"
-                  placeholder="Enter your email"
+                  placeholder={t("enter_your_email")}
                   className="h-12 lg:h-16 placeholder:text-base"
                 />
                 <Button className="absolute top-1/2 -translate-y-1/2 ltr:right-4 rtl:left-4 h-8 lg:h-11">
@@ -66,7 +66,7 @@ const CommingSoonPage = () => {
             <div className="mt-10 lg:mt-0 xl:pl-32">
               <Image
                 src={theme === "dark" ? DarkImage : LightImage}
-                alt="comming soon"
+                alt={t("comming_soon")}
                 width={600}
                 height={400}
                 className="w-full h-full object-cover"

@@ -14,7 +14,8 @@ export function WatchlistHeader({
   sortCriteria,
   onSort,
 }: WatchlistHeaderProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("trade_components");
+  const tCommon = useTranslations("common");
   return (
     <div className="p-2 border-b border-zinc-200 dark:border-zinc-800 bg-muted/80 dark:bg-zinc-900/80">
       <div className="flex items-center justify-between">
@@ -23,7 +24,7 @@ export function WatchlistHeader({
           <span className="text-xs font-medium">{t("your_watchlist")}</span>
         </div>
         <div className="text-xs text-muted-foreground dark:text-zinc-500">
-          {marketCount} {t("markets")}
+          {marketCount} {tCommon("markets")}
         </div>
       </div>
       <WatchlistSortButtons sortCriteria={sortCriteria} onSort={onSort} />

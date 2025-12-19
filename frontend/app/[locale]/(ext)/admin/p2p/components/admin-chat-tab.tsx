@@ -89,7 +89,9 @@ export function AdminChatTab({
   isSendingMessage = false,
   isConnected,
 }: AdminChatTabProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
@@ -263,7 +265,7 @@ export function AdminChatTab({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{t("Chat")}</CardTitle>
+              <CardTitle>{tCommon("chat")}</CardTitle>
               <CardDescription>
                 {t("communication_between_participants")}
               </CardDescription>
@@ -276,12 +278,12 @@ export function AdminChatTab({
               {isConnected ? (
                 <>
                   <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                  {t("live")}
+                  {tCommon("live")}
                 </>
               ) : (
                 <>
                   <span className="h-2 w-2 rounded-full bg-red-500" />
-                  {t("offline")}
+                  {tExt("offline")}
                 </>
               )}
             </div>
@@ -344,7 +346,7 @@ export function AdminChatTab({
           </button>
           <img
             src={lightboxImage}
-            alt={t("full_size")}
+            alt={tExt("full_size")}
             className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           />

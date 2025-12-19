@@ -40,7 +40,9 @@ export default function TokenTypeDialog({
   onClose,
   onSuccess,
 }: TokenTypeDialogProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const isEdit = mode === "edit";
 
   const [name, setName] = useState("");
@@ -151,21 +153,21 @@ export default function TokenTypeDialog({
             id="token-type-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Governance Token"
-            label="Display Name"
+            placeholder={t("e_g_governance_token")}
+            label={tExt("display_name")}
           />
           <Input
             id="token-type-value"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder="e.g. governance"
+            placeholder={t("e_g_governance")}
             label="Value"
           />
           <Textarea
             id="token-type-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe this token type and its use cases"
+            placeholder={t("describe_this_token_type_and_its_use_cases")}
             label="Description"
           />
           <div className="flex items-center space-x-2">
@@ -179,7 +181,7 @@ export default function TokenTypeDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={isSaving}>
-            {t("Cancel")}
+            {tCommon("cancel")}
           </Button>
           <Button onClick={handleSave} disabled={isSaving}>
             {isSaving
@@ -195,13 +197,13 @@ export default function TokenTypeDialog({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("discard_unsaved_changes")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("you_have_unsaved_changes")}.{" "}
+              {tCommon("you_have_unsaved_changes")}.{" "}
               {t("are_you_sure_you_want_to_discard_them")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={cancelAction}>
-              {t("No")}
+              {tCommon("no")}
             </AlertDialogCancel>
             <AlertDialogAction onClick={confirmAction} variant="destructive">
               {t("yes_discard")}

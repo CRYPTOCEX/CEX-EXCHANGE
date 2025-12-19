@@ -1,4 +1,5 @@
 import * as crypto from "crypto";
+import { logger } from "@b/utils/console";
 
 // Authorize.Net Configuration
 export interface AuthorizeNetConfig {
@@ -45,7 +46,7 @@ export function verifyWebhookSignature(
   signatureKey: string
 ): boolean {
   if (!signatureKey) {
-    console.warn("Authorize.Net signature key not configured, skipping verification");
+    logger.warn("AUTHORIZENET", "Signature key not configured, skipping verification");
     return true;
   }
 

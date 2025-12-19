@@ -1,6 +1,6 @@
-import { models, sequelize } from "@b/db";
+import { models } from "@b/db";
 import { serverErrorResponse } from "@b/utils/query";
-import { Op } from "sequelize";
+import { fn, col, literal, Op } from "sequelize";
 
 export const metadata = {
   summary: "Get P2P Offer by ID",
@@ -8,6 +8,8 @@ export const metadata = {
     "Retrieves detailed offer data by its ID, including computed seller metrics and ratings.",
   operationId: "getP2POfferById",
   tags: ["P2P", "Offer"],
+  logModule: "P2P",
+  logTitle: "Get offer by ID",
   parameters: [
     {
       index: 0,
@@ -26,8 +28,11 @@ export const metadata = {
   requiresAuth: false,
 };
 
-export default async (data: { params?: any }) => {
+export default async (data: { params?: any; ctx?: any }) => {
   const { id } = data.params || {};
+  const { ctx } = data || {};
+
+  ctx?.step("Fetching offer details");
   try {
     // 1) Fetch offer with associations
     const offer = await models.p2pOffer.findByPk(id, {
@@ -58,6 +63,7 @@ export default async (data: { params?: any }) => {
     const plain = offer.get({ plain: true });
     const sellerId = plain.user.id;
 
+    ctx?.step("Calculating seller metrics");
     // Note: View count is incremented when a trade is initiated (in initiate-trade.post.ts)
     // This ensures only serious interest is counted and prevents owner inflation
 
@@ -84,9 +90,9 @@ export default async (data: { params?: any }) => {
       where: { sellerId, paymentConfirmedAt: { [Op.ne]: null } },
       attributes: [
         [
-          sequelize.fn(
+          fn(
             "AVG",
-            sequelize.literal(
+            literal(
               "TIMESTAMPDIFF(MINUTE, `createdAt`, `paymentConfirmedAt`)"
             )
           ),
@@ -104,11 +110,11 @@ export default async (data: { params?: any }) => {
       where: { revieweeId: sellerId },
       attributes: [
         [
-          sequelize.fn("AVG", sequelize.col("communicationRating")),
+          fn("AVG", col("communicationRating")),
           "avgCommunication",
         ],
-        [sequelize.fn("AVG", sequelize.col("speedRating")), "avgSpeed"],
-        [sequelize.fn("AVG", sequelize.col("trustRating")), "avgTrust"],
+        [fn("AVG", col("speedRating")), "avgSpeed"],
+        [fn("AVG", col("trustRating")), "avgTrust"],
       ],
       raw: true,
     });
@@ -142,8 +148,10 @@ export default async (data: { params?: any }) => {
       },
     };
 
+    ctx?.success(`Retrieved offer ${id.slice(0, 8)}...`);
     return plain;
   } catch (err: any) {
+    ctx?.fail(err.message || "Failed to retrieve offer");
     throw new Error("Internal Server Error: " + err.message);
   }
 };

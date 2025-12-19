@@ -62,7 +62,8 @@ interface BatchToken {
 }
 
 export function BatchMintClient() {
-  const t = useTranslations("nft.batchMint");
+  const t = useTranslations("ext_nft") as (key: string) => string;
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { user } = useUserStore();
   const { collections, fetchCollections } = useNftStore();
@@ -121,13 +122,21 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
     try {
       updateToken(tokenId, { status: "uploading" });
       
-      const uploadedUrl = await imageUploader(file);
-      
-      updateToken(tokenId, {
-        image: uploadedUrl,
-        imageFile: file,
-        status: "ready"
-      });
+      const result = await imageUploader({
+          file,
+          dir: 'nft-tokens',
+          size: { maxWidth: 2048, maxHeight: 2048 }
+        });
+
+      if (result.success && result.url) {
+        updateToken(tokenId, {
+          image: result.url,
+          imageFile: file,
+          status: "ready"
+        });
+      } else {
+        throw new Error(result.error || "Upload failed");
+      }
     } catch (error) {
       updateToken(tokenId, {
         status: "error",
@@ -332,9 +341,9 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
   const getStatusBadge = (status: BatchToken["status"]) => {
     const badges = {
       pending: <Badge variant="outline">Pending</Badge>,
-      uploading: <Badge variant="outline" className="bg-blue-50">Uploading...</Badge>,
+      uploading: <Badge variant="outline" className="bg-blue-50">{tCommon("uploading_ellipsis")}</Badge>,
       ready: <Badge variant="outline" className="bg-green-50">Ready</Badge>,
-      minting: <Badge variant="outline" className="bg-yellow-50">Minting...</Badge>,
+      minting: <Badge variant="outline" className="bg-yellow-50">{tCommon("minting_ellipsis")}</Badge>,
       success: <Badge variant="outline" className="bg-green-100">Success</Badge>,
       error: <Badge variant="destructive">Error</Badge>
     };
@@ -347,7 +356,7 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
   );
 
   return (
-    <div className="container mx-auto py-8 max-w-7xl">
+    <div className="container py-8">
       {/* Back Button */}
       <div className="mb-6">
         <Button
@@ -355,7 +364,7 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
           onClick={() => router.push("/nft/creator?tab=nfts")}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to NFTs
+          {t("back_to_nfts")}
         </Button>
       </div>
 
@@ -364,20 +373,20 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
         <Alert className="mb-6 border-amber-200 bg-amber-50 dark:bg-amber-950/20">
           <AlertCircle className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-800 dark:text-amber-200">
-            You need at least one deployed collection to batch mint NFTs.{" "}
+            {t("you_need_at_least_one_deployed")}{" "}
             <Link href="/nft/collection/create" className="font-medium underline">
-              Create a collection
+              {t("create_a_collection")}
             </Link>{" "}
-            first, then deploy it to the blockchain.
+            {t("first_then_deploy_it_to_the_blockchain")}
           </AlertDescription>
         </Alert>
       )}
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Batch Mint NFTs</h1>
+        <h1 className="text-3xl font-bold mb-2">{t("batch_mint_nfts")}</h1>
         <p className="text-muted-foreground">
-          Create multiple NFTs at once. Maximum 100 tokens per batch.
+          {t("create_multiple_nfts_at_once_maximum")}
         </p>
       </div>
 
@@ -411,15 +420,15 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
       {currentStep === 1 && (
         <Card>
           <CardHeader>
-            <CardTitle>Select Collection</CardTitle>
+            <CardTitle>{t("select_collection")}</CardTitle>
             <CardDescription>
-              Choose which collection these NFTs will belong to
+              {t("choose_which_collection_these_nfts_will_belong_to")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Select value={selectedCollection} onValueChange={setSelectedCollection}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a collection" />
+                <SelectValue placeholder={t("select_a_collection")} />
               </SelectTrigger>
               <SelectContent>
                 {deployedCollections.length > 0 ? (
@@ -436,7 +445,7 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
                   ))
                 ) : (
                   <div className="p-4 text-sm text-muted-foreground text-center">
-                    No deployed collections available
+                    {t("no_deployed_collections_available")}
                   </div>
                 )}
               </SelectContent>
@@ -460,35 +469,35 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
           {/* Upload Method Selection */}
           <Card>
             <CardHeader>
-              <CardTitle>Upload Method</CardTitle>
+              <CardTitle>{t("upload_method")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Tabs value={uploadMethod} onValueChange={(v: any) => setUploadMethod(v)}>
                 <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+                  <TabsTrigger value="manual">{t("manual_entry")}</TabsTrigger>
                   <TabsTrigger value="csv">CSV Upload</TabsTrigger>
-                  <TabsTrigger value="folder">Folder Upload</TabsTrigger>
+                  <TabsTrigger value="folder">{t("folder_upload")}</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="manual" className="space-y-4">
                   <Button onClick={addToken} className="w-full">
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Token
+                    {t("add_token")}
                   </Button>
                 </TabsContent>
                 
                 <TabsContent value="csv" className="space-y-4">
                   <div className="border-2 border-dashed rounded-lg p-8 text-center">
                     <FileSpreadsheet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="mb-4">Upload a CSV file with your NFT data</p>
+                    <p className="mb-4">{t("upload_a_csv_file_with_your_nft_data")}</p>
                     <div className="flex gap-2 justify-center">
                       <Button variant="outline" onClick={downloadTemplate}>
                         <Download className="h-4 w-4 mr-2" />
-                        Download Template
+                        {t("download_template")}
                       </Button>
                       <Button onClick={() => fileInputRef.current?.click()}>
                         <Upload className="h-4 w-4 mr-2" />
-                        Upload CSV
+                        {t("upload_csv")}
                       </Button>
                     </div>
                     <input
@@ -504,10 +513,10 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
                 <TabsContent value="folder" className="space-y-4">
                   <div className="border-2 border-dashed rounded-lg p-8 text-center">
                     <Layers className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="mb-4">Select a folder with images to create NFTs</p>
+                    <p className="mb-4">{t("select_a_folder_with_images_to_create_nfts")}</p>
                     <Button onClick={() => folderInputRef.current?.click()}>
                       <Upload className="h-4 w-4 mr-2" />
-                      Select Folder
+                      {t("select_folder")}
                     </Button>
                     <input
                       ref={folderInputRef}
@@ -630,9 +639,9 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Review & Mint</CardTitle>
+              <CardTitle>{t("review_mint")}</CardTitle>
               <CardDescription>
-                Review your batch and configure minting options
+                {t("review_your_batch_and_configure_minting_options")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -642,7 +651,7 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Total Tokens</p>
+                        <p className="text-sm text-muted-foreground">{t("total_tokens")}</p>
                         <p className="text-2xl font-bold">{tokens.length}</p>
                       </div>
                       <Package className="h-8 w-8 text-muted-foreground" />
@@ -654,7 +663,7 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Ready to Mint</p>
+                        <p className="text-sm text-muted-foreground">{t("ready_to_mint")}</p>
                         <p className="text-2xl font-bold">
                           {tokens.filter(t => t.status === "ready").length}
                         </p>
@@ -668,7 +677,7 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Est. Gas Cost</p>
+                        <p className="text-sm text-muted-foreground">{t("est_gas_cost")}</p>
                         <p className="text-2xl font-bold">
                           {mintToBlockchain ? `~${tokens.length * 0.005} ETH` : "0 ETH"}
                         </p>
@@ -683,9 +692,9 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Mint to Blockchain</Label>
+                    <Label>{t("mint_to_blockchain")}</Label>
                     <p className="text-sm text-muted-foreground">
-                      Mint tokens immediately to the blockchain (requires gas fees)
+                      {t("mint_tokens_immediately_to_the_blockchain")}
                     </p>
                   </div>
                   <Switch
@@ -699,7 +708,7 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
               {isMinting && (
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Minting progress</span>
+                    <span>{t("minting_progress")}</span>
                     <span>{Math.round(uploadProgress)}%</span>
                   </div>
                   <Progress value={uploadProgress} />
@@ -715,7 +724,7 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
                   {isMinting ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Minting...
+                      {t("minting_ellipsis")}
                     </>
                   ) : (
                     <>
@@ -732,7 +741,7 @@ Cool NFT #2,Another NFT,https://example.com/image2.jpg,Art,"tag3,tag4",Backgroun
           {tokens.some(t => t.status === "success" || t.status === "error") && (
             <Card>
               <CardHeader>
-                <CardTitle>Minting Results</CardTitle>
+                <CardTitle>{t("minting_results")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">

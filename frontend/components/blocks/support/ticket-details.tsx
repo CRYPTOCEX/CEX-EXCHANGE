@@ -56,7 +56,7 @@ export function TicketDetails({ ticket }: TicketDetailsProps) {
             transition={{ delay: 0.2 }}
           >
             <Label className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
-              {t("Subject")}
+              {t("subject")}
             </Label>
             <p className="text-base font-medium mt-1">{ticket.subject}</p>
           </motion.div>
@@ -67,7 +67,7 @@ export function TicketDetails({ ticket }: TicketDetailsProps) {
             transition={{ delay: 0.3 }}
           >
             <Label className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
-              {t("Status")}
+              {t("status")}
             </Label>
             <div className="mt-1">
               <Badge
@@ -84,7 +84,7 @@ export function TicketDetails({ ticket }: TicketDetailsProps) {
             transition={{ delay: 0.4 }}
           >
             <Label className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
-              {t("Importance")}
+              {t("importance")}
             </Label>
             <p className="text-base font-medium mt-1">{ticket.importance}</p>
           </motion.div>
@@ -95,7 +95,7 @@ export function TicketDetails({ ticket }: TicketDetailsProps) {
             transition={{ delay: 0.5 }}
           >
             <Label className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
-              {t("Created")}
+              {t("created")}
             </Label>
             <p className="text-base font-medium mt-1">
               {formatDate(ticket.createdAt)}
@@ -123,7 +123,7 @@ export function TicketDetails({ ticket }: TicketDetailsProps) {
             transition={{ delay: 0.7 }}
           >
             <Label className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
-              {t("User")}
+              {t("user")}
             </Label>
             <div className="flex items-center space-x-3 mt-2">
               <Avatar className="h-10 w-10">

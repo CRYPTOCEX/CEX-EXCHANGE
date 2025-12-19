@@ -1,10 +1,13 @@
-import { updateRecord, updateRecordResponses } from "@b/utils/query";
+import { updateRecord } from "@b/utils/query";
+import { updateResponses } from "@b/utils/schema/errors";
 import { mailwizardCampaignUpdateSchema } from "../utils";
 
 export const metadata = {
-  summary: "Updates a specific Mailwizard Campaign",
+  summary: "Update a Mailwizard campaign",
   operationId: "updateMailwizardCampaign",
-  tags: ["Admin","Mailwizard Campaigns"],
+  tags: ["Admin", "Mailwizard", "Campaigns"],
+  description:
+    "Updates the configuration of a specific Mailwizard campaign including name, subject, status, speed, targets, and template. All fields are optional and only provided fields will be updated.",
   parameters: [
     {
       name: "id",
@@ -24,17 +27,20 @@ export const metadata = {
       },
     },
   },
-  responses: updateRecordResponses("Mailwizard Campaign"),
+  responses: updateResponses("Mailwizard Campaign"),
   requiresAuth: true,
   permission: "edit.mailwizard.campaign",
+  logModule: "ADMIN_MAIL",
+  logTitle: "Update campaign",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { name, subject, status, speed, targets, templateId } = body;
 
-  return await updateRecord("mailwizardCampaign", id, {
+  ctx?.step("Updating campaign");
+  const result = await updateRecord("mailwizardCampaign", id, {
     name,
     subject,
     status,
@@ -42,4 +48,7 @@ export default async (data) => {
     targets,
     templateId,
   });
+
+  ctx?.success("Campaign updated successfully");
+  return result;
 };

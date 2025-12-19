@@ -13,6 +13,7 @@ export interface SidebarNavItem {
   label: string;
   icon: React.ElementType;
   key?: string; // Translation key
+  exact?: boolean; // If true, only match exact path (not startsWith)
   children?: SidebarNavItem[];
 }
 
@@ -29,8 +30,8 @@ export function ExtSidebar({
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const t = useTranslations("ext");
 
-  const isActive = (path: string) =>
-    pathname === path || pathname.startsWith(path);
+  const isActive = (path: string, exact?: boolean) =>
+    exact ? pathname === path : (pathname === path || pathname.startsWith(path + "/"));
 
   const toggleMenu = (menuId: string) => {
     setOpenMenus((prev) => ({
@@ -45,7 +46,7 @@ export function ExtSidebar({
       return item.label;
     }
     try {
-      const translated = t(item.key);
+      const translated = t(item.key as any);
       // If translation exists and is not the key itself, use it
       return translated && translated !== item.key ? translated : item.label;
     } catch {
@@ -59,7 +60,7 @@ export function ExtSidebar({
     navItems.forEach((item) => {
       if (
         item.children &&
-        item.children.some((child) => isActive(child.href))
+        item.children.some((child) => isActive(child.href, child.exact))
       ) {
         newOpenMenus[item.href] = true;
       }
@@ -78,7 +79,7 @@ export function ExtSidebar({
               onClick={() => toggleMenu(item.href)}
               className={cn(
                 "flex w-full items-center justify-between gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                isActive(item.href)
+                isActive(item.href, item.exact)
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground hover:bg-accent"
               )}
@@ -103,7 +104,7 @@ export function ExtSidebar({
                       href={child.href as any}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                        isActive(child.href)
+                        isActive(child.href, child.exact)
                           ? "bg-primary/10 text-primary dark:bg-primary dark:text-black"
                           : "text-muted-foreground hover:text-foreground hover:bg-accent"
                       )}
@@ -125,7 +126,7 @@ export function ExtSidebar({
             href={item.href as any}
             className={cn(
               "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-              isActive(item.href)
+              isActive(item.href, item.exact)
                 ? "bg-primary text-primary-foreground dark:bg-primary dark:text-black"
                 : "text-muted-foreground hover:text-foreground hover:bg-accent"
             )}

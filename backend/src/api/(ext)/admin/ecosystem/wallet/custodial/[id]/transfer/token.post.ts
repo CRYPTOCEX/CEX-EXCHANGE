@@ -12,9 +12,10 @@ import {
 } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Transfer ERC-20 tokens from Ecosystem Custodial Wallet",
+  summary: "Transfer ERC-20 tokens from custodial wallet",
+  description: "Transfers ERC-20 compatible tokens from an ecosystem custodial wallet to a specified recipient address. Supports any standard ERC-20 token on the wallet\'s blockchain.",
   operationId: "transferTokensEcosystemCustodialWallet",
-  tags: ["Admin", "Ecosystem Custodial Wallets"],
+  tags: ["Admin", "Ecosystem", "Wallet"],
   parameters: [
     {
       index: 0,
@@ -44,7 +45,7 @@ export const metadata: OperationObject = {
             },
             amount: {
               type: "string",
-              description: "Amount to transfer (in wei)",
+              description: "Amount to transfer in the token's smallest unit (considering token decimals)",
             },
           },
           required: ["id", "tokenAddress", "recipient", "amount"],
@@ -75,10 +76,12 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "access.ecosystem.custodial.wallet",
+  logModule: "ADMIN_ECO",
+  logTitle: "Transfer ERC-20 Tokens",
 };
 
 export default async (data: Handler) => {
-  const { user, body, params } = data;
+  const { user, body, params, ctx } = data;
   if (!user) {
     throw new Error("Authentication required to transfer tokens");
   }
@@ -86,11 +89,13 @@ export default async (data: Handler) => {
   const { tokenAddress, recipient, amount } = body;
 
   try {
+    ctx?.step("Fetching Custodial Wallet");
     const custodialWallet = await models.ecosystemCustodialWallet.findByPk(id);
     if (!custodialWallet) {
       throw new Error(`Custodial wallet not found`);
     }
 
+    ctx?.step("Fetching Master Wallet");
     const masterWallet = await models.ecosystemMasterWallet.findByPk(
       custodialWallet.masterWalletId
     );
@@ -102,9 +107,11 @@ export default async (data: Handler) => {
       throw new Error("Master wallet data not found");
     }
 
+    ctx?.step("Decrypting Master Wallet Data");
     const decryptedData = JSON.parse(decrypt(masterWallet.data));
     const { privateKey } = decryptedData;
 
+    ctx?.step("Initializing Provider and Contract");
     const provider = await getProvider(custodialWallet.chain);
     const signer = new ethers.Wallet(privateKey).connect(provider);
     const contract = await getCustodialWalletContract(
@@ -112,6 +119,7 @@ export default async (data: Handler) => {
       signer
     );
 
+    ctx?.step("Executing ERC-20 Token Transfer");
     const transaction = await contract.transferTokens(
       tokenAddress,
       recipient,
@@ -119,6 +127,7 @@ export default async (data: Handler) => {
     );
     await transaction.wait();
 
+    ctx?.success(`ERC-20 tokens transferred successfully to ${recipient}`);
     return {
       message: "ERC-20 tokens transferred successfully",
     };

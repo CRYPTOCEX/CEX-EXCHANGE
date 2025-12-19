@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   Select,
@@ -10,6 +12,7 @@ import { Loader2 } from "lucide-react";
 import { useFetchOptions } from "@/hooks/use-fetch-options";
 import { useWatch } from "react-hook-form";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 
 interface ApiEndpoint {
   url: string;
@@ -19,7 +22,7 @@ interface ApiEndpoint {
 }
 
 export interface Option {
-  value: string;
+  value: string | number | boolean;
   label: string;
   disabled?: boolean;
 }
@@ -40,8 +43,9 @@ export interface SelectFormControlProps {
   options?: Option[];
   dynamicSelect?: DynamicSelectConfig;
   control: any; // react-hook-form control
-  // Optionally, you can add a prop to toggle search functionality
   searchable?: boolean;
+  title?: string;
+  description?: string;
 }
 
 export function SelectFormControl({
@@ -53,8 +57,10 @@ export function SelectFormControl({
   dynamicSelect,
   control,
   searchable = true,
+  title,
+  description,
 }: SelectFormControlProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components_blocks");
   // 1. Determine the effective endpoint (dynamic or static).
   let effectiveEndpoint: ApiEndpoint | null = null;
 
@@ -88,28 +94,48 @@ export function SelectFormControl({
   const options = effectiveEndpoint ? fetchedOptions : staticOptions || [];
 
   // 4. The current value from react-hook-form (ensure it's a string).
-  const value = typeof field.value === "string" ? field.value : "";
+  // Convert numbers to strings for proper Select comparison
+  const value = field.value != null ? String(field.value) : "";
 
-  // 5. Highlight the select if there's a validation error.
-  const triggerErrorClass = error ? "border border-red-500" : "";
-
-  // 6. Handle loading & error states.
+  // 5. Handle loading & error states.
   if (loading) {
     return (
-      <div className="flex items-center space-x-2">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <span>{t("loading_options")}.</span>
+      <div className="flex flex-col w-full">
+        {title && (
+          <label className="mb-1 text-sm font-medium">{title}</label>
+        )}
+        <div className="flex items-center justify-center h-9 w-full rounded-md border border-input bg-background px-3">
+          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground mr-2" />
+          <span className="text-sm text-muted-foreground">
+            {t("loading_options")}...
+          </span>
+        </div>
+        {description && (
+          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+        )}
       </div>
     );
   }
   if (fetchError) {
     return (
-      <div className="text-red-500">
-        {t("error_loading_options")}
-        {fetchError}
+      <div className="flex flex-col w-full">
+        {title && (
+          <label className="mb-1 text-sm font-medium">{title}</label>
+        )}
+        <div className="flex items-center h-9 w-full rounded-md border border-destructive/50 bg-destructive/10 px-3">
+          <span className="text-sm text-destructive">
+            {t("error_loading_options")}: {fetchError}
+          </span>
+        </div>
+        {description && (
+          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+        )}
       </div>
     );
   }
+
+  // Only show search when there are more than 6 options
+  const shouldShowSearch = searchable && options.length > 6;
 
   return (
     <div className="flex flex-col w-full">
@@ -118,21 +144,31 @@ export function SelectFormControl({
         value={value}
         onValueChange={field.onChange}
       >
-        <SelectTrigger className={triggerErrorClass}>
+        <SelectTrigger
+          title={title}
+          description={description}
+          error={!!error}
+          errorMessage={error}
+          className={cn("w-full h-9")}
+        >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent search={searchable} className="z-[100] max-h-80" data-vaul-no-drag>
+        <SelectContent
+          search={shouldShowSearch}
+          className="z-100 max-h-80"
+          data-vaul-no-drag
+        >
           {options.length === 0 ? (
-            <div className="px-2 py-1 text-sm text-muted-foreground">
-              {t("no_options_found")}.
+            <div className="px-3 py-2 text-sm text-muted-foreground text-center">
+              {t("no_options_found")}
             </div>
           ) : (
             options.map((o) => (
               <SelectItem
-                key={o.value}
-                value={o.value}
+                key={String(o.value)}
+                value={String(o.value)}
                 disabled={o.disabled}
-                className="rounded-md cursor-pointer transition-colors duration-150 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                className="rounded-md cursor-pointer transition-colors duration-150 hover:bg-accent"
               >
                 {o.label}
               </SelectItem>
@@ -140,9 +176,6 @@ export function SelectFormControl({
           )}
         </SelectContent>
       </Select>
-      {error && (
-        <p className="text-red-500 text-sm mt-1 leading-tight">{error}</p>
-      )}
     </div>
   );
 }

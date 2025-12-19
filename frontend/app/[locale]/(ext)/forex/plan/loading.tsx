@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PlansLoading() {
   return (
-    <div className="container mx-auto py-10 space-y-6">
+    <div className="container mx-auto pt-20 py-10 space-y-6">
       <div className="space-y-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-5 w-full max-w-2xl" />

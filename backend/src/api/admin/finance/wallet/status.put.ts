@@ -30,10 +30,15 @@ export const metadata = {
   responses: updateRecordResponses("Wallet"),
   requiresAuth: true,
   permission: "edit.wallet",
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk Update Wallet Status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("wallet", ids, status);
+  ctx?.step("Updating wallet status");
+  const result = await updateStatus("wallet", ids, status);
+  ctx?.success("Wallet status updated successfully");
+  return result;
 };

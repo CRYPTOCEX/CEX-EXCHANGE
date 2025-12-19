@@ -15,7 +15,7 @@ interface TopBarProps {
 }
 
 export function TopBar({ extension }: TopBarProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
   return (
     <div className="flex justify-between items-center mb-8">
       <div className="flex items-center space-x-4">

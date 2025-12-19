@@ -15,6 +15,7 @@ const VALID_CURRENCY_CODES = [
  * Checks if a currency code is a valid ISO 4217 currency code
  */
 export function isValidCurrencyCode(currency: string): boolean {
+  if (!currency) return false;
   return VALID_CURRENCY_CODES.includes(currency.toUpperCase());
 }
 
@@ -127,6 +128,10 @@ export function formatFiat(
  * @returns Formatted currency string
  */
 export function formatCurrencyAuto(amount: number, currency: string): string {
+  // Handle undefined/null currency
+  if (!currency) {
+    return formatFiat(amount, "USD");
+  }
   if (isValidCurrencyCode(currency)) {
     return formatFiat(amount, currency);
   } else {
@@ -159,4 +164,117 @@ export function getCurrencySymbol(currency: string = "USD"): string {
     // Fallback to currency code if formatting fails
     return currency;
   }
+}
+
+// ============================================================================
+// COPY TRADING SPECIFIC FORMATTERS
+// ============================================================================
+
+/**
+ * Formats a profit/loss amount with appropriate sign and color class
+ * @param amount - The P&L amount
+ * @param currency - The currency code
+ * @returns Object with formatted value and CSS class
+ */
+export function formatPnL(
+  amount: number,
+  currency: string = "USDT"
+): { formatted: string; colorClass: string; isProfit: boolean } {
+  const isProfit = amount > 0;
+  const sign = isProfit ? "+" : "";
+  const formatted = `${sign}${formatCurrencyAuto(Math.abs(amount), currency)}`;
+  const colorClass = amount > 0 ? "text-green-500" : amount < 0 ? "text-red-500" : "text-zinc-500";
+
+  return { formatted, colorClass, isProfit };
+}
+
+/**
+ * Formats a percentage change with sign
+ * @param percent - The percentage value
+ * @returns Object with formatted value and CSS class
+ */
+export function formatPercentChange(
+  percent: number
+): { formatted: string; colorClass: string; isPositive: boolean } {
+  const isPositive = percent > 0;
+  const sign = isPositive ? "+" : "";
+  const formatted = `${sign}${percent.toFixed(2)}%`;
+  const colorClass = percent > 0 ? "text-green-500" : percent < 0 ? "text-red-500" : "text-zinc-500";
+
+  return { formatted, colorClass, isPositive };
+}
+
+/**
+ * Formats allocation/investment amount for display
+ * @param amount - The amount
+ * @param currency - The currency (defaults to USDT for copy trading)
+ * @returns Formatted string like "$1,000 USDT"
+ */
+export function formatAllocation(amount: number, currency: string = "USDT"): string {
+  if (isValidCurrencyCode(currency)) {
+    // For USD/EUR etc, use $ prefix
+    return formatFiat(amount, currency);
+  }
+  // For crypto, show amount with currency suffix
+  return formatCrypto(amount, currency, 2);
+}
+
+/**
+ * Get appropriate precision for a currency
+ * @param currency - The currency code
+ * @returns Number of decimal places
+ */
+export function getCurrencyPrecision(currency: string): number {
+  // Fiat currencies typically use 2 decimals
+  if (isValidCurrencyCode(currency)) {
+    return 2;
+  }
+
+  // Stablecoins use 2-4 decimals
+  const stablecoins = ["USDT", "USDC", "BUSD", "DAI", "UST"];
+  if (stablecoins.includes(currency.toUpperCase())) {
+    return 2;
+  }
+
+  // Major cryptos use more decimals
+  const majorCrypto = ["BTC", "ETH"];
+  if (majorCrypto.includes(currency.toUpperCase())) {
+    return 8;
+  }
+
+  // Default for other tokens
+  return 6;
+}
+
+/**
+ * Parse a symbol string to get base and quote currencies
+ * @param symbol - The trading pair symbol (e.g., "BTC/USDT")
+ * @returns Object with base and quote currencies
+ */
+export function parseSymbol(symbol: string): { base: string; quote: string } {
+  const [base, quote] = symbol.split("/");
+  return {
+    base: base || symbol,
+    quote: quote || "USDT",
+  };
+}
+
+/**
+ * Format a trade description with proper currency
+ * @param side - "BUY" or "SELL"
+ * @param amount - Amount of base currency
+ * @param price - Price in quote currency
+ * @param symbol - Trading pair symbol
+ * @returns Formatted description
+ */
+export function formatTradeDescription(
+  side: "BUY" | "SELL",
+  amount: number,
+  price: number,
+  symbol: string
+): string {
+  const { base, quote } = parseSymbol(symbol);
+  const amountStr = formatCrypto(amount, base, 6);
+  const priceStr = formatCrypto(price, quote, getCurrencyPrecision(quote));
+  return `${side} ${amountStr} @ ${priceStr}`;
 } 

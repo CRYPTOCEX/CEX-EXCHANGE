@@ -33,7 +33,7 @@ export function FileField({
   touched,
   multiple = false,
 }: FileFieldProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -175,7 +175,7 @@ export function FileField({
                 </span>
               </div>
               <div className="flex items-center text-xs text-green-600 dark:text-green-400 gap-1">
-                <span>✓ Uploaded successfully</span>
+                <span>{t('uploaded_successfully')}</span>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -207,7 +207,7 @@ export function FileField({
             <div className="relative">
               <img
                 src={previewUrl || (typeof value === "string" ? value : "")}
-                alt="File preview"
+                alt={t("file_preview")}
                 className="w-full max-w-sm h-32 object-cover rounded-lg border dark:border-zinc-700"
               />
             </div>

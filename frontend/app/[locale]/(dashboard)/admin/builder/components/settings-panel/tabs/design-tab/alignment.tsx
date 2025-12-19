@@ -7,7 +7,7 @@ import type { AlignmentProps } from "./types";
 import { useTranslations } from "next-intl";
 
 export function Alignment({ settings, onSettingChange }: AlignmentProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const textAlign = settings.textAlign || "left";
 
   const handleTextAlignChange = (align: string) => {

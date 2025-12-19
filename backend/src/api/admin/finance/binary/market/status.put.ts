@@ -30,10 +30,17 @@ export const metadata = {
   responses: updateRecordResponses("Binary Market"),
   requiresAuth: true,
   permission: "edit.binary.market",
+  logModule: "ADMIN_BINARY",
+  logTitle: "Bulk update binary market status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("binaryMarket", ids, status);
+
+  ctx?.step(`Updating status for ${ids.length} binary market(s)`);
+  const result = await updateStatus("binaryMarket", ids, status);
+
+  ctx?.success("Binary market status updated successfully");
+  return result;
 };

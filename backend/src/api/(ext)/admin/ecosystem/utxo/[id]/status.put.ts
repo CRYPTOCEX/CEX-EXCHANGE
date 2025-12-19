@@ -1,21 +1,27 @@
 import { updateStatus, updateRecordResponses } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Updates the status of an Ecosystem UTXO",
+  summary: "Update ecosystem UTXO status",
   operationId: "updateEcosystemUtxoStatus",
-  tags: ["Admin", "UTXOs"],
+  tags: ["Admin", "Ecosystem", "UTXO"],
+  description:
+    "Updates the operational status of a specific ecosystem UTXO. Use this endpoint to mark a UTXO as active (available for spending) or inactive (spent or unavailable). This is essential for maintaining accurate UTXO state in blockchain transaction management.",
+  logModule: "ADMIN_ECO",
+  logTitle: "Update UTXO status",
   parameters: [
     {
       index: 0,
       name: "id",
       in: "path",
       required: true,
-      description: "ID of the UTXO to update",
+      description: "Unique identifier of the UTXO to update",
       schema: { type: "string" },
     },
   ],
   requestBody: {
     required: true,
+    description:
+      "New operational status (true for active/available, false for inactive/spent)",
     content: {
       "application/json": {
         schema: {
@@ -24,7 +30,7 @@ export const metadata: OperationObject = {
             status: {
               type: "boolean",
               description:
-                "New status to apply (true for active, false for inactive)",
+                "New operational status (true for active/available, false for inactive/spent)",
             },
           },
           required: ["status"],
@@ -38,8 +44,13 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
-  return updateStatus("ecosystemUtxo", id, status);
+
+  ctx?.step(`Updating UTXO status to ${status}`);
+  const result = await updateStatus("ecosystemUtxo", id, status);
+
+  ctx?.success("UTXO status updated successfully");
+  return result;
 };

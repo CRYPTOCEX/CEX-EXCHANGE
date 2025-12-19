@@ -24,6 +24,23 @@ import type { FormData } from "../types";
 import { cn } from "@/lib/utils";
 import { generateFeatureComparison } from "../utils";
 import { useLaunchPlanStore } from "@/store/ico/launch-plan-store";
+import { useTranslations } from "next-intl";
+
+// Helper function to safely access features as an object
+const getPlanFeatures = (
+  features: IcoLaunchPlanFeatures | string[] | string | undefined
+): IcoLaunchPlanFeatures | null => {
+  if (!features) return null;
+  if (typeof features === "string") {
+    try {
+      return JSON.parse(features);
+    } catch {
+      return null;
+    }
+  }
+  if (Array.isArray(features)) return null;
+  return features;
+};
 interface LaunchPlanStepProps {
   updateFormData: (field: keyof FormData, value: any) => void;
   errors: Record<string, string>;
@@ -32,6 +49,9 @@ export default function LaunchPlanStep({
   updateFormData,
   errors,
 }: LaunchPlanStepProps) {
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [selectedPlan, setSelectedPlan] =
     useState<icoLaunchPlanAttributes | null>(null);
   const [viewMode, setViewMode] = useState<"cards" | "comparison">("cards");
@@ -74,7 +94,7 @@ export default function LaunchPlanStep({
     if (value === false) {
       return <X className="h-5 w-5 text-destructive" />;
     } else if (value === true) {
-      return <Check className="h-5 w-5 text-primary" />;
+      return <Check className={"h-5 w-5 text-teal-600"} />;
     } else {
       return <span>{value}</span>;
     }
@@ -82,7 +102,7 @@ export default function LaunchPlanStep({
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className={"animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"}></div>
       </div>
     );
   }
@@ -96,9 +116,9 @@ export default function LaunchPlanStep({
   if (launchPlans.length === 0) {
     return (
       <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md">
-        <h3 className="font-medium">No Launch Plans Available</h3>
+        <h3 className="font-medium">{t("no_launch_plans_available")}</h3>
         <p className="text-sm mt-1">
-          Please contact the administrator to set up launch plans.
+          {t("please_contact_the_administrator_to_set")}
         </p>
       </div>
     );
@@ -106,11 +126,9 @@ export default function LaunchPlanStep({
   return (
     <div className="space-y-6">
       <div className="flex flex-col space-y-2">
-        <h3 className="text-xl font-bold">Choose Your Launch Plan</h3>
+        <h3 className="text-xl font-bold">{t("choose_your_launch_plan")}</h3>
         <p className="text-muted-foreground">
-          Select the plan that best fits your project's needs and budget. Your
-          plan determines the features and limits available throughout the
-          launch process.
+          {t("select_the_plan_that_best_fits")} {t("your_plan_determines_the_features_and")}
         </p>
       </div>
 
@@ -129,21 +147,21 @@ export default function LaunchPlanStep({
           <TabsList>
             <TabsTrigger value="cards" className="flex items-center gap-1">
               <Zap className="h-4 w-4" />
-              <span>Plan Cards</span>
+              <span>{t("plan_cards")}</span>
             </TabsTrigger>
             <TabsTrigger value="comparison" className="flex items-center gap-1">
               <Award className="h-4 w-4" />
-              <span>Feature Comparison</span>
+              <span>{t("feature_comparison")}</span>
             </TabsTrigger>
           </TabsList>
 
           {selectedPlan && (
             <div className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-full text-sm">
-              <span>Selected:</span>
+              <span>{tCommon("selected")}:</span>
               <Badge variant="outline" className="font-semibold">
                 {selectedPlan.name}
               </Badge>
-              <span className="text-primary font-medium">
+              <span className={"text-teal-600 font-medium"}>
                 {selectedPlan.price} {selectedPlan.currency}
               </span>
             </div>
@@ -154,6 +172,7 @@ export default function LaunchPlanStep({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start pt-6">
             {launchPlans.map((plan, index) => {
               const isSelected = selectedPlan?.id === plan.id;
+              const features = getPlanFeatures(plan.features);
               return (
                 <motion.div
                   key={plan.id}
@@ -176,7 +195,7 @@ export default function LaunchPlanStep({
                       <div className="flex items-center gap-2 border-2 border-amber-400 dark:border-amber-500 bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-3 sm:px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
                         <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
                         <span className="text-xs sm:text-sm font-semibold">
-                          Most Popular
+                          {t("most_popular")}
                         </span>
                       </div>
                     </div>
@@ -185,15 +204,15 @@ export default function LaunchPlanStep({
                     className={cn(
                       "relative overflow-hidden transition-all duration-300 h-full rounded-xl flex flex-col",
                       isSelected
-                        ? "border-primary ring-2 ring-primary ring-opacity-50 shadow-lg"
-                        : "hover:border-primary/50 hover:shadow-md"
+                        ? "border-teal-600 ring-2 ring-teal-600 ring-opacity-50 shadow-lg"
+                        : "hover:border-teal-600/50 hover:shadow-md"
                     )}
                   >
                     <CardHeader
                       className={cn(
                         "transition-all duration-300 relative rounded-t-xl pb-6",
                         isSelected
-                          ? "bg-gradient-to-br from-primary/10 via-primary/5 to-card dark:from-primary/20 dark:via-primary/10"
+                          ? "bg-gradient-to-br from-teal-600/10 via-teal-600/5 to-card dark:from-teal-600/20 dark:via-teal-600/10"
                           : "bg-gradient-to-br from-muted/30 to-card",
                         plan.recommended && "pt-10 sm:pt-8"
                       )}
@@ -206,7 +225,7 @@ export default function LaunchPlanStep({
                       </CardDescription>
                       <div className="mt-4 pt-4 border-t border-border/50">
                         <div className="flex items-baseline gap-1">
-                          <span className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                          <span className={"text-4xl font-bold bg-gradient-to-r from-teal-600 to-teal-600/70 bg-clip-text text-transparent"}>
                             {plan.price}
                           </span>
                           <span className="text-lg font-semibold text-muted-foreground">
@@ -232,15 +251,15 @@ export default function LaunchPlanStep({
                             duration: 0.2,
                           }}
                         >
-                          <div className="flex-shrink-0 mr-3 mt-0.5 rounded-full bg-primary/10 dark:bg-primary/20 p-1">
-                            <Check className="h-4 w-4 text-primary dark:text-primary-foreground" />
+                          <div className={"flex-shrink-0 mr-3 mt-0.5 rounded-full bg-teal-600/10 dark:bg-teal-600/20 p-1"}>
+                            <Check className={"h-4 w-4 text-teal-600 dark:text-teal-400"} />
                           </div>
                           <span className="text-sm leading-relaxed group-hover:text-foreground transition-colors">
-                            Up to{" "}
-                            {plan.features.maxTeamMembers === 999
+                            {t("up_to")}{" "}
+                            {features?.maxTeamMembers === 999
                               ? "unlimited"
-                              : plan.features.maxTeamMembers}{" "}
-                            team members
+                              : features?.maxTeamMembers}{" "}
+                            {t("team_members")}
                           </span>
                         </motion.li>
                         <motion.li
@@ -258,15 +277,15 @@ export default function LaunchPlanStep({
                             delay: 0.05,
                           }}
                         >
-                          <div className="flex-shrink-0 mr-3 mt-0.5 rounded-full bg-primary/10 dark:bg-primary/20 p-1">
-                            <Check className="h-4 w-4 text-primary dark:text-primary-foreground" />
+                          <div className={"flex-shrink-0 mr-3 mt-0.5 rounded-full bg-teal-600/10 dark:bg-teal-600/20 p-1"}>
+                            <Check className={"h-4 w-4 text-teal-600 dark:text-teal-400"} />
                           </div>
                           <span className="text-sm leading-relaxed group-hover:text-foreground transition-colors">
-                            Up to{" "}
-                            {plan.features.maxRoadmapItems === 999
+                            {t("up_to")}{" "}
+                            {features?.maxRoadmapItems === 999
                               ? "unlimited"
-                              : plan.features.maxRoadmapItems}{" "}
-                            roadmap items
+                              : features?.maxRoadmapItems}{" "}
+                            {t("roadmap_items")}
                           </span>
                         </motion.li>
                         <motion.li
@@ -284,14 +303,14 @@ export default function LaunchPlanStep({
                             delay: 0.1,
                           }}
                         >
-                          <div className="flex-shrink-0 mr-3 mt-0.5 rounded-full bg-primary/10 dark:bg-primary/20 p-1">
-                            <Check className="h-4 w-4 text-primary dark:text-primary-foreground" />
+                          <div className={"flex-shrink-0 mr-3 mt-0.5 rounded-full bg-teal-600/10 dark:bg-teal-600/20 p-1"}>
+                            <Check className={"h-4 w-4 text-teal-600 dark:text-teal-400"} />
                           </div>
                           <span className="text-sm leading-relaxed group-hover:text-foreground transition-colors">
-                            {plan.features.maxOfferingPhases === 999
+                            {features?.maxOfferingPhases === 999
                               ? "Unlimited"
-                              : plan.features.maxOfferingPhases}{" "}
-                            offering phases
+                              : features?.maxOfferingPhases}{" "}
+                            {tExt("offering_phases")}
                           </span>
                         </motion.li>
                         <motion.li
@@ -309,14 +328,14 @@ export default function LaunchPlanStep({
                             delay: 0.15,
                           }}
                         >
-                          <div className="flex-shrink-0 mr-3 mt-0.5 rounded-full bg-primary/10 dark:bg-primary/20 p-1">
-                            <Check className="h-4 w-4 text-primary dark:text-primary-foreground" />
+                          <div className={"flex-shrink-0 mr-3 mt-0.5 rounded-full bg-teal-600/10 dark:bg-teal-600/20 p-1"}>
+                            <Check className={"h-4 w-4 text-teal-600 dark:text-teal-400"} />
                           </div>
                           <span className="text-sm leading-relaxed group-hover:text-foreground transition-colors">
-                            {plan.features.maxUpdatePosts === 999
+                            {features?.maxUpdatePosts === 999
                               ? "Unlimited"
-                              : plan.features.maxUpdatePosts}{" "}
-                            update posts
+                              : features?.maxUpdatePosts}{" "}
+                            {t("update_posts")}
                           </span>
                         </motion.li>
                         <motion.li
@@ -334,18 +353,18 @@ export default function LaunchPlanStep({
                             delay: 0.15,
                           }}
                         >
-                          <div className="flex-shrink-0 mr-3 mt-0.5 rounded-full bg-primary/10 dark:bg-primary/20 p-1">
-                            <Check className="h-4 w-4 text-primary dark:text-primary-foreground" />
+                          <div className={"flex-shrink-0 mr-3 mt-0.5 rounded-full bg-teal-600/10 dark:bg-teal-600/20 p-1"}>
+                            <Check className={"h-4 w-4 text-teal-600 dark:text-teal-400"} />
                           </div>
                           <span className="text-sm leading-relaxed group-hover:text-foreground transition-colors">
-                            {plan.features.supportLevel === "basic"
+                            {features?.supportLevel === "basic"
                               ? "Standard support"
-                              : plan.features.supportLevel === "standard"
+                              : features?.supportLevel === "standard"
                                 ? "Priority support"
                                 : "24/7 Dedicated support"}
                           </span>
                         </motion.li>
-                        {plan.features.marketingSupport && (
+                        {features?.marketingSupport && (
                           <motion.li
                             className="flex items-start group"
                             initial={{
@@ -361,13 +380,13 @@ export default function LaunchPlanStep({
                               delay: 0.2,
                             }}
                           >
-                            <Check className="h-5 w-5 text-primary flex-shrink-0 mr-2" />
+                            <Check className={"h-5 w-5 text-teal-600 flex-shrink-0 mr-2"} />
                             <span className="text-sm">
-                              Marketing support included
+                              {t("marketing_support_included")}
                             </span>
                           </motion.li>
                         )}
-                        {plan.features.auditIncluded && (
+                        {features?.auditIncluded && (
                           <motion.li
                             className="flex items-start group"
                             initial={{
@@ -383,13 +402,13 @@ export default function LaunchPlanStep({
                               delay: 0.25,
                             }}
                           >
-                            <Check className="h-5 w-5 text-primary flex-shrink-0 mr-2" />
+                            <Check className={"h-5 w-5 text-teal-600 flex-shrink-0 mr-2"} />
                             <span className="text-sm">
-                              Security audit included
+                              {tExt("security_audit_included")}
                             </span>
                           </motion.li>
                         )}
-                        {plan.features.customTokenomics && (
+                        {features?.customTokenomics && (
                           <motion.li
                             className="flex items-start group"
                             initial={{
@@ -405,11 +424,11 @@ export default function LaunchPlanStep({
                               delay: 0.3,
                             }}
                           >
-                            <Check className="h-5 w-5 text-primary flex-shrink-0 mr-2" />
-                            <span className="text-sm">Custom tokenomics</span>
+                            <Check className={"h-5 w-5 text-teal-600 flex-shrink-0 mr-2"} />
+                            <span className="text-sm">{tExt("custom_tokenomics")}</span>
                           </motion.li>
                         )}
-                        {plan.features.priorityListing && (
+                        {features?.priorityListing && (
                           <motion.li
                             className="flex items-start group"
                             initial={{
@@ -425,8 +444,8 @@ export default function LaunchPlanStep({
                               delay: 0.35,
                             }}
                           >
-                            <Check className="h-5 w-5 text-primary flex-shrink-0 mr-2" />
-                            <span className="text-sm">Priority listing</span>
+                            <Check className={"h-5 w-5 text-teal-600 flex-shrink-0 mr-2"} />
+                            <span className="text-sm">{tExt("priority_listing")}</span>
                           </motion.li>
                         )}
                       </ul>
@@ -495,7 +514,7 @@ export default function LaunchPlanStep({
                             <span
                               className={cn(
                                 "font-bold text-lg",
-                                plan.recommended ? "text-primary" : ""
+                                plan.recommended ? "text-teal-600" : ""
                               )}
                             >
                               {plan.name}
@@ -562,7 +581,7 @@ export default function LaunchPlanStep({
                           }
                           className={cn(
                             "w-full",
-                            plan.recommended ? "border-primary" : ""
+                            plan.recommended ? "border-teal-600" : ""
                           )}
                           onClick={() => handleSelectPlan(plan)}
                         >
@@ -582,21 +601,19 @@ export default function LaunchPlanStep({
         <div className="flex items-start space-x-2">
           <Info className="h-5 w-5 text-muted-foreground mt-0.5" />
           <div>
-            <h4 className="font-medium mb-2">Why choose the right plan?</h4>
+            <h4 className="font-medium mb-2">{tCommon("why_choose_the_right_plan")}</h4>
             <p className="text-sm text-muted-foreground mb-2">
-              Your launch plan determines important limits and features
-              throughout the token launch process:
+              {t("your_launch_plan_determines_important_limits")}:
             </p>
             <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
-              <li>The number of team members you can showcase</li>
-              <li>How many roadmap items you can create</li>
-              <li>The number of offering phases you can configure</li>
-              <li>Access to marketing support and security audits</li>
-              <li>Priority listing and custom tokenomics options</li>
+              <li>{tCommon("the_number_of_team_members_you_can_showcase")}</li>
+              <li>{tCommon("how_many_roadmap_items_you_can_create")}</li>
+              <li>{tCommon("the_number_of_offering_phases_you_can_configure")}</li>
+              <li>{tCommon("access_to_marketing_support_and_security_audits")}</li>
+              <li>{tCommon("priority_listing_and_custom_tokenomics_options")}</li>
             </ul>
             <p className="text-sm text-muted-foreground mt-2">
-              You can upgrade your plan later, but choosing the right plan now
-              will save you time and ensure a smoother launch experience.
+              {tExt("you_can_upgrade_your_plan_later")}
             </p>
           </div>
         </div>

@@ -8,7 +8,8 @@ import { memo } from "react";
 import { useTranslations } from "next-intl";
 
 export const ConnectionStatus = memo(function ConnectionStatus() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const { isConnected } = useCronStore();
 
   return (
@@ -30,12 +31,12 @@ export const ConnectionStatus = memo(function ConnectionStatus() {
             >
               <WifiIcon className="h-4 w-4" />
             </motion.div>
-            <span>{t("Connected")}</span>
+            <span>{tCommon("connected")}</span>
           </>
         ) : (
           <>
             <WifiOffIcon className="h-4 w-4" />
-            <span>{t("Disconnected")}</span>
+            <span>{t("disconnected")}</span>
           </>
         )}
       </Badge>

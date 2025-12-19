@@ -151,6 +151,16 @@ const predefinedExtensions = [
     link: "",
     image: "/img/extensions/gateway.png",
   },
+  // copy trading
+  {
+    productId: "0B418556",
+    name: "copy_trading",
+    title: "Copy Trading",
+    description:
+      "Enable social trading by allowing users to follow and automatically copy trades from successful traders. Features include leader profiles, follower management, profit sharing, and real-time trade replication.",
+    link: "",
+    image: "/img/extensions/copy-trading.png",
+  },
 ];
 
 /** @type {import('sequelize-cli').Migration} */

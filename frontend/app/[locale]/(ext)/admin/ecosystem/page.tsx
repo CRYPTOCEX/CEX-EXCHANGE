@@ -17,6 +17,7 @@ import { Icon } from "@iconify/react";
 import { $fetch } from "@/lib/api";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 interface ChainInfo {
   network: string;
@@ -38,7 +39,8 @@ interface EcosystemData {
   isUnlockedVault: boolean;
 }
 const EcosystemBlockchains = () => {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   // Use EcosystemData as the type of your state
   const [blockchains, setBlockchains] = useState<EcosystemData>({
     baseChains: [],
@@ -136,7 +138,7 @@ const EcosystemBlockchains = () => {
           </span>
           <ul className="text-xs mt-1">
             <li>
-              <span className="text-muted-foreground">{t("Node")}</span>
+              <span className="text-muted-foreground">{t("node")}</span>
               <span className="text-info">{item.info.nodeProvider}</span>
             </li>
           </ul>
@@ -203,11 +205,11 @@ const EcosystemBlockchains = () => {
           </span>
           <ul className="text-xs mt-1">
             <li>
-              <span className="text-muted-foreground">{t("Network")}</span>
+              <span className="text-muted-foreground">{tCommon("network")}</span>
               <span className="text-info">{item.info.network}</span>
             </li>
             <li>
-              <span className="text-muted-foreground">{t("Version")}</span>
+              <span className="text-muted-foreground">{tCommon("version")}</span>
               <span className="text-info">{item.info.version}</span>
             </li>
             <li
@@ -253,7 +255,7 @@ const EcosystemBlockchains = () => {
                     )
                   }
                 >
-                  {t("Install")}
+                  {t("install")}
                 </Button>
               </div>
             )}
@@ -269,7 +271,7 @@ const EcosystemBlockchains = () => {
                     )
                   }
                 >
-                  {t("Activate")}
+                  {tCommon("activate")}
                 </Button>
               </div>
             )}
@@ -285,7 +287,7 @@ const EcosystemBlockchains = () => {
                     )
                   }
                 >
-                  {t("View")}
+                  {tCommon("view")}
                 </Button>
               </div>
             )}
@@ -294,7 +296,7 @@ const EcosystemBlockchains = () => {
       );
     });
   return (
-    <div className="container space-y-8 p-5">
+    <div className={`container space-y-8 ${PAGE_PADDING}`}>
       {/* Header + Vault Active/Initiate Vault */}
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">{t("ecosystem_blockchains")}</h2>
@@ -325,7 +327,7 @@ const EcosystemBlockchains = () => {
                 <Input
                   value={passphrase}
                   onChange={(e) => setPassphrase(e.target.value)}
-                  placeholder="Enter passphrase"
+                  placeholder={t("enter_passphrase")}
                   type="password"
                   disabled={isSubmitting}
                 />
@@ -335,14 +337,14 @@ const EcosystemBlockchains = () => {
                   variant="outline"
                   onClick={() => setIsPassPhraseDialogOpen(false)}
                 >
-                  {t("Cancel")}
+                  {tCommon("cancel")}
                 </Button>
                 <Button
                   color="primary"
                   onClick={setPassphraseHandler}
                   disabled={isSubmitting}
                 >
-                  {t("Submit")}
+                  {tCommon("submit")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -353,7 +355,7 @@ const EcosystemBlockchains = () => {
       <Card className="bg-card text-card-foreground p-5">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-semibold">
-            {t("built-in_blockchains")}
+            {t("built_in_blockchains")}
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-2">

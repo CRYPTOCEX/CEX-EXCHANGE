@@ -1,7 +1,12 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { TrendingUp } from "lucide-react";
+import { useColumns } from "./columns";
+import { useTranslations } from "next-intl";
+
 export default function FuturesMarketPage() {
+  const t = useTranslations("ext_admin");
+  const futuresMarketColumns = useColumns();
   return (
     <DataTable
       apiEndpoint="/api/admin/futures/market"
@@ -13,17 +18,23 @@ export default function FuturesMarketPage() {
         edit: "edit.futures.market",
         delete: "delete.futures.market",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate
       createLink="/admin/futures/market/create"
       canEdit
       editLink="/admin/futures/market/[id]"
-      canDelete
       canView
-      isParanoid={false}
-      title="Futures Markets"
+      isParanoid={true}
+      title={t("futures_markets")}
+      description={t("manage_futures_trading_markets_and_configure")}
       itemTitle="Market"
-      columns={columns}
+      columns={futuresMarketColumns}
+      design={{
+        animation: "orbs",
+        primaryColor: "amber",
+        secondaryColor: "red",
+        icon: TrendingUp,
+      }}
     />
   );
 }

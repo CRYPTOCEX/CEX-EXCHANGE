@@ -1,24 +1,28 @@
+"use client";
+
 import type React from "react";
-import type { Metadata } from "next";
+import SiteHeader from "@/components/partials/header/site-header";
 import Footer from "@/components/partials/footer";
-import P2PAdminNavbar from "./components/navbar";
+import { menu, colorSchema } from "./menu";
+import { usePathname } from "@/i18n/routing";
 
-export const metadata: Metadata = {
-  title: "P2P Admin Dashboard",
-  description: "Admin dashboard for the P2P trading platform",
-};
-
-interface AdminLayoutProps {
+export default function AdminP2PLayout({
+  children,
+}: {
   children: React.ReactNode;
-}
+}) {
+  const pathname = usePathname();
+  const isSettingsPage = pathname.endsWith("/settings");
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+  // Full-screen layout for settings page
+  if (isSettingsPage) {
+    return <>{children}</>;
+  }
+
   return (
     <>
-      <P2PAdminNavbar />
-      <main className="flex-1 mx-auto container pt-8 space-y-8 pb-24" style={{ minHeight: 'calc(100vh - 112px - 120px)' }}>
-        {children}
-      </main>
+      <SiteHeader menu={menu} colorSchema={colorSchema} userPath="/p2p" />
+      <main className="flex-1">{children}</main>
       <Footer />
     </>
   );

@@ -38,7 +38,8 @@ export function ConvertToFaqDialog({
   question,
   onConvert,
 }: ConvertToFaqDialogProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [faqQuestion, setFaqQuestion] = useState(question.question);
@@ -136,7 +137,7 @@ export function ConvertToFaqDialog({
 
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="question">{t("Question")}</Label>
+            <Label htmlFor="question">{t("question")}</Label>
             <Input
               id="question"
               value={faqQuestion}
@@ -145,16 +146,16 @@ export function ConvertToFaqDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="answer">{t("Answer")}</Label>
+            <Label htmlFor="answer">{t("answer")}</Label>
             <RichTextEditor
               value={faqAnswer}
               onChange={setFaqAnswer}
-              placeholder="Write the answer here..."
+              placeholder={t("write_the_answer_here_ellipsis")}
             />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="image">{t("image_(optional)")}</Label>
+            <Label htmlFor="image">{t("image_optional")}</Label>
             <ImageUpload
               value={answerImage}
               onChange={setAnswerImage}
@@ -164,10 +165,10 @@ export function ConvertToFaqDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="category">{t("Category")}</Label>
+              <Label htmlFor="category">{tCommon("category")}</Label>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger id="category">
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder={t("select_category")} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (
@@ -180,10 +181,10 @@ export function ConvertToFaqDialog({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="page">{t("Page")}</Label>
+              <Label htmlFor="page">{tCommon("page")}</Label>
               <Select value={pagePath} onValueChange={setPagePath}>
                 <SelectTrigger id="page">
-                  <SelectValue placeholder="Select page" />
+                  <SelectValue placeholder={t("select_page")} />
                 </SelectTrigger>
                 <SelectContent>
                   {pageLinks.map((page) => (
@@ -199,7 +200,7 @@ export function ConvertToFaqDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("Cancel")}
+            {tCommon("cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? "Creating..." : "Create FAQ"}

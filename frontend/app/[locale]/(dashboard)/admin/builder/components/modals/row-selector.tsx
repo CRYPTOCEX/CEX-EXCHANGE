@@ -5,6 +5,7 @@ import { rowTemplates, createRowFromTemplate } from "../../templates/rows";
 import RowSkeleton from "../shared/row-skeleton";
 import { filterItems } from "./utils";
 import type { Row } from "@/types/builder";
+import { useTranslations } from "next-intl";
 interface RowSelectorProps {
   searchTerm: string;
   onSelectTemplate: (row: Row) => void;
@@ -13,6 +14,7 @@ export function RowSelector({
   searchTerm,
   onSelectTemplate,
 }: RowSelectorProps) {
+  const t = useTranslations("dashboard_admin");
   const filteredRowTemplates = useMemo(
     () => filterItems(rowTemplates, searchTerm),
     [searchTerm]
@@ -24,7 +26,7 @@ export function RowSelector({
   return (
     <>
       <h2 className="text-2xl font-bold mb-4 dark:text-zinc-100">
-        Row Templates
+        {t("row_templates")}
       </h2>
       {filteredRowTemplates.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 auto-rows-fr">
@@ -39,7 +41,7 @@ export function RowSelector({
                   {template.id === "empty-row" ? (
                     <div className="w-full h-full flex items-center justify-center border-2 border-dashed border-zinc-300 dark:border-zinc-600 rounded-md">
                       <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                        Empty Row
+                        {t("empty_row")}
                       </span>
                     </div>
                   ) : (
@@ -66,7 +68,7 @@ export function RowSelector({
       ) : (
         <div className="text-center py-8 bg-zinc-50 dark:bg-zinc-900 rounded-lg">
           <p className="text-muted-foreground dark:text-zinc-400">
-            No row templates match your search.
+            {t("no_row_templates_match_your_search_1")}
           </p>
         </div>
       )}

@@ -36,11 +36,19 @@ export const metadata = {
   responses: updateRecordResponses("Deposit Method"),
   requiresAuth: true,
   permission: "edit.deposit.method",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update deposit method status",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
-  return updateStatus("depositMethod", id, status);
+
+  ctx?.step("Fetching deposit method record");
+  ctx?.step("Updating deposit method status");
+  const result = await updateStatus("depositMethod", id, status);
+
+  ctx?.success("Deposit method status updated successfully");
+  return result;
 };

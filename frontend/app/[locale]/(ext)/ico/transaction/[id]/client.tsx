@@ -32,7 +32,10 @@ import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 export default function TransactionDetailsClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   const { id } = useParams() as { id: string };
   const [transaction, setTransaction] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -129,20 +132,20 @@ export default function TransactionDetailsClient() {
             className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
-            {t("back_to_dashboard")}
+            {tCommon("back_to_dashboard")}
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">
-            {t("transaction_details")}
+            {tCommon("transaction_details")}
           </h1>
           <p className="text-muted-foreground">
-            {t("view_details_for_transaction_#")}
+            {`${t("view_details_for_transaction")} #`}
             {transaction.id}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={handleShareTransaction}>
             <Share2 className="w-4 h-4 mr-2" />
-            {t("Share")}
+            {tExt("share")}
           </Button>
         </div>
       </div>
@@ -151,7 +154,7 @@ export default function TransactionDetailsClient() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>{t("transaction_overview")}</CardTitle>
+            <CardTitle>{tExt("transaction_overview")}</CardTitle>
             <Badge className={getStatusColor(normalizedStatus)}>
               <span className="flex items-center gap-1">
                 {getStatusIcon(normalizedStatus)}
@@ -169,30 +172,30 @@ export default function TransactionDetailsClient() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left column */}
             <div className="space-y-4">
-              <div>
+              <div className="flex justify-between items-end">
                 <h3 className="text-sm font-medium text-muted-foreground">
                   {t("transaction_type")}
                 </h3>
-                <p className="text-base font-medium capitalize">
+                <p className="text-base font-medium capitalize text-right">
                   {transaction.type}
                 </p>
               </div>
 
-              <div>
+              <div className="flex justify-between items-end">
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  {t("Amount")}
+                  {tCommon("amount")}
                 </h3>
-                <p className="text-base font-medium">
+                <p className="text-base font-medium text-right">
                   ${transaction.amount.toLocaleString()}
                 </p>
               </div>
 
               {tokenAmount > 0 && (
-                <div>
+                <div className="flex justify-between items-end">
                   <h3 className="text-sm font-medium text-muted-foreground">
-                    {t("token_amount")}
+                    {tExt("token_amount")}
                   </h3>
-                  <p className="text-base font-medium">
+                  <p className="text-base font-medium text-right">
                     {tokenAmount.toLocaleString()}{" "}
                     {transaction.offering?.symbol}
                   </p>
@@ -203,11 +206,11 @@ export default function TransactionDetailsClient() {
             {/* Right column */}
             <div className="space-y-4">
               {transaction.offering && (
-                <div>
+                <div className="flex justify-between items-end">
                   <h3 className="text-sm font-medium text-muted-foreground">
-                    {t("Token")}
+                    {tExtAdmin("token")}
                   </h3>
-                  <p className="text-base font-medium">
+                  <p className="text-base font-medium text-right">
                     {transaction.offering.name}
                     (
                     {transaction.offering.symbol}
@@ -216,22 +219,22 @@ export default function TransactionDetailsClient() {
                 </div>
               )}
 
-              <div>
+              <div className="flex justify-between items-end">
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  {t("Date")}
+                  {tCommon("date")}
                 </h3>
-                <p className="text-base font-medium flex items-center">
+                <p className="text-base font-medium flex items-center text-right">
                   <Calendar className="w-4 h-4 mr-1 text-muted-foreground" />
                   {formatDate(transaction.createdAt)}
                 </p>
               </div>
 
               {transaction.releaseUrl && (
-                <div>
+                <div className="flex justify-between items-end">
                   <h3 className="text-sm font-medium text-muted-foreground">
                     {t("transaction_release_url")}
                   </h3>
-                  <p className="text-base font-medium flex items-center">
+                  <p className="text-base font-medium flex items-center text-right">
                     <code className="text-xs bg-muted p-1 rounded">
                       {transaction.releaseUrl.substring(0, 40)}
                     </code>
@@ -296,7 +299,7 @@ export default function TransactionDetailsClient() {
                   )}
                 </div>
                 <div>
-                  <p className="font-medium">{t("Processing")}</p>
+                  <p className="font-medium">{tCommon("processing")}</p>
                   <p className="text-sm text-muted-foreground">
                     {normalizedStatus === "pending"
                       ? "Transaction is being processed"
@@ -313,9 +316,9 @@ export default function TransactionDetailsClient() {
                     </div>
                   </div>
                   <div>
-                    <p className="font-medium">{t("Completed")}</p>
+                    <p className="font-medium">{tCommon("completed")}</p>
                     <p className="text-sm text-muted-foreground">
-                      {t("transaction_completed_successfully")}
+                      {tCommon('transaction_completed_successfully_1')}
                     </p>
                   </div>
                 </div>
@@ -326,34 +329,34 @@ export default function TransactionDetailsClient() {
         <CardFooter className="flex flex-col space-y-4 items-start">
           <Tabs defaultValue="details" className="w-full">
             <TabsList>
-              <TabsTrigger value="details">{t("Details")}</TabsTrigger>
-              <TabsTrigger value="notes">{t("Notes")}</TabsTrigger>
+              <TabsTrigger value="details">{tCommon("details")}</TabsTrigger>
+              <TabsTrigger value="notes">{tExt("notes")}</TabsTrigger>
             </TabsList>
             <TabsContent value="details" className="space-y-4 pt-4">
               <div className="bg-muted/50 p-4 rounded-md">
-                <h3 className="font-medium mb-2">{t("transaction_details")}</h3>
+                <h3 className="font-medium mb-2">{tCommon("transaction_details")}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
+                  <div className="flex justify-between items-end">
                     <p className="text-muted-foreground">
-                      {t("transaction_id")}
+                      {tCommon("transaction_id")}
                     </p>
-                    <p className="font-medium">{transaction.id}</p>
+                    <p className="font-medium text-right">{transaction.id}</p>
                   </div>
-                  <div>
+                  <div className="flex justify-between items-end">
                     <p className="text-muted-foreground">
-                      {t("payment_method")}
+                      {tCommon("payment_method")}
                     </p>
-                    <p className="font-medium">{t("credit_card")}</p>
+                    <p className="font-medium text-right">{tExt("credit_card")}</p>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground">{t("Fee")}</p>
-                    <p className="font-medium">
-                      $0. 00
+                  <div className="flex justify-between items-end">
+                    <p className="text-muted-foreground">{tCommon("fee")}</p>
+                    <p className="font-medium text-right">
+                      $0.00
                     </p>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground">{t("Total")}</p>
-                    <p className="font-medium">
+                  <div className="flex justify-between items-end">
+                    <p className="text-muted-foreground">{tCommon("total")}</p>
+                    <p className="font-medium text-right">
                       ${transaction.amount.toLocaleString()}
                     </p>
                   </div>

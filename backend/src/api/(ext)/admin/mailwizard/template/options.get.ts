@@ -1,21 +1,23 @@
 import {
-  notFoundMetadataResponse,
-  serverErrorResponse,
   unauthorizedResponse,
-} from "@b/utils/query";
+  notFoundResponse,
+  serverErrorResponse,
+} from "@b/utils/schema/errors";
 import { createError } from "@b/utils/error";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
-  summary: "Retrieves mailwizard template options",
-  description:
-    "This endpoint retrieves mailwizard templates for selection in the UI.",
+  summary: "Get template options",
   operationId: "getMailwizardTemplateOptions",
-  tags: ["Mailwizard", "Template"],
+  tags: ["Admin", "Mailwizard", "Templates"],
+  description:
+    "Retrieves a simplified list of all Mailwizard templates (ID and name only) for use in dropdown selections and UI components. This endpoint is optimized for quick loading in form selects.",
   requiresAuth: true,
+  logModule: "ADMIN_MAIL",
+  logTitle: "Get Mail Template Options",
   responses: {
     200: {
-      description: "Mailwizard templates retrieved successfully",
+      description: "Mailwizard template options retrieved successfully",
       content: {
         "application/json": {
           schema: {
@@ -23,22 +25,24 @@ export const metadata: OperationObject = {
             items: {
               type: "object",
               properties: {
-                id: { type: "string" },
-                name: { type: "string" },
+                id: { type: "string", description: "Template ID" },
+                name: { type: "string", description: "Template name" },
               },
+              required: ["id", "name"],
             },
           },
         },
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("MailwizardTemplate"),
+    404: notFoundResponse("Mailwizard Template"),
     500: serverErrorResponse,
   },
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
+  ctx?.step("Validate user authentication");
   if (!user?.id) throw createError(401, "Unauthorized");
 
   try {
@@ -48,6 +52,7 @@ export default async (data: Handler) => {
       name: template.name,
     }));
 
+    ctx?.success("Get Mail Template Options retrieved successfully");
     return formatted;
   } catch (error) {
     throw createError(

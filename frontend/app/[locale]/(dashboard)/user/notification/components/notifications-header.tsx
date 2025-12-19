@@ -37,7 +37,8 @@ export function NotificationsHeader({
   onMarkAllAsRead,
   unreadCount,
 }: NotificationsHeaderProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
   const { toast } = useToast();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -64,7 +65,7 @@ export function NotificationsHeader({
           <ChevronLeft className="h-6 w-6 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors" />
         </Link>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">{t("Notifications")}</h1>
+          <h1 className="text-2xl font-bold">{tCommon("notifications")}</h1>
           {unreadCount > 0 && (
             <Badge variant="default" className="animate-pulse">
               {unreadCount}{" "}

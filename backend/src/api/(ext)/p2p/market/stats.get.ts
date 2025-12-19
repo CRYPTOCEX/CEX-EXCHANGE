@@ -7,6 +7,8 @@ export const metadata = {
   description: "Retrieves aggregated market statistics from P2P trades.",
   operationId: "getP2PMarketStats",
   tags: ["P2P", "Market"],
+  logModule: "P2P",
+  logTitle: "Get market stats",
   responses: {
     200: { description: "Market stats retrieved successfully." },
     401: unauthorizedResponse,
@@ -15,7 +17,10 @@ export const metadata = {
   requiresAuth: false,
 };
 
-export default async () => {
+export default async (data: { ctx?: any }) => {
+  const { ctx } = data || {};
+
+  ctx?.step("Calculating market statistics");
   try {
     const stats = await models.p2pTrade.findOne({
       attributes: [
@@ -25,8 +30,11 @@ export default async () => {
       ],
       raw: true,
     });
+
+    ctx?.success("Market stats retrieved successfully");
     return stats;
   } catch (err: any) {
+    ctx?.fail(err.message || "Failed to retrieve market stats");
     throw new Error("Internal Server Error: " + err.message);
   }
 };

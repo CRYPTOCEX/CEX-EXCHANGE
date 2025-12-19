@@ -34,7 +34,8 @@ interface PriceResponse {
 const failedImages = new Set<string>();
 
 export function SelectCryptoStep() {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtP2p = useTranslations("ext_p2p");
   const { tradeData, updateTradeData, markStepComplete } = useWizard();
   const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
   const [filteredCurrencies, setFilteredCurrencies] = useState<
@@ -210,7 +211,7 @@ export function SelectCryptoStep() {
       <div className="space-y-6">
         <div className="relative">
           <Input
-            placeholder={t("search_currencies_ellipsis")}
+            placeholder={t('search_currencies')}
             disabled
             className="pl-10"
           />
@@ -238,7 +239,7 @@ export function SelectCryptoStep() {
       <div className="space-y-6">
         <div className="relative">
           <Input
-            placeholder={t("search_currencies_ellipsis")}
+            placeholder={t('search_currencies')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -259,7 +260,7 @@ export function SelectCryptoStep() {
   return (
     <div className="space-y-6">
       <p className="text-muted-foreground">
-        {t("select_the_currency_you_want_to")}
+        {tExtP2p("select_the_currency_you_want_to")}
         {tradeData.tradeType || "trade"}
         {t("from_your")}
         {getWalletTypeName(tradeData.walletType)}
@@ -268,7 +269,7 @@ export function SelectCryptoStep() {
 
       <div className="relative mb-4">
         <Input
-          placeholder={t("search_currencies_ellipsis")}
+          placeholder={t('search_currencies')}
           className="pl-10"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -325,7 +326,7 @@ export function SelectCryptoStep() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6">
           <div className="text-sm text-muted-foreground">
-            {t("Page")}
+            {t("page")}
             {currentPage}
             {t("of")}
             {totalPages}

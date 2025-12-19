@@ -30,10 +30,19 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Comment"),
   requiresAuth: true,
   permission: "edit.blog.comment",
+  logModule: "ADMIN_BLOG",
+  logTitle: "Bulk update comment status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("comment", ids, status);
+
+  ctx?.step("Validating comment IDs and status");
+
+  ctx?.step(`Updating status to ${status ? 'active' : 'inactive'} for ${ids.length} comments`);
+  const result = await updateStatus("comment", ids, status);
+
+  ctx?.success(`${ids.length} comments status updated successfully`);
+  return result;
 };

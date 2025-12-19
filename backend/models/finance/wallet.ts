@@ -39,12 +39,12 @@ export default class wallet
           comment: "ID of the user who owns this wallet",
         },
         type: {
-          type: DataTypes.ENUM("FIAT", "SPOT", "ECO", "FUTURES"),
+          type: DataTypes.ENUM("FIAT", "SPOT", "ECO", "FUTURES", "COPY_TRADING"),
           allowNull: false,
           validate: {
             isIn: {
-              args: [["FIAT", "SPOT", "ECO", "FUTURES"]],
-              msg: "type: Type must be one of ['FIAT', 'SPOT', 'ECO', 'FUTURES']",
+              args: [["FIAT", "SPOT", "ECO", "FUTURES", "COPY_TRADING"]],
+              msg: "type: Type must be one of ['FIAT', 'SPOT', 'ECO', 'FUTURES', 'COPY_TRADING']",
             },
           },
           comment: "Type of wallet (FIAT for fiat currencies, SPOT for spot trading, ECO for ecosystem, FUTURES for futures trading)",

@@ -1,4 +1,5 @@
 import { createError } from "@b/utils/error";
+import { unauthorizedResponse, serverErrorResponse } from "@b/utils/schema/errors";
 import { getAllMasterWallets, updateMasterWalletBalance } from "./utils";
 import { RedisSingleton } from "@b/utils/redis";
 import { differenceInMinutes } from "date-fns";
@@ -8,11 +9,10 @@ import { chainConfigs } from "@b/api/(ext)/ecosystem/utils/chains";
 import { ethers } from "ethers";
 
 export const metadata: OperationObject = {
-  summary: "Updates and retrieves balances for all master wallets",
-  description:
-    "Performs a balance update for all master wallets and retrieves the updated information.",
+  summary: "Update and get all master wallet balances",
+  description: "Fetches current balances from the blockchain for all master wallets and updates the database. Includes caching mechanism to prevent excessive blockchain queries. Supports UTXO-based chains (BTC, LTC, DOGE, DASH) and account-based chains (ETH, BSC, etc.).",
   operationId: "updateMasterWalletBalances",
-  tags: ["Admin", "Ecosystem", "Wallets", "Balance Update"],
+  tags: ["Admin", "Ecosystem", "Wallet"],
   responses: {
     200: {
       description: "Master wallets updated and retrieved successfully",
@@ -43,25 +43,23 @@ export const metadata: OperationObject = {
         },
       },
     },
-    401: {
-      description:
-        "Unauthorized, user must be authenticated and have appropriate permissions",
-    },
-    500: {
-      description: "Failed to update or retrieve wallet balances",
-    },
+    401: unauthorizedResponse,
+    500: serverErrorResponse,
   },
   permission: "view.ecosystem.master.wallet",
 };
 
 export const getMasterWalletBalancesController = async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
+
+  ctx?.step("Updating and fetching master wallet balances");
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   try {
-    const wallets = await getAllMasterWallets();
+    const wallets = await getAllMasterWallets(ctx);
     await Promise.all(
       wallets.map((wallet: ecosystemMasterWalletAttributes) =>
         getWalletBalance(wallet)

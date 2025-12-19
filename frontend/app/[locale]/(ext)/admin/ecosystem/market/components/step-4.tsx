@@ -21,14 +21,15 @@ const LimitsStep: React.FC<LimitsStepProps> = ({
   formData,
   updateNestedField,
 }) => {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   return (
     <Card className="p-5 space-y-3">
-      <h2 className="text-lg font-semibold mb-2">{t("Limits")}</h2>
+      <h2 className="text-lg font-semibold mb-2">{tCommon("limits")}</h2>
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
         {t("set_the_minimum_and_costs")}.<br />
         {t("for_example_the_minimum_is")}.{" "}
-        {t("00001_and_the_maximum_is")}.
+        {`00001 ${tCommon('and_the_maximum_is_10000')}`}.
       </p>
       <div className="grid grid-cols-2 gap-5">
         <div>
@@ -42,7 +43,7 @@ const LimitsStep: React.FC<LimitsStepProps> = ({
                 parseFloat(e.target.value) || 0
               )
             }
-            placeholder="Enter minimum amount"
+            placeholder={t("enter_minimum_amount")}
           />
         </div>
         <div>
@@ -56,7 +57,7 @@ const LimitsStep: React.FC<LimitsStepProps> = ({
                 parseFloat(e.target.value) || 0
               )
             }
-            placeholder="Enter maximum amount"
+            placeholder={t("enter_maximum_amount")}
           />
         </div>
       </div>
@@ -72,7 +73,7 @@ const LimitsStep: React.FC<LimitsStepProps> = ({
                 parseFloat(e.target.value) || 0
               )
             }
-            placeholder="Enter minimum price"
+            placeholder={t("enter_minimum_price")}
           />
         </div>
         <div>
@@ -86,7 +87,7 @@ const LimitsStep: React.FC<LimitsStepProps> = ({
                 parseFloat(e.target.value) || 0
               )
             }
-            placeholder="Enter maximum price"
+            placeholder={t("enter_maximum_price")}
           />
         </div>
       </div>
@@ -102,7 +103,7 @@ const LimitsStep: React.FC<LimitsStepProps> = ({
                 parseFloat(e.target.value) || 0
               )
             }
-            placeholder="Enter minimum cost"
+            placeholder={t("enter_minimum_cost")}
           />
         </div>
         <div>
@@ -116,7 +117,7 @@ const LimitsStep: React.FC<LimitsStepProps> = ({
                 parseFloat(e.target.value) || 0
               )
             }
-            placeholder="Enter maximum cost"
+            placeholder={t("enter_maximum_cost")}
           />
         </div>
       </div>

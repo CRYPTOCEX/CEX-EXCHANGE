@@ -12,6 +12,8 @@ export const metadata: OperationObject = {
   description: "Fetches a list of all active futures markets.",
   operationId: "listFuturesMarkets",
   tags: ["Futures", "Markets"],
+  logModule: "FUTURES",
+  logTitle: "List futures markets",
   responses: {
     200: {
       description: "Futures markets retrieved successfully",
@@ -33,14 +35,21 @@ export const metadata: OperationObject = {
   },
 };
 
-export default async () => {
+export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step?.("Fetching active futures markets");
   const markets = await models.futuresMarket.findAll({
     where: { status: true },
   });
-  
+
+  ctx?.step?.("Formatting market data");
   // Add symbol property to each market using currency/pair format
-  return markets.map((market) => ({
+  const result = markets.map((market) => ({
     ...market.toJSON(),
     symbol: `${market.currency}/${market.pair}`,
   }));
+
+  ctx?.success?.(`Retrieved ${result.length} active futures markets`);
+  return result;
 };

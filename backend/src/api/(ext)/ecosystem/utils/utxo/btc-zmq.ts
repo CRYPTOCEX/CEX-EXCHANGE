@@ -1,5 +1,5 @@
 import * as zmq from 'zeromq';
-import { logError } from '@b/utils/logger';
+import { logger } from '@b/utils/console';
 import { BitcoinNodeService } from './btc-node';
 import { models } from '@b/db';
 
@@ -56,7 +56,7 @@ export class BitcoinZMQService {
 
   private async initialize(): Promise<void> {
     try {
-      console.log('[BTC_ZMQ] Initializing Bitcoin ZMQ service...');
+      logger.info("BTC_ZMQ", "Initializing Bitcoin ZMQ service...");
 
       // Get node service instance
       this.nodeService = await BitcoinNodeService.getInstance();
@@ -64,9 +64,9 @@ export class BitcoinZMQService {
       // Start ZMQ listeners
       await this.startListeners();
 
-      console.log('[BTC_ZMQ] Bitcoin ZMQ service initialized successfully');
+      logger.success("BTC_ZMQ", "Bitcoin ZMQ service initialized successfully");
     } catch (error) {
-      console.error(`[BTC_ZMQ] Failed to initialize: ${error.message}`);
+      logger.error("BTC_ZMQ", `Failed to initialize: ${error.message}`);
       throw error;
     }
   }
@@ -77,19 +77,19 @@ export class BitcoinZMQService {
       this.rawTxSocket = new zmq.Subscriber();
       this.rawTxSocket.connect(this.config.rawTxEndpoint);
       this.rawTxSocket.subscribe('rawtx');
-      console.log(`[BTC_ZMQ] Connected to rawtx: ${this.config.rawTxEndpoint}`);
+      logger.info("BTC_ZMQ", `Connected to rawtx: ${this.config.rawTxEndpoint}`);
 
       // Raw Block Listener (for confirmations)
       this.rawBlockSocket = new zmq.Subscriber();
       this.rawBlockSocket.connect(this.config.rawBlockEndpoint);
       this.rawBlockSocket.subscribe('rawblock');
-      console.log(`[BTC_ZMQ] Connected to rawblock: ${this.config.rawBlockEndpoint}`);
+      logger.info("BTC_ZMQ", `Connected to rawblock: ${this.config.rawBlockEndpoint}`);
 
       // Hash Transaction Listener (lightweight)
       this.hashTxSocket = new zmq.Subscriber();
       this.hashTxSocket.connect(this.config.hashTxEndpoint);
       this.hashTxSocket.subscribe('hashtx');
-      console.log(`[BTC_ZMQ] Connected to hashtx: ${this.config.hashTxEndpoint}`);
+      logger.info("BTC_ZMQ", `Connected to hashtx: ${this.config.hashTxEndpoint}`);
 
       this.isRunning = true;
 
@@ -98,9 +98,9 @@ export class BitcoinZMQService {
       this.processRawBlocks();
       this.processHashTransactions();
 
-      console.log('[BTC_ZMQ] All ZMQ listeners started');
+      logger.success("BTC_ZMQ", "All ZMQ listeners started");
     } catch (error) {
-      console.error(`[BTC_ZMQ] Failed to start listeners: ${error.message}`);
+      logger.error("BTC_ZMQ", `Failed to start listeners: ${error.message}`);
       throw error;
     }
   }
@@ -123,11 +123,11 @@ export class BitcoinZMQService {
             await this.handleNewTransaction(tx, true); // true = from mempool
           }
         } catch (error) {
-          console.error(`[BTC_ZMQ] Error processing raw transaction: ${error.message}`);
+          logger.error("BTC_ZMQ", `Error processing raw transaction: ${error.message}`);
         }
       }
     } catch (error) {
-      console.error(`[BTC_ZMQ] Raw transaction listener error: ${error.message}`);
+      logger.error("BTC_ZMQ", `Raw transaction listener error: ${error.message}`);
     }
   }
 
@@ -142,7 +142,7 @@ export class BitcoinZMQService {
         if (!this.isRunning) break;
 
         try {
-          console.log(`[BTC_ZMQ] New block received, updating confirmations...`);
+          logger.info("BTC_ZMQ", "New block received, updating confirmations...");
 
           // Update all pending transactions with new confirmation counts
           await this.updatePendingTransactions();
@@ -150,11 +150,11 @@ export class BitcoinZMQService {
           // Clean up old mempool transactions
           this.cleanupMempoolTxs();
         } catch (error) {
-          console.error(`[BTC_ZMQ] Error processing block: ${error.message}`);
+          logger.error("BTC_ZMQ", `Error processing block: ${error.message}`);
         }
       }
     } catch (error) {
-      console.error(`[BTC_ZMQ] Raw block listener error: ${error.message}`);
+      logger.error("BTC_ZMQ", `Raw block listener error: ${error.message}`);
     }
   }
 
@@ -171,13 +171,13 @@ export class BitcoinZMQService {
         try {
           const txHash = message.toString('hex');
           // Just log for monitoring, main processing happens in rawtx
-          console.log(`[BTC_ZMQ] New transaction hash: ${txHash}`);
+          logger.debug("BTC_ZMQ", `New transaction hash: ${txHash}`);
         } catch (error) {
-          console.error(`[BTC_ZMQ] Error processing tx hash: ${error.message}`);
+          logger.error("BTC_ZMQ", `Error processing tx hash: ${error.message}`);
         }
       }
     } catch (error) {
-      console.error(`[BTC_ZMQ] Hash transaction listener error: ${error.message}`);
+      logger.error("BTC_ZMQ", `Hash transaction listener error: ${error.message}`);
     }
   }
 
@@ -198,7 +198,7 @@ export class BitcoinZMQService {
         hex: txHex,
       };
     } catch (error) {
-      console.error(`[BTC_ZMQ] Failed to parse raw transaction: ${error.message}`);
+      logger.error("BTC_ZMQ", `Failed to parse raw transaction: ${error.message}`);
       return null;
     }
   }
@@ -236,8 +236,8 @@ export class BitcoinZMQService {
         return; // No watched addresses involved
       }
 
-      console.log(`[BTC_ZMQ] 🎯 Detected transaction to watched address: ${tx.txid}`);
-      console.log(`[BTC_ZMQ] Matched outputs:`, matchedOutputs);
+      logger.info("BTC_ZMQ", `Detected transaction to watched address: ${tx.txid}`);
+      logger.debug("BTC_ZMQ", `Matched outputs: ${JSON.stringify(matchedOutputs)}`);
 
       // Calculate fee (if available)
       let fee = 0;
@@ -258,7 +258,7 @@ export class BitcoinZMQService {
           addresses: matchedOutputs.map(o => o.address),
         });
 
-        console.log(`[BTC_ZMQ] ⚠️  0-conf transaction detected with fee: ${fee} BTC`);
+        logger.warn("BTC_ZMQ", `0-conf transaction detected with fee: ${fee} BTC`);
       }
 
       // Process each matched output
@@ -292,7 +292,7 @@ export class BitcoinZMQService {
 
           await storeAndBroadcastTransaction(txData, tx.txid, fromMempool);
 
-          console.log(`[BTC_ZMQ] Broadcasted ${fromMempool ? 'pending' : 'confirmed'} transaction for wallet ${wallet.id}`);
+          logger.info("BTC_ZMQ", `Broadcasted ${fromMempool ? 'pending' : 'confirmed'} transaction for wallet ${wallet.id}`);
         }
       }
 
@@ -305,7 +305,7 @@ export class BitcoinZMQService {
         toDelete.forEach(txid => this.processedTxIds.delete(txid));
       }
     } catch (error) {
-      console.error(`[BTC_ZMQ] Error handling transaction ${tx.txid}: ${error.message}`);
+      logger.error("BTC_ZMQ", `Error handling transaction ${tx.txid}: ${error.message}`);
     }
   }
 
@@ -351,14 +351,14 @@ export class BitcoinZMQService {
 
             await storeAndBroadcastTransaction(txData, transaction.trxId, confirmations < 3);
 
-            console.log(`[BTC_ZMQ] Updated transaction ${transaction.trxId}: ${confirmations}/3 confirmations`);
+            logger.info("BTC_ZMQ", `Updated transaction ${transaction.trxId}: ${confirmations}/3 confirmations`);
           }
         } catch (error) {
-          console.error(`[BTC_ZMQ] Error updating transaction ${transaction.id}: ${error.message}`);
+          logger.error("BTC_ZMQ", "Error updating transaction", error);
         }
       }
     } catch (error) {
-      console.error(`[BTC_ZMQ] Error updating pending transactions: ${error.message}`);
+      logger.error("BTC_ZMQ", "Error updating pending transactions", error);
     }
   }
 
@@ -387,9 +387,9 @@ export class BitcoinZMQService {
       this.watchedAddresses.add(address);
       this.addressToWalletId.set(address, walletId);
 
-      console.log(`[BTC_ZMQ] Now watching address ${address} for wallet ${walletId}`);
+      logger.info("BTC_ZMQ", `Now watching address ${address} for wallet ${walletId}`);
     } catch (error) {
-      console.error(`[BTC_ZMQ] Failed to watch address ${address}: ${error.message}`);
+      logger.error("BTC_ZMQ", `Failed to watch address ${address}: ${error.message}`);
       throw error;
     }
   }
@@ -400,7 +400,7 @@ export class BitcoinZMQService {
   public unwatchAddress(address: string): void {
     this.watchedAddresses.delete(address);
     this.addressToWalletId.delete(address);
-    console.log(`[BTC_ZMQ] Stopped watching address ${address}`);
+    logger.info("BTC_ZMQ", `Stopped watching address ${address}`);
   }
 
   /**
@@ -428,7 +428,7 @@ export class BitcoinZMQService {
    * Stop ZMQ service
    */
   public async stop(): Promise<void> {
-    console.log('[BTC_ZMQ] Stopping Bitcoin ZMQ service...');
+    logger.info("BTC_ZMQ", "Stopping Bitcoin ZMQ service...");
     this.isRunning = false;
 
     if (this.rawTxSocket) await this.rawTxSocket.close();
@@ -436,7 +436,7 @@ export class BitcoinZMQService {
     if (this.hashTxSocket) await this.hashTxSocket.close();
     if (this.hashBlockSocket) await this.hashBlockSocket.close();
 
-    console.log('[BTC_ZMQ] Bitcoin ZMQ service stopped');
+    logger.success("BTC_ZMQ", "Bitcoin ZMQ service stopped");
   }
 }
 

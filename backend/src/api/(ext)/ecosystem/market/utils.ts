@@ -1,21 +1,38 @@
 import { models } from "@b/db";
 
+interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
+
 export async function getMarket(
   currency: string,
-  pair: string
+  pair: string,
+  ctx?: LogContext
 ): Promise<ecosystemMarketAttributes> {
-  const market = await models.ecosystemMarket.findOne({
-    where: {
-      currency,
-      pair,
-    },
-  });
+  try {
+    ctx?.step?.(`Fetching market for ${currency}/${pair}`);
+    const market = await models.ecosystemMarket.findOne({
+      where: {
+        currency,
+        pair,
+      },
+    });
 
-  if (!market) {
-    throw new Error("Market not found");
+    if (!market) {
+      ctx?.fail?.("Market not found");
+      throw new Error("Market not found");
+    }
+
+    ctx?.success?.(`Market found for ${currency}/${pair}`);
+    return market;
+  } catch (error) {
+    if (error.message !== "Market not found") {
+      ctx?.fail?.(error.message);
+    }
+    throw error;
   }
-
-  return market;
 }
 
 import {

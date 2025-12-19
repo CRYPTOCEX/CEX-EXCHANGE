@@ -20,15 +20,20 @@ export const metadata = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Get Staking Pools",
   permission: "view.staking.pool",
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
-  if (!user) {
+  const { user, query, ctx } = data;
+  
+  ctx?.step("Fetching data");
+    if (!user) {
     throw new Error("Unauthorized");
   }
 
+    ctx?.success("Operation completed successfully");
   return getFiltered({
     model: models.stakingPool,
     query,

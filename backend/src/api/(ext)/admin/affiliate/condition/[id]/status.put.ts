@@ -1,16 +1,18 @@
 import { updateStatus, updateRecordResponses } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Updates the active status of an MLM Referral Condition",
-  operationId: "updateMlmReferralConditionStatus",
-  tags: ["Admin", "MLM Referral Conditions"],
+  summary: "Updates the status of a specific affiliate condition",
+  description:
+    "Toggles the active status of a single affiliate condition. When disabled, the condition will no longer trigger rewards for affiliate referrals. This endpoint allows quick activation or deactivation without modifying other condition properties.",
+  operationId: "updateAffiliateConditionStatus",
+  tags: ["Admin", "Affiliate", "Condition"],
   parameters: [
     {
       index: 0,
       name: "id",
       in: "path",
       required: true,
-      description: "ID of the MLM referral condition to update",
+      description: "ID of the affiliate condition to update",
       schema: { type: "string" },
     },
   ],
@@ -32,20 +34,27 @@ export const metadata: OperationObject = {
       },
     },
   },
-  responses: updateRecordResponses("MLM Referral Condition"),
+  responses: updateRecordResponses("Affiliate Condition"),
   requiresAuth: true,
   permission: "edit.affiliate.condition",
+  logModule: "ADMIN_AFFILIATE",
+  logTitle: "Update affiliate condition status",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
-  return updateStatus(
+
+  ctx?.step(`Updating condition status for ID: ${id}`);
+  const result = updateStatus(
     "mlmReferralCondition",
     id,
     status,
     undefined,
     "Referral Condition"
   );
+
+  ctx?.success("Condition status updated successfully");
+  return result;
 };

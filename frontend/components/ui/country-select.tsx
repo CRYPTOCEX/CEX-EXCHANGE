@@ -23,6 +23,7 @@ import {
   type Country,
 } from "@/lib/countries";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 interface CountrySelectProps {
   value?: string;
@@ -39,6 +40,7 @@ export function CountrySelect({
   disabled = false,
   className,
 }: CountrySelectProps) {
+  const t = useTranslations("components");
   const [open, setOpen] = React.useState(false);
   const [countries, setCountries] = React.useState<Country[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -63,7 +65,7 @@ export function CountrySelect({
       >
         <span className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading countries...
+          {t("loading_countries_ellipsis")}
         </span>
       </Button>
     );
@@ -101,9 +103,9 @@ export function CountrySelect({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
-          <CommandInput placeholder="Search country..." />
+          <CommandInput placeholder={t("search_country_ellipsis")} />
           <CommandList>
-            <CommandEmpty>No country found.</CommandEmpty>
+            <CommandEmpty>{t("no_country_found")}</CommandEmpty>
             <CommandGroup className="max-h-64 overflow-auto">
               {countries.map((country) => (
                 <CommandItem

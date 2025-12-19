@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useTranslations } from "next-intl";
 
 export function LoadingSkeleton() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">

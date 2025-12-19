@@ -58,7 +58,7 @@ const IndicatorItem = ({
   updateIndicator,
   forceCalculateAll,
 }: IndicatorItemProps) => {
-  const t = useTranslations("common");
+  const tCommon = useTranslations("common");
   const isAdded = indicator.visible;
   const isInAddedCategory = categoryId === "added";
   const { resolvedTheme } = useTheme();
@@ -226,7 +226,7 @@ const IndicatorItem = ({
                 e.stopPropagation();
                 handleAddIndicator(e);
               }}
-              title="Add indicator"
+              title={tCommon("add_indicator")}
             >
               <Plus size={14} />
             </motion.button>
@@ -357,7 +357,7 @@ const IndicatorItem = ({
                   className="text-xs"
                   style={{ color: textColors.secondary }}
                 >
-                  {t("Color")}
+                  {tCommon("color")}
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {[
@@ -411,7 +411,7 @@ const IndicatorItem = ({
                   }}
                 >
                   <Trash2 size={12} />
-                  <span>{t("Remove")}</span>
+                  <span>{tCommon("remove")}</span>
                 </motion.button>
                 <div className="flex gap-2">
                   <motion.button
@@ -427,7 +427,7 @@ const IndicatorItem = ({
                       onExpand(); // Close the expanded panel
                     }}
                   >
-                    {t("Cancel")}
+                    {tCommon("cancel")}
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -439,7 +439,7 @@ const IndicatorItem = ({
                     }}
                     onClick={applySettings}
                   >
-                    {t("Apply")}
+                    {tCommon("apply")}
                   </motion.button>
                 </div>
               </div>
@@ -806,7 +806,7 @@ export const IndicatorPanel: React.FC = () => {
             className="px-6 py-2 rounded-full text-white font-medium shadow-lg"
             style={{ background: uiColors.button.primary.background }}
           >
-            {t("Close")}
+            {t("close")}
           </motion.button>
         </div>
       )}

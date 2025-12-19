@@ -11,7 +11,7 @@
  * pub/sub mechanism (e.g., Redis, NATS, etc.) without changing the rest of the code.
  */
 
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 // Types for clarity
 export type ClientRecord = { ws: any; subscriptions: Set<string> };
@@ -82,14 +82,14 @@ export class MessageBroker {
             }
           });
         } catch (error) {
-          logError("websocket", error, route);
+          logger.error("WS", `Failed to send message to client ${clientId}`, error);
           routeClients.delete(clientId);
         }
         found = true;
       }
     }
     if (!found) {
-      console.error(`Client ${clientId} not found in any route`);
+      logger.debug("WS", `Client ${clientId} not found in any route`);
     }
   }
 
@@ -109,7 +109,7 @@ export class MessageBroker {
             clientRecord.ws.send(msgString);
           });
         } catch (error) {
-          logError("websocket", error, route);
+          logger.error("WS", `Failed to broadcast to route ${route}`, error);
         }
       });
     }
@@ -142,15 +142,14 @@ export class MessageBroker {
               clientRecord.ws.send(JSON.stringify(message));
               matchedClients++;
             } catch (error) {
-              console.error(`[ERROR] Failed to send message to client ${clientId}:`, error);
-              logError("websocket", error, route);
+              logger.error("WS", `Failed to send to client ${clientId}`, error);
               routeClients.delete(clientId);
             }
           }
         }
       }
     } catch (error) {
-      console.error("Error in broadcastToSubscribedClients", error);
+      logger.error("WS", "Error in broadcastToSubscribedClients", error);
     }
   }
 }

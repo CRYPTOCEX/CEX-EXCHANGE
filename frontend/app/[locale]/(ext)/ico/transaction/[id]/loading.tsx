@@ -11,8 +11,9 @@ import { useTranslations } from "next-intl";
 
 export default function TransactionDetailsLoading() {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
-    <div className="space-y-6">
+    <div className="pt-20 space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <Skeleton className="h-4 w-32" />
@@ -113,8 +114,8 @@ export default function TransactionDetailsLoading() {
         <CardFooter className="flex flex-col space-y-4 items-start">
           <Tabs defaultValue="details" className="w-full">
             <TabsList>
-              <TabsTrigger value="details">{t("Details")}</TabsTrigger>
-              <TabsTrigger value="notes">{t("Notes")}</TabsTrigger>
+              <TabsTrigger value="details">{tCommon("details")}</TabsTrigger>
+              <TabsTrigger value="notes">{t("notes")}</TabsTrigger>
             </TabsList>
             <TabsContent value="details" className="space-y-4 pt-4">
               <div className="bg-muted/50 p-4 rounded-md">

@@ -40,12 +40,15 @@ export const metadata: OperationObject = {
   },
   permission: "view.ecommerce.review",
   requiresAuth: true,
+  demoMask: ["user.email"],
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("ecommerceReview", params.id, [
+  ctx?.step("Fetching review by ID");
+
+  const result = await getRecord("ecommerceReview", params.id, [
     {
       model: models.ecommerceProduct,
       as: "product",
@@ -64,4 +67,7 @@ export default async (data) => {
       attributes: ["id", "firstName", "lastName", "email", "avatar"],
     },
   ]);
+
+  ctx?.success("Review retrieved successfully");
+  return result;
 };

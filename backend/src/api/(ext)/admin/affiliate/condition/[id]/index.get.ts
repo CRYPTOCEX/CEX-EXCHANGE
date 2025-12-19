@@ -1,29 +1,30 @@
+import { getRecord } from "@b/utils/query";
 import {
-  getRecord,
   unauthorizedResponse,
-  notFoundMetadataResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+  notFoundResponse,
+} from "@b/utils/schema/errors";
 import { baseMlmReferralConditionSchema } from "../utils";
 
 export const metadata: OperationObject = {
-  summary:
-    "Retrieves detailed information of a specific MLM Referral Condition by ID",
-  operationId: "getMlmReferralConditionById",
-  tags: ["Admin", "MLM", "Referral Conditions"],
+  summary: "Retrieves a specific affiliate condition by ID",
+  description:
+    "Fetches detailed information about a specific affiliate condition including its type, reward configuration, wallet settings, and current status. Returns complete condition details including creation and update timestamps.",
+  operationId: "getAffiliateConditionById",
+  tags: ["Admin", "Affiliate", "Condition"],
   parameters: [
     {
       index: 0,
       name: "id",
       in: "path",
       required: true,
-      description: "ID of the MLM Referral Condition to retrieve",
+      description: "ID of the affiliate condition to retrieve",
       schema: { type: "string" },
     },
   ],
   responses: {
     200: {
-      description: "MLM Referral Condition details",
+      description: "Affiliate condition retrieved successfully",
       content: {
         "application/json": {
           schema: {
@@ -34,15 +35,21 @@ export const metadata: OperationObject = {
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("MLM Referral Condition"),
+    404: notFoundResponse("Affiliate Condition"),
     500: serverErrorResponse,
   },
   permission: "view.affiliate.condition",
   requiresAuth: true,
+  logModule: "ADMIN_AFFILIATE",
+  logTitle: "Get affiliate condition details",
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("mlmReferralCondition", params.id);
+  ctx?.step(`Fetching condition with ID: ${params.id}`);
+  const result = await getRecord("mlmReferralCondition", params.id);
+
+  ctx?.success("Condition details retrieved successfully");
+  return result;
 };

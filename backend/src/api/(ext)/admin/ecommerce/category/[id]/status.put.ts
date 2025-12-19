@@ -1,16 +1,24 @@
 import { updateStatus, updateRecordResponses } from "@b/utils/query";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  notFoundResponse,
+  badRequestResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata: OperationObject = {
-  summary: "Updates the status of an E-commerce Category",
-  operationId: "updateEcommerceCategoryStatus",
-  tags: ["Admin", "Ecommerce Categories"],
+  summary: "Updates an ecommerce category status by ID",
+  description:
+    "Updates the status (active/inactive) of a specific ecommerce category. Set status to true to activate the category or false to deactivate it.",
+  operationId: "updateEcommerceCategoryStatusById",
+  tags: ["Admin", "Ecommerce", "Category"],
   parameters: [
     {
-      index: 0, // This is the index you mentioned
+      index: 0,
       name: "id",
       in: "path",
       required: true,
-      description: "ID of the E-commerce category to update",
+      description: "ID of the ecommerce category to update",
       schema: { type: "string" },
     },
   ],
@@ -24,7 +32,7 @@ export const metadata: OperationObject = {
             status: {
               type: "boolean",
               description:
-                "New status to apply to the E-commerce category (true for active, false for inactive)",
+                "New status to apply to the ecommerce category (true for active, false for inactive)",
             },
           },
           required: ["status"],
@@ -32,14 +40,44 @@ export const metadata: OperationObject = {
       },
     },
   },
-  responses: updateRecordResponses("E-commerce Category"),
+  responses: {
+    200: {
+      description: "Category status updated successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              message: {
+                type: "string",
+                description: "Success message",
+              },
+            },
+          },
+        },
+      },
+    },
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    404: notFoundResponse("Ecommerce category"),
+    500: serverErrorResponse,
+  },
   requiresAuth: true,
   permission: "edit.ecommerce.category",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Update category status",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
-  return updateStatus("ecommerceCategory", id, status);
+
+  ctx?.step("Validating status data");
+  ctx?.step(`Updating category status: ${id} to ${status}`);
+
+  const result = await updateStatus("ecommerceCategory", id, status);
+
+  ctx?.success("Category status updated successfully");
+  return result;
 };

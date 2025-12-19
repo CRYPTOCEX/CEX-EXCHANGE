@@ -39,7 +39,9 @@ export default function TeamMemberForm({
   onUpdate,
   onRemove,
 }: TeamMemberFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -92,7 +94,7 @@ export default function TeamMemberForm({
             className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
           >
             <Trash2 className="h-4 w-4 mr-1" />
-            {t("Remove")}
+            {tCommon("remove")}
           </Button>
         )}
       </div>
@@ -142,10 +144,10 @@ export default function TeamMemberForm({
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Upload className="h-4 w-4 mr-2" />
-                Choose File
+                {tCommon("choose_file")}
               </Button>
               <p className="text-xs text-muted-foreground mt-2">
-                Max 5MB • JPG, PNG, GIF, WebP
+                {t("max_5mb_jpg_png_gif_webp")}
               </p>
             </div>
           )}
@@ -164,18 +166,18 @@ export default function TeamMemberForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t("Name")}</label>
+          <label className="text-sm font-medium">{tCommon("name")}</label>
           <Input
-            placeholder="Full Name"
+            placeholder={t("full_name")}
             value={member.name}
             onChange={(e) => onUpdate(member.id, "name", e.target.value)}
           />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t("Role")}</label>
+          <label className="text-sm font-medium">{tCommon("role")}</label>
           <Input
-            placeholder="e.g. CEO, CTO, Lead Developer"
+            placeholder={t("e_g_ceo_cto_lead_developer")}
             value={member.role}
             onChange={(e) => onUpdate(member.id, "role", e.target.value)}
           />
@@ -183,9 +185,9 @@ export default function TeamMemberForm({
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">{t("Bio")}</label>
+        <label className="text-sm font-medium">{tCommon("bio")}</label>
         <Textarea
-          placeholder="Brief professional background and experience"
+          placeholder={t("brief_professional_background_and_experience")}
           className="min-h-[80px]"
           value={member.bio}
           onChange={(e) => onUpdate(member.id, "bio", e.target.value)}
@@ -194,7 +196,7 @@ export default function TeamMemberForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t("LinkedIn")}</label>
+          <label className="text-sm font-medium">{tExt("linkedin")}</label>
           <Input
             placeholder="https://linkedin.com/in/profile"
             value={member.linkedin || ""}
@@ -203,7 +205,7 @@ export default function TeamMemberForm({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t("Twitter_X")}</label>
+          <label className="text-sm font-medium">{t("twitter_x")}</label>
           <Input
             placeholder="https://twitter.com/username"
             value={member.twitter || ""}
@@ -215,7 +217,7 @@ export default function TeamMemberForm({
       {/* New grid for GitHub and Website */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t("GitHub")}</label>
+          <label className="text-sm font-medium">{tCommon("github")}</label>
           <Input
             placeholder="https://github.com/username"
             value={member.github || ""}
@@ -224,7 +226,7 @@ export default function TeamMemberForm({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t("Website")}</label>
+          <label className="text-sm font-medium">{tCommon("website")}</label>
           <Input
             placeholder="https://yourwebsite.com"
             value={member.website || ""}

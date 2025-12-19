@@ -3,14 +3,23 @@ import { createError } from "@b/utils/error";
 
 import { p2pAdminOfferRateLimit } from "@b/handler/Middleware";
 import { logP2PAdminAction } from "../../../../p2p/utils/ownership";
+import { logger } from "@b/utils/console";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  notFoundResponse,
+  badRequestResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Approve P2P Offer (Admin)",
-  description: "Approves a user offer on the P2P platform.",
+  summary: "Approve P2P offer",
+  description: "Approves a pending P2P offer and sets it to ACTIVE status. Validates offer requirements (amount, payment methods) and sends approval notification to the offer owner.",
   operationId: "approveAdminP2POffer",
-  tags: ["Admin", "Offers", "P2P"],
+  tags: ["Admin", "P2P", "Offer"],
   requiresAuth: true,
   middleware: [p2pAdminOfferRateLimit],
+  logModule: "ADMIN_P2P",
+  logTitle: "Approve P2P offer",
   parameters: [
     {
       index: 0,
@@ -37,15 +46,15 @@ export const metadata = {
   },
   responses: {
     200: { description: "Offer approved successfully." },
-    401: { description: "Unauthorized." },
-    404: { description: "Offer not found." },
-    500: { description: "Internal Server Error." },
+    401: unauthorizedResponse,
+    404: notFoundResponse("Resource"),
+    500: serverErrorResponse,
   },
   permission: "edit.p2p.offer",
 };
 
 export default async (data) => {
-  const { params, body, user } = data;
+  const { params, body, user, ctx } = data;
   const { id } = params;
   const { notes } = body;
 
@@ -54,6 +63,7 @@ export default async (data) => {
   const { notifyOfferEvent } = await import("../../../../p2p/utils/notifications");
 
   try {
+    ctx?.step("Fetching offer");
     const offer = await models.p2pOffer.findByPk(id, {
       include: [
         {
@@ -70,34 +80,41 @@ export default async (data) => {
     });
 
     if (!offer) {
+      ctx?.fail("Offer not found");
       throw createError({ statusCode: 404, message: "Offer not found" });
     }
 
+    ctx?.step("Getting admin information");
     // Get admin user data for logging
     const adminUser = await models.user.findByPk(user.id, {
       attributes: ["id", "firstName", "lastName", "email"],
     });
 
+    ctx?.step("Validating offer status transition");
     // Validate status transition
     if (!validateOfferStatusTransition(offer.status, "ACTIVE")) {
-      throw createError({ 
-        statusCode: 400, 
-        message: `Cannot approve offer from status: ${offer.status}` 
+      ctx?.fail(`Cannot approve offer from status: ${offer.status}`);
+      throw createError({
+        statusCode: 400,
+        message: `Cannot approve offer from status: ${offer.status}`
       });
     }
 
+    ctx?.step("Validating offer requirements");
     // Validate offer has all required fields
     if (!offer.amountConfig?.total || offer.amountConfig.total <= 0) {
-      throw createError({ 
-        statusCode: 400, 
-        message: "Cannot approve offer with zero or invalid amount" 
+      ctx?.fail("Offer has invalid amount");
+      throw createError({
+        statusCode: 400,
+        message: "Cannot approve offer with zero or invalid amount"
       });
     }
 
     if (!offer.paymentMethods || offer.paymentMethods.length === 0) {
-      throw createError({ 
-        statusCode: 400, 
-        message: "Cannot approve offer without payment methods" 
+      ctx?.fail("Offer has no payment methods");
+      throw createError({
+        statusCode: 400,
+        message: "Cannot approve offer without payment methods"
       });
     }
 
@@ -107,6 +124,7 @@ export default async (data) => {
       ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'Admin'
       : 'Admin';
 
+    ctx?.step("Approving offer");
     // Update offer with correct uppercase status
     await offer.update({
       status: "ACTIVE", // Fixed: uppercase status
@@ -125,6 +143,7 @@ export default async (data) => {
       ],
     });
 
+    ctx?.step("Logging admin activity");
     // Log admin activity with enhanced audit trail
     await logP2PAdminAction(
       user.id,
@@ -142,13 +161,15 @@ export default async (data) => {
       }
     );
 
+    ctx?.step("Sending notification");
     // Send notification to offer owner
     notifyOfferEvent(offer.id, "OFFER_APPROVED", {
       adminNotes: sanitizedNotes,
       approvedBy: adminName,
-    }).catch(console.error);
+    }).catch((error) => logger.error("P2P", "Failed to send offer approved notification", error));
 
-    return { 
+    ctx?.success("Offer approved successfully");
+    return {
       message: "Offer approved successfully.",
       offer: {
         id: offer.id,
@@ -160,6 +181,7 @@ export default async (data) => {
     if (err.statusCode) {
       throw err;
     }
+    ctx?.fail("Failed to approve offer");
     throw createError({
       statusCode: 500,
       message: "Internal Server Error: " + err.message,

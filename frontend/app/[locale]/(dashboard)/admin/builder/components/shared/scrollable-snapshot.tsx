@@ -17,7 +17,8 @@ export function ScrollableSnapshot({
   scrollDuration = 8, // Default to 8 seconds for full scroll
   fallbackSrc,
 }: ScrollableSnapshotProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const [isHovering, setIsHovering] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -119,7 +120,7 @@ export function ScrollableSnapshot({
       {!loaded && !error && (
         <div className="absolute inset-0 flex items-center justify-center bg-muted">
           <div className="animate-pulse text-muted-foreground text-sm">
-            {t("Loading")}.
+            {t("loading")}.
           </div>
         </div>
       )}
@@ -152,7 +153,7 @@ export function ScrollableSnapshot({
 
       {isHovering && imageHeight > containerHeight && !error && (
         <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-          {t("Auto-scrolling")}
+          {tDashboardAdmin("auto_scrolling")}
         </div>
       )}
     </div>

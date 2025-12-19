@@ -1,10 +1,17 @@
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
+import {
+  badRequestResponse,
+  unauthorizedResponse,
+  forbiddenResponse,
+  serverErrorResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
   summary: "Update ICO Investment Limits",
-  description: "Updates the ICO investment limit settings",
-  operationId: "updateIcoLimits",
+  description:
+    "Updates the ICO investment limit settings with validation. Ensures min/max relationships are valid and soft cap percentage is within 0-100 range. Changes are logged in audit trail.",
+  operationId: "updateIcoInvestmentLimits",
   tags: ["Admin", "ICO", "Settings"],
   requiresAuth: true,
   requiresAdmin: true,
@@ -15,13 +22,13 @@ export const metadata = {
         schema: {
           type: "object",
           properties: {
-            minInvestment: { type: "number", minimum: 0 },
-            maxInvestment: { type: "number", minimum: 0 },
-            maxPerUser: { type: "number", minimum: 0 },
-            softCapPercentage: { type: "number", minimum: 0, maximum: 100 },
-            refundGracePeriod: { type: "number", minimum: 0 },
-            vestingEnabled: { type: "boolean" },
-            defaultVestingMonths: { type: "number", minimum: 0 },
+            minInvestment: { type: "number", minimum: 0, description: "Minimum investment amount" },
+            maxInvestment: { type: "number", minimum: 0, description: "Maximum investment amount" },
+            maxPerUser: { type: "number", minimum: 0, description: "Maximum investment per user" },
+            softCapPercentage: { type: "number", minimum: 0, maximum: 100, description: "Soft cap percentage" },
+            refundGracePeriod: { type: "number", minimum: 0, description: "Refund grace period in days" },
+            vestingEnabled: { type: "boolean", description: "Enable token vesting" },
+            defaultVestingMonths: { type: "number", minimum: 0, description: "Default vesting period in months" },
           },
         },
       },
@@ -41,32 +48,37 @@ export const metadata = {
         },
       },
     },
-    400: { description: "Bad Request" },
-    401: { description: "Unauthorized" },
-    403: { description: "Forbidden" },
-    500: { description: "Internal Server Error" },
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    403: forbiddenResponse,
+    500: serverErrorResponse,
   },
+  logModule: "ADMIN_ICO",
+  logTitle: "Update ICO limits",
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
-  
+  const { user, body, ctx } = data;
+
   if (!user?.id) {
-    throw createError({ 
-      statusCode: 401, 
-      message: "Authentication required" 
+    ctx?.fail("Authentication required");
+    throw createError({
+      statusCode: 401,
+      message: "Authentication required"
     });
   }
-  
+
+  ctx?.step("Checking admin privileges");
   // Check admin role through user model
   const fullUser = await models.user.findByPk(user.id, {
     include: [{ model: models.role, as: "role" }]
   });
-  
+
   if (!fullUser || (fullUser.role?.name !== 'admin' && fullUser.role?.name !== 'super_admin')) {
-    throw createError({ 
-      statusCode: 403, 
-      message: "Admin privileges required" 
+    ctx?.fail("Admin privileges required");
+    throw createError({
+      statusCode: 403,
+      message: "Admin privileges required"
     });
   }
 
@@ -80,31 +92,37 @@ export default async (data: Handler) => {
     defaultVestingMonths,
   } = body;
 
+  ctx?.step("Validating limit values");
   // Validate limits
   if (minInvestment !== undefined && minInvestment < 0) {
-    throw createError({ 
-      statusCode: 400, 
-      message: "Minimum investment cannot be negative" 
+    ctx?.fail("Invalid minimum investment");
+    throw createError({
+      statusCode: 400,
+      message: "Minimum investment cannot be negative"
     });
   }
-  
+
   if (maxInvestment !== undefined && minInvestment !== undefined && maxInvestment < minInvestment) {
-    throw createError({ 
-      statusCode: 400, 
-      message: "Maximum investment must be greater than minimum investment" 
+    ctx?.fail("Invalid max/min investment relationship");
+    throw createError({
+      statusCode: 400,
+      message: "Maximum investment must be greater than minimum investment"
     });
   }
 
   if (softCapPercentage !== undefined && (softCapPercentage < 0 || softCapPercentage > 100)) {
-    throw createError({ 
-      statusCode: 400, 
-      message: "Soft cap percentage must be between 0 and 100" 
+    ctx?.fail("Invalid soft cap percentage");
+    throw createError({
+      statusCode: 400,
+      message: "Soft cap percentage must be between 0 and 100"
     });
   }
 
+  ctx?.step("Starting database transaction");
   const transaction = await sequelize.transaction();
-  
+
   try {
+    ctx?.step("Updating limit settings");
     // Update settings
     const updates = [
       { key: 'icoMinInvestment', value: minInvestment?.toString() },
@@ -126,6 +144,7 @@ export default async (data: Handler) => {
       );
     }
 
+    ctx?.step("Creating audit log");
     // Create audit log
     await models.icoAdminActivity.create({
       type: "SETTINGS_UPDATED",
@@ -142,11 +161,13 @@ export default async (data: Handler) => {
 
     await transaction.commit();
 
+    ctx?.success("ICO limits updated successfully");
     return {
       message: "ICO limits updated successfully",
     };
   } catch (err: any) {
     await transaction.rollback();
+    ctx?.fail("Transaction failed");
     throw err;
   }
 };

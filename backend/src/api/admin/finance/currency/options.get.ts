@@ -47,15 +47,18 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("Currency"),
     500: serverErrorResponse,
   },
+  logModule: "ADMIN_FIN",
+  logTitle: "Get Currency Options",
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
   if (!user?.id) throw createError(401, "Unauthorized");
   const { type } = query;
 
   const where = { status: true };
   try {
+    ctx?.step("Fetching currency options");
     let currencies;
     let formatted;
 
@@ -90,6 +93,7 @@ export default async (data: Handler) => {
         formatted = [];
     }
 
+    ctx?.success("Currency options retrieved successfully");
     return formatted;
   } catch (error) {
     throw createError(500, "An error occurred while fetching currencies");

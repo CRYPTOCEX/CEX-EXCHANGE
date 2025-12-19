@@ -115,7 +115,10 @@ const ATTRIBUTE_DISPLAY_TYPES = [
 ];
 
 export default function CreateNFTClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_nft");
+  const tCommon = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
+  const tExt = useTranslations("ext");
   const router = useRouter();
   const { user } = useUserStore();
 
@@ -180,7 +183,7 @@ export default function CreateNFTClient() {
 
       const balance = await wagmiGetBalance(config, {
         address: address as `0x${string}`,
-        chainId: chainId,
+        chainId: Number(chainId),
       });
 
       const balanceEth = Number(balance.value) / Math.pow(10, balance.decimals);
@@ -209,6 +212,7 @@ export default function CreateNFTClient() {
   const totalSteps = 6;
 
   const form = useForm<CreateNFTForm>({
+    // @ts-ignore - Complex Zod type inference causing build issues
     resolver: zodResolver(createNFTSchema),
     defaultValues: {
       name: "",
@@ -231,8 +235,7 @@ export default function CreateNFTClient() {
   const chain = form.watch("chain");
   const { estimate: gasEstimate, loading: gasLoading, canAfford } = useGasEstimation({
     operation: "mint",
-    chain,
-    enabled: true // Always enabled since we always mint to blockchain
+    chain
   });
 
   // Calculate progress based on actual completion (6 steps)
@@ -525,7 +528,7 @@ export default function CreateNFTClient() {
 
       // Check if can afford gas fees
       if (gasEstimate && !canAfford) {
-        toast.error(`Insufficient balance to cover gas fees. Required: ${gasEstimate.estimatedCost}, Available: ${walletBalance}`);
+        toast.error(`Insufficient balance to cover gas fees. Required: ${gasEstimate.gasCostEth}, Available: ${walletBalance}`);
         return;
       }
 
@@ -713,7 +716,7 @@ export default function CreateNFTClient() {
           {t("please_sign_in_to_create_nfts")}
         </p>
         <Button onClick={() => setIsAuthModalOpen(true)}>
-          {t("sign_in")}
+          {tCommon("sign_in")}
         </Button>
         <AuthModal
           isOpen={isAuthModalOpen}
@@ -727,14 +730,14 @@ export default function CreateNFTClient() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-primary/5 via-purple-600/5 to-background border-b">
+      <div className={`relative overflow-hidden bg-gradient-to-b from-primary/5 via-purple-600/5 to-background border-b`}>
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-purple-600/10 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className={`absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-purple-600/10 to-transparent rounded-full blur-3xl animate-pulse`} style={{ animationDelay: '1s' }} />
         </div>
 
-        <div className="relative container mx-auto px-4 pt-24 pb-16">
+        <div className="relative container mx-auto px-4 pt-20 pb-16">
           {/* Hero Content */}
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-full mb-6">
@@ -742,7 +745,7 @@ export default function CreateNFTClient() {
               <span className="text-sm font-semibold text-primary">Create Your Masterpiece</span>
             </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-primary to-purple-600 bg-clip-text text-transparent">
+            <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-primary to-purple-600 bg-clip-text text-transparent`}>
               {t("create_new_nft")}
             </h1>
 
@@ -1406,7 +1409,7 @@ export default function CreateNFTClient() {
                         setShowIPFSInput(false);
                       }}
                     >
-                      {t("Back")}
+                      {tCommon("back")}
                     </Button>
                     <Button
                       type="button"
@@ -1414,7 +1417,7 @@ export default function CreateNFTClient() {
                       disabled={!canProceedToStep(4)}
                       size="lg"
                     >
-                      {t("Continue")}
+                      {tExt("continue")}
                       <ChevronRight className="h-4 w-4 ml-2" />
                     </Button>
                   </div>
@@ -1429,7 +1432,7 @@ export default function CreateNFTClient() {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <FileText className="h-5 w-5" />
-                        {t("basic_information")}
+                        {tDashboardAdmin("basic_information")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
@@ -1471,7 +1474,7 @@ export default function CreateNFTClient() {
                           name="name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t("Name")} *</FormLabel>
+                              <FormLabel>{tCommon("name")} *</FormLabel>
                               <FormControl>
                                 <Input placeholder={t("enter_nft_name")} {...field} />
                               </FormControl>
@@ -1487,7 +1490,7 @@ export default function CreateNFTClient() {
                         name="description"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t("Description")}</FormLabel>
+                            <FormLabel>{tCommon("description")}</FormLabel>
                             <FormControl>
                               <Textarea
                                 placeholder={t("describe_your_nft")}
@@ -1546,14 +1549,14 @@ export default function CreateNFTClient() {
                     variant="outline"
                     onClick={() => goToStep(3)}
                   >
-                    {t("Back")}
+                    {tCommon("back")}
                   </Button>
                   <Button
                     type="button"
                     onClick={() => goToStep(5)}
                     disabled={!canProceedToStep(5)}
                   >
-                    {t("Continue")}
+                    {tExt("continue")}
                     <ChevronRight className="h-4 w-4 ml-2" />
                   </Button>
                 </div>
@@ -1568,7 +1571,7 @@ export default function CreateNFTClient() {
                       <CardTitle className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Layers className="h-5 w-5" />
-                          {t("Attributes")}
+                          {t("attributes")}
                         </div>
                         <Button
                           type="button"
@@ -1577,7 +1580,7 @@ export default function CreateNFTClient() {
                           onClick={addAttribute}
                         >
                           <Plus className="h-4 w-4 mr-2" />
-                          {t("add_attribute")}
+                          {tCommon("add_attribute")}
                         </Button>
                       </CardTitle>
                     </CardHeader>
@@ -1602,7 +1605,7 @@ export default function CreateNFTClient() {
                                 onChange={(e) => updateAttribute(index, "trait_type", e.target.value)}
                               />
                               <Input
-                                placeholder={t("Value")}
+                                placeholder={tCommon("value")}
                                 value={attribute.value}
                                 onChange={(e) => updateAttribute(index, "value", e.target.value)}
                               />
@@ -1641,7 +1644,7 @@ export default function CreateNFTClient() {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Settings className="h-5 w-5" />
-                        {t("Settings")}
+                        {tCommon("settings")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1760,14 +1763,14 @@ export default function CreateNFTClient() {
                     variant="outline"
                     onClick={() => goToStep(4)}
                   >
-                    {t("Back")}
+                    {tCommon("back")}
                   </Button>
                   <Button
                     type="button"
                     onClick={() => goToStep(6)}
                     disabled={!canProceedToStep(6)}
                   >
-                    {t("Preview")}
+                    {tCommon("preview")}
                     <Eye className="h-4 w-4 ml-2" />
                   </Button>
                 </div>
@@ -1820,7 +1823,7 @@ export default function CreateNFTClient() {
 
                         {attributes.length > 0 && (
                           <div className="space-y-2">
-                            <h4 className="font-medium">{t("Attributes")}</h4>
+                            <h4 className="font-medium">{t("attributes")}</h4>
                             <div className="grid grid-cols-2 gap-2">
                               {attributes.map((attr, index) => (
                                 <div key={index} className="p-2 bg-muted rounded-lg">
@@ -1846,14 +1849,14 @@ export default function CreateNFTClient() {
                     <CardContent className="space-y-4">
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm">{t("Blockchain")}</span>
+                          <span className="text-sm">{tExt("blockchain")}</span>
                           <Badge>
                             {selectedCollection?.chain || "Not selected"}
                           </Badge>
                         </div>
 
                         <div className="flex justify-between items-center">
-                          <span className="text-sm">{t("Royalty")}</span>
+                          <span className="text-sm">{tCommon("royalty")}</span>
                           <span className="text-sm font-medium">
                             {form.watch("royaltyPercentage") || 0}%
                           </span>
@@ -1941,7 +1944,7 @@ export default function CreateNFTClient() {
                         <Separator />
 
                         <div className="space-y-2">
-                          <h4 className="font-medium text-sm">{t("what_happens_next")}</h4>
+                          <h4 className="font-medium text-sm">{tCommon("what_happens_next")}</h4>
                           <ul className="text-xs text-muted-foreground space-y-1">
                             <li>• {t("your_nft_will_be_created_on_the_blockchain")}</li>
                             <li>• {t("it_will_appear_in_your_dashboard")}</li>
@@ -1959,24 +1962,24 @@ export default function CreateNFTClient() {
                     variant="outline"
                     onClick={() => goToStep(5)}
                   >
-                    {t("Back")}
+                    {tCommon("back")}
                   </Button>
                   <div className="flex gap-4">
                     <Button type="button" variant="outline" onClick={() => router.back()}>
-                      {t("Cancel")}
+                      {tCommon("cancel")}
                     </Button>
                     <Button
                       type="submit"
-                      disabled={loading || uploadingImage || !isConnected || !walletBalance || parseFloat(walletBalance) === 0 || (gasEstimate && !canAfford)}
+                      disabled={loading || uploadingImage || !isConnected || !walletBalance || parseFloat(walletBalance) === 0 || !!(gasEstimate && !canAfford)}
                       size="lg"
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                      className={`bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white`}
                     >
                       {loading ? (
                         <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                       ) : (
                         <Sparkles className="h-5 w-5 mr-2" />
                       )}
-                      {!isConnected ? "Connect Wallet to Mint" : !walletBalance || parseFloat(walletBalance) === 0 ? "Insufficient Balance" : loading ? t("creating") : "Mint NFT"}
+                      {!isConnected ? "Connect Wallet to Mint" : !walletBalance || parseFloat(walletBalance) === 0 ? "Insufficient Balance" : loading ? tCommon('creating_ellipsis') : "Mint NFT"}
                     </Button>
                   </div>
                 </div>

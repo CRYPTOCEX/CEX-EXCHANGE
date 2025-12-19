@@ -3,29 +3,30 @@
 import { models } from "@b/db";
 
 import { crudParameters, paginationSchema } from "@b/utils/constants";
+import { getFiltered } from "@b/utils/query";
 import {
-  getFiltered,
-  notFoundMetadataResponse,
-  serverErrorResponse,
   unauthorizedResponse,
-} from "@b/utils/query";
+  serverErrorResponse,
+  notFoundResponse,
+} from "@b/utils/schema/errors";
 import { mlmReferralRewardSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary:
-    "Lists all MLM Referral Rewards with pagination and optional filtering",
-  operationId: "listMlmReferralRewards",
-  tags: ["Admin", "MLM", "Referral Rewards"],
+  summary: "List all affiliate rewards",
+  operationId: "listAffiliateRewards",
+  tags: ["Admin", "Affiliate", "Reward"],
+  description:
+    "Retrieves a paginated list of all affiliate referral rewards with optional filtering and sorting. Includes related referrer user details and referral condition information.",
   parameters: crudParameters,
   responses: {
     200: {
-      description: "List of MLM Referral Rewards with pagination information",
+      description: "Affiliate rewards retrieved successfully with pagination",
       content: {
         "application/json": {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -39,18 +40,21 @@ export const metadata: OperationObject = {
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("MLM Referral Rewards"),
+    404: notFoundResponse("Affiliate Rewards"),
     500: serverErrorResponse,
   },
   requiresAuth: true,
   permission: "view.affiliate.reward",
+  logModule: "ADMIN_AFFILIATE",
+  logTitle: "List affiliate rewards",
+  demoMask: ["items.referrer.email"],
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  // Call the generic fetch function
-  return getFiltered({
+  ctx?.step("Fetching affiliate rewards with related data");
+  const result = getFiltered({
     model: models.mlmReferralReward,
     query,
     sortField: query.sortField || "createdAt",
@@ -73,4 +77,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success("Rewards fetched successfully");
+  return result;
 };

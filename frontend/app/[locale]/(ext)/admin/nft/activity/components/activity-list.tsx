@@ -27,7 +27,7 @@ export function ActivityList({
   onView,
   onDelete,
 }: ActivityListProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const [visibleCount, setVisibleCount] = useState(20);
   const [ref, inView] = useInView();
 
@@ -86,7 +86,7 @@ export function ActivityList({
   const visibleGroupedActivities = Object.fromEntries(
     Object.entries(groupedActivities).map(([key, items]) => [
       key,
-      items.slice(0, visibleCount)
+      (items as any[]).slice(0, visibleCount)
     ])
   );
 

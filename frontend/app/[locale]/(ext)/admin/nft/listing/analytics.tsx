@@ -8,6 +8,11 @@ export const nftListingAnalytics: AnalyticsConfig = [
     {
       type: "kpi",
       layout: { cols: 3, rows: 2 },
+      responsive: {
+        mobile: { cols: 1, rows: 6, span: 1 },
+          tablet: { cols: 2, rows: 3, span: 2 },
+          desktop: { cols: 3, rows: 2, span: 2 },
+      },
       items: [
         {
           id: "total_listings",
@@ -60,6 +65,11 @@ export const nftListingAnalytics: AnalyticsConfig = [
     },
     {
       type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
       items: [
         {
           id: "listingStatusDistribution",
@@ -108,6 +118,11 @@ export const nftListingAnalytics: AnalyticsConfig = [
     {
       type: "kpi",
       layout: { cols: 3, rows: 1 },
+      responsive: {
+        mobile: { cols: 1, rows: 3, span: 1 },
+          tablet: { cols: 3, rows: 1, span: 2 },
+          desktop: { cols: 3, rows: 1, span: 2 },
+      },
       items: [
         {
           id: "fixed_price_listings",
@@ -137,6 +152,11 @@ export const nftListingAnalytics: AnalyticsConfig = [
     },
     {
       type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
       items: [
         {
           id: "listingTypeDistribution",
@@ -173,10 +193,78 @@ export const nftListingAnalytics: AnalyticsConfig = [
   ],
 
   // ─────────────────────────────────────────────────────────────
-  // Group 3: Listings Over Time – Full-Width Line Chart
+  // Group 3: Financial Metrics – KPI Grid
+  // ─────────────────────────────────────────────────────────────
+  {
+    type: "kpi",
+    layout: { cols: 3, rows: 2 },
+    responsive: {
+      mobile: { cols: 1, rows: 6, span: 1 },
+      tablet: { cols: 2, rows: 3, span: 1 },
+      desktop: { cols: 3, rows: 2, span: 1 },
+    },
+    items: [
+      {
+        id: "avg_listing_price",
+        title: "Avg Listing Price",
+        metric: "avg",
+        model: "nftListing",
+        aggregation: { field: "price", operation: "avg" },
+        icon: "mdi:currency-usd",
+      },
+      {
+        id: "total_listing_value",
+        title: "Total Listing Value",
+        metric: "sum",
+        model: "nftListing",
+        aggregation: { field: "price", operation: "sum" },
+        icon: "mdi:cash-multiple",
+      },
+      {
+        id: "avg_starting_bid",
+        title: "Avg Starting Bid",
+        metric: "avg",
+        model: "nftListing",
+        aggregation: { field: "startingBid", operation: "avg" },
+        icon: "mdi:gavel",
+      },
+      {
+        id: "avg_reserve_price",
+        title: "Avg Reserve Price",
+        metric: "avg",
+        model: "nftListing",
+        aggregation: { field: "reservePrice", operation: "avg" },
+        icon: "mdi:shield-check",
+      },
+      {
+        id: "total_views",
+        title: "Total Views",
+        metric: "sum",
+        model: "nftListing",
+        aggregation: { field: "views", operation: "sum" },
+        icon: "mdi:eye",
+      },
+      {
+        id: "total_likes",
+        title: "Total Likes",
+        metric: "sum",
+        model: "nftListing",
+        aggregation: { field: "likes", operation: "sum" },
+        icon: "mdi:heart",
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // Group 4: Listings Over Time – Full-Width Line Chart
   // ─────────────────────────────────────────────────────────────
   {
     type: "chart",
+    responsive: {
+      mobile: { cols: 1, rows: 1, span: 1 },
+      tablet: { cols: 1, rows: 1, span: 1 },
+      desktop: { cols: 1, rows: 1, span: 1 },
+    },
     items: [
       {
         id: "listingsOverTime",
@@ -194,4 +282,4 @@ export const nftListingAnalytics: AnalyticsConfig = [
       },
     ],
   },
-]; 
+] satisfies AnalyticsConfig; 

@@ -2,11 +2,18 @@
 
 import { createError } from "@b/utils/error";
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 import {
   notFoundMetadataResponse,
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
+
+interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
 
 export const metadata: OperationObject = {
   summary: "Retrieves a single ticket details for the logged-in user",
@@ -15,6 +22,8 @@ export const metadata: OperationObject = {
   operationId: "getTicket",
   tags: ["Support"],
   requiresAuth: true,
+  logModule: "USER",
+  logTitle: "Get support ticket",
   parameters: [
     {
       index: 0,
@@ -97,17 +106,25 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  if (!data.user?.id)
+  const { user, params, ctx } = data;
+  if (!user?.id) {
+    ctx?.fail?.("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
-  return getTicket(data.user.id, data.params.id);
+  }
+  ctx?.step?.("Retrieving support ticket");
+  const result = await getTicket(user.id, params.id, ctx);
+  ctx?.success?.("Support ticket retrieved successfully");
+  return result;
 };
 
 // Get a specific ticket
 export async function getTicket(
   userId: string,
-  id: string
+  id: string,
+  ctx?: LogContext
 ): Promise<supportTicketAttributes> {
   try {
+    ctx?.step?.("Querying database for support ticket");
     const ticket = await models.supportTicket.findOne({
       where: { id, userId },
       include: [
@@ -120,12 +137,14 @@ export async function getTicket(
     });
 
     if (!ticket) {
+      ctx?.fail?.("Ticket not found");
       throw createError({
         message: "Ticket not found",
         statusCode: 404,
       });
     }
 
+    ctx?.step?.("Processing ticket data");
     const plainTicket = ticket.get({ plain: true }) as any;
 
     // Ensure JSON fields are properly parsed
@@ -133,7 +152,7 @@ export async function getTicket(
       try {
         plainTicket.messages = JSON.parse(plainTicket.messages);
       } catch (e) {
-        console.warn('Failed to parse messages JSON:', e);
+        logger.warn("SUPPORT", "Failed to parse messages JSON");
         plainTicket.messages = [];
       }
     }
@@ -141,7 +160,7 @@ export async function getTicket(
       try {
         plainTicket.tags = JSON.parse(plainTicket.tags);
       } catch (e) {
-        console.warn('Failed to parse tags JSON:', e);
+        logger.warn("SUPPORT", "Failed to parse tags JSON");
         plainTicket.tags = [];
       }
     }
@@ -150,13 +169,16 @@ export async function getTicket(
     plainTicket.messages = plainTicket.messages || [];
     plainTicket.tags = plainTicket.tags || [];
 
+    ctx?.success?.("Ticket data processed successfully");
     return plainTicket as supportTicketAttributes;
   } catch (error) {
     if (error.statusCode) {
+      ctx?.fail?.(error.message);
       throw error; // Re-throw createError errors
     }
-    
-    console.error("Error fetching ticket:", error);
+
+    logger.error("SUPPORT", "Error fetching ticket", error);
+    ctx?.fail?.("Failed to fetch ticket");
     throw createError({
       statusCode: 500,
       message: "Failed to fetch ticket",

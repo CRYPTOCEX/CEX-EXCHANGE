@@ -15,7 +15,8 @@ export const RowSettings = ({
   settings,
   handleSettingChange,
 }: RowSettingsProps) => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-3">
       <div className="space-y-1">
@@ -27,7 +28,7 @@ export const RowSettings = ({
           <Input
             value={settings?.maxWidth || ""}
             onChange={(e) => handleSettingChange("maxWidth", e.target.value)}
-            placeholder="e.g., 1200px, 100%, etc."
+            placeholder={t("e_g_1200px_100_etc")}
             className="h-7 text-xs rounded-l-none"
           />
         </div>
@@ -43,7 +44,7 @@ export const RowSettings = ({
             onClick={() => handleSettingChange("verticalAlign", "top")}
           >
             <ArrowUp className="h-3.5 w-3.5" />
-            <span>{t("Top")}</span>
+            <span>{tCommon("top")}</span>
           </Button>
           <Button
             variant={
@@ -54,7 +55,7 @@ export const RowSettings = ({
             onClick={() => handleSettingChange("verticalAlign", "middle")}
           >
             <Move className="h-3.5 w-3.5" />
-            <span>{t("Middle")}</span>
+            <span>{t("middle")}</span>
           </Button>
           <Button
             variant={
@@ -65,7 +66,7 @@ export const RowSettings = ({
             onClick={() => handleSettingChange("verticalAlign", "bottom")}
           >
             <ArrowDown className="h-3.5 w-3.5" />
-            <span>{t("Bottom")}</span>
+            <span>{t("bottom")}</span>
           </Button>
         </div>
       </div>
@@ -78,7 +79,7 @@ export const RowSettings = ({
           min={0}
           max={50}
           unit="px"
-          tooltip="Space between columns"
+          tooltip={t("space_between_columns")}
         />
       </div>
     </div>

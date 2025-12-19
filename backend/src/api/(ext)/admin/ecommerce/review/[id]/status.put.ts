@@ -35,11 +35,18 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("E-commerce Review"),
   requiresAuth: true,
   permission: "edit.ecommerce.review",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Update E-commerce Review Status",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
-  return updateStatus("ecommerceReview", id, status);
+
+  ctx?.step("Updating E-commerce review status");
+  const result = await updateStatus("ecommerceReview", id, status);
+
+  ctx?.success("Successfully updated E-commerce review status");
+  return result;
 };

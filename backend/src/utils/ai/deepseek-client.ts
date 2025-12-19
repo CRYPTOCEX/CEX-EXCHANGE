@@ -1,3 +1,5 @@
+import { logger } from "@b/utils/console";
+
 /**
  * DeepSeek API client for generating AI responses
  */
@@ -8,7 +10,7 @@ export class DeepSeekClient {
   constructor() {
     this.apiKey = process.env.DEEPSEEK_API_KEY || "";
     if (!this.apiKey) {
-      console.error("DeepSeek API key is not set");
+      logger.error("DEEPSEEK", "API key is not set");
     }
   }
 
@@ -73,7 +75,7 @@ export class DeepSeekClient {
       const data = await response.json();
       return data.choices[0].message.content;
     } catch (error) {
-      console.error("Error generating text with DeepSeek:", error);
+      logger.error("DEEPSEEK", "Error generating text", error);
       throw error;
     }
   }
@@ -102,7 +104,7 @@ export class DeepSeekClient {
     try {
       return JSON.parse(response);
     } catch (e) {
-      console.error("Failed to parse DeepSeek response as JSON:", e);
+      logger.error("DEEPSEEK", "Failed to parse response as JSON", e);
       return {
         question: topic,
         answer: response,
@@ -179,7 +181,7 @@ export class DeepSeekClient {
     try {
       return JSON.parse(response);
     } catch (e) {
-      console.error("Failed to parse DeepSeek response as JSON:", e);
+      logger.error("DEEPSEEK", "Failed to parse tags response as JSON", e);
       // Extract tags using regex as fallback
       const tagMatches = response.match(/"([^"]+)"/g);
       return tagMatches ? tagMatches.map((tag) => tag.replace(/"/g, "")) : [];

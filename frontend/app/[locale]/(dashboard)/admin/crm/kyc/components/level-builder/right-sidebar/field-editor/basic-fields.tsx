@@ -22,7 +22,8 @@ interface BasicFieldsProps {
 }
 
 export function BasicFields({ field, onUpdate }: BasicFieldsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const handleBasicChange = (key: string, value: any) => {
     onUpdate(key, value);
   };
@@ -35,7 +36,7 @@ export function BasicFields({ field, onUpdate }: BasicFieldsProps) {
             htmlFor="field-label"
             className="text-gray-700 dark:text-zinc-300 flex items-center gap-1"
           >
-            {t("Label")}
+            {t("label")}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -51,7 +52,7 @@ export function BasicFields({ field, onUpdate }: BasicFieldsProps) {
             variant="outline"
             className="text-xs bg-gray-100 text-gray-600 border-gray-300 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700 font-normal"
           >
-            {t("Required")}
+            {tCommon("required")}
           </Badge>
         </div>
         <Input
@@ -67,7 +68,7 @@ export function BasicFields({ field, onUpdate }: BasicFieldsProps) {
           htmlFor="field-description"
           className="text-gray-700 dark:text-zinc-300 flex items-center gap-1"
         >
-          {t("Description")}
+          {tCommon("description")}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -85,7 +86,7 @@ export function BasicFields({ field, onUpdate }: BasicFieldsProps) {
           id="field-description"
           value={field.description || ""}
           onChange={(e) => handleBasicChange("description", e.target.value)}
-          placeholder="Optional field description"
+          placeholder={t("optional_field_description")}
           className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary dark:bg-zinc-900 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
         />
       </div>
@@ -95,7 +96,7 @@ export function BasicFields({ field, onUpdate }: BasicFieldsProps) {
           htmlFor="field-placeholder"
           className="text-gray-700 dark:text-zinc-300 flex items-center gap-1"
         >
-          {t("Placeholder")}
+          {t("placeholder")}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -111,7 +112,7 @@ export function BasicFields({ field, onUpdate }: BasicFieldsProps) {
           id="field-placeholder"
           value={field.placeholder || ""}
           onChange={(e) => handleBasicChange("placeholder", e.target.value)}
-          placeholder="Optional placeholder text"
+          placeholder={t("optional_placeholder_text")}
           className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary dark:bg-zinc-900 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
         />
       </div>
@@ -127,7 +128,7 @@ export function BasicFields({ field, onUpdate }: BasicFieldsProps) {
             htmlFor="field-required"
             className="text-gray-700 dark:text-zinc-300"
           >
-            {t("required_field")}
+            {tCommon("required_field")}
           </Label>
           <p className="text-xs text-gray-500 dark:text-zinc-500">
             {t("users_must_complete_this_field")}

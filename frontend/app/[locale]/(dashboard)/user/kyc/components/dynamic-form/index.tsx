@@ -78,7 +78,7 @@ export function DynamicForm({
   isPreview = false,
   hideProgressBar = false,
 }: DynamicFormProps) {
-  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   const [formData, setFormData] = useState<Record<string, any>>(defaultValues);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -794,7 +794,7 @@ export function DynamicForm({
           >
             <p className="font-medium dark:text-zinc-200">{field.label}</p>
             <p className="text-sm text-muted-foreground dark:text-zinc-400">
-              {t("field_type")}
+              {tCommon("field_type")}
               {field.type}
             </p>
           </div>
@@ -875,7 +875,7 @@ export function DynamicForm({
           <div className="mb-4">
             <div className="flex items-center justify-between mb-1">
               <p className="text-sm text-muted-foreground dark:text-zinc-400">
-                {t("Completion")}
+                {tCommon("completion")}
               </p>
               {showFieldCount && (
                 <p className="text-sm text-muted-foreground dark:text-zinc-400">

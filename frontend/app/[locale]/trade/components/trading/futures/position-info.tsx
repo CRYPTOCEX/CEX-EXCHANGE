@@ -12,7 +12,8 @@ export default function PositionInfo({
   estimatedLiquidationPrice,
   formatPrice,
 }: PositionInfoProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("trade_components");
+  const tCommon = useTranslations("common");
   return (
     <div className="mb-4 p-3 bg-muted/50 dark:bg-zinc-900/50 rounded-md">
       <div className="grid grid-cols-2 gap-2 text-xs">
@@ -24,7 +25,7 @@ export default function PositionInfo({
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">{t("margin")}</span>
+          <span className="text-muted-foreground">{tCommon("margin")}</span>
           <span className="font-medium">
             $
             {amount.toFixed(2)}
@@ -41,7 +42,7 @@ export default function PositionInfo({
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">{t("fees")}</span>
+          <span className="text-muted-foreground">{tCommon("fees")}</span>
           <span className="font-medium">
             $
             {(amount * 0.0004).toFixed(2)}

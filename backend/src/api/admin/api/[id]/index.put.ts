@@ -7,6 +7,8 @@ export const metadata: OperationObject = {
     "Updates an API key's details such as name, type, permissions, IP whitelist, or IP restriction.",
   operationId: "updateApiKey",
   tags: ["API Key Management"],
+  logModule: "ADMIN_API",
+  logTitle: "Update API",
   parameters: [
     {
       index: 0,
@@ -86,12 +88,13 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { params, body } = data;
+  const { params, body, ctx } = data;
 
   const { id } = params;
   const { userId, name, type, key, permissions, ipWhitelist, ipRestriction } =
     body;
 
+  ctx?.step("Validating API key");
   // Fetch the API key and validate ownership
   const apiKey = await models.apiKey.findOne({
     where: { id },
@@ -124,9 +127,11 @@ export default async (data) => {
   if (ipRestriction !== undefined)
     updatedFields.ipRestriction = Boolean(ipRestriction);
 
+  ctx?.step("Updating API key");
   // Update only the provided fields
   const updatedApiKey = await apiKey.update(updatedFields);
 
+  ctx?.success();
   return updatedApiKey;
 };
 

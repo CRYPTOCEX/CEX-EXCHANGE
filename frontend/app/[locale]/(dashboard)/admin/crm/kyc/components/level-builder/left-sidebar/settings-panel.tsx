@@ -46,7 +46,8 @@ export function SettingsPanel({
   currentLevel,
   onOpenVerificationServices,
 }: SettingsPanelProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const headerRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -98,7 +99,7 @@ export function SettingsPanel({
                   setLevelName?.(e.target.value);
                   onChangesUnsaved?.();
                 }}
-                placeholder="Enter level name"
+                placeholder={t("enter_level_name")}
                 className="bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700"
               />
             </div>
@@ -122,11 +123,11 @@ export function SettingsPanel({
                   }
                 }}
                 min="1"
-                placeholder="Enter level number"
+                placeholder={t("enter_level_number")}
                 className="bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700"
               />
               <p className="text-xs text-gray-500 dark:text-zinc-400">
-                {t("level_number_determines_advanced_verification)")}
+                {`${t("level_number_determines_advanced_verification")} (higher numbers = more advanced verification)`}
               </p>
             </div>
 
@@ -144,7 +145,7 @@ export function SettingsPanel({
                   setLevelDescription?.(e.target.value);
                   onChangesUnsaved?.();
                 }}
-                placeholder="Enter level description"
+                placeholder={t("enter_level_description")}
                 className="h-24 resize-none bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700"
                 rows={5}
               />
@@ -156,7 +157,7 @@ export function SettingsPanel({
 
           <div className="p-4 border-b border-gray-200 dark:border-zinc-800">
             <h3 className="text-sm font-medium text-gray-700 dark:text-zinc-200 mb-3">
-              {t("Status")}
+              {tCommon("status")}
             </h3>
             <div className="space-y-2">
               <div
@@ -173,7 +174,7 @@ export function SettingsPanel({
                 <Wand2 className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 dark:text-zinc-200">
-                    {t("Draft")}
+                    {tCommon("draft")}
                   </h4>
                   <p className="text-xs text-gray-500 dark:text-zinc-400">
                     {t("not_visible_to_users")}
@@ -195,7 +196,7 @@ export function SettingsPanel({
                 <Flame className="h-3.5 w-3.5 text-green-500 dark:text-green-400" />
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 dark:text-zinc-200">
-                    {t("Active")}
+                    {tCommon("active")}
                   </h4>
                   <p className="text-xs text-gray-500 dark:text-zinc-400">
                     {t("visible_and_available_to_users")}
@@ -217,7 +218,7 @@ export function SettingsPanel({
                 <Clock className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 dark:text-zinc-200">
-                    {t("Inactive")}
+                    {tCommon("inactive")}
                   </h4>
                   <p className="text-xs text-gray-500 dark:text-zinc-400">
                     {t("temporarily_disabled")}
@@ -243,7 +244,7 @@ export function SettingsPanel({
                       {/* Service details are stored in integrationDetails field instead */}
                     </div>
                     <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs px-2 py-1 rounded-full">
-                      {t("Connected")}
+                      {tCommon("connected")}
                     </div>
                   </div>
 

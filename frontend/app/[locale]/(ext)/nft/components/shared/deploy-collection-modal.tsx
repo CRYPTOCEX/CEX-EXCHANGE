@@ -40,7 +40,9 @@ export function DeployCollectionModal({
   collection,
   onSuccess,
 }: DeployCollectionModalProps) {
-  const t = useTranslations("nft");
+  const t = useTranslations("ext_nft");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { isConnected, address } = useAppKitAccount();
   const { open: openAppKit } = useAppKit();
   const { disconnect } = useDisconnect();
@@ -145,7 +147,7 @@ export function DeployCollectionModal({
       });
 
       if (error) {
-        throw new Error(error.message || "Failed to save deployment information");
+        throw new Error(typeof error === 'string' ? error : (error as any)?.message || "Failed to save deployment information");
       }
 
       setDeploymentResult(result);
@@ -214,9 +216,9 @@ export function DeployCollectionModal({
               <Badge variant="outline">{collection.chain || "BSC"}</Badge>
             </div>
             <div className="text-sm space-y-1">
-              <p>{t("symbol")} <span className="font-medium">{collection.symbol}</span></p>
-              <p>{t("max_supply")} <span className="font-medium">{collection.maxSupply || "Unlimited"}</span></p>
-              <p>{t("royalty")} <span className="font-medium">{collection.royaltyPercentage || 0}%</span></p>
+              <p>{tCommon("symbol")} <span className="font-medium">{collection.symbol}</span></p>
+              <p>{tCommon("max_supply")} <span className="font-medium">{collection.maxSupply || "Unlimited"}</span></p>
+              <p>{tCommon("royalty")} <span className="font-medium">{collection.royaltyPercentage || 0}%</span></p>
             </div>
           </div>
 
@@ -242,7 +244,7 @@ export function DeployCollectionModal({
               <div className="flex items-center justify-between p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  <span className="text-sm font-medium">{t("wallet_connected")}</span>
+                  <span className="text-sm font-medium">{tCommon("wallet_connected")}</span>
                 </div>
                 <Button
                   variant="ghost"
@@ -265,7 +267,7 @@ export function DeployCollectionModal({
                 <h4 className="font-semibold">{t("deployment_details")}</h4>
                 <div className="space-y-1 text-muted-foreground">
                   <div className="flex justify-between">
-                    <span>{t("network")}</span>
+                    <span>{tCommon("network")}</span>
                     <span className="font-medium text-foreground">
                       {collection.chain || "BSC"}
                     </span>
@@ -345,7 +347,7 @@ export function DeployCollectionModal({
 
               <div className="space-y-2 text-sm bg-muted/50 p-4 rounded-lg">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("contract_address")}</span>
+                  <span className="text-muted-foreground">{tExt("contract_address")}</span>
                   <span className="font-mono font-medium">
                     {deploymentResult.contractAddress.slice(0, 6)}...
                     {deploymentResult.contractAddress.slice(-4)}
@@ -356,7 +358,7 @@ export function DeployCollectionModal({
                   <span className="font-medium">{deploymentResult.gasUsed}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("deployment_cost")}</span>
+                  <span className="text-muted-foreground">{tExt("deployment_cost")}</span>
                   <span className="font-medium">
                     {deploymentResult.deploymentCost} {collection.chain === "ETH" ? "ETH" : "BNB"}
                   </span>
@@ -375,7 +377,7 @@ export function DeployCollectionModal({
               size="lg"
             >
               <Wallet className="mr-2 h-4 w-4" />
-              {t("connect_wallet")}
+              {tCommon("connect_wallet")}
             </Button>
           )}
 

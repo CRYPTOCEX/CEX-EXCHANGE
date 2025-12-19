@@ -9,7 +9,7 @@ import {
 
 export default function Loading() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="pt-20 flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <Skeleton className="h-10 w-48" />
         <div className="flex items-center gap-2">

@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function InvestmentDetailLoading() {
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto pt-20 py-10">
       <div className="space-y-8">
         {/* Header */}
         <div className="space-y-4">

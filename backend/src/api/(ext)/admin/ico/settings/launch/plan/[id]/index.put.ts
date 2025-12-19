@@ -1,11 +1,18 @@
 import { updateRecord, updateRecordResponses } from "@b/utils/query";
 import { createError } from "@b/utils/error";
+import {
+  badRequestResponse,
+  unauthorizedResponse,
+  notFoundResponse,
+  serverErrorResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Update a specific Launch Plan",
-  description: "Updates a launch plan configuration for ICO admin.",
-  operationId: "updateLaunchPlan",
-  tags: ["ICO", "Admin", "LaunchPlans"],
+  summary: "Update ICO Launch Plan",
+  description:
+    "Updates an existing ICO launch plan configuration including pricing, features, and display settings.",
+  operationId: "updateIcoLaunchPlan",
+  tags: ["Admin", "ICO", "Settings"],
   parameters: [
     {
       index: 0,
@@ -45,13 +52,33 @@ export const metadata = {
       },
     },
   },
-  responses: updateRecordResponses("Launch Plan"),
+  responses: {
+    200: {
+      description: "Launch plan updated successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              message: { type: "string" },
+            },
+          },
+        },
+      },
+    },
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    404: notFoundResponse("Launch Plan"),
+    500: serverErrorResponse,
+  },
   requiresAuth: true,
   permission: "edit.ico.settings",
+  logModule: "ADMIN_ICO",
+  logTitle: "Update launch plan",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     name,
@@ -64,6 +91,8 @@ export default async (data: Handler) => {
     status,
     sortOrder,
   } = body;
+
+  ctx?.step("Validating launch plan data");
   if (
     !name ||
     !description ||
@@ -72,13 +101,16 @@ export default async (data: Handler) => {
     !walletType ||
     !features
   ) {
+    ctx?.fail("Missing required fields");
     throw createError({
       statusCode: 400,
       message:
         "Missing required fields: name, description, price, currency, walletType, features",
     });
   }
-  return await updateRecord("icoLaunchPlan", id, {
+
+  ctx?.step("Updating launch plan");
+  const result = await updateRecord("icoLaunchPlan", id, {
     name,
     description,
     price,
@@ -89,4 +121,7 @@ export default async (data: Handler) => {
     status: status === undefined ? true : status,
     sortOrder: sortOrder || 0,
   });
+
+  ctx?.success("Launch plan updated successfully");
+  return result;
 };

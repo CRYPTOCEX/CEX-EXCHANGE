@@ -1,6 +1,12 @@
+"use client";
+
 import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
 
-export const transactionAnalytics: AnalyticsConfig = [
+import { useTranslations } from "next-intl";
+export function useAnalytics() {
+  const t = useTranslations("finance_history");
+  const tCommon = useTranslations("common");
+  return [
   // ─────────────────────────────────────────────────────────────
   // Group 1: Transaction Status Overview – KPI Grid & Pie Chart
   // ─────────────────────────────────────────────────────────────
@@ -8,17 +14,22 @@ export const transactionAnalytics: AnalyticsConfig = [
     {
       type: "kpi",
       layout: { cols: 2, rows: 2 },
+      responsive: {
+        mobile: { cols: 1, rows: 4, span: 1 },
+          tablet: { cols: 2, rows: 2, span: 2 },
+          desktop: { cols: 2, rows: 2, span: 2 },
+      },
       items: [
         {
           id: "total_transactions",
-          title: "Total Transactions",
+          title: tCommon("total_transactions"),
           metric: "total", // COUNT(*)
           model: "transaction",
           icon: "mdi:tag-outline",
         },
         {
           id: "pending_transactions",
-          title: "Pending",
+          title: tCommon("pending"),
           metric: "PENDING",
           model: "transaction",
           aggregation: { field: "status", value: "PENDING" },
@@ -26,7 +37,7 @@ export const transactionAnalytics: AnalyticsConfig = [
         },
         {
           id: "completed_transactions",
-          title: "Completed",
+          title: tCommon("completed"),
           metric: "COMPLETED",
           model: "transaction",
           aggregation: { field: "status", value: "COMPLETED" },
@@ -34,7 +45,7 @@ export const transactionAnalytics: AnalyticsConfig = [
         },
         {
           id: "failed_transactions",
-          title: "Failed",
+          title: tCommon("failed"),
           metric: "FAILED",
           model: "transaction",
           aggregation: { field: "status", value: "FAILED" },
@@ -44,10 +55,15 @@ export const transactionAnalytics: AnalyticsConfig = [
     },
     {
       type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
       items: [
         {
           id: "transactionStatusDistribution",
-          title: "Status Distribution",
+          title: tCommon("status_distribution"),
           type: "pie",
           model: "transaction",
           metrics: ["PENDING", "COMPLETED", "FAILED", "CANCELLED"],
@@ -56,25 +72,25 @@ export const transactionAnalytics: AnalyticsConfig = [
             status: [
               {
                 value: "PENDING",
-                label: "Pending",
+                label: tCommon("pending"),
                 color: "orange",
                 icon: "mdi:clock-outline",
               },
               {
                 value: "COMPLETED",
-                label: "Completed",
+                label: tCommon("completed"),
                 color: "green",
                 icon: "mdi:check-circle",
               },
               {
                 value: "FAILED",
-                label: "Failed",
+                label: tCommon("failed"),
                 color: "red",
                 icon: "mdi:alert-circle",
               },
               {
                 value: "CANCELLED",
-                label: "Cancelled",
+                label: tCommon("cancelled"),
                 color: "purple",
                 icon: "mdi:cancel",
               },
@@ -92,10 +108,15 @@ export const transactionAnalytics: AnalyticsConfig = [
     {
       type: "kpi",
       layout: { cols: 2, rows: 2 },
+      responsive: {
+        mobile: { cols: 1, rows: 4, span: 1 },
+          tablet: { cols: 2, rows: 2, span: 2 },
+          desktop: { cols: 2, rows: 2, span: 2 },
+      },
       items: [
         {
           id: "deposit_transactions",
-          title: "Deposits",
+          title: tCommon("deposits"),
           metric: "DEPOSIT",
           model: "transaction",
           aggregation: { field: "type", value: "DEPOSIT" },
@@ -103,7 +124,7 @@ export const transactionAnalytics: AnalyticsConfig = [
         },
         {
           id: "withdraw_transactions",
-          title: "Withdrawals",
+          title: tCommon("withdrawals"),
           metric: "WITHDRAW",
           model: "transaction",
           aggregation: { field: "type", value: "WITHDRAW" },
@@ -111,7 +132,7 @@ export const transactionAnalytics: AnalyticsConfig = [
         },
         {
           id: "payment_transactions",
-          title: "Payments",
+          title: tCommon("payments"),
           metric: "PAYMENT",
           model: "transaction",
           aggregation: { field: "type", value: "PAYMENT" },
@@ -119,7 +140,7 @@ export const transactionAnalytics: AnalyticsConfig = [
         },
         {
           id: "refund_transactions",
-          title: "Refunds",
+          title: tCommon("refunds"),
           metric: "REFUND",
           model: "transaction",
           aggregation: { field: "type", value: "REFUND" },
@@ -129,10 +150,15 @@ export const transactionAnalytics: AnalyticsConfig = [
     },
     {
       type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
       items: [
         {
           id: "transactionTypeDistribution",
-          title: "Type Distribution",
+          title: tCommon("type_distribution"),
           type: "pie",
           model: "transaction",
           metrics: ["DEPOSIT", "WITHDRAW", "PAYMENT", "REFUND"],
@@ -141,25 +167,25 @@ export const transactionAnalytics: AnalyticsConfig = [
             status: [
               {
                 value: "DEPOSIT",
-                label: "Deposit",
+                label: tCommon("deposit"),
                 color: "green",
                 icon: "mdi:bank-transfer-in",
               },
               {
                 value: "WITHDRAW",
-                label: "Withdraw",
+                label: tCommon("withdraw"),
                 color: "red",
                 icon: "mdi:bank-transfer-out",
               },
               {
                 value: "PAYMENT",
-                label: "Payment",
+                label: tCommon("payment"),
                 color: "blue",
                 icon: "mdi:cash-fast",
               },
               {
                 value: "REFUND",
-                label: "Refund",
+                label: tCommon("refund"),
                 color: "purple",
                 icon: "mdi:cash-refund",
               },
@@ -176,24 +202,29 @@ export const transactionAnalytics: AnalyticsConfig = [
   {
     type: "kpi",
     layout: { cols: 3, rows: 1 },
-    items: [
+      responsive: {
+        mobile: { cols: 1, rows: 3, span: 1 },
+          tablet: { cols: 3, rows: 1, span: 2 },
+          desktop: { cols: 3, rows: 1, span: 2 },
+      },
+      items: [
       {
         id: "total_transaction_amount",
-        title: "Total Amount",
+        title: tCommon("total_amount"),
         metric: "amount", // SUM(amount); aggregator must perform a SUM operation
         model: "transaction",
         icon: "mdi:cash-multiple",
       },
       {
         id: "total_fees",
-        title: "Total Fees",
+        title: tCommon("total_fees"),
         metric: "fee", // SUM(fee)
         model: "transaction",
         icon: "mdi:cash",
       },
       {
         id: "average_transaction_amount",
-        title: "Avg Amount",
+        title: t("avg_amount"),
         metric: "average", // Custom aggregator: average of amount
         model: "transaction",
         icon: "mdi:calculator",
@@ -206,10 +237,15 @@ export const transactionAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   {
     type: "chart",
-    items: [
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
+      items: [
       {
         id: "transactionsOverTime",
-        title: "Transactions Over Time",
+        title: tCommon("transactions_over_time"),
         type: "line",
         model: "transaction",
         metrics: [
@@ -242,4 +278,5 @@ export const transactionAnalytics: AnalyticsConfig = [
       },
     ],
   },
-];
+] as AnalyticsConfig;
+}

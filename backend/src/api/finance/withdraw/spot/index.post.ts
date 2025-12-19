@@ -11,6 +11,7 @@ import { createError } from "@b/utils/error";
 import { sendTransactionStatusUpdateEmail } from "@b/utils/emails";
 import { handleNetworkMappingReverse } from "../../currency/[type]/[code]/[method]/index.get";
 import { CacheManager } from "@b/utils/cache";
+import { logger } from "@b/utils/console";
 
 // Util to count decimals
 function countDecimals(value: number) {
@@ -32,6 +33,8 @@ export const metadata: OperationObject = {
   operationId: "createWithdraw",
   tags: ["Wallets"],
   requiresAuth: true,
+  logModule: "SPOT_WITHDRAW",
+  logTitle: "Process spot withdrawal",
   requestBody: {
     required: true,
     content: {
@@ -85,33 +88,48 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
-  if (!user?.id)
+  const { user, body, ctx } = data;
+
+  if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
   const { currency, chain, amount, toAddress, memo } = body;
 
+  ctx?.step("Validating withdrawal request parameters");
   // Validate required fields
   if (!amount || !toAddress || !currency) {
+    ctx?.fail("Missing required fields: amount, toAddress, or currency");
     throw createError({ statusCode: 400, message: "Invalid input" });
   }
 
+  ctx?.step("Verifying user account");
   const userPk = await models.user.findByPk(user.id);
-  if (!userPk)
+  if (!userPk) {
+    ctx?.fail("User account not found");
     throw createError({ statusCode: 404, message: "User not found" });
+  }
 
+  ctx?.step("Validating currency configuration");
   const currencyData = await models.exchangeCurrency.findOne({
     where: { currency },
   });
   if (!currencyData) {
+    ctx?.fail(`Currency not found: ${currency}`);
     throw createError({ statusCode: 404, message: "Currency not found" });
   }
 
+  ctx?.step("Connecting to exchange provider");
   // Fetch exchange data
-  const exchange = await ExchangeManager.startExchange();
+  const exchange = await ExchangeManager.startExchange(ctx);
   const provider = await ExchangeManager.getProvider();
-  if (!exchange) throw createError(500, "Exchange not found");
+  if (!exchange) {
+    ctx?.fail("Exchange connection failed");
+    throw createError(500, "Exchange not found");
+  }
 
+  ctx?.step("Fetching exchange currency data");
   const isXt = provider === "xt";
   const currencies: Record<string, exchangeCurrencyAttributes> =
     await exchange.fetchCurrencies();
@@ -134,6 +152,7 @@ export default async (data: Handler) => {
     precision?: number;
   };
   if (!exchangeCurrency) {
+    ctx?.fail(`Currency ${currency} not available on exchange`);
     // More helpful error message
     throw createError(404, `Currency ${currency} is not available for withdrawal on the exchange. Please contact support if you believe this is an error.`);
   }
@@ -141,6 +160,7 @@ export default async (data: Handler) => {
   // -------------------------------
   // 🟢 Validation: Amount, Precision, Min/Max
   // -------------------------------
+  ctx?.step("Validating withdrawal amount and precision");
   // Get precision from exchange currency configuration
   const precision =
     (exchangeCurrency.networks &&
@@ -151,6 +171,7 @@ export default async (data: Handler) => {
 
   const actualDecimals = countDecimals(amount);
   if (actualDecimals > precision) {
+    ctx?.fail(`Amount exceeds precision: ${actualDecimals} > ${precision}`);
     throw createError({
       statusCode: 400,
       message: `Amount has too many decimal places for ${currency} on ${chain}. Max allowed is ${precision} decimal places. Your amount has ${actualDecimals} decimal places.`,
@@ -162,12 +183,14 @@ export default async (data: Handler) => {
   const maxWithdraw =
     netConf.max_withdraw ?? exchangeCurrency.max_withdraw ?? 0;
   if (minWithdraw && amount < minWithdraw) {
+    ctx?.fail(`Amount below minimum: ${amount} < ${minWithdraw}`);
     throw createError({
       statusCode: 400,
       message: `Minimum withdrawal for ${currency} on ${chain} is ${minWithdraw}`,
     });
   }
   if (maxWithdraw && amount > maxWithdraw) {
+    ctx?.fail(`Amount exceeds maximum: ${amount} > ${maxWithdraw}`);
     throw createError({
       statusCode: 400,
       message: `Maximum withdrawal for ${currency} on ${chain} is ${maxWithdraw}`,
@@ -177,12 +200,14 @@ export default async (data: Handler) => {
   // 3. Must be positive and numeric
   const totalWithdrawAmount = Math.abs(parseFloat(amount));
   if (totalWithdrawAmount <= 0 || isNaN(totalWithdrawAmount)) {
+    ctx?.fail("Invalid amount: must be positive number");
     throw createError({
       statusCode: 400,
       message: "Amount must be a positive number",
     });
   }
 
+  ctx?.step("Calculating withdrawal fees");
   // Prepare values required for fee calculation (but not using wallet data yet)
   let fixedFee = 0;
   if (exchangeCurrency.networks && exchangeCurrency.networks[chain]) {
@@ -199,27 +224,29 @@ export default async (data: Handler) => {
     settings.get("withdrawChainFee") === "true";
   const spotWithdrawFee = parseFloat(settings.get("spotWithdrawFee") || "0");
   const combinedPercentageFee = percentageFee + spotWithdrawFee;
-  
+
   // Calculate fees
   const percentageFeeAmount = parseFloat(
     Math.max((totalWithdrawAmount * combinedPercentageFee) / 100, 0).toFixed(precision)
   );
-  
+
   // For internal fee calculation - this fee stays with the platform
   const internalFeeAmount = percentageFeeAmount;
-  
+
   // For external fee calculation - this fee goes to the blockchain network
   const externalFeeAmount = withdrawChainFeeEnabled ? 0 : fixedFee;
-  
+
   // Total amount to deduct from user's balance (only internal fees)
   const totalDeductionAmount = parseFloat((totalWithdrawAmount + internalFeeAmount).toFixed(precision));
-  
+
   // Net amount that will actually be withdrawn to user's external address
   const netWithdrawAmount = parseFloat((totalWithdrawAmount - externalFeeAmount).toFixed(precision));
 
   // -------- MAIN WITHDRAW TRANSACTION, RACE-CONDITION SAFE --------
   // Only fetch wallet, check balance, and deduct inside the transaction!
+  ctx?.step("Processing withdrawal transaction");
   const result = await sequelize.transaction(async (t) => {
+    ctx?.step("Locking user wallet for update");
     // Lock the wallet row FOR UPDATE
     const wallet = await models.wallet.findOne({
       where: { userId: user.id, currency: currency, type: "SPOT" },
@@ -227,22 +254,28 @@ export default async (data: Handler) => {
       lock: t.LOCK.UPDATE,
     });
     if (!wallet) {
+      ctx?.fail(`${currency} SPOT wallet not found`);
       throw createError({ statusCode: 404, message: `${currency} wallet not found in your spot wallets. Please ensure you have a ${currency} spot wallet before attempting withdrawal.` });
     }
 
+    ctx?.step("Checking wallet balance");
     // Check if wallet has sufficient balance for the total deduction amount (withdrawal + internal fees)
     if (wallet.balance < totalDeductionAmount) {
-      throw createError({ statusCode: 400, message: "Insufficient funds" });
-    }
-    
-    const newBalance = parseFloat((wallet.balance - totalDeductionAmount).toFixed(precision));
-    if (newBalance < 0) {
+      ctx?.fail(`Insufficient balance: ${wallet.balance} < ${totalDeductionAmount}`);
       throw createError({ statusCode: 400, message: "Insufficient funds" });
     }
 
+    const newBalance = parseFloat((wallet.balance - totalDeductionAmount).toFixed(precision));
+    if (newBalance < 0) {
+      ctx?.fail(`Calculated balance would be negative: ${newBalance}`);
+      throw createError({ statusCode: 400, message: "Insufficient funds" });
+    }
+
+    ctx?.step("Deducting funds from wallet");
     wallet.balance = newBalance;
     await wallet.save({ transaction: t });
 
+    ctx?.step("Creating withdrawal transaction record");
     const dbTransaction = await models.transaction.create(
       {
         userId: user.id,
@@ -263,6 +296,7 @@ export default async (data: Handler) => {
       { transaction: t }
     );
 
+    ctx?.step("Recording admin profit from fees");
     // **Admin Profit Recording:**
     const adminProfit = await models.adminProfit.create(
       {
@@ -280,11 +314,13 @@ export default async (data: Handler) => {
   });
 
   // Check the withdrawApproval setting
+  ctx?.step("Checking withdrawal approval settings");
   const withdrawApprovalEnabled =
     settings.has("withdrawApproval") &&
     settings.get("withdrawApproval") === "true";
 
   if (withdrawApprovalEnabled) {
+    ctx?.step("Auto-approval enabled, proceeding with exchange withdrawal");
     // Proceed to perform the withdrawal with the exchange
     let withdrawResponse;
     let withdrawStatus:
@@ -306,26 +342,31 @@ export default async (data: Handler) => {
       : netWithdrawAmount;
 
     try {
+      ctx?.step("Validating exchange balance");
       // Pre-validate exchange balance before attempting withdrawal
       let exchangeBalance;
       try {
         const balance = await exchange.fetchBalance();
         exchangeBalance = balance.free[currency] || 0;
-        
+
         if (exchangeBalance < providerWithdrawAmount) {
+          ctx?.fail(`Insufficient exchange balance: ${exchangeBalance} < ${providerWithdrawAmount}`);
           throw createError({
             statusCode: 400,
             message: `Insufficient exchange balance. Available: ${exchangeBalance} ${currency}, Required: ${providerWithdrawAmount} ${currency}. Please contact support to refill the exchange account.`
           });
         }
       } catch (balanceError) {
-        console.warn(`Could not fetch exchange balance for ${currency}:`, balanceError.message);
+        ctx?.warn(`Could not verify exchange balance for ${currency}`);
+        logger.warn("WITHDRAW", `Could not fetch exchange balance for ${currency}`, balanceError);
         // Continue with withdrawal attempt, let exchange handle balance validation
       }
 
+      ctx?.step(`Executing withdrawal via ${provider} exchange`);
       switch (provider) {
         case "kucoin":
           try {
+            ctx?.step("Transferring funds to trade account (KuCoin)");
             const transferResult = await exchange.transfer(
               currency,
               providerWithdrawAmount,
@@ -333,6 +374,7 @@ export default async (data: Handler) => {
               "trade"
             );
             if (transferResult && transferResult.id) {
+              ctx?.step("Initiating withdrawal to external address");
               withdrawResponse = await exchange.withdraw(
                 currency,
                 providerWithdrawAmount,
@@ -341,6 +383,7 @@ export default async (data: Handler) => {
                 { network: chain }
               );
               if (withdrawResponse && withdrawResponse.id) {
+                ctx?.step("Fetching withdrawal details");
                 const withdrawals = await exchange.fetchWithdrawals(currency);
                 const withdrawData = withdrawals.find(
                   (w) => w.id === withdrawResponse.id
@@ -358,12 +401,15 @@ export default async (data: Handler) => {
                   withdrawStatus = "COMPLETED";
                 }
               } else {
+                ctx?.fail("Withdrawal response invalid from exchange");
                 throw new Error("Withdrawal response invalid");
               }
             } else {
+              ctx?.fail("Transfer to trade account failed");
               throw new Error("Transfer to trade account failed");
             }
           } catch (error) {
+            ctx?.fail("KuCoin withdrawal failed: " + error.message);
             throw new Error("Withdrawal request failed. Please try again or contact support.");
           }
           break;
@@ -371,6 +417,7 @@ export default async (data: Handler) => {
         case "kraken":
         case "okx":
           try {
+            ctx?.step("Initiating withdrawal to external address");
             withdrawResponse = await exchange.withdraw(
               currency,
               providerWithdrawAmount,
@@ -379,6 +426,7 @@ export default async (data: Handler) => {
               { network: chain }
             );
             if (withdrawResponse && withdrawResponse.id) {
+              ctx?.step("Fetching withdrawal details");
               const withdrawals = await exchange.fetchWithdrawals(currency);
               const withdrawData = withdrawals.find(
                 (w) => w.id === withdrawResponse.id
@@ -396,27 +444,32 @@ export default async (data: Handler) => {
                 withdrawStatus = "COMPLETED";
               }
             } else {
+              ctx?.fail("Withdrawal response invalid from exchange");
               throw new Error("Withdrawal response invalid");
             }
           } catch (error) {
             // Enhanced error handling for exchange-specific errors
             if (error.message && error.message.includes('-4026')) {
+              ctx?.fail("Exchange reported insufficient funds (error -4026)");
               throw createError({
                 statusCode: 400,
                 message: `Insufficient funds available for withdrawal. Please try a smaller amount or contact support for assistance.`
               });
             } else if (error.message && error.message.includes('insufficient')) {
+              ctx?.fail("Exchange reported insufficient funds");
               throw createError({
                 statusCode: 400,
                 message: `Insufficient funds available for withdrawal. Please contact support for assistance.`
               });
             } else {
+              ctx?.fail(`${provider} withdrawal failed: ` + error.message);
               throw new Error(`Withdrawal request failed. Please try again or contact support.`);
             }
           }
           break;
         case "xt":
           try {
+            ctx?.step("Initiating withdrawal to external address");
             withdrawResponse = await exchange.withdraw(
               currency,
               providerWithdrawAmount,
@@ -425,6 +478,7 @@ export default async (data: Handler) => {
               { network: chain }
             );
             if (withdrawResponse && withdrawResponse.id) {
+              ctx?.step("Fetching withdrawal details");
               const withdrawals = await exchange.fetchWithdrawals(currency);
               const withdrawData = withdrawals.find(
                 (w) => w.id === withdrawResponse.id
@@ -451,13 +505,16 @@ export default async (data: Handler) => {
                 withdrawStatus = "COMPLETED";
               }
             } else {
+              ctx?.fail("Withdrawal response invalid from exchange");
               throw new Error("Withdrawal response invalid");
             }
           } catch (error) {
+            ctx?.fail("XT withdrawal failed: " + error.message);
             throw new Error("Withdrawal request failed. Please try again or contact support.");
           }
           break;
         default:
+          ctx?.fail(`Unsupported provider: ${provider}`);
           throw new Error("Withdrawal method not currently available. Please contact support.");
       }
 
@@ -467,9 +524,11 @@ export default async (data: Handler) => {
         withdrawStatus === "FAILED" ||
         withdrawStatus === "CANCELLED"
       ) {
+        ctx?.fail("Withdrawal failed or was cancelled by exchange");
         throw new Error("Withdrawal failed");
       }
 
+      ctx?.step("Updating transaction with exchange reference");
       await models.transaction.update(
         {
           status: withdrawStatus,
@@ -482,6 +541,7 @@ export default async (data: Handler) => {
         { where: { id: result.dbTransaction.id } }
       );
 
+      ctx?.step("Sending withdrawal confirmation email");
       const userRecord = await models.user.findOne({
         where: { id: user.id },
       });
@@ -495,6 +555,7 @@ export default async (data: Handler) => {
         );
       }
 
+      ctx?.success(`Withdrawn ${totalWithdrawAmount} ${currency} (net: ${netWithdrawAmount}) to ${toAddress} via ${chain}`);
       return {
         message: "Withdrawal completed successfully",
         transaction: result.dbTransaction,
@@ -503,7 +564,9 @@ export default async (data: Handler) => {
         balance: result.wallet.balance,
       };
     } catch (error) {
+      ctx?.step("Rolling back transaction due to exchange error");
       await sequelize.transaction(async (t) => {
+        ctx?.step("Cancelling transaction record");
         await models.transaction.update(
           {
             status: "CANCELLED",
@@ -514,6 +577,7 @@ export default async (data: Handler) => {
           },
           { where: { id: result.dbTransaction.id }, transaction: t }
         );
+        ctx?.step("Refunding user wallet");
         // Return funds
         const wallet = await models.wallet.findOne({
           where: { id: result.wallet.id },
@@ -522,15 +586,18 @@ export default async (data: Handler) => {
         });
         wallet.balance += totalDeductionAmount; // Refund the total amount that was deducted
         await wallet.save({ transaction: t });
+        ctx?.step("Removing admin profit record");
         await models.adminProfit.destroy({
           where: { id: result.adminProfit.id },
           transaction: t,
         });
       });
 
+      ctx?.fail("Withdrawal failed: " + error.message);
       throw createError(500, "Withdrawal failed: " + error.message);
     }
   } else {
+    ctx?.success(`Withdrawal request submitted for approval: ${totalWithdrawAmount} ${currency} to ${toAddress} via ${chain}`);
     // Withdrawal approval is required; keep the transaction in 'PENDING' status
     return {
       message: "Withdrawal request submitted and pending approval",

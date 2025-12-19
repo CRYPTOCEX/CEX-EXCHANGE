@@ -1,6 +1,6 @@
 import { crudParameters } from "@b/utils/constants";
-import { cacheInitialized, initMediaWatcher, mediaCache } from "./utils";
-import { operatorMap } from "../../system/log/utils";
+import { cacheInitialized, initMediaWatcher, mediaCache, operatorMap } from "./utils";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Fetches media files based on category and date",
@@ -42,13 +42,18 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.content.media",
+  logModule: "ADMIN_CMS",
+  logTitle: "List media files",
 };
 
 export default async (data: any) => {
+  const { query, ctx } = data;
+
   // Ensure media cache is initialized
+  ctx?.step("Initializing media cache");
   if (!cacheInitialized) await initMediaWatcher();
 
-  const { query } = data;
+  ctx?.step("Parsing query parameters");
   const page = query.page ? parseInt(query.page) : 1;
   const perPage = query.perPage ? parseInt(query.perPage) : 10;
   const sortField = query.sortField || "name";
@@ -62,15 +67,18 @@ export default async (data: any) => {
   try {
     filters = query.filter ? JSON.parse(query.filter) : {};
   } catch (error) {
-    console.error("Error parsing filter:", error);
+    logger.error("MEDIA", "Error parsing filter", error);
+    ctx?.warn("Failed to parse filter parameters");
     // Optionally: return a 400 error here.
   }
 
   // 1) Convert the raw filter param into nested + direct filter objects
+  ctx?.step("Building filter criteria");
   const rawFilter = parseFilterParam(query.filter, numericFields);
   const { directFilters } = buildNestedFilters(rawFilter);
 
   // 2) Filter the in-memory mediaCache
+  ctx?.step("Filtering media files");
   const filteredMedia = mediaCache.filter((file) => {
     // Only include image files
     if (!/\.(jpg|jpeg|png|gif|webp)$/i.test(file.path)) return false;
@@ -109,6 +117,7 @@ export default async (data: any) => {
   });
 
   // 3) Sort the filtered media by the specified sortField + sortOrder
+  ctx?.step("Sorting results");
   filteredMedia.sort((a, b) => {
     // If it's numeric, parse as number to avoid string-sorting
     const aVal = numericFields.includes(sortField)
@@ -124,11 +133,13 @@ export default async (data: any) => {
   });
 
   // 4) Paginate
+  ctx?.step("Paginating results");
   const totalItems = filteredMedia.length;
   const totalPages = Math.ceil(totalItems / perPage);
   const offset = (page - 1) * perPage;
   const paginatedItems = filteredMedia.slice(offset, offset + perPage);
 
+  ctx?.success(`Retrieved ${paginatedItems.length} media file(s) (page ${page} of ${totalPages})`);
   return {
     items: paginatedItems,
     pagination: {
@@ -156,7 +167,7 @@ export function parseFilterParam(
     try {
       filtersObject = JSON.parse(filterParam);
     } catch (error) {
-      console.error("Error parsing filter param:", error);
+      logger.error("MEDIA", "Error parsing filter param", error);
       return parsedFilters;
     }
   }

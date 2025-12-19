@@ -3,11 +3,14 @@ import { createError } from "@b/utils/error";
 import { Op } from "sequelize";
 import { CacheManager } from "@b/utils/cache";
 import { safeParseJSON } from "@b/api/(ext)/p2p/utils/json-parser";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Updates a P2P offer",
   description: "Updates specific fields of a P2P offer with security restrictions",
   tags: ["P2P", "Offers"],
+  logModule: "P2P_OFFER",
+  logTitle: "Update P2P offer",
   parameters: [
     {
       index: 0,
@@ -120,8 +123,8 @@ interface UpdateData {
   status?: string;
 }
 
-export default async (data: { user?: any; params: any; body: any }) => {
-  const { user, params, body } = data;
+export default async (data: { user?: any; params: any; body: any; ctx?: any }) => {
+  const { user, params, body, ctx } = data;
   const { id } = params;
 
   if (!user?.id) {
@@ -131,6 +134,7 @@ export default async (data: { user?: any; params: any; body: any }) => {
     });
   }
 
+  ctx?.step("Finding and validating offer ownership");
   // Use models directly
   const { p2pOffer, p2pPaymentMethod, p2pTrade } = models;
 
@@ -172,6 +176,7 @@ export default async (data: { user?: any; params: any; body: any }) => {
     });
   }
 
+  ctx?.step("Validating and preparing update data");
   // Validate and prepare update data
   const allowedFields = ["priceConfig", "amountConfig", "tradeSettings", "locationSettings", "userRequirements", "paymentMethodIds", "status"];
   const jsonFields = ["priceConfig", "amountConfig", "tradeSettings", "locationSettings", "userRequirements"];
@@ -511,6 +516,7 @@ export default async (data: { user?: any; params: any; body: any }) => {
   }
   // If user explicitly set status (ACTIVE or PAUSED), preserve it even with other changes
 
+  ctx?.step("Updating offer with new configuration");
   let transaction: any;
 
   try {
@@ -525,6 +531,7 @@ export default async (data: { user?: any; params: any; body: any }) => {
 
     // Update payment methods if provided
     if (paymentMethodIds) {
+      ctx?.step(`Updating payment methods (${paymentMethodIds.length} methods)`);
       await offer.setPaymentMethods(paymentMethodIds, { transaction });
     }
 
@@ -547,6 +554,8 @@ export default async (data: { user?: any; params: any; body: any }) => {
       ? "Offer updated successfully. Your offer is now active."
       : "Offer updated successfully. Your offer is now pending approval.";
 
+    ctx?.success(`Updated offer ${id} (status: ${updatedOffer?.status})`);
+
     return {
       message,
       data: updatedOffer,
@@ -568,7 +577,7 @@ export default async (data: { user?: any; params: any; body: any }) => {
           errorMessage.includes("ECONNRESET");
 
         if (!isIgnorableError) {
-          console.error("Transaction rollback failed:", rollbackError.message || rollbackError);
+          logger.error("P2P_OFFER", "Transaction rollback failed", rollbackError);
         }
       }
     }

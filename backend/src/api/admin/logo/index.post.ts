@@ -7,6 +7,7 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 // Determine the correct path based on environment
 // Development: backend runs from /project/backend/, needs ".." to reach /project/frontend/
@@ -37,11 +38,11 @@ if (isProduction) {
   }
   
   // Debug logging for production troubleshooting
-  console.log(`[LOGO-DEBUG] Production mode detected`);
-  console.log(`[LOGO-DEBUG] Current working directory: ${process.cwd()}`);
-  console.log(`[LOGO-DEBUG] Selected logo directory: ${BASE_UPLOAD_DIR}`);
-  console.log(`[LOGO-DEBUG] Logo directory exists: ${fsSync.existsSync(BASE_UPLOAD_DIR)}`);
-  console.log(`[LOGO-DEBUG] Parent directory exists: ${fsSync.existsSync(path.dirname(BASE_UPLOAD_DIR))}`);
+  logger.debug("LOGO", "Production mode detected");
+  logger.debug("LOGO", `Current working directory: ${process.cwd()}`);
+  logger.debug("LOGO", `Selected logo directory: ${BASE_UPLOAD_DIR}`);
+  logger.debug("LOGO", `Logo directory exists: ${fsSync.existsSync(BASE_UPLOAD_DIR)}`);
+  logger.debug("LOGO", `Parent directory exists: ${fsSync.existsSync(path.dirname(BASE_UPLOAD_DIR))}`);
 } else {
   // Development path
   BASE_UPLOAD_DIR = path.join(process.cwd(), "..", "frontend", "public", "img", "logo");
@@ -108,6 +109,8 @@ export const metadata: OperationObject = {
   description: "Uploads a new logo and updates all logo variants in the /img/logo directory with the same filenames",
   operationId: "uploadLogo",
   tags: ["Admin", "Logo"],
+  logModule: "ADMIN_SYS",
+  logTitle: "Upload logo",
   requiresAuth: true,
   requestBody: {
     required: true,
@@ -162,10 +165,12 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
   if (!user) throw new Error("User not found");
 
   const { file: base64File, logoType = "logo" } = body;
+
+  ctx?.step("Validating logo upload request");
 
   if (!base64File) {
     throw new Error("No file provided");
@@ -204,9 +209,11 @@ export default async (data) => {
   const updatedFiles: string[] = [];
 
   try {
+    ctx?.step("Processing logo upload");
     // Ensure logo directory exists
     await ensureDirExists(BASE_UPLOAD_DIR);
 
+    ctx?.step(`Generating ${logoType} variants`);
     // If updating logo-text, only update logo-text files
     if (logoType === "logo-text") {
       const config = LOGO_CONFIGS["logo-text"];
@@ -258,12 +265,14 @@ export default async (data) => {
       }
     }
 
+    ctx?.success(`Logo updated successfully: ${updatedFiles.length} files (${logoType})`);
     return {
       message: `Logo updated successfully. ${updatedFiles.length} files updated.`,
       updatedFiles,
     };
   } catch (error) {
-    console.error("Error updating logo files:", error);
+    logger.error("LOGO", "Error updating logo files", error);
+    ctx?.fail("Failed to update logo files");
     throw new Error("Failed to update logo files");
   }
 };
@@ -271,19 +280,19 @@ export default async (data) => {
 async function ensureDirExists(dir: string) {
   try {
     await fs.access(dir);
-    console.log(`[LOGO-DEBUG] Directory exists: ${dir}`);
+    logger.debug("LOGO", `Directory exists: ${dir}`);
   } catch (error) {
     if (error.code === "ENOENT") {
       try {
-        console.log(`[LOGO-DEBUG] Creating directory: ${dir}`);
+        logger.debug("LOGO", `Creating directory: ${dir}`);
         await fs.mkdir(dir, { recursive: true });
-        console.log(`[LOGO-DEBUG] Directory created successfully: ${dir}`);
+        logger.debug("LOGO", `Directory created successfully: ${dir}`);
       } catch (mkdirError) {
-        console.error(`[LOGO-DEBUG] Failed to create directory: ${dir}`, mkdirError);
+        logger.error("LOGO", `Failed to create directory: ${dir}`, mkdirError);
         throw new Error(`Failed to create logo directory: ${mkdirError.message}`);
       }
     } else {
-      console.error(`[LOGO-DEBUG] Directory access error: ${dir}`, error);
+      logger.error("LOGO", `Directory access error: ${dir}`, error);
       throw error;
     }
   }

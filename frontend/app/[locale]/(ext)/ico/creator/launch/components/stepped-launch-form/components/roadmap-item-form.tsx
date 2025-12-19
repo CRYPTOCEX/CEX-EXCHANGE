@@ -37,12 +37,14 @@ export default function RoadmapItemForm({
   onUpdate,
   onRemove,
 }: RoadmapItemFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   return (
     <div className="space-y-4 p-4 border rounded-md">
       <div className="flex items-center justify-between">
         <h5 className="font-medium">
-          {t("Milestone")}
+          {t("milestone")}
           {index + 1}
         </h5>
         {canRemove && (
@@ -54,16 +56,16 @@ export default function RoadmapItemForm({
             className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
           >
             <Trash2 className="h-4 w-4 mr-1" />
-            {t("Remove")}
+            {tCommon("remove")}
           </Button>
         )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t("Title")}</label>
+          <label className="text-sm font-medium">{tCommon("title")}</label>
           <Input
-            placeholder="e.g. Beta Launch, Mainnet Release"
+            placeholder={t("e_g_beta_launch_mainnet_release")}
             value={item.title}
             onChange={(e) => onUpdate(item.id, "title", e.target.value)}
           />
@@ -81,7 +83,7 @@ export default function RoadmapItemForm({
                 {item.date ? (
                   format(item.date, "PPP")
                 ) : (
-                  <span>{t("pick_a_date")}</span>
+                  <span>{tExt("pick_a_date")}</span>
                 )}
               </Button>
             </PopoverTrigger>
@@ -98,9 +100,9 @@ export default function RoadmapItemForm({
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">{t("Description")}</label>
+        <label className="text-sm font-medium">{tCommon("description")}</label>
         <Textarea
-          placeholder="Describe what will be accomplished in this milestone"
+          placeholder={t("describe_what_will_be_accomplished_in")}
           className="min-h-[80px]"
           value={item.description}
           onChange={(e) => onUpdate(item.id, "description", e.target.value)}
@@ -116,7 +118,7 @@ export default function RoadmapItemForm({
           }
         />
         <label htmlFor={`completed-${item.id}`} className="text-sm font-medium">
-          {t("already_completed")}
+          {tCommon("already_completed")}
         </label>
       </div>
     </div>

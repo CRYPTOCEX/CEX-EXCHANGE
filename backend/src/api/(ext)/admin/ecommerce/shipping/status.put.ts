@@ -33,12 +33,15 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Ecommerce Shipping"),
   requiresAuth: true,
   permission: "edit.ecommerce.shipping",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Bulk Update E-commerce Shipping Status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
 
+  ctx?.step("Validating shipping records");
   const Shipping = await models.ecommerceShipping.findAll({
     where: { id: ids },
   });
@@ -47,7 +50,8 @@ export default async (data: Handler) => {
     throw new Error("Shipping not found");
   }
 
-  return updateStatus(
+  ctx?.step("Updating E-commerce shipping status");
+  const result = await updateStatus(
     "ecommerceShipping",
     ids,
     status,
@@ -64,4 +68,7 @@ export default async (data: Handler) => {
       }
     }
   );
+
+  ctx?.success("Successfully updated E-commerce shipping status");
+  return result;
 };

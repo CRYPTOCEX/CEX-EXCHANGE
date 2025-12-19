@@ -7,6 +7,8 @@ export const metadata: OperationObject = {
   summary: "Stores a new role",
   operationId: "storeRole",
   tags: ["Admin", "CRM", "Role"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Create role",
   requestBody: {
     required: true,
     content: {
@@ -25,9 +27,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
   const { name, permissions } = body;
 
+  ctx?.step("Validating user authorization");
   // Ensure the request is made by an authenticated user
   if (!user?.id) {
     throw createError({
@@ -52,9 +55,11 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Creating new role");
   // Create a new role
   const role = await models.role.create({ name });
 
+  ctx?.step("Assigning permissions to role");
   // Map permission IDs (accepting both string and number) to numbers
   const permissionIds = permissions.map((permissionId: string | number) =>
     Number(permissionId)
@@ -66,8 +71,10 @@ export default async (data: Handler) => {
     include: [{ model: models.permission, as: "permissions" }],
   });
 
+  ctx?.step("Updating roles cache");
   // Update the cache for roles
   await cacheRoles();
 
+  ctx?.success();
   return { message: "Role created successfully", role: newRole };
 };

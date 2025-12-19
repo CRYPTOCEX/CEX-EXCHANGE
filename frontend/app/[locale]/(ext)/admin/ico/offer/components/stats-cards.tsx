@@ -10,6 +10,7 @@ interface StatsCardsProps {
 
 export function StatsCards({ stats, isLoading }: StatsCardsProps) {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
@@ -64,7 +65,7 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            {t("success_rate")}
+            {tCommon("success_rate")}
           </CardTitle>
         </CardHeader>
         <CardContent>

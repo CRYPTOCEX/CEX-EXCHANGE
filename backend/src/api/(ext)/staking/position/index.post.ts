@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "stakeTokens",
   tags: ["Staking", "Positions"],
   requiresAuth: true,
+  logModule: "STAKING",
+  logTitle: "Create staking position",
   rateLimit: {
     windowMs: 60000, // 1 minute
     max: 5 // 5 requests per minute
@@ -132,12 +134,14 @@ export const metadata = {
  * @throws {500} Internal Server Error - Transaction failed
  */
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { poolId, amount } = body;
+
+  ctx?.step("Validating stake parameters");
   
   // Rate limiting check for this specific user
   const recentPositions = await models.stakingPosition.count({
@@ -188,6 +192,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Retrieving staking pool details");
   // Retrieve the staking pool
   const pool = await models.stakingPool.findByPk(poolId);
   if (!pool) {
@@ -202,6 +207,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Validating stake amount against pool limits");
   // Validate the staking amount against the pool's limits
   if (amount < pool.minStake) {
     throw createError({
@@ -222,6 +228,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Checking user wallet balance");
   // Check user's wallet balance
   const userWallet = await models.wallet.findOne({
     where: {
@@ -245,6 +252,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Calculating staking period");
   // Calculate staking period
   const startDate = new Date();
   // Assuming pool.lockPeriod is in days
@@ -252,6 +260,7 @@ export default async (data: Handler) => {
     startDate.getTime() + pool.lockPeriod * 24 * 60 * 60 * 1000
   );
 
+  ctx?.step("Creating staking position");
   // Use a transaction to ensure atomic operations: creating the staking position and updating the pool
   const transaction = await sequelize.transaction();
   try {
@@ -271,12 +280,14 @@ export default async (data: Handler) => {
       { transaction }
     );
 
+    ctx?.step("Deducting stake amount from wallet");
     // Deduct staked amount from user's wallet
     await userWallet.decrement('balance', {
       by: amount,
       transaction
     });
 
+    ctx?.step("Creating transaction record");
     // Create wallet transaction record for audit trail
     await models.transaction.create({
       userId: user.id,
@@ -292,16 +303,21 @@ export default async (data: Handler) => {
       })
     }, { transaction });
 
+    ctx?.step("Updating pool availability");
     // Deduct staked amount from availableToStake
     pool.availableToStake = pool.availableToStake - amount;
     await pool.save({ transaction });
 
     await transaction.commit();
-    
+
+    ctx?.success(`Staked ${amount} ${pool.symbol} in pool ${pool.name} for ${pool.lockPeriod} days`);
+
     return position;
   } catch (err) {
     await transaction.rollback();
-    
+
+    ctx?.fail(err.message || "Failed to stake tokens");
+
     throw createError({
       statusCode: 500,
       message: err.message || "Failed to stake tokens",

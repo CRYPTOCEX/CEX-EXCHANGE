@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import SiteHeader from "@/components/partials/header/site-header";
 import Footer from "@/components/partials/footer";
+import { usePathname } from "@/i18n/routing";
 
 const blogAdminMenu: MenuItem[] = [
   {
@@ -50,10 +51,18 @@ const blogAdminMenu: MenuItem[] = [
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isSettingsPage = pathname.endsWith("/settings");
+
+  // Full-screen layout for settings page
+  if (isSettingsPage) {
+    return <>{children}</>;
+  }
+
   return (
     <>
-      <SiteHeader title="Blog" menu={blogAdminMenu} />
-      <main className="flex-1 mx-auto container space-y-8 py-30">
+      <SiteHeader menu={blogAdminMenu} />
+      <main className="flex-1 mx-auto space-y-8">
         {children}
       </main>
       <Footer />

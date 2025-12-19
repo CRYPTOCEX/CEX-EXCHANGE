@@ -33,22 +33,27 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Page"),
   requiresAuth: true,
   permission: "edit.page",
+  logModule: "ADMIN_CMS",
+  logTitle: "Update page",
 };
 
 export default async (data: Handler) => {
-  const { body, params, user } = data;
+  const { body, params, user, ctx } = data;
   const { id } = params;
 
   // Validate settings if present
+  ctx?.step("Validating page data");
   if (body.settings) {
     try {
       JSON.parse(body.settings);
     } catch (err) {
+      ctx?.fail("Invalid settings JSON");
       throw new Error("settings: Must be valid JSON");
     }
   }
 
   // Only include fields that are present in the body
+  ctx?.step("Preparing update data");
   const updateData: Record<string, any> = { lastModifiedBy: user?.id || null };
   [
     "title",
@@ -77,6 +82,7 @@ export default async (data: Handler) => {
       key === "slug" &&
       (body[key] === undefined || body[key] === null || body[key] === "")
     ) {
+      ctx?.fail("Slug is required");
       throw new Error("slug: Slug is required.");
     }
     if (body[key] !== undefined) {
@@ -86,6 +92,7 @@ export default async (data: Handler) => {
 
   // ---- NEW LOGIC: Enforce one-home-page rule ----
   if (updateData.isHome === true) {
+    ctx?.step("Validating home page constraints");
     // Find another page with isHome true, and different id
     const otherHome = await models.page.findOne({
       where: {
@@ -94,11 +101,16 @@ export default async (data: Handler) => {
       },
     });
     if (otherHome) {
+      ctx?.fail("Another page is already set as home page");
       throw new Error(
         "isHome: Only one page can be marked as home page. Please unset home on the other page first."
       );
     }
   }
 
-  return await updateRecord("page", id, updateData);
+  ctx?.step("Updating page in database");
+  const result = await updateRecord("page", id, updateData);
+
+  ctx?.success("Page updated successfully");
+  return result;
 };

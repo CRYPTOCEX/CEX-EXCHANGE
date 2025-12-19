@@ -1,9 +1,10 @@
 import { updateStatus, updateRecordResponses } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Updates the status of a Forex Investment",
+  summary: "Updates a Forex investment status",
+  description: "Updates the status of a specific Forex investment. Valid statuses are ACTIVE, COMPLETED, CANCELLED, or REJECTED.",
   operationId: "updateForexInvestmentStatus",
-  tags: ["Admin", "Forex Investments"],
+  tags: ["Admin", "Forex", "Investment"],
   parameters: [
     {
       index: 0,
@@ -35,11 +36,20 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Forex Investment"),
   requiresAuth: true,
   permission: "edit.forex.investment",
+  logModule: "ADMIN_FOREX",
+  logTitle: "Update forex investment status",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
-  return updateStatus("forexInvestment", id, status);
+
+  ctx?.step(`Validating forex investment ${id}`);
+
+  ctx?.step(`Updating forex investment status to ${status}`);
+  const result = await updateStatus("forexInvestment", id, status);
+
+  ctx?.success("Forex investment status updated successfully");
+  return result;
 };

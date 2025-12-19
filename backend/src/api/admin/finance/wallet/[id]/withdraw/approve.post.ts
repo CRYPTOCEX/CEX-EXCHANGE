@@ -8,6 +8,13 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
+import { logger } from "@b/utils/console";
+
+interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
 
 export const metadata = {
   summary: "Approves a spot wallet withdrawal request",
@@ -42,12 +49,15 @@ export const metadata = {
   },
   permission: "edit.wallet",
   requiresAuth: true,
+  logModule: "ADMIN_FIN",
+  logTitle: "Approve Withdrawal",
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
   const { id } = params;
   try {
+    ctx?.step("Fetching transaction");
     const transaction = await models.transaction.findOne({
       where: { id },
     });
@@ -63,6 +73,7 @@ export default async (data: Handler) => {
     const { amount, userId } = transaction;
     const { currency, chain, address, memo } = transaction.metadata as any;
 
+    ctx?.step("Fetching wallet and currency data");
     // Fetch the user's wallet
     const wallet = (await getWalletQuery(
       userId,
@@ -88,10 +99,12 @@ export default async (data: Handler) => {
       );
     }
 
+    ctx?.step("Initializing exchange");
     // Initialize exchange
     const exchange = await (ExchangeManager as any).startExchange();
     const provider = await (ExchangeManager as any).provider;
 
+    ctx?.step("Processing withdrawal");
     // Implement your third-party API logic here
     let withdrawResponse, withdrawStatus;
     switch (provider) {
@@ -145,12 +158,12 @@ export default async (data: Handler) => {
                 }
               }
             } catch (error) {
-              console.error(`Withdrawal failed: ${error.message}`);
+              logger.error("WALLET", `Withdrawal failed: ${error.message}`, error);
               throw new Error(`Withdrawal failed: ${error.message}`);
             }
           }
         } catch (error) {
-          console.error(`Transfer failed: ${error.message}`);
+          logger.error("WALLET", `Transfer failed: ${error.message}`, error);
           throw new Error(`Transfer failed: ${error.message}`);
         }
         break;
@@ -182,7 +195,7 @@ export default async (data: Handler) => {
               break;
           }
         } catch (error) {
-          console.error(`Withdrawal failed: ${error.message}`);
+          logger.error("WALLET", `Withdrawal failed: ${error.message}`, error);
           throw new Error(`Withdrawal failed: ${error.message}`);
         }
         break;
@@ -201,6 +214,7 @@ export default async (data: Handler) => {
       throw new Error("Withdrawal failed");
     }
 
+    ctx?.step("Updating transaction status");
     await models.transaction.update(
       {
         status: withdrawStatus,
@@ -220,16 +234,18 @@ export default async (data: Handler) => {
     }
 
     try {
-      const userData = (await getUserById(userId)) as unknown as userAttributes;
+      ctx?.step("Sending confirmation email");
+      const userData = (await getUserById(userId, ctx)) as unknown as userAttributes;
       sendSpotWalletWithdrawalConfirmationEmail(
         userData,
         updatedTransaction.get({ plain: true }) as transactionAttributes,
         wallet
       );
     } catch (error) {
-      console.error(`Withdrawal confirmation email failed: ${error.message}`);
+      logger.error("WALLET", `Withdrawal confirmation email failed: ${error.message}`, error);
     }
 
+    ctx?.success("Withdrawal approved successfully");
     return {
       message: "Withdrawal approved successfully",
     };
@@ -286,13 +302,20 @@ export function mapChainNameToChainId(chainName) {
 }
 
 // Get user by ID
-export const getUserById = async (id: string) => {
+export const getUserById = async (id: string, ctx?: LogContext) => {
+  ctx?.step?.("Fetching user by ID");
+
   const user = await models.user.findOne({
     where: { id },
     include: userInclude,
   });
-  if (!user) throw new Error("User not found");
 
+  if (!user) {
+    ctx?.fail?.("User not found");
+    throw new Error("User not found");
+  }
+
+  ctx?.success?.("User fetched successfully");
   return {
     ...user.get({ plain: true }),
     password: undefined,

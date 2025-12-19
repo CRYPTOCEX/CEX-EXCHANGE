@@ -4,15 +4,18 @@ import { useEffect, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { useBlogStore } from "@/store/blog/user";
 import { Skeleton } from "@/components/ui/skeleton";
-import { motion } from "framer-motion";
-import { TagIcon, Search, ArrowRight, Hash } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import { TagIcon, Search, ArrowRight, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { PageHero } from "../components/page-hero";
+import { FloatingShapes, InteractivePattern } from "@/components/sections/shared";
 
 export function TagsClient() {
-  const t = useTranslations("blog");
+  const t = useTranslations("blog_blog");
+  const tCommon = useTranslations("common");
   const { tags, isLoading, fetchTags } = useBlogStore();
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,142 +77,200 @@ export function TagsClient() {
   };
   if (isLoading && (!tags || tags.length === 0)) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <Skeleton className="h-12 w-1/3 mx-auto mb-8" />
-        <Skeleton className="h-10 w-full max-w-md mx-auto mb-12" />
+      <div className="min-h-screen relative overflow-hidden bg-white dark:bg-zinc-950">
+        {/* Premium Background */}
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            background: `linear-gradient(180deg, transparent 0%, rgba(99, 102, 241, 0.03) 10%, rgba(139, 92, 246, 0.02) 30%, transparent 60%)`,
+          }}
+        />
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
+          }}
+        />
+        <FloatingShapes
+          count={8}
+          interactive={true}
+          theme={{ primary: "indigo", secondary: "purple" }}
+        />
+        <InteractivePattern
+          config={{
+            enabled: true,
+            variant: "crosses",
+            opacity: 0.015,
+            size: 40,
+            interactive: true,
+          }}
+        />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {Array.from({
-            length: 2,
-          }).map((_, i) => (
-            <Skeleton key={i} className="h-64 w-full rounded-xl" />
-          ))}
+        {/* PageHero-like skeleton */}
+        <div className="relative z-10 pt-32 pb-16">
+          <div className="container mx-auto px-4 text-center">
+            {/* Badge skeleton */}
+            <div className="mb-6 inline-flex">
+              <Skeleton className="h-7 w-20 rounded-full" />
+            </div>
+
+            {/* Title skeleton */}
+            <Skeleton className="h-14 w-80 mx-auto mb-4 rounded-xl" />
+
+            {/* Description skeleton */}
+            <Skeleton className="h-6 w-96 mx-auto mb-6 rounded-lg" />
+
+            {/* Search input skeleton */}
+            <div className="max-w-md mx-auto mt-6">
+              <Skeleton className="h-12 w-full rounded-xl" />
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {Array.from({
-            length: 12,
-          }).map((_, i) => (
-            <Skeleton key={`tag-${i}`} className="h-16 w-full rounded-xl" />
-          ))}
+        <div className="relative z-10 container mx-auto px-4 py-12">
+          {/* Popular Tags Section */}
+          <div className="mb-16">
+            {/* Section header */}
+            <div className="flex items-center justify-between mb-6">
+              <Skeleton className="h-8 w-40 rounded-lg" />
+              <Skeleton className="h-5 w-24 rounded-lg" />
+            </div>
+
+            {/* Popular tag cards - 2x4 grid on md */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="h-32 w-full rounded-xl" />
+              ))}
+            </div>
+          </div>
+
+          {/* All Tags Section */}
+          <div className="space-y-12">
+            {/* Section title */}
+            <Skeleton className="h-8 w-32 rounded-lg mb-6" />
+
+            {/* Alphabet navigation skeleton */}
+            <div className="sticky top-20 z-10 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 mb-8">
+              <div className="flex flex-wrap gap-2">
+                {Array.from({ length: 26 }).map((_, i) => (
+                  <Skeleton key={i} className="h-8 w-8 rounded-full" />
+                ))}
+              </div>
+            </div>
+
+            {/* Alphabetical tag groups */}
+            {Array.from({ length: 3 }).map((_, sectionIndex) => (
+              <div key={sectionIndex} className="relative">
+                {/* Letter header */}
+                <div className="flex items-center mb-6">
+                  <Skeleton className="w-12 h-12 rounded-full" />
+                  <div className="ml-4 h-px flex-1 bg-linear-to-r from-indigo-200 to-transparent dark:from-indigo-800"></div>
+                </div>
+
+                {/* Tag list */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <Skeleton key={`tag-${sectionIndex}-${i}`} className="h-14 w-full rounded-xl" />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">
-            {t("Tags")}
-          </h1>
-          <div className="bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 p-4 rounded-lg inline-block border border-red-100 dark:border-red-900/50">
-            {error}
-          </div>
+      <div className="min-h-screen relative overflow-hidden bg-white dark:bg-zinc-950 pt-24">
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
+          }}
+        />
+        <FloatingShapes
+          count={6}
+          interactive={true}
+          theme={{ primary: "indigo", secondary: "purple" }}
+        />
+        <div className="relative z-10 container mx-auto px-4 pb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <div className="mb-8 inline-flex items-center justify-center p-8 bg-linear-to-br from-red-500/10 to-orange-500/10 rounded-3xl border border-red-200/50 dark:border-red-900/50">
+              <AlertCircle className="h-16 w-16 text-red-500 dark:text-red-400" />
+            </div>
+            <h1 className="text-3xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">
+              {tCommon("tags")}
+            </h1>
+            <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl text-red-700 dark:text-red-400 p-6 rounded-2xl inline-block border border-red-200/50 dark:border-red-900/50 shadow-xl">
+              {error}
+            </div>
+          </motion.div>
         </div>
       </div>
     );
   }
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-zinc-50/50 to-white dark:from-black dark:via-zinc-900/50 dark:to-black">
-      <div className="container mx-auto px-4 py-12">
-        {/* Hero Section */}
-        <motion.div
-          initial={{
-            opacity: 0,
-          }}
-          animate={{
-            opacity: 1,
-          }}
-          transition={{
-            duration: 0.6,
-          }}
-          className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-700 dark:to-purple-700 p-8 md:p-12 mb-12 shadow-xl"
-        >
-          {/* Background decorative elements */}
-          <div className="absolute inset-0 overflow-hidden opacity-20">
-            <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-white blur-3xl"></div>
-            <div className="absolute bottom-20 left-20 h-40 w-40 rounded-full bg-white blur-3xl"></div>
-          </div>
+    <div className="min-h-screen relative overflow-hidden bg-white dark:bg-zinc-950">
+      {/* Premium Background */}
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `linear-gradient(180deg, transparent 0%, rgba(99, 102, 241, 0.03) 10%, rgba(139, 92, 246, 0.02) 30%, transparent 60%)`,
+        }}
+      />
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
+        }}
+      />
+      <FloatingShapes
+        count={8}
+        interactive={true}
+        theme={{ primary: "indigo", secondary: "purple" }}
+      />
+      <InteractivePattern
+        config={{
+          enabled: true,
+          variant: "crosses",
+          opacity: 0.015,
+          size: 40,
+          interactive: true,
+        }}
+      />
+      {/* Hero Section */}
+      <PageHero
+        badge={{ icon: <TagIcon className="h-3.5 w-3.5" />, text: tCommon("tags") }}
+        title={[
+          { text: "Explore by " },
+          { text: "Tag", gradient: "from-indigo-600 to-purple-600" },
+        ]}
+        description={`${t("discover_content_organized_by")}. ${t("browse_our_collection_of")} ${tags.length} ${t("tags_to_find_exactly_what_youre_looking_for")}.`}
+      >
+        {/* Search input */}
+        <div className="relative max-w-md mx-auto mt-6">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
+          <Input
+            type="text"
+            placeholder={tCommon("search_tags_ellipsis")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 py-6 rounded-xl dark:bg-zinc-900 dark:border-zinc-800"
+          />
+        </div>
+      </PageHero>
 
-          {/* Decorative tags */}
-          <div className="absolute top-10 right-10 opacity-20 rotate-12">
-            <TagIcon className="h-24 w-24 text-white" />
-          </div>
-          <div className="absolute bottom-10 left-10 opacity-10 -rotate-12">
-            <Hash className="h-16 w-16 text-white" />
-          </div>
-
-          <div className="relative z-10 max-w-3xl">
-            <motion.h1
-              initial={{
-                opacity: 0,
-                y: 20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                duration: 0.6,
-                delay: 0.1,
-              }}
-              className="text-4xl md:text-5xl font-bold mb-4 text-white"
-            >
-              {t("explore_topics_by_tag")}
-            </motion.h1>
-            <motion.p
-              initial={{
-                opacity: 0,
-                y: 20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                duration: 0.6,
-                delay: 0.2,
-              }}
-              className="text-xl text-indigo-100 mb-8"
-            >
-              {t("discover_content_organized_by")}.{" "}
-              {t("browse_our_collection_of")} {tags.length}{" "}
-              {t("tags_to_find_exactly_what_youre_looking_for")}.
-            </motion.p>
-
-            <motion.div
-              initial={{
-                opacity: 0,
-                y: 20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                duration: 0.6,
-                delay: 0.4,
-              }}
-              className="relative"
-            >
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
-              <Input
-                type="text"
-                placeholder="Search tags..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 py-6 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-indigo-200 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-transparent w-full md:w-96"
-              />
-            </motion.div>
-          </div>
-        </motion.div>
-
+      <div className="relative z-10 container mx-auto px-4 py-12">
         {/* Featured Tags Section */}
         <div className="mb-16">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-              {t("popular_tags")}
+              {tCommon("popular_tags")}
             </h2>
             <Link
               href="/blog/tag"
@@ -258,13 +319,13 @@ export function TagsClient() {
                       </h3>
                       {tag.postCount !== undefined && (
                         <span className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs">
-                          {tag.postCount} {t("posts")}
+                          {tag.postCount} {tCommon("posts")}
                         </span>
                       )}
                     </div>
 
                     <div className="flex items-center text-white/90 text-sm">
-                      <span>{t("Explore")}</span>
+                      <span>{t("explore")}</span>
                       <ArrowRight className="ml-1 h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
                     </div>
                   </Link>
@@ -309,7 +370,7 @@ export function TagsClient() {
             <div className="text-center py-12 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-100 dark:border-zinc-700">
               <TagIcon className="h-12 w-12 mx-auto text-zinc-400 dark:text-zinc-500 mb-4" />
               <h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100 mb-2">
-                {t("no_tags_found")}
+                {tCommon("no_tags_found")}
               </h3>
               <p className="text-zinc-500 dark:text-zinc-400">
                 {searchQuery

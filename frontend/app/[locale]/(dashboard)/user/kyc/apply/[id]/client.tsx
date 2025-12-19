@@ -27,7 +27,8 @@ import { kycDocumentUploader } from "@/utils/kyc-upload";
 import { useTranslations } from "next-intl";
 
 export function KycApplicationClient() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { id } = useParams() as { id: string };
   const { toast } = useToast();
@@ -371,7 +372,7 @@ export function KycApplicationClient() {
         </Alert>
         <Button className="mt-6" onClick={() => router.push("/user/kyc")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {t("back_to_kyc_dashboard")}
+          {tCommon("back_to_kyc_dashboard")}
         </Button>
       </div>
     );
@@ -411,7 +412,7 @@ export function KycApplicationClient() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent dark:from-primary dark:to-blue-400">
-              {t("Level")}{" "}
+              {tCommon("level")}{" "}
               {level.level}: {level.name}
             </h1>
             <p className="text-muted-foreground dark:text-zinc-400 mt-1">
@@ -427,17 +428,17 @@ export function KycApplicationClient() {
               <div className="space-y-2 flex-1">
                 <h3 className="font-semibold text-lg flex items-center gap-2 dark:text-zinc-100">
                   <Clock className="h-5 w-5 text-primary" />
-                  <span>{t("verification_progress")}</span>
+                  <span>{tCommon("verification_progress")}</span>
                 </h3>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="font-medium dark:text-zinc-200">
-                    {t("Step")}
+                    {tCommon("step")}
                     {safeCurrentStep + 1}
-                    {t("of")}
+                    {tCommon("of")}
                     {steps.length}
                   </span>
                   <span className="text-primary font-semibold dark:text-primary-400">
-                    {Math.round(progress)}% {t("complete")}
+                    {Math.round(progress)}% {tCommon("complete")}
                   </span>
                 </div>
                 <Progress value={progress} className="h-2.5 bg-background" />
@@ -447,7 +448,7 @@ export function KycApplicationClient() {
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-primary"></div>
                   <span className="text-sm dark:text-zinc-300">
-                    {t("current")}
+                    {tCommon("current")}
                     {currentStepData.title}
                   </span>
                 </div>
@@ -455,7 +456,7 @@ export function KycApplicationClient() {
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-muted-foreground"></div>
                     <span className="text-sm text-muted-foreground dark:text-zinc-400">
-                      {t("next")}
+                      {tCommon("next")}
                       {nextStepTitle}
                     </span>
                   </div>
@@ -576,7 +577,7 @@ export function KycApplicationClient() {
         <Alert className="bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
           <Info className="h-4 w-4 text-blue-500 dark:text-blue-400" />
           <AlertTitle className="text-gray-800 dark:text-zinc-200">
-            {t("important_information")}
+            {tCommon("important_information")}
           </AlertTitle>
           <AlertDescription className="text-gray-600 dark:text-zinc-400">
             {t("by_submitting_this_and_complete")}.{" "}

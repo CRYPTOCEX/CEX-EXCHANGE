@@ -7,6 +7,8 @@
  * This assumes quote currency is the reference currency (e.g., USDT)
  */
 
+import { logger } from "@b/utils/console";
+
 export interface TVLInput {
   baseBalance: number | string;
   quoteBalance: number | string;
@@ -39,7 +41,7 @@ export function calculateTVL(input: TVLInput): number {
 
   // Validate inputs
   if (base < 0 || quote < 0) {
-    console.warn("[TVL] Negative balance detected, using absolute values");
+    logger.warn("AI_MM", "Negative balance detected, using absolute values");
   }
 
   const absBase = Math.abs(base);
@@ -48,7 +50,7 @@ export function calculateTVL(input: TVLInput): number {
   if (price <= 0) {
     // If no valid price, return sum of balances as fallback
     // This prevents division by zero and provides a reasonable estimate
-    console.warn("[TVL] Invalid or zero price, returning sum of balances");
+    logger.warn("AI_MM", "Invalid or zero price, returning sum of balances");
     return absBase + absQuote;
   }
 

@@ -44,12 +44,17 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.blog.category",
+  logModule: "ADMIN_BLOG",
+  logTitle: "List categories",
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Parsing query parameters");
+
+  ctx?.step("Fetching categories with filters");
+  const result = await getFiltered({
     model: models.category,
     query,
     sortField: query.sortField || "name",
@@ -61,4 +66,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success("Categories retrieved successfully");
+  return result;
 };

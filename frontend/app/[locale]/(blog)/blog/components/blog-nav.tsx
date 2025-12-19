@@ -10,10 +10,10 @@ import { useConfigStore } from "@/store/config";
 import { useUserStore } from "@/store/user";
 import SiteHeader from "@/components/partials/header/site-header";
 import { useTranslations } from "next-intl";
-// Adjust import if needed
 
 export default function BlogNav() {
-  const t = useTranslations("blog");
+  const t = useTranslations("blog_blog");
+  const tCommon = useTranslations("common");
   const pathname = usePathname();
   const { user } = useUserStore();
   const { fetchAuthor, author } = useBlogStore();
@@ -51,14 +51,33 @@ export default function BlogNav() {
     const arr = [
       {
         key: "blog",
-        title: "Blog",
+        title: tCommon("blog"),
         href: "/blog",
         active: pathname === "/blog",
+        exact: true,
+      },
+      {
+        key: "articles",
+        title: t("articles"),
+        href: "/blog/post",
+        active: pathname.startsWith("/blog/post"),
+      },
+      {
+        key: "categories",
+        title: t("categories"),
+        href: "/blog/category",
+        active: pathname.startsWith("/blog/category"),
+      },
+      {
+        key: "authors",
+        title: t("authors"),
+        href: "/blog/author",
+        active: pathname === "/blog/author",
       },
     ];
 
     if (!isLoggedIn) {
-      // Guests: only show Blog
+      // Guests: show main navigation links
       return arr;
     }
 
@@ -66,14 +85,14 @@ export default function BlogNav() {
       if (!isApprovedAuthor) {
         arr.push({
           key: "become-author",
-          title: "Become an Author",
+          title: t("become_an_author"),
           href: "/blog/author/apply",
           active: pathname.startsWith("/blog/author/apply"),
         });
       } else {
         arr.push({
           key: "my-posts",
-          title: "My Posts",
+          title: t("my_posts"),
           href: "/blog/author/manage",
           active: pathname.startsWith("/blog/author/manage"),
         });
@@ -117,5 +136,11 @@ export default function BlogNav() {
   ]);
 
   // Just return the SiteHeader with menu/rightControls
-  return <SiteHeader menu={menu} rightControls={rightControls} />;
+  return (
+    <SiteHeader
+      menu={menu}
+      rightControls={rightControls}
+      adminPath="/admin/blog"
+    />
+  );
 }

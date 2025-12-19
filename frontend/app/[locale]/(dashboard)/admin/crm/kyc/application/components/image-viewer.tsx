@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Minimize } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 interface FullScreenImageViewerProps {
   src: string;
@@ -12,6 +13,7 @@ export const FullScreenImageViewer = ({
   src,
   onClose,
 }: FullScreenImageViewerProps) => {
+  const t = useTranslations("dashboard_admin");
   // Add keyboard event listener for ESC key
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -45,7 +47,7 @@ export const FullScreenImageViewer = ({
         </Button>
         <img
           src={src || "/placeholder.svg"}
-          alt="Full screen view"
+          alt={t("full_screen_view")}
           className="w-full h-full object-contain rounded-lg"
           onClick={(e) => e.stopPropagation()}
           onError={(e) => {

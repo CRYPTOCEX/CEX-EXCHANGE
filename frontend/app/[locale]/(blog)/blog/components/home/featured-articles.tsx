@@ -4,223 +4,235 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { formatDistanceToNow } from "date-fns";
-import { ChevronRight, FileText, ArrowUpRight } from "lucide-react";
+import { ArrowRight, FileText, ArrowUpRight, Sparkles, Clock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "./empty-state";
+import { useTranslations } from "next-intl";
+
 interface FeaturedArticlesProps {
   posts: Post[];
   category?: string | null;
   tag?: string | null;
 }
+
 export function FeaturedArticles({
   posts,
   category,
   tag,
 }: FeaturedArticlesProps) {
+  const t = useTranslations("blog_blog");
   const recentPosts = posts.slice(1); // The first post is used as the hero
 
   return (
-    <div className="mb-20">
-      <div className="mb-8 flex items-center justify-between">
-        <motion.h2
-          initial={{
-            opacity: 0,
-            x: -20,
-          }}
-          animate={{
-            opacity: 1,
-            x: 0,
-          }}
-          transition={{
-            duration: 0.5,
-          }}
-          className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100"
+    <section className="py-16">
+      {/* Premium Section Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="text-center mb-12"
+      >
+        <Badge
+          variant="outline"
+          className="mb-4 px-4 py-2 rounded-full bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300"
         >
-          Featured Articles
-        </motion.h2>
-        {category ? (
-          <span className="text-lg text-zinc-600 dark:text-zinc-400">
-            Showing posts in{" "}
-            <span className="font-medium">{category.replace(/-/g, " ")}</span>
+          <Sparkles className="w-4 h-4 mr-2" />
+          {t("featured_articles")}
+        </Badge>
+        <h2 className="text-4xl md:text-5xl font-bold text-zinc-900 dark:text-white mb-4">
+          {t("featured_articles").split(" ").slice(0, -1).join(" ")}{" "}
+          <span className="bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
+            {t("featured_articles").split(" ").slice(-1)[0]}
           </span>
-        ) : tag ? (
-          <span className="text-lg text-zinc-600 dark:text-zinc-400">
-            Showing posts tagged with{" "}
-            <span className="font-medium">{tag.replace(/-/g, " ")}</span>
-          </span>
-        ) : null}
-      </div>
+        </h2>
+        <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
+          {category ? (
+            <>
+              {t("showing_posts_in")}{" "}
+              <span className="font-semibold text-amber-600 dark:text-amber-400">{category.replace(/-/g, " ")}</span>
+            </>
+          ) : tag ? (
+            <>
+              {t("showing_posts_tagged_with")}{" "}
+              <span className="font-semibold text-amber-600 dark:text-amber-400">{tag.replace(/-/g, " ")}</span>
+            </>
+          ) : (
+            "Handpicked articles from our editorial team"
+          )}
+        </p>
+      </motion.div>
 
-      {/* Featured posts in a more impressive layout */}
+      {/* Premium Bento Grid Layout */}
       {recentPosts.length > 0 ? (
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-          {/* Large featured post */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Large Featured Post - Spans 2 columns */}
           <motion.div
-            initial={{
-              opacity: 0,
-              y: 20,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              duration: 0.5,
-            }}
-            className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="lg:col-span-2 lg:row-span-2"
           >
-            <div className="absolute inset-0">
-              <Image
-                src={recentPosts[0]?.image || "/placeholder.svg"}
-                alt={recentPosts[0]?.title || "Featured Post"}
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
-            </div>
-            <div className="relative z-10 flex h-full flex-col justify-end p-8">
-              {recentPosts[0]?.category && (
-                <div>
-                  <Link
-                    href={`/blog/category/${recentPosts[0].category.slug}`}
-                    className="inline-block rounded-full bg-indigo-600/90 backdrop-blur-sm px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white hover:bg-indigo-500 transition-colors duration-300 shadow-md"
-                  >
+            <Link
+              href={`/blog/${recentPosts[0]?.slug}`}
+              className="group relative block h-full min-h-[400px] lg:min-h-[500px] overflow-hidden rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50 shadow-lg hover:shadow-2xl transition-all duration-500"
+            >
+              {/* Image */}
+              <div className="absolute inset-0">
+                <Image
+                  src={recentPosts[0]?.image || "/placeholder.svg"}
+                  alt={recentPosts[0]?.title || "Featured Post"}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
+              </div>
+
+              {/* Floating orb effect */}
+              <div className="absolute -top-20 -right-20 w-64 h-64 bg-amber-500/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+              {/* Content */}
+              <div className="absolute inset-0 flex flex-col justify-end p-8">
+                {recentPosts[0]?.category && (
+                  <span className="inline-flex items-center self-start gap-1 px-3 py-1 rounded-full bg-amber-500/90 backdrop-blur-sm text-xs font-semibold text-white mb-4 shadow-lg">
+                    <Sparkles className="w-3 h-3" />
                     {recentPosts[0].category.name}
-                  </Link>
-                </div>
-              )}
-              <h3 className="mb-4 text-2xl font-bold text-white">
-                <Link
-                  href={`/blog/${recentPosts[0]?.slug}`}
-                  className="hover:underline"
-                >
-                  {recentPosts[0]?.title}
-                </Link>
-              </h3>
-              <div className="flex items-center">
-                {recentPosts[0]?.author?.user && (
-                  <>
-                    <Image
-                      className="h-8 w-8 rounded-full border border-white/50"
-                      src={
-                        recentPosts[0].author.user.avatar || "/placeholder.svg"
-                      }
-                      alt={recentPosts[0].author.user.firstName || "Author"}
-                      width={32}
-                      height={32}
-                    />
-                    <span className="ml-2 text-sm text-white">
-                      {recentPosts[0].author.user.firstName}
-                    </span>
-                  </>
-                )}
-                <span className="mx-2 text-white/60">•</span>
-                {recentPosts[0]?.createdAt && (
-                  <span className="text-sm text-white/80">
-                    {formatDistanceToNow(new Date(recentPosts[0].createdAt), {
-                      addSuffix: true,
-                    })}
                   </span>
                 )}
+                <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4 group-hover:text-amber-100 transition-colors duration-300">
+                  {recentPosts[0]?.title}
+                </h3>
+                {recentPosts[0]?.description && (
+                  <p className="text-white/80 text-lg mb-6 line-clamp-2">
+                    {recentPosts[0].description}
+                  </p>
+                )}
+                <div className="flex items-center gap-4">
+                  {recentPosts[0]?.author?.user && (
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full opacity-75 blur-sm" />
+                        <Image
+                          className="relative h-10 w-10 rounded-full border-2 border-white/50"
+                          src={recentPosts[0].author.user.avatar || "/placeholder.svg"}
+                          alt={recentPosts[0].author.user.firstName || "Author"}
+                          width={40}
+                          height={40}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">
+                          {recentPosts[0].author.user.firstName}
+                        </p>
+                        {recentPosts[0]?.createdAt && (
+                          <p className="text-white/60 text-sm flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatDistanceToNow(new Date(recentPosts[0].createdAt), { addSuffix: true })}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+
+              {/* Hover arrow indicator */}
+              <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
+                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/20">
+                  <ArrowUpRight className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </Link>
           </motion.div>
 
-          {/* Grid of smaller posts */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {recentPosts.slice(1, 5).map((post, index) => {
-              return (
-                <motion.div
-                  key={post.id}
-                  initial={{
-                    opacity: 0,
-                    y: 20,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  transition={{
-                    duration: 0.5,
-                    delay: index * 0.1,
-                  }}
-                  className="group flex flex-col overflow-hidden rounded-xl bg-white dark:bg-zinc-800 shadow-md hover:shadow-lg transition-all duration-300"
-                >
-                  <div className="relative h-40 w-full overflow-hidden">
-                    <Image
-                      src={post.image || "/placeholder.svg"}
-                      alt={post.title}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent opacity-60 group-hover:opacity-70 transition-opacity duration-300"></div>
-                    {post.category && (
-                      <div className="absolute top-3 left-3">
-                        <Link
-                          href={`/blog/category/${post.category.slug}`}
-                          className="rounded-full bg-indigo-600/90 backdrop-blur-sm px-2 py-1 text-xs font-medium text-white hover:bg-indigo-500 transition-colors duration-300 shadow-sm"
-                        >
-                          {post.category.name}
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-1 flex-col p-4">
-                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300 line-clamp-2">
-                      <Link href={`/blog/${post.slug}`}>{post.title}</Link>
-                    </h3>
-                    <div className="mt-auto pt-3 flex items-center justify-between">
-                      <div className="flex items-center">
-                        {post.author?.user && (
-                          <Image
-                            className="h-6 w-6 rounded-full"
-                            src={
-                              post.author.user.avatar || "/img/placeholder.svg"
-                            }
-                            alt={post.author.user.firstName || "Author"}
-                            width={24}
-                            height={24}
-                          />
-                        )}
-                        <span className="ml-2 text-xs text-zinc-600 dark:text-zinc-400">
-                          {post.createdAt &&
-                            formatDistanceToNow(new Date(post.createdAt), {
-                              addSuffix: true,
-                            })}
-                        </span>
-                      </div>
-                      <Link
-                        href={`/blog/${post.slug}`}
-                        className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 flex items-center"
-                      >
-                        Read <ArrowUpRight className="ml-1 h-3 w-3" />
-                      </Link>
+          {/* Smaller Featured Posts */}
+          {recentPosts.slice(1, 5).map((post, index) => (
+            <motion.div
+              key={post.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+            >
+              <Link
+                href={`/blog/${post.slug}`}
+                className="group relative block h-full min-h-[240px] overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50 shadow-lg hover:shadow-xl transition-all duration-500"
+              >
+                {/* Image */}
+                <div className="absolute inset-0">
+                  <Image
+                    src={post.image || "/placeholder.svg"}
+                    alt={post.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                </div>
+
+                {/* Content */}
+                <div className="absolute inset-0 flex flex-col justify-end p-5">
+                  {post.category && (
+                    <span className="inline-flex items-center self-start gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs font-medium text-white mb-3 border border-white/10">
+                      {post.category.name}
+                    </span>
+                  )}
+                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-amber-100 transition-colors duration-300 line-clamp-2">
+                    {post.title}
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {post.author?.user && (
+                        <Image
+                          className="h-6 w-6 rounded-full border border-white/30"
+                          src={post.author.user.avatar || "/img/placeholder.svg"}
+                          alt={post.author.user.firstName || "Author"}
+                          width={24}
+                          height={24}
+                        />
+                      )}
+                      <span className="text-xs text-white/70">
+                        {post.createdAt && formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
+                      </span>
                     </div>
+                    <ArrowUpRight className="w-4 h-4 text-white/70 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
                   </div>
-                </motion.div>
-              );
-            })}
-          </div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
         </div>
       ) : (
         <EmptyState
-          title="No Featured Articles Yet"
-          description="We're working on curating our best content. Check back soon for featured articles!"
+          title={t("no_featured_articles_yet")}
+          description={`${t("were_working_on_curating_our_best_content")} ${t("check_back_soon_for_featured_articles")}`}
           icon={FileText}
           actionText="Become an Author"
           actionLink="/blog/author"
         />
       )}
 
+      {/* View All Button */}
       {recentPosts.length > 0 && (
-        <div className="mt-12 text-center">
-          <Link href="/blog/post" className="rounded-full">
-            <Button size="lg" variant="outline">
-              View More Articles <ChevronRight className="ml-1 h-4 w-4" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="mt-12 text-center"
+        >
+          <Link href="/blog/post">
+            <Button
+              size="lg"
+              className="rounded-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              {t("view_more_articles")}
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </section>
   );
 }

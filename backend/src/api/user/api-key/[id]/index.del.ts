@@ -7,6 +7,8 @@ export const metadata: OperationObject = {
   description: "Deletes an API key by its ID.",
   operationId: "deleteApiKey",
   tags: ["API Key Management"],
+  logModule: "USER",
+  logTitle: "Delete API key",
   parameters: [
     {
       index: 0,
@@ -39,17 +41,26 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { user, params } = data;
-  if (!user) throw createError({ statusCode: 401, message: "Unauthorized" });
+  const { user, params, ctx } = data;
+  if (!user) {
+    ctx?.fail("User not authenticated");
+    throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
   const { id } = params;
 
+  ctx?.step("Finding API key");
   const apiKey = await models.apiKey.findOne({
     where: { id, userId: user.id },
   });
-  if (!apiKey)
+  if (!apiKey) {
+    ctx?.fail("API Key not found");
     throw createError({ statusCode: 404, message: "API Key not found" });
+  }
 
+  ctx?.step("Deleting API key");
   await apiKey.destroy({ force: true });
+
+  ctx?.success("API Key deleted successfully");
   return { message: "API Key deleted successfully" };
 };

@@ -1,6 +1,6 @@
 import { models } from "@b/db";
-import { logError } from "@b/utils/logger";
 import { RedisSingleton } from "@b/utils/redis";
+import { logger } from "@b/utils/console";
 import { initializeAiMarketMakerTables } from "../scylla/client";
 import { MarketManager } from "./MarketManager";
 import { StrategyManager } from "./strategies/StrategyManager";
@@ -71,15 +71,14 @@ class MarketMakerEngine {
   /**
    * Initialize the engine
    * Sets up all sub-managers and prepares for operation
+   * Silent initialization - no console output (runs during startup via cron)
    */
   public async initialize(config?: Partial<EngineConfig>): Promise<void> {
     if (this.status !== "STOPPED") {
-      console.warn("Engine is already initialized or running");
       return;
     }
 
     this.status = "STARTING";
-    console.info("\x1b[36m[AI Market Maker] Initializing Market Maker Engine...\x1b[0m");
 
     try {
       // Merge configuration
@@ -104,8 +103,6 @@ class MarketMakerEngine {
       this.startTime = new Date();
       this.errorCount = 0;
 
-      console.info("\x1b[32m[AI Market Maker] Market Maker Engine initialized successfully\x1b[0m");
-
       // Start the main tick loop
       this.startTickLoop();
 
@@ -113,7 +110,7 @@ class MarketMakerEngine {
       await this.publishStatus();
     } catch (error) {
       this.status = "ERROR";
-      logError("ai-market-maker-engine", error, __filename);
+      logger.error("AI_MM", "Failed to initialize engine", error);
       throw error;
     }
   }
@@ -123,12 +120,12 @@ class MarketMakerEngine {
    */
   public async shutdown(): Promise<void> {
     if (this.status === "STOPPED") {
-      console.warn("Engine is already stopped");
+      logger.warn("AI_MM", "Engine is already stopped");
       return;
     }
 
     this.status = "STOPPING";
-    console.info("\x1b[33m[AI Market Maker] Shutting down Market Maker Engine...\x1b[0m");
+    logger.warn("AI_MM", "Shutting down Market Maker Engine...");
 
     try {
       // Stop the tick loop
@@ -148,13 +145,13 @@ class MarketMakerEngine {
       this.status = "STOPPED";
       this.startTime = null;
 
-      console.info("\x1b[32m[AI Market Maker] Market Maker Engine shut down successfully\x1b[0m");
+      logger.success("AI_MM", "Market Maker Engine shut down successfully");
 
       // Publish final status
       await this.publishStatus();
     } catch (error) {
       this.status = "ERROR";
-      logError("ai-market-maker-engine", error, __filename);
+      logger.error("AI_MM", "Failed to shutdown Market Maker Engine", error);
       throw error;
     }
   }
@@ -163,7 +160,7 @@ class MarketMakerEngine {
    * Emergency stop - immediately halt all trading
    */
   public async emergencyStop(): Promise<void> {
-    console.error("\x1b[31m[AI Market Maker] EMERGENCY STOP TRIGGERED\x1b[0m");
+    logger.error("AI_MM", "EMERGENCY STOP TRIGGERED");
 
     this.stopTickLoop();
 
@@ -234,7 +231,7 @@ class MarketMakerEngine {
    */
   public updateConfig(newConfig: Partial<EngineConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    console.info("[AI Market Maker] Configuration updated:", this.config);
+    logger.info("AI_MM", `Configuration updated: ${JSON.stringify(this.config)}`);
   }
 
   // ============================================
@@ -265,10 +262,10 @@ class MarketMakerEngine {
       this.config.enableRealLiquidity = tradingEnabled !== false;
 
       if (maintenanceMode || globalPauseEnabled) {
-        console.warn("[AI Market Maker] Global pause or maintenance mode is enabled");
+        logger.warn("AI_MM", "Global pause or maintenance mode is enabled");
       }
     } catch (error) {
-      console.warn("[AI Market Maker] Could not load global settings, using defaults");
+      logger.error("AI_MM", "Failed to load global settings", error);
     }
   }
 
@@ -283,8 +280,7 @@ class MarketMakerEngine {
     this.tickInterval = setInterval(async () => {
       await this.tick();
     }, this.config.tickIntervalMs);
-
-    console.info(`[AI Market Maker] Tick loop started (${this.config.tickIntervalMs}ms interval)`);
+    // Note: Tick loop start is logged by caller in groupItem during initialization
   }
 
   /**
@@ -294,7 +290,7 @@ class MarketMakerEngine {
     if (this.tickInterval) {
       clearInterval(this.tickInterval);
       this.tickInterval = null;
-      console.info("[AI Market Maker] Tick loop stopped");
+      logger.info("AI_MM", "Tick loop stopped");
     }
   }
 
@@ -316,7 +312,7 @@ class MarketMakerEngine {
     if (this.tickInProgress) {
       this.consecutiveSlowTicks++;
       if (this.consecutiveSlowTicks > 10) {
-        console.warn(`[AI Market Maker] Warning: ${this.consecutiveSlowTicks} consecutive slow ticks detected`);
+        logger.warn("AI_MM", `Warning: ${this.consecutiveSlowTicks} consecutive slow ticks detected`);
       }
       return;
     }
@@ -329,11 +325,7 @@ class MarketMakerEngine {
 
     // Debug logging every 30 ticks in dev mode
     if (process.env.NODE_ENV === "development" && this.tickCount % 30 === 0) {
-      console.debug(
-        `[AI Market Maker ENGINE] Tick #${this.tickCount} | ` +
-        `Markets: ${this.marketManager?.getActiveMarketCount() || 0} | ` +
-        `Errors: ${this.errorCount}`
-      );
+      logger.debug("AI_MM", `Tick #${this.tickCount} | Markets: ${this.marketManager?.getActiveMarketCount() || 0} | Errors: ${this.errorCount}`);
     }
 
     try {
@@ -342,7 +334,7 @@ class MarketMakerEngine {
         const riskCheck = await this.riskManager.checkGlobalRisk();
         if (!riskCheck.canTrade) {
           if (this.tickCount % 60 === 0) {
-            console.warn(`[AI Market Maker] Trading paused: ${riskCheck.reason}`);
+            logger.warn("AI_MM", `Trading paused: ${riskCheck.reason}`);
           }
           return;
         }
@@ -369,9 +361,9 @@ class MarketMakerEngine {
       this.errorCount++;
 
       if (error?.message === "Market processing timeout") {
-        console.error(`[AI Market Maker] Tick timeout - processing took > ${this.MAX_TICK_DURATION_MS}ms`);
+        logger.error("AI_MM", `Tick timeout - processing took > ${this.MAX_TICK_DURATION_MS}ms`);
       } else {
-        logError("ai-market-maker-tick", error, __filename);
+        logger.error("AI_MM", "Tick processing error", error);
       }
 
       // If too many errors, trigger emergency stop
@@ -384,7 +376,7 @@ class MarketMakerEngine {
       // Log slow ticks
       const tickDuration = Date.now() - tickStart;
       if (tickDuration > this.config.tickIntervalMs * 2) {
-        console.warn(`[AI Market Maker] Slow tick detected: ${tickDuration}ms (expected < ${this.config.tickIntervalMs}ms)`);
+        logger.warn("AI_MM", `Slow tick detected: ${tickDuration}ms (expected < ${this.config.tickIntervalMs}ms)`);
       }
     }
   }
@@ -427,7 +419,7 @@ class MarketMakerEngine {
       const lastResetDay = lastResetDate?.toISOString().split("T")[0];
 
       if (lastResetDay !== today) {
-        console.info("[AI Market Maker] Performing daily volume reset...");
+        logger.info("AI_MM", "Performing daily volume reset...");
 
         // Reset all market maker daily volumes
         await models.aiMarketMaker.update(
@@ -449,7 +441,7 @@ class MarketMakerEngine {
         // Update last reset timestamp
         await redis.set(lastResetKey, now.toISOString());
 
-        console.info("[AI Market Maker] Daily volume reset complete");
+        logger.info("AI_MM", "Daily volume reset complete");
 
         // Log the reset
         await this.logHistory("DAILY_RESET", {
@@ -458,7 +450,7 @@ class MarketMakerEngine {
         });
       }
     } catch (error) {
-      logError("ai-market-maker-daily-reset", error, __filename);
+      logger.error("AI_MM", "Failed to check daily volume reset", error);
     }
   }
 
@@ -485,7 +477,7 @@ class MarketMakerEngine {
   private async logHistory(action: string, details: any): Promise<void> {
     try {
       // This will be logged to a global history table
-      console.info(`[AI Market Maker] History: ${action}`, details);
+      logger.info("AI_MM", `History: ${action} - ${JSON.stringify(details)}`);
     } catch (error) {
       // Ignore history logging errors
     }

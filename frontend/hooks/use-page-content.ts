@@ -49,8 +49,8 @@ export function usePageContent(pageId: string, defaultContent?: string | Record<
         
         const [defaultRes, builderRes] = await Promise.all(promises);
         
-        let defaultData = null;
-        let builderData = null;
+        let defaultData: PageContent | null = null;
+        let builderData: PageContent | null = null;
         
         if (defaultRes.ok) {
           defaultData = await defaultRes.json();

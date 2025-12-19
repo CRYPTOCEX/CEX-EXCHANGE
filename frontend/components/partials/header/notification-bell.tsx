@@ -53,6 +53,7 @@ const getNotificationColor = (type: string) => {
 
 export function NotificationBell() {
   const t = useTranslations("common");
+  const tComponents = useTranslations("components");
   const {
     notifications,
     stats,
@@ -105,7 +106,7 @@ export function NotificationBell() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative p-2 rounded-full transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          className="relative w-10 h-10 rounded-xl transition-all duration-200 border text-zinc-600 hover:text-zinc-900 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:border-zinc-800 dark:hover:border-zinc-700 dark:hover:bg-zinc-800/50"
         >
           <motion.div
             animate={
@@ -118,7 +119,7 @@ export function NotificationBell() {
             }
             transition={{ duration: 0.5 }}
           >
-            <Bell className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
+            <Bell className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
           </motion.div>
 
           <AnimatePresence>
@@ -155,7 +156,7 @@ export function NotificationBell() {
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-700">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-lg">{t("Notifications")}</h3>
+              <h3 className="font-semibold text-lg">{t("notifications")}</h3>
               {stats.unread > 0 && (
                 <Badge variant="secondary" className="text-xs">
                   {stats.unread} {t("new")}
@@ -184,7 +185,7 @@ export function NotificationBell() {
                   size="icon"
                   className="h-8 w-8"
                   onClick={handleMarkAllRead}
-                  title="Mark all as read"
+                  title={tComponents("mark_all_as_read")}
                 >
                   <Check className="h-4 w-4" />
                 </Button>
@@ -300,7 +301,7 @@ export function NotificationBell() {
                 className="w-full justify-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800"
                 onClick={() => setIsOpen(false)}
               >
-                {t("view_all_notifications")}
+                {tComponents("view_all_notifications")}
                 <ExternalLink className="h-4 w-4" />
               </Button>
             </Link>

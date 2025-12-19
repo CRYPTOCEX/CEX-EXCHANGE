@@ -1,12 +1,19 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  notFoundResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Get P2P Dispute by ID (Admin)",
-  description: "Retrieves detailed information about a specific dispute.",
+  summary: "Get P2P dispute by ID",
+  description: "Retrieves detailed information about a specific P2P dispute including trade details, involved parties, messages, evidence, and admin notes.",
   operationId: "getAdminP2PDisputeById",
-  tags: ["Admin", "Disputes", "P2P"],
+  tags: ["Admin", "P2P", "Dispute"],
   requiresAuth: true,
+  logModule: "ADMIN_P2P",
+  logTitle: "Get P2P Dispute",
   parameters: [
     {
       index: 0,
@@ -14,23 +21,57 @@ export const metadata = {
       in: "path",
       description: "Dispute ID",
       required: true,
-      schema: { type: "string" },
+      schema: { type: "string", format: "uuid" },
     },
   ],
   responses: {
-    200: { description: "Dispute retrieved successfully." },
-    401: { description: "Unauthorized." },
-    404: { description: "Dispute not found." },
-    500: { description: "Internal Server Error." },
+    200: {
+      description: "Dispute retrieved successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              id: { type: "string", format: "uuid" },
+              tradeId: { type: "string", format: "uuid" },
+              amount: { type: "string" },
+              reportedById: { type: "string", format: "uuid" },
+              againstId: { type: "string", format: "uuid" },
+              reason: { type: "string" },
+              details: { type: "string", nullable: true },
+              filedOn: { type: "string", format: "date-time" },
+              status: { type: "string", enum: ["PENDING", "IN_PROGRESS", "RESOLVED"] },
+              priority: { type: "string", enum: ["HIGH", "MEDIUM", "LOW"] },
+              resolution: { type: "object", nullable: true },
+              resolvedOn: { type: "string", format: "date-time", nullable: true },
+              messages: { type: "array", description: "Transformed dispute messages" },
+              adminNotes: { type: "array", description: "Admin notes extracted from activity log" },
+              evidence: { type: "array", description: "Submitted evidence files" },
+              trade: {
+                type: "object",
+                description: "Associated trade with offer and user details",
+              },
+              reportedBy: { type: "object", description: "User who reported dispute" },
+              against: { type: "object", description: "User against whom dispute was filed" },
+            },
+          },
+        },
+      },
+    },
+    401: unauthorizedResponse,
+    404: notFoundResponse("Dispute"),
+    500: serverErrorResponse,
   },
   permission: "view.p2p.dispute",
+  demoMask: ["reportedBy.email", "against.email", "trade.buyer.email", "trade.seller.email"],
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
   const { id } = params;
 
   try {
+    ctx?.step("Fetching data");
     const dispute = await models.p2pDispute.findByPk(id, {
       include: [
         {
@@ -103,6 +144,7 @@ export default async (data) => {
       timestamp: e.createdAt || e.timestamp,
     })) : [];
 
+    ctx?.success("Operation completed successfully");
     return {
       ...plainDispute,
       messages,

@@ -1,5 +1,6 @@
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 import { p2pAdminTradeRateLimit } from "@b/handler/Middleware";
 import { logP2PAdminAction } from "../../../../p2p/utils/ownership";
@@ -12,6 +13,8 @@ export const metadata = {
   tags: ["Admin", "Trades", "P2P"],
   requiresAuth: true,
   middleware: [p2pAdminTradeRateLimit],
+  logModule: "ADMIN_P2P",
+  logTitle: "Resolve P2P trade",
   parameters: [
     {
       index: 0,
@@ -52,7 +55,7 @@ export const metadata = {
 };
 
 export default async (data) => {
-  const { params, body, user } = data;
+  const { params, body, user, ctx } = data;
   const { id } = params;
   const { resolution, notes } = body;
 
@@ -66,6 +69,7 @@ export default async (data) => {
   const transaction = await sequelize.transaction();
 
   try {
+    ctx?.step("Fetching trade");
     const trade = await models.p2pTrade.findByPk(id, {
       include: [{
         model: models.p2pOffer,
@@ -78,12 +82,15 @@ export default async (data) => {
 
     if (!trade) {
       await transaction.rollback();
+      ctx?.fail("Trade not found");
       throw createError({ statusCode: 404, message: "Trade not found" });
     }
 
+    ctx?.step("Validating trade status");
     // Validate trade can be resolved
     if (!["DISPUTED", "PAYMENT_SENT", "PENDING"].includes(trade.status)) {
       await transaction.rollback();
+      ctx?.fail(`Cannot resolve trade with status: ${trade.status}`);
       throw createError({
         statusCode: 400,
         message: `Cannot resolve trade with status: ${trade.status}`
@@ -95,6 +102,7 @@ export default async (data) => {
     let finalStatus = "COMPLETED";
     let fundsReleased = false;
 
+    ctx?.step(`Processing resolution: ${resolution}`);
     // Handle funds based on resolution
     if (resolution === "BUYER_WINS" || resolution === "SPLIT") {
       // Release funds to buyer (or split - for now treating as buyer wins)
@@ -129,12 +137,7 @@ export default async (data) => {
 
             // Log if amounts don't match
             if (safeDeductAmount < trade.amount || safeUnlockAmount < trade.amount) {
-              console.warn('[P2P Admin Resolve] WARNING: Partial fund handling:', {
-                tradeId: trade.id,
-                tradeAmount: trade.amount,
-                actualDeducted: safeDeductAmount,
-                actualUnlocked: safeUnlockAmount,
-              });
+              logger.warn("P2P_RESOLVE", `Partial fund handling for trade ${trade.id}: deducted=${safeDeductAmount}, unlocked=${safeUnlockAmount}`);
             }
 
             // Credit buyer (net amount after platform fee)
@@ -171,22 +174,12 @@ export default async (data) => {
                 tradeId: trade.id,
               }, { transaction });
 
-              console.log('[P2P Admin Resolve] Platform commission recorded:', {
-                tradeId: trade.id,
-                adminId: user.id,
-                platformFee,
-                buyerNetAmount,
-                currency: trade.offer.currency,
-              });
+              logger.info("P2P_RESOLVE", `Platform commission recorded for trade ${trade.id}: ${platformFee} ${trade.offer.currency}`);
             }
 
             fundsReleased = true;
           } else {
-            console.warn('[P2P Admin Resolve] WARNING: No funds available to transfer:', {
-              tradeId: trade.id,
-              sellerBalance: sellerWallet.balance,
-              sellerInOrder: sellerWallet.inOrder,
-            });
+            logger.warn("P2P_RESOLVE", `No funds available to transfer for trade ${trade.id}`);
           }
         }
       }
@@ -221,34 +214,18 @@ export default async (data) => {
               });
               fundsReleased = true;
 
-              console.log(`[P2P Admin Resolve ${resolution}] Unlocked funds (BUY offer):`, {
-                tradeId: trade.id,
-                tradeAmount: trade.amount,
-                actualUnlocked: safeUnlockAmount,
-              });
+              logger.info("P2P_RESOLVE", `${resolution}: Unlocked ${safeUnlockAmount} for trade ${trade.id} (BUY offer)`);
 
               if (safeUnlockAmount < trade.amount) {
-                console.warn(`[P2P Admin Resolve ${resolution}] WARNING: Partial unlock:`, {
-                  tradeId: trade.id,
-                  tradeAmount: trade.amount,
-                  actualUnlocked: safeUnlockAmount,
-                });
+                logger.warn("P2P_RESOLVE", `${resolution}: Partial unlock for trade ${trade.id}: ${safeUnlockAmount}/${trade.amount}`);
               }
             } else {
-              console.warn(`[P2P Admin Resolve ${resolution}] WARNING: No funds to unlock:`, {
-                tradeId: trade.id,
-                currentInOrder: sellerWallet.inOrder,
-              });
+              logger.warn("P2P_RESOLVE", `${resolution}: No funds to unlock for trade ${trade.id}`);
             }
           }
         } else {
           // For SELL offers: Don't unlock wallet inOrder, funds stay locked for the offer
-          console.log(`[P2P Admin Resolve ${resolution}] SELL offer - funds remain locked for offer:`, {
-            tradeId: trade.id,
-            offerId: trade.offerId,
-            amount: trade.amount,
-            currency: trade.offer.currency,
-          });
+          logger.info("P2P_RESOLVE", `${resolution}: SELL offer - funds remain locked for offer ${trade.offerId}`);
         }
 
         // Restore offer available amount since trade was cancelled (for both SELL and BUY offers)
@@ -275,12 +252,7 @@ export default async (data) => {
                 },
               }, { transaction });
 
-              console.log(`[P2P Admin Resolve ${resolution}] Restored offer amount:`, {
-                offerId: offer.id,
-                offerType: offer.type,
-                previousTotal: amountConfig.total,
-                newTotal: safeTotal,
-              });
+              logger.info("P2P_RESOLVE", `${resolution}: Restored offer ${offer.id} amount: ${amountConfig.total} -> ${safeTotal}`);
             }
           }
         }
@@ -310,6 +282,7 @@ export default async (data) => {
       createdAt: new Date().toISOString(),
     });
 
+    ctx?.step("Updating trade status");
     // Update trade
     await trade.update({
       status: finalStatus,
@@ -319,6 +292,7 @@ export default async (data) => {
       cancelledAt: finalStatus === "CANCELLED" ? new Date() : null,
     }, { transaction });
 
+    ctx?.step("Updating related dispute if exists");
     // Update related dispute if exists
     const dispute = await models.p2pDispute.findOne({
       where: { tradeId: id },
@@ -338,6 +312,7 @@ export default async (data) => {
       }, { transaction });
     }
 
+    ctx?.step("Logging activity");
     // Log activity
     await models.p2pActivityLog.create({
       userId: user.id,
@@ -372,6 +347,7 @@ export default async (data) => {
 
     await transaction.commit();
 
+    ctx?.step("Sending notifications");
     // Send notifications
     notifyTradeEvent(trade.id, finalStatus === "COMPLETED" ? "TRADE_COMPLETED" : "TRADE_CANCELLED", {
       buyerId: trade.buyerId,
@@ -380,7 +356,7 @@ export default async (data) => {
       currency: trade.offer?.currency || trade.currency,
       adminResolved: true,
       resolution,
-    }).catch(console.error);
+    }).catch((err) => logger.error("P2P_RESOLVE", `Notification error: ${err}`));
 
     // Broadcast WebSocket event
     broadcastP2PTradeEvent(trade.id, {
@@ -394,6 +370,7 @@ export default async (data) => {
       },
     });
 
+    ctx?.success("Trade resolved successfully");
     return {
       message: "Trade resolved successfully.",
       trade: {
@@ -408,6 +385,7 @@ export default async (data) => {
     if (err.statusCode) {
       throw err;
     }
+    ctx?.fail("Failed to resolve trade");
     throw createError({
       statusCode: 500,
       message: "Internal Server Error: " + err.message,

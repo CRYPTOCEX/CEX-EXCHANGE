@@ -57,7 +57,8 @@ interface NFTTokenClientProps {
 }
 
 export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_nft");
+  const tExt = useTranslations("ext");
   const router = useRouter();
   const { user } = useUserStore();
   const { settings } = useConfigStore();
@@ -184,17 +185,19 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
 
     setIsPurchasing(true);
     try {
-      const result = await purchaseNFT(
-        selectedToken.currentListing.id,
-        selectedToken.currentListing.price,
-        address || ""
-      );
+      const result = await purchaseNFT({
+        marketplaceAddress: selectedToken.collection?.contractAddress || "",
+        nftContractAddress: selectedToken.collection?.contractAddress || "",
+        tokenId: selectedToken.tokenId || selectedToken.id,
+        price: String(selectedToken.currentListing.price || "0"),
+        royaltyPercentage: selectedToken.collection?.royaltyPercentage,
+      });
 
-      if (result.success) {
+      if (result.transactionHash) {
         toast.success("NFT purchased successfully!");
         router.push("/nft/portfolio");
       } else {
-        toast.error(result.error || "Failed to purchase NFT");
+        toast.error("Failed to purchase NFT");
       }
     } catch (error: any) {
       if (error.message?.includes("User denied")) {
@@ -244,13 +247,13 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-md w-full text-center space-y-6"
         >
-          <div className="w-24 h-24 mx-auto bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-full flex items-center justify-center">
+          <div className={`w-24 h-24 mx-auto bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-full flex items-center justify-center`}>
             <Sparkles className="h-12 w-12 text-primary" />
           </div>
           <h1 className="text-3xl font-bold">{t("nft_not_found")}</h1>
           <p className="text-muted-foreground text-lg">{t("the_nft_youre_looking")}</p>
           <Link href="/nft/marketplace">
-            <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600">
+            <Button size="lg" className={`bg-gradient-to-r from-primary to-purple-600`}>
               {t("browse_marketplace")}
             </Button>
           </Link>
@@ -308,11 +311,11 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => window.open(`https://bscscan.com/token/${selectedToken.collection?.contractAddress}`, '_blank')}>
                     <ExternalLink className="w-4 h-4 mr-2" />
-                    View on Explorer
+                    {t("view_on_explorer")}
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <RefreshCw className="w-4 h-4 mr-2" />
-                    Refresh Metadata
+                    {t("refresh_metadata")}
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Flag className="w-4 h-4 mr-2" />
@@ -330,7 +333,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Image */}
           <div className="space-y-4">
-            <div className="relative aspect-square bg-gradient-to-br from-primary/5 via-purple-600/5 to-pink-600/5 rounded-xl overflow-hidden border-2 border-border group">
+            <div className={`relative aspect-square bg-gradient-to-br from-primary/5 via-purple-600/5 to-pink-600/5 rounded-xl overflow-hidden border-2 border-border group`}>
               {selectedToken.imageUrl ? (
                 <Image
                   src={selectedToken.imageUrl}
@@ -348,13 +351,13 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                 {isForSale && (
                   <Badge className="bg-green-500/90 backdrop-blur-sm border-0">
                     <Tag className="w-3 h-3 mr-1" />
-                    For Sale
+                    {t("for_sale")}
                   </Badge>
                 )}
                 {isAuction && (
                   <Badge className="bg-orange-500/90 backdrop-blur-sm border-0">
                     <Flame className="w-3 h-3 mr-1" />
-                    Live Auction
+                    {t("live_auction")}
                   </Badge>
                 )}
               </div>
@@ -426,7 +429,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
             {/* Owner & Creator */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Owned by</span>
+                <span className="text-sm text-muted-foreground">{t("owned_by")}</span>
                 <Link href={`/nft/user/${selectedToken.ownerId}`} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
                   <Avatar className="w-6 h-6">
                     <AvatarImage src={selectedToken.owner?.avatar} />
@@ -443,7 +446,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
               </div>
               {selectedToken.creator && selectedToken.creatorId !== selectedToken.ownerId && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Created by</span>
+                  <span className="text-sm text-muted-foreground">{tExt("created_by")}</span>
                   <Link href={`/nft/creator/${selectedToken.creatorId}`} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
                     <Avatar className="w-6 h-6">
                       <AvatarImage src={selectedToken.creator?.user?.avatar || selectedToken.creator?.avatar} />
@@ -464,7 +467,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
 
             {/* Price Card - Compact */}
             {(isForSale || isAuction) && selectedToken.currentListing && (
-              <div className="bg-gradient-to-br from-primary/10 to-purple-600/10 border-2 border-primary/20 rounded-xl p-4">
+              <div className={`bg-gradient-to-br from-primary/10 to-purple-600/10 border-2 border-primary/20 rounded-xl p-4`}>
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">
@@ -477,7 +480,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                   </div>
                   {isAuction && timeLeft && (
                     <div className="text-right">
-                      <div className="text-xs text-muted-foreground mb-1">Ends in</div>
+                      <div className="text-xs text-muted-foreground mb-1">{t("ends_in")}</div>
                       <div className="flex items-center gap-1 text-orange-500 font-bold">
                         <Clock className="w-4 h-4" />
                         {timeLeft}
@@ -496,7 +499,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                         className="flex-1"
                       >
                         <Tag className="w-4 h-4 mr-2" />
-                        Delist NFT
+                        {t("delist_nft")}
                       </Button>
                     </>
                   ) : (
@@ -505,7 +508,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                         <Button
                           onClick={handlePurchase}
                           disabled={isPurchasing}
-                          className="flex-1 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+                          className={`flex-1 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90`}
                         >
                           <ShoppingCart className="w-4 h-4 mr-2" />
                           {isPurchasing ? "Processing..." : "Buy Now"}
@@ -518,7 +521,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                           className="flex-1 border-2 hover:border-primary/50"
                         >
                           <Tag className="w-4 h-4 mr-2" />
-                          Make Offer
+                          {t("make_offer")}
                         </Button>
                       )}
                     </>
@@ -530,10 +533,10 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
             {!selectedToken.currentListing && isOwner && (
               <Button
                 onClick={() => router.push(`/nft/token/${tokenId}/list`)}
-                className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+                className={`w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90`}
               >
                 <Tag className="w-4 h-4 mr-2" />
-                List for Sale
+                {t("list_for_sale")}
               </Button>
             )}
 
@@ -584,11 +587,11 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                 <div className="bg-card border border-border rounded-lg p-4">
                   <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                     <BarChart3 className="w-4 h-4" />
-                    Token Details
+                    {t("token_details")}
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Contract Address</span>
+                      <span className="text-muted-foreground">{tExt("contract_address")}</span>
                       <button
                         onClick={() => copyToClipboard(selectedToken.collection?.contractAddress || "")}
                         className="flex items-center gap-1 text-primary hover:opacity-80"
@@ -600,11 +603,11 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                       </button>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Token ID</span>
+                      <span className="text-muted-foreground">{tExt("token_id")}</span>
                       <span className="font-mono text-xs">{selectedToken.tokenId || selectedToken.id}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Token Standard</span>
+                      <span className="text-muted-foreground">{t("token_standard")}</span>
                       <span className="font-semibold">ERC-721</span>
                     </div>
                     <div className="flex justify-between">
@@ -615,7 +618,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                       <>
                         <Separator className="my-3" />
                         <div className="flex justify-between items-start">
-                          <span className="text-muted-foreground">Metadata URL</span>
+                          <span className="text-muted-foreground">{t("metadata_url")}</span>
                           <div className="flex flex-col items-end gap-1">
                             <button
                               onClick={() => {
@@ -625,7 +628,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                               }}
                               className="flex items-center gap-1 text-primary hover:opacity-80 text-xs"
                             >
-                              <span>View JSON</span>
+                              <span>{t("view_json")}</span>
                               <ExternalLink className="w-3 h-3" />
                             </button>
                             <button
@@ -646,7 +649,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                         <div className="mt-2 p-2 bg-muted/30 rounded text-xs text-muted-foreground">
                           <p className="flex items-start gap-1">
                             <Sparkles className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                            <span>This is the metadata URL that MetaMask and OpenSea use to display your NFT</span>
+                            <span>{t("this_is_the_metadata_url_that")}</span>
                           </p>
                         </div>
                       </>
@@ -658,7 +661,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
               <TabsContent value="offers" className="mt-4">
                 <div className="bg-card border border-border rounded-lg p-8 text-center">
                   <Tag className="w-12 h-12 mx-auto text-muted-foreground/20 mb-3" />
-                  <p className="text-sm text-muted-foreground">No offers yet</p>
+                  <p className="text-sm text-muted-foreground">{t("no_offers_yet")}</p>
                   {user && !isOwner && selectedToken.currentListing && (
                     <Button
                     variant="outline"
@@ -666,7 +669,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                     onClick={() => setShowOfferModal(true)}
                     className="mt-3"
                   >
-                    Make an Offer
+                    {t("make_an_offer")}
                   </Button>
                   )}
                 </div>
@@ -694,7 +697,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                     {(!selectedToken.priceHistory || selectedToken.priceHistory.length === 0) && (
                       <div className="text-center py-8">
                         <Activity className="w-12 h-12 mx-auto text-muted-foreground/20 mb-3" />
-                        <p className="text-sm text-muted-foreground">No activity yet</p>
+                        <p className="text-sm text-muted-foreground">{tExt("no_activity_yet")}</p>
                       </div>
                     )}
                   </div>
@@ -707,7 +710,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
       </div>
 
       {/* Modals */}
-      <AuthModal open={isAuthModalOpen} onOpenChange={setIsAuthModalOpen} />
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} initialView="login" />
       {showOfferModal && (
         <MakeOfferModal
           token={selectedToken}

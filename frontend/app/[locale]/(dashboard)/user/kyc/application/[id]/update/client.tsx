@@ -22,7 +22,8 @@ import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
 export default function UpdateApplicationClient() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
   const { id } = useParams() as { id: string };
   const router = useRouter();
   const { toast } = useToast();
@@ -276,7 +277,7 @@ export default function UpdateApplicationClient() {
         </Alert>
         <Button className="mt-6" onClick={() => router.push("/user/kyc")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {t("back_to_kyc_dashboard")}
+          {tCommon("back_to_kyc_dashboard")}
         </Button>
       </div>
     );
@@ -298,7 +299,7 @@ export default function UpdateApplicationClient() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              {t("update_application")}
+              {tCommon("update_application")}
             </h1>
             <p className="text-muted-foreground mt-1">
               {t("provide_the_additional_your_verification")}
@@ -398,7 +399,7 @@ export default function UpdateApplicationClient() {
         <Alert className="bg-gray-50 border border-gray-200">
           <Info className="h-4 w-4 text-blue-500" />
           <AlertTitle className="text-gray-800">
-            {t("important_information")}
+            {tCommon("important_information")}
           </AlertTitle>
           <AlertDescription className="text-gray-600">
             {t("by_updating_this_and_complete")}.{" "}

@@ -1,4 +1,5 @@
 import { Redis, Cluster } from "ioredis";
+import { logger } from "./console";
 
 export class RedisSingleton {
   private static instance: Redis;
@@ -39,29 +40,13 @@ export class RedisSingleton {
           keepAlive: 30000,
         });
 
-        // Handle connection events
+        // Handle connection events (errors only - success is silent)
         RedisSingleton.instance.on("error", (error) => {
-          console.error("Redis connection error:", error);
-        });
-
-        RedisSingleton.instance.on("connect", () => {
-          console.log("Redis connected successfully");
-        });
-
-        RedisSingleton.instance.on("ready", () => {
-          console.log("Redis ready for commands");
-        });
-
-        RedisSingleton.instance.on("close", () => {
-          console.log("Redis connection closed");
-        });
-
-        RedisSingleton.instance.on("reconnecting", () => {
-          console.log("Redis reconnecting...");
+          logger.error("REDIS", `✗ Error: ${error.message}`);
         });
 
       } catch (error) {
-        console.error("Failed to create Redis instance:", error);
+        logger.error("REDIS", `Failed to create Redis instance: ${error}`);
         throw error;
       } finally {
         RedisSingleton.isConnecting = false;
@@ -81,7 +66,7 @@ export class RedisSingleton {
         setTimeout(() => reject(new Error('Redis GET timeout')), timeoutMs)
       )
     ]).catch((error) => {
-      console.error(`Redis GET error for key ${key}:`, error);
+      logger.error("REDIS", `GET error for key ${key}: ${error}`);
       return null;
     });
   }
@@ -96,7 +81,7 @@ export class RedisSingleton {
         setTimeout(() => reject(new Error('Redis SET timeout')), timeoutMs)
       )
     ]).catch((error) => {
-      console.error(`Redis SET error for key ${key}:`, error);
+      logger.error("REDIS", `SET error for key ${key}: ${error}`);
       return false;
     });
   }
@@ -107,7 +92,7 @@ export class RedisSingleton {
       try {
         await RedisSingleton.instance.quit();
       } catch (error) {
-        console.error("Error during Redis cleanup:", error);
+        logger.error("REDIS", `Error during cleanup: ${error}`);
       }
       RedisSingleton.instance = null as any;
     }

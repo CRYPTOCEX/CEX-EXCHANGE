@@ -22,7 +22,7 @@ import { FeatureCard } from "./feature-card";
 import { useTranslations } from "next-intl";
 
 export function NoFieldSelected() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   return (
     <div className="p-6">
       <div className="flex flex-col items-center justify-center text-center mb-8">
@@ -145,14 +145,14 @@ export function NoFieldSelected() {
               <Eye className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
             }
             name="Visibility"
-            description="Show or hide fields based on conditions"
+            description={t("show_or_hide_fields_based_on_conditions")}
           />
           <FeatureCard
             icon={
               <FileText className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
             }
             name="Validation"
-            description="Set rules for data entry"
+            description={t("set_rules_for_data_entry")}
           />
         </div>
       </div>

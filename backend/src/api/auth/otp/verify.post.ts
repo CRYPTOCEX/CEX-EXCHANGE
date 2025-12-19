@@ -8,6 +8,8 @@ export const metadata: OperationObject = {
   tags: ["Auth"],
   description: "Verifies the OTP and saves it",
   requiresAuth: true,
+  logModule: "2FA",
+  logTitle: "Verify 2FA setup",
   requestBody: {
     required: true,
     content: {
@@ -61,20 +63,45 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, user } = data;
-  if (!user) throw createError({ statusCode: 401, message: "unauthorized" });
+  const { body, user, ctx } = data;
 
-  const isValid = authenticator.verify({
-    token: body.otp,
-    secret: body.secret,
-  });
+  try {
+    ctx?.step("Validating user authentication");
+    if (!user) {
+      ctx?.fail("User not authenticated");
+      throw createError({ statusCode: 401, message: "unauthorized" });
+    }
 
-  if (!isValid) {
-    throw createError({
-      statusCode: 401,
-      message: "Invalid OTP",
+    ctx?.step("Validating OTP input");
+    if (!body.otp || !body.secret || !body.type) {
+      ctx?.fail("Missing required fields");
+      throw createError({
+        statusCode: 400,
+        message: "OTP, secret, and type are required",
+      });
+    }
+
+    ctx?.step("Verifying OTP");
+    const isValid = authenticator.verify({
+      token: body.otp,
+      secret: body.secret,
     });
-  }
 
-  return await saveOrUpdateOTP(user.id, body.secret, body.type);
+    if (!isValid) {
+      ctx?.fail("Invalid OTP");
+      throw createError({
+        statusCode: 401,
+        message: "Invalid OTP",
+      });
+    }
+
+    ctx?.step("Saving 2FA settings");
+    const result = await saveOrUpdateOTP(user.id, body.secret, body.type);
+
+    ctx?.success(`2FA setup completed for ${body.type}`);
+    return result;
+  } catch (error) {
+    ctx?.fail(error.message || "OTP verification failed");
+    throw error;
+  }
 };

@@ -1,3 +1,5 @@
+"use client";
+import { useTranslations } from "next-intl";
 import {
   Hash,
   DollarSign,
@@ -8,40 +10,34 @@ import {
   User,
   Mail,
   Wallet,
+  CreditCard,
 } from "lucide-react";
 
-export const columns: ColumnDefinition[] = [
+export function useColumns() {
+  const t = useTranslations("ext_gateway");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
+  return [
   {
     key: "id",
-    title: "Payment ID",
+    title: tExt("payment_id"),
     type: "text",
     icon: Hash,
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "Unique payment identifier",
+    description: t("unique_transaction_identifier_for_tracking_your"),
     priority: 1,
   },
   {
-    key: "orderId",
-    title: "Order ID",
-    type: "text",
-    icon: FileText,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "External order identifier",
-    priority: 2,
-  },
-  {
     key: "amount",
-    title: "Amount",
+    title: tCommon("amount"),
     type: "number",
-    icon: DollarSign,
+    icon: CreditCard,
     sortable: true,
     searchable: false,
     filterable: false,
-    description: "Payment amount",
+    description: t("total_payment_amount_charged_for_this_transaction"),
     priority: 1,
     render: {
       type: "custom",
@@ -53,41 +49,116 @@ export const columns: ColumnDefinition[] = [
     },
   },
   {
+    key: "status",
+    title: tCommon("status"),
+    type: "select",
+    icon: CheckCircle2,
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    description: t("current_status_of_your_payment_transaction"),
+    priority: 1,
+    render: {
+      type: "badge",
+      config: {
+        withDot: true,
+        variant: (value: string) => {
+          switch (value) {
+            case "COMPLETED":
+              return "success";
+            case "PENDING":
+              return "warning";
+            case "PROCESSING":
+              return "warning";
+            case "FAILED":
+              return "destructive";
+            case "CANCELLED":
+              return "destructive";
+            case "EXPIRED":
+              return "secondary";
+            case "REFUNDED":
+              return "secondary";
+            case "PARTIALLY_REFUNDED":
+              return "secondary";
+            default:
+              return "secondary";
+          }
+        },
+      },
+    },
+    options: [
+      { value: "PENDING", label: tCommon("pending") },
+      { value: "PROCESSING", label: tCommon("processing") },
+      { value: "COMPLETED", label: tCommon("completed") },
+      { value: "FAILED", label: tCommon("failed") },
+      { value: "CANCELLED", label: tCommon("cancelled") },
+      { value: "EXPIRED", label: tCommon("expired") },
+      { value: "REFUNDED", label: tCommon("refunded") },
+      { value: "PARTIALLY_REFUNDED", label: tExt("partially_refunded") },
+    ],
+  },
+  {
+    key: "orderId",
+    title: tExt("order_id"),
+    type: "text",
+    icon: FileText,
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    description: t("your_order_reference_number_from_the_merchant"),
+    priority: 2,
+  },
+  {
+    key: "createdAt",
+    title: tCommon("created_at"),
+    type: "date",
+    icon: CalendarIcon,
+    sortable: true,
+    searchable: false,
+    filterable: true,
+    description: t("date_and_time_when_you_initiated_this_payment"),
+    priority: 2,
+    render: {
+      type: "date",
+      format: "PPP p",
+    },
+  },
+  {
     key: "walletType",
-    title: "Wallet Type",
+    title: tCommon("wallet_type"),
     type: "select",
     icon: Wallet,
     sortable: true,
     searchable: false,
     filterable: true,
-    description: "Type of wallet used for payment",
-    expandedOnly: true,
+    description: t("type_of_wallet_used_to_make_this_payment"),
+    priority: 3,
     options: [
-      { value: "FIAT", label: "Fiat" },
-      { value: "SPOT", label: "Spot" },
-      { value: "ECO", label: "Ecosystem" },
+      { value: "FIAT", label: tCommon("fiat") },
+      { value: "SPOT", label: tCommon("spot") },
+      { value: "ECO", label: t("ecosystem") },
     ],
   },
   {
     key: "currency",
-    title: "Currency",
+    title: tCommon("currency"),
     type: "text",
     icon: Coins,
     sortable: true,
     searchable: false,
     filterable: true,
-    description: "Payment currency",
+    description: t("currency_code_for_this_payment_e_g_usd_eur_btc"),
     expandedOnly: true,
   },
   {
     key: "feeAmount",
-    title: "Fee",
+    title: tCommon("transaction_fee"),
     type: "number",
     icon: DollarSign,
     sortable: true,
     searchable: false,
     filterable: false,
-    description: "Transaction fee",
+    description: t("gateway_processing_fee_charged_for_this"),
     expandedOnly: true,
     render: {
       type: "custom",
@@ -100,13 +171,13 @@ export const columns: ColumnDefinition[] = [
   },
   {
     key: "netAmount",
-    title: "Net Amount",
+    title: tExt("net_amount"),
     type: "number",
     icon: DollarSign,
     sortable: true,
     searchable: false,
     filterable: false,
-    description: "Amount after fees",
+    description: t("final_amount_after_transaction_fees_have"),
     expandedOnly: true,
     render: {
       type: "custom",
@@ -118,104 +189,41 @@ export const columns: ColumnDefinition[] = [
     },
   },
   {
-    key: "status",
-    title: "Status",
-    type: "select",
-    icon: CheckCircle2,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: false,
-    usedInCreate: false,
-    description: "Payment status",
-    render: {
-      type: "badge",
-      config: {
-        withDot: true,
-        variant: (value: string) => {
-          switch (value) {
-            case "COMPLETED":
-              return "success";
-            case "PENDING":
-              return "warning";
-            case "PROCESSING":
-              return "info";
-            case "FAILED":
-            case "CANCELLED":
-              return "danger";
-            case "EXPIRED":
-              return "muted";
-            case "REFUNDED":
-              return "secondary";
-            case "PARTIALLY_REFUNDED":
-              return "warning";
-            default:
-              return "default";
-          }
-        },
-      },
-    },
-    options: [
-      { value: "PENDING", label: "Pending" },
-      { value: "PROCESSING", label: "Processing" },
-      { value: "COMPLETED", label: "Completed" },
-      { value: "FAILED", label: "Failed" },
-      { value: "CANCELLED", label: "Cancelled" },
-      { value: "EXPIRED", label: "Expired" },
-      { value: "REFUNDED", label: "Refunded" },
-      { value: "PARTIALLY_REFUNDED", label: "Partially Refunded" },
-    ],
-  },
-  {
     key: "customerEmail",
-    title: "Customer",
+    title: t("customer_email"),
     type: "text",
     icon: Mail,
     sortable: true,
     searchable: true,
     filterable: false,
-    description: "Customer email",
-    priority: 3,
+    description: t("email_address_associated_with_this_payment"),
+    expandedOnly: true,
   },
   {
     key: "customerName",
-    title: "Customer Name",
+    title: t("customer_name"),
     type: "text",
     icon: User,
     sortable: true,
     searchable: true,
     filterable: false,
-    description: "Customer name",
+    description: t("name_provided_for_this_payment_transaction"),
     expandedOnly: true,
   },
   {
-    key: "createdAt",
-    title: "Created",
-    type: "date",
-    icon: CalendarIcon,
-    sortable: true,
-    searchable: false,
-    filterable: true,
-    description: "Date when the payment was created",
-    render: {
-      type: "date",
-      format: "PPP p",
-    },
-    priority: 3,
-  },
-  {
     key: "completedAt",
-    title: "Completed",
+    title: tExt("completed_at"),
     type: "date",
     icon: CalendarIcon,
     sortable: true,
     searchable: false,
     filterable: false,
-    description: "Date when the payment was completed",
+    description: t("date_and_time_when_your_payment"),
+    expandedOnly: true,
     render: {
       type: "date",
       format: "PPP p",
     },
-    expandedOnly: true,
   },
-];
+] as ColumnDefinition[];
+}

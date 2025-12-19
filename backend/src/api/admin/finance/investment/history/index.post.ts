@@ -18,10 +18,12 @@ export const metadata = {
   responses: storeRecordResponses(investmentStoreSchema, "Investment"),
   requiresAuth: true,
   permission: "create.investment",
+  logModule: "ADMIN_FIN",
+  logTitle: "Create Investment History",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const {
     userId,
     planId,
@@ -33,7 +35,10 @@ export default async (data: Handler) => {
     endDate,
   } = body;
 
-  return await storeRecord({
+  ctx?.step("Validating investment data");
+
+  ctx?.step("Creating new investment record");
+  const record = await storeRecord({
     model: "investment",
     data: {
       userId,
@@ -46,4 +51,7 @@ export default async (data: Handler) => {
       endDate,
     },
   });
+
+  ctx?.success();
+  return record
 };

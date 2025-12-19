@@ -31,13 +31,16 @@ export const metadata: OperationObject = {
   responses: commonBulkDeleteResponses("AI Investments"),
   requiresAuth: true,
   permission: "delete.ai.investment",
+  logModule: "ADMIN_AI",
+  logTitle: "Bulk delete AI investments",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
 
   const preDelete = async () => {
+    ctx?.step(`Processing ${ids.length} investment(s) for deletion`);
     for (const id of ids) {
       const transaction = await models.transaction.findOne({
         where: { referenceId: id },
@@ -45,12 +48,12 @@ export default async (data: Handler) => {
       });
 
       if (!transaction) {
-        console.warn("Transaction not found for id:", id);
+        ctx?.warn(`Transaction not found for id: ${id}`);
         continue;
       }
 
       if (!transaction.wallet) {
-        console.warn("Wallet not found for transaction:", transaction.id);
+        ctx?.warn(`Wallet not found for transaction: ${transaction.id}`);
         continue;
       }
 
@@ -61,9 +64,11 @@ export default async (data: Handler) => {
         { where: { id: transaction.wallet.id } }
       );
     }
+    ctx?.step("Wallet balances updated");
   };
 
   const postDelete = async () => {
+    ctx?.step("Cleaning up transaction records");
     // Remove transaction records for each ID, regardless of preDelete outcome.
     for (const id of ids) {
       await models.transaction.destroy({
@@ -72,11 +77,14 @@ export default async (data: Handler) => {
     }
   };
 
-  return handleBulkDelete({
+  const result = await handleBulkDelete({
     model: "aiInvestment",
     ids,
     query: { ...query, force: true, restore: undefined },
     preDelete,
     postDelete,
   });
+
+  ctx?.success(`Deleted ${ids.length} investment(s)`);
+  return result;
 };

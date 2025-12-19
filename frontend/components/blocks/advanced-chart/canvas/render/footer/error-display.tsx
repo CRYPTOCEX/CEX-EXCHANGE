@@ -7,7 +7,8 @@ import { useChart } from "../../../context/chart-context";
 import { useTranslations } from "next-intl";
 
 const ErrorDisplay: React.FC = () => {
-  const t = useTranslations("common");
+  const t = useTranslations("components_blocks");
+  const tCommon = useTranslations("common");
   const { error, refreshData, apiStatus, wsStatus } = useChart();
 
   if (!error) return null;
@@ -28,7 +29,7 @@ const ErrorDisplay: React.FC = () => {
         className="bg-red-700 hover:bg-red-600 text-white px-3 py-1 rounded text-xs flex items-center"
       >
         <RefreshCw size={12} className="mr-1" />
-        {t("Retry")}
+        {tCommon("retry")}
       </button>
     </div>
   );

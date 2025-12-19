@@ -1,5 +1,6 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Confirm Payment for Trade",
@@ -8,6 +9,8 @@ export const metadata = {
   operationId: "confirmP2PTradePayment",
   tags: ["P2P", "Trade"],
   requiresAuth: true,
+  logModule: "P2P_TRADE",
+  logTitle: "Confirm payment",
   parameters: [
     {
       index: 0,
@@ -26,14 +29,15 @@ export const metadata = {
   },
 };
 
-export default async (data: { params?: any; user?: any; body?: any }) => {
+export default async (data: { params?: any; user?: any; body?: any; ctx?: any }) => {
   const { id } = data.params || {};
-  const { user, body } = data;
-  
+  const { user, body, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Finding and validating trade");
   // Import validation utilities
   const { validateTradeStatusTransition } = await import("../../utils/validation");
   const { notifyTradeEvent } = await import("../../utils/notifications");
@@ -69,13 +73,14 @@ export default async (data: { params?: any; user?: any; body?: any }) => {
   }
 
   try {
+    ctx?.step("Updating trade status to PAYMENT_SENT");
     // Parse timeline if it's a string
     let timeline = trade.timeline || [];
     if (typeof timeline === "string") {
       try {
         timeline = JSON.parse(timeline);
       } catch (e) {
-        console.error("Failed to parse timeline JSON:", e);
+        logger.error("P2P_TRADE", "Failed to parse timeline JSON", e);
         timeline = [];
       }
     }
@@ -105,15 +110,16 @@ export default async (data: { params?: any; user?: any; body?: any }) => {
     await trade.reload();
 
     if (trade.status !== "PAYMENT_SENT") {
-      console.error(`[P2P Confirm] Status update failed! Expected PAYMENT_SENT, got ${trade.status}`);
+      logger.error("P2P_TRADE", `Status update failed! Expected PAYMENT_SENT, got ${trade.status}`);
       throw createError({
         statusCode: 500,
         message: "Failed to update trade status"
       });
     }
 
-    console.log(`[P2P Confirm] Trade ${trade.id} status updated: ${previousStatus} -> ${trade.status}`);
+    logger.info("P2P_TRADE", `Trade ${trade.id} status updated: ${previousStatus} -> ${trade.status}`);
 
+    ctx?.step("Logging activity and sending notifications");
     // Log activity
     await models.p2pActivityLog.create({
       userId: user.id,
@@ -147,7 +153,9 @@ export default async (data: { params?: any; user?: any; body?: any }) => {
       },
     });
 
-    return { 
+    ctx?.success(`Payment confirmed for trade ${trade.id.slice(0, 8)}... (${trade.amount} ${trade.offer.currency})`);
+
+    return {
       message: "Payment confirmed successfully.",
       trade: {
         id: trade.id,

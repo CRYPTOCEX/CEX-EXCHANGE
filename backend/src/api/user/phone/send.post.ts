@@ -12,6 +12,8 @@ export const metadata: OperationObject = {
   operationId: "sendPhoneVerificationCode",
   tags: ["User", "Phone"],
   requiresAuth: true,
+  logModule: "USER",
+  logTitle: "Send phone verification code",
   requestBody: {
     required: true,
     content: {
@@ -37,16 +39,23 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
-  if (!user) throw createError({ statusCode: 401, message: "Unauthorized" });
+  const { user, body, ctx } = data;
+  if (!user) {
+    ctx?.fail("User not authenticated");
+    throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
   const { phoneNumber } = body;
-  if (!phoneNumber)
+  if (!phoneNumber) {
+    ctx?.fail("Phone number missing");
     throw createError({ statusCode: 400, message: "Phone required" });
+  }
 
+  ctx?.step("Generating verification code");
   // Generate code (6 digits)
   const code = Math.floor(100000 + Math.random() * 900000).toString();
 
+  ctx?.step("Sending SMS via Twilio");
   // Send SMS via Twilio
   try {
     const twilio = (await import("twilio")).default;
@@ -57,9 +66,11 @@ export default async (data: Handler) => {
       to: phoneNumber,
     });
   } catch (err) {
+    ctx?.fail("Error sending SMS");
     throw createError({ statusCode: 500, message: "Error sending SMS" });
   }
 
+  ctx?.step("Storing verification code");
   // Store code in DB (expires in 10 min)
   await models.user.update(
     {
@@ -70,5 +81,6 @@ export default async (data: Handler) => {
     { where: { id: user.id } }
   );
 
+  ctx?.success("Verification code sent successfully");
   return { message: "Verification code sent to phone." };
 };

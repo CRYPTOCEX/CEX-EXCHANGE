@@ -19,7 +19,9 @@ import { formatCurrency, formatPercentage } from "@/lib/ico/utils";
 import { useTranslations } from "next-intl";
 
 export function PortfolioPerformance() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const {
     performanceData,
     metrics,
@@ -145,7 +147,7 @@ export function PortfolioPerformance() {
             <Line
               type="monotone"
               dataKey="value"
-              stroke={isPositive ? "#10B981" : "#EF4444"}
+              stroke={isPositive ? "#14B8A6" : "#EF4444"}
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 6 }}
@@ -168,7 +170,7 @@ export function PortfolioPerformance() {
         <Card>
           <CardContent className="p-4">
             <p className="text-sm text-muted-foreground">
-              {t("current_value")}
+              {tExt("current_value")}
             </p>
             <p className="text-xl font-bold">
               {formatCurrency(metrics.currentValue)}
@@ -177,7 +179,7 @@ export function PortfolioPerformance() {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">{t("Profit_Loss")}</p>
+            <p className="text-sm text-muted-foreground">{tCommon("profit_loss")}</p>
             <p
               className={`text-xl font-bold ${
                 isPositive ? "text-green-500" : "text-red-500"
@@ -192,7 +194,7 @@ export function PortfolioPerformance() {
 
       <Tabs defaultValue="performance">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="performance">{t("Performance")}</TabsTrigger>
+          <TabsTrigger value="performance">{tExt("performance")}</TabsTrigger>
           <TabsTrigger value="comparison">{t("market_comparison")}</TabsTrigger>
           <TabsTrigger value="allocation">{t("asset_allocation")}</TabsTrigger>
         </TabsList>
@@ -213,7 +215,7 @@ export function PortfolioPerformance() {
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">{t("Volatility")}</p>
+              <p className="text-sm text-muted-foreground">{`${t("volatility")} (%)`}</p>
               <p className="font-medium">
                 {formatPercentage(metrics.volatility)}
               </p>
@@ -230,7 +232,7 @@ export function PortfolioPerformance() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">
-                {t("vs")}. {t("Bitcoin")}
+                {tExt("vs")}. {t("bitcoin")}
               </p>
               <p
                 className={`font-medium ${
@@ -245,7 +247,7 @@ export function PortfolioPerformance() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">
-                {t("vs")}. {t("Ethereum")}
+                {tExt("vs")}. {t("ethereum")}
               </p>
               <p
                 className={`font-medium ${
@@ -260,7 +262,7 @@ export function PortfolioPerformance() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">
-                {t("vs")}. {t("crypto_index")}
+                {tExt("vs")}. {t("crypto_index")}
               </p>
               <p
                 className={`font-medium ${
@@ -332,12 +334,12 @@ export function PortfolioPerformance() {
 function getColorByIndex(index: number): string {
   const colors = [
     "#3B82F6", // blue
-    "#10B981", // green
+    "#14B8A6", // teal
     "#F59E0B", // amber
     "#6366F1", // indigo
     "#EC4899", // pink
     "#8B5CF6", // purple
-    "#14B8A6", // teal
+    "#06B6D4", // cyan
     "#F43F5E", // rose
   ];
   return colors[index % colors.length];
@@ -349,7 +351,7 @@ function getStatusColor(status: string): string {
     case "Active":
       return "#3B82F6"; // blue
     case "Completed":
-      return "#10B981"; // green
+      return "#14B8A6"; // teal
     case "Pending":
       return "#F59E0B"; // amber
     default:

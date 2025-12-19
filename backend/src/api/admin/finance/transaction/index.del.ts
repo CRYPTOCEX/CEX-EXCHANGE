@@ -33,10 +33,12 @@ export const metadata = {
   responses: commonBulkDeleteResponses("Transactions"),
   requiresAuth: true,
   permission: "delete.transaction",
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk Delete Transactions",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
   // Delete associated admin profits if they exist
   await models.adminProfit.destroy({

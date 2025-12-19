@@ -34,7 +34,7 @@ import {
   handlePositionBroadcast,
 } from "./ws";
 import { getFuturesMarkets } from "./markets";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import { getLatestOrdersForCandles, intervals } from "./candles";
 import { matchAndCalculateOrders, validateOrder } from "./matchmaking";
 import {
@@ -79,7 +79,7 @@ export class FuturesMatchingEngine {
 
   public async init() {
     if (!client || !scyllaFuturesKeyspace) {
-      console.warn("Ecosystem extension not available, futures matching engine disabled");
+      logger.warn("FUTURES", "Ecosystem extension not available, futures matching engine disabled");
       return;
     }
 
@@ -110,20 +110,12 @@ export class FuturesMatchingEngine {
         const updatedAt = new Date(order.updatedAt);
 
         if (isNaN(createdAt.getTime()) || isNaN(updatedAt.getTime())) {
-          logError(
-            "matching_engine",
-            new Error("Invalid date in order"),
-            __filename
-          );
+          logger.error("FUTURES", "Invalid date in order", new Error("Invalid date in order"));
           return;
         }
 
         if (!order.userId?.buffer || !order.id?.buffer) {
-          logError(
-            "matching_engine",
-            new Error("Invalid Uuid in order"),
-            __filename
-          );
+          logger.error("FUTURES", "Invalid Uuid in order", new Error("Invalid Uuid in order"));
           return;
         }
 
@@ -156,10 +148,7 @@ export class FuturesMatchingEngine {
 
       await this.processQueue();
     } catch (error) {
-      logError("matching_engine", error, __filename);
-      console.error(
-        `Failed to populate order queue with open orders: ${error}`
-      );
+      logger.error("FUTURES", "Failed to populate order queue with open orders", error);
     }
   }
 
@@ -174,8 +163,7 @@ export class FuturesMatchingEngine {
         this.lastCandle[candle.symbol][candle.interval] = candle;
       });
     } catch (error) {
-      logError("matching_engine", error, __filename);
-      console.error(`Failed to initialize last candles: ${error}`);
+      logger.error("FUTURES", "Failed to initialize last candles", error);
     }
   }
 
@@ -190,14 +178,13 @@ export class FuturesMatchingEngine {
         }
       });
     } catch (error) {
-      logError("matching_engine", error, __filename);
-      console.error(`Failed to initialize yesterday's candles: ${error}`);
+      logger.error("FUTURES", "Failed to initialize yesterday's candles", error);
     }
   }
 
   private async initializePositions() {
     if (!toBigIntFloat || !fromBigInt) {
-      console.warn("Ecosystem extension not available for position initialization");
+      logger.warn("FUTURES", "Ecosystem extension not available for position initialization");
       return;
     }
 
@@ -244,14 +231,13 @@ export class FuturesMatchingEngine {
         })
       );
     } catch (error) {
-      logError("matching_engine", error, __filename);
-      console.error(`Failed to initialize positions: ${error}`);
+      logger.error("FUTURES", "Failed to initialize positions", error);
     }
   }
 
   private async processQueue() {
     if (!client || !removeTolerance || !toBigIntFloat) {
-      console.warn("Ecosystem extension not available for queue processing");
+      logger.warn("FUTURES", "Ecosystem extension not available for queue processing");
       return;
     }
 
@@ -334,9 +320,7 @@ export class FuturesMatchingEngine {
   ) {
     const locked = this.lockOrders(ordersToUpdate);
     if (!locked) {
-      console.warn(
-        "Couldn't obtain a lock on all orders, skipping this batch."
-      );
+      logger.warn("FUTURES", "Couldn't obtain a lock on all orders, skipping this batch.");
       return;
     }
 
@@ -357,11 +341,10 @@ export class FuturesMatchingEngine {
       try {
         await client.batch(updateQueries, { prepare: true });
       } catch (error) {
-        logError("matching_engine", error, __filename);
-        console.error("Failed to batch update:", error);
+        logger.error("FUTURES", "Failed to batch update", error);
       }
     } else {
-      console.warn("No queries to batch update.");
+      logger.warn("FUTURES", "No queries to batch update.");
     }
 
     // Broadcast position updates and check for liquidation
@@ -396,11 +379,7 @@ export class FuturesMatchingEngine {
       !order.updatedAt ||
       isNaN(new Date(order.updatedAt).getTime())
     ) {
-      logError(
-        "matching_engine",
-        new Error("Invalid date in order"),
-        __filename
-      );
+      logger.error("FUTURES", "Invalid date in order", new Error("Invalid date in order"));
       return;
     }
 
@@ -419,7 +398,7 @@ export class FuturesMatchingEngine {
     order: FuturesOrder
   ): Array<{ query: string; params: any[] }> {
     if (!toBigIntFloat || !fromBigInt || !scyllaFuturesKeyspace || !normalizeTimeToInterval) {
-      console.warn("Ecosystem extension not available for candle updates");
+      logger.warn("FUTURES", "Ecosystem extension not available for candle updates");
       return [];
     }
 
@@ -428,8 +407,7 @@ export class FuturesMatchingEngine {
     try {
       trades = JSON.parse(order.trades);
     } catch (error) {
-      logError("matching_engine", error, __filename);
-      console.error("Failed to parse trades:", error);
+      logger.error("FUTURES", "Failed to parse trades", error);
       return [];
     }
 
@@ -442,12 +420,7 @@ export class FuturesMatchingEngine {
     } else if (order.price !== undefined) {
       finalPrice = order.price;
     } else {
-      logError(
-        "matching_engine",
-        new Error("Neither trade prices nor order price are available"),
-        __filename
-      );
-      console.error("Neither trade prices nor order price are available");
+      logger.error("FUTURES", "Neither trade prices nor order price are available", new Error("Neither trade prices nor order price are available"));
       return [];
     }
 

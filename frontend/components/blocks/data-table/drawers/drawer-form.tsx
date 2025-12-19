@@ -19,6 +19,7 @@ interface DrawerFormProps {
 export const DrawerForm = React.memo<DrawerFormProps>(
   ({ columns, form, permissions, data, onSubmit, onCancel }) => {
     const t = useTranslations("common");
+  const tComponentsBlocks = useTranslations("components_blocks");
     const handleFormSubmit = useCallback(
       (values: any) => {
         onSubmit(values);
@@ -106,7 +107,7 @@ export const DrawerForm = React.memo<DrawerFormProps>(
                     return null;
                   })
                 ) : (
-                  <p>{t("no_columns_defined")}</p>
+                  <p>{tComponentsBlocks("no_columns_defined")}</p>
                 )}
               </div>
             </ScrollArea>
@@ -117,14 +118,14 @@ export const DrawerForm = React.memo<DrawerFormProps>(
                 type="submit"
                 disabled={!permissions.edit && !permissions.create}
               >
-                {t("Submit")}
+                {t("submit")}
               </Button>
               <Button 
                 type="button" 
                 variant="outline" 
                 onClick={onCancel}
               >
-                {t("Cancel")}
+                {t("cancel")}
               </Button>
             </div>
           </DrawerFooter>

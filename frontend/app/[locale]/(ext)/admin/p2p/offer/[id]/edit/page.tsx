@@ -1,6 +1,11 @@
-import type { Metadata } from "next";
-import { AdminOfferEditClient } from "./client";
+import OfferEditClient from "./client";
+import { use } from "react";
 
-export default function OfferEditPage() {
-  return <AdminOfferEditClient />;
+export default function OfferEditPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  return <OfferEditClient id={id} />;
 }

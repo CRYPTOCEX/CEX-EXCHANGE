@@ -36,7 +36,6 @@ import {
 } from "@/store/ico/offer/filter-store";
 import { $fetch } from "@/lib/api";
 import { useTranslations } from "next-intl";
-
 // Define types for the options returned by the API endpoints
 type BlockchainOption = {
   id: string;
@@ -54,7 +53,9 @@ type TokenTypeOption = {
 };
 
 export function OfferingsFilter() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const {
     filters,
     setSearch,
@@ -171,7 +172,7 @@ export function OfferingsFilter() {
         <form onSubmit={handleSearchSubmit} className="relative flex-1 min-w-0">
           <Input
             type="search"
-            placeholder="Search offerings by name, symbol..."
+            placeholder={t("search_offerings_by_name_symbol_ellipsis")}
             value={searchValue}
             onChange={handleSearchChange}
             icon="mdi:magnify"
@@ -181,19 +182,19 @@ export function OfferingsFilter() {
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Select defaultValue={filters.sort} onValueChange={handleSortChange}>
             <SelectTrigger className="w-full sm:w-[180px] h-10">
-              <SelectValue placeholder="Sort by" />
+              <SelectValue placeholder={tCommon("sort_by")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="newest">
                 <div className="flex items-center gap-2">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>{t("newest_first")}</span>
+                  <span>{tCommon("newest_first")}</span>
                 </div>
               </SelectItem>
               <SelectItem value="oldest">
                 <div className="flex items-center gap-2">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>{t("oldest_first")}</span>
+                  <span>{tCommon("oldest_first")}</span>
                 </div>
               </SelectItem>
               <SelectItem value="raised-high">
@@ -223,7 +224,7 @@ export function OfferingsFilter() {
               <SelectItem value="ending-soon">
                 <div className="flex items-center gap-2">
                   <Zap className="h-3.5 w-3.5" />
-                  <span>{t("ending_soon")}</span>
+                  <span>{tCommon("ending_soon")}</span>
                 </div>
               </SelectItem>
             </SelectContent>
@@ -328,7 +329,7 @@ export function OfferingsFilter() {
               className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
               onClick={handleResetFilters}
             >
-              {t("clear_all")}
+              {tCommon("clear_all")}
             </Button>
           )}
         </div>
@@ -341,9 +342,9 @@ export function OfferingsFilter() {
             <div className="bg-gradient-to-r from-primary/5 to-primary/10 p-4 border-b">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
+                  <Sparkles className={"h-5 w-5 text-teal-600"} />
                   <h3 className="text-lg font-medium">
-                    {t("advanced_filters")}
+                    {tExt("advanced_filters")}
                   </h3>
                 </div>
                 <Tabs
@@ -353,7 +354,7 @@ export function OfferingsFilter() {
                 >
                   <TabsList className="bg-background/50">
                     <TabsTrigger value="popular" className="text-xs">
-                      {t("Popular")}
+                      {tCommon("popular")}
                     </TabsTrigger>
                     <TabsTrigger value="all" className="text-xs">
                       {t("all_filters")}
@@ -396,8 +397,8 @@ export function OfferingsFilter() {
                     onClick={() => toggleSection("blockchain")}
                   >
                     <div className="flex items-center gap-2">
-                      <Layers className="h-4 w-4 text-primary" />
-                      <h3 className="text-sm font-medium">{t("Blockchain")}</h3>
+                      <Layers className={"h-4 w-4 text-teal-600"} />
+                      <h3 className="text-sm font-medium">{tExt("blockchain")}</h3>
                     </div>
                     {expandedSections.blockchain ? (
                       <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -433,7 +434,7 @@ export function OfferingsFilter() {
                           onClick={() => setActiveTab("all")}
                         >
                           + {blockchainOptions.length - 3}
-                          {t("more")}
+                          {tCommon("more")}
                         </Button>
                       )}
                     </div>
@@ -449,8 +450,8 @@ export function OfferingsFilter() {
                     onClick={() => toggleSection("tokenType")}
                   >
                     <div className="flex items-center gap-2">
-                      <Coins className="h-4 w-4 text-primary" />
-                      <h3 className="text-sm font-medium">{t("token_type")}</h3>
+                      <Coins className={"h-4 w-4 text-teal-600"} />
+                      <h3 className="text-sm font-medium">{tExt("token_type")}</h3>
                     </div>
                     {expandedSections.tokenType ? (
                       <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -495,7 +496,7 @@ export function OfferingsFilter() {
                           onClick={() => setActiveTab("all")}
                         >
                           + {tokenTypeOptions.length - 3}
-                          {t("more")}
+                          {tCommon("more")}
                         </Button>
                       )}
                     </div>
@@ -510,11 +511,11 @@ export function OfferingsFilter() {
                     className="gap-2"
                   >
                     <X className="h-4 w-4" />
-                    {t("Reset")}
+                    {tExt("reset")}
                   </Button>
                   <Button onClick={handleApplyFilters} className="gap-2">
                     <Filter className="h-4 w-4" />
-                    {t("apply_filters")}
+                    {tExt("apply_filters")}
                   </Button>
                 </div>
               </div>

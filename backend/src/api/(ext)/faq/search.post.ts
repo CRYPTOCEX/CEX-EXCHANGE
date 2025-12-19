@@ -7,6 +7,8 @@ export const metadata = {
   description: "Searches FAQs based on query and category, and records the search for analytics.",
   operationId: "searchAndRecordFAQ",
   tags: ["FAQ"],
+  logModule: "FAQ",
+  logTitle: "Search FAQs",
   requestBody: {
     required: true,
     content: {
@@ -42,19 +44,23 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
   const { query, category } = body;
 
+  ctx?.step("Validating search query");
   if (!query || typeof query !== 'string') {
+    ctx?.fail("Query is required");
     throw createError({ statusCode: 400, message: "Query is required" });
   }
 
   const searchQuery = query.trim().toLowerCase();
   if (searchQuery.length < 2) {
+    ctx?.fail("Query must be at least 2 characters");
     throw createError({ statusCode: 400, message: "Query must be at least 2 characters" });
   }
 
   try {
+    ctx?.step("Building search conditions");
     // Build search conditions
     const where: any = {
       status: true, // Only active FAQs
@@ -68,6 +74,7 @@ export default async (data: Handler) => {
       where.category = category;
     }
 
+    ctx?.step(`Searching FAQs for query: "${searchQuery}"`);
     // Search FAQs
     const faqs = await models.faq.findAll({
       where,
@@ -75,6 +82,7 @@ export default async (data: Handler) => {
       limit: 50, // Limit results
     });
 
+    ctx?.step("Recording search for analytics");
     // Record search for analytics (non-blocking)
     const userId = user?.id || body.userId;
     if (userId || searchQuery.length > 3) { // Only log meaningful searches
@@ -89,9 +97,11 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.success(`Found ${faqs.length} FAQs matching query`);
     return faqs;
   } catch (error) {
     console.error("Error searching FAQs:", error);
+    ctx?.fail(error instanceof Error ? error.message : "Failed to search FAQs");
     throw createError({
       statusCode: 500,
       message: error instanceof Error ? error.message : "Failed to search FAQs",

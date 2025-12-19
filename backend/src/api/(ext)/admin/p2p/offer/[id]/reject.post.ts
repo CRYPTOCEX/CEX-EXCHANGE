@@ -5,14 +5,23 @@ import { p2pAdminOfferRateLimit } from "@b/handler/Middleware";
 import { logP2PAdminAction } from "../../../../p2p/utils/ownership";
 import { parseAmountConfig } from "../../../../p2p/utils/json-parser";
 import { getWalletSafe } from "@b/api/finance/wallet/utils";
+import { logger } from "@b/utils/console";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  notFoundResponse,
+  badRequestResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Reject P2P Offer (Admin)",
-  description: "Rejects a user offer on the P2P platform.",
+  summary: "Reject P2P offer",
+  description: "Rejects a P2P offer and sets it to REJECTED status. For SELL offers, releases any locked funds from escrow back to the user. Sends rejection notification with reason to the offer owner.",
   operationId: "rejectAdminP2POffer",
-  tags: ["Admin", "Offers", "P2P"],
+  tags: ["Admin", "P2P", "Offer"],
   requiresAuth: true,
   middleware: [p2pAdminOfferRateLimit],
+  logModule: "ADMIN_P2P",
+  logTitle: "Reject P2P offer",
   parameters: [
     {
       index: 0,
@@ -40,15 +49,15 @@ export const metadata = {
   },
   responses: {
     200: { description: "Offer rejected successfully." },
-    401: { description: "Unauthorized." },
-    404: { description: "Offer not found." },
-    500: { description: "Internal Server Error." },
+    401: unauthorizedResponse,
+    404: notFoundResponse("Resource"),
+    500: serverErrorResponse,
   },
   permission: "edit.p2p.offer",
 };
 
 export default async (data) => {
-  const { params, body, user } = data;
+  const { params, body, user, ctx } = data;
   const { id } = params;
   const { reason } = body;
 
@@ -59,6 +68,7 @@ export default async (data) => {
   const transaction = await sequelize.transaction();
 
   try {
+    ctx?.step("Fetching offer");
     const offer = await models.p2pOffer.findByPk(id, {
       include: [
         {
@@ -73,9 +83,11 @@ export default async (data) => {
 
     if (!offer) {
       await transaction.rollback();
+      ctx?.fail("Offer not found");
       throw createError({ statusCode: 404, message: "Offer not found" });
     }
 
+    ctx?.step("Getting admin information");
     // Get admin user data for logging
     const adminUser = await models.user.findByPk(user.id, {
       attributes: ["id", "firstName", "lastName", "email"],
@@ -92,15 +104,17 @@ export default async (data) => {
     let fundsReleased = false;
     let releasedAmount = 0;
 
+    ctx?.step("Checking for locked funds to release");
     // For SELL offers, release locked funds from escrow (inOrder)
     if (offer.type === "SELL") {
       const amountConfig = parseAmountConfig(offer.amountConfig);
       const lockedAmount = amountConfig.total;
 
       if (lockedAmount > 0) {
-        const wallet = await getWalletSafe(offer.userId, offer.walletType, offer.currency);
+        const wallet = await getWalletSafe(offer.userId, offer.walletType, offer.currency, false, ctx);
 
         if (wallet && wallet.inOrder >= lockedAmount) {
+          ctx?.step("Releasing locked funds");
           await models.wallet.update(
             {
               inOrder: wallet.inOrder - lockedAmount,
@@ -116,6 +130,7 @@ export default async (data) => {
       }
     }
 
+    ctx?.step("Rejecting offer");
     // Update offer to REJECTED status
     await offer.update({
       status: "REJECTED",
@@ -136,6 +151,7 @@ export default async (data) => {
       ],
     }, { transaction });
 
+    ctx?.step("Logging admin activity");
     // Log admin activity
     await logP2PAdminAction(
       user.id,
@@ -156,14 +172,16 @@ export default async (data) => {
 
     await transaction.commit();
 
+    ctx?.step("Sending notification");
     // Send notification to offer owner
     notifyOfferEvent(offer.id, "OFFER_REJECTED", {
       reason: sanitizedReason,
       rejectedBy: adminName,
       fundsReleased,
       releasedAmount,
-    }).catch(console.error);
+    }).catch((error) => logger.error("P2P", "Failed to send offer rejected notification", error));
 
+    ctx?.success("Offer rejected successfully");
     return {
       message: "Offer rejected successfully.",
       offer: {
@@ -179,6 +197,7 @@ export default async (data) => {
     if (err.statusCode) {
       throw err;
     }
+    ctx?.fail("Failed to reject offer");
     throw createError({
       statusCode: 500,
       message: "Internal Server Error: " + err.message,

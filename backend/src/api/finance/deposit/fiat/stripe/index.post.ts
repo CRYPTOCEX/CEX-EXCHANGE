@@ -17,6 +17,8 @@ export const metadata: OperationObject = {
     "Initiates a Stripe payment process by creating either a payment intent or a checkout session, based on the request parameters. This endpoint supports different workflows for web and Flutter applications.",
   operationId: "createStripePayment",
   tags: ["Finance", "Deposit"],
+  logModule: "STRIPE_DEPOSIT",
+  logTitle: "Create Stripe payment",
   requestBody: {
     description: "Payment information and application type",
     content: {
@@ -86,12 +88,14 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user) throw new Error("User not authenticated");
 
   const { amount, currency, intent } = body;
   const amountCent = amount * 100;
 
+  ctx?.step("Fetching payment gateway configuration");
   const gateway = await models.depositGateway.findOne({
     where: { alias: "stripe", status: true },
   });
@@ -103,9 +107,9 @@ export default async (data: Handler) => {
   }
 
   // Use the new gateway methods for currency-specific fees
+  ctx?.step("Calculating fees");
   const fixedFee = gateway.getFixedFee(currency);
   const percentageFee = gateway.getPercentageFee(currency);
-
   const taxAmount = (amount * percentageFee) / 100 + fixedFee;
   const taxAmountCent = taxAmount * 100;
 
@@ -118,6 +122,8 @@ export default async (data: Handler) => {
         amount: totalAmount,
         currency: currency,
       });
+
+      ctx?.success("Stripe payment intent created successfully");
 
       return {
         id: paymentIntent.id,
@@ -161,6 +167,8 @@ export default async (data: Handler) => {
         isProduction ? "" : ":3000"
       }/stripe-popup-cancel.html`,
     });
+
+    ctx?.success("Stripe checkout session created successfully");
 
     return {
       version: (stripe as any).VERSION,

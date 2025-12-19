@@ -2,9 +2,10 @@ import { updateRecord, updateRecordResponses } from "@b/utils/query";
 import { forexSignalUpdateSchema } from "../utils";
 
 export const metadata: OperationObject = {
-  summary: "Updates a specific Forex Signal",
+  summary: "Updates a Forex signal",
+  description: "Updates an existing Forex trading signal by its ID. Can modify title, image, and active status.",
   operationId: "updateForexSignal",
-  tags: ["Admin", "Forex Signals"],
+  tags: ["Admin", "Forex", "Signal"],
   parameters: [
     {
       index: 0,
@@ -28,16 +29,25 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Forex Signal"),
   requiresAuth: true,
   permission: "edit.forex.signal",
+  logModule: "ADMIN_FOREX",
+  logTitle: "Update forex signal",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params , ctx } = data;
   const { id } = params;
   const { title, image, status } = body;
 
-  return await updateRecord("forexSignal", id, {
+  ctx?.step("Validating data");
+
+  ctx?.step(`Updating record ${id}`);
+
+  const result = await updateRecord("forexSignal", id, {
     title,
     image,
     status,
   });
+
+  ctx?.success("Record updated successfully");
+  return result;
 };

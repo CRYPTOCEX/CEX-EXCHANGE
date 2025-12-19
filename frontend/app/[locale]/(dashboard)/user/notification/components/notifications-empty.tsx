@@ -15,7 +15,7 @@ export function NotificationsEmpty({
   searchQuery,
   hasFilters,
 }: NotificationsEmptyProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
       {searchQuery ? (

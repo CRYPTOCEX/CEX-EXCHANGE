@@ -1,8 +1,14 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { transactionAnalytics } from "./analytics";
+import { Wallet } from "lucide-react";
+import { useColumns } from "./columns";
+import { useAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
 export default function TransactionPage() {
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
+  const analytics = useAnalytics();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/finance/transaction"
@@ -14,15 +20,21 @@ export default function TransactionPage() {
         edit: "edit.transaction",
         delete: "delete.transaction",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={false}
-      canEdit={true}
+      canEdit={false}
       canDelete={true}
       canView={true}
-      title="Transaction Management"
+      isParanoid={true}
+      title={t("transaction_management")}
+      description={t("view_all_financial_transactions_and_transfers")}
       itemTitle="Transaction"
       columns={columns}
-      analytics={transactionAnalytics}
+      analytics={analytics}
+      design={{
+        animation: "orbs",
+        icon: Wallet,
+      }}
     />
   );
 }

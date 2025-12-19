@@ -1,13 +1,14 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface TextFormControlProps {
   field: any; // from react-hook-form
   error?: string; // the error message (e.g. "Required")
   placeholder: string;
   icon?: LucideIcon;
+  title?: string;
+  description?: string;
 }
 
 export function TextFormControl({
@@ -15,6 +16,8 @@ export function TextFormControl({
   error,
   placeholder,
   icon: Icon,
+  title,
+  description,
 }: TextFormControlProps) {
   const safeValue = typeof field.value === "undefined" ? "" : field.value;
 
@@ -22,8 +25,6 @@ export function TextFormControl({
     field.onChange(e.target.value);
   };
 
-  // We set `error={!!error}` so if error is a non-empty string, it goes red
-  // We set `errorMessage={error}` so the Input shows that text below it.
   return (
     <Input
       type="text"
@@ -33,6 +34,8 @@ export function TextFormControl({
       error={!!error}
       errorMessage={error}
       icon={Icon}
+      title={title}
+      description={description}
     />
   );
 }

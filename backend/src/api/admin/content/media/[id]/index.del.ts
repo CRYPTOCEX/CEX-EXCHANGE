@@ -37,31 +37,41 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "delete.content.media",
+  logModule: "ADMIN_CMS",
+  logTitle: "Delete media file",
 };
 
 export default async (data: any) => {
-  const { params } = data;
+  const { params, ctx } = data;
   const imagePath = params.id;
 
+  ctx?.step("Validating image ID");
   if (!imagePath) {
+    ctx?.fail("Image ID is required");
     throw new Error("Image id is required");
   }
 
   // Sanitize the image path to prevent LFI
+  ctx?.step("Sanitizing file path");
   const sanitizedPath = sanitizePath(imagePath.replace(/_/g, sep));
   const fullPath = join(publicDirectory, sanitizedPath);
 
   try {
+    ctx?.step("Deleting image file");
     await fs.unlink(fullPath);
     filterMediaCache(sanitizedPath);
 
+    ctx?.success("Image file deleted successfully");
     return { message: "Image file deleted successfully" };
   } catch (error) {
     if (error.code === "ENOENT") {
+      ctx?.fail("Image file not found");
       throw new Error("Image file not found");
     } else if (error.code === "EBUSY") {
+      ctx?.fail("File is busy or locked");
       throw new Error("File is busy or locked");
     } else {
+      ctx?.fail("Failed to delete image file");
       throw new Error("Failed to delete image file");
     }
   }

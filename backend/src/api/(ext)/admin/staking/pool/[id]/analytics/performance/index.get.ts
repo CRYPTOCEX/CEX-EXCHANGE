@@ -134,11 +134,13 @@ export const metadata = {
     500: { description: "Internal Server Error" }
   },
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Get Pool Performance",
   permission: "access.staking.management"
 };
 
 export default async (data: Handler) => {
-  const { user, params, query } = data;
+  const { user, params, query, ctx } = data;
   
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -148,6 +150,7 @@ export default async (data: Handler) => {
   const { timeframe = "30d" } = query;
 
   try {
+    ctx?.step("Fetching data");
     // Get pool details
     const pool = await models.stakingPool.findByPk(id);
     
@@ -426,6 +429,7 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.success("Pool performance data retrieved successfully");
     return {
       pool: {
         id: pool.id,

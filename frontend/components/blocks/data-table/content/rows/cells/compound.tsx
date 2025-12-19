@@ -11,7 +11,7 @@ interface MetadataItem {
   description?: string;
   icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   type?: "text" | "date" | "select";
-  options?: Array<{ value: string; label: string; color?: BadgeVariant }>;
+  options?: Array<{ value: string | boolean | number; label: string; color?: BadgeVariant }>;
   render?: (value: any) => React.ReactNode;
 }
 

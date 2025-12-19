@@ -1,5 +1,6 @@
 // backend/src/api/(ext)/staking/stats/index.get.ts
 import { models, sequelize } from "@b/db";
+import { fn, col } from "sequelize";
 import { createError } from "@b/utils/error";
 
 export const metadata = {
@@ -63,7 +64,7 @@ export default async function getStakingStats(req, res) {
     let totalWeight = 0;
     for (const pool of pools) {
       const stakedRow = await models.stakingPosition.findOne({
-        attributes: [[sequelize.fn("SUM", sequelize.col("amount")), "total"]],
+        attributes: [[fn("SUM", col("amount")), "total"]],
         where: {
           poolId: pool.id,
           deletedAt: null,

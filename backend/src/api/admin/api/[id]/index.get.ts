@@ -62,6 +62,7 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.api.key",
+  demoMask: ["user.email", "key"],
 };
 
 export default async (data: Handler) => {

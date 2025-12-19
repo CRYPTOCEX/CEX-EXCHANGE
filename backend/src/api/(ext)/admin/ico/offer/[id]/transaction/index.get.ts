@@ -34,16 +34,20 @@ export const metadata = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "ADMIN_ICO",
+  logTitle: "Get ICO Offer Transactions",
   permission: "view.ico.offer",
 };
 
 export default async (data: Handler) => {
-  const { user, query, params } = data;
+  const { user, query, params, ctx } = data;
+  ctx?.step("Validate user authentication");
   if (!user) {
     throw new Error("Unauthorized");
   }
 
   const { id } = params;
+  ctx?.success("Get ICO Offer Transactions retrieved successfully");
   return getFiltered({
     model: models.icoTransaction,
     where: { offeringId: id },

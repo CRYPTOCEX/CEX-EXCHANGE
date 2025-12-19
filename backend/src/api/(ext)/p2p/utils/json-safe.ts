@@ -3,6 +3,8 @@
  * and ensure data integrity for P2P offer configurations
  */
 
+import { logger } from "@b/utils/console";
+
 /**
  * Safely stringifies a value for database storage
  * - If already a string, returns as-is (prevents double-encoding)
@@ -63,7 +65,7 @@ export function safeParse<T = any>(value: any, defaultValue: T): T {
     try {
       return JSON.parse(value) as T;
     } catch (err) {
-      console.error('JSON parse error:', err);
+      logger.error("P2P_JSON", "JSON parse error", err);
       return defaultValue;
     }
   }

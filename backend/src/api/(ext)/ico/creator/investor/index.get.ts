@@ -8,6 +8,8 @@ export const metadata = {
     "Retrieves aggregated investor details (including total amount invested, total tokens purchased, latest transaction date, rejected investment amount, and token info from the ICO offering) for ICO offerings created by the authenticated creator. Supports pagination, sorting, and searching. (Aggregation is done by computing valid transactions (PENDING/RELEASED) and rejected transactions separately.)",
   operationId: "getCreatorInvestors",
   tags: ["ICO", "Creator", "Investors"],
+  logModule: "ICO",
+  logTitle: "Get creator investors",
   requiresAuth: true,
   parameters: [
     {
@@ -84,11 +86,12 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Fetching creator's offerings");
   // Get all offerings for which the creator is the owner.
   const offerings = await models.icoTokenOffering.findAll({
     attributes: ["id"],
@@ -162,6 +165,7 @@ export default async (data: Handler) => {
     orderCriteria = [[rawSortField, sortDirection]];
   }
 
+  ctx?.step("Aggregating investor data");
   // Run the aggregation query with CASE expressions to compute both valid and rejected amounts.
   const aggregated = await models.icoTransaction.findAll({
     attributes: [
@@ -222,6 +226,7 @@ export default async (data: Handler) => {
   const totalPages = Math.ceil(totalItems / limit);
   const items = aggregated.slice(offset, offset + limit);
 
+  ctx?.success(`Retrieved ${items.length} investors (page ${page}/${totalPages})`);
   return {
     items,
     pagination: {

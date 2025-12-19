@@ -1,12 +1,19 @@
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  badRequestResponse,
+  notFoundResponse,
+  successMessageResponse,
+} from "@b/utils/schema/errors";
 
-// Example metadata object, adjust if needed
 export const metadata = {
   summary: "Reorder FAQs",
-  description: "Reorders FAQs, optionally moving a FAQ to a different page.",
-  operationId: "reorderFAQs",
-  tags: ["FAQ", "Admin"],
+  description:
+    "Reorders FAQ entries within a page or moves a FAQ to a different page. Updates the order field for all affected FAQs. Supports drag-and-drop functionality.",
+  operationId: "reorderFaqs",
+  tags: ["Admin", "FAQ", "Reorder"],
   requiresAuth: true,
   requestBody: {
     required: true,
@@ -15,11 +22,16 @@ export const metadata = {
         schema: {
           type: "object",
           properties: {
-            faqId: { type: "string", description: "ID of the FAQ being moved" },
+            faqId: {
+              type: "string",
+              format: "uuid",
+              description: "ID of the FAQ being moved",
+            },
             targetId: {
               type: ["string", "null"],
+              format: "uuid",
               description:
-                "ID of the FAQ at the target position (or null if dropping onto an empty area)",
+                "ID of the FAQ at the target position (null if dropping to empty area)",
             },
             targetPagePath: {
               type: "string",
@@ -33,17 +45,19 @@ export const metadata = {
     },
   },
   responses: {
-    200: { description: "FAQs reordered successfully" },
-    400: { description: "Bad Request" },
-    401: { description: "Unauthorized" },
-    404: { description: "FAQ not found" },
-    500: { description: "Internal Server Error" },
+    200: successMessageResponse("FAQs reordered successfully"),
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    404: notFoundResponse("FAQ"),
+    500: serverErrorResponse,
   },
   permission: "edit.faq",
+  logModule: "ADMIN_FAQ",
+  logTitle: "Reorder FAQs",
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -51,20 +65,24 @@ export default async (data: Handler) => {
   const { faqId, targetId, targetPagePath } = body;
 
   if (!faqId) {
+    ctx?.fail("Missing faqId");
     throw createError({ statusCode: 400, message: "Missing faqId" });
   }
 
-  // Find the dragged FAQ
+  ctx?.step("Fetching dragged FAQ");
   const draggedFaq = await models.faq.findByPk(faqId);
   if (!draggedFaq) {
+    ctx?.fail("Dragged FAQ not found");
     throw createError({ statusCode: 404, message: "Dragged FAQ not found" });
   }
 
   // If targetId is given, we must ensure that FAQ exists
   let targetFaq = null;
   if (targetId) {
+    ctx?.step("Fetching target FAQ");
     targetFaq = await models.faq.findByPk(targetId);
     if (!targetFaq) {
+      ctx?.fail("Target FAQ not found");
       throw createError({ statusCode: 404, message: "Target FAQ not found" });
     }
   }
@@ -74,6 +92,7 @@ export default async (data: Handler) => {
 
   const transaction = await sequelize.transaction();
   try {
+    ctx?.step("Reordering FAQs");
     // Get all FAQs on the *destination* page (the new or same page)
     const faqsOnPage = await models.faq.findAll({
       where: { pagePath: contextPagePath },
@@ -94,6 +113,7 @@ export default async (data: Handler) => {
         (f: any) => f.id === (targetFaq as any).id
       );
       if (targetIndex === -1) {
+        ctx?.fail("Target FAQ not found in destination page");
         throw createError({
           statusCode: 404,
           message: "Target FAQ not found in the destination page",
@@ -105,6 +125,7 @@ export default async (data: Handler) => {
     // Insert dragged FAQ at newIndex
     filteredFaqs.splice(newIndex, 0, draggedFaq);
 
+    ctx?.step("Updating FAQ order");
     // Update order and pagePath for all FAQs in this new array
     for (let i = 0; i < filteredFaqs.length; i++) {
       await filteredFaqs[i].update(
@@ -117,9 +138,11 @@ export default async (data: Handler) => {
     }
 
     await transaction.commit();
+    ctx?.success("FAQs reordered successfully");
     return { message: "FAQs reordered successfully" };
   } catch (err) {
     await transaction.rollback();
+    ctx?.fail("Failed to reorder FAQs");
     throw createError({ statusCode: 500, message: "Failed to reorder FAQs" });
   }
 };

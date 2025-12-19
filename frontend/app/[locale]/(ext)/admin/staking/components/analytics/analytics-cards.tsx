@@ -22,7 +22,9 @@ export function AnalyticsCards({
   isLoading = false,
   timeRange = "month",
 }: AnalyticsCardsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -69,7 +71,7 @@ export function AnalyticsCards({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            {t("total_staked")}
+            {tExt("total_staked")}
           </CardTitle>
           <Coins className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
@@ -98,7 +100,7 @@ export function AnalyticsCards({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            {t("total_users")}
+            {tCommon("total_users")}
           </CardTitle>
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
@@ -143,7 +145,7 @@ export function AnalyticsCards({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            {t("total_rewards")}
+            {tExt("total_rewards")}
           </CardTitle>
           <BarChart3 className="h-4 w-4 text-muted-foreground" />
         </CardHeader>

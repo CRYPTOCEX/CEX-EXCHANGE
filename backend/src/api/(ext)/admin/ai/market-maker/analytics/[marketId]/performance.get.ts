@@ -43,12 +43,16 @@ export const metadata: OperationObject = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "ADMIN_AI",
+  logTitle: "Get Market Maker Performance",
   permission: "view.ai.market-maker.analytics",
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
+  const { params, query, ctx } = data;
   const period = query.period || "24h";
+
+  ctx?.step("Get Market Maker Performance");
 
   const marketMaker = await models.aiMarketMaker.findByPk(params.marketId, {
     include: [
@@ -136,6 +140,7 @@ export default async (data: Handler) => {
         totalTrades
       : 0;
 
+  ctx?.success("Get Market Maker Performance retrieved successfully");
   return {
     marketId: params.marketId,
     period,

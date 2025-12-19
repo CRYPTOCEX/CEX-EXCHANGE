@@ -7,6 +7,8 @@ export const metadata = {
   description: "Retrieves paginated trade history for the authenticated user with filtering options.",
   operationId: "getP2PTradeHistory",
   tags: ["P2P", "Trade"],
+  logModule: "P2P",
+  logTitle: "Get trade history",
   requiresAuth: true,
   middleware: ["p2pSearchRateLimit"],
   parameters: [
@@ -144,13 +146,14 @@ export const metadata = {
   },
 };
 
-export default async (data: { query?: any; user?: any }) => {
-  const { query = {}, user } = data;
-  
+export default async (data: { query?: any; user?: any; ctx?: any }) => {
+  const { query = {}, user, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Parsing query parameters and building filters");
   try {
     // Parse query parameters
     const page = Math.max(1, parseInt(query.page) || 1);
@@ -208,6 +211,7 @@ export default async (data: { query?: any; user?: any }) => {
     }
 
     // Execute queries
+    ctx?.step(`Fetching trade history (page ${page}, limit ${limit})`);
     const [trades, total] = await Promise.all([
       models.p2pTrade.findAll({
         where,
@@ -287,6 +291,8 @@ export default async (data: { query?: any; user?: any }) => {
     });
 
     // Build pagination info
+    ctx?.success(`Retrieved ${formattedTrades.length} trades (page ${page}/${Math.ceil(total / limit)})`);
+
     const totalPages = Math.ceil(total / limit);
     const pagination = {
       page,
@@ -307,6 +313,7 @@ export default async (data: { query?: any; user?: any }) => {
       },
     };
   } catch (error: any) {
+    ctx?.fail(error.message || "Failed to fetch trade history");
     throw createError({
       statusCode: 500,
       message: "Failed to fetch trade history: " + error.message,

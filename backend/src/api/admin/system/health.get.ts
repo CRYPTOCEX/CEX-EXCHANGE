@@ -6,6 +6,7 @@ import { capitalize } from "lodash";
 import Stripe from "stripe";
 import twilio from "twilio";
 import { CacheManager } from "@b/utils/cache";
+import { logger } from "@b/utils/console";
 
 const cachedResults: { [key: string]: any } = {};
 
@@ -45,6 +46,8 @@ export const metadata: OperationObject = {
     },
   ],
   permission: "access.admin",
+  logModule: "ADMIN_SYSTEM",
+  logTitle: "Get System Health",
 };
 
 const getOrCheckService = async (
@@ -79,7 +82,7 @@ async function getServiceMap() {
   // Only add ScyllaDB service if ecosystem extension is available
   const cacheManager = CacheManager.getInstance();
   const extensions = await cacheManager.getExtensions();
-  
+
   if (extensions.has("ecosystem")) {
     (baseServices as any).scylla = checkScyllaService;
   }
@@ -88,13 +91,16 @@ async function getServiceMap() {
 }
 
 export default async (data: Handler) => {
-  const { service } = data.query;
+  const { query, ctx } = data;
+  const { service } = query;
 
+  ctx?.step(`Checking ${service} service health`);
   const serviceMap = await getServiceMap();
   const result = serviceMap[service]
     ? await getOrCheckService(service, serviceMap[service])
     : {};
 
+  ctx?.success("System health check completed");
   return {
     [service]: result,
   };
@@ -647,8 +653,10 @@ async function checkEvmNetwork(serviceName, rpc, wss, network) {
         const wssBlockNumber = await wssProvider.getBlockNumber();
         wssStatus = ` and WebSocket (latest block: ${wssBlockNumber})`;
       } catch (error) {
-        console.error(
-          `WSS connection error for ${serviceName}: ${error.message}`
+        logger.error(
+          "HEALTH",
+          `WSS connection error for ${serviceName}: ${error.message}`,
+          error
         );
         wssStatus = `, but WebSocket connection failed`;
       }
@@ -681,7 +689,7 @@ async function checkEvmNetwork(serviceName, rpc, wss, network) {
         break;
     }
 
-    console.error(`Failed to connect to ${serviceName} RPC: ${error.message}`);
+    logger.error("HEALTH", `Failed to connect to ${serviceName} RPC: ${error.message}`, error);
     return {
       service: serviceName,
       status: "Down",

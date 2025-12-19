@@ -32,7 +32,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 
 export function GuidedMatchingWizard() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     tradeType: "buy",
@@ -88,13 +90,13 @@ export function GuidedMatchingWizard() {
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span>
-            {t("Step")}
+            {tCommon("step")}
             {step}
-            {t("of")}
+            {tCommon("of")}
             {totalSteps}
           </span>
           <span>
-            {Math.round(progress)}% {t("complete")}
+            {Math.round(progress)}% {tCommon("complete")}
           </span>
         </div>
         <Progress value={progress} className="h-2" />
@@ -111,7 +113,7 @@ export function GuidedMatchingWizard() {
           >
             <div className="space-y-4">
               <h3 className="text-lg font-medium">
-                {t("what_would_you_like_to_do")}
+                {tExt("what_would_you_like_to_do")}
               </h3>
 
               <RadioGroup
@@ -180,7 +182,7 @@ export function GuidedMatchingWizard() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <Label>{t("Cryptocurrency")}</Label>
+                  <Label>{tExt("cryptocurrency")}</Label>
                   <Select
                     value={formData.cryptocurrency}
                     onValueChange={(value) =>
@@ -192,26 +194,26 @@ export function GuidedMatchingWizard() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="bitcoin">
-                        {t("bitcoin_(btc)")}
+                        {t("bitcoin_btc")}
                       </SelectItem>
                       <SelectItem value="ethereum">
-                        {t("ethereum_(eth)")}
+                        {t("ethereum_eth")}
                       </SelectItem>
                       <SelectItem value="tether">
-                        {t("tether_(usdt)")}
+                        {t("tether_usdt")}
                       </SelectItem>
                       <SelectItem value="binancecoin">
-                        {t("binance_coin_(bnb)")}
+                        {t("binance_coin_bnb")}
                       </SelectItem>
                       <SelectItem value="solana">
-                        {t("solana_(sol)")}
+                        {t("solana_sol")}
                       </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-4">
-                  <Label htmlFor="amount">{t("Amount")}</Label>
+                  <Label htmlFor="amount">{tCommon("amount")}</Label>
                   <Input
                     id="amount"
                     type="number"
@@ -310,7 +312,7 @@ export function GuidedMatchingWizard() {
                       className="flex items-center gap-1.5"
                     >
                       <Landmark className="h-4 w-4 text-primary" />
-                      {t("bank_transfer")}
+                      {tExt("bank_transfer")}
                     </Label>
                     <p className="text-xs text-muted-foreground">
                       {t("traditional_bank_transfers")}
@@ -332,7 +334,7 @@ export function GuidedMatchingWizard() {
                       className="flex items-center gap-1.5"
                     >
                       <CreditCard className="h-4 w-4 text-primary" />
-                      {t("credit_card")}
+                      {tExt("credit_card")}
                     </Label>
                     <p className="text-xs text-muted-foreground">
                       {t("visa_mastercard_etc")}.
@@ -372,7 +374,7 @@ export function GuidedMatchingWizard() {
                       className="flex items-center gap-1.5"
                     >
                       <Smartphone className="h-4 w-4 text-primary" />
-                      {t("Venmo")}
+                      {t("venmo")}
                     </Label>
                     <p className="text-xs text-muted-foreground">
                       {t("venmo_mobile_payments")}
@@ -455,7 +457,7 @@ export function GuidedMatchingWizard() {
                         {t("best_price")}
                       </TabsTrigger>
                       <TabsTrigger value="market_price">
-                        {t("market_price")}
+                        {tCommon("market_price")}
                       </TabsTrigger>
                       <TabsTrigger value="any_price">
                         {t("any_price")}
@@ -488,11 +490,11 @@ export function GuidedMatchingWizard() {
 
               <Card className="bg-muted/30 border-primary/10">
                 <CardContent className="p-4">
-                  <h4 className="font-medium mb-2">{t("Summary")}</h4>
+                  <h4 className="font-medium mb-2">{tCommon("summary")}</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        {t("trade_type")}
+                        {tCommon("trade_type")}
                       </span>
                       <span className="font-medium capitalize">
                         {formData.tradeType}
@@ -500,7 +502,7 @@ export function GuidedMatchingWizard() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        {t("cryptocurrency")}
+                        {tExt("cryptocurrency")}
                       </span>
                       <span className="font-medium capitalize">
                         {formData.cryptocurrency}
@@ -508,7 +510,7 @@ export function GuidedMatchingWizard() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        {t("amount")}
+                        {tCommon("amount")}
                       </span>
                       <span className="font-medium">
                         {formData.amount}{" "}
@@ -521,7 +523,7 @@ export function GuidedMatchingWizard() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        {t("payment_methods")}
+                        {tExt("payment_methods")}
                       </span>
                       <span className="font-medium">
                         {formData.paymentMethods.length > 0
@@ -565,12 +567,12 @@ export function GuidedMatchingWizard() {
           className="gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
-          {t("Back")}
+          {tCommon("back")}
         </Button>
 
         {step < totalSteps ? (
           <Button onClick={handleNext} className="gap-2">
-            {t("Next")}
+            {tCommon("next")}
             <ArrowRight className="h-4 w-4" />
           </Button>
         ) : (

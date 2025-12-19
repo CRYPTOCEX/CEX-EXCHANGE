@@ -7,6 +7,7 @@ import {
 } from "@b/utils/query";
 import { sanitizeErrorMessage } from "@b/api/exchange/utils";
 import { baseCurrencySchema, baseResponseSchema } from "../../../utils";
+import { logger } from "@b/utils/console";
 
 /**
  * Validates deposit address response from exchange API
@@ -104,7 +105,8 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
+
   if (!user?.id) throw createError(401, "Unauthorized");
 
   const { type, code, method } = params;
@@ -112,7 +114,9 @@ export default async (data: Handler) => {
 
   if (type !== "SPOT") throw createError(400, "Invalid type");
 
-  const exchange = await ExchangeManager.startExchange();
+  ctx?.step(`Fetching deposit address for ${code}/${method}`);
+
+  const exchange = await ExchangeManager.startExchange(ctx);
   const provider = await ExchangeManager.getProvider();
   if (!exchange) throw createError(500, "Exchange not found");
   if (!provider) throw createError(500, "Exchange provider not found");
@@ -135,7 +139,7 @@ export default async (data: Handler) => {
         
         // First, check if the original chain name is directly available
         if (availableNetworks.includes(chainName)) {
-          console.log(`[KuCoin] Network mapping: ${chainName} -> ${chainName}`);
+          logger.debug("EXCHANGE", `[KuCoin] Network mapping: ${chainName} -> ${chainName}`);
           return chainName;
         }
         
@@ -159,19 +163,19 @@ export default async (data: Handler) => {
         // Try mapping blockchain names to token standards
         const mappedName = chainMappings[chainName.toUpperCase()];
         if (mappedName && availableNetworks.includes(mappedName)) {
-          console.log(`[KuCoin] Network mapping: ${chainName} -> ${mappedName}`);
+          logger.debug("EXCHANGE", `[KuCoin] Network mapping: ${chainName} -> ${mappedName}`);
           return mappedName;
         }
-        
+
         // If still not found, try case-insensitive search
-        const caseInsensitiveMatch = availableNetworks.find(net => 
+        const caseInsensitiveMatch = availableNetworks.find(net =>
           net.toLowerCase() === chainName.toLowerCase()
         );
         if (caseInsensitiveMatch) {
-          console.log(`[KuCoin] Network mapping: ${chainName} -> ${caseInsensitiveMatch}`);
+          logger.debug("EXCHANGE", `[KuCoin] Network mapping: ${chainName} -> ${caseInsensitiveMatch}`);
           return caseInsensitiveMatch;
         }
-        
+
         // Last resort: try to find by network info properties
         for (const [networkId, networkInfo] of Object.entries(currencyData.networks)) {
           const network = networkInfo as any;
@@ -181,16 +185,16 @@ export default async (data: Handler) => {
             (network.name && network.name.toUpperCase() === chainName.toUpperCase()) ||
             (network.network && network.network.toUpperCase() === chainName.toUpperCase())
           ) {
-            console.log(`[KuCoin] Network mapping: ${chainName} -> ${networkId}`);
+            logger.debug("EXCHANGE", `[KuCoin] Network mapping: ${chainName} -> ${networkId}`);
             return networkId;
           }
         }
       }
-      
-      console.log(`[KuCoin] No mapping found for ${chainName}, using as-is`);
+
+      logger.debug("EXCHANGE", `[KuCoin] No mapping found for ${chainName}, using as-is`);
       return chainName;
     } catch (error) {
-      console.error(`[KuCoin] Error in network mapping:`, error);
+      logger.error("EXCHANGE", `[KuCoin] Error in network mapping`, error);
       // Return the original chain name as fallback
       return chainName;
     }
@@ -218,11 +222,11 @@ export default async (data: Handler) => {
       
       if (currencyData && currencyData.networks) {
         const availableNetworks = Object.keys(currencyData.networks);
-        console.log(`[${provider}] Available networks for ${currency}:`, availableNetworks);
-        
+        logger.debug("EXCHANGE", `[${provider}] Available networks for ${currency}: ${availableNetworks.join(", ")}`);
+
         // First, check if the original chain name is directly available
         if (availableNetworks.includes(chainName)) {
-          console.log(`[${provider}] Network mapping: ${chainName} -> ${chainName}`);
+          logger.debug("EXCHANGE", `[${provider}] Network mapping: ${chainName} -> ${chainName}`);
           return chainName;
         }
         
@@ -287,19 +291,19 @@ export default async (data: Handler) => {
         // Try mapping blockchain names to exchange-specific network IDs
         const mappedName = chainMappings[chainName.toUpperCase()];
         if (mappedName && availableNetworks.includes(mappedName)) {
-          console.log(`[${provider}] Network mapping: ${chainName} -> ${mappedName}`);
+          logger.debug("EXCHANGE", `[${provider}] Network mapping: ${chainName} -> ${mappedName}`);
           return mappedName;
         }
-        
+
         // If still not found, try case-insensitive search
-        const caseInsensitiveMatch = availableNetworks.find(net => 
+        const caseInsensitiveMatch = availableNetworks.find(net =>
           net.toLowerCase() === chainName.toLowerCase()
         );
         if (caseInsensitiveMatch) {
-          console.log(`[${provider}] Network mapping: ${chainName} -> ${caseInsensitiveMatch}`);
+          logger.debug("EXCHANGE", `[${provider}] Network mapping: ${chainName} -> ${caseInsensitiveMatch}`);
           return caseInsensitiveMatch;
         }
-        
+
         // Try partial matches for common patterns
         const partialMatch = availableNetworks.find(net => {
           const netUpper = net.toUpperCase();
@@ -307,10 +311,10 @@ export default async (data: Handler) => {
           return netUpper.includes(chainUpper) || chainUpper.includes(netUpper);
         });
         if (partialMatch) {
-          console.log(`[${provider}] Network mapping (partial): ${chainName} -> ${partialMatch}`);
+          logger.debug("EXCHANGE", `[${provider}] Network mapping (partial): ${chainName} -> ${partialMatch}`);
           return partialMatch;
         }
-        
+
         // Last resort: try to find by network info properties
         for (const [networkId, networkInfo] of Object.entries(currencyData.networks)) {
           const network = networkInfo as any;
@@ -320,20 +324,20 @@ export default async (data: Handler) => {
             (network.name && network.name.toUpperCase() === chainName.toUpperCase()) ||
             (network.network && network.network.toUpperCase() === chainName.toUpperCase())
           ) {
-            console.log(`[${provider}] Network mapping (by properties): ${chainName} -> ${networkId}`);
+            logger.debug("EXCHANGE", `[${provider}] Network mapping (by properties): ${chainName} -> ${networkId}`);
             return networkId;
           }
         }
-        
-        console.log(`[${provider}] No mapping found for ${chainName} in available networks:`, availableNetworks);
+
+        logger.debug("EXCHANGE", `[${provider}] No mapping found for ${chainName} in available networks: ${availableNetworks.join(", ")}`);
       } else {
-        console.log(`[${provider}] No currency data or networks found for ${currency}`);
+        logger.debug("EXCHANGE", `[${provider}] No currency data or networks found for ${currency}`);
       }
-      
-      console.log(`[${provider}] No mapping found for ${chainName}, using as-is`);
+
+      logger.debug("EXCHANGE", `[${provider}] No mapping found for ${chainName}, using as-is`);
       return chainName;
     } catch (error) {
-      console.error(`[${provider}] Error in network mapping:`, error);
+      logger.error("EXCHANGE", `[${provider}] Error in network mapping`, error);
       // Return the original chain name as fallback
       return chainName;
     }
@@ -370,7 +374,7 @@ export default async (data: Handler) => {
           Object.entries(currencyData.networks).forEach(([networkId, networkInfo]: [string, any]) => {
             // Only log if this is the network we're trying to use
             if (networkId === networkToUse) {
-              console.log(`[${provider}] Using network ${networkId} for ${code}: deposit=${networkInfo.deposit}, active=${networkInfo.active}`);
+              logger.debug("EXCHANGE", `[${provider}] Using network ${networkId} for ${code}: deposit=${networkInfo.deposit}, active=${networkInfo.active}`);
             }
           });
         }
@@ -395,11 +399,11 @@ export default async (data: Handler) => {
               const networkResponse = result[networkToUse] || result;
               if (networkResponse && (networkResponse.address || networkResponse.Address)) {
                 depositAddress = networkResponse;
-                console.log(`[${provider}] Method 1 Success: fetchDepositAddressesByNetwork for ${code}/${networkToUse}`);
+                logger.debug("EXCHANGE", `[${provider}] Method 1 Success: fetchDepositAddressesByNetwork for ${code}/${networkToUse}`);
               }
             }
           } catch (method1Error) {
-            console.log(`[${provider}] Method 1 Failed: fetchDepositAddressesByNetwork - ${method1Error.message}`);
+            logger.debug("EXCHANGE", `[${provider}] Method 1 Failed: fetchDepositAddressesByNetwork - ${method1Error.message}`);
           }
         }
         
@@ -413,11 +417,11 @@ export default async (data: Handler) => {
               const networkAddress = allAddresses[networkToUse];
               if (networkAddress && (networkAddress.address || networkAddress.Address)) {
                 depositAddress = networkAddress;
-                console.log(`[${provider}] Method 2 Success: fetchDepositAddresses for ${code}/${networkToUse}`);
+                logger.debug("EXCHANGE", `[${provider}] Method 2 Success: fetchDepositAddresses for ${code}/${networkToUse}`);
               }
             }
           } catch (method2Error) {
-            console.log(`[${provider}] Method 2 Failed: fetchDepositAddresses - ${method2Error.message}`);
+            logger.debug("EXCHANGE", `[${provider}] Method 2 Failed: fetchDepositAddresses - ${method2Error.message}`);
           }
         }
         
@@ -428,10 +432,10 @@ export default async (data: Handler) => {
             
             if (result && (result.address || result.Address)) {
               depositAddress = result;
-              console.log(`[${provider}] Method 3 Success: createDepositAddress for ${code}/${networkToUse}`);
+              logger.debug("EXCHANGE", `[${provider}] Method 3 Success: createDepositAddress for ${code}/${networkToUse}`);
             }
           } catch (createError) {
-            console.log(`[${provider}] Method 3 Failed: createDepositAddress - ${createError.message}`);
+            logger.debug("EXCHANGE", `[${provider}] Method 3 Failed: createDepositAddress - ${createError.message}`);
           }
         }
         
@@ -442,10 +446,10 @@ export default async (data: Handler) => {
             
             if (result && (result.address || result.Address)) {
               depositAddress = result;
-              console.log(`[${provider}] Method 4 Success: fetchDepositAddress with network for ${code}/${networkToUse}`);
+              logger.debug("EXCHANGE", `[${provider}] Method 4 Success: fetchDepositAddress with network for ${code}/${networkToUse}`);
             }
           } catch (method3Error) {
-            console.log(`[${provider}] Method 4 Failed: fetchDepositAddress with network - ${method3Error.message}`);
+            logger.debug("EXCHANGE", `[${provider}] Method 4 Failed: fetchDepositAddress with network - ${method3Error.message}`);
           }
         }
         
@@ -456,20 +460,20 @@ export default async (data: Handler) => {
             
             if (simpleAddress && (simpleAddress.address || simpleAddress.Address)) {
               depositAddress = simpleAddress;
-              console.log(`[${provider}] Method 5 Success: fetchDepositAddress simple for ${code}`);
+              logger.debug("EXCHANGE", `[${provider}] Method 5 Success: fetchDepositAddress simple for ${code}`);
             }
           } catch (method4Error) {
-            console.log(`[${provider}] Method 5 Failed: fetchDepositAddress simple - ${method4Error.message}`);
+            logger.debug("EXCHANGE", `[${provider}] Method 5 Failed: fetchDepositAddress simple - ${method4Error.message}`);
           }
         }
         
         if (!depositAddress) {
-          console.log(`[${provider}] All methods failed to generate deposit address for ${code}/${networkToUse}`);
+          logger.warn("EXCHANGE", `[${provider}] All methods failed to generate deposit address for ${code}/${networkToUse}`);
           throw new Error(`${provider} exchange does not support deposit address generation for ${code}/${networkToUse}. Available methods: ${Object.keys(exchange.has).filter(method => method.includes('Deposit')).join(', ')}`);
         }
-          
+
       } catch (kucoinError) {
-        console.error(`[${provider}] Error during deposit address fetching:`, kucoinError);
+        logger.error("EXCHANGE", `[${provider}] Error during deposit address fetching`, kucoinError);
         throw kucoinError;
       }
     } else {
@@ -507,7 +511,7 @@ export default async (data: Handler) => {
           throw new Error(`Exchange ${provider} does not support any deposit address methods`);
         }
       } catch (error: any) {
-        console.error(`[${provider}] Error during deposit address fetching:`, error);
+        logger.error("EXCHANGE", `[${provider}] Error during deposit address fetching`, error);
         throw error;
       }
     }
@@ -517,6 +521,7 @@ export default async (data: Handler) => {
       throw createError(500, sanitizeErrorMessage("Deposit address generation failed. The exchange returned invalid or empty address data. Please try again later or contact support."));
     }
 
+    ctx?.success(`Deposit address retrieved for ${code}/${method}`);
     // Return the address with trx: true flag for compatibility
     return { ...depositAddress, trx: true };
   } catch (error: any) {
@@ -524,8 +529,8 @@ export default async (data: Handler) => {
     if (error.statusCode) {
       throw error;
     }
-    
-    console.error(`[Exchange Error] ${provider} - ${code}/${method}:`, error);
+
+    logger.error("EXCHANGE", `[${provider}] Error for ${code}/${method}`, error);
     const message = sanitizeErrorMessage(error.message);
     throw createError(404, message);
   }

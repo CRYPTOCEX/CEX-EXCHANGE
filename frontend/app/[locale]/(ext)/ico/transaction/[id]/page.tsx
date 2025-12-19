@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function TransactionDetailsPage() {
   return (
-    <div className="container max-w-5xl py-8 mx-auto">
+    <div className="container max-w-5xl py-8 mx-auto pt-20">
       <Suspense fallback={<TransactionDetailsLoading />}>
         <TransactionDetailsClient />
       </Suspense>

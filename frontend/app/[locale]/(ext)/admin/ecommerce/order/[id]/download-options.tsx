@@ -44,7 +44,9 @@ const DownloadOptionsManager: React.FC<DownloadOptionsManagerProps> = ({
   fetchOrder,
   canEdit,
 }) => {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [downloadOption, setDownloadOption] = useState("");
   const [downloadLink, setDownloadLink] = useState("");
   const [licenseKey, setLicenseKey] = useState("");
@@ -145,13 +147,13 @@ const DownloadOptionsManager: React.FC<DownloadOptionsManagerProps> = ({
     if (hasKey && hasFile) {
       return (
         <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-          {t("Complete")}
+          {tCommon("complete")}
         </Badge>
       );
     } else if (hasKey || hasFile) {
       return (
         <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-          {t("Partial")}
+          {t("partial")}
         </Badge>
       );
     } else {
@@ -170,7 +172,7 @@ const DownloadOptionsManager: React.FC<DownloadOptionsManagerProps> = ({
             <div>
               <CardTitle className="text-lg">{product.name}</CardTitle>
               <p className="text-sm text-muted-foreground">
-                {t("digital_product")}
+                {tExt("digital_product")}
               </p>
             </div>
           </div>
@@ -191,7 +193,7 @@ const DownloadOptionsManager: React.FC<DownloadOptionsManagerProps> = ({
               <div className="flex items-center justify-between p-3 bg-white dark:bg-zinc-900 rounded border">
                 <div className="flex items-center gap-2">
                   <Key className="h-4 w-4 text-amber-500" />
-                  <span className="font-medium">{t("license_key")}</span>
+                  <span className="font-medium">{tExt("license_key_1")}</span>
                   <code className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded text-sm">
                     {showKey ? orderItem.key : "••••••••••••"}
                   </code>
@@ -256,8 +258,8 @@ const DownloadOptionsManager: React.FC<DownloadOptionsManagerProps> = ({
 
             <div className="space-y-4">
               <Select value={downloadOption} onValueChange={setDownloadOption}>
-                <SelectTrigger title="Download Type">
-                  <SelectValue placeholder="Select download type" />
+                <SelectTrigger title={t("download_type")}>
+                  <SelectValue placeholder={t("select_download_type")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="license">
@@ -275,7 +277,7 @@ const DownloadOptionsManager: React.FC<DownloadOptionsManagerProps> = ({
                   <SelectItem value="both">
                     <div className="flex items-center gap-2">
                       <Download className="h-4 w-4" />
-                      {t("both_license_key_&_file")}
+                      {t("both_license_key_file")}
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -288,10 +290,10 @@ const DownloadOptionsManager: React.FC<DownloadOptionsManagerProps> = ({
                     <div className="relative">
                       <Input
                         id="licenseKey"
-                        title="License Key"
+                        title={tExt("license_key_1")}
                         value={licenseKey}
                         onChange={(e) => setLicenseKey(e.target.value)}
-                        placeholder="Enter license key"
+                        placeholder={t("enter_license_key")}
                         icon={"mdi:key"}
                       />
                     </div>
@@ -301,10 +303,10 @@ const DownloadOptionsManager: React.FC<DownloadOptionsManagerProps> = ({
                     <div className="relative">
                       <Input
                         id="downloadLink"
-                        title="Download Link"
+                        title={t("download_link")}
                         value={downloadLink}
                         onChange={(e) => setDownloadLink(e.target.value)}
-                        placeholder="Enter download URL"
+                        placeholder={t("enter_download_url")}
                         icon={"mdi:link"}
                       />
                     </div>
@@ -312,10 +314,10 @@ const DownloadOptionsManager: React.FC<DownloadOptionsManagerProps> = ({
 
                   <Textarea
                     id="instructions"
-                    title="Instructions (Optional)"
+                    title={t("instructions_optional")}
                     value={instructions}
                     onChange={(e) => setInstructions(e.target.value)}
-                    placeholder="Add any special instructions for the customer..."
+                    placeholder={t("add_any_special_instructions_for_the")}
                     rows={3}
                   />
                 </div>

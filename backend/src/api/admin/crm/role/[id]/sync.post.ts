@@ -1,10 +1,13 @@
 import { models, sequelize } from "@b/db";
 import { cacheRoles } from "../utils";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Syncs roles with the database",
   operationId: "syncRoles",
   tags: ["Admin", "CRM", "Role"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Sync role permissions",
   parameters: [
     {
       index: 0,
@@ -90,11 +93,18 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
+  const { ctx } = data;
+
+  ctx?.step("Syncing role permissions");
   const response = await syncPermissions(
     data.params.id,
     data.body.permissionIds
   );
+
+  ctx?.step("Updating roles cache");
   await cacheRoles(); // Assuming this function is implemented correctly elsewhere
+
+  ctx?.success();
   return {
     ...response.get({ plain: true }),
     message: "Role permissions synced successfully",
@@ -150,7 +160,7 @@ export async function syncPermissions(
       return updatedRole;
     })
     .catch((error) => {
-      console.error("Transaction failed:", error);
+      logger.error("ROLE", "Transaction failed", error);
       throw new Error("Failed to sync role permissions");
     });
 }

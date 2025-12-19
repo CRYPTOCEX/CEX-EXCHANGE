@@ -25,7 +25,7 @@ export const metadata: OperationObject = {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -44,12 +44,16 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.ai.investment",
+  logModule: "ADMIN_AI",
+  logTitle: "List AI investments",
+  demoMask: ["items.user.email"],
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching AI investments");
+  const result = await getFiltered({
     model: models.aiInvestment,
     query,
     sortField: query.sortField || "createdAt",
@@ -71,4 +75,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} investment(s)`);
+  return result;
 };

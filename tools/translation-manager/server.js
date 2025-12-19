@@ -19,8 +19,8 @@ const createComparisonRoutes = require('./server/routes/comparison.routes');
 const createOrphanedRoutes = require('./server/routes/orphaned.routes');
 const createJsxRoutes = require('./server/routes/jsx.routes');
 const createToolsRoutes = require('./server/routes/tools.routes');
-const createToolsV2Routes = require('./server/routes/tools-v2.routes');
 const createLocalesRoutes = require('./server/routes/locales.routes');
+const createOptimizeKeysRoutes = require('./server/routes/optimize-keys.routes');
 
 // Load configuration
 const untranslatableConfig = loadUntranslatableConfig();
@@ -50,8 +50,8 @@ app.use('/api', createComparisonRoutes(api));
 app.use('/api/orphaned', createOrphanedRoutes(api, getTsxFiles));
 app.use('/api/jsx', createJsxRoutes(getTsxFiles));
 app.use('/api/tools', createToolsRoutes());
-app.use('/api/tools-v2', createToolsV2Routes());
 app.use('/api', createLocalesRoutes(api));
+app.use('/api/optimize-keys', createOptimizeKeysRoutes(api, getTsxFiles));
 
 // Additional utility routes
 
@@ -105,15 +105,21 @@ app.post('/api/master-data', async (req, res) => {
 // Error handler
 app.use((err, req, res, next) => {
     console.error('Server error:', err);
-    res.status(500).json({ 
+    res.status(500).json({
         error: 'Internal server error',
-        message: err.message 
+        message: err.message
     });
 });
 
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({ error: 'Not found' });
+// SPA fallback - serve index.html for frontend routes (not API routes)
+app.use((req, res, next) => {
+    // If it's an API route, return 404 JSON
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'Not found' });
+    }
+
+    // For all other routes, serve index.html (let client-side router handle it)
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Start server

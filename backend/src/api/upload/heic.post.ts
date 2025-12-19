@@ -8,6 +8,7 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 /**
  * Generate a file URL for the uploaded file
@@ -22,6 +23,8 @@ export const metadata = {
   description: "Converts a HEIC image to JPEG format and returns the file URL",
   operationId: "convertHeicFile",
   tags: ["Conversion"],
+  logModule: "UPLOAD",
+  logTitle: "Convert HEIC image",
   requiresAuth: true,
   requestBody: {
     required: true,
@@ -74,10 +77,12 @@ const BASE_CONVERT_DIR = isProduction
   : path.join(process.cwd(), "..", "frontend", "public", "uploads");
 
 export default async (data) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
   if (!user) throw new Error("User not found");
 
   const { dir, file: base64File, mimeType } = body;
+
+  ctx?.step("Validating HEIC conversion request");
   if (!dir || !base64File || !mimeType) {
     throw new Error("Missing required fields: dir, file, or mimeType");
   }
@@ -117,6 +122,7 @@ export default async (data) => {
 
   const buffer = Buffer.from(base64Data, "base64");
 
+  ctx?.step("Preparing upload directory");
   // Validate the directory path and create directories if necessary
   const sanitizedDir = sanitizeUserPath(dir.replace(/-/g, "/"));
   const mediaDir = path.join(BASE_CONVERT_DIR, sanitizedDir);
@@ -135,6 +141,7 @@ export default async (data) => {
   const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.jpg`;
   const outputPath = path.join(mediaDir, filename);
 
+  ctx?.step("Converting HEIC to JPEG");
   // Convert HEIC to JPEG using `heic-convert`
   try {
     const jpegBuffer = await heicConvert({
@@ -146,10 +153,12 @@ export default async (data) => {
     // Write the converted JPEG file to the target directory
     await fs.writeFile(outputPath, jpegBuffer);
 
+    ctx?.success(`HEIC converted to JPEG: ${sanitizedDir}/${filename}`);
     // Return the file URL
     return { url: generateFileUrl(`${sanitizedDir}/${filename}`) };
   } catch (error) {
-    console.error("Error converting HEIC to JPEG using `heic-convert`:", error);
+    logger.error("UPLOAD", "Error converting HEIC to JPEG using heic-convert", error);
+    ctx?.fail("HEIC to JPEG conversion failed");
     throw new Error("HEIC to JPEG conversion failed using `heic-convert`.");
   }
 };

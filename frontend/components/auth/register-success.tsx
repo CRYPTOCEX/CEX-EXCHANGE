@@ -18,7 +18,8 @@ export default function RegisterSuccess({
   onLoginClick,
   onClose,
 }: RegisterSuccessProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components_auth");
+  const tCommon = useTranslations("common");
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] p-6 text-center space-y-6">
@@ -96,7 +97,7 @@ export default function RegisterSuccess({
               variant="default"
               className="flex-1"
             >
-              {t("Close")}
+              {tCommon("close")}
             </Button>
           </>
         ) : (
@@ -114,7 +115,7 @@ export default function RegisterSuccess({
               variant="outline"
               className="flex-1"
             >
-              {t("Close")}
+              {tCommon("close")}
             </Button>
           </>
         )}

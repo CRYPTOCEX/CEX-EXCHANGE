@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
     "Fetches a list of all active markets available in the ecosystem.",
   operationId: "listEcosystemMarkets",
   tags: ["Ecosystem", "Markets"],
+  logModule: "ECOSYSTEM",
+  logTitle: "List ecosystem markets",
   responses: {
     200: {
       description: "Markets retrieved successfully",
@@ -34,9 +36,14 @@ export const metadata: OperationObject = {
   },
 };
 
-export default async () => {
+export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step("Fetching active ecosystem markets");
   const markets = await models.ecosystemMarket.findAll({
     where: { status: true },
   });
+
+  ctx?.success(`Retrieved ${markets?.length || 0} active markets`);
   return markets;
 };

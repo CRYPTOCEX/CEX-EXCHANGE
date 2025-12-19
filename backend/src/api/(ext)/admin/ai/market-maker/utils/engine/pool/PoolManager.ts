@@ -1,5 +1,5 @@
 import { models } from "@b/db";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import { BalanceTracker } from "./BalanceTracker";
 import { PnLCalculator } from "./PnLCalculator";
 
@@ -70,7 +70,7 @@ export class PoolManager {
 
       return true;
     } catch (error) {
-      logError("ai-market-maker-deposit", error, __filename);
+      logger.error("AI_MM_POOL", "Failed to deposit to pool", error);
       return false;
     }
   }
@@ -88,7 +88,7 @@ export class PoolManager {
 
       // Check if withdrawal is allowed
       if (!await tracker.canWithdraw(currency, amount)) {
-        console.warn(`[AI Market Maker] Insufficient balance for withdrawal`);
+        logger.warn("AI_MM", "Insufficient balance for withdrawal");
         return false;
       }
 
@@ -105,7 +105,7 @@ export class PoolManager {
 
       return true;
     } catch (error) {
-      logError("ai-market-maker-withdraw", error, __filename);
+      logger.error("AI_MM_POOL", "Failed to withdraw from pool", error);
       return false;
     }
   }
@@ -161,7 +161,7 @@ export class PoolManager {
 
       return true;
     } catch (error) {
-      logError("ai-market-maker-rebalance", error, __filename);
+      logger.error("AI_MM_POOL", "Failed to rebalance pool", error);
       return false;
     }
   }
@@ -247,7 +247,7 @@ export class PoolManager {
         { where: { marketMakerId } }
       );
     } catch (error) {
-      logError("ai-market-maker-update-pool-db", error, __filename);
+      logger.error("AI_MM_POOL", "Failed to update pool in database", error);
     }
   }
 

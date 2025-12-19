@@ -8,6 +8,8 @@ export const metadata: OperationObject = {
   tags: ["Auth"],
   description: "Saves the OTP secret and type for the user",
   requiresAuth: true,
+  logModule: "2FA",
+  logTitle: "Save 2FA settings",
   requestBody: {
     required: true,
     content: {
@@ -57,17 +59,30 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, user } = data;
-  if (!user) throw createError({ statusCode: 401, message: "Unauthorized" });
+  const { body, user, ctx } = data;
 
-  validateRequestBody(body);
+  try {
+    ctx?.step("Validating user authentication");
+    if (!user) {
+      ctx?.fail("User not authenticated");
+      throw createError({ statusCode: 401, message: "Unauthorized" });
+    }
 
-  const otpDetails = await saveOrUpdateOTP(user.id, body.secret, body.type);
+    ctx?.step("Validating request data");
+    validateRequestBody(body);
 
-  return {
-    message: "OTP saved successfully",
-    otpDetails,
-  };
+    ctx?.step("Saving 2FA configuration");
+    const otpDetails = await saveOrUpdateOTP(user.id, body.secret, body.type);
+
+    ctx?.success(`2FA settings saved for ${body.type}`);
+    return {
+      message: "OTP saved successfully",
+      otpDetails,
+    };
+  } catch (error) {
+    ctx?.fail(error.message || "Failed to save OTP");
+    throw error;
+  }
 };
 
 // Validate the request body

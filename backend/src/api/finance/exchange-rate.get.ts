@@ -14,6 +14,7 @@ import {
   getSpotPriceInUSD,
   getEcoPriceInUSD,
 } from "./currency/utils";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Get exchange rate between two currencies",
@@ -165,7 +166,7 @@ export default async (data: Handler) => {
     }
 
     // Otherwise wrap it in a generic error
-    console.error("[getExchangeRate] Error:", error);
+    logger.error("EXCHANGE", "Error calculating exchange rate", error);
     throw createError({
       statusCode: 500,
       message: error.message || "Failed to calculate exchange rate",

@@ -23,6 +23,7 @@ export default function TwoFactorForm({
   onCancel,
 }: TwoFactorFormProps) {
   const t = useTranslations("common");
+  const tComponentsAuth = useTranslations("components_auth");
   const { toast } = useToast();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
@@ -195,7 +196,7 @@ export default function TwoFactorForm({
           </div>
         </div>
         <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-          {t("two-factor_authentication")}
+          {t("two_factor_authentication")}
         </h2>
         <p className="text-muted-foreground">
           {type === "EMAIL"
@@ -260,11 +261,11 @@ export default function TwoFactorForm({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              {t("Verifying")}.
+              {t("verifying")}.
             </span>
           ) : (
             <span className="flex items-center justify-center">
-              {t("Verify")}
+              {t("verify")}
               <ArrowRight className="ml-2 h-4 w-4" />
             </span>
           )}
@@ -280,7 +281,7 @@ export default function TwoFactorForm({
             {isResending ? (
               <span className="flex items-center">
                 <RefreshCw className="animate-spin h-3 w-3 mr-1" />
-                {t("Resending")}.
+                {t("resending")}.
               </span>
             ) : (
               <span className="flex items-center">
@@ -291,13 +292,13 @@ export default function TwoFactorForm({
           </Button>
 
           <Button variant="ghost" onClick={onCancel} className="text-sm">
-            {t("Cancel")}
+            {t("cancel")}
           </Button>
         </div>
       </div>
 
       <div className="text-center text-xs text-muted-foreground mt-4">
-        <p>{t("didnt_receive_a_the_code")}.</p>
+        <p>{tComponentsAuth("didnt_receive_a_the_code")}.</p>
       </div>
     </div>
   );

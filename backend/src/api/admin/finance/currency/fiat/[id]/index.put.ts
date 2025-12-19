@@ -28,12 +28,19 @@ export const metadata = {
   responses: updateRecordResponses("Fiat Currency"),
   requiresAuth: true,
   permission: "edit.fiat.currency",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update fiat currency",
 };
 
 export default async (data: Handler) => {
-  const { params, body } = data;
+  const { params, body, ctx } = data;
   const { id } = params;
   const { price } = body;
 
-  return await updateRecord("currency", id, { price });
+  ctx?.step("Fetching fiat currency record");
+  ctx?.step("Updating fiat currency");
+  const result = await updateRecord("currency", id, { price });
+
+  ctx?.success("Fiat currency updated successfully");
+  return result;
 };

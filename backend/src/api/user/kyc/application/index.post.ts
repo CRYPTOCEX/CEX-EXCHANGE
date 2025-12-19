@@ -1,5 +1,6 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 import {
   notFoundMetadataResponse,
   serverErrorResponse,
@@ -19,6 +20,8 @@ export const metadata = {
   operationId: "submitKycApplication",
   tags: ["KYC", "Application"],
   requiresAuth: true,
+  logModule: "KYC",
+  logTitle: "Submit KYC application",
   requestBody: {
     required: true,
     content: {
@@ -63,23 +66,25 @@ export const metadata = {
 };
 
 export default async (data: Handler): Promise<any> => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
   if (!user) {
     throw createError({ statusCode: 401, message: "Authentication required" });
   }
 
-  // Rate limiting check
-  await checkRateLimit(user.id);
-
+  ctx?.step("Validating request parameters");
   const { levelId, fields } = body;
   if (!levelId || !fields || typeof fields !== "object") {
+    ctx?.fail("Invalid request parameters");
     throw createError({
       statusCode: 400,
       message: "Missing or invalid required fields: levelId and fields",
     });
   }
 
-  // Check for existing application for this level
+  ctx?.step("Checking rate limits");
+  await checkRateLimit(user.id);
+
+  ctx?.step("Checking for existing KYC applications");
   const existingApplication = await models.kycApplication.findOne({
     where: {
       userId: user.id,
@@ -96,36 +101,40 @@ export default async (data: Handler): Promise<any> => {
       APPROVED: "You already have an approved application for this KYC level.",
       ADDITIONAL_INFO_REQUIRED: "You have an existing application requiring additional information. Please update it instead of creating a new one."
     };
-    
+
+    ctx?.fail(`Duplicate application detected with status: ${existingApplication.status}`);
     throw createError({
       statusCode: 409,
       message: statusMessages[existingApplication.status] || "You already have an application for this KYC level.",
     });
   }
 
-  // Check cooldown period for rejected applications
+  ctx?.step("Checking rejection cooldown period");
   await checkRejectionCooldown(user.id, levelId);
 
-  // Retrieve the KYC level configuration
+  ctx?.step("Retrieving KYC level configuration");
   const levelRecord = await models.kycLevel.findByPk(levelId);
   if (!levelRecord) {
+    ctx?.fail("KYC level not found");
     throw createError({ statusCode: 404, message: "KYC level not found" });
   }
 
-  // Check if level is active
+  ctx?.step("Validating KYC level status");
   if (levelRecord.status !== "ACTIVE") {
+    ctx?.fail("KYC level is not active");
     throw createError({
       statusCode: 400,
       message: "This KYC level is not currently available for applications",
     });
   }
 
-  // Parse the level configuration if it's stored as a string
+  ctx?.step("Parsing KYC level field configuration");
   let levelFields = levelRecord.fields;
   if (typeof levelFields === "string") {
     try {
       levelFields = JSON.parse(levelFields);
     } catch (err) {
+      ctx?.fail("Failed to parse KYC level configuration");
       throw createError({
         statusCode: 500,
         message: "Invalid KYC level configuration: unable to parse fields",
@@ -134,17 +143,19 @@ export default async (data: Handler): Promise<any> => {
   }
 
   if (!Array.isArray(levelFields)) {
+    ctx?.fail("Invalid KYC level configuration format");
     throw createError({
       statusCode: 500,
       message: "Invalid KYC level configuration",
     });
   }
 
-  // Validate each field from the level configuration against submitted data.
+  ctx?.step(`Validating ${levelFields.length} submitted fields`);
   for (const fieldDef of levelFields) {
     const submittedValue = fields[fieldDef.id];
     const error = validateKycField(fieldDef, submittedValue);
     if (error) {
+      ctx?.fail(`Field validation failed for: ${fieldDef.id}`);
       throw createError({
         statusCode: 400,
         message: `Validation error for field "${fieldDef.id}": ${error}`,
@@ -153,7 +164,7 @@ export default async (data: Handler): Promise<any> => {
   }
 
   try {
-    // Create a new KYC application record with status "PENDING"
+    ctx?.step("Creating KYC application record");
     const newApplication = await models.kycApplication.create({
       userId: user.id,
       levelId,
@@ -161,14 +172,16 @@ export default async (data: Handler): Promise<any> => {
       status: "PENDING",
     });
 
-    // Update rate limiting counter
+    ctx?.step("Updating rate limit counter");
     await updateRateLimit(user.id);
 
+    ctx?.success("KYC application submitted successfully");
     return {
       message: "KYC application submitted successfully.",
       application: newApplication,
     };
   } catch (error: any) {
+    ctx?.fail(`Failed to create application: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: error.message || "Internal Server Error.",
@@ -199,7 +212,7 @@ async function checkRateLimit(userId: string) {
       throw error;
     }
     // If Redis is down, log but don't block the request
-    console.error("Rate limiting check failed:", error);
+    logger.error("KYC", "Rate limiting check failed", error);
   }
 }
 
@@ -220,7 +233,7 @@ async function updateRateLimit(userId: string) {
     }
   } catch (error) {
     // If Redis is down, log but don't fail the request
-    console.error("Rate limiting update failed:", error);
+    logger.error("KYC", "Rate limiting update failed", error);
   }
 }
 

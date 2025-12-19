@@ -42,13 +42,20 @@ export const metadata: OperationObject = {
   },
   permission: "view.page",
   requiresAuth: true,
+  logModule: "ADMIN_CMS",
+  logTitle: "List pages",
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
-  return getFiltered({
+  const { query, ctx } = data;
+
+  ctx?.step("Fetching pages with filters");
+  const result = await getFiltered({
     model: models.page,
     query,
     sortField: query.sortField || "createdAt",
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} page(s)`);
+  return result;
 };

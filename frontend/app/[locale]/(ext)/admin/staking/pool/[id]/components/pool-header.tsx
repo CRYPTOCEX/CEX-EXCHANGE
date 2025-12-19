@@ -22,13 +22,15 @@ interface PoolHeaderProps {
 }
 
 export function PoolHeader({ pool }: PoolHeaderProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "ACTIVE":
         return (
           <Badge className="bg-green-500 hover:bg-green-600 text-white">
-            {t("Active")}
+            {tCommon("active")}
           </Badge>
         );
       case "INACTIVE":
@@ -37,13 +39,13 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
             variant="outline"
             className="border-muted-foreground/50 text-muted-foreground"
           >
-            {t("Inactive")}
+            {tCommon("inactive")}
           </Badge>
         );
       case "COMING_SOON":
         return (
           <Badge className="bg-blue-500 hover:bg-blue-600 text-white">
-            {t("coming_soon")}
+            {tCommon("coming_soon")}
           </Badge>
         );
       default:
@@ -74,7 +76,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
                 variant="outline"
                 className="bg-amber-500/10 text-amber-500 border-amber-500/30"
               >
-                {t("Promoted")}
+                {t("promoted")}
               </Badge>
             )}
             {pool.autoCompound && (
@@ -82,7 +84,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
                 variant="outline"
                 className="bg-green-500/10 text-green-500 border-green-500/30"
               >
-                {t("Auto-Compound")}
+                {tCommon("auto_compound")}
               </Badge>
             )}
           </div>
@@ -97,7 +99,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{t("token_symbol")}</p>
+                  <p>{tExt("token_symbol")}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -108,13 +110,12 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
                   <div className="flex items-center gap-1.5 bg-background/50 px-2.5 py-1 rounded-md shadow-sm">
                     <Percent className="h-4 w-4 text-green-500" />
                     <span className="font-medium">
-                      {pool.apr}
-                      % APR
+                      {pool.apr}% {tCommon("apr")}
                     </span>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{t("annual_percentage_rate")}</p>
+                  <p>{tCommon("annual_percentage_rate")}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -140,10 +141,10 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex items-center gap-1.5 bg-background/50 px-2.5 py-1 rounded-md shadow-sm">
-                    <Calendar className="h-4 w-4 text-purple-500" />
+                    <Calendar className="h-4 w-4 text-violet-500" />
                     <span className="font-medium">
                       {pool.earningFrequency}
-                      {t("earnings")}
+                      {tExt("earnings")}
                     </span>
                   </div>
                 </TooltipTrigger>
@@ -164,7 +165,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
                       className="flex items-center gap-1.5 bg-background/50 px-2.5 py-1 rounded-md shadow-sm text-primary hover:bg-background"
                     >
                       <ExternalLink className="h-4 w-4" />
-                      <span className="font-medium">{t("external_pool")}</span>
+                      <span className="font-medium">{tExt("external_pool")}</span>
                     </a>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -184,7 +185,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
         >
           <ShieldCheck className="h-4 w-4 text-primary" />
           <span>
-            {t("order")}
+            {tCommon("order")}
             {pool.order}
           </span>
         </div>

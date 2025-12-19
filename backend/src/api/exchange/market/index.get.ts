@@ -66,8 +66,10 @@ async function setTokenIconInCache(
 }
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
   const { eco } = query;
+
+  ctx?.step("Fetching exchange markets");
   const exchangeMarkets = await models.exchangeMarket.findAll({
     where: {
       status: true,
@@ -144,5 +146,6 @@ export default async (data: Handler) => {
     })),
   ];
 
+  ctx?.success(`Retrieved ${markets.length} markets (${exchangeMarkets.length} exchange, ${ecosystemMarkets.length} ecosystem)`);
   return markets;
 };

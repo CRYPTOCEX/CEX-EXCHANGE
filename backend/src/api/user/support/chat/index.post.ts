@@ -2,6 +2,7 @@ import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
 import { handleBroadcastMessage, messageBroker } from "@b/handler/Websocket";
 import { updateRecordResponses } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Send a message in live chat session",
@@ -9,6 +10,8 @@ export const metadata: OperationObject = {
   operationId: "sendLiveChatMessage",
   tags: ["Support"],
   requiresAuth: true,
+  logModule: "USER",
+  logTitle: "Send live chat message",
   requestBody: {
     description: "The message to send",
     required: true,
@@ -30,13 +33,15 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
   if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { sessionId, content, sender } = body;
 
+  ctx?.step("Finding live chat session");
   // Find the live chat session
   const ticket = await models.supportTicket.findOne({
     where: {
@@ -47,10 +52,12 @@ export default async (data: Handler) => {
   });
 
   if (!ticket) {
+    ctx?.fail("Live chat session not found");
     throw createError({ statusCode: 404, message: "Live chat session not found" });
   }
 
   if (ticket.status === "CLOSED") {
+    ctx?.fail("Session is closed");
     throw createError({ statusCode: 403, message: "Cannot send message to closed session" });
   }
 
@@ -76,14 +83,15 @@ export default async (data: Handler) => {
         const parsed = JSON.parse(ticket.messages);
         currentMessages = Array.isArray(parsed) ? parsed : [];
       } catch (e) {
-        console.error('Live Chat - Failed to parse messages JSON:', e);
+        logger.error("SUPPORT", "Live Chat - Failed to parse messages JSON", e);
         currentMessages = [];
       }
     }
   }
   
   currentMessages.push(newMessage);
-  
+
+  ctx?.step("Updating ticket with new message");
   // Update database with new messages
   await sequelize.query(
     'UPDATE support_ticket SET messages = :messages, updatedAt = :updatedAt WHERE id = :id',
@@ -101,14 +109,15 @@ export default async (data: Handler) => {
     await ticket.update({ status: "OPEN" });
   }
 
+  ctx?.step("Broadcasting message via WebSocket");
   // Broadcast the update via WebSocket to all connected clients
   try {
     // Get fresh ticket data with the new messages
     await ticket.reload();
     const ticketData = ticket.get({ plain: true });
     ticketData.messages = currentMessages; // Ensure messages array is included
-    
-    // Broadcast to clients subscribed to this specific ticket 
+
+    // Broadcast to clients subscribed to this specific ticket
     messageBroker.broadcastToSubscribedClients(
       "/api/user/support/ticket",
       { id: sessionId },  // This matches the subscription payload from SUBSCRIBE action
@@ -123,8 +132,9 @@ export default async (data: Handler) => {
       }
     );
   } catch (error) {
-    console.error("Failed to broadcast message:", error);
+    logger.error("SUPPORT", "Failed to broadcast message", error);
   }
 
+  ctx?.success("Message sent successfully");
   return { success: true, message: "Message sent successfully" };
 }; 

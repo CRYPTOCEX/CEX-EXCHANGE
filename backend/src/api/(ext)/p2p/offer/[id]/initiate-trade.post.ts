@@ -6,6 +6,7 @@ import { createP2PAuditLog, P2PAuditEventType, P2PRiskLevel } from "@b/api/(ext)
 import { Op } from "sequelize";
 import { parseAmountConfig, parsePriceConfig } from "@b/api/(ext)/p2p/utils/json-parser";
 import { getEcosystemWalletUtils, isServiceAvailable } from "@b/utils/safe-imports";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Initiate Trade from P2P Offer",
@@ -14,6 +15,8 @@ export const metadata = {
   operationId: "initiateP2PTrade",
   tags: ["P2P", "Trade"],
   requiresAuth: true,
+  logModule: "P2P_TRADE",
+  logTitle: "Initiate P2P trade",
   parameters: [
     {
       index: 0,
@@ -63,19 +66,21 @@ export const metadata = {
   },
 };
 
-export default async function handler(data: { 
-  params?: any; 
-  body: any; 
-  user?: any 
+export default async function handler(data: {
+  params?: any;
+  body: any;
+  user?: any;
+  ctx?: any;
 }) {
   const { id } = data.params || {};
   const { amount, paymentMethodId, message } = data.body;
-  const { user } = data;
+  const { user, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Finding and locking offer");
   let transaction;
 
   try {
@@ -111,6 +116,7 @@ export default async function handler(data: {
       });
     }
 
+    ctx?.step("Validating trade amount against offer limits");
     // 2. Validate amount against offer limits
     // amountConfig stores limits in the pricing currency (USD/EUR)
     // We need to convert these to the offer currency (BTC/ETH) if trading crypto
@@ -221,17 +227,21 @@ export default async function handler(data: {
     const buyerId = isBuyOffer ? offer.userId : user.id;
     const sellerId = isBuyOffer ? user.id : offer.userId;
 
+    ctx?.step("Verifying seller balance and locking funds");
     // 6. Handle seller's balance verification and locking
     // - For SELL offers: Balance was already locked when offer was created, no additional locking needed
     // - For BUY offers: Responder is the seller, need to check balance and lock their funds NOW
     let sellerWallet = await getWalletSafe(
       sellerId,
       offer.walletType,
-      offer.currency
+      offer.currency,
+      false,
+      ctx
     );
 
     // For BUY offers, the responder is the seller and needs a wallet with funds
     if (isBuyOffer) {
+      ctx?.step(`Locking ${amount} ${offer.currency} for seller (BUY offer)`);
       // Create seller wallet if it doesn't exist
       if (!sellerWallet) {
         if (offer.walletType === "ECO") {
@@ -322,8 +332,9 @@ export default async function handler(data: {
         initiatedBy: user.id,
       },
       riskLevel: P2PRiskLevel.HIGH,
-    }).catch(err => console.error("Failed to create audit log:", err));
+    }).catch(err => logger.error("P2P_TRADE", "Failed to create audit log", err));
 
+    ctx?.step("Calculating trade fees");
     // 7. Calculate fees
     const { calculateTradeFees, calculateEscrowFee } = await import("../../utils/fees");
     // Maker = offer owner, Taker = trade initiator
@@ -337,6 +348,7 @@ export default async function handler(data: {
     );
     const escrowFee = await calculateEscrowFee(amount, offer.currency);
 
+    ctx?.step("Creating trade record");
     // 8. Create the trade with fees stored
     // Copy seller's payment method details to trade for display during payment
     // Parse metadata properly - it may come as string from database
@@ -420,8 +432,11 @@ export default async function handler(data: {
     // This way offers remain visible showing they're temporarily unavailable
     // and become available again if trades are cancelled
 
+    ctx?.step("Updating offer available amount");
     // Commit transaction first to release locks
     await transaction.commit();
+
+    ctx?.success(`Initiated ${offer.type} trade: ${amount} ${offer.currency} @ ${priceConfig.finalPrice}`);
 
     // 11. Log comprehensive audit trail (non-blocking, after commit)
     createP2PAuditLog({
@@ -445,13 +460,13 @@ export default async function handler(data: {
         walletType: offer.walletType,
       },
       riskLevel: amount > 1000 ? P2PRiskLevel.HIGH : P2PRiskLevel.MEDIUM,
-    }).catch(err => console.error("Failed to create audit log:", err));
+    }).catch(err => logger.error("P2P_TRADE", "Failed to create audit log", err));
 
     // 12. Increment offer view count (non-blocking)
     // Views are counted when trade is initiated, not on page load
     // This ensures only serious interest is counted and prevents owner inflation
     models.p2pOffer.increment("views", { where: { id } }).catch((err: any) => {
-      console.error("[P2P Offer View] Failed to increment views:", err.message);
+      logger.error("P2P_OFFER", "Failed to increment views", err);
     });
 
     // 13. Send notifications (non-blocking)
@@ -496,7 +511,7 @@ export default async function handler(data: {
       } catch (rollbackError: any) {
         // Ignore rollback errors if transaction is already finished
         if (!rollbackError.message?.includes("already been finished")) {
-          console.error("Transaction rollback failed:", rollbackError.message);
+          logger.error("P2P_TRADE", "Transaction rollback failed", rollbackError);
         }
       }
     }

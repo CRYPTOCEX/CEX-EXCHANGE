@@ -18,13 +18,18 @@ export const metadata: OperationObject = {
   responses: storeRecordResponses(categoryStoreSchema, "Category"),
   requiresAuth: true,
   permission: "create.blog.category",
+  logModule: "ADMIN_BLOG",
+  logTitle: "Create category",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { name, slug, image, description } = body;
 
-  return await storeRecord({
+  ctx?.step("Validating category data");
+
+  ctx?.step("Creating category");
+  const result = await storeRecord({
     model: "category",
     data: {
       name,
@@ -33,4 +38,7 @@ export default async (data: Handler) => {
       description,
     },
   });
+
+  ctx?.success("Category created successfully");
+  return result;
 };

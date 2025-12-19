@@ -29,7 +29,8 @@ export function SupportChat({
   onFileUpload,
   isReplying,
 }: SupportChatProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components_blocks");
+  const tCommon = useTranslations("common");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<MessageType[]>(
     ticket.messages || []
@@ -86,7 +87,7 @@ export function SupportChat({
           className="flex items-center space-x-2"
         >
           <Icon icon="mdi:arrow-left" className="w-5 h-5" />
-          <span>{t("Back")}</span>
+          <span>{tCommon("back")}</span>
         </Button>
       </header>
 

@@ -2,6 +2,7 @@ import { ErrorObject } from "ajv";
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
 import path from "path";
+import { logger } from "./console";
 
 /**
  * Sanitize a file path to prevent path traversal.
@@ -95,7 +96,7 @@ export function validatePathSecurity(resolvedPath: string, allowedBasePath: stri
     // Check if the resolved path starts with the base path
     return normalizedPath.startsWith(normalizedBase + path.sep) || normalizedPath === normalizedBase;
   } catch (error) {
-    console.error('Path validation error:', error);
+    logger.error("VALIDATION", "Path validation error", error);
     return false;
   }
 }
@@ -219,7 +220,7 @@ export function validateSchema<T>(value: T, schema: object): T {
   try {
     validate = ajv.compile(schema);
   } catch (error) {
-    console.error("Schema compilation failed:", error);
+    logger.error("VALIDATION", "Schema compilation failed", error);
     throw new Error("Schema compilation failed: " + error.message);
   }
   const transformedValue = convertBooleanStrings(value);
@@ -235,10 +236,7 @@ export function validateSchema<T>(value: T, schema: object): T {
     });
     
     // Log the detailed error messages to the console.
-    console.error(
-      "Schema validation failed with errors:",
-      JSON.stringify(errorDetails, null, 2)
-    );
+    logger.debug("VALIDATION", `Schema validation failed: ${JSON.stringify(errorDetails)}`);
     
     // Create a user-friendly error message
     const userFriendlyMessages = errorDetails.map(err => err.message);

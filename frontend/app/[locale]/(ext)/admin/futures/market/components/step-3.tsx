@@ -17,33 +17,34 @@ const FuturesFeesStep: React.FC<FuturesFeesStepProps> = ({
   formData,
   updateNestedField,
 }) => {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   return (
     <Card className="p-5 space-y-3">
-      <h2 className="text-lg font-semibold mb-2">{t("Fees")}</h2>
+      <h2 className="text-lg font-semibold mb-2">{tCommon("fees")}</h2>
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
         {t("configure_fee_settings")}.<br />
-        <strong>{t("taker_fee")}</strong>
-        {t("this_fee_(in_an_order")}.<br />
-        <strong>{t("maker_fee")}</strong>
-        {t("this_fee_(in_provides_liquidity")}.
+        <strong>{tCommon("taker_fee")}</strong>
+        {t("this_fee_in_an_order")}.<br />
+        <strong>{tCommon("maker_fee")}</strong>
+        {t("this_fee_in_provides_liquidity")}.
       </p>
       <div className="grid grid-cols-2 gap-5">
         <Input
-          title="Taker Fee (%)"
-          description="Enter the fee percentage charged from the taker when executing an order."
+          title={`${tCommon("taker_fee")} (%)`}
+          description={t("enter_the_fee_percentage_charged_from")}
           type="number"
-          placeholder="Enter taker fee"
+          placeholder={t("enter_taker_fee")}
           value={formData.metadata.taker}
           onChange={(e) =>
             updateNestedField("metadata.taker", parseFloat(e.target.value) || 0)
           }
         />
         <Input
-          title="Maker Fee (%)"
-          description="Enter the fee percentage charged from the maker when providing liquidity."
+          title={`${tCommon("maker_fee")} (%)`}
+          description={t("enter_the_fee_percentage_charged_from_1")}
           type="number"
-          placeholder="Enter maker fee"
+          placeholder={t("enter_maker_fee")}
           value={formData.metadata.maker}
           onChange={(e) =>
             updateNestedField("metadata.maker", parseFloat(e.target.value) || 0)

@@ -25,6 +25,7 @@ import { useTranslations } from "next-intl";
 
 export default function InvestmentPlansClient() {
   const t = useTranslations("common");
+  const tInvestment = useTranslations("investment");
   const { plans, plansLoading, fetchPlans, hasFetchedPlans } = useInvestmentStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
@@ -40,13 +41,13 @@ export default function InvestmentPlansClient() {
   const safePlans = Array.isArray(plans) ? plans : [];
   const filteredPlans = safePlans.filter((plan) => {
     const matchesSearch =
-      plan.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      plan.description.toLowerCase().includes(searchTerm.toLowerCase());
+      (plan.title ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (plan.description ?? '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter =
       selectedFilter === "all" ||
       (selectedFilter === "trending" && plan.trending) ||
-      (selectedFilter === "high-yield" && plan.profitPercentage > 15) ||
-      (selectedFilter === "low-risk" && plan.profitPercentage <= 10);
+      (selectedFilter === "high-yield" && (plan.profitPercentage ?? 0) > 15) ||
+      (selectedFilter === "low-risk" && (plan.profitPercentage ?? 0) <= 10);
     return matchesSearch && matchesFilter;
   });
   const formatCurrency = (amount: number, currency: string) => {
@@ -119,7 +120,7 @@ export default function InvestmentPlansClient() {
   };
   if (plansLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950">
+      <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950 pt-16">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-6xl mx-auto">
             <Skeleton className="h-12 w-64 mx-auto mb-4" />
@@ -138,7 +139,7 @@ export default function InvestmentPlansClient() {
     );
   }
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950">
+    <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950 pt-16">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -175,14 +176,14 @@ export default function InvestmentPlansClient() {
             </motion.div>
 
             <h1 className="text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-              {t("choose_your")}{" "}
+              {tInvestment("choose_your")}{" "}
               <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
                 {t("investment_plan")}
               </span>
             </h1>
 
             <p className="text-xl text-zinc-600 dark:text-zinc-300 max-w-3xl mx-auto leading-relaxed">
-              {t("explore_our_comprehensive_risk_tolerance")}
+              {tInvestment("explore_our_comprehensive_risk_tolerance")}
             </p>
           </motion.div>
 
@@ -207,7 +208,7 @@ export default function InvestmentPlansClient() {
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 w-4 h-4" />
                 <Input
-                  placeholder="Search investment plans..."
+                  placeholder={tInvestment("search_investment_plans_ellipsis")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm border-zinc-200 dark:border-zinc-700"
@@ -314,7 +315,7 @@ export default function InvestmentPlansClient() {
                             className={`bg-gradient-to-r ${gradient} text-white border-0 shadow-lg`}
                           >
                             <TrendingUp className="w-3 h-3 mr-1" />
-                            {t("Trending")}
+                            {t("trending")}
                           </Badge>
                         </div>
                       )}
@@ -355,7 +356,7 @@ export default function InvestmentPlansClient() {
                               {t("minimum_investment")}
                             </span>
                             <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                              {formatCurrency(plan.minAmount, plan.currency)}
+                              {formatCurrency(plan.minAmount, plan.currency ?? "USD")}
                             </span>
                           </div>
 
@@ -364,7 +365,7 @@ export default function InvestmentPlansClient() {
                               {t("maximum_investment")}
                             </span>
                             <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                              {formatCurrency(plan.maxAmount, plan.currency)}
+                              {formatCurrency(plan.maxAmount, plan.currency ?? "USD")}
                             </span>
                           </div>
                         </div>

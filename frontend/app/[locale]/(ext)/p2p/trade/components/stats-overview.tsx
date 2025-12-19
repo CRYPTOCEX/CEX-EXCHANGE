@@ -29,6 +29,8 @@ export function StatsOverview({
   completedTrades,
 }: StatsOverviewProps) {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExtP2p = useTranslations("ext_p2p");
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card className="bg-card overflow-hidden border-primary/10">
@@ -46,7 +48,7 @@ export function StatsOverview({
           {activeTrades && activeTrades.length > 0 && (
             <div className="flex items-center text-xs text-muted-foreground mt-1">
               <ArrowUp className="h-3 w-3 mr-1 text-green-500" />
-              <span className="text-green-500 font-medium">{t("Active")}</span>
+              <span className="text-green-500 font-medium">{tCommon("active")}</span>
             </div>
           )}
           <Progress
@@ -75,7 +77,7 @@ export function StatsOverview({
             <div className="flex items-center text-xs text-muted-foreground mt-1">
               <ArrowUp className="h-3 w-3 mr-1 text-green-500" />
               <span className="text-green-500 font-medium">
-                {t("Completed")}
+                {tCommon("completed")}
               </span>
             </div>
           )}
@@ -84,7 +86,7 @@ export function StatsOverview({
               variant="outline"
               className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
             >
-              {tradeStats.successRate || 0}% {t("success_rate")}
+              {tradeStats.successRate || 0}% {tCommon("success_rate")}
             </Badge>
           </div>
         </CardContent>
@@ -94,7 +96,7 @@ export function StatsOverview({
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center">
             <BarChart3 className="h-4 w-4 mr-2 text-primary" />
-            {t("trading_volume")}
+            {tCommon("trading_volume")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -104,7 +106,7 @@ export function StatsOverview({
           {(tradeStats.totalVolume ?? 0) > 0 && (
             <div className="flex items-center text-xs text-muted-foreground mt-1">
               <ArrowUp className="h-3 w-3 mr-1 text-green-500" />
-              <span className="text-green-500 font-medium">{t("Active")}</span>
+              <span className="text-green-500 font-medium">{tCommon("active")}</span>
             </div>
           )}
           {/* Only show chart if we have completed trades */}
@@ -155,7 +157,7 @@ export function StatsOverview({
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center">
             <Clock className="h-4 w-4 mr-2 text-primary" />
-            {t("average_completion")}
+            {tExtP2p("average_completion")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -166,7 +168,7 @@ export function StatsOverview({
             <div className="flex items-center text-xs text-muted-foreground mt-1">
               <ArrowDown className="h-3 w-3 mr-1 text-green-500" />
               <span className="text-green-500 font-medium">
-                {t("Efficient")}
+                {tExtP2p("efficient")}
               </span>
             </div>
           )}
@@ -176,7 +178,7 @@ export function StatsOverview({
                 variant="outline"
                 className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
               >
-                {t("top_trader")}
+                {tExtP2p("top_trader")}
               </Badge>
             </div>
           )}

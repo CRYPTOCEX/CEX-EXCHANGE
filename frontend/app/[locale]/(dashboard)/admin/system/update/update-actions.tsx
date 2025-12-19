@@ -33,7 +33,7 @@ export function UpdateActions({
   updateAction,
   type,
 }: UpdateActionsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
   return (
     <Card>
       <CardHeader>

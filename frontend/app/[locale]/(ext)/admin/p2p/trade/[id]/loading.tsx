@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function TradeDetailsLoading() {
   return (
-    <div className="space-y-6">
+    <div className="pt-20 space-y-6">
       <div className="flex items-center gap-2">
         <Skeleton className="h-8 w-[200px]" />
         <Skeleton className="h-6 w-[80px]" />

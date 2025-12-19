@@ -8,6 +8,7 @@ import { supportTicketSchema } from "../utils";
 import { models } from "@b/db";
 import { col, fn, Op } from "sequelize";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Retrieves a specific support ticket by ID, including stats",
@@ -58,10 +59,13 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.support.ticket",
+  logModule: "ADMIN_CRM",
+  logTitle: "Get Support Ticket",
+  demoMask: ["user.email", "agent.email"],
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
   
   try {
     // Validate ticket ID format
@@ -81,6 +85,7 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.step("Fetching support ticket");
     // Get the ticket with includes
     let ticket;
     try {
@@ -100,7 +105,7 @@ export default async (data: Handler) => {
         ],
       });
     } catch (dbError) {
-      console.error(`Database error fetching ticket ${params.id}:`, dbError);
+      logger.error("TICKET", `Database error fetching ticket ${params.id}`, dbError);
       throw createError({
         statusCode: 500,
         message: "Database connection error",
@@ -119,7 +124,7 @@ export default async (data: Handler) => {
     try {
       plainTicket = ticket.get({ plain: true });
     } catch (jsonError) {
-      console.error("Error extracting ticket data:", jsonError);
+      logger.error("TICKET", "Error extracting ticket data", jsonError);
       throw createError({
         statusCode: 500,
         message: "Failed to process ticket data",
@@ -132,8 +137,8 @@ export default async (data: Handler) => {
         const parsed = JSON.parse(plainTicket.messages);
         plainTicket.messages = Array.isArray(parsed) ? parsed : [];
       } catch (e) {
-        console.error(`Failed to parse messages JSON for ticket ${plainTicket.id}:`, e);
-        console.error('Problematic messages value:', plainTicket.messages);
+        logger.error("TICKET", `Failed to parse messages JSON for ticket ${plainTicket.id}`, e);
+        logger.debug("TICKET", `Problematic messages value: ${plainTicket.messages}`);
         plainTicket.messages = [];
       }
     }
@@ -142,8 +147,8 @@ export default async (data: Handler) => {
         const parsed = JSON.parse(plainTicket.tags);
         plainTicket.tags = Array.isArray(parsed) ? parsed : [];
       } catch (e) {
-        console.error(`Failed to parse tags JSON for ticket ${plainTicket.id}:`, e);
-        console.error('Problematic tags value:', plainTicket.tags);
+        logger.error("TICKET", `Failed to parse tags JSON for ticket ${plainTicket.id}`, e);
+        logger.debug("TICKET", `Problematic tags value: ${plainTicket.tags}`);
         plainTicket.tags = [];
       }
     }
@@ -165,7 +170,7 @@ export default async (data: Handler) => {
         ]);
         userStats = { totalTickets, resolvedTickets };
       } catch (statsError) {
-        console.error("Error fetching user stats:", statsError);
+        logger.error("TICKET", "Error fetching user stats", statsError);
         userStats = { totalTickets: 0, resolvedTickets: 0 };
       }
     }
@@ -196,20 +201,21 @@ export default async (data: Handler) => {
             : null,
         };
       } catch (agentStatsError) {
-        console.error("Error fetching agent stats:", agentStatsError);
+        logger.error("TICKET", "Error fetching agent stats", agentStatsError);
         agentStats = { avgRating: null, resolved: 0 };
       }
     }
 
+    ctx?.success("Support ticket retrieved successfully");
     return {
       ...plainTicket,
       userStats,
       agentStats,
     };
-    
+
   } catch (error) {
-    console.error("Error fetching support ticket:", error);
-    
+    logger.error("TICKET", "Error fetching support ticket", error);
+
     if (error.statusCode) {
       throw error; // Re-throw createError errors
     }

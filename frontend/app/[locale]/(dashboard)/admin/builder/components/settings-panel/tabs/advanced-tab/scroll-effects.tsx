@@ -42,7 +42,8 @@ const SCROLL_EFFECT_TYPES = [
 ];
 
 export function ScrollEffects({ settings, onSettingChange }: ComponentProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [isAnimating, setIsAnimating] = useState(false);
 
   // Create a properly typed scrollSettings object with default values
@@ -192,9 +193,9 @@ export function ScrollEffects({ settings, onSettingChange }: ComponentProps) {
               }
             />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{t("Top")}</span>
-              <span>{t("Middle")}</span>
-              <span>{t("Bottom")}</span>
+              <span>{tCommon("top")}</span>
+              <span>{t("middle")}</span>
+              <span>{t("bottom")}</span>
             </div>
           </div>
 
@@ -233,7 +234,7 @@ export function ScrollEffects({ settings, onSettingChange }: ComponentProps) {
 
           {/* Effect Easing */}
           <div className="space-y-1">
-            <Label className="text-xs">{t("Easing")}</Label>
+            <Label className="text-xs">{t("easing")}</Label>
             <LabeledSelect
               id="scrollEffectEasing"
               label=""
@@ -256,7 +257,7 @@ export function ScrollEffects({ settings, onSettingChange }: ComponentProps) {
                   label: "Spring",
                 },
               ]}
-              placeholder="Select easing"
+              placeholder={t("select_easing")}
             />
           </div>
 
@@ -301,7 +302,7 @@ export function ScrollEffects({ settings, onSettingChange }: ComponentProps) {
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs">{t("Delay")}</Label>
+              <Label className="text-xs">{t("delay")}</Label>
               <SliderWithInput
                 value={scrollSettings.scrollEffectDelay ?? 0}
                 onChange={(value) =>
@@ -315,7 +316,7 @@ export function ScrollEffects({ settings, onSettingChange }: ComponentProps) {
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs">{t("Threshold")}</Label>
+              <Label className="text-xs">{t("threshold")}</Label>
               <SliderWithInput
                 value={scrollSettings.scrollEffectThreshold ?? 0.2}
                 onChange={(value) =>
@@ -335,7 +336,7 @@ export function ScrollEffects({ settings, onSettingChange }: ComponentProps) {
           {/* Preview */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">{t("Preview")}</Label>
+              <Label className="text-xs">{tCommon("preview")}</Label>
               <Button
                 variant="outline"
                 size="sm"
@@ -345,12 +346,12 @@ export function ScrollEffects({ settings, onSettingChange }: ComponentProps) {
                 {isAnimating ? (
                   <>
                     <Pause className="h-3 w-3 mr-1" />
-                    {t("Stop")}
+                    {tCommon("stop")}
                   </>
                 ) : (
                   <>
                     <Play className="h-3 w-3 mr-1" />
-                    {t("Play")}
+                    {t("play")}
                   </>
                 )}
               </Button>

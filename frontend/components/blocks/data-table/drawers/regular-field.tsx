@@ -1,40 +1,43 @@
+"use client";
+
 import React from "react";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-} from "@/components/ui/form";
+import { FormField } from "@/components/ui/form";
 import { FormControls } from "./form-controls";
 import { cn } from "@/lib/utils";
+
 interface RegularFieldProps {
   column: ColumnDefinition;
   form: any;
   permissions: any;
   data: any;
 }
+
 export const RegularField: React.FC<RegularFieldProps> = ({
   column,
   form,
   permissions,
   data,
 }) => {
+  // Permission check only - field visibility is controlled by formConfig in view-form
   if (data) {
-    // Edit mode: only show field if it's marked as editable
-    if (!column.editable) return null;
-    // Also ensure the user has edit permissions
+    // Edit mode: ensure the user has edit permissions
     if (!permissions.edit) return null;
   } else {
-    // Create mode: only show field if it's marked for use in create
-    if (!column.usedInCreate) return null;
-    // Also ensure the user has create permissions
+    // Create mode: ensure the user has create permissions
     if (!permissions.create) return null;
   }
+
   const isRequired = !!column.required;
+
+  // Determine if field needs full width based on type
   const isFullWidth = ["image", "customFields", "textarea", "editor"].includes(
     column.type
   );
+
+  // Use title and description directly (already human-readable)
+  const fieldTitle = column.title || "";
+  const fieldDescription = column.description || "";
+
   return (
     <FormField
       key={column.key}
@@ -50,28 +53,26 @@ export const RegularField: React.FC<RegularFieldProps> = ({
             if (column.onChange) {
               column.onChange(value, form);
             }
-          }
+          },
         };
 
         return (
-          <FormItem className={cn(isFullWidth && "md:col-span-2")}>
-            <FormLabel className={cn(error && "text-destructive")}>
-              {column.title}
-              {isRequired && <span className="text-destructive"> *</span>}
-            </FormLabel>
-            <FormControl>
-              <FormControls
-                column={column}
-                field={enhancedField}
-                error={error?.message}
-                control={form.control}
-              />
-            </FormControl>
-            {column.description &&
-              !["customFields", "editor"].includes(column.type) && (
-                <FormDescription>{column.description}</FormDescription>
-              )}
-          </FormItem>
+          <div
+            className={cn(
+              "w-full",
+              isFullWidth && "md:col-span-2 lg:col-span-3"
+            )}
+          >
+            <FormControls
+              column={column}
+              field={enhancedField}
+              error={error?.message}
+              control={form.control}
+              title={fieldTitle}
+              description={fieldDescription}
+              required={isRequired}
+            />
+          </div>
         );
       }}
     />

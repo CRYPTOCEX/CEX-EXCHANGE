@@ -182,7 +182,7 @@ export function ObjectTable<TData, TValue>({
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <p className="text-sm text-muted-foreground">
-            {t("Showing")} {table.getFilteredRowModel().rows.length} {t("of")}{" "}
+            {t("showing")} {table.getFilteredRowModel().rows.length} {t("of")}{" "}
             {data.length} {data.length === 1 ? "item" : "items"}
           </p>
         </div>

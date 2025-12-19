@@ -1,16 +1,18 @@
+import { getRecord } from "@b/utils/query";
 import {
-  getRecord,
   unauthorizedResponse,
-  notFoundMetadataResponse,
+  notFoundResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+  singleItemResponse,
+} from "@b/utils/schema/errors";
 import { baseMailwizardTemplateSchema } from "../utils";
 
 export const metadata = {
-  summary:
-    "Retrieves detailed information of a specific Mailwizard Template by ID",
+  summary: "Get a Mailwizard template",
   operationId: "getMailwizardTemplateById",
-  tags: ["Admin", "Marketing", "Mailwizard Templates"],
+  tags: ["Admin", "Mailwizard", "Templates"],
+  description:
+    "Retrieves detailed information about a specific Mailwizard template including its complete content and design configuration. The response includes all template data needed for editing or preview.",
   parameters: [
     {
       index: 0,
@@ -22,27 +24,27 @@ export const metadata = {
     },
   ],
   responses: {
-    200: {
-      description: "Mailwizard Template details",
-      content: {
-        "application/json": {
-          schema: {
-            type: "object",
-            properties: baseMailwizardTemplateSchema, // Define this schema in your utils if it's not already defined
-          },
-        },
+    200: singleItemResponse(
+      {
+        type: "object",
+        properties: baseMailwizardTemplateSchema,
       },
-    },
+      "Mailwizard template retrieved successfully"
+    ),
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("Mailwizard Template"),
+    404: notFoundResponse("Mailwizard Template"),
     500: serverErrorResponse,
   },
   permission: "view.mailwizard.template",
   requiresAuth: true,
+  logModule: "ADMIN_MAIL",
+  logTitle: "Get Mail Template",
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
+  ctx?.step("Process request");
 
+  ctx?.success("Get Mail Template retrieved successfully");
   return await getRecord("mailwizardTemplate", params.id);
 };

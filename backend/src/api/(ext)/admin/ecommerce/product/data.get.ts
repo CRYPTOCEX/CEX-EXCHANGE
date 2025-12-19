@@ -7,19 +7,24 @@ import { getCurrencyConditions } from "@b/utils/currency";
 import { CacheManager } from "@b/utils/cache";
 
 export const metadata = {
-  summary: "Get form structure for E-commerce Products",
-  operationId: "getEcommerceProductStructure",
-  tags: ["Admin", "Ecommerce Products"],
+  summary: "Get form structure data for ecommerce products",
+  operationId: "getEcommerceProductStructureData",
+  tags: ["Admin", "Ecommerce", "Product"],
+  description: "Retrieves form structure data including available categories, wallet types, and currency conditions for creating or editing ecommerce products",
   responses: {
     200: {
-      description: "Form structure for managing E-commerce Products",
+      description: "Form structure data retrieved successfully",
       content: structureSchema,
     },
   },
+  requiresAuth: true,
   permission: "view.ecommerce.product",
 };
 
-export default async (): Promise<object> => {
+export default async (data: Handler): Promise<object> => {
+  const { ctx } = data;
+
+  ctx?.step("Fetching product form structure data");
   const categoriesRes = await models.ecommerceCategory.findAll();
 
   const categories = categoriesRes.map((category) => ({
@@ -38,6 +43,8 @@ export default async (): Promise<object> => {
   if (extensions.has("ecosystem")) {
     walletTypes.push({ value: "ECO", label: "Funding" });
   }
+
+  ctx?.success("Retrieved product data successfully");
 
   return {
     categories,

@@ -10,6 +10,8 @@ export const metadata: OperationObject = {
   summary: "Bulk deletes users by UUIDs",
   operationId: "bulkDeleteUsers",
   tags: ["Admin", "CRM", "User"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Bulk delete users",
   parameters: commonBulkDeleteParams("Users"),
   requestBody: {
     required: true,
@@ -35,9 +37,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, query, user } = data;
+  const { body, query, user, ctx } = data;
   const { ids } = body;
 
+  ctx?.step("Validating user authorization");
   if (!user?.id) {
     throw createError({
       statusCode: 401,
@@ -56,6 +59,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Validating target users");
   // If desired, you can also verify that none of the target users
   // is a super admin to add further restrictions:
   const targetUsers = await models.user.findAll({
@@ -71,9 +75,12 @@ export default async (data: Handler) => {
     }
   }
 
-  return handleBulkDelete({
+  ctx?.step(`Deleting ${ids.length} users`);
+  const result = await handleBulkDelete({
     model: "user",
     ids,
     query,
   });
+  ctx?.success();
+  return result;
 };

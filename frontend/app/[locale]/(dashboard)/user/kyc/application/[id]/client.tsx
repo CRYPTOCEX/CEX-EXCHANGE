@@ -109,9 +109,22 @@ const VerificationScoreChart = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isClient, setIsClient] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   useEffect(() => {
     setIsClient(true);
+    // Check if dark mode is active
+    setIsDarkMode(document.documentElement.classList.contains('dark'));
+
+    // Watch for dark mode changes
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    return () => observer.disconnect();
   }, []);
+
   useEffect(() => {
     if (!isClient || !canvasRef.current) return;
     const canvas = canvasRef.current;
@@ -135,8 +148,13 @@ const VerificationScoreChart = ({
 
     // Draw background circle with gradient
     const bgGradient = ctx.createLinearGradient(0, 0, 0, rect.height);
-    bgGradient.addColorStop(0, "#f1f5f9");
-    bgGradient.addColorStop(1, "#e2e8f0");
+    if (isDarkMode) {
+      bgGradient.addColorStop(0, "#27272a"); // zinc-800
+      bgGradient.addColorStop(1, "#18181b"); // zinc-900
+    } else {
+      bgGradient.addColorStop(0, "#f1f5f9");
+      bgGradient.addColorStop(1, "#e2e8f0");
+    }
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
     ctx.fillStyle = bgGradient;
@@ -180,8 +198,13 @@ const VerificationScoreChart = ({
       centerY,
       radius * 0.7
     );
-    innerGradient.addColorStop(0, "#ffffff");
-    innerGradient.addColorStop(1, "#f8fafc");
+    if (isDarkMode) {
+      innerGradient.addColorStop(0, "#3f3f46"); // zinc-700
+      innerGradient.addColorStop(1, "#27272a"); // zinc-800
+    } else {
+      innerGradient.addColorStop(0, "#ffffff");
+      innerGradient.addColorStop(1, "#f8fafc");
+    }
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius * 0.7, 0, 2 * Math.PI);
     ctx.fillStyle = innerGradient;
@@ -194,18 +217,18 @@ const VerificationScoreChart = ({
     ctx.shadowOffsetY = 0;
 
     // Draw text with subtle shadow
-    ctx.fillStyle = "#0f172a"; // slate-900
+    ctx.fillStyle = isDarkMode ? "#f4f4f5" : "#0f172a"; // zinc-100 or slate-900
     ctx.font = "bold 28px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
     // Add subtle text shadow
-    ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
+    ctx.shadowColor = isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)";
     ctx.shadowBlur = 2;
     ctx.shadowOffsetX = 1;
     ctx.shadowOffsetY = 1;
     ctx.fillText(`${Math.round(score)}%`, centerX, centerY);
-  }, [isClient, score]);
+  }, [isClient, score, isDarkMode]);
   return (
     <div className="flex flex-col items-center p-4">
       <div className="relative w-48 h-48">
@@ -259,7 +282,8 @@ const DocumentPreview = ({
   type: string;
   path?: string;
 }) => {
-  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
+  const tDashboard = useTranslations("dashboard");
   return (
     <motion.div
       whileHover={{
@@ -269,9 +293,9 @@ const DocumentPreview = ({
       transition={{
         duration: 0.2,
       }}
-      className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200"
+      className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 dark:border-zinc-700"
     >
-      <div className="bg-gradient-to-r from-slate-50 to-slate-100 p-3 flex justify-between items-center border-b">
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-zinc-800 dark:to-zinc-700 p-3 flex justify-between items-center border-b dark:border-zinc-600">
         <div className="flex items-center">
           <div className="bg-primary/10 p-1.5 rounded-md mr-2">
             <FileText className="h-4 w-4 text-primary" />
@@ -289,12 +313,12 @@ const DocumentPreview = ({
           >
             <Button variant="ghost" size="sm" className="rounded-full">
               <Download className="h-4 w-4 mr-1" />
-              <span className="text-xs">{t("Download")}</span>
+              <span className="text-xs">{tCommon("download")}</span>
             </Button>
           </a>
         )}
       </div>
-      <div className="aspect-[3/2] bg-slate-100 relative">
+      <div className="aspect-[3/2] bg-slate-100 dark:bg-zinc-800 relative">
         {path ? (
           <Lightbox
             src={path}
@@ -306,7 +330,7 @@ const DocumentPreview = ({
             <div className="text-center p-4">
               <Lock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">
-                {t("document_preview_protected")}
+                {tDashboard("document_preview_protected")}
               </p>
             </div>
           </div>
@@ -366,17 +390,17 @@ const VerificationStep = ({
   description: string;
   status: "completed" | "current" | "upcoming";
 }) => {
-  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   return (
     <div className="flex items-start space-x-3">
       <div
         className={cn(
           "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
           status === "completed"
-            ? "bg-green-100"
+            ? "bg-green-100 dark:bg-green-900/30"
             : status === "current"
-              ? "bg-amber-100"
-              : "bg-slate-100"
+              ? "bg-amber-100 dark:bg-amber-900/30"
+              : "bg-slate-100 dark:bg-zinc-800"
         )}
       >
         {status === "completed" ? (
@@ -391,9 +415,9 @@ const VerificationStep = ({
           {status === "current" && (
             <Badge
               variant="outline"
-              className="ml-2 bg-amber-100 text-amber-800 border-amber-300 text-[10px]"
+              className="ml-2 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-700 text-[10px]"
             >
-              {t("in_progress")}
+              {tCommon("in_progress")}
             </Badge>
           )}
         </div>
@@ -490,6 +514,8 @@ const getVerificationProgress = (result: VerificationResult | undefined) => {
 // Main component
 export function ApplicationDetailsClient() {
   const t = useTranslations("dashboard");
+  const tExtAdmin = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const { id } = useParams() as {
     id: string;
   };
@@ -563,15 +589,15 @@ export function ApplicationDetailsClient() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "APPROVED":
-        return "bg-gradient-to-r from-green-50 to-green-100 text-green-800 border-green-300";
+        return "bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 text-green-800 dark:text-green-200 border-green-300 dark:border-green-800";
       case "PENDING":
-        return "bg-gradient-to-r from-amber-50 to-amber-100 text-amber-800 border-amber-300";
+        return "bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/30 text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-800";
       case "REJECTED":
-        return "bg-gradient-to-r from-red-50 to-red-100 text-red-800 border-red-300";
+        return "bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 text-red-800 dark:text-red-200 border-red-300 dark:border-red-800";
       case "ADDITIONAL_INFO_REQUIRED":
-        return "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-800 border-orange-300";
+        return "bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 text-orange-800 dark:text-orange-200 border-orange-300 dark:border-orange-800";
       default:
-        return "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-800 border-gray-300";
+        return "bg-gradient-to-r from-gray-50 to-gray-100 dark:from-zinc-800 dark:to-zinc-700 text-gray-800 dark:text-zinc-200 border-gray-300 dark:border-zinc-600";
     }
   };
   const getStatusText = (status: string) => {
@@ -631,10 +657,10 @@ export function ApplicationDetailsClient() {
             <FileText className="h-8 w-8 text-slate-400" />
           </div>
           <h3 className="text-lg font-medium mb-2">
-            {t("no_application_data")}
+            {tCommon("no_application_data")}
           </h3>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            {t("no_application_data_was_found")}.{" "}
+            {tCommon("no_application_data_was_found")}.{" "}
             {t("this_may_be_additional_information")}.
           </p>
         </div>
@@ -646,7 +672,7 @@ export function ApplicationDetailsClient() {
           if (field.type === "SECTION") {
             return (
               <div key={field.id || index} className="mt-8 mb-4">
-                <h3 className="text-lg font-semibold mb-2 text-slate-800 flex items-center">
+                <h3 className="text-lg font-semibold mb-2 text-slate-800 dark:text-zinc-200 flex items-center">
                   <div className="bg-primary/10 p-1 rounded-md mr-2">
                     <FileText className="h-5 w-5 text-primary" />
                   </div>
@@ -681,7 +707,7 @@ export function ApplicationDetailsClient() {
               transition={{
                 delay: index * 0.05,
               }}
-              className="grid grid-cols-3 gap-4 items-start rounded-lg p-3 hover:bg-slate-50 transition-colors"
+              className="grid grid-cols-3 gap-4 items-start rounded-lg p-3 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
             >
               <div className="col-span-1">
                 <div className="flex items-center">
@@ -719,8 +745,8 @@ export function ApplicationDetailsClient() {
                   field.type === "IDENTITY" ||
                     field.type === "FILE" ||
                     field.type === "IMAGE"
-                    ? "bg-slate-100"
-                    : "bg-slate-50"
+                    ? "bg-slate-100 dark:bg-zinc-800"
+                    : "bg-slate-50 dark:bg-zinc-900"
                 )}
               >
                 <p className="text-sm break-words">
@@ -770,14 +796,14 @@ export function ApplicationDetailsClient() {
     if (!hasDocuments) {
       return (
         <div className="text-center py-16">
-          <div className="bg-slate-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+          <div className="bg-slate-50 dark:bg-zinc-800 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
             <FileText className="h-10 w-10 text-slate-400" />
           </div>
           <h3 className="text-lg font-medium mb-2">
-            {t("no_documents_found")}
+            {tCommon("no_documents_found")}
           </h3>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            {t("no_documents_were_found_in_your_application")}.{" "}
+            {tCommon("no_documents_were_found_in_your_application")}.{" "}
             {t("this_may_be_document_verification")}.
           </p>
         </div>
@@ -849,19 +875,19 @@ export function ApplicationDetailsClient() {
 
         <div
           role="alert"
-          className="bg-blue-50 border border-blue-200 rounded-lg p-4"
+          className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
         >
           <div className="flex items-start">
-            <div className="bg-blue-100 p-1.5 rounded-full mr-2 flex-shrink-0">
-              <Info className="h-4 w-4 text-blue-600" />
+            <div className="bg-blue-100 dark:bg-blue-900/50 p-1.5 rounded-full mr-2 flex-shrink-0">
+              <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-md font-semibold whitespace-nowrap overflow-hidden text-ellipsis">
-                {t("document_security")}
+              <div className="text-md font-semibold whitespace-nowrap overflow-hidden text-ellipsis dark:text-blue-200">
+                {tCommon("document_security")}
               </div>
-              <div className="text-blue-700 mt-1">
-                {t("your_documents_are_encrypted_and_securely_stored")}.{" "}
-                {t("only_authorized_personnel_verification_process")}.
+              <div className="text-blue-700 dark:text-blue-300 mt-1">
+                {tCommon("your_documents_are_encrypted_and_securely_stored")}.{" "}
+                {tCommon("only_authorized_personnel_verification_process")}.
               </div>
             </div>
           </div>
@@ -926,23 +952,23 @@ export function ApplicationDetailsClient() {
     return (
       <div className="space-y-8">
         {/* Application Information Card */}
-        <Card className="overflow-hidden border border-slate-200">
-          <CardHeader className="pb-2 bg-gradient-to-r from-slate-50 to-white border-b">
+        <Card className="overflow-hidden border border-slate-200 dark:border-zinc-700 dark:bg-zinc-900">
+          <CardHeader className="pb-2 bg-gradient-to-r from-slate-50 to-white dark:from-zinc-800 dark:to-zinc-900 border-b dark:border-zinc-700">
             <CardTitle className="text-lg flex items-center">
               <div className="bg-primary/10 p-1.5 rounded-md mr-2">
                 <FileCheck className="h-5 w-5 text-primary" />
               </div>
-              {t("application_information")}
+              {tCommon("application_information")}
             </CardTitle>
             <CardDescription>
-              {t("details_about_your_kyc_application")}
+              {tCommon("details_about_your_kyc_application")}
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             <dl className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6">
-              <div className="space-y-1 bg-slate-50 p-3 rounded-md">
+              <div className="space-y-1 bg-slate-50 dark:bg-zinc-800 p-3 rounded-md">
                 <dt className="text-xs font-medium text-muted-foreground">
-                  {t("application_id")}
+                  {tCommon("application_id")}
                 </dt>
                 <dd className="text-sm font-medium flex items-center">
                   <span className="bg-primary/10 p-1 rounded-full mr-2">
@@ -951,9 +977,9 @@ export function ApplicationDetailsClient() {
                   {application.id.substring(0, 8)}
                 </dd>
               </div>
-              <div className="space-y-1 bg-slate-50 p-3 rounded-md">
+              <div className="space-y-1 bg-slate-50 dark:bg-zinc-800 p-3 rounded-md">
                 <dt className="text-xs font-medium text-muted-foreground">
-                  {t("submitted_on")}
+                  {tCommon("submitted_on")}
                 </dt>
                 <dd className="text-sm font-medium flex items-center">
                   <span className="bg-primary/10 p-1 rounded-full mr-2">
@@ -963,9 +989,9 @@ export function ApplicationDetailsClient() {
                 </dd>
               </div>
               {application.reviewedAt && (
-                <div className="space-y-1 bg-slate-50 p-3 rounded-md">
+                <div className="space-y-1 bg-slate-50 dark:bg-zinc-800 p-3 rounded-md">
                   <dt className="text-xs font-medium text-muted-foreground">
-                    {t("reviewed_on")}
+                    {tCommon("reviewed_on")}
                   </dt>
                   <dd className="text-sm font-medium flex items-center">
                     <span className="bg-primary/10 p-1 rounded-full mr-2">
@@ -975,9 +1001,9 @@ export function ApplicationDetailsClient() {
                   </dd>
                 </div>
               )}
-              <div className="space-y-1 bg-slate-50 p-3 rounded-md">
+              <div className="space-y-1 bg-slate-50 dark:bg-zinc-800 p-3 rounded-md">
                 <dt className="text-xs font-medium text-muted-foreground">
-                  {t("last_updated")}
+                  {tCommon("last_updated")}
                 </dt>
                 <dd className="text-sm font-medium flex items-center">
                   <span className="bg-primary/10 p-1 rounded-full mr-2">
@@ -986,9 +1012,9 @@ export function ApplicationDetailsClient() {
                   {formatDate(application.updatedAt)}
                 </dd>
               </div>
-              <div className="space-y-1 bg-slate-50 p-3 rounded-md">
+              <div className="space-y-1 bg-slate-50 dark:bg-zinc-800 p-3 rounded-md">
                 <dt className="text-xs font-medium text-muted-foreground">
-                  {t("kyc_level")}
+                  {tCommon("kyc_level")}
                 </dt>
                 <dd className="text-sm font-medium flex items-center">
                   <span className="bg-primary/10 p-1 rounded-full mr-2">
@@ -1009,10 +1035,10 @@ export function ApplicationDetailsClient() {
               "border-l-4 shadow-sm p-4",
               // added padding for inner spacing
               application.status === "REJECTED"
-                ? "border-red-500 bg-gradient-to-r from-red-50 to-red-100 border-red-200"
+                ? "border-red-500 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 border-red-200 dark:border-red-800"
                 : application.status === "ADDITIONAL_INFO_REQUIRED"
-                  ? "border-l-orange-500 bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200"
-                  : "border-l-blue-500 bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200"
+                  ? "border-l-orange-500 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 border-orange-200 dark:border-orange-800"
+                  : "border-l-blue-500 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 border-blue-200 dark:border-blue-800"
             )}
           >
             <div className="flex items-start">
@@ -1030,10 +1056,10 @@ export function ApplicationDetailsClient() {
                   className={cn(
                     "h-5 w-5",
                     application.status === "REJECTED"
-                      ? "text-red-600"
+                      ? "text-red-600 dark:text-red-400"
                       : application.status === "ADDITIONAL_INFO_REQUIRED"
-                        ? "text-orange-600"
-                        : "text-blue-600"
+                        ? "text-orange-600 dark:text-orange-400"
+                        : "text-blue-600 dark:text-blue-400"
                   )}
                 />
               </div>
@@ -1055,10 +1081,10 @@ export function ApplicationDetailsClient() {
                   className={cn(
                     "text-base",
                     application.status === "REJECTED"
-                      ? "text-red-700"
+                      ? "text-red-700 dark:text-red-300"
                       : application.status === "ADDITIONAL_INFO_REQUIRED"
-                        ? "text-orange-700"
-                        : "text-blue-700"
+                        ? "text-orange-700 dark:text-orange-300"
+                        : "text-blue-700 dark:text-blue-300"
                   )}
                 >
                   {application.adminNotes}
@@ -1069,13 +1095,13 @@ export function ApplicationDetailsClient() {
         )}
 
         {/* Verification Status Card */}
-        <Card className="overflow-hidden border border-slate-200">
-          <CardHeader className="pb-2 bg-gradient-to-r from-slate-50 to-white border-b">
+        <Card className="overflow-hidden border border-slate-200 dark:border-zinc-700 dark:bg-zinc-900">
+          <CardHeader className="pb-2 bg-gradient-to-r from-slate-50 to-white dark:from-zinc-800 dark:to-zinc-900 border-b dark:border-zinc-700">
             <CardTitle className="text-lg flex items-center">
               <div className="bg-primary/10 p-1.5 rounded-md mr-2">
                 <Shield className="h-5 w-5 text-primary" />
               </div>
-              {t("verification_status")}
+              {tCommon("verification_status")}
             </CardTitle>
             <CardDescription>
               {t("current_status_of_document_verification")}
@@ -1097,7 +1123,7 @@ export function ApplicationDetailsClient() {
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-sm font-medium flex items-center">
                       <Fingerprint className="h-4 w-4 mr-1.5 text-primary" />
-                      {t("verification_status")}
+                      {tCommon("verification_status")}
                     </h4>
                     <Badge
                       variant={
@@ -1123,28 +1149,28 @@ export function ApplicationDetailsClient() {
                     />
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground mt-1.5 px-1">
-                    <span>{t("Submitted")}</span>
-                    <span>{t("in_review")}</span>
-                    <span>{t("Completed")}</span>
+                    <span>{tExtAdmin("submitted_1")}</span>
+                    <span>{tCommon("in_review")}</span>
+                    <span>{tCommon("completed")}</span>
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-slate-50 to-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                <div className="bg-gradient-to-r from-slate-50 to-white dark:from-zinc-800 dark:to-zinc-900 p-4 rounded-lg border border-slate-200 dark:border-zinc-700 shadow-sm">
                   <h4 className="text-sm font-medium mb-3 flex items-center">
                     <CheckCircle className="h-4 w-4 mr-1.5 text-primary" />
-                    {t("verification_steps")}
+                    {tCommon("verification_steps")}
                   </h4>
                   <div className="space-y-4">
                     <VerificationStep
                       icon={<FileText className="h-4 w-4 text-slate-600" />}
-                      title="Application Submitted"
-                      description="Your KYC application has been received"
+                      title={t("application_submitted")}
+                      description={t("your_kyc_application_has_been_received")}
                       status="completed"
                     />
                     <VerificationStep
                       icon={<Fingerprint className="h-4 w-4 text-amber-600" />}
-                      title="Identity Verification"
-                      description="Your identity documents are being verified"
+                      title={tCommon("identity_verification")}
+                      description={t("your_identity_documents_are_being_verified")}
                       status={
                         application.status === "PENDING" ||
                         application.status === "ADDITIONAL_INFO_REQUIRED"
@@ -1157,8 +1183,8 @@ export function ApplicationDetailsClient() {
                     />
                     <VerificationStep
                       icon={<User className="h-4 w-4 text-slate-600" />}
-                      title="Admin Review"
-                      description="Your application is being reviewed by our team"
+                      title={t("admin_review")}
+                      description={t("your_application_is_being_reviewed_by_our_team")}
                       status={
                         application.status === "APPROVED" ||
                         application.status === "REJECTED"
@@ -1182,14 +1208,14 @@ export function ApplicationDetailsClient() {
                   <div className="bg-primary/10 p-1.5 rounded-md mr-2">
                     <CheckSquare className="h-4 w-4 text-primary" />
                   </div>
-                  {t("verification_checks")}
+                  {tCommon("verification_checks")}
                 </h4>
 
                 {/* Display summary if available */}
                 {parsedChecks.summary && (
-                  <div className="bg-slate-50 p-4 rounded-lg mb-4 border border-slate-200">
-                    <h5 className="text-sm font-medium mb-2">{t("Summary")}</h5>
-                    <p className="text-sm text-slate-700">
+                  <div className="bg-slate-50 dark:bg-zinc-800 p-4 rounded-lg mb-4 border border-slate-200 dark:border-zinc-700">
+                    <h5 className="text-sm font-medium mb-2">{tCommon("summary")}</h5>
+                    <p className="text-sm text-slate-700 dark:text-zinc-300">
                       {parsedChecks.summary}
                     </p>
                   </div>
@@ -1197,14 +1223,14 @@ export function ApplicationDetailsClient() {
 
                 {/* Display issues if available */}
                 {parsedChecks.issues && parsedChecks.issues.length > 0 && (
-                  <div className="bg-red-50 p-4 rounded-lg mb-4 border border-red-200">
-                    <h5 className="text-sm font-medium mb-2 text-red-700 flex items-center">
+                  <div className="bg-red-50 dark:bg-red-950/30 p-4 rounded-lg mb-4 border border-red-200 dark:border-red-800">
+                    <h5 className="text-sm font-medium mb-2 text-red-700 dark:text-red-400 flex items-center">
                       <AlertTriangle className="h-4 w-4 mr-2" />
-                      {t("issues_detected")}
+                      {tCommon("issues_detected")}
                     </h5>
                     <ul className="list-disc pl-5 space-y-1">
                       {parsedChecks.issues.map((issue: string, idx: number) => (
-                        <li key={idx} className="text-sm text-red-700">
+                        <li key={idx} className="text-sm text-red-700 dark:text-red-400">
                           {issue}
                         </li>
                       ))}
@@ -1220,7 +1246,7 @@ export function ApplicationDetailsClient() {
                       whileHover={{
                         y: -2,
                       }}
-                      className="border rounded-lg p-4 flex items-start bg-gradient-to-r from-slate-50 to-white shadow-sm"
+                      className="border dark:border-zinc-700 rounded-lg p-4 flex items-start bg-gradient-to-r from-slate-50 to-white dark:from-zinc-800 dark:to-zinc-900 shadow-sm"
                     >
                       <div
                         className={cn(
@@ -1249,24 +1275,24 @@ export function ApplicationDetailsClient() {
                 {/* Display extracted info if available */}
                 {parsedChecks.extractedInfo &&
                   Object.keys(parsedChecks.extractedInfo).length > 0 && (
-                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <div className="bg-slate-50 dark:bg-zinc-800 p-4 rounded-lg border border-slate-200 dark:border-zinc-700">
                       <h5 className="text-sm font-medium mb-3">
-                        {t("extracted_information")}
+                        {tCommon("extracted_information")}
                       </h5>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
                         {Object.entries(parsedChecks.extractedInfo).map(
                           ([key, value]) => (
                             <div
                               key={key}
-                              className="flex justify-between text-sm py-1 border-b border-slate-100 last:border-0"
+                              className="flex justify-between text-sm py-1 border-b border-slate-100 dark:border-zinc-700 last:border-0"
                             >
-                              <span className="font-medium capitalize">
+                              <span className="font-medium capitalize dark:text-zinc-300">
                                 {key
                                   .replace(/([A-Z])/g, " $1")
                                   .replace(/_/g, " ")
                                   .trim()}
                               </span>
-                              <span className="text-slate-700">
+                              <span className="text-slate-700 dark:text-zinc-300">
                                 {String(value)}
                               </span>
                             </div>
@@ -1281,7 +1307,7 @@ export function ApplicationDetailsClient() {
                   <div className="mt-4">
                     <div className="flex items-center justify-between mb-1">
                       <h5 className="text-sm font-medium">
-                        {t("confidence_score")}
+                        {tCommon("confidence_score")}
                       </h5>
                       <span className="text-sm font-bold">{`${confidenceScore}%`}</span>
                     </div>
@@ -1308,16 +1334,16 @@ export function ApplicationDetailsClient() {
         </Card>
 
         {/* Verification Process Card */}
-        <Card className="overflow-hidden border border-slate-200">
-          <CardHeader className="pb-2 bg-gradient-to-r from-slate-50 to-white border-b">
+        <Card className="overflow-hidden border border-slate-200 dark:border-zinc-700 dark:bg-zinc-900">
+          <CardHeader className="pb-2 bg-gradient-to-r from-slate-50 to-white dark:from-zinc-800 dark:to-zinc-900 border-b dark:border-zinc-700">
             <CardTitle className="text-lg flex items-center">
               <div className="bg-primary/10 p-1.5 rounded-md mr-2">
                 <ShieldCheck className="h-5 w-5 text-primary" />
               </div>
-              {t("verification_process")}
+              {tCommon("verification_process")}
             </CardTitle>
             <CardDescription>
-              {t("understanding_how_our_verification_system_works")}
+              {tCommon("understanding_how_our_verification_system_works")}
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
@@ -1335,13 +1361,13 @@ export function ApplicationDetailsClient() {
                   transition={{
                     duration: 0.2,
                   }}
-                  className="bg-gradient-to-br from-slate-50 to-white p-5 rounded-lg border border-slate-200 shadow-sm"
+                  className="bg-gradient-to-br from-slate-50 to-white dark:from-zinc-800 dark:to-zinc-900 p-5 rounded-lg border border-slate-200 dark:border-zinc-700 shadow-sm"
                 >
                   <div className="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mb-4">
                     <Fingerprint className="h-6 w-6 text-primary" />
                   </div>
                   <h4 className="text-sm font-medium mb-2">
-                    {t("identity_verification")}
+                    {tCommon("identity_verification")}
                   </h4>
                   <p className="text-xs text-muted-foreground">
                     {t("we_verify_your_prevent_fraud")}.
@@ -1355,13 +1381,13 @@ export function ApplicationDetailsClient() {
                   transition={{
                     duration: 0.2,
                   }}
-                  className="bg-gradient-to-br from-slate-50 to-white p-5 rounded-lg border border-slate-200 shadow-sm"
+                  className="bg-gradient-to-br from-slate-50 to-white dark:from-zinc-800 dark:to-zinc-900 p-5 rounded-lg border border-slate-200 dark:border-zinc-700 shadow-sm"
                 >
                   <div className="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mb-4">
                     <Landmark className="h-6 w-6 text-primary" />
                   </div>
                   <h4 className="text-sm font-medium mb-2">
-                    {t("address_verification")}
+                    {tCommon("address_verification")}
                   </h4>
                   <p className="text-xs text-muted-foreground">
                     {t("we_confirm_your_official_records")}.
@@ -1375,13 +1401,13 @@ export function ApplicationDetailsClient() {
                   transition={{
                     duration: 0.2,
                   }}
-                  className="bg-gradient-to-br from-slate-50 to-white p-5 rounded-lg border border-slate-200 shadow-sm"
+                  className="bg-gradient-to-br from-slate-50 to-white dark:from-zinc-800 dark:to-zinc-900 p-5 rounded-lg border border-slate-200 dark:border-zinc-700 shadow-sm"
                 >
                   <div className="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mb-4">
                     <Shield className="h-6 w-6 text-primary" />
                   </div>
                   <h4 className="text-sm font-medium mb-2">
-                    {t("security_checks")}
+                    {tCommon("security_checks")}
                   </h4>
                   <p className="text-xs text-muted-foreground">
                     {t("we_perform_additional_regulatory_requirements")}.
@@ -1394,18 +1420,18 @@ export function ApplicationDetailsClient() {
 
         {/* Action Required Card (if applicable) */}
         {application.status === "ADDITIONAL_INFO_REQUIRED" && (
-          <Card className="overflow-hidden border-2 border-orange-300 bg-gradient-to-r from-orange-50 to-orange-100 shadow-sm">
-            <CardHeader className="pb-2 border-b border-orange-200">
-              <CardTitle className="text-lg flex items-center text-orange-800">
-                <div className="bg-orange-100 p-1.5 rounded-md mr-2">
-                  <AlertTriangle className="h-5 w-5 text-orange-500" />
+          <Card className="overflow-hidden border-2 border-orange-300 dark:border-orange-800 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 shadow-sm">
+            <CardHeader className="pb-2 border-b border-orange-200 dark:border-orange-800">
+              <CardTitle className="text-lg flex items-center text-orange-800 dark:text-orange-200">
+                <div className="bg-orange-100 dark:bg-orange-900/50 p-1.5 rounded-md mr-2">
+                  <AlertTriangle className="h-5 w-5 text-orange-500 dark:text-orange-400" />
                 </div>
-                {t("action_required")}
+                {tCommon("action_required")}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
-              <p className="text-sm text-orange-700 mb-6">
-                {t("we_need_additional_your_verification")}.{" "}
+              <p className="text-sm text-orange-700 dark:text-orange-300 mb-6">
+                {tCommon("we_need_additional_your_verification")}.{" "}
                 {t("please_update_your_as_possible")}.
               </p>
               <a
@@ -1414,7 +1440,7 @@ export function ApplicationDetailsClient() {
               >
                 <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md">
                   <ArrowUpRight className="h-4 w-4 mr-2" />
-                  {t("update_application")}
+                  {tCommon("update_application")}
                 </Button>
               </a>
             </CardContent>
@@ -1429,7 +1455,7 @@ export function ApplicationDetailsClient() {
         <div className="flex items-center mb-6">
           <Button variant="ghost" className="mr-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {t("Back")}
+            {tCommon("back")}
           </Button>
           <Skeleton className="h-8 w-64" />
         </div>
@@ -1443,7 +1469,7 @@ export function ApplicationDetailsClient() {
               <div className="flex flex-col items-center">
                 <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
                 <p className="text-sm text-muted-foreground">
-                  {t("loading_application_data")}.
+                  {tCommon("loading_application_data")}.
                 </p>
               </div>
             </div>
@@ -1459,7 +1485,7 @@ export function ApplicationDetailsClient() {
           <a href="/user/kyc" className="inline-block">
             <Button variant="ghost">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              {t("back_to_kyc")}
+              {tCommon("back_to_kyc")}
             </Button>
           </a>
         </div>
@@ -1467,7 +1493,7 @@ export function ApplicationDetailsClient() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <XCircle className="h-5 w-5 text-red-500 mr-2" />
-              {t("application_not_found")}
+              {tCommon("application_not_found")}
             </CardTitle>
             <CardDescription>
               {t("the_kyc_application_be_found")}.
@@ -1478,14 +1504,14 @@ export function ApplicationDetailsClient() {
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>
-                {t("there_was_an_error_loading_your_kyc_application")}.{" "}
-                {t("please_try_again_or_contact_support")}.
+                {tCommon("there_was_an_error_loading_your_kyc_application")}.{" "}
+                {tCommon("please_try_again_or_contact_support")}.
               </AlertDescription>
             </Alert>
           </CardContent>
           <CardFooter>
             <a href="/user/kyc" className="inline-block">
-              <Button>{t("return_to_kyc_dashboard")}</Button>
+              <Button>{tCommon("return_to_kyc_dashboard")}</Button>
             </a>
           </CardFooter>
         </Card>
@@ -1498,10 +1524,10 @@ export function ApplicationDetailsClient() {
         <a href="/user/kyc" className="inline-block mr-4">
           <Button variant="ghost" className="group">
             <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-            {t("back_to_kyc")}
+            {tCommon("back_to_kyc")}
           </Button>
         </a>
-        <h1 className="text-2xl font-bold">{t("kyc_application")}</h1>
+        <h1 className="text-2xl font-bold">{tCommon("kyc_application")}</h1>
       </div>
 
       <div className="grid gap-6">
@@ -1518,7 +1544,7 @@ export function ApplicationDetailsClient() {
             duration: 0.5,
           }}
         >
-          <Card className="overflow-hidden border-2 shadow-md">
+          <Card className="overflow-hidden border-2 dark:border-zinc-700 shadow-md dark:bg-zinc-900">
             <div
               className={`p-6 ${getStatusColor(application.status)} relative`}
             >
@@ -1528,7 +1554,7 @@ export function ApplicationDetailsClient() {
                   {getStatusIcon(application.status)}
                   <div>
                     <h2 className="text-xl font-bold">
-                      {t("application_status")}{" "}
+                      {tCommon("application_status")}{" "}
                       {application.status.replace(/_/g, " ")}
                     </h2>
                     <p className="text-sm mt-1">
@@ -1540,7 +1566,7 @@ export function ApplicationDetailsClient() {
                   variant="outline"
                   className="text-xs font-medium border-2 py-1 px-3"
                 >
-                  {t("level")}
+                  {tCommon("level")}
                   {application.level.name}
                 </Badge>
               </div>
@@ -1551,15 +1577,15 @@ export function ApplicationDetailsClient() {
                 <TabsList className="grid grid-cols-3 mb-6">
                   <TabsTrigger value="overview" className="flex items-center">
                     <Shield className="h-4 w-4 mr-2" />
-                    {t("Overview")}
+                    {tCommon("overview")}
                   </TabsTrigger>
                   <TabsTrigger value="details" className="flex items-center">
                     <FileText className="h-4 w-4 mr-2" />
-                    {t("application_details")}
+                    {tCommon("application_details")}
                   </TabsTrigger>
                   <TabsTrigger value="documents" className="flex items-center">
                     <Layers className="h-4 w-4 mr-2" />
-                    {t("Documents")}
+                    {tCommon("documents")}
                   </TabsTrigger>
                 </TabsList>
 
@@ -1574,10 +1600,10 @@ export function ApplicationDetailsClient() {
                         <div className="bg-primary/10 p-1.5 rounded-md mr-2">
                           <FileText className="h-5 w-5 text-primary" />
                         </div>
-                        {t("application_details")}
+                        {tCommon("application_details")}
                       </CardTitle>
                       <CardDescription>
-                        {t("information_you_provided_in_your_kyc_application")}
+                        {tCommon("information_you_provided_in_your_kyc_application")}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-6">
@@ -1592,10 +1618,10 @@ export function ApplicationDetailsClient() {
                           <div className="text-center py-8">
                             <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                             <h3 className="text-lg font-medium mb-2">
-                              {t("no_application_fields")}
+                              {tCommon("no_application_fields")}
                             </h3>
                             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                              {t("no_application_fields_kyc_level")}.{" "}
+                              {tCommon("no_application_fields_kyc_level")}.{" "}
                               {t("this_may_be_additional_information")}.
                             </p>
                           </div>
@@ -1612,10 +1638,10 @@ export function ApplicationDetailsClient() {
                         <div className="bg-primary/10 p-1.5 rounded-md mr-2">
                           <Layers className="h-5 w-5 text-primary" />
                         </div>
-                        {t("submitted_documents")}
+                        {tCommon("submitted_documents")}
                       </CardTitle>
                       <CardDescription>
-                        {t("documents_you_provided_for_identity_verification")}
+                        {tCommon("documents_you_provided_for_identity_verification")}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-6">
@@ -1632,7 +1658,7 @@ export function ApplicationDetailsClient() {
           <a href="/user/kyc" className="inline-block">
             <Button variant="outline" className="group">
               <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-              {t("back_to_kyc_dashboard")}
+              {tCommon("back_to_kyc_dashboard")}
             </Button>
           </a>
 
@@ -1644,7 +1670,7 @@ export function ApplicationDetailsClient() {
               >
                 <Button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md">
                   <ArrowUpRight className="h-4 w-4 mr-2" />
-                  {t("update_application")}
+                  {tCommon("update_application")}
                 </Button>
               </a>
             )}
@@ -1655,7 +1681,7 @@ export function ApplicationDetailsClient() {
               className="border-dashed group"
             >
               <MessageSquare className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-              {t("need_help")}
+              {tCommon("need_help")}
             </Button>
           </div>
         </div>
@@ -1679,21 +1705,21 @@ export function ApplicationDetailsClient() {
                 duration: 0.3,
               }}
             >
-              <Card className="border border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+              <Card className="border border-slate-200 dark:border-zinc-700 bg-gradient-to-r from-slate-50 to-white dark:from-zinc-800 dark:to-zinc-900">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center">
                     <div className="bg-primary/10 p-1.5 rounded-md mr-2">
                       <MessageSquare className="h-4 w-4 text-primary" />
                     </div>
-                    {t("Support")}
+                    {tCommon("support")}
                   </CardTitle>
                   <CardDescription>
-                    {t("need_help_with_your_kyc_application")}
+                    {tCommon("need_help_with_your_kyc_application")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <p className="text-sm">{t("if_you_have_to_help")}.</p>
+                    <p className="text-sm">{tCommon("if_you_have_to_help")}.</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <a
                         href="/support/contact"
@@ -1704,7 +1730,7 @@ export function ApplicationDetailsClient() {
                           className="w-full justify-start group hover:border-primary hover:bg-primary/5"
                         >
                           <MessageSquare className="h-4 w-4 mr-2 group-hover:text-primary group-hover:scale-110 transition-all" />
-                          {t("contact_support")}
+                          {tCommon("contact_support")}
                         </Button>
                       </a>
                       <a
@@ -1716,7 +1742,7 @@ export function ApplicationDetailsClient() {
                           className="w-full justify-start group hover:border-primary hover:bg-primary/5"
                         >
                           <HelpCircle className="h-4 w-4 mr-2 group-hover:text-primary group-hover:scale-110 transition-all" />
-                          {t("view_kyc_faq")}
+                          {tCommon("view_kyc_faq")}
                         </Button>
                       </a>
                     </div>

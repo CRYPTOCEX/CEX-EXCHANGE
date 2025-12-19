@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function WithdrawLoading() {
   return (
-    <div className="min-h-screen bg-black text-white p-6">
+    <div className="min-h-screen bg-black text-white pt-20 p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <div>

@@ -2,6 +2,7 @@ import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { sendIcoEmail } from "../../utils";
 import { createNotification } from "@b/utils/notifications";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Manage ICO Offering",
@@ -74,6 +75,8 @@ export const metadata = {
     500: { description: "Internal Server Error" },
   },
   permission: "edit.ico.offer",
+  logModule: "ADMIN_ICO",
+  logTitle: "Manage ICO Offering",
 };
 
 // Mapping for offering update actions.
@@ -207,7 +210,7 @@ const notifMapping = {
 };
 
 export default async (data: Handler) => {
-  const { params, query, body, user } = data;
+  const { params, query, body, user, ctx } = data;
   if (!user?.id) {
     throw createError({
       statusCode: 401,
@@ -234,6 +237,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step(`Fetching ICO offering for action: ${action}`);
   // Fetch the offering
   const offering = await models.icoTokenOffering.findOne({
     where: { id: offeringId },
@@ -244,6 +248,7 @@ export default async (data: Handler) => {
 
   const now = new Date();
 
+  ctx?.step(`Processing action: ${action}`);
   // Process the action using the offeringActions mapping
   let result;
   try {
@@ -255,6 +260,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Logging admin activity");
   // Log admin activity
   await models.icoAdminActivity.create({
     type: action,
@@ -265,6 +271,7 @@ export default async (data: Handler) => {
     adminName: `${user.firstName} ${user.lastName}`,
   });
 
+  ctx?.step("Sending email and notifications");
   // Fetch the owner (project creator)
   // Use userId (the actual project owner) not submittedBy (could be admin who created it)
   const owner = await models.user.findByPk(offering.userId);
@@ -277,9 +284,9 @@ export default async (data: Handler) => {
   ) => {
     if (recipient?.email) {
       try {
-        await sendIcoEmail(templateName, recipient.email, dataObj);
+        await sendIcoEmail(templateName, recipient.email, dataObj, ctx);
       } catch (emailErr) {
-        console.error(`Failed to send ${templateName} email`, emailErr);
+        logger.error("ADMIN_ICO_OFFER", `Failed to send ${templateName} email`, emailErr);
       }
     }
   };
@@ -315,15 +322,13 @@ export default async (data: Handler) => {
             primary: true,
           },
         ],
-      });
+      }, ctx);
     } catch (notifErr) {
-      console.error(
-        `Failed to create in‑app notification for action ${action}`,
-        notifErr
-      );
+      logger.error("ADMIN_ICO_OFFER", `Failed to create in-app notification for action ${action}`, notifErr);
     }
   }
 
+  ctx?.step("Fetching updated offering data");
   // Refetch the offering with all associations to return updated data
   const updatedOffering = await models.icoTokenOffering.findOne({
     where: { id: offeringId },
@@ -337,6 +342,7 @@ export default async (data: Handler) => {
     ],
   });
 
+  ctx?.success(`ICO offering ${action} action completed successfully`);
   return {
     message: result.message || "ICO offering updated successfully.",
     offering: updatedOffering,

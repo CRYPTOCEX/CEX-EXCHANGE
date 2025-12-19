@@ -15,7 +15,8 @@ export default function InvestmentButton({
   isFormValid,
   onSubmit,
 }: InvestmentButtonProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tTradeComponents = useTranslations("trade_components");
   return (
     <Button
       className={cn(
@@ -30,12 +31,12 @@ export default function InvestmentButton({
       {isSubmitting ? (
         <span className="flex items-center">
           <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-          {t("Processing")}.
+          {t("processing")}.
         </span>
       ) : (
         <span className="flex items-center justify-center">
           <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-          {t("invest_with_ai")}
+          {tTradeComponents("invest_with_ai")}
         </span>
       )}
     </Button>

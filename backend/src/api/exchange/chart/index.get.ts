@@ -12,12 +12,15 @@ import {
   saveOHLCVToCache,
 } from "./utils";
 import { handleBanStatus, loadBanStatus } from "../utils";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Get Historical Chart Data",
   operationId: "getHistoricalChartData",
   tags: ["Chart", "Historical"],
   description: "Retrieves historical chart data for the authenticated user.",
+  logModule: "EXCHANGE",
+  logTitle: "Get Chart Data",
   parameters: [
     {
       name: "symbol",
@@ -80,27 +83,29 @@ export const metadata: OperationObject = {
 const activeRequests = new Map<string, Promise<any>>();
 
 export default async (data: Handler) => {
-  const { query } = data;
-  
+  const { query, ctx } = data;
+
   // Validate required parameters
   if (!query.symbol || !query.interval || !query.from || !query.to || !query.duration) {
     throw new Error('Missing required parameters: symbol, interval, from, to, duration');
   }
-  
+
   // Create request key for deduplication
   const requestKey = `${query.symbol}-${query.interval}-${query.from}-${query.to}`;
-  
+
   // Check if same request is already in progress
   if (activeRequests.has(requestKey)) {
-    console.log(`Deduplicating request for ${requestKey}`);
+    logger.debug("CHART", `Deduplicating request for ${requestKey}`);
     return await activeRequests.get(requestKey);
   }
-  
+
+  ctx?.step(`Fetching chart data for ${query.symbol} (${query.interval})`);
+
   // Add timeout to prevent hanging requests
   const timeoutPromise = new Promise((_, reject) => {
     setTimeout(() => reject(new Error('Request timeout after 20 seconds')), 20000);
   });
-  
+
   // Create the main request promise
   const requestPromise = getHistoricalOHLCV(
     query.symbol,
@@ -109,22 +114,16 @@ export default async (data: Handler) => {
     Number(query.to),
     Number(query.duration)
   );
-  
+
   // Store the request promise for deduplication
   activeRequests.set(requestKey, requestPromise);
-  
+
   try {
-    const result = await Promise.race([requestPromise, timeoutPromise]);
+    const result = await Promise.race([requestPromise, timeoutPromise]) as any[];
+    ctx?.success(`Retrieved ${result.length} chart data points`);
     return result;
   } catch (error) {
-    console.error('Chart API error:', {
-      symbol: query.symbol,
-      interval: query.interval,
-      from: query.from,
-      to: query.to,
-      error: error.message,
-      requestKey
-    });
+    logger.error("CHART", `API error for ${requestKey}: ${error.message}`);
     throw error;
   } finally {
     // Clean up the active request
@@ -156,7 +155,7 @@ export async function getHistoricalOHLCV(
     ]);
 
     if (!exchange) {
-      console.warn('Exchange not available, returning cached data only');
+      logger.warn("CHART", "Exchange not available, returning cached data only");
       return await getCachedOHLCV(symbol, interval, from, to);
     }
 
@@ -215,12 +214,12 @@ export async function getHistoricalOHLCV(
             }
             return data;
           } catch (e) {
-            console.warn(`Attempt ${attempt} failed for gap ${gapStart}-${gapEnd}:`, e.message);
+            logger.warn("CHART", `Attempt ${attempt} failed for gap ${gapStart}-${gapEnd}: ${e.message}`);
             if (attempt < maxRetries) {
               await new Promise((resolve) => setTimeout(resolve, retryDelay));
               retryDelay = Math.min(retryDelay * 1.5, 5000); // Cap at 5 seconds
             } else {
-              console.error(`Failed to fetch data for gap ${gapStart}-${gapEnd} after ${maxRetries} attempts`);
+              logger.error("CHART", `Failed to fetch data for gap ${gapStart}-${gapEnd} after ${maxRetries} attempts`);
               return null;
             }
           }
@@ -233,12 +232,12 @@ export async function getHistoricalOHLCV(
 
     return await getCachedOHLCV(symbol, interval, from, to);
   } catch (error) {
-    console.error('Error in getHistoricalOHLCV:', error);
+    logger.error("CHART", `Error in getHistoricalOHLCV: ${error}`);
     // Return cached data as fallback
     try {
       return await getCachedOHLCV(symbol, interval, from, to);
     } catch (cacheError) {
-      console.error('Failed to get cached data as fallback:', cacheError);
+      logger.error("CHART", `Failed to get cached data as fallback: ${cacheError}`);
       return [];
     }
   }

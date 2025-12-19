@@ -10,6 +10,8 @@ export const metadata = {
   summary: "Bulk deletes investment plans by IDs",
   operationId: "bulkDeleteInvestmentPlans",
   tags: ["Admin", "Investment Plans"],
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk Delete Investment Plans",
   parameters: commonBulkDeleteParams("Investment Plans"),
   requestBody: {
     required: true,
@@ -35,11 +37,17 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step("Deleting investment plans");
+
+  const result = await handleBulkDelete({
     model: "investmentPlan",
     ids,
     query,
   });
+
+  ctx?.success("Investment plans deleted successfully");
+  return result;
 };

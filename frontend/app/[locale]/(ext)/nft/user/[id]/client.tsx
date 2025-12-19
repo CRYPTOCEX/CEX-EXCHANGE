@@ -37,7 +37,9 @@ interface UserPortfolioClientProps {
 }
 
 export default function UserPortfolioClient({ initialUser }: UserPortfolioClientProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_nft");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { user: currentUser } = useUserStore();
 
   // Helper function for time formatting
@@ -331,7 +333,7 @@ export default function UserPortfolioClient({ initialUser }: UserPortfolioClient
                 {token.currentListing && (
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">
-                      {token.currentListing.type === "AUCTION" ? t("current_bid") : t("Price")}
+                      {token.currentListing.type === "AUCTION" ? tCommon("current_bid") : tCommon("price")}
                     </div>
                     <div className="font-medium">
                       {formatCurrency(token.currentListing.price, token.currentListing.currency)}
@@ -367,7 +369,7 @@ export default function UserPortfolioClient({ initialUser }: UserPortfolioClient
       {/* Profile Header */}
       <div className="relative">
         {/* Banner */}
-        <div className="h-64 bg-gradient-to-r from-purple-500 to-pink-600 relative overflow-hidden">
+        <div className={`h-64 bg-gradient-to-r from-purple-500 to-pink-600 relative overflow-hidden`}>
           {user.bannerImage && (
             <img
               src={user.bannerImage}
@@ -418,19 +420,19 @@ export default function UserPortfolioClient({ initialUser }: UserPortfolioClient
               <div className="flex flex-wrap gap-6 text-white">
                 <div>
                   <div className="text-2xl font-bold">{formatNumber(user.totalItems || 0)}</div>
-                  <div className="text-sm text-gray-300">{t("Items")}</div>
+                  <div className="text-sm text-gray-300">{tExt("items")}</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold">{formatNumber(user.followerCount || 0)}</div>
-                  <div className="text-sm text-gray-300">{t("Followers")}</div>
+                  <div className="text-sm text-gray-300">{tExt("followers")}</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold">{formatNumber(user.followingCount || 0)}</div>
-                  <div className="text-sm text-gray-300">{t("Following")}</div>
+                  <div className="text-sm text-gray-300">{t("following")}</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold">{formatCurrency(user.totalVolume || 0, user.currency || "ETH")}</div>
-                  <div className="text-sm text-gray-300">{t("Volume")}</div>
+                  <div className="text-sm text-gray-300">{tCommon("volume")}</div>
                 </div>
               </div>
 
@@ -445,12 +447,12 @@ export default function UserPortfolioClient({ initialUser }: UserPortfolioClient
                     {isFollowing ? (
                       <>
                         <UserMinus className="h-4 w-4 mr-2" />
-                        {t("Unfollow")}
+                        {t("unfollow")}
                       </>
                     ) : (
                       <>
                         <UserPlus className="h-4 w-4 mr-2" />
-                        {t("Follow")}
+                        {t("follow")}
                       </>
                     )}
                   </Button>
@@ -461,7 +463,7 @@ export default function UserPortfolioClient({ initialUser }: UserPortfolioClient
                   className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                 >
                   <Share2 className="h-4 w-4 mr-2" />
-                  {t("Share")}
+                  {tExt("share")}
                 </Button>
                 {(user.website || user.twitter || user.discord) && (
                   <div className="flex gap-1">
@@ -502,24 +504,24 @@ export default function UserPortfolioClient({ initialUser }: UserPortfolioClient
             <TabsList className="grid grid-cols-3 md:grid-cols-5 w-full md:w-auto">
               <TabsTrigger value="owned" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
-                <span className="hidden sm:inline">{t("Owned")}</span>
+                <span className="hidden sm:inline">{t("owned")}</span>
               </TabsTrigger>
               <TabsTrigger value="created" className="flex items-center gap-2">
                 <Palette className="h-4 w-4" />
-                <span className="hidden sm:inline">{t("Created")}</span>
+                <span className="hidden sm:inline">{tCommon("created")}</span>
               </TabsTrigger>
               <TabsTrigger value="collections" className="flex items-center gap-2">
                 <Grid className="h-4 w-4" />
-                <span className="hidden sm:inline">{t("Collections")}</span>
+                <span className="hidden sm:inline">{t("collections")}</span>
               </TabsTrigger>
               <TabsTrigger value="activity" className="flex items-center gap-2">
                 <Activity className="h-4 w-4" />
-                <span className="hidden sm:inline">{t("Activity")}</span>
+                <span className="hidden sm:inline">{tExt("activity")}</span>
               </TabsTrigger>
               {isOwnProfile && (
                 <TabsTrigger value="favorites" className="flex items-center gap-2">
                   <Heart className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t("Favorites")}</span>
+                  <span className="hidden sm:inline">{tCommon("favorites")}</span>
                 </TabsTrigger>
               )}
             </TabsList>
@@ -527,13 +529,13 @@ export default function UserPortfolioClient({ initialUser }: UserPortfolioClient
             <div className="flex gap-2">
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder={t("sort_by")} />
+                  <SelectValue placeholder={tCommon("sort_by")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="recently_acquired">{t("recently_acquired")}</SelectItem>
                   <SelectItem value="recently_created">{t("recently_created")}</SelectItem>
-                  <SelectItem value="price_low_to_high">{t("price_low_to_high")}</SelectItem>
-                  <SelectItem value="price_high_to_low">{t("price_high_to_low")}</SelectItem>
+                  <SelectItem value="price_low_to_high">{tExt("price_low_to_high")}</SelectItem>
+                  <SelectItem value="price_high_to_low">{tExt("price_high_to_low")}</SelectItem>
                   <SelectItem value="most_liked">{t("most_liked")}</SelectItem>
                 </SelectContent>
               </Select>
@@ -580,7 +582,7 @@ export default function UserPortfolioClient({ initialUser }: UserPortfolioClient
                   <div className="text-center">
                     <Button onClick={handleLoadMore} disabled={isLoading} variant="outline" size="lg">
                       {isLoading ? <LoadingSpinner size="sm" className="mr-2" /> : null}
-                      {t("load_more")}
+                      {tCommon("load_more")}
                     </Button>
                   </div>
                 )}
@@ -609,7 +611,7 @@ export default function UserPortfolioClient({ initialUser }: UserPortfolioClient
                   <div className="text-center">
                     <Button onClick={handleLoadMore} disabled={isLoading} variant="outline" size="lg">
                       {isLoading ? <LoadingSpinner size="sm" className="mr-2" /> : null}
-                      {t("load_more")}
+                      {tCommon("load_more")}
                     </Button>
                   </div>
                 )}
@@ -659,8 +661,8 @@ export default function UserPortfolioClient({ initialUser }: UserPortfolioClient
                             {collection.description}
                           </p>
                           <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span>{formatNumber(collection.totalSupply || 0)} {t("items")}</span>
-                            <span>{t("Floor")}: {formatCurrency(collection.floorPrice || 0, collection.currency || "ETH")}</span>
+                            <span>{formatNumber(collection.totalSupply || 0)} {tExt("items")}</span>
+                            <span>{t("floor")}: {formatCurrency(collection.floorPrice || 0, collection.currency || "ETH")}</span>
                           </div>
                         </div>
                       </CardContent>
@@ -680,7 +682,7 @@ export default function UserPortfolioClient({ initialUser }: UserPortfolioClient
               <Card>
                 <CardContent className="p-12 text-center">
                   <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">{t("no_activity_yet")}</p>
+                  <p className="text-muted-foreground">{tExt("no_activity_yet")}</p>
                 </CardContent>
               </Card>
             ) : (

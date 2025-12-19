@@ -19,7 +19,7 @@ const MobileFooter = ({
           onClick={handleOpenSearch}
         />
         <p className="mb-0 mt-1.5 text-xs text-muted-foreground">
-          {t("Search")}
+          {t("search")}
         </p>
       </div>
       <div className="relative shadow-[0_-4px_10px_#9595952b] dark:shadow-[0_-4px_10px_#0000004d] bg-card border-t dark:border-none bg-no-repeat backdrop-filter backdrop-blur-[40px] rounded-full footer-bg h-[70px] w-[70px] z-[-1] -mt-[40px] flex justify-center items-center">
@@ -34,7 +34,7 @@ const MobileFooter = ({
       </div>
       <div className="flex flex-col items-center justify-center">
         <p className="mb-0 mt-1.5 text-xs text-muted-foreground">
-          {t("Settings")}
+          {t("settings")}
         </p>
       </div>
     </footer>

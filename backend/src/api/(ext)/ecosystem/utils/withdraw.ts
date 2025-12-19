@@ -1,6 +1,7 @@
 import { models } from "@b/db";
 import { chainConfigs } from "./chains";
 import { delay } from "@b/utils";
+import { logger } from "@b/utils/console";
 import {
   executeEcosystemWithdrawal,
   executeNativeWithdrawal,
@@ -23,42 +24,32 @@ export const handleEvmWithdrawal = async (
   amount: number,
   toAddress: string
 ): Promise<boolean> => {
-  console.log(`[EVM_WITHDRAW] Starting EVM withdrawal:`, {
-    transactionId: id,
-    walletId,
-    chain,
-    amount,
-    toAddress: toAddress?.substring(0, 10) + '...'
-  });
+  logger.info("EVM_WITHDRAW", `Starting withdrawal: txId=${id}, wallet=${walletId}, chain=${chain}, amount=${amount}, to=${toAddress?.substring(0, 10)}...`);
 
   validateAddress(toAddress, chain);
-  console.log(`[EVM_WITHDRAW] Address validation passed`);
+  logger.debug("EVM_WITHDRAW", "Address validation passed");
 
-  console.log(`[EVM_WITHDRAW] Initializing provider for chain: ${chain}`);
+  logger.debug("EVM_WITHDRAW", `Initializing provider for chain: ${chain}`);
   const provider = await initializeProvider(chain);
 
-  console.log(`[EVM_WITHDRAW] Fetching user wallet: ${walletId}`);
+  logger.debug("EVM_WITHDRAW", `Fetching user wallet: ${walletId}`);
   const userWallet = await models.wallet.findByPk(walletId);
   if (!userWallet) {
-    console.error(`[EVM_WITHDRAW] User wallet not found: ${walletId}`);
+    logger.error("EVM_WITHDRAW", `User wallet not found: ${walletId}`);
     throw new Error("User wallet not found");
   }
-  console.log(`[EVM_WITHDRAW] Wallet found, currency: ${userWallet.currency}`);
+  logger.debug("EVM_WITHDRAW", `Wallet found, currency: ${userWallet.currency}`);
 
   const { currency } = userWallet;
 
-  console.log(`[EVM_WITHDRAW] Initializing contracts for ${currency} on ${chain}`);
+  logger.debug("EVM_WITHDRAW", `Initializing contracts for ${currency} on ${chain}`);
   const { contract, contractAddress, gasPayer, contractType, tokenDecimals } =
     await initializeContracts(chain, currency, provider);
 
-  console.log(`[EVM_WITHDRAW] Contract details:`, {
-    contractType,
-    contractAddress,
-    tokenDecimals
-  });
+  logger.debug("EVM_WITHDRAW", `Contract details: type=${contractType}, address=${contractAddress}, decimals=${tokenDecimals}`);
 
   const amountEth = ethers.parseUnits(amount.toString(), tokenDecimals);
-  console.log(`[EVM_WITHDRAW] Amount in wei: ${amountEth.toString()}`);
+  logger.debug("EVM_WITHDRAW", `Amount in wei: ${amountEth.toString()}`);
 
   let walletData,
     actualTokenOwner,
@@ -66,7 +57,7 @@ export const handleEvmWithdrawal = async (
     transaction,
     alternativeWallet;
   if (contractType === "PERMIT") {
-    console.log(`[EVM_WITHDRAW] Processing PERMIT contract type`);
+    logger.debug("EVM_WITHDRAW", "Processing PERMIT contract type");
     walletData = await getWalletData(walletId, chain);
     const ownerData = await getAndValidateTokenOwner(
       walletData,
@@ -88,7 +79,7 @@ export const handleEvmWithdrawal = async (
         provider
       );
     } catch (error) {
-      console.error(`[EVM_WITHDRAW] Failed to execute permit:`, error);
+      logger.error("EVM_WITHDRAW", "Failed to execute permit", error);
       throw new Error(`Failed to execute permit: ${error.message}`);
     }
 
@@ -103,7 +94,7 @@ export const handleEvmWithdrawal = async (
         provider
       );
     } catch (error) {
-      console.error(`Failed to execute withdrawal: ${error.message}`);
+      logger.error("EVM_WITHDRAW", `Failed to execute withdrawal: ${error.message}`);
       throw new Error(`Failed to execute withdrawal: ${error.message}`);
     }
   } else if (contractType === "NO_PERMIT") {
@@ -119,7 +110,7 @@ export const handleEvmWithdrawal = async (
         isNative
       );
     } catch (error) {
-      console.error(`Failed to execute withdrawal: ${error.message}`);
+      logger.error("EVM_WITHDRAW", `Failed to execute withdrawal: ${error.message}`);
       throw new Error(`Failed to execute withdrawal: ${error.message}`);
     }
   } else if (contractType === "NATIVE") {
@@ -137,7 +128,7 @@ export const handleEvmWithdrawal = async (
         provider
       );
     } catch (error) {
-      console.error(`Failed to execute withdrawal: ${error.message}`);
+      logger.error("EVM_WITHDRAW", `Failed to execute withdrawal: ${error.message}`);
       throw new Error(`Failed to execute withdrawal: ${error.message}`);
     }
   }
@@ -152,7 +143,7 @@ export const handleEvmWithdrawal = async (
           transaction.hash
         );
         if (txReceipt && txReceipt.status === 1) {
-          console.log(`[EVM_WITHDRAW] Transaction confirmed: ${transaction.hash}`);
+          logger.success("EVM_WITHDRAW", `Transaction confirmed: ${transaction.hash}`);
 
           if (contractType === "PERMIT") {
             if (alternativeWalletUsed) {
@@ -188,12 +179,7 @@ export const handleEvmWithdrawal = async (
               const actualGasUsed = txReceipt.gasUsed * gasPrice;
               const actualGasFee = parseFloat(ethers.formatUnits(actualGasUsed, tokenDecimals));
 
-              console.log(`[EVM_WITHDRAW] NATIVE gas reconciliation:`, {
-                gasUsed: txReceipt.gasUsed.toString(),
-                gasPrice: gasPrice.toString(),
-                actualGasFee,
-                txHash: transaction.hash
-              });
+              logger.debug("EVM_WITHDRAW", `NATIVE gas reconciliation: gasUsed=${txReceipt.gasUsed}, gasPrice=${gasPrice}, actualGasFee=${actualGasFee}, txHash=${transaction.hash}`);
 
               // Get the transaction record to find the estimated fee
               const txRecord = await models.transaction.findByPk(id);
@@ -201,11 +187,7 @@ export const handleEvmWithdrawal = async (
                 const estimatedGasFee = parseFloat(txRecord.fee);
                 const gasDifference = estimatedGasFee - actualGasFee;
 
-                console.log(`[EVM_WITHDRAW] Gas fee comparison:`, {
-                  estimated: estimatedGasFee,
-                  actual: actualGasFee,
-                  difference: gasDifference
-                });
+                logger.debug("EVM_WITHDRAW", `Gas fee comparison: estimated=${estimatedGasFee}, actual=${actualGasFee}, difference=${gasDifference}`);
 
                 // If there's a significant difference, adjust the wallet balance
                 if (Math.abs(gasDifference) > 0.00000001) {
@@ -230,12 +212,12 @@ export const handleEvmWithdrawal = async (
                       }
                     );
 
-                    console.log(`[EVM_WITHDRAW] Adjusted wallet balance by ${gasDifference} ${currency}`);
+                    logger.info("EVM_WITHDRAW", `Adjusted wallet balance by ${gasDifference} ${currency}`);
                   }
                 }
               }
             } catch (gasError) {
-              console.error(`[EVM_WITHDRAW] Failed to reconcile gas fee:`, gasError);
+              logger.error("EVM_WITHDRAW", "Failed to reconcile gas fee", gasError);
               // Don't fail the withdrawal if reconciliation fails
             }
           }
@@ -250,14 +232,14 @@ export const handleEvmWithdrawal = async (
               where: { id },
             }
           );
-          console.log(`[EVM_WITHDRAW] Transaction marked as COMPLETED`);
+          logger.success("EVM_WITHDRAW", "Transaction marked as COMPLETED");
           return true;
         } else {
           attempts += 1;
           await delay(5000);
         }
       } catch (error) {
-        console.error(`Failed to check transaction status: ${error.message}`);
+        logger.error("EVM_WITHDRAW", `Failed to check transaction status: ${error.message}`);
 
         // Inform admin about withdrawal issue
         try {
@@ -295,7 +277,7 @@ export const handleEvmWithdrawal = async (
             await models.notification.bulkCreate(adminNotifications);
           }
         } catch (notifError) {
-          console.error("Failed to send admin notification:", notifError);
+          logger.error("EVM_WITHDRAW", "Failed to send admin notification", notifError);
         }
 
         attempts += 1;
@@ -304,9 +286,7 @@ export const handleEvmWithdrawal = async (
     }
 
     // If loop exits, mark transaction as failed
-    console.error(
-      `Transaction ${transaction.hash} failed after ${maxAttempts} attempts.`
-    );
+    logger.error("EVM_WITHDRAW", `Transaction ${transaction.hash} failed after ${maxAttempts} attempts.`);
   }
 
   throw new Error("Transaction failed");

@@ -38,7 +38,7 @@ export function DocumentationSection({
               {section.title}
               {isRead && (
                 <span className="text-xs font-normal text-muted-foreground">
-                  {t("Read")}
+                  {t("read")}
                 </span>
               )}
             </h2>

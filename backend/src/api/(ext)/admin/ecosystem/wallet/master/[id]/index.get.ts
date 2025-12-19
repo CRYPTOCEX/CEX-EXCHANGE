@@ -15,10 +15,10 @@ import { chainConfigs } from "@b/api/(ext)/ecosystem/utils/chains";
 import { getSolanaService, getTronService, getMoneroService, getTonService } from "@b/utils/safe-imports";
 
 export const metadata: OperationObject = {
-  summary:
-    "Retrieves detailed information of a specific ecosystem master wallet by ID",
+  summary: "Get master wallet details by ID",
+  description: "Retrieves comprehensive information about a specific ecosystem master wallet including its current balance, associated custodial wallets, and configuration details. Balance is fetched in real-time from the blockchain.",
   operationId: "getEcosystemMasterWalletById",
-  tags: ["Admin", "Ecosystem Master Wallets"],
+  tags: ["Admin", "Ecosystem", "Wallet"],
   parameters: [
     {
       index: 0,
@@ -47,10 +47,13 @@ export const metadata: OperationObject = {
   },
   permission: "view.ecosystem.master.wallet",
   requiresAuth: true,
+  demoMask: ["address", "ecosystemCustodialWallets.address"],
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
+
+  ctx?.step("Fetching master wallet details");
 
   const wallet = await models.ecosystemMasterWallet.findByPk(params.id, {
     include: [
@@ -79,6 +82,8 @@ export default async (data) => {
   if (!updatedWallet) {
     throw new Error(`Ecosystem master wallet not found: ${params.id}`);
   }
+
+  ctx?.success("Retrieved master wallet successfully");
 
   return updatedWallet.get({ plain: true });
 };

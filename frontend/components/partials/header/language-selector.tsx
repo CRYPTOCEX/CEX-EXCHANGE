@@ -106,13 +106,14 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     <>
       {variant === "compact" ? (
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => setIsDrawerOpen(true)}
           className={cn(
-            "flex items-center gap-2 p-2 rounded-full transition-colors",
-            "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100",
-            "dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800"
+            "flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 cursor-pointer",
+            "border",
+            "text-zinc-600 hover:text-zinc-900 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100",
+            "dark:text-zinc-400 dark:hover:text-zinc-100 dark:border-zinc-800 dark:hover:border-zinc-700 dark:hover:bg-zinc-800/50"
           )}
         >
           {showGlobe ? (
@@ -134,7 +135,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setIsDrawerOpen(true)}
-          className="flex items-center gap-2 px-3 py-2 bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+          className="flex items-center gap-2 px-3 py-2 bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
         >
           <span className="w-6 h-6 rounded-full overflow-hidden">
             <Image

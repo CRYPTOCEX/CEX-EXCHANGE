@@ -81,8 +81,8 @@ export default function TrendingCollections() {
   const displayCollections = Array.isArray(trendingCollections) ? trendingCollections : [];
 
   return (
-    <section ref={ref} className="py-20 bg-muted/20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section ref={ref} className="py-20">
+      <div className="container">
         {/* Section Header */}
         <div className="flex items-center justify-between mb-10">
           <div>
@@ -92,7 +92,7 @@ export default function TrendingCollections() {
               transition={{ duration: 0.5 }}
               className="flex items-center gap-3 mb-2"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center`}>
                 <TrendingUp className="w-5 h-5 text-white" />
               </div>
               <h2 className="text-3xl md:text-4xl font-bold">
@@ -124,7 +124,7 @@ export default function TrendingCollections() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-center py-16"
           >
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center mx-auto mb-6">
+            <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center mx-auto mb-6`}>
               <TrendingUp className="w-10 h-10 text-primary/60" />
             </div>
             <h3 className="text-xl font-semibold mb-2">No Trending Collections Yet</h3>
@@ -166,7 +166,7 @@ export default function TrendingCollections() {
                   className="group w-80 bg-card border border-border rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all cursor-pointer"
                 >
                   {/* Banner */}
-                  <div className="relative h-32 bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20">
+                  <div className={`relative h-32 bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20`}>
                     {collection.bannerImage ? (
                       <img
                         src={collection.bannerImage}
@@ -179,7 +179,7 @@ export default function TrendingCollections() {
                           {[...Array(6)].map((_, i) => (
                             <div
                               key={i}
-                              className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/30 to-purple-600/30 backdrop-blur"
+                              className={`w-12 h-12 rounded-lg bg-gradient-to-br from-primary/30 to-purple-600/30 backdrop-blur`}
                             />
                           ))}
                         </div>
@@ -198,7 +198,7 @@ export default function TrendingCollections() {
 
                   {/* Logo Overlap */}
                   <div className="px-6 -mt-10">
-                    <div className="w-20 h-20 rounded-xl border-4 border-card bg-gradient-to-br from-primary to-purple-600 overflow-hidden shadow-xl">
+                    <div className={`w-20 h-20 rounded-xl border-4 border-card bg-gradient-to-br from-primary to-purple-600 overflow-hidden shadow-xl`}>
                       {collection.logoImage ? (
                         <img
                           src={collection.logoImage}
@@ -276,7 +276,7 @@ export default function TrendingCollections() {
                   className="group w-80 bg-card border border-border rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all cursor-pointer"
                 >
                   {/* Banner */}
-                  <div className="relative h-32 bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20">
+                  <div className={`relative h-32 bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20`}>
                     {collection.bannerImage ? (
                       <img
                         src={collection.bannerImage}
@@ -289,7 +289,7 @@ export default function TrendingCollections() {
                           {[...Array(6)].map((_, i) => (
                             <div
                               key={i}
-                              className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/30 to-purple-600/30 backdrop-blur"
+                              className={`w-12 h-12 rounded-lg bg-gradient-to-br from-primary/30 to-purple-600/30 backdrop-blur`}
                             />
                           ))}
                         </div>
@@ -308,7 +308,7 @@ export default function TrendingCollections() {
 
                   {/* Logo Overlap */}
                   <div className="px-6 -mt-10">
-                    <div className="w-20 h-20 rounded-xl border-4 border-card bg-gradient-to-br from-primary to-purple-600 overflow-hidden shadow-xl">
+                    <div className={`w-20 h-20 rounded-xl border-4 border-card bg-gradient-to-br from-primary to-purple-600 overflow-hidden shadow-xl`}>
                       {collection.logoImage ? (
                         <img
                           src={collection.logoImage}

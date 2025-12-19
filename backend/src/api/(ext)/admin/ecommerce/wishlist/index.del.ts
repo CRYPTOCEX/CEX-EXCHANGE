@@ -32,14 +32,21 @@ export const metadata: OperationObject = {
   responses: commonBulkDeleteResponses("E-commerce Wishlist Entries"),
   requiresAuth: true,
   permission: "delete.ecommerce.wishlist",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Bulk Delete E-commerce Wishlist Entries",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step("Deleting E-commerce wishlist entries");
+  const result = await handleBulkDelete({
     model: "ecommerceWishlist",
     ids,
     query,
   });
+
+  ctx?.success("Successfully deleted E-commerce wishlist entries");
+  return result;
 };

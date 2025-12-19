@@ -44,10 +44,9 @@ export function HeaderCreateButton({
   dialogSize,
 }: HeaderCreateButtonProps) {
   const t = useTranslations("common");
+  const tComponentsBlocks = useTranslations("components_blocks");
   const tableConfig = useTableStore((state) => state.tableConfig);
-  const setCreateDrawerOpen = useTableStore(
-    (state) => state.setCreateDrawerOpen
-  );
+  const goToCreate = useTableStore((state) => state.goToCreate);
   const hasCreatePermission = useTableStore(
     (state) => state.hasCreatePermission
   );
@@ -84,16 +83,16 @@ export function HeaderCreateButton({
       <Dialog>
         <DialogTrigger asChild>
           <Button size="sm" disabled={!hasCreatePermission}>
-            <Plus className={cn("mr-2 h-4 w-4", "ltr:mr-2 rtl:ml-2")} />
-            {t("Add")} {itemTitle}
+            <Plus className={cn("h-4 w-4", "sm:ltr:mr-2 sm:rtl:ml-2")} />
+            <span className="hidden sm:inline">{t("add")} {itemTitle}</span>
           </Button>
         </DialogTrigger>
         <DialogContent size={effectiveDialogSize}>
           <DialogTitle>
-            {t("New")} {itemTitle}
+            {t("new")} {itemTitle}
           </DialogTitle>
           <DialogDescription>
-            {t("create_a_new")} {itemTitle} {t("by_filling_out_the_form_below")}
+            {t("create_a_new")} {itemTitle} {tComponentsBlocks("by_filling_out_the_form_below")}
             .
           </DialogDescription>
           {effectiveCreateDialog}
@@ -102,13 +101,15 @@ export function HeaderCreateButton({
     );
   }
 
-  // Fallback: if a createLink exists or use the default drawer behavior.
+  // Fallback: if a createLink exists or use the view-based create.
   const handleCreateClick = () => {
     if (tableConfig.createLink) {
       return;
     }
-    setCreateDrawerOpen(true);
+    goToCreate();
   };
+
+  const buttonLabel = `${t("add")} ${itemTitle}`;
 
   return (
     <TooltipProvider>
@@ -118,8 +119,8 @@ export function HeaderCreateButton({
             {tableConfig.createLink ? (
               <Link href={tableConfig.createLink} passHref>
                 <Button size="sm" disabled={!hasCreatePermission}>
-                  <Plus className={cn("mr-2 h-4 w-4", "ltr:mr-2 rtl:ml-2")} />
-                  {t("Add")} {itemTitle}
+                  <Plus className={cn("h-4 w-4", "sm:ltr:mr-2 sm:rtl:ml-2")} />
+                  <span className="hidden sm:inline">{buttonLabel}</span>
                 </Button>
               </Link>
             ) : (
@@ -128,17 +129,15 @@ export function HeaderCreateButton({
                 onClick={handleCreateClick}
                 disabled={!hasCreatePermission}
               >
-                <Plus className={cn("mr-2 h-4 w-4", "ltr:mr-2 rtl:ml-2")} />
-                {t("Add")} {itemTitle}
+                <Plus className={cn("h-4 w-4", "sm:ltr:mr-2 sm:rtl:ml-2")} />
+                <span className="hidden sm:inline">{buttonLabel}</span>
               </Button>
             )}
           </span>
         </TooltipTrigger>
-        {!hasCreatePermission && (
-          <TooltipContent>
-            <p>{t("you_dont_have_permission_to_create_new_items")}</p>
-          </TooltipContent>
-        )}
+        <TooltipContent>
+          <p>{!hasCreatePermission ? tComponentsBlocks("you_dont_have_permission_to_create_new_items") : buttonLabel}</p>
+        </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

@@ -3,11 +3,14 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "@/i18n/routing";
 import TradingInterface from "./components/trading-interface";
+import BinaryTradingSkeleton from "./components/skeleton/binary-trading-skeleton";
 import { initializeBinaryStore, cleanupBinaryStore, useBinaryStore } from "@/store/trade/use-binary-store";
 import { useUserStore } from "@/store/user";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export default function BinaryTradingPage() {
+  const t = useTranslations("common");
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialSymbolParam = searchParams.get("symbol");
@@ -82,17 +85,22 @@ export default function BinaryTradingPage() {
 
   // Single initialization effect with improved error handling
   useEffect(() => {
-    // Prevent duplicate initialization
-    if (initializationRef.current) return;
-    
     let isMounted = true;
-    initializationRef.current = true;
 
     const initializeApp = async () => {
+      // Reset initialization ref at the start
+      initializationRef.current = false;
+
       try {
         setInitError(null);
         console.log("Initializing binary trading app...");
-        
+
+        // Force reset loading state before initialization
+        setIsInitialized(false);
+
+        // Mark as initializing BEFORE calling initializeBinaryStore
+        initializationRef.current = true;
+
         // Initialize the binary store (this will fetch only binary markets and durations)
         await initializeBinaryStore();
         
@@ -140,11 +148,14 @@ export default function BinaryTradingPage() {
     // Cleanup function
     return () => {
       isMounted = false;
-      if (!cleanupRef.current) {
-        cleanupRef.current = true;
-        console.log("Cleaning up binary trading page...");
-        cleanupBinaryStore();
-      }
+
+      // Always cleanup on unmount
+      console.log("Cleaning up binary trading page...");
+      cleanupBinaryStore();
+
+      // Reset refs to allow re-initialization on next mount
+      initializationRef.current = false;
+      cleanupRef.current = false;
     };
   }, []); // Remove all dependencies to prevent re-initialization
 
@@ -172,39 +183,32 @@ export default function BinaryTradingPage() {
     }
   }, [user?.id, isInitialized, currentSymbol]); // Depend on user, initialization, and symbol
 
-  // Show loading state during initialization
-  if (!isInitialized || !currentSymbol || isLoadingMarkets) {
+  // Show error state if initialization failed
+  if (initError) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4 p-8 bg-zinc-900 rounded-lg max-w-md text-center shadow-xl border border-zinc-800">
-          {initError ? (
-            <>
-              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
-                <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-bold text-white">Initialization Error</h2>
-              <p className="text-red-400 text-sm">{initError}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                Refresh Page
-              </button>
-            </>
-          ) : (
-            <>
-              <div className="animate-spin h-12 w-12 border-3 border-blue-500 border-t-transparent rounded-full"></div>
-              <h2 className="text-xl font-bold text-white">Initializing Trading Interface</h2>
-              <p className="text-zinc-400 text-sm">
-                Loading markets and setting up trading interface...
-              </p>
-            </>
-          )}
+          <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
+            <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-white">{t("initialization_error")}</h2>
+          <p className="text-red-400 text-sm">{initError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          >
+            {t("refresh_page")}
+          </button>
         </div>
       </div>
     );
+  }
+
+  // Show skeleton loading state during initialization
+  if (!isInitialized || !currentSymbol || isLoadingMarkets) {
+    return <BinaryTradingSkeleton />;
   }
 
   return (

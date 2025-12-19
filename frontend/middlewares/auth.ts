@@ -3,6 +3,8 @@ import type { NextRequest, NextFetchEvent } from "next/server";
 import { verifyToken } from "@/lib/token/access-token";
 import { MiddlewareFactory } from "../types/MiddlewareFactory";
 import permissions from "@/middlewares/permissions.json";
+import createIntlMiddleware from "next-intl/middleware";
+import { routing } from "@/i18n/routing";
 
 const dev = process.env.NODE_ENV !== "production";
 const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || 4000;
@@ -18,77 +20,101 @@ interface RolesCache {
   [key: number]: Role;
 }
 let rolesCache: RolesCache | null = null;
+let rolesCachePromise: Promise<void> | null = null;
+let rolesCacheExpiry: number = 0;
+const ROLES_CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache
 
 async function fetchRolesAndPermissions() {
-  try {
-    const endpoint = `${apiUrl}/api/auth/role`;
+  const now = Date.now();
 
-    // Use AbortController with timeout to prevent hanging connections
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
-    const response = await fetch(endpoint, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      cache: "no-store", // Prevent caching issues
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      console.error(
-        `Failed to fetch roles and permissions: ${response.status} ${response.statusText}`
-      );
-      rolesCache = {};
-      return;
-    }
-
-    // Check if response is JSON
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      const text = await response.text();
-      console.error(
-        `Invalid response format: expected JSON, got ${contentType || "unknown"}. Response: ${text}`
-      );
-      rolesCache = {};
-      return;
-    }
-
-    const data = await response.json();
-    if (Array.isArray(data)) {
-      rolesCache = data.reduce((acc: RolesCache, role: any) => {
-        if (role && role.id && role.name && Array.isArray(role.permissions)) {
-          acc[role.id] = {
-            name: role.name,
-            permissions: role.permissions.map((p: any) => p.name),
-          };
-        }
-        return acc;
-      }, {});
-    } else {
-      console.error("Invalid roles data format received");
-      rolesCache = {};
-    }
-  } catch (error: any) {
-    // Silently handle connection errors (ECONNRESET, ECONNREFUSED, abort)
-    // These are common during server restarts or high load
-    // Note: fetch errors have the code on error.cause, not directly on error
-    const errorCode = error?.code || error?.cause?.code;
-    const isConnectionError =
-      errorCode === "ECONNRESET" ||
-      errorCode === "ECONNREFUSED" ||
-      error?.name === "AbortError" ||
-      error?.message?.includes("aborted") ||
-      error?.message?.includes("fetch failed");
-
-    if (!isConnectionError) {
-      console.error("Error fetching roles and permissions:", error);
-    }
-    rolesCache = {};
+  // Return cached data if still valid
+  if (rolesCache && rolesCacheExpiry > now) {
+    return;
   }
+
+  // If already fetching, wait for existing promise
+  if (rolesCachePromise) {
+    return rolesCachePromise;
+  }
+
+  // Create new fetch promise
+  rolesCachePromise = (async () => {
+    try {
+      const endpoint = `${apiUrl}/api/auth/role`;
+
+      // Use AbortController with shorter timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+
+      const response = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        next: { revalidate: 300 }, // Cache for 5 minutes
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.error(
+          `Failed to fetch roles and permissions: ${response.status} ${response.statusText}`
+        );
+        rolesCache = rolesCache || {}; // Keep old cache on error
+        return;
+      }
+
+      // Check if response is JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        console.error(
+          `Invalid response format: expected JSON, got ${contentType || "unknown"}. Response: ${text}`
+        );
+        rolesCache = rolesCache || {}; // Keep old cache on error
+        return;
+      }
+
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        rolesCache = data.reduce((acc: RolesCache, role: any) => {
+          if (role && role.id && role.name && Array.isArray(role.permissions)) {
+            acc[role.id] = {
+              name: role.name,
+              permissions: role.permissions.map((p: any) => p.name),
+            };
+          }
+          return acc;
+        }, {});
+        // Set cache expiry
+        rolesCacheExpiry = now + ROLES_CACHE_TTL;
+      } else {
+        console.error("Invalid roles data format received");
+        rolesCache = rolesCache || {}; // Keep old cache on error
+      }
+    } catch (error: any) {
+      // Silently handle connection errors (ECONNRESET, ECONNREFUSED, abort)
+      // These are common during server restarts or high load
+      // Note: fetch errors have the code on error.cause, not directly on error
+      const errorCode = error?.code || error?.cause?.code;
+      const isConnectionError =
+        errorCode === "ECONNRESET" ||
+        errorCode === "ECONNREFUSED" ||
+        error?.name === "AbortError" ||
+        error?.message?.includes("aborted") ||
+        error?.message?.includes("fetch failed");
+
+      if (!isConnectionError) {
+        console.error("Error fetching roles and permissions:", error);
+      }
+      rolesCache = rolesCache || {}; // Keep old cache on error
+    } finally {
+      rolesCachePromise = null;
+    }
+  })();
+
+  return rolesCachePromise;
 }
 
 async function refreshToken(request: NextRequest) {
@@ -144,6 +170,13 @@ const defaultUserPath = process.env.NEXT_PUBLIC_DEFAULT_USER_PATH || "/user";
 const isMaintenance =
   process.env.NEXT_PUBLIC_MAINTENANCE_STATUS === "true" || false;
 
+// Create intl middleware instance for proper locale handling
+const intlMiddleware = createIntlMiddleware({
+  ...routing,
+  localeDetection: true,
+  localePrefix: "always",
+});
+
 // === PERMISSIONS MATCHER ===
 function matchPermission(strippedPath: string): string | null {
   // 1. Exact match
@@ -183,8 +216,16 @@ export const authMiddleware: MiddlewareFactory =
       currentLocale = segments[0];
       strippedPath = "/" + segments.slice(1).join("/");
     }
-    // Fetch roles if not loaded
-    if (!rolesCache || Object.keys(rolesCache).length === 0) {
+    // Fetch roles if not loaded - non-blocking for first request
+    if (!rolesCache) {
+      // Initialize empty cache to prevent blocking on first load
+      rolesCache = {};
+      // Fetch in background without awaiting
+      fetchRolesAndPermissions().catch(err =>
+        console.error("Background role fetch failed:", err)
+      );
+    } else if (Object.keys(rolesCache).length === 0 || rolesCacheExpiry < Date.now()) {
+      // Only await if cache is expired and we have time
       await fetchRolesAndPermissions();
     }
 
@@ -302,6 +343,7 @@ export const authMiddleware: MiddlewareFactory =
       }
     }
 
-    // For all other cases (e.g., not logged in to /user), just continue
-    return next(request, event);
+    // For all other cases, call intlMiddleware to ensure proper locale handling
+    // This prevents DOM manipulation errors during locale changes
+    return intlMiddleware(request);
   };

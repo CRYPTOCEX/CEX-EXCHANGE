@@ -72,10 +72,7 @@ export function initModels(sequelize: Sequelize) {
     throw error;
   }
 
-  console.info(
-    `\x1b[36mMain Thread: ${modelFiles.length} Models initialized successfully...\x1b[0m`
-  );
-
+  // Models initialized silently - count available via db.models
   return models;
 }
 

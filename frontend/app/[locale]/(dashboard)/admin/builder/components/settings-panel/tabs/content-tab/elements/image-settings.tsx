@@ -19,7 +19,8 @@ export function ImageSettings({
   settings,
   onSettingChange,
 }: SettingsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [imageSource, setImageSource] = useState<"upload" | "url">(
     settings.src ? "url" : "upload"
   );
@@ -43,10 +44,10 @@ export function ImageSettings({
         >
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upload" className="text-xs">
-              {t("Upload")}
+              {tCommon("upload")}
             </TabsTrigger>
             <TabsTrigger value="url" className="text-xs">
-              {t("URL")}
+              {t("url")}
             </TabsTrigger>
           </TabsList>
           <TabsContent value="upload" className="mt-2">
@@ -68,15 +69,15 @@ export function ImageSettings({
       </div>
       <LabeledInput
         id="imageAlt"
-        label="Alt Text"
+        label={t("alt_text")}
         value={settings.alt || ""}
         onChange={(e) => onSettingChange("alt", e.target.value)}
-        placeholder="Image description"
+        placeholder={t("image_description")}
         className="h-8 text-sm"
       />
       <LabeledSelect
         id="objectFit"
-        label="Image Fit"
+        label={t("image_fit")}
         value={settings.objectFit || "cover"}
         onValueChange={(value) => onSettingChange("objectFit", value)}
         options={[
@@ -89,7 +90,7 @@ export function ImageSettings({
       />
       <LabeledSelect
         id="objectPosition"
-        label="Image Position"
+        label={t("image_position")}
         value={settings.objectPosition || "center"}
         onValueChange={(value) => onSettingChange("objectPosition", value)}
         options={[
@@ -112,7 +113,7 @@ export function ImageSettings({
       />
       <LabeledSlider
         id="aspectRatio"
-        label="Aspect Ratio"
+        label={t("aspect_ratio")}
         min={0.1}
         max={3}
         step={0.1}

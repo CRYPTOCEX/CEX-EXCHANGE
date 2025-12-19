@@ -75,7 +75,7 @@ const defaultStats: P2PDisputeStats = {
 
 const defaultPagination = {
   page: 1,
-  pageSize: 10,
+  pageSize: 12,
   totalPages: 1,
   totalItems: 0,
 };

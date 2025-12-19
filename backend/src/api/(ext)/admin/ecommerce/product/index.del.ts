@@ -7,10 +7,11 @@ import {
 } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Bulk deletes e-commerce products by IDs",
+  summary: "Bulk deletes ecommerce products by IDs",
   operationId: "bulkDeleteEcommerceProducts",
-  tags: ["Admin", "Ecommerce", "Products"],
-  parameters: commonBulkDeleteParams("E-commerce Products"),
+  tags: ["Admin", "Ecommerce", "Product"],
+  description: "Deletes multiple ecommerce products at once using an array of product IDs. This operation will cascade delete all associated reviews, discounts, and wishlist items.",
+  parameters: commonBulkDeleteParams("Ecommerce Products"),
   requestBody: {
     required: true,
     content: {
@@ -21,7 +22,7 @@ export const metadata: OperationObject = {
             ids: {
               type: "array",
               items: { type: "string" },
-              description: "Array of e-commerce product IDs to delete",
+              description: "Array of ecommerce product IDs to delete",
             },
           },
           required: ["ids"],
@@ -29,17 +30,24 @@ export const metadata: OperationObject = {
       },
     },
   },
-  responses: commonBulkDeleteResponses("E-commerce Products"),
+  responses: commonBulkDeleteResponses("Ecommerce Products"),
   requiresAuth: true,
   permission: "delete.ecommerce.product",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Bulk Delete Ecommerce Products",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step("Deleting E-commerce products");
+  const result = await handleBulkDelete({
     model: "ecommerceProduct",
     ids,
     query,
   });
+
+  ctx?.success("Successfully deleted E-commerce products");
+  return result;
 };

@@ -78,7 +78,7 @@ export interface UserStakingState {
   getPositionEarnings: (id: string) => Promise<void>;
 
   // Staking operations
-  stake: (stakeRequest: StakeRequest) => Promise<void>;
+  stake: (stakeRequest: StakeRequest) => Promise<{ success: boolean; error: string | null }>;
 
   withdraw: (positionId: string) => Promise<void>;
 
@@ -238,7 +238,7 @@ export const userStakingStore = create<UserStakingState>((set, get) => ({
     if (filters?.poolId) params.poolId = filters.poolId;
     if (filters?.status) params.status = filters.status;
 
-    const { data, error } = await $fetch<StakingPosition[]>({
+    const { data, error } = await $fetch<{ data: StakingPosition[]; pagination: any }>({
       url: "/api/staking/position",
       silentSuccess: true,
       params,
@@ -247,8 +247,8 @@ export const userStakingStore = create<UserStakingState>((set, get) => ({
       set({ error, isLoading: false });
       return;
     }
-    // Ensure data is always an array before passing to enrichPositionData
-    const positionsArray = Array.isArray(data) ? data : [];
+    // Extract positions array from paginated response
+    const positionsArray = Array.isArray(data?.data) ? data.data : [];
     const enrichedPositions = get().enrichPositionData(positionsArray);
     set({ positions: enrichedPositions, isLoading: false });
   },
@@ -311,12 +311,15 @@ export const userStakingStore = create<UserStakingState>((set, get) => ({
       body: stakeRequest,
     });
     if (error) {
-      set({ error, isLoading: false });
-      return;
+      // Don't set error in store - return it for the form to handle
+      // This prevents the pool detail page from showing "Error Loading Pool"
+      set({ isLoading: false });
+      return { success: false, error };
     }
     // Refresh positions after successful staking
     set({ isLoading: false });
     get().getUserPositions();
+    return { success: true, error: null };
   },
 
   withdraw: async (positionId) => {

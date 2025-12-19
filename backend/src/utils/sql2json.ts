@@ -1,4 +1,5 @@
 import _ from "lodash";
+import { logger } from "./console";
 
 interface InsertStatement {
   table: string;
@@ -128,16 +129,14 @@ function sql2json(sql: string, requiredTables: Set<string>): Tables {
 
           tables[tableName].values.push(...values);
         } else {
-          console.log(
-            `Skipping INSERT line (no VALUES keyword found): ${line}`
-          );
+          logger.debug("SQL2JSON", `Skipping INSERT line (no VALUES keyword found): ${line}`);
         }
       } else if (words.length >= 4 && words[0].toUpperCase() == "INSERT") {
-        console.log(`Skipping INSERT line: ${line}`);
+        logger.debug("SQL2JSON", `Skipping INSERT line: ${line}`);
       }
     }
   } catch (error) {
-    console.log(`Error processing line: ${line}`);
+    logger.error("SQL2JSON", `Error processing line: ${line}`);
     throw new Error(`Error: ${error.message}\n...${line}`);
   }
 

@@ -45,9 +45,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("ecommerceShipping", params.id, [
+  ctx?.step("Fetching shipping by ID");
+
+  const result = await getRecord("ecommerceShipping", params.id, [
     {
       model: models.ecommerceOrder,
       as: "ecommerceOrders",
@@ -60,4 +62,7 @@ export default async (data) => {
       ],
     },
   ]);
+
+  ctx?.success("Shipping retrieved successfully");
+  return result;
 };

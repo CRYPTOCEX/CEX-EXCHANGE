@@ -21,7 +21,8 @@ export default function FundingInfo({
   fundingRate,
   fundingTime,
 }: FundingInfoProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tTradeComponents = useTranslations("trade_components");
   return (
     <div className="flex justify-between items-center mb-4 p-2 bg-muted/50 dark:bg-zinc-900/50 rounded-md">
       <div>
@@ -32,13 +33,13 @@ export default function FundingInfo({
           {currentPrice ? (
             formatPrice(currentPrice)
           ) : (
-            <span className="animate-pulse">{t("Loading")}.</span>
+            <span className="animate-pulse">{t("loading")}.</span>
           )}
         </div>
       </div>
       <div className="text-right">
         <div className="text-xs text-muted-foreground flex items-center justify-end">
-          {t("funding_rate")}
+          {tTradeComponents("funding_rate")}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -46,7 +47,7 @@ export default function FundingInfo({
               </TooltipTrigger>
               <TooltipContent>
                 <p className="text-xs">
-                  {t("funding_rate_is_paid_every_8_hours")}
+                  {tTradeComponents("funding_rate_is_paid_every_8_hours")}
                 </p>
               </TooltipContent>
             </Tooltip>

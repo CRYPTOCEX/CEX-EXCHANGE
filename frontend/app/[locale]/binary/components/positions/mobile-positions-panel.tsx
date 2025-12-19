@@ -22,7 +22,7 @@ export default function MobilePositionsPanel({
   className = "",
   theme = "dark",
 }: MobilePositionsPanelProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
 
   // Count active positions
@@ -51,7 +51,7 @@ export default function MobilePositionsPanel({
             }`}
           >
             <Clock size={16} className="mr-2" />
-            {t("Active")}
+            {t("active")}
             {activePositionsCount > 0 && (
               <span
                 className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${
@@ -73,7 +73,7 @@ export default function MobilePositionsPanel({
             }`}
           >
             <BarChart3 size={16} className="mr-2" />
-            {t("History")}
+            {t("history")}
           </button>
         </div>
       </div>

@@ -81,7 +81,7 @@ CardElement.displayName = "CardElement";
 
 // Optimized Pricing Element
 export const PricingElement = memo(({ element }: { element: Element }) => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
   const settings = element.settings || {};
   const {
     planName = "Basic Plan",
@@ -122,7 +122,7 @@ export const PricingElement = memo(({ element }: { element: Element }) => {
     >
       {highlighted && (
         <div className="bg-purple-500 text-white text-center py-1 text-sm font-medium">
-          {t("Popular")}
+          {t("popular")}
         </div>
       )}
       <div className="p-6">
@@ -130,7 +130,7 @@ export const PricingElement = memo(({ element }: { element: Element }) => {
         <div className="flex items-baseline mb-4">
           <span className="text-3xl font-bold">{price}</span>
           <span className="text-gray-500 ml-1">
-            {'_'}
+            _
             {period}
           </span>
         </div>

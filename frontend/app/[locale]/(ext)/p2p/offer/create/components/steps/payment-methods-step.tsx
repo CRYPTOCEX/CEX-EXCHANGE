@@ -97,7 +97,9 @@ const iconMap: Record<string, any> = {
   default: CreditCard,
 };
 export function PaymentMethodsStep() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { tradeData, updateTradeData, markStepComplete } = useWizard();
   const { settings } = useConfigStore();
   const { toast } = useToast();
@@ -742,14 +744,14 @@ export function PaymentMethodsStep() {
       bank_transfer:
         "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300",
       credit_card:
-        "bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300",
+        "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300",
       paypal:
         "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300",
       venmo: "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300",
       cash_app:
         "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300",
       zelle:
-        "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300",
+        "bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300",
     };
     return (
       colorMap[methodId] ||
@@ -781,7 +783,7 @@ export function PaymentMethodsStep() {
       </p>
 
       {selectedMethods.length === 0 && (
-        <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30">
+        <Alert className="bg-red-50 dark:bg-red-900/30 border-red-200/50 dark:border-red-700/50">
           <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
           <AlertDescription className="text-red-600 dark:text-red-400">
             {t("at_least_one_payment")}
@@ -796,7 +798,7 @@ export function PaymentMethodsStep() {
             {t("selected_payment_methods")}
           </h3>
           <Badge variant="outline" className="font-mono">
-            {selectedMethods.length} {t("selected")}
+            {selectedMethods.length} {tCommon("selected")}
           </Badge>
         </div>
 
@@ -884,10 +886,10 @@ export function PaymentMethodsStep() {
                           <div className="flex items-center gap-2">
                             <Badge
                               variant="outline"
-                              className="bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300"
+                              className="bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400"
                             >
                               <CheckCircle className="h-3 w-3 mr-1" />
-                              {t("Ready")}
+                              {t("ready")}
                             </Badge>
                             <Button
                               variant="ghost"
@@ -935,7 +937,7 @@ export function PaymentMethodsStep() {
                             <CardContent className="pb-3 border-t pt-4 bg-muted/30">
                               <div className="flex justify-between items-center mb-3">
                                 <h4 className="font-medium text-sm">
-                                  {t("payment_details")}
+                                  {tCommon("payment_details")}
                                 </h4>
                                 <div className="flex gap-2">
                                   <Button
@@ -952,12 +954,12 @@ export function PaymentMethodsStep() {
                                         ) : (
                                           <Save className="h-3.5 w-3.5" />
                                         )}
-                                        <span>{t("Save")}</span>
+                                        <span>{tCommon("save")}</span>
                                       </>
                                     ) : (
                                       <>
                                         <Edit className="h-3.5 w-3.5" />
-                                        <span>{t("Edit")}</span>
+                                        <span>{tCommon("edit")}</span>
                                       </>
                                     )}
                                   </Button>
@@ -979,7 +981,7 @@ export function PaymentMethodsStep() {
                                         disabled={isDeletingMethod}
                                       >
                                         <Trash2 className="h-3.5 w-3.5" />
-                                        <span>{t("Delete")}</span>
+                                        <span>{tCommon("delete")}</span>
                                       </Button>
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
@@ -988,12 +990,12 @@ export function PaymentMethodsStep() {
                                           {t("delete_payment_method")}
                                         </AlertDialogTitle>
                                         <AlertDialogDescription>
-                                          {t("are_you_sure_be_undone")}.
+                                          {tCommon("are_you_sure_be_undone")}.
                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
                                         <AlertDialogCancel>
-                                          {t("Cancel")}
+                                          {tCommon("cancel")}
                                         </AlertDialogCancel>
                                         <AlertDialogAction
                                           onClick={() =>
@@ -1005,7 +1007,7 @@ export function PaymentMethodsStep() {
                                           {isDeletingMethod ? (
                                             <>
                                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                              {t("Deleting")}...
+                                              {tCommon('deleting_ellipsis')}...
                                             </>
                                           ) : (
                                             "Delete"
@@ -1021,7 +1023,7 @@ export function PaymentMethodsStep() {
                               {(method.metadata && Object.keys(method.metadata).length > 0) || editMode === methodId ? (
                                 <div className="mb-4">
                                   <div className="flex items-center justify-between mb-2">
-                                    <h5 className="text-xs font-medium text-muted-foreground">{t("payment_details")}</h5>
+                                    <h5 className="text-xs font-medium text-muted-foreground">{tCommon("payment_details")}</h5>
                                     {editMode === methodId && (
                                       <Button
                                         type="button"
@@ -1034,7 +1036,7 @@ export function PaymentMethodsStep() {
                                         className="h-6 text-xs"
                                       >
                                         <Plus className="h-3 w-3 mr-1" />
-                                        {t("add_field")}
+                                        {tCommon("add_field")}
                                       </Button>
                                     )}
                                   </div>
@@ -1043,7 +1045,7 @@ export function PaymentMethodsStep() {
                                       {method.metadata && Object.entries(method.metadata).map(([key, value], index) => (
                                         <div key={`${key}-${index}`} className="flex gap-2 items-center">
                                           <Input
-                                            placeholder={t("field_name")}
+                                            placeholder={tCommon("field_name")}
                                             value={key}
                                             onChange={(e) => handleUpdateMetadataKey(methodId, key, e.target.value)}
                                             className="flex-1 h-8 text-sm"
@@ -1089,7 +1091,7 @@ export function PaymentMethodsStep() {
 
                               {/* Instructions section */}
                               <div>
-                                <h5 className="text-xs font-medium text-muted-foreground mb-2">{t("Instructions")}</h5>
+                                <h5 className="text-xs font-medium text-muted-foreground mb-2">{tCommon("instructions")}</h5>
                                 {editMode === methodId ? (
                                   <Textarea
                                     value={method.instructions || ""}
@@ -1128,7 +1130,7 @@ export function PaymentMethodsStep() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-muted-foreground">
-              {t("Global")} {t("payment_methods")}
+              {tExt("global")} {tExt("payment_methods")}
             </h3>
           </div>
 
@@ -1182,7 +1184,7 @@ export function PaymentMethodsStep() {
                           </p>
                           {method.processingTime && (
                             <p className="text-xs text-muted-foreground mt-1">
-                              {t("processing")} {method.processingTime}
+                              {tCommon("processing")} {method.processingTime}
                             </p>
                           )}
                         </div>
@@ -1199,7 +1201,7 @@ export function PaymentMethodsStep() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-medium text-muted-foreground">
-            {t("your_custom_payment_methods")}
+            {tExt("your_custom_payment_methods")}
           </h3>
         </div>
 
@@ -1246,7 +1248,7 @@ export function PaymentMethodsStep() {
                       <h3 className="font-medium flex items-center gap-2 flex-wrap">
                         {method.name}
                         <Badge variant="outline" className="text-xs">
-                          {t("Custom")}
+                          {tExt("custom")}
                         </Badge>
                         {hasActiveTrade && (
                           <Badge variant="secondary" className="text-xs gap-1">
@@ -1273,7 +1275,7 @@ export function PaymentMethodsStep() {
                       </p>
                       {method.processingTime && (
                         <p className="text-xs text-muted-foreground">
-                          {t("processing")} {method.processingTime}
+                          {tCommon("processing")} {method.processingTime}
                         </p>
                       )}
                     </div>
@@ -1325,7 +1327,7 @@ export function PaymentMethodsStep() {
       </div>
 
       {/* Guidance Section */}
-      <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+      <Alert className="bg-blue-50 dark:bg-blue-900/30 border-blue-200/50 dark:border-blue-700/50">
         <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
         <AlertDescription className="text-blue-600 dark:text-blue-400">
           {tradeData.tradeType === "buy"
@@ -1344,7 +1346,7 @@ export function PaymentMethodsStep() {
               {t("payment_methods_summary")}
             </CardTitle>
             <CardDescription>
-              {selectedMethods.length} {t("method")}{selectedMethods.length !== 1 ? "s" : ""} {t("selected")}
+              {selectedMethods.length} {tCommon("method")}{selectedMethods.length !== 1 ? "s" : ""} {tCommon("selected")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -1355,7 +1357,7 @@ export function PaymentMethodsStep() {
                   <Badge
                     key={methodId}
                     variant="outline"
-                    className="py-1.5 px-2.5 transition-colors bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300"
+                    className="py-1.5 px-2.5 transition-colors bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400"
                   >
                     <CheckCircle className="h-3 w-3 mr-1" />
                     {method?.name || methodId}
@@ -1396,7 +1398,7 @@ export function PaymentMethodsStep() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="method-description">{t("Description")}</Label>
+              <Label htmlFor="method-description">{tCommon("description")}</Label>
               <Input
                 id="method-description"
                 placeholder={t("brief_description_of_the_payment_method")}
@@ -1407,7 +1409,7 @@ export function PaymentMethodsStep() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="method-processing-time">
-                {t("processing_time")}
+                {tCommon("processing_time")}
               </Label>
               <Input
                 id="method-processing-time"
@@ -1419,7 +1421,7 @@ export function PaymentMethodsStep() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="method-instructions">
-                {t("payment_instructions")}
+                {tCommon("payment_instructions")}
               </Label>
               <Textarea
                 id="method-instructions"
@@ -1435,7 +1437,7 @@ export function PaymentMethodsStep() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>
-                  {t("payment_details")}
+                  {tCommon("payment_details")}
                   <span className="text-muted-foreground text-xs ml-2">
                     ({t("e_g_account_number_email")})
                   </span>
@@ -1449,14 +1451,14 @@ export function PaymentMethodsStep() {
                   className="h-7 text-xs"
                 >
                   <Plus className="h-3 w-3 mr-1" />
-                  {t("add_field")}
+                  {tCommon("add_field")}
                 </Button>
               </div>
               <div className="space-y-2 max-h-[200px] overflow-y-auto">
                 {newMethodMetadata.map((field, index) => (
                   <div key={index} className="flex gap-2 items-center">
                     <Input
-                      placeholder={t("field_name")}
+                      placeholder={tCommon("field_name")}
                       value={field.key}
                       onChange={(e) => handleMetadataChange(index, "key", e.target.value)}
                       className="flex-1"
@@ -1492,7 +1494,7 @@ export function PaymentMethodsStep() {
               onClick={() => setNewMethodOpen(false)}
               className="w-full sm:w-auto"
             >
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
             <Button
               onClick={handleAddCustomMethod}
@@ -1505,7 +1507,7 @@ export function PaymentMethodsStep() {
               {isCreatingMethod ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t("Creating")}...
+                  {tCommon('creating_ellipsis')}...
                 </>
               ) : (
                 "Add Method"

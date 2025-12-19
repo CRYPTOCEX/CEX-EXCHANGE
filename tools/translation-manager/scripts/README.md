@@ -1,55 +1,100 @@
 # Translation Manager Scripts
 
-This folder contains all scripts related to translation management for the application.
+This folder contains CLI scripts for translation management tasks.
 
 ## Scripts
 
-### Menu Translation Extraction
+### extract-menu-translations-v2.js
 
-- **extract-menu-translations-v2.js** - Current version that extracts menu translations from `frontend/config/menu.ts` and updates all 90 locale files
-  - Properly creates nested JSON structure
-  - Generates `menu-translations.json` with extracted keys
-  - Usage: `node extract-menu-translations-v2.js`
+Extracts menu translations from `frontend/config/menu.ts` and updates all locale files.
 
-- **extract-menu-translations.js** - Legacy version (kept for reference)
+**Features:**
+- Properly creates nested JSON structure
+- Updates all 90+ locale files
+- Used by the Translation Manager API
 
-### General Translation Management
+**Usage:**
+```bash
+node scripts/extract-menu-translations-v2.js
+```
 
-- **extract-translation.js** - Extracts translation keys from the codebase
-  - Scans frontend code for translation usage
-  - Identifies missing translations
-  - Usage: `node extract-translation.js`
+### update-usetranslations.js
 
-- **sync-translations.js** - Synchronizes translation keys across all locale files
-  - Ensures all locales have the same keys
-  - Adds missing keys with fallback values
-  - Usage: `node sync-translations.js`
+Updates `useTranslations()` calls in source files to use correct namespaces.
 
-- **fix-locale-structure.js** - Fixes and validates locale file structure
-  - Converts flat keys to nested structure
-  - Validates JSON syntax
-  - Usage: `node fix-locale-structure.js`
+**Features:**
+- Handles files needing MULTIPLE namespaces
+- Analyzes which keys each file uses
+- Maps keys to their correct namespaces
+- Generates multiple useTranslations calls when needed (e.g., `t`, `tCommon`, `tExt`)
+- Updates t() calls to use the correct translator function
 
-### Validation & Debugging
+**Usage:**
+```bash
+# Preview changes without modifying files
+node scripts/update-usetranslations.js --dry-run
 
-- **check-flat-keys.js** - Checks for flat keys with dots in locale files
-  - Identifies keys that need to be converted to nested structure
-  - Usage: `node check-flat-keys.js`
+# Apply changes
+node scripts/update-usetranslations.js
 
-- **check-ext-keys.js** - Checks extension-related translation keys
-  - Usage: `node check-ext-keys.js`
-
-## Output Files
-
-- **menu-translations.json** - Generated file containing extracted menu translations in flat format for reference
+# Verbose output
+node scripts/update-usetranslations.js --verbose
+```
 
 ## Integration
 
-These scripts are integrated into the Translation Manager web interface and can be run via:
-- Web UI at `http://localhost:3000/tools/translation-manager`
-- Backend API endpoints in `server/routes/tools-v2.routes.js`
-- Direct command line execution
+These scripts are integrated into the Translation Manager:
+- Web UI at `http://localhost:5000`
+- Backend API endpoints in `server/routes/tools.routes.js`
+- Can also be run directly from command line
+
+## Namespace Hierarchy
+
+The Translation Manager uses a hierarchical namespace system based on file paths:
+
+### How Namespaces Work
+
+1. **File-based namespaces** - Derived from file path with max depth of 2:
+   - `frontend/app/[locale]/(ext)/admin/affiliate/page.tsx` -> `ext_admin`
+   - `frontend/app/[locale]/(dashboard)/user/profile/page.tsx` -> `dashboard_user`
+
+2. **Shared namespaces** - Used for keys that appear across multiple files:
+   - `common` - Keys used across different root folders (ext, dashboard, etc.)
+   - `ext` - Keys shared within the (ext) folder
+   - `dashboard` - Keys shared within the (dashboard) folder
+
+3. **Namespace hierarchy** (most specific to least):
+   - `ext_admin_affiliate` (page-specific)
+   - `ext_admin` (section-specific)
+   - `ext` (folder-wide)
+   - `common` (project-wide)
+
+### Key Deduplication
+
+When extracting translations, the system:
+
+1. Checks if the value already exists in the target namespace
+2. Checks parent namespaces (e.g., `ext`, `common`)
+3. Reuses existing keys instead of creating duplicates
+4. Only creates new keys when the value doesn't exist anywhere
+
+### Multi-Namespace Files
+
+When a file uses keys from multiple namespaces, the system:
+
+1. Uses `t` for the primary namespace (file's own or most used)
+2. Uses `tCommon`, `tExt`, `tExtAdmin` etc. for other namespaces
+3. Example:
+
+```typescript
+const t = useTranslations("ext_admin");
+const tCommon = useTranslations("common");
+
+// ...
+title: t("page_title"),           // From ext_admin
+description: tCommon("loading"),  // From common (shared key)
+```
 
 ## Notes
 
-All scripts assume they are run from the project root or handle relative paths correctly from their location in `tools/translation-manager/scripts/`.
+All scripts assume they are run from the project root (`c:\xampp\htdocs\v5`).

@@ -82,39 +82,12 @@ class TranslationManager {
             this.loadTranslationEditor();
         });
         
-        router.register('ai-translate', () => {
-            this.showTab('ai-translate');
-            this.loadAITranslateTab();
-        });
-        
-        // Progress page removed
-        
-        router.register('tools', () => {
-            this.showTab('tools');
-            this.loadToolsTab();
-        });
-        
-        router.register('untranslatable', () => {
-            this.showTab('untranslatable');
-            this.loadUntranslatableTab();
-        });
-        
+        // AI Translation, Untranslatable, Orphaned, JSX Cleanup - now using separate pages via PageRouter
+
         router.register('comparison', () => {
             this.showTab('comparison');
             this.loadComparisonTab();
         });
-        
-        router.register('orphaned', () => {
-            this.showTab('orphaned');
-            this.loadOrphanedTab();
-        });
-        
-        router.register('jsx-cleanup', () => {
-            this.showTab('jsx-cleanup');
-            this.loadJSXCleanupTab();
-        });
-        
-        // Logs page removed
         
         router.register('settings', () => {
             this.showTab('settings');
@@ -156,13 +129,19 @@ class TranslationManager {
     showTab(tabName) {
         // Stop all refresh intervals when switching tabs
         this.stopAllRefreshIntervals();
-        
+
+        // Hide page container if showing
+        const pageContainer = document.getElementById('page-container');
+        if (pageContainer) {
+            pageContainer.classList.add('hidden');
+        }
+
         // Hide all tab content
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.classList.add('hidden');
             tab.classList.remove('active');
         });
-        
+
         // Show selected tab
         const activeTab = document.getElementById(`${tabName}-tab`);
         if (activeTab) {
@@ -171,13 +150,13 @@ class TranslationManager {
         } else {
             console.warn(`Tab element not found: ${tabName}-tab`);
         }
-        
+
         // Update navigation - look for both data-route and data-tab attributes
         document.querySelectorAll('.sidebar-item').forEach(tab => {
             tab.classList.remove('active');
         });
-        
-        const activeNavTab = document.querySelector(`[data-tab="${tabName}"]`) || 
+
+        const activeNavTab = document.querySelector(`[data-tab="${tabName}"]`) ||
                             document.querySelector(`[data-route="${tabName}"]`);
         if (activeNavTab) {
             activeNavTab.classList.add('active');
@@ -209,12 +188,6 @@ class TranslationManager {
     async loadUntranslatableTab() {
         if (window.simpleTabs) {
             simpleTabs.initializeUntranslatable();
-        }
-    }
-
-    async loadToolsTab() {
-        if (window.toolsTab) {
-            toolsTab.initialize();
         }
     }
 

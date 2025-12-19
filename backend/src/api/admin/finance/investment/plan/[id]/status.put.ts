@@ -5,6 +5,8 @@ export const metadata = {
   summary: "Updates the status of an investment plan",
   operationId: "updateInvestmentPlanStatus",
   tags: ["Admin", "Investment Plans"],
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Plan Status",
   parameters: [
     {
       index: 0,
@@ -39,8 +41,14 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
-  return updateStatus("investmentPlan", id, status);
+
+  ctx?.step("Updating investment plan status");
+
+  const result = await updateStatus("investmentPlan", id, status);
+
+  ctx?.success("Investment plan status updated successfully");
+  return result;
 };

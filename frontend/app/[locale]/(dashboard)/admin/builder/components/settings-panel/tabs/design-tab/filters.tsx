@@ -6,11 +6,11 @@ import type { FiltersProps } from "./types";
 import { useTranslations } from "next-intl";
 
 export function Filters({ settings, onSettingChange }: FiltersProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   return (
     <div className="space-y-2 max-w-full">
       <div>
-        <Label className="text-xs mb-1 block">{t("Opacity")}</Label>
+        <Label className="text-xs mb-1 block">{t("opacity")}</Label>
         <SliderWithInput
           value={settings.opacity !== undefined ? settings.opacity * 100 : 100}
           onChange={(value) => onSettingChange("opacity", value / 100)}
@@ -20,7 +20,7 @@ export function Filters({ settings, onSettingChange }: FiltersProps) {
         />
       </div>
       <div>
-        <Label className="text-xs mb-1 block">{t("Blur")}</Label>
+        <Label className="text-xs mb-1 block">{t("blur")}</Label>
         <SliderWithInput
           value={settings.blur || 0}
           onChange={(value) => onSettingChange("blur", value)}
@@ -30,7 +30,7 @@ export function Filters({ settings, onSettingChange }: FiltersProps) {
         />
       </div>
       <div>
-        <Label className="text-xs mb-1 block">{t("Brightness")}</Label>
+        <Label className="text-xs mb-1 block">{t("brightness")}</Label>
         <SliderWithInput
           value={
             settings.brightness !== undefined ? settings.brightness * 100 : 100
@@ -42,7 +42,7 @@ export function Filters({ settings, onSettingChange }: FiltersProps) {
         />
       </div>
       <div>
-        <Label className="text-xs mb-1 block">{t("Contrast")}</Label>
+        <Label className="text-xs mb-1 block">{t("contrast")}</Label>
         <SliderWithInput
           value={
             settings.contrast !== undefined ? settings.contrast * 100 : 100
@@ -54,7 +54,7 @@ export function Filters({ settings, onSettingChange }: FiltersProps) {
         />
       </div>
       <div>
-        <Label className="text-xs mb-1 block">{t("Grayscale")}</Label>
+        <Label className="text-xs mb-1 block">{t("grayscale")}</Label>
         <SliderWithInput
           value={settings.grayscale || 0}
           onChange={(value) => onSettingChange("grayscale", value)}

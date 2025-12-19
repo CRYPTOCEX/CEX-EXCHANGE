@@ -7,15 +7,15 @@ import { createError } from "@b/utils/error";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
-  summary: "Retrieves a list of ecommerce products",
+  summary: "Retrieves active ecommerce products for selection options",
   description:
-    "This endpoint retrieves active ecommerce products for selection in the UI. Only products with status true are returned.",
+    "Returns a simplified list of active ecommerce products (status: true) formatted for use in dropdowns and selection interfaces. Each product includes ID, name, price, and currency.",
   operationId: "getEcommerceProductOptions",
-  tags: ["Ecommerce", "Product"],
+  tags: ["Admin", "Ecommerce", "Product"],
   requiresAuth: true,
   responses: {
     200: {
-      description: "Ecommerce products retrieved successfully",
+      description: "Active ecommerce products retrieved successfully",
       content: {
         "application/json": {
           schema: {
@@ -23,8 +23,14 @@ export const metadata: OperationObject = {
             items: {
               type: "object",
               properties: {
-                id: { type: "string" },
-                name: { type: "string" },
+                id: {
+                  type: "string",
+                  description: "Product ID"
+                },
+                name: {
+                  type: "string",
+                  description: "Product name with price and currency (e.g., 'Product Name - 99.99 USD')"
+                },
               },
             },
           },
@@ -32,14 +38,16 @@ export const metadata: OperationObject = {
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("EcommerceProduct"),
+    404: notFoundMetadataResponse("Ecommerce Products"),
     500: serverErrorResponse,
   },
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) throw createError(401, "Unauthorized");
+
+  ctx?.step("Fetching product options");
 
   try {
     const products = await models.ecommerceProduct.findAll({
@@ -50,6 +58,8 @@ export default async (data: Handler) => {
       id: product.id,
       name: `${product.name} - ${product.price} ${product.currency}`,
     }));
+
+    ctx?.success(`Retrieved ${formatted.length} product options`);
 
     return formatted;
   } catch (error) {

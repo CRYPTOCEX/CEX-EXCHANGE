@@ -22,9 +22,9 @@ import { cn, formatCurrency } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { getNftImageUrl } from "@/lib/nft-utils";
-
 export default function FeaturedNFTs() {
-  const t = useTranslations("nft");
+  const t = useTranslations("ext_nft");
+  const tCommon = useTranslations("common");
   const { featuredTokens, categories, fetchFeaturedTokens, fetchCategories } = useNftStore();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -67,8 +67,8 @@ export default function FeaturedNFTs() {
   };
 
   return (
-    <section ref={ref} className="py-20 bg-background">
-      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 max-w-[1920px]">
+    <section ref={ref} className="py-20">
+      <div className="container">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
           <div>
@@ -169,7 +169,7 @@ export default function FeaturedNFTs() {
                     onClick={() => setSelectedCategory("all")}
                     className="mt-4"
                   >
-                    {t("view_all_categories")}
+                    {tCommon("view_all_categories")}
                   </Button>
                 )}
               </div>
@@ -235,7 +235,7 @@ export default function FeaturedNFTs() {
                           <p className="text-xs text-muted-foreground truncate">{token.collection?.name}</p>
                           <p className="font-bold text-sm mt-1">
                             {token.currentListing?.price
-                              ? formatCurrency(parseFloat(token.currentListing.price), token.currentListing.currency)
+                              ? formatCurrency(Number(token.currentListing.price), token.currentListing.currency)
                               : "Not listed"}
                           </p>
                         </div>
@@ -303,7 +303,7 @@ export default function FeaturedNFTs() {
                         <div className="col-span-1 text-right">
                           <div className="font-bold">
                             {token.currentListing?.price
-                              ? formatCurrency(parseFloat(token.currentListing.price), token.currentListing.currency)
+                              ? formatCurrency(Number(token.currentListing.price), token.currentListing.currency)
                               : "-"}
                           </div>
                         </div>
@@ -422,7 +422,7 @@ export default function FeaturedNFTs() {
                             </div>
                             <div className="font-bold">
                               {token.currentListing?.price
-                                ? formatCurrency(parseFloat(token.currentListing.price), token.currentListing.currency)
+                                ? formatCurrency(Number(token.currentListing.price), token.currentListing.currency)
                                 : "Not listed"}
                             </div>
                           </div>

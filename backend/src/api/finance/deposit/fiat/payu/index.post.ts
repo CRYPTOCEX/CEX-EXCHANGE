@@ -18,6 +18,8 @@ export const metadata = {
   operationId: 'createPayUPayment',
   tags: ['Finance', 'Deposit', 'PayU'],
   requiresAuth: true,
+  logModule: "PAYU_DEPOSIT",
+  logTitle: "Create PayU payment session",
   requestBody: {
     required: true,
     content: {

@@ -185,6 +185,13 @@ class ApiClient {
         });
     }
 
+    async removeUntranslatable(items) {
+        return this.request('/untranslatable/remove', {
+            method: 'POST',
+            body: JSON.stringify({ items })
+        });
+    }
+
     // Comparison tools
     async compareLocales(source, target) {
         return this.request('/compare', {

@@ -6,7 +6,7 @@ import zlib from "zlib";
 import { Response } from "../handler/Response";
 import { getMime } from "./mime";
 import { sanitizePath, sanitizeUserPath } from "./validation";
-import { logError } from "./logger";
+import { logger } from "./console";
 
 export const appName = process.env.NEXT_PUBLIC_SITE_NAME || "Platform";
 export const appSupport =
@@ -78,17 +78,10 @@ export const allowedOrigins = [
   ...getProdOrigins(),
 ];
 
-// Helper function to log CORS configuration for debugging
+// Helper function to log CORS configuration (call manually if debugging CORS issues)
 export const logCORSConfiguration = () => {
   const isDev = process.env.NODE_ENV === "development";
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  
-  console.log('\x1b[36m%s\x1b[0m', `[CORS] Environment: ${isDev ? 'Development' : 'Production'}`);
-  console.log('\x1b[36m%s\x1b[0m', `[CORS] Site URL: ${siteUrl || 'Not set'}`);
-  console.log('\x1b[36m%s\x1b[0m', `[CORS] Allowed Origins:`);
-  allowedOrigins.forEach((origin, index) => {
-    console.log('\x1b[32m%s\x1b[0m', `  ${index + 1}. ${origin}`);
-  });
+  logger.debug("CORS", `${isDev ? 'Dev' : 'Prod'} mode, ${allowedOrigins.length} origins configured`);
 };
 
 export const notFoundResponse = `<!DOCTYPE html>
@@ -166,7 +159,8 @@ export const apiResponse = `
     <h1>${appName} Backend Service</h1>
     <p>Status: <strong class="status">Live</strong></p>
     <p>This is the backend service for <strong>${appName}</strong>. All systems operational.</p>
-    <p>API Documentation: <a href="/api/docs/v1">View Documentation</a></p>
+    <p>API Documentation: <a href="${process.env.NEXT_PUBLIC_SITE_URL || ""}/api-docs">View Documentation</a></p>
+    <p>Raw OpenAPI Spec: <a href="/api/docs/swagger.json">swagger.json</a></p>
     <!-- Additional UI elements could be added here -->
     <div class="footer">
       <p>Need help? <a href="mailto:${appSupport}">Contact Support</a></p>
@@ -207,8 +201,7 @@ export function setupDefaultRoutes(app) {
 export function setupProcessEventHandlers() {
   process.on("uncaughtException", (error) => {
     const errorMessage = error.stack || `Uncaught Exception: ${error.message}`;
-    console.error(errorMessage);
-    logError("uncaughtException", error, __filename);
+    logger.error("SYSTEM", errorMessage, error);
     // Perform cleanup or other necessary steps before a forced exit
     process.exit(1); // Exit with a non-zero status to indicate an error
   });
@@ -218,19 +211,17 @@ export function setupProcessEventHandlers() {
       reason instanceof Error
         ? reason.stack || reason.message
         : JSON.stringify(reason);
-    console.error(
-      `Unhandled Rejection at: ${promise}, reason: ${reasonMessage}`
-    );
-    logError("unhandledRejection", new Error(reasonMessage), __filename);
+    const error = reason instanceof Error ? reason : new Error(reasonMessage);
+    logger.error("SYSTEM", `Unhandled Rejection at: ${promise}, reason: ${reasonMessage}`, error);
   });
 
   process.on("SIGINT", async () => {
-    console.info("Server is shutting down...");
+    logger.info("SYSTEM", "Server is shutting down...");
     process.exit();
   });
 
   process.on("SIGTERM", async () => {
-    console.info("Server received stop signal, shutting down gracefully");
+    logger.info("SYSTEM", "Server received stop signal, shutting down gracefully");
     process.exit();
   });
 }
@@ -442,16 +433,16 @@ export function serveStaticFile(res, req, filePath, markResponseSent) {
 
   res.onAborted(() => {
     aborted = true;
-    console.log("Request was aborted");
+    logger.debug("STATIC", "Request was aborted");
   });
 
   try {
     // Debug logging for production troubleshooting
     const isDebugMode = process.env.DEBUG_STATIC_FILES === "true";
     if (isDebugMode) {
-      console.log(`[DEBUG] Static file request: ${filePath}`);
-      console.log(`[DEBUG] Current working directory: ${process.cwd()}`);
-      console.log(`[DEBUG] NODE_ENV: ${process.env.NODE_ENV}`);
+      logger.debug("STATIC", `Static file request: ${filePath}`);
+      logger.debug("STATIC", `Current working directory: ${process.cwd()}`);
+      logger.debug("STATIC", `NODE_ENV: ${process.env.NODE_ENV}`);
     }
 
     // Enhanced security: Use sanitizeUserPath for user-provided paths
@@ -459,10 +450,10 @@ export function serveStaticFile(res, req, filePath, markResponseSent) {
     try {
       sanitizedFilePath = sanitizeUserPath(filePath);
       if (isDebugMode) {
-        console.log(`[DEBUG] Sanitized path: ${sanitizedFilePath}`);
+        logger.debug("STATIC", `Sanitized path: ${sanitizedFilePath}`);
       }
     } catch (sanitizeError) {
-      console.error(`[ERROR] Path sanitization failed for ${filePath}:`, sanitizeError.message);
+      logger.error("STATIC", `Path sanitization failed for ${filePath}: ${sanitizeError.message}`);
       if (!aborted) {
         res.writeStatus("403 Forbidden").end();
         markResponseSent();
@@ -518,10 +509,10 @@ export function serveStaticFile(res, req, filePath, markResponseSent) {
 
     // Debug logging for the resolved path
     if (isDebugMode) {
-      console.log(`[DEBUG] Resolved full path: ${fullPath}`);
-      console.log(`[DEBUG] File exists: ${fs.existsSync(fullPath)}`);
+      logger.debug("STATIC", `Resolved full path: ${fullPath}`);
+      logger.debug("STATIC", `File exists: ${fs.existsSync(fullPath)}`);
       if (fs.existsSync(fullPath)) {
-        console.log(`[DEBUG] Is file: ${fs.lstatSync(fullPath).isFile()}`);
+        logger.debug("STATIC", `Is file: ${fs.lstatSync(fullPath).isFile()}`);
       }
     }
 
@@ -592,7 +583,7 @@ export function serveStaticFile(res, req, filePath, markResponseSent) {
 
     // File not found - log for debugging if enabled
     if (isDebugMode) {
-      console.log(`[DEBUG] File not found: ${fullPath}`);
+      logger.debug("STATIC", `File not found: ${fullPath}`);
     }
     
     if (!aborted) {
@@ -601,7 +592,7 @@ export function serveStaticFile(res, req, filePath, markResponseSent) {
     }
     return true;
   } catch (error) {
-    console.error("Error serving static file:", error);
+    logger.error("STATIC", `Error serving static file`, error);
     if (!aborted) {
       res.writeStatus("500 Internal Server Error").end();
       markResponseSent();

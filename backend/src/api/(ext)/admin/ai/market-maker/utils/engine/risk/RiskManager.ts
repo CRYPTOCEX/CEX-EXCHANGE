@@ -1,4 +1,4 @@
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import type { MarketMakerEngine } from "../MarketMakerEngine";
 import { VolatilityMonitor } from "./VolatilityMonitor";
 import { LossProtection } from "./LossProtection";
@@ -122,7 +122,7 @@ export class RiskManager {
         riskLevel: this.calculateOverallRiskLevel(),
       };
     } catch (error) {
-      logError("ai-market-maker-risk-check", error, __filename);
+      logger.error("RISK_MANAGER", "Risk check failed", error);
 
       // On error, be conservative
       return {
@@ -176,7 +176,7 @@ export class RiskManager {
 
       return { approved: true };
     } catch (error) {
-      logError("ai-market-maker-assess-trade", error, __filename);
+      logger.error("RISK_MANAGER", "Trade assessment failed", error);
       return {
         approved: false,
         reason: "Trade assessment failed",

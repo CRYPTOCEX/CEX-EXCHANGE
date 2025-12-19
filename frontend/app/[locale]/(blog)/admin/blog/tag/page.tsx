@@ -1,8 +1,16 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { tagAnalytics } from "./analytics";
+import { Tag } from "lucide-react";
+import { useColumns, useFormConfig } from "./columns";
+import { useAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
+
 export default function TagPage() {
+  const t = useTranslations("blog_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+  const analytics = useAnalytics();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/blog/tag"
@@ -14,15 +22,21 @@ export default function TagPage() {
         edit: "edit.blog.tag",
         delete: "delete.blog.tag",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate
       canEdit
       canDelete
       canView
-      title="Tag Management"
+      title={t("tag_management")}
+      description={t("manage_blog_tags_to_help_categorize")}
       itemTitle="Tag"
       columns={columns}
-      analytics={tagAnalytics}
+      formConfig={formConfig}
+      analytics={analytics}
+      design={{
+        animation: "orbs",
+        icon: Tag,
+      }}
     />
   );
 }

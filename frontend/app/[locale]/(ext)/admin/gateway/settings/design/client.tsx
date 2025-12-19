@@ -32,38 +32,119 @@ import {
 
 import { Layers } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 type ViewportSize = "mobile" | "tablet" | "desktop" | "full";
-type PreviewState = "loading" | "not_authenticated" | "wallet_loading" | "sufficient_balance" | "insufficient_balance" | "no_wallet" | "multi_wallet" | "processing" | "success" | "error";
+type PreviewState =
+  | "loading"
+  | "not_authenticated"
+  | "wallet_loading"
+  | "sufficient_balance"
+  | "insufficient_balance"
+  | "no_wallet"
+  | "multi_wallet"
+  | "processing"
+  | "success"
+  | "error";
 
-const VIEWPORT_SIZES: Record<ViewportSize, { width: number; height: number; icon: React.ReactNode; label: string }> = {
-  mobile: { width: 375, height: 700, icon: <Smartphone className="w-4 h-4" />, label: "Mobile" },
-  tablet: { width: 768, height: 1024, icon: <Tablet className="w-4 h-4" />, label: "Tablet" },
-  desktop: { width: 1280, height: 800, icon: <Monitor className="w-4 h-4" />, label: "Desktop" },
-  full: { width: 0, height: 0, icon: <Monitor className="w-4 h-4" />, label: "Full Width" },
+const VIEWPORT_SIZES: Record<
+  ViewportSize,
+  { width: number; height: number; icon: React.ReactNode; label: string }
+> = {
+  mobile: {
+    width: 375,
+    height: 700,
+    icon: <Smartphone className="w-4 h-4" />,
+    label: "Mobile",
+  },
+  tablet: {
+    width: 768,
+    height: 1024,
+    icon: <Tablet className="w-4 h-4" />,
+    label: "Tablet",
+  },
+  desktop: {
+    width: 1280,
+    height: 800,
+    icon: <Monitor className="w-4 h-4" />,
+    label: "Desktop",
+  },
+  full: {
+    width: 0,
+    height: 0,
+    icon: <Monitor className="w-4 h-4" />,
+    label: "Full Width",
+  },
 };
 
-const PREVIEW_STATES: Record<PreviewState, { label: string; icon: React.ReactNode; description: string }> = {
-  loading: { label: "Loading", icon: <Loader2 className="w-4 h-4 animate-spin" />, description: "Initial page load" },
-  not_authenticated: { label: "Not Logged In", icon: <User className="w-4 h-4" />, description: "User needs to sign in" },
-  wallet_loading: { label: "Loading Wallet", icon: <Loader2 className="w-4 h-4 animate-spin" />, description: "Fetching wallet balance" },
-  sufficient_balance: { label: "Ready to Pay", icon: <Wallet className="w-4 h-4" />, description: "User has enough balance" },
-  insufficient_balance: { label: "Low Balance", icon: <AlertTriangle className="w-4 h-4" />, description: "Need to add funds" },
-  no_wallet: { label: "No Wallet", icon: <XCircle className="w-4 h-4" />, description: "Wallet not found" },
-  multi_wallet: { label: "Multi-Wallet", icon: <Layers className="w-4 h-4" />, description: "Paying from multiple wallets" },
-  processing: { label: "Processing", icon: <Loader2 className="w-4 h-4 animate-spin" />, description: "Payment in progress" },
-  success: { label: "Success", icon: <CheckCircle className="w-4 h-4" />, description: "Payment completed" },
-  error: { label: "Error", icon: <XCircle className="w-4 h-4" />, description: "Payment failed" },
+const PREVIEW_STATES: Record<
+  PreviewState,
+  { label: string; icon: React.ReactNode; description: string }
+> = {
+  loading: {
+    label: "Loading",
+    icon: <Loader2 className="w-4 h-4 animate-spin" />,
+    description: "Initial page load",
+  },
+  not_authenticated: {
+    label: "Not Logged In",
+    icon: <User className="w-4 h-4" />,
+    description: "User needs to sign in",
+  },
+  wallet_loading: {
+    label: "Loading Wallet",
+    icon: <Loader2 className="w-4 h-4 animate-spin" />,
+    description: "Fetching wallet balance",
+  },
+  sufficient_balance: {
+    label: "Ready to Pay",
+    icon: <Wallet className="w-4 h-4" />,
+    description: "User has enough balance",
+  },
+  insufficient_balance: {
+    label: "Low Balance",
+    icon: <AlertTriangle className="w-4 h-4" />,
+    description: "Need to add funds",
+  },
+  no_wallet: {
+    label: "No Wallet",
+    icon: <XCircle className="w-4 h-4" />,
+    description: "Wallet not found",
+  },
+  multi_wallet: {
+    label: "Multi-Wallet",
+    icon: <Layers className="w-4 h-4" />,
+    description: "Paying from multiple wallets",
+  },
+  processing: {
+    label: "Processing",
+    icon: <Loader2 className="w-4 h-4 animate-spin" />,
+    description: "Payment in progress",
+  },
+  success: {
+    label: "Success",
+    icon: <CheckCircle className="w-4 h-4" />,
+    description: "Payment completed",
+  },
+  error: {
+    label: "Error",
+    icon: <XCircle className="w-4 h-4" />,
+    description: "Payment failed",
+  },
 };
 
 export default function DesignClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const searchParams = useSearchParams();
-  const initialDesign = (searchParams.get("design") as CheckoutDesignVariant) || "v2";
+  const initialDesign =
+    (searchParams.get("design") as CheckoutDesignVariant) || "v2";
 
-  const [selectedDesign, setSelectedDesign] = useState<CheckoutDesignVariant>(initialDesign);
+  const [selectedDesign, setSelectedDesign] =
+    useState<CheckoutDesignVariant>(initialDesign);
   const [viewport, setViewport] = useState<ViewportSize>("full");
-  const [previewState, setPreviewState] = useState<PreviewState>("sufficient_balance");
+  const [previewState, setPreviewState] =
+    useState<PreviewState>("sufficient_balance");
   const [iframeKey, setIframeKey] = useState(0);
 
   // Force iframe reload when design or state changes
@@ -74,7 +155,7 @@ export default function DesignClient() {
   const previewUrl = `/admin/gateway/settings/design/preview?design=${selectedDesign}&state=${previewState}`;
 
   return (
-    <div className="min-h-screen bg-muted/30 flex flex-col">
+    <div className={`min-h-screen bg-muted/30 flex flex-col`}>
       {/* Toolbar */}
       <div className="sticky top-0 z-50 bg-background border-b shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
@@ -82,14 +163,12 @@ export default function DesignClient() {
           <div className="flex items-center gap-4">
             <Link href="/admin/gateway/settings">
               <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                {t("back_to_settings")}
+                <ArrowLeft className="w-4 h-4" />
               </Button>
             </Link>
             <div className="h-6 w-px bg-border" />
             <div>
               <h1 className="font-semibold">{t("checkout_design")}</h1>
-              <p className="text-xs text-muted-foreground">{t("test_different_designs_states_and_viewports")}</p>
             </div>
           </div>
 
@@ -97,8 +176,15 @@ export default function DesignClient() {
           <div className="flex items-center gap-4">
             {/* Design Selector */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">{t("design")}:</span>
-              <Select value={selectedDesign} onValueChange={(v) => setSelectedDesign(v as CheckoutDesignVariant)}>
+              <span className="text-sm text-muted-foreground">
+                {t("design")}:
+              </span>
+              <Select
+                value={selectedDesign}
+                onValueChange={(v) =>
+                  setSelectedDesign(v as CheckoutDesignVariant)
+                }
+              >
                 <SelectTrigger className="w-[160px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -133,23 +219,32 @@ export default function DesignClient() {
 
             {/* State Selector */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">{t("State")}:</span>
-              <Select value={previewState} onValueChange={(v) => setPreviewState(v as PreviewState)}>
+              <span className="text-sm text-muted-foreground">
+                {t("state")}:
+              </span>
+              <Select
+                value={previewState}
+                onValueChange={(v) => setPreviewState(v as PreviewState)}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(PREVIEW_STATES).map(([key, { label, icon, description }]) => (
-                    <SelectItem key={key} value={key}>
-                      <div className="flex items-center gap-2">
-                        {icon}
-                        <div>
-                          <div className="font-medium">{label}</div>
-                          <div className="text-xs text-muted-foreground">{description}</div>
+                  {Object.entries(PREVIEW_STATES).map(
+                    ([key, { label, icon, description }]) => (
+                      <SelectItem key={key} value={key}>
+                        <div className="flex items-center gap-2">
+                          {icon}
+                          <div>
+                            <div className="font-medium">{label}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {description}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </SelectItem>
-                  ))}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -176,7 +271,10 @@ export default function DesignClient() {
         {viewport !== "full" && (
           <div className="bg-muted/50 border-t px-4 py-1.5 text-center">
             <span className="text-xs text-muted-foreground">
-              {t("viewport")}: {VIEWPORT_SIZES[viewport].label} ({VIEWPORT_SIZES[viewport].width}{t("px")} {VIEWPORT_SIZES[viewport].height}{t("px_1")}
+              {t("viewport")}: {VIEWPORT_SIZES[viewport].label} (
+              {VIEWPORT_SIZES[viewport].width}
+              {tCommon("px")} {VIEWPORT_SIZES[viewport].height}
+              {tCommon("px")}
             </span>
           </div>
         )}

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { getStates, type State } from "@/lib/countries";
+import { useTranslations } from "next-intl";
 
 interface StateSelectProps {
   value?: string;
@@ -37,6 +38,7 @@ export function StateSelect({
   disabled = false,
   className,
 }: StateSelectProps) {
+  const t = useTranslations("components");
   const [open, setOpen] = React.useState(false);
   const [states, setStates] = React.useState<State[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -81,7 +83,7 @@ export function StateSelect({
       >
         <span className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading states...
+          {t("loading_states_ellipsis")}
         </span>
       </Button>
     );
@@ -107,9 +109,9 @@ export function StateSelect({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
-          <CommandInput placeholder="Search state..." />
+          <CommandInput placeholder={t("search_state_ellipsis")} />
           <CommandList>
-            <CommandEmpty>No state found.</CommandEmpty>
+            <CommandEmpty>{t("no_state_found")}</CommandEmpty>
             <CommandGroup className="max-h-64 overflow-auto">
               {states.map((state) => (
                 <CommandItem

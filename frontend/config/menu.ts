@@ -479,72 +479,16 @@ export const adminMenu: MenuItem[] = [
             icon: "ph:globe-duotone",
             extension: "ecosystem",
             permission: "access.ecosystem",
+            href: "/admin/ecosystem",
             description:
               "Decentralized trading ecosystem with blockchain integration, DeFi protocols, and smart contract automation.",
-            child: [
-              {
-                key: "admin-blockchain-networks",
-                title: "Blockchain Networks",
-                href: "/admin/ecosystem",
-                permission: "access.ecosystem.blockchain",
-                icon: "hugeicons:blockchain-02",
-                description:
-                  "Multi-chain network management with node monitoring, consensus tracking, and network health analytics.",
-              },
-              {
-                key: "admin-master-wallets",
-                title: "Master Wallets",
-                href: "/admin/ecosystem/wallet/master",
-                permission: "access.ecosystem.master.wallet",
-                icon: "ph:vault-duotone",
-                description:
-                  "Enterprise-grade master wallet management with multi-signature security and cold storage integration.",
-              },
-              {
-                key: "admin-custodial-wallets",
-                title: "Custodial Services",
-                href: "/admin/ecosystem/wallet/custodial",
-                permission: "access.ecosystem.custodial.wallet",
-                icon: "ph:shield-check-duotone",
-                description:
-                  "Institutional custodial wallet services with regulatory compliance and insurance coverage.",
-              },
-              {
-                key: "admin-ecosystem-markets",
-                title: "DeFi Markets",
-                href: "/admin/ecosystem/market",
-                permission: "access.ecosystem.market",
-                icon: "ri:exchange-2-line",
-                description:
-                  "Decentralized market management with AMM protocols, liquidity pools, and yield farming integration.",
-              },
-              {
-                key: "admin-token-management",
-                title: "Token Management",
-                href: "/admin/ecosystem/token",
-                permission: "access.ecosystem.token",
-                icon: "ph:coin-duotone",
-                description:
-                  "Comprehensive token lifecycle management with minting, burning, and governance capabilities.",
-              },
-              {
-                key: "admin-utxo-tracking",
-                title: "UTXO Tracking",
-                href: "/admin/ecosystem/utxo",
-                permission: "access.ecosystem.utxo",
-                icon: "carbon:cics-transaction-server-zos",
-                description:
-                  "Advanced UTXO management with transaction graph analysis and privacy-preserving features.",
-              },
-              {
-                key: "admin-blockchain-ledgers",
-                title: "Blockchain Ledgers",
-                href: "/admin/ecosystem/ledger",
-                permission: "access.ecosystem.private.ledger",
-                icon: "ph:books-duotone",
-                description:
-                  "Immutable ledger management with audit trails, compliance reporting, and forensic analysis tools.",
-              },
+            features: [
+              "Native Token Trading Engine",
+              "15+ Blockchain Networks",
+              "Multi-Chain Wallet System",
+              "Market & Limit Orders",
+              "Real-Time Order Book",
+              "WebSocket Price Streaming",
             ],
           },
           {
@@ -553,27 +497,16 @@ export const adminMenu: MenuItem[] = [
             icon: "ph:chart-line-duotone",
             extension: "futures",
             permission: "access.futures.market",
+            href: "/admin/futures/market",
             description:
               "Professional futures trading platform with margin management, risk controls, and institutional execution.",
-            child: [
-              {
-                key: "admin-futures-markets",
-                title: "Futures Markets",
-                href: "/admin/futures/market",
-                permission: "access.futures.market",
-                icon: "ri:exchange-2-line",
-                description:
-                  "Futures market configuration with contract specifications, margin requirements, and settlement procedures.",
-              },
-              {
-                key: "admin-futures-positions",
-                title: "Position Management",
-                href: "/admin/futures/position",
-                permission: "access.futures.position",
-                icon: "humbleicons:exchange-vertical",
-                description:
-                  "Real-time position monitoring with P&L tracking, margin calls, and automated risk management.",
-              },
+            features: [
+              "Perpetual Futures Contracts",
+              "Leverage Trading (1x-100x)",
+              "Long & Short Positions",
+              "Real-Time Liquidation Engine",
+              "Cross-Margin Support",
+              "Funding Rate System",
             ],
           },
           {
@@ -585,6 +518,14 @@ export const adminMenu: MenuItem[] = [
             href: "/admin/forex/account",
             description:
               "Professional forex trading with MetaTrader integration, algorithmic trading, and institutional liquidity.",
+            features: [
+              "Demo & Live Trading Accounts",
+              "Flexible Investment Plans",
+              "Signal & Copy Trading",
+              "Multi-Broker Support (MT4/MT5)",
+              "Fraud Detection System",
+              "Real-Time Analytics Dashboard",
+            ],
           },
           {
             key: "admin-p2p-platform",
@@ -595,6 +536,32 @@ export const adminMenu: MenuItem[] = [
             href: "/admin/p2p",
             description:
               "Peer-to-peer trading platform with escrow services, dispute resolution, and multi-payment gateway support.",
+            features: [
+              "Secure Escrow System",
+              "Smart Offer Matching",
+              "Real-Time Trade Chat",
+              "Dispute Resolution System",
+              "Review & Rating System",
+              "Payment Methods Management",
+            ],
+          },
+          {
+            key: "admin-copy-trading-platform",
+            title: "Copy Trading",
+            icon: "ph:copy-duotone",
+            extension: "copy_trading",
+            permission: "access.copy-trading",
+            href: "/admin/copy-trading",
+            description:
+              "Social trading platform enabling users to follow and automatically copy trades from successful traders.",
+            features: [
+              "Automated Trade Replication",
+              "Leader/Follower System",
+              "Real-Time Copy via WebSocket",
+              "Multiple Copy Modes",
+              "Profit Share Distribution",
+              "Leader Performance Analytics",
+            ],
           },
           {
             key: "admin-ai-market-maker-platform",
@@ -602,54 +569,16 @@ export const adminMenu: MenuItem[] = [
             icon: "ph:robot-duotone",
             extension: "ai_market_maker",
             permission: "access.ai.market-maker",
+            href: "/admin/ai/market-maker",
             description:
               "AI-powered market making system with automated trading bots, liquidity management, and intelligent price discovery.",
-            child: [
-              {
-                key: "admin-ai-market-maker-dashboard",
-                title: "Dashboard",
-                href: "/admin/ai/market-maker",
-                permission: "access.ai.market-maker",
-                icon: "ph:gauge-duotone",
-                description:
-                  "Real-time monitoring dashboard for AI market maker operations with performance metrics and system health.",
-              },
-              {
-                key: "admin-ai-market-maker-markets",
-                title: "Markets",
-                href: "/admin/ai/market-maker/market",
-                permission: "access.ai.market-maker.market",
-                icon: "ph:chart-line-duotone",
-                description:
-                  "Manage AI-powered market makers with configuration, pool management, and bot control.",
-              },
-              {
-                key: "admin-ai-market-maker-analytics",
-                title: "Analytics",
-                href: "/admin/ai/market-maker/analytics",
-                permission: "access.ai.market-maker.analytics",
-                icon: "ph:chart-bar-duotone",
-                description:
-                  "Comprehensive analytics with P&L reports, performance tracking, and market insights.",
-              },
-              {
-                key: "admin-ai-market-maker-settings",
-                title: "Settings",
-                href: "/admin/ai/market-maker/settings",
-                permission: "access.ai.market-maker.settings",
-                icon: "ph:gear-duotone",
-                description:
-                  "Global settings for AI market maker including risk parameters, bot limits, and emergency controls.",
-              },
-              {
-                key: "admin-ai-market-maker-guide",
-                title: "Guide",
-                href: "/admin/ai/market-maker/guide",
-                permission: "access.ai.market-maker",
-                icon: "ph:book-open-duotone",
-                description:
-                  "Comprehensive documentation with bot types, configuration guides, best practices, and troubleshooting.",
-              },
+            features: [
+              "Automated Market Making",
+              "Multiple Bot Personalities",
+              "Price Stabilization System",
+              "Pool-Based Liquidity",
+              "Three Aggression Levels",
+              "Real-Time Monitoring",
             ],
           },
         ],
@@ -668,36 +597,16 @@ export const adminMenu: MenuItem[] = [
             icon: "ph:robot-duotone",
             extension: "ai_investment",
             permission: "access.ai.investment",
+            href: "/admin/ai/investment/plan",
             description:
               "Artificial intelligence-powered investment management with machine learning algorithms and automated portfolio optimization.",
-            child: [
-              {
-                key: "admin-ai-strategies",
-                title: "AI Strategies",
-                href: "/admin/ai/investment/plan",
-                permission: "access.ai.investment.plan",
-                icon: "ph:brain-duotone",
-                description:
-                  "Machine learning investment strategies with backtesting, risk assessment, and performance optimization.",
-              },
-              {
-                key: "admin-ai-durations",
-                title: "Strategy Durations",
-                href: "/admin/ai/investment/duration",
-                permission: "access.ai.investment.duration",
-                icon: "ph:clock-countdown-duotone",
-                description:
-                  "Configure AI strategy timeframes with dynamic rebalancing and market condition adaptations.",
-              },
-              {
-                key: "admin-ai-performance",
-                title: "AI Performance",
-                href: "/admin/ai/investment/log",
-                permission: "access.ai.investment",
-                icon: "ph:chart-line-up-duotone",
-                description:
-                  "AI investment performance analytics with model accuracy tracking and strategy effectiveness metrics.",
-              },
+            features: [
+              "Customizable AI Investment Plans",
+              "Flexible Duration Options",
+              "Automated ROI Distribution",
+              "Multi-Wallet Support (SPOT & ECO)",
+              "Expected Profit Calculator",
+              "Comprehensive Admin Dashboard",
             ],
           },
           {
@@ -709,6 +618,14 @@ export const adminMenu: MenuItem[] = [
             href: "/admin/staking",
             description:
               "Comprehensive staking platform with validator management, reward distribution, and slashing protection.",
+            features: [
+              "Flexible Staking Pools",
+              "Configurable APR Rates",
+              "Auto-Compound Feature",
+              "Earning Frequency Options",
+              "Early Withdrawal Penalties",
+              "Automated Reward Distribution",
+            ],
           },
           {
             key: "admin-ico-platform",
@@ -719,6 +636,14 @@ export const adminMenu: MenuItem[] = [
             href: "/admin/ico",
             description:
               "Initial Coin Offering platform with KYC integration, smart contract deployment, and regulatory compliance.",
+            features: [
+              "Multi-Phase Token Sales",
+              "Advanced Token Vesting",
+              "Creator Portal & Dashboard",
+              "Investor Portfolio Dashboard",
+              "Refund System with Batch Processing",
+              "Multi-Blockchain Support",
+            ],
           },
         ],
       },
@@ -739,6 +664,14 @@ export const adminMenu: MenuItem[] = [
             href: "/admin/ecommerce",
             description:
               "Full-featured e-commerce platform with inventory management, order processing, and multi-vendor support.",
+            features: [
+              "Digital & Physical Products",
+              "Shopping Cart & Checkout",
+              "Multi-Wallet Payments",
+              "Discount & Coupon System",
+              "Order & Shipment Tracking",
+              "Review & Rating System",
+            ],
           },
           {
             key: "admin-nft-marketplace",
@@ -749,6 +682,14 @@ export const adminMenu: MenuItem[] = [
             href: "/admin/nft",
             description:
               "Professional NFT marketplace with minting tools, royalty management, and auction capabilities.",
+            features: [
+              "Multi-Chain NFT Support",
+              "Smart Contract Deployment",
+              "Batch Minting System",
+              "Fixed Price & Auction Sales",
+              "Real-Time Live Bidding",
+              "Automated Royalties (EIP-2981)",
+            ],
           },
         ],
       },
@@ -769,6 +710,14 @@ export const adminMenu: MenuItem[] = [
             href: "/admin/affiliate",
             description:
               "Multi-level affiliate program with commission tracking, performance analytics, and automated payouts.",
+            features: [
+              "3 MLM Structures (Direct/Binary/Unilevel)",
+              "Multi-Level Commission Distribution",
+              "10+ Reward Trigger Conditions",
+              "Referral Link & QR Code Generator",
+              "Network Visualization",
+              "Top Performer Tracking",
+            ],
           },
           {
             key: "admin-knowledge-base",
@@ -779,6 +728,14 @@ export const adminMenu: MenuItem[] = [
             href: "/admin/faq",
             description:
               "Comprehensive knowledge management system with AI-powered search and content optimization.",
+            features: [
+              "Dynamic FAQ Management",
+              "AI-Powered FAQ Generation",
+              "User Feedback System",
+              "Full-Text Search",
+              "Category & Tag Organization",
+              "Analytics Dashboard",
+            ],
           },
           {
             key: "admin-email-marketing",
@@ -786,27 +743,16 @@ export const adminMenu: MenuItem[] = [
             icon: "ph:envelope-duotone",
             extension: "mailwizard",
             permission: "access.mailwizard.campaign",
+            href: "/admin/mailwizard/campaign",
             description:
               "Professional email marketing platform with automation workflows, A/B testing, and analytics.",
-            child: [
-              {
-                key: "admin-email-campaigns",
-                title: "Email Campaigns",
-                href: "/admin/mailwizard/campaign",
-                permission: "access.mailwizard.campaign",
-                icon: "ph:megaphone-duotone",
-                description:
-                  "Create and manage email campaigns with segmentation, personalization, and performance tracking.",
-              },
-              {
-                key: "admin-email-templates",
-                title: "Email Templates",
-                href: "/admin/mailwizard/template",
-                permission: "access.mailwizard.template",
-                icon: "fluent-mdl2:chart-template",
-                description:
-                  "Professional email template library with responsive design and brand customization options.",
-              },
+            features: [
+              "Visual Template Builder",
+              "Drag-and-Drop Editor",
+              "Campaign Management",
+              "Audience Segmentation",
+              "Open & Click Tracking",
+              "A/B Testing Support",
             ],
           },
           {
@@ -817,7 +763,15 @@ export const adminMenu: MenuItem[] = [
             permission: "access.gateway.merchant",
             href: "/admin/gateway",
             description:
-              "Payment gateway system allowing merchants to accept payments through the platform."
+              "Payment gateway system allowing merchants to accept payments through the platform.",
+            features: [
+              "Multi-Wallet Payments",
+              "Merchant Onboarding System",
+              "Dual API Key System",
+              "5 Checkout Themes",
+              "WooCommerce Plugin",
+              "Webhook Notifications",
+            ],
           },
         ],
       },
@@ -834,7 +788,6 @@ export const adminMenu: MenuItem[] = [
       "access.system.announcement",
       "access.cron",
       "access.extension",
-      "access.system.log",
       "access.notification.template",
       "access.settings",
       "access.system.update",
@@ -902,17 +855,8 @@ export const adminMenu: MenuItem[] = [
         icon: "ph:monitor-duotone",
         description:
           "Comprehensive system monitoring with logging, performance metrics, and automated task management.",
-        permission: ["access.system.log", "access.cron"],
+        permission: "access.cron",
         child: [
-          {
-            key: "admin-system-logs",
-            title: "System Logs",
-            href: "/admin/system/log",
-            icon: "ph:file-text-duotone",
-            permission: "access.system.log",
-            description:
-              "Centralized logging system with real-time monitoring, log aggregation, and advanced search capabilities.",
-          },
           {
             key: "admin-scheduled-tasks",
             title: "Scheduled Tasks",
@@ -933,35 +877,35 @@ export const adminMenu: MenuItem[] = [
         description:
           "System maintenance utilities including database optimization, cache management, and migration tools.",
       },
-    ],
-  },
-  {
-    key: "admin-design-customization",
-    title: "Design",
-    icon: "solar:palette-bold-duotone",
-    permission: "access.admin",
-    description:
-      "Customize your website appearance and design with advanced visual tools.",
-    child: [
       {
-        key: "admin-design-builder",
-        title: "Page Builder",
-        href: "/admin/builder",
-        icon: "solar:widget-4-bold-duotone",
-        permission: "access.admin",
-        settingConditions: { landingPageType: "CUSTOM" },
+        key: "admin-appearance",
+        title: "Appearance & Design",
+        icon: "solar:palette-bold-duotone",
         description:
-          "Advanced visual page builder with drag-and-drop interface, responsive design tools, and brand customization options.",
-      },
-      {
-        key: "admin-design-default-editor",
-        title: "Default Pages",
-        href: "/admin/default-editor",
-        icon: "solar:code-bold-duotone",
+          "Customize your website appearance and design with advanced visual tools.",
         permission: "access.admin",
-        settingConditions: { landingPageType: "DEFAULT" },
-        description:
-          "Edit default frontend pages including home, legal pages, and layouts with code editor interface.",
+        child: [
+          {
+            key: "admin-design-builder",
+            title: "Page Builder",
+            href: "/admin/builder",
+            icon: "solar:widget-4-bold-duotone",
+            permission: "access.admin",
+            settingConditions: { landingPageType: "CUSTOM" },
+            description:
+              "Advanced visual page builder with drag-and-drop interface, responsive design tools, and brand customization options.",
+          },
+          {
+            key: "admin-design-default-editor",
+            title: "Default Pages",
+            href: "/admin/default-editor",
+            icon: "solar:code-bold-duotone",
+            permission: "access.admin",
+            settingConditions: { landingPageType: "DEFAULT" },
+            description:
+              "Edit default frontend pages including home, legal pages, and layouts with code editor interface.",
+          },
+        ],
       },
     ],
   },
@@ -1011,42 +955,14 @@ export const userMenu: MenuItem[] = [
         description:
           "Engage in secure peer-to-peer cryptocurrency trading with escrow protection, flexible payment methods, and competitive rates.",
       },
-    ],
-  },
-  {
-    key: "user-portfolio",
-    title: "Portfolio",
-    icon: "solar:wallet-money-bold-duotone",
-    auth: true,
-    description:
-      "Comprehensive portfolio management suite for tracking assets, analyzing performance, and managing your financial instruments across all platforms.",
-    child: [
       {
-        key: "user-portfolio-wallet",
-        title: "Wallet Management",
-        href: "/finance/wallet",
-        icon: "mdi:wallet",
-        auth: true,
+        key: "user-trading-copy",
+        title: "Copy Trading",
+        href: "/copy-trading",
+        icon: "ph:copy-duotone",
+        extension: "copy_trading",
         description:
-          "Secure multi-currency wallet with real-time balance tracking, transaction history, and seamless deposit/withdrawal capabilities.",
-      },
-      {
-        key: "user-portfolio-transactions",
-        title: "Transaction History",
-        href: "/finance/history",
-        icon: "solar:clipboard-list-bold-duotone",
-        auth: true,
-        description:
-          "Detailed transaction records with advanced filtering, export capabilities, and comprehensive audit trails for all financial activities.",
-      },
-      {
-        key: "user-portfolio-transfers",
-        title: "Transfers",
-        href: "/finance/transfer",
-        icon: "solar:transfer-vertical-line-duotone",
-        auth: true,
-        description:
-          "Internal and external transfer services with instant processing, competitive fees, and multi-currency support.",
+          "Follow and automatically copy trades from successful traders with customizable risk settings and real-time performance tracking.",
       },
     ],
   },
@@ -1126,7 +1042,7 @@ export const userMenu: MenuItem[] = [
       {
         key: "user-services-affiliate",
         title: "Affiliate Program",
-        href: "/affiliate/dashboard",
+        href: "/affiliate",
         icon: "mdi:handshake-outline",
         extension: "mlm",
         auth: true,
@@ -1136,10 +1052,9 @@ export const userMenu: MenuItem[] = [
       {
         key: "user-services-merchant",
         title: "Merchant Gateway",
-        href: "/gateway/dashboard",
+        href: "/gateway",
         icon: "ph:storefront-duotone",
         extension: "gateway",
-        auth: true,
         description:
           "Accept payments from customers through our secure payment gateway with API integration and real-time transaction tracking.",
       },

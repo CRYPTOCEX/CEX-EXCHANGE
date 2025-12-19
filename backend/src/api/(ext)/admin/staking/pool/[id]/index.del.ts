@@ -8,6 +8,8 @@ export const metadata: OperationObject = {
   summary: "Deletes a specific Staking Pool",
   operationId: "deleteStakingPool",
   tags: ["Admin", "Staking", "Pools"],
+  logModule: "ADMIN_STAKE",
+  logTitle: "Delete Staking Pool",
   parameters: deleteRecordParams("Staking Pool"),
   responses: deleteRecordResponses("Staking Pool"),
   requiresAuth: true,

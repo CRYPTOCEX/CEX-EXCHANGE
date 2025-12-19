@@ -12,10 +12,10 @@ export function SortingDirection({
   direction,
   onDirectionChange,
 }: SortingDirectionProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components_blocks");
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold">{t("Direction")}</h3>
+      <h3 className="font-semibold">{t("direction")}</h3>
       <div className="flex gap-2">
         <Button
           variant={direction === "asc" ? "soft" : "outline"}
@@ -23,7 +23,7 @@ export function SortingDirection({
           onClick={() => onDirectionChange("asc")}
         >
           <ChevronUp className="h-4 w-4" />
-          {t("Ascending")}
+          {t("ascending")}
         </Button>
         <Button
           variant={direction === "desc" ? "soft" : "outline"}
@@ -31,7 +31,7 @@ export function SortingDirection({
           onClick={() => onDirectionChange("desc")}
         >
           <ChevronDown className="h-4 w-4" />
-          {t("Descending")}
+          {t("descending")}
         </Button>
       </div>
     </div>

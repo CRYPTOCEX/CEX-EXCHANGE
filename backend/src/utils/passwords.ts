@@ -4,6 +4,7 @@ import passwordGenerator from "generate-password";
 import { v4 as uuidv4 } from "uuid";
 import { createError } from "./error";
 import { models } from "@b/db";
+import { logger } from "./console";
 
 /**
  * @desc Returns a random string of 32 characters in hexadecimal
@@ -76,7 +77,7 @@ export async function generateNewPassword(id: string): Promise<Error | string> {
     );
     return password;
   } catch (error) {
-    console.error(error);
+    logger.error("AUTH", "Error generating new password", error);
     throw createError({
       statusCode: 500,
       message: error.message,

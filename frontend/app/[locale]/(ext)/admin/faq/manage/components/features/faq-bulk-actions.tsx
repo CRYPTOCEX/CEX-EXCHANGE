@@ -34,12 +34,14 @@ export function FAQBulkActions({
   onBulkAction,
   onToggleSelectAll,
 }: FAQBulkActionsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   if (!bulkEditMode) {
     return (
       <Button variant="outline" onClick={onToggleBulkEdit}>
         <CheckSquare className="mr-2 h-4 w-4" />
-        {t("bulk_edit")}
+        {tExtAdmin("bulk_edit")}
       </Button>
     );
   }
@@ -53,40 +55,40 @@ export function FAQBulkActions({
         />
         <span className="text-sm">
           {selectedFaqs.length}
-          {t("of")}
+          {tCommon("of")}
           {totalFaqs}
-          {t("selected")}
+          {tCommon("selected")}
         </span>
       </div>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" disabled={selectedFaqs.length === 0}>
-            {t("Actions")}
+            {tCommon("actions")}
             <ChevronDown className="ml-2 h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => onBulkAction("activate")}>
             <Power className="mr-2 h-4 w-4" />
-            <span>{t("Activate")}</span>
+            <span>{tCommon("activate")}</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onBulkAction("deactivate")}>
             <PowerOff className="mr-2 h-4 w-4" />
-            <span>{t("Deactivate")}</span>
+            <span>{tExtAdmin("deactivate")}</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => onBulkAction("delete")}
             className="text-destructive"
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            <span>{t("Delete")}</span>
+            <span>{tCommon("delete")}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
       <Button variant="ghost" onClick={onToggleBulkEdit}>
-        {t("Cancel")}
+        {tCommon("cancel")}
       </Button>
     </div>
   );

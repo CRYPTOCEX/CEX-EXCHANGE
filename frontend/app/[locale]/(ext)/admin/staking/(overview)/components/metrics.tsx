@@ -14,6 +14,8 @@ export default function KeyMetrics({
   activePositions,
 }: KeyMetricsProps) {
   const t = useTranslations("ext");
+  const tExtAdmin = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
@@ -42,7 +44,7 @@ export default function KeyMetrics({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            {t("active_positions")}
+            {tCommon("active_positions")}
           </CardTitle>
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
@@ -63,7 +65,7 @@ export default function KeyMetrics({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            {t("average_apr")}
+            {tExtAdmin("average_apr")}
           </CardTitle>
           <Percent className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
@@ -72,7 +74,7 @@ export default function KeyMetrics({
             {analytics?.averageAPR?.toFixed(2) || "0.00"}%
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            {t("across_all_active_pools")}
+            {tExtAdmin("across_all_active_pools")}
           </p>
         </CardContent>
       </Card>

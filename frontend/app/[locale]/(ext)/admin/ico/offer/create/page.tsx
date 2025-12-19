@@ -7,13 +7,14 @@ export const metadata: Metadata = {
   description: "Create a new token offering on the TokenLaunch platform",
 };
 export default function CreateOfferingPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   return (
-    <div className="container py-8">
+    <div className="container pt-20 pb-8">
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight">
-            {t("create_new_offering")}
+            {tCommon('create_new_offer')}
           </h1>
           <p className="text-muted-foreground">
             {t("create_a_new_token_offering_on_the_platform")}

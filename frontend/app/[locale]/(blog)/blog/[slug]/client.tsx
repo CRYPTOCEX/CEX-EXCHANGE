@@ -20,9 +20,13 @@ import { useParams } from "next/navigation";
 import PostLoading from "./loading";
 import { useConfigStore } from "@/store/config";
 import { useTranslations } from "next-intl";
+import { FloatingShapes, InteractivePattern } from "@/components/sections/shared";
+import { Button } from "@/components/ui/button";
+import { AlertCircle } from "lucide-react";
 
 export default function PostClient() {
-  const t = useTranslations("blog");
+  const t = useTranslations("blog_blog");
+  const tCommon = useTranslations("common");
   const { slug } = useParams() as {
     slug: string;
   };
@@ -62,19 +66,38 @@ export default function PostClient() {
   }, [fetchPost, slug, post]);
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center py-12">
-          <h3 className="text-xl font-medium text-red-600 dark:text-red-400 mb-2">
-            {t("error_loading_post")}
-          </h3>
-          <p className="text-zinc-500 dark:text-zinc-400 mb-8">{error}</p>
-          <Link
-            href="/blog"
-            className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+      <div className="min-h-screen relative overflow-hidden bg-white dark:bg-zinc-950 pt-24">
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
+          }}
+        />
+        <FloatingShapes
+          count={6}
+          interactive={true}
+          theme={{ primary: "indigo", secondary: "purple" }}
+        />
+        <div className="relative z-10 container mx-auto px-4 pb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center max-w-2xl mx-auto"
           >
-            <ChevronLeft className="mr-1 h-4 w-4" />
-            {t("back_to_blog")}
-          </Link>
+            <div className="mb-8 inline-flex items-center justify-center p-8 bg-linear-to-br from-red-500/10 to-orange-500/10 rounded-3xl border border-red-200/50 dark:border-red-900/50">
+              <AlertCircle className="h-16 w-16 text-red-500 dark:text-red-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+              {t("error_loading_post")}
+            </h3>
+            <p className="text-zinc-600 dark:text-zinc-400 mb-8 text-lg">{error}</p>
+            <Link href="/blog">
+              <Button variant="outline" size="lg" className="rounded-full">
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                {t("back_to_blog")}
+              </Button>
+            </Link>
+          </motion.div>
         </div>
       </div>
     );
@@ -83,8 +106,36 @@ export default function PostClient() {
     return <PostLoading />;
   }
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-indigo-50/10 to-white dark:from-black dark:via-indigo-950/5 dark:to-black pb-12 sm:pb-16 md:pb-24">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+    <div className="min-h-screen relative overflow-hidden bg-white dark:bg-zinc-950 pt-24 pb-16">
+      {/* Premium Background */}
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `linear-gradient(180deg, transparent 0%, rgba(99, 102, 241, 0.03) 10%, rgba(139, 92, 246, 0.02) 30%, transparent 60%)`,
+        }}
+      />
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
+        }}
+      />
+      <FloatingShapes
+        count={6}
+        interactive={true}
+        theme={{ primary: "indigo", secondary: "purple" }}
+      />
+      <InteractivePattern
+        config={{
+          enabled: true,
+          variant: "crosses",
+          opacity: 0.01,
+          size: 40,
+          interactive: true,
+        }}
+      />
+
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         <article className="mx-auto max-w-4xl">
           {/* Hero Section */}
           <motion.div
@@ -180,7 +231,7 @@ export default function PostClient() {
                       <div className="flex items-center">
                         <MessageSquare className="mr-1 h-3 w-3 sm:h-4 sm:w-4 text-indigo-300" />
                         <span>
-                          {post.comments.length} {t("comments")}
+                          {post.comments.length} {tCommon("comments")}
                         </span>
                       </div>
                     )}
@@ -272,7 +323,7 @@ export default function PostClient() {
                   </div>
                   <div className="flex-1 text-center sm:text-left">
                     <h3 className="text-lg sm:text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                      {t("About")} {post.author.user.firstName} {post.author.user.lastName}
+                      {tCommon("about")} {post.author.user.firstName} {post.author.user.lastName}
                     </h3>
                     {post.author.user.profile?.bio && (
                       <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-300 leading-relaxed mb-4">
@@ -317,7 +368,7 @@ export default function PostClient() {
               <div className="flex items-center mb-4">
                 <Tag className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600 dark:text-indigo-400 mr-2" />
                 <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-                  {t("Tags")}
+                  {tCommon("tags")}
                 </h3>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -390,7 +441,7 @@ export default function PostClient() {
                               </p>
                             )}
                             <div className="mt-auto text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 font-medium">
-                              {t("read_more_→")}
+                              {tCommon("read_more")}
                             </div>
                           </div>
                         </div>
@@ -419,7 +470,7 @@ export default function PostClient() {
               className="mt-8 sm:mt-10 md:mt-12 border-t border-zinc-200 dark:border-zinc-800 pt-6 sm:pt-8"
             >
               <h3 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6 sm:mb-8">
-                {t("Comments")}
+                {tCommon("comments")}
               </h3>
               <CommentList postId={post.id} />
               <div className="mt-6 sm:mt-8 rounded-xl bg-white dark:bg-zinc-800 p-4 sm:p-6 shadow-sm border border-zinc-100 dark:border-zinc-700">

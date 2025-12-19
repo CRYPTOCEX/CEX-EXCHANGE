@@ -1,4 +1,4 @@
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import type { MarketMakerEngine } from "./MarketMakerEngine";
 import { PriceTracker } from "./PriceTracker";
 import { OrderManager } from "./OrderManager";
@@ -166,8 +166,9 @@ export class MarketInstance {
         // Use last candle close to ensure smooth chart continuation
         this.currentPrice = BigInt(Math.floor(lastCandlePrice * 1e18));
         this.simulatedPrice = this.currentPrice;
-        console.info(
-          `[AI Market Maker] Using last candle close price for ${this.config.symbol}: ${lastCandlePrice}`
+        logger.info(
+          "AI_MM",
+          `Using last candle close price for ${this.config.symbol}: ${lastCandlePrice}`
         );
       } else {
         // No existing candles - get external price or use target
@@ -176,8 +177,9 @@ export class MarketInstance {
         // If no external price available, use target price
         if (this.currentPrice === BigInt(0) && this.config.targetPrice > 0) {
           this.currentPrice = BigInt(Math.floor(this.config.targetPrice * 1e18));
-          console.info(
-            `[AI Market Maker] No external price for ${this.config.symbol}, using target price: ${this.config.targetPrice}`
+          logger.info(
+            "AI_MM",
+            `No external price for ${this.config.symbol}, using target price: ${this.config.targetPrice}`
           );
         }
 
@@ -194,7 +196,7 @@ export class MarketInstance {
       // This prevents the ai_bot_orders table from growing indefinitely
       const deletedOrders = await deleteAiBotOrdersByMarket(this.config.marketId);
       if (deletedOrders > 0) {
-        console.info(`[AI Market Maker] Cleaned up ${deletedOrders} old AI bot orders for ${this.config.symbol}`);
+        logger.info("AI_MM", `Cleaned up ${deletedOrders} old AI bot orders for ${this.config.symbol}`);
       }
 
       // Note: We DON'T clear candles on restart - we want to preserve chart history
@@ -206,10 +208,10 @@ export class MarketInstance {
       await this.seedOrderbook();
 
       this.status = "RUNNING";
-      console.info(`[AI Market Maker] Market instance initialized: ${this.config.symbol}`);
+      logger.success("AI_MM", `Market instance initialized: ${this.config.symbol}`);
     } catch (error) {
       this.status = "ERROR";
-      logError("ai-market-maker-market-init", error, __filename);
+      logger.error("AI_MM", "Market instance initialization error", error);
       throw error;
     }
   }
@@ -223,17 +225,17 @@ export class MarketInstance {
       // Check if we have active bots
       const activeBots = this.config.bots.filter(b => b.status === "ACTIVE");
       if (activeBots.length === 0) {
-        console.warn(`[AI Market Maker] No active bots for ${this.config.symbol}, cannot seed orderbook`);
+        logger.warn("AI_MM", `No active bots for ${this.config.symbol}, cannot seed orderbook`);
         return;
       }
 
       const targetPrice = this.config.targetPrice;
       if (targetPrice <= 0) {
-        console.warn(`[AI Market Maker] No target price for ${this.config.symbol}, cannot seed orderbook`);
+        logger.warn("AI_MM", `No target price for ${this.config.symbol}, cannot seed orderbook`);
         return;
       }
 
-      console.info(`[AI Market Maker] Seeding orderbook for ${this.config.symbol} around target price ${targetPrice}`);
+      logger.info("AI_MM", `Seeding orderbook for ${this.config.symbol} around target price ${targetPrice}`);
 
       // Calculate base order size from bot avg or default
       let baseOrderSize = activeBots.reduce((sum, b) => sum + b.avgOrderSize, 0) / activeBots.length;
@@ -265,11 +267,11 @@ export class MarketInstance {
         baseOrderSize
       );
 
-      console.info(`[AI Market Maker] Seeded orderbook and candles for ${this.config.symbol} at ${targetPrice}`);
+      logger.success("AI_MM", `Seeded orderbook and candles for ${this.config.symbol} at ${targetPrice}`);
     } catch (error) {
-      logError("ai-market-maker-seed-orderbook", error, __filename);
+      logger.error("AI_MM", "Orderbook seeding error", error);
       // Don't fail initialization if seeding fails
-      console.warn(`[AI Market Maker] Failed to seed orderbook for ${this.config.symbol}, continuing anyway`);
+      logger.warn("AI_MM", `Failed to seed orderbook for ${this.config.symbol}, continuing anyway`);
     }
   }
 
@@ -319,9 +321,9 @@ export class MarketInstance {
     // Update the config - this resets daily volume to 0 if database was updated
     this.config = newConfig;
 
-    console.info(
-      `[AI Market Maker] Config updated for ${this.config.symbol}: ` +
-      `dailyVolume=${this.config.currentDailyVolume}/${this.config.maxDailyVolume}`
+    logger.info(
+      "AI_MM",
+      `Config updated for ${this.config.symbol}: dailyVolume=${this.config.currentDailyVolume}/${this.config.maxDailyVolume}`
     );
   }
 
@@ -371,12 +373,12 @@ export class MarketInstance {
       await this.recordPriceHistory();
     } catch (error) {
       this.errorCount++;
-      logError(`ai-market-maker-process-${this.config.symbol}`, error, __filename);
+      logger.error("AI_MM", `Process error for ${this.config.symbol}`, error);
 
       // Too many errors, pause
       if (this.errorCount > 10) {
         this.status = "PAUSED";
-        console.error(`[AI Market Maker] Too many errors, pausing ${this.config.symbol}`);
+        logger.error("AI_MM", `Too many errors, pausing ${this.config.symbol}`);
       }
     }
   }
@@ -399,7 +401,7 @@ export class MarketInstance {
     const activeBots = this.config.bots.filter((b) => b.status === "ACTIVE");
     if (activeBots.length < 2) {
       if (this.processCount % 60 === 0) {
-        console.warn(`[AI Market Maker] Need at least 2 active bots for ${this.config.symbol}, have: ${activeBots.length}`);
+        logger.warn("AI_MM", `Need at least 2 active bots for ${this.config.symbol}, have: ${activeBots.length}`);
       }
       return false;
     }
@@ -409,7 +411,7 @@ export class MarketInstance {
     if (this.config.realLiquidityPercent > 0) {
       if (!this.config.pool || this.config.pool.totalValueLocked <= 0) {
         if (this.processCount % 60 === 0) {
-          console.warn(`[AI Market Maker] Real liquidity enabled but no pool for ${this.config.symbol}`);
+          logger.warn("AI_MM", `Real liquidity enabled but no pool for ${this.config.symbol}`);
         }
         return false;
       }
@@ -418,7 +420,7 @@ export class MarketInstance {
     // Check daily volume limit (if set)
     if (this.config.maxDailyVolume > 0 && this.config.currentDailyVolume >= this.config.maxDailyVolume) {
       if (this.processCount % 60 === 0) {
-        console.warn(`[AI Market Maker] Daily volume limit reached for ${this.config.symbol}: ${this.config.currentDailyVolume}/${this.config.maxDailyVolume}`);
+        logger.warn("AI_MM", `Daily volume limit reached for ${this.config.symbol}: ${this.config.currentDailyVolume}/${this.config.maxDailyVolume}`);
       }
       return false;
     }
@@ -427,7 +429,7 @@ export class MarketInstance {
     if (this.config.pauseOnHighVolatility) {
       const volatility = this.priceTracker.getVolatility();
       if (volatility > this.config.volatilityThreshold) {
-        console.warn(`[AI Market Maker] High volatility (${volatility}%), skipping ${this.config.symbol}`);
+        logger.warn("AI_MM", `High volatility (${volatility}%), skipping ${this.config.symbol}`);
         return false;
       }
     }
@@ -439,9 +441,9 @@ export class MarketInstance {
 
     // Debug logging every 10 ticks
     if (process.env.NODE_ENV === "development" && this.processCount % 10 === 0) {
-      console.debug(
-        `[AI Market Maker DEBUG] ${this.config.symbol} tick #${this.processCount}: ` +
-        `chance=${(tradeChance * 100).toFixed(0)}%, roll=${(roll * 100).toFixed(0)}%, trade=${shouldTrade}`
+      logger.debug(
+        "AI_MM",
+        `${this.config.symbol} tick #${this.processCount}: chance=${(tradeChance * 100).toFixed(0)}%, roll=${(roll * 100).toFixed(0)}%, trade=${shouldTrade}`
       );
     }
 
@@ -525,9 +527,9 @@ export class MarketInstance {
 
     // Always execute trades to create market activity (that's the point of AI market maker)
     // The random chance is already handled in shouldTrade()
-    console.info(
-      `[AI Market Maker] Strategy decision for ${this.config.symbol}: ` +
-      `${direction} | price: ${newSimulatedPrice.toFixed(6)} | target: ${targetPriceNum.toFixed(6)}`
+    logger.info(
+      "AI_MM",
+      `Strategy decision for ${this.config.symbol}: ${direction} | price: ${newSimulatedPrice.toFixed(6)} | target: ${targetPriceNum.toFixed(6)}`
     );
 
     return {

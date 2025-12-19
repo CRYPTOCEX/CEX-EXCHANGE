@@ -5,6 +5,7 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Import Binary Markets from Exchange Markets",
@@ -90,7 +91,7 @@ export default async (data: Handler) => {
       skipped,
     };
   } catch (error) {
-    console.error("Error importing binary markets:", error);
+    logger.error("BINARY", "Error importing binary markets", error);
     throw error;
   }
 }; 

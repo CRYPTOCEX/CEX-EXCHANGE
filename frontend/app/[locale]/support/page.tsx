@@ -20,7 +20,7 @@ import {
 import { useTranslations } from "next-intl";
 
 export default function HomePage() {
-  const t = useTranslations("support");
+  const t = useTranslations("common");
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
       <div className="container mx-auto px-6 pt-16 pb-24 max-w-6xl">
@@ -72,7 +72,7 @@ export default function HomePage() {
             <CardContent>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-zinc-400 mb-4">
                 <li>• {t("track_your_issues_with_unique_ticket_ids")}</li>
-                <li>• {t("set_priority_levels_low_medium_high")}</li>
+                <li>{`• ${t("set_priority_levels_low_medium_high")}`}</li>
                 <li>• {t("real_time_updates_via_websocket")}</li>
                 <li>• {t("full_conversation_history")}</li>
               </ul>
@@ -106,7 +106,7 @@ export default function HomePage() {
                 className="w-full border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-900 dark:text-zinc-100"
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
-                {t("try_live_chat_(bottom_right)")}
+                {`${t("try_live_chat_bottom_right")} (Bottom Right)`}
               </Button>
             </CardContent>
           </Card>
@@ -119,7 +119,7 @@ export default function HomePage() {
                 <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <h3 className="font-semibold mb-2 text-gray-900 dark:text-zinc-100">
-                {t("real-time_updates")}
+                {t("real_time_updates")}
               </h3>
               <p className="text-sm text-gray-600 dark:text-zinc-400">
                 {t("websocket_connections_ensure_status_updates")}

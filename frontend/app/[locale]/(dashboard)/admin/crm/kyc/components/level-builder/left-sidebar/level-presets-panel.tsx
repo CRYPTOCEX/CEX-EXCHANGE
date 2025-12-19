@@ -12,6 +12,7 @@ import {
   FileText,
 } from "lucide-react";
 import { LEVEL_PRESETS } from "../left-sidebar";
+import { useTranslations } from "next-intl";
 interface LevelPresetsPanelProps {
   applyLevelPreset: (presetId: string) => void;
   setLeftSidebarOpen: (open: boolean) => void;
@@ -22,6 +23,8 @@ export function LevelPresetsPanel({
   setLeftSidebarOpen,
   sidebarHeight,
 }: LevelPresetsPanelProps) {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [hoveredPreset, setHoveredPreset] = useState<string | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   return (
@@ -36,10 +39,10 @@ export function LevelPresetsPanel({
           </div>
           <div>
             <h3 className="text-base font-medium text-gray-800 dark:text-white">
-              Level Presets
+              {t("level_presets")}
             </h3>
             <p className="text-xs text-gray-500 dark:text-zinc-400">
-              Start with a pre-built template
+              {t("start_with_a_pre_built_template")}
             </p>
           </div>
         </div>
@@ -62,12 +65,10 @@ export function LevelPresetsPanel({
               </div>
               <div>
                 <h4 className="text-sm font-medium text-gray-800 dark:text-white mb-1">
-                  Quick Start
+                  {tCommon("quick_start")}
                 </h4>
                 <p className="text-xs text-gray-600 dark:text-zinc-200">
-                  Choose a preset to quickly create a verification level with
-                  pre-configured fields. You can customize it further after
-                  applying.
+                  {t("choose_a_preset_to_quickly_create")} {t("you_can_customize_it_further_after_applying_1")}
                 </p>
               </div>
             </div>

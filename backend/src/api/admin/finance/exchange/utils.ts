@@ -1,5 +1,6 @@
 import { models, sequelize } from "@b/db";
 import { Op } from "sequelize";
+import { logger } from "@b/utils/console";
 
 interface StandardizedNetworkData {
   network: string;
@@ -149,7 +150,7 @@ export async function saveLicense(productId: string, username: string) {
       );
     })
     .catch((error) => {
-      console.error("Error in saveLicense:", error);
+      logger.error("EXCHANGE", "Error in saveLicense", error);
       throw new Error(`Failed to save license: ${error.message}`);
     });
 }

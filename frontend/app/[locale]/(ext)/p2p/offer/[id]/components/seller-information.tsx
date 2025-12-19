@@ -18,7 +18,9 @@ interface SellerInformationProps {
 }
 
 export function SellerInformation({ seller, currency }: SellerInformationProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   if (!seller) {
     return null;
   }
@@ -104,7 +106,7 @@ export function SellerInformation({ seller, currency }: SellerInformationProps) 
                 <Star className="h-4 w-4 mr-1 text-yellow-500" />
                 <span className="font-medium">{completionRate}%</span>
                 <span className="mx-1 text-muted-foreground">•</span>
-                <span className="text-muted-foreground">{stats.totalTrades} {t("trades")}</span>
+                <span className="text-muted-foreground">{stats.totalTrades} {tCommon("trades")}</span>
               </div>
               <div className="mt-1">
                 <Badge
@@ -122,12 +124,12 @@ export function SellerInformation({ seller, currency }: SellerInformationProps) 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:ml-auto">
             <div className="text-center p-3 bg-muted/30 rounded-md">
               <p className="text-2xl font-bold">{stats.totalTrades}</p>
-              <p className="text-xs text-muted-foreground">{t("Trades")}</p>
+              <p className="text-xs text-muted-foreground">{tCommon("trades")}</p>
             </div>
             <div className="text-center p-3 bg-muted/30 rounded-md">
               <p className="text-2xl font-bold">{stats.volume.toFixed(2)}</p>
               <p className="text-xs text-muted-foreground">
-                {t("30d_volume")} ({currency || "USD"})
+                {`30d ${tCommon('volume')}`} ({currency || "USD"})
               </p>
             </div>
             <div className="text-center p-3 bg-muted/30 rounded-md">
@@ -136,7 +138,7 @@ export function SellerInformation({ seller, currency }: SellerInformationProps) 
                 <p className="text-sm ml-1">min</p>
               </div>
               <p className="text-xs text-muted-foreground">
-                {t("response_time")}
+                {tCommon("response_time")}
               </p>
             </div>
             <div className="text-center p-3 bg-muted/30 rounded-md">
@@ -144,7 +146,7 @@ export function SellerInformation({ seller, currency }: SellerInformationProps) 
                 <p className="text-2xl font-bold">{completionRate}</p>
                 <p className="text-sm ml-1">%</p>
               </div>
-              <p className="text-xs text-muted-foreground">{t("Completion")}</p>
+              <p className="text-xs text-muted-foreground">{tCommon("completion")}</p>
             </div>
           </div>
         </div>
@@ -155,7 +157,7 @@ export function SellerInformation({ seller, currency }: SellerInformationProps) 
           <h3 className="text-sm font-medium">{t("seller_ratings")}</h3>
           <div className="space-y-3">
             <div className="flex items-center">
-              <span className="text-sm w-32">{t("Communication")}</span>
+              <span className="text-sm w-32">{t("communication")}</span>
               <Progress
                 value={ratings.communication * 20}
                 className="h-2 flex-1"
@@ -165,14 +167,14 @@ export function SellerInformation({ seller, currency }: SellerInformationProps) 
               </span>
             </div>
             <div className="flex items-center">
-              <span className="text-sm w-32">{t("Speed")}</span>
+              <span className="text-sm w-32">{tExtAdmin("speed")}</span>
               <Progress value={ratings.speed * 20} className="h-2 flex-1" />
               <span className="text-sm ml-2 w-8 text-right">
                 {(ratings.speed * 20).toFixed(0)}%
               </span>
             </div>
             <div className="flex items-center">
-              <span className="text-sm w-32">{t("Trust")}</span>
+              <span className="text-sm w-32">{t("trust")}</span>
               <Progress value={ratings.trust * 20} className="h-2 flex-1" />
               <span className="text-sm ml-2 w-8 text-right">
                 {(ratings.trust * 20).toFixed(0)}%

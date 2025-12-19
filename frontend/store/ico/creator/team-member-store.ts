@@ -12,7 +12,7 @@ type TeamMemberStore = {
   fetchTeamMembers: (tokenId: string) => Promise<void>;
   addTeamMember: (
     tokenId: string,
-    member: Omit<icoTeamMemberAttributes, "id" | "offeringId">
+    member: Omit<icoTeamMemberAttributes, "id" | "tokenOfferingId">
   ) => Promise<void>;
   updateTeamMember: (
     tokenId: string,

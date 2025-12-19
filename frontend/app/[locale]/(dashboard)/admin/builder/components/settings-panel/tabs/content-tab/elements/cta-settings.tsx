@@ -6,12 +6,14 @@ import {
   LabeledTextarea,
 } from "../../structure-tab/ui-components";
 import type { SettingsProps } from "../settings-map";
+import { useTranslations } from "next-intl";
 
 export function CtaSettings({
   element,
   settings,
   onSettingChange,
 }: SettingsProps) {
+  const t = useTranslations("dashboard_admin");
   return (
     <div className="space-y-4">
       <LabeledSelect
@@ -39,13 +41,13 @@ export function CtaSettings({
       />
       <LabeledInput
         id="buttonText"
-        label="Button Text"
+        label={t("button_text")}
         value={settings.buttonText || ""}
         onChange={(e) => onSettingChange("buttonText", e.target.value)}
       />
       <LabeledInput
         id="buttonLink"
-        label="Button Link"
+        label={t("button_link")}
         value={settings.buttonLink || ""}
         onChange={(e) => onSettingChange("buttonLink", e.target.value)}
         placeholder="https://example.com"

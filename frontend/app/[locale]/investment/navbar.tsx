@@ -24,5 +24,5 @@ const investmentMenu: MenuItem[] = [
 ];
 
 export default function InvestmentNavbar() {
-  return <SiteHeader menu={investmentMenu} />;
+  return <SiteHeader menu={investmentMenu} adminPath="/admin/ai/investment" />;
 }

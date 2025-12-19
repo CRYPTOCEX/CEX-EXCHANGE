@@ -29,7 +29,8 @@ export default function NFTTradingSettingsSection({
   validationErrors = {},
   hasSubmitted = false,
 }: NFTTradingSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const safeSettings = {
     EnableFixedPriceSales: settings.EnableFixedPriceSales ?? true,
     EnableAuctions: settings.EnableAuctions ?? true,
@@ -140,7 +141,7 @@ export default function NFTTradingSettingsSection({
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="minAuctionDuration">{t("minimum_auction_duration_(hours)")} *</Label>
+                <Label htmlFor="minAuctionDuration">{`${t("minimum_auction_duration_hours")} (hours)`} *</Label>
                 <Input
                   id="minAuctionDuration"
                   type="number"
@@ -150,14 +151,14 @@ export default function NFTTradingSettingsSection({
                   onChange={(e) => onUpdate("MinAuctionDuration", parseHours(e.target.value))}
                   className={hasError("MinAuctionDuration") ? "border-red-500" : ""}
                 />
-                <p className="text-xs text-muted-foreground">{t("minimum_1_hour_maximum_168_hours_(7_days)")}</p>
+                <p className="text-xs text-muted-foreground">{t("minimum_1_hour_maximum_168_hours_7_days")} (7 {tCommon("days")})</p>
                 {getErrorMessage("MinAuctionDuration") && (
                   <p className="text-sm text-red-500">{getErrorMessage("MinAuctionDuration")}</p>
                 )}
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="maxAuctionDuration">{t("maximum_auction_duration_(hours)")} *</Label>
+                <Label htmlFor="maxAuctionDuration">{`${t("maximum_auction_duration_hours")} (hours)`} *</Label>
                 <Input
                   id="maxAuctionDuration"
                   type="number"
@@ -167,14 +168,14 @@ export default function NFTTradingSettingsSection({
                   onChange={(e) => onUpdate("MaxAuctionDuration", parseHours(e.target.value))}
                   className={hasError("MaxAuctionDuration") ? "border-red-500" : ""}
                 />
-                <p className="text-xs text-muted-foreground">{t("minimum_1_hour_maximum_720_hours_(30_days)")}</p>
+                <p className="text-xs text-muted-foreground">{t("minimum_1_hour_maximum_720_hours_30_days")} (30 {tCommon("days")})</p>
                 {getErrorMessage("MaxAuctionDuration") && (
                   <p className="text-sm text-red-500">{getErrorMessage("MaxAuctionDuration")}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bidIncrement">{t("minimum_bid_increment_(%)")} *</Label>
+                <Label htmlFor="bidIncrement">{`${t("minimum_bid_increment")} (%)`} *</Label>
                 <Input
                   id="bidIncrement"
                   type="number"
@@ -192,7 +193,7 @@ export default function NFTTradingSettingsSection({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="antiSnipeExtension">{t("anti-snipe_extension_(seconds)")} *</Label>
+                <Label htmlFor="antiSnipeExtension">{t("anti_snipe_extension_seconds")} *</Label>
                 <Input
                   id="antiSnipeExtension"
                   type="number"
@@ -211,7 +212,7 @@ export default function NFTTradingSettingsSection({
 
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <Label htmlFor="enableAntiSnipe">{t("enable_anti-snipe_protection")}</Label>
+                <Label htmlFor="enableAntiSnipe">{t("enable_anti_snipe_protection")}</Label>
                 <p className="text-sm text-muted-foreground">
                   {t("automatically_extend_auctions_when")}
                 </p>

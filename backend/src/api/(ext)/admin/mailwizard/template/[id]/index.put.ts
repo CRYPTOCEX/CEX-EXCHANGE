@@ -1,10 +1,13 @@
-import { updateRecord, updateRecordResponses } from "@b/utils/query";
+import { updateRecord } from "@b/utils/query";
+import { updateResponses } from "@b/utils/schema/errors";
 import { mailwizardTemplateUpdateSchema } from "../utils";
 
 export const metadata = {
-  summary: "Updates a specific Mailwizard Template",
+  summary: "Update a Mailwizard template",
   operationId: "updateMailwizardTemplate",
-  tags: ["Admin", "Mailwizard Templates"],
+  tags: ["Admin", "Mailwizard", "Templates"],
+  description:
+    "Updates the content and design configuration of a specific Mailwizard template. Both content and design fields must be provided as JSON strings representing the template structure.",
   parameters: [
     {
       index: 0,
@@ -25,18 +28,24 @@ export const metadata = {
       },
     },
   },
-  responses: updateRecordResponses("Mailwizard Template"),
+  responses: updateResponses("Mailwizard Template"),
   requiresAuth: true,
   permission: "edit.mailwizard.template",
+  logModule: "ADMIN_MAIL",
+  logTitle: "Update template",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { content, design } = body;
 
-  return await updateRecord("mailwizardTemplate", id, {
+  ctx?.step("Updating template");
+  const result = await updateRecord("mailwizardTemplate", id, {
     content,
     design,
   });
+
+  ctx?.success("Template updated successfully");
+  return result;
 };

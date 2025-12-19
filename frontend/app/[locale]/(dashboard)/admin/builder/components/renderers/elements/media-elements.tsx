@@ -17,6 +17,7 @@ import { useTranslations } from "next-intl";
 
 export const ImageElementComponent = memo(
   ({ element }: { element: Element }) => {
+    const tDashboardAdmin = useTranslations("dashboard_admin");
     const settings = element.settings || {};
     const {
       objectFit = "cover",
@@ -63,7 +64,7 @@ export const ImageElementComponent = memo(
             style={imageStyle}
           />
         ) : (
-          <div className="text-muted-foreground">Image Placeholder</div>
+          <div className="text-muted-foreground">{tDashboardAdmin("image_placeholder")}</div>
         )}
       </div>
     );
@@ -80,7 +81,7 @@ export function SlideshowGallery({
   images: any[];
   settings: any;
 }) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const [activeIndex, setActiveIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });

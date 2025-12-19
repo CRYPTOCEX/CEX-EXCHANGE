@@ -20,7 +20,7 @@ import {
 import { useTranslations } from "next-intl";
 
 export function BuyersTab() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
   return (
     <Card>
       <CardHeader>
@@ -30,7 +30,7 @@ export function BuyersTab() {
       <CardContent className="space-y-6">
         <div className="space-y-4">
           <h3 className="text-lg font-medium">
-            {t("step-by-step_buying_process")}
+            {t("step_by_step_buying_process")}
           </h3>
           <div className="space-y-4">
             <div className="bg-muted/30 p-4 rounded-lg border">
@@ -82,7 +82,7 @@ export function BuyersTab() {
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span>{t("confirm_the_trade_payment_method)")}</span>
+                      <span>{t("confirm_the_trade_payment_method")}</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
@@ -116,7 +116,7 @@ export function BuyersTab() {
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span>{t("keep_proof_of_transaction_ids)")}</span>
+                      <span>{t("keep_proof_of_transaction_ids")}</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />

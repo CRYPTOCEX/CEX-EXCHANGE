@@ -28,15 +28,23 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Tag"),
   requiresAuth: true,
   permission: "edit.blog.tag",
+  logModule: "ADMIN_BLOG",
+  logTitle: "Update tag",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { name, slug } = body;
 
-  return await updateRecord("tag", id, {
+  ctx?.step("Validating tag ID and data");
+
+  ctx?.step("Updating tag");
+  const result = await updateRecord("tag", id, {
     name,
     slug,
   });
+
+  ctx?.success("Tag updated successfully");
+  return result;
 };

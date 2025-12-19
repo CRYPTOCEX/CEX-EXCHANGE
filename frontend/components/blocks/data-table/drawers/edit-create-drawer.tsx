@@ -40,6 +40,7 @@ interface DrawerProps {
 
 export function EditCreateDrawer({ columns, title }: DrawerProps) {
   const t = useTranslations("common");
+  const tComponentsBlocks = useTranslations("components_blocks");
   const apiEndpoint = useTableStore((state) => state.apiEndpoint);
   const permissions = useTableStore((state) => state.permissions);
   const isCreateDrawerOpen = useTableStore((state) => state.isCreateDrawerOpen);
@@ -64,6 +65,7 @@ export function EditCreateDrawer({ columns, title }: DrawerProps) {
 
   // Initialize react-hook-form
   const form = useForm({
+    // @ts-ignore - Complex Zod type inference causing build issues
     resolver: zodResolver(schema),
     defaultValues,
   });
@@ -196,13 +198,13 @@ export function EditCreateDrawer({ columns, title }: DrawerProps) {
             <AlertDialogTitle>{t("unsaved_changes")}</AlertDialogTitle>
             <AlertDialogDescription>
               {t("you_have_unsaved_changes")}.{" "}
-              {t("are_you_sure_you_want_to_close_this_form")}
+              {tComponentsBlocks("are_you_sure_you_want_to_close_this_form")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={closeDrawer}>
-              {t("Close")}
+              {t("close")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

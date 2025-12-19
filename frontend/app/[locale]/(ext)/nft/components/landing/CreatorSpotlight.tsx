@@ -35,8 +35,8 @@ interface Creator {
 }
 
 export default function CreatorSpotlight() {
-  const t = useTranslations("nft");
-  const { topCreators, fetchTopCreators } = useNftStore();
+  const t = useTranslations("ext_nft");
+  const { topCreators, fetchTopCreators, toggleFollowCreator } = useNftStore();
   const { ref, inView } = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -61,7 +61,8 @@ export default function CreatorSpotlight() {
     totalItems: creator.metrics?.totalItems || 0,
     totalSales: creator.metrics?.totalSales || 0,
     totalVolume: creator.metrics?.totalVolume || 0,
-    followers: 0, // Not tracked in current backend
+    followers: creator.followers || 0,
+    isFollowing: creator.isFollowing || false,
   }));
 
   const getTierColor = (tier?: string) => {
@@ -75,29 +76,29 @@ export default function CreatorSpotlight() {
       case "BRONZE":
         return "from-orange-400 to-amber-600";
       default:
-        return "from-primary to-purple-600";
+        return `from-primary to-purple-600`;
     }
   };
 
-  const handleFollow = (creatorId: string) => {
-    setCreators((prev) =>
-      prev.map((creator) =>
-        creator.id === creatorId
-          ? {
-              ...creator,
-              isFollowing: !creator.isFollowing,
-              followers: creator.isFollowing
-                ? creator.followers - 1
-                : creator.followers + 1,
-            }
-          : creator
-      )
-    );
+  const handleFollow = async (creator: Creator) => {
+    // Use userId from the creator's user object, or fallback to id
+    const userId = creator.id;
+
+    // Find the corresponding creator in topCreators to get userId
+    const backendCreator = topCreators.find(c => c.id === creator.id);
+    const userIdToFollow = backendCreator?.userId || backendCreator?.user?.id;
+
+    if (!userIdToFollow) {
+      console.error('No userId found for creator:', creator);
+      return;
+    }
+
+    await toggleFollowCreator(userIdToFollow);
   };
 
   return (
-    <section ref={ref} className="py-20 bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section ref={ref} className="py-20">
+      <div className="container">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
           <div>
@@ -107,7 +108,7 @@ export default function CreatorSpotlight() {
               transition={{ duration: 0.5 }}
               className="flex items-center gap-3 mb-2"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                 <Palette className="w-5 h-5 text-white" />
               </div>
               <h2 className="text-3xl md:text-4xl font-bold">
@@ -143,7 +144,7 @@ export default function CreatorSpotlight() {
             >
               <div className="bg-card border border-border rounded-2xl overflow-hidden hover:shadow-2xl hover:border-primary/50 transition-all">
                 {/* Banner */}
-                <div className="relative h-24 bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20">
+                <div className={`relative h-24 bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20`}>
                   {creator.banner ? (
                     <img
                       src={creator.banner}
@@ -151,7 +152,7 @@ export default function CreatorSpotlight() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-purple-600/30 to-pink-600/30" />
+                    <div className={`absolute inset-0 bg-gradient-to-br from-primary/30 via-purple-600/30 to-pink-600/30`} />
                   )}
                 </div>
 
@@ -249,7 +250,7 @@ export default function CreatorSpotlight() {
                       size="sm"
                       variant={creator.isFollowing ? "outline" : "default"}
                       className="flex-1 gap-1"
-                      onClick={() => handleFollow(creator.id)}
+                      onClick={() => handleFollow(creator)}
                     >
                       <Users className="w-3 h-3" />
                       {creator.isFollowing ? "Following" : "Follow"}
@@ -281,7 +282,7 @@ export default function CreatorSpotlight() {
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.6 }}
-          className="mt-16 p-8 rounded-2xl bg-gradient-to-r from-primary/10 via-purple-600/10 to-pink-600/10 border border-primary/20"
+          className={`mt-16 p-8 rounded-2xl bg-gradient-to-r from-primary/10 via-purple-600/10 to-pink-600/10 border border-primary/20`}
         >
           <div className="max-w-2xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 rounded-full mb-4 border border-primary/30">
@@ -300,7 +301,7 @@ export default function CreatorSpotlight() {
               <Link href="/nft/create">
                 <Button
                   size="lg"
-                  className="gap-2 bg-gradient-to-r from-primary to-purple-600"
+                  className={`gap-2 bg-gradient-to-r from-primary to-purple-600`}
                 >
                   <Palette className="w-5 h-5" />
                   {t("create_your_first_nft")}

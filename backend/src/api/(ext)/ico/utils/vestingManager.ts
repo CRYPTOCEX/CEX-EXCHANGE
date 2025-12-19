@@ -1,6 +1,7 @@
 import { models, sequelize } from "@b/db";
 import { Op } from "sequelize";
 import { createNotification } from "@b/utils/notifications";
+import { logger } from "@b/utils/console";
 
 export interface VestingSchedule {
   type: "LINEAR" | "CLIFF" | "MILESTONE";
@@ -207,11 +208,11 @@ export async function processVestingReleases(): Promise<void> {
         }, { transaction });
 
       } catch (error) {
-        console.error(`Failed to process vesting release ${release.id}:`, error);
+        logger.error("ICO_VESTING", `Failed to process vesting release ${release.id}`, error);
         await release.update(
-          { 
+          {
             status: "FAILED",
-            notes: error.message 
+            notes: error.message
           },
           { transaction }
         );
@@ -239,7 +240,7 @@ export async function processVestingReleases(): Promise<void> {
     await transaction.commit();
   } catch (error) {
     await transaction.rollback();
-    console.error('Error processing vesting releases:', error);
+    logger.error("ICO_VESTING", "Error processing vesting releases", error);
     throw error;
   }
 }

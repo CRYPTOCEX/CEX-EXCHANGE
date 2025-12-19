@@ -24,7 +24,7 @@ export default function AiInvestmentForm({
   isEco = false,
   symbol,
 }: AiInvestmentFormProps) {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [error, setError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [availableBalance, setAvailableBalance] = useState(0);
@@ -182,14 +182,14 @@ export default function AiInvestmentForm({
         <div className="px-3 py-1.5 bg-emerald-50 border-b border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20 flex items-center">
           <Leaf className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-500 mr-1.5" />
           <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-            {t("eco_market")}
+            {tCommon("eco_market")}
           </span>
           <Badge
             className={cn(
               "ml-auto bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30 text-[10px]"
             )}
           >
-            {t("low_fee")}
+            {tCommon("low_fee")}
           </Badge>
         </div>
       )}
@@ -203,7 +203,7 @@ export default function AiInvestmentForm({
           <div className="p-2 bg-red-50 border border-red-200 dark:bg-red-500/10 dark:border-red-500/20 rounded-sm flex items-start space-x-2">
             <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-500 mt-0.5 flex-shrink-0" />
             <div className="text-xs text-red-700 dark:text-red-400">
-              <p className="font-medium">{t("api_error")}</p>
+              <p className="font-medium">{tCommon("api_error")}</p>
               <p>{apiError}</p>
             </div>
           </div>
@@ -213,10 +213,10 @@ export default function AiInvestmentForm({
         {!isLoadingPlans && (!plans || plans.length === 0) && !apiError && (
           <div className="p-3 bg-amber-50 border border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20 rounded-sm text-center">
             <p className="text-sm text-amber-700 dark:text-amber-400">
-              {t("no_investment_plans_are_currently_available")}.
+              {tCommon("no_investment_plans_are_currently_available")}.
             </p>
             <p className="text-xs text-amber-600 dark:text-amber-500/80 mt-1">
-              {t("please_check_back_later_or_contact_support")}.
+              {tCommon("please_check_back_later_or_contact_support")}.
             </p>
           </div>
         )}
@@ -281,8 +281,8 @@ export default function AiInvestmentForm({
 
         {/* Disclaimer */}
         <div className="text-[10px] text-zinc-500 dark:text-zinc-500 text-center">
-          {t("ai_investments_are_subject_to_market_risks")}.{" "}
-          {t("past_performance_is_future_results")}.
+          {tCommon("ai_investments_are_subject_to_market_risks")}.{" "}
+          {tCommon("past_performance_is_future_results")}.
         </div>
       </div>
     </div>
@@ -291,19 +291,20 @@ export default function AiInvestmentForm({
 
 function FormHeader() {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center">
         <Sparkles className="h-4 w-4 text-blue-600 dark:text-primary mr-1.5" />
         <h3 className="text-sm font-medium text-zinc-900 dark:text-white">
-          {t("ai_investment")}
+          {tCommon("ai_investment")}
         </h3>
       </div>
       <Badge
         variant="outline"
         className="bg-blue-50 text-blue-700 border-blue-300 dark:bg-primary/10 dark:text-primary dark:border-primary/20 text-xs"
       >
-        {t("Smart")}
+        {t("smart")}
       </Badge>
     </div>
   );

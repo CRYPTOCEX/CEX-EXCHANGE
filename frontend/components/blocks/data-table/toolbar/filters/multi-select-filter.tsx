@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 interface MultiSelectFilterProps {
   label: string;
   columnKey: string;
-  options: { value: string; label: string }[];
+  options: { value: string | number | boolean; label: string }[];
   description?: string;
   onChange: (key: string, value: any) => void;
 }
@@ -21,10 +21,11 @@ export function MultiSelectFilter({
 }: MultiSelectFilterProps) {
   const [selectedValues, setSelectedValues] = React.useState<string[]>([]);
 
-  const handleChange = (checked: boolean, value: string) => {
+  const handleChange = (checked: boolean, value: string | number | boolean) => {
+    const strValue = String(value);
     const newSelectedValues = checked
-      ? [...selectedValues, value]
-      : selectedValues.filter((v) => v !== value);
+      ? [...selectedValues, strValue]
+      : selectedValues.filter((v) => v !== strValue);
     setSelectedValues(newSelectedValues);
     onChange(
       columnKey,
@@ -40,19 +41,19 @@ export function MultiSelectFilter({
         <div className={cn("p-4", "ltr:text-left rtl:text-right")}>
           {options.map((option) => (
             <div
-              key={option.value}
+              key={String(option.value)}
               className="flex items-center space-x-2 mb-2"
             >
               <Checkbox
-                id={`${columnKey}-${option.value}`}
-                checked={selectedValues.includes(option.value)}
+                id={`${columnKey}-${String(option.value)}`}
+                checked={selectedValues.includes(String(option.value))}
                 onCheckedChange={(checked) =>
                   handleChange(checked as boolean, option.value)
                 }
                 className="cursor-pointer"
               />
               <label
-                htmlFor={`${columnKey}-${option.value}`}
+                htmlFor={`${columnKey}-${String(option.value)}`}
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 {option.label}

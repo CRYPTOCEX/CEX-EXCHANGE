@@ -11,10 +11,13 @@ import { crudParameters, paginationSchema } from "@b/utils/constants";
 import { baseTransactionSchema } from "@b/api/finance/transaction/utils";
 
 export const metadata = {
-  summary: "Lists forex_withdraw transactions only",
-  operationId: "listFOREX_WITHDRAWTransactions",
-  tags: ["Admin", "Wallets"],
+  summary: "Lists all Forex withdrawal transactions",
+  description: "Retrieves a paginated list of all Forex withdrawal transactions with filtering and sorting options. Includes associated wallet and user details.",
+  operationId: "listForexWithdrawals",
+  tags: ["Admin", "Forex", "Withdraw"],
   parameters: crudParameters,
+  logModule: "ADMIN_FOREX",
+  logTitle: "Get Forex Withdrawals",
   responses: {
     200: {
       description:
@@ -24,7 +27,7 @@ export const metadata = {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -43,12 +46,14 @@ export const metadata = {
   },
   requiresAuth: true,
   permission: "view.forex.withdraw",
+  demoMask: ["items.user.email"],
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching forex withdrawal transactions");
+  const result = await getFiltered({
     model: models.transaction,
     where: {
       type: "FOREX_WITHDRAW",
@@ -68,4 +73,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} forex withdrawals`);
+  return result;
 };

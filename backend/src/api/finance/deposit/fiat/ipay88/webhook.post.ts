@@ -3,7 +3,7 @@ import {
   serverErrorResponse,
 } from "@b/utils/query";
 
-import { 
+import {
   getIpay88Config,
   verifyIpay88Signature,
   convertFromIpay88Amount,
@@ -12,6 +12,7 @@ import {
   Ipay88Error
 } from "./utils";
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Handles iPay88 webhook notifications",
@@ -19,6 +20,8 @@ export const metadata: OperationObject = {
     "Processes iPay88 backend notifications for payment events. This endpoint handles automatic payment status updates, wallet balance updates, and transaction processing based on iPay88's notification system.",
   operationId: "handleIpay88Webhook",
   tags: ["Finance", "Webhook"],
+  logModule: "WEBHOOK",
+  logTitle: "iPay88 webhook",
   requestBody: {
     description: "iPay88 webhook notification data",
     content: {
@@ -134,7 +137,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
 
   try {
     const { 
@@ -155,18 +158,11 @@ export default async (data: Handler) => {
       S_country
     } = body;
 
-    console.log("iPay88 webhook received:", {
-      MerchantCode,
-      RefNo,
-      Amount,
-      Currency,
-      Status,
-      TransId,
-    });
+    logger.info("IPAY88", `Webhook received - ref: ${RefNo}, status: ${Status}, amount: ${Amount} ${Currency}`)
 
     // Validate required parameters
     if (!MerchantCode || !RefNo || !Amount || !Currency || !Status || !Signature) {
-      console.error("Missing required iPay88 webhook parameters");
+      logger.error("IPAY88", "Missing required webhook parameters")
       return new Response("FAIL", { status: 400 });
     }
 
@@ -175,7 +171,7 @@ export default async (data: Handler) => {
 
     // Verify merchant code matches
     if (MerchantCode !== config.merchantCode) {
-      console.error("Invalid merchant code in webhook:", MerchantCode);
+      logger.error("IPAY88", `Invalid merchant code in webhook: ${MerchantCode}`)
       return new Response("FAIL", { status: 400 });
     }
 
@@ -189,7 +185,7 @@ export default async (data: Handler) => {
     });
 
     if (!transaction) {
-      console.error(`Transaction not found for reference: ${RefNo}`);
+      logger.error("IPAY88", `Transaction not found for reference: ${RefNo}`)
       return new Response("FAIL", { status: 404 });
     }
 
@@ -206,12 +202,8 @@ export default async (data: Handler) => {
     );
 
     if (!isSignatureValid) {
-      console.error("iPay88 webhook signature verification failed", {
-        reference: RefNo,
-        expected_signature: Signature,
-        received_data: { MerchantCode, PaymentId, RefNo, Amount, Currency, Status }
-      });
-      
+      logger.error("IPAY88", `Webhook signature verification failed for reference: ${RefNo}`)
+
       // Update transaction with failed verification
       await transaction.update({
         status: "FAILED",
@@ -231,7 +223,7 @@ export default async (data: Handler) => {
 
     // Verify amount matches (allow small rounding differences)
     if (Math.abs(actualAmount - transaction.amount) > 0.01) {
-      console.error(`Amount mismatch in webhook: expected ${transaction.amount}, received ${actualAmount}`);
+      logger.error("IPAY88", `Amount mismatch: expected ${transaction.amount}, received ${actualAmount}`)
       return new Response("FAIL", { status: 400 });
     }
 
@@ -240,7 +232,7 @@ export default async (data: Handler) => {
     
     // Check if transaction is already processed
     if (transaction.status === "COMPLETED" && mappedStatus === "COMPLETED") {
-      console.log(`Transaction ${RefNo} already completed, skipping webhook processing`);
+      logger.debug("IPAY88", `Transaction ${RefNo} already completed, skipping`)
       return new Response("RECEIVEOK", { status: 200 });
     }
 
@@ -297,32 +289,19 @@ export default async (data: Handler) => {
       updateData.metadata.wallet_updated = true;
       updateData.metadata.wallet_updated_at = new Date().toISOString();
 
-      console.log(`Wallet updated for user ${transaction.userId}: +${transaction.amount} ${transaction.metadata.currency}`);
+      logger.success("IPAY88", `Wallet updated for user ${transaction.userId}: +${transaction.amount} ${transaction.metadata.currency}`)
     }
 
     await transaction.update(updateData);
 
     // Log successful processing
-    console.log(`iPay88 webhook processed successfully for transaction ${RefNo}:`, {
-      status: mappedStatus,
-      amount: actualAmount,
-      currency: Currency,
-      transaction_id: TransId,
-    });
+    logger.success("IPAY88", `Webhook processed for ${RefNo}: status=${mappedStatus}, amount=${actualAmount} ${Currency}`)
 
     // Return success response to iPay88
     return new Response("RECEIVEOK", { status: 200 });
 
   } catch (error) {
-    console.error("iPay88 webhook processing error:", error);
-    
-    // Log error details for debugging
-    console.error("iPay88 webhook error details:", {
-      error: error.message,
-      body: body,
-      timestamp: new Date().toISOString(),
-    });
-    
+    logger.error("IPAY88", "Webhook processing error", error)
     return new Response("FAIL", { status: 500 });
   }
 }; 

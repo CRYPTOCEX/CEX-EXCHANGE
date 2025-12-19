@@ -8,6 +8,7 @@ import {
 } from "../utils";
 import { serverErrorResponse } from "@b/utils/query";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 const client = new OAuth2Client(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 
@@ -17,6 +18,8 @@ export const metadata: OperationObject = {
   tags: ["Auth"],
   description: "Registers a new user using Google and returns a session token",
   requiresAuth: false,
+  logModule: "REGISTER",
+  logTitle: "Google registration",
   requestBody: {
     required: true,
     content: {
@@ -70,98 +73,136 @@ function isValidName(name: string): boolean {
 }
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { token, ref } = body;
 
-  let payload;
   try {
-    payload = await verifyGoogleToken(token);
-  } catch (error) {
-    payload = await fetchGoogleUserInfo(token);
-  }
-
-  if (!payload) {
-    throw createError({ statusCode: 400, message: "Invalid Google token" });
-  }
-
-  const {
-    sub: googleId,
-    email,
-    given_name: firstName,
-    family_name: lastName,
-  } = payload;
-
-  if (!googleId || !email || !firstName || !lastName) {
-    throw createError({ statusCode: 400, message: "Incomplete user information from Google" });
-  }
-
-  // Sanitize and validate names
-  const sanitizedFirstName = sanitizeName(firstName);
-  const sanitizedLastName = sanitizeName(lastName);
-
-  if (!isValidName(sanitizedFirstName) || !isValidName(sanitizedLastName)) {
-    throw createError({
-      statusCode: 400,
-      message: "First name and last name must only contain letters and spaces"
-    });
-  }
-
-  // Check if user already exists
-  let user = await models.user.findOne({ where: { email } });
-
-  let isNewUser = false;
-  if (!user) {
-    const roleName =
-      process.env.NEXT_PUBLIC_DEMO_STATUS === "true" ? "Admin" : "User";
-    await models.role.upsert({ name: roleName });
-
-    // Fetch the role to get its ID
-    const role = await models.role.findOne({ where: { name: roleName } });
-
-    if (!role) throw createError({ statusCode: 500, message: "Role not found after upsert." });
-
-    // Create the user with the roleId
-    user = await models.user.create({
-      firstName: sanitizedFirstName,
-      lastName: sanitizedLastName,
-      email,
-      roleId: role.id,
-      emailVerified: true,
-    });
-
-    // Create a provider_user entry
-    await models.providerUser.create({
-      provider: "GOOGLE",
-      providerUserId: googleId,
-      userId: user.id,
-    });
-
-    try {
-      if (ref) await handleReferralRegister(ref, user.id);
-    } catch (error) {
-      console.error("Error handling referral registration:", error);
+    ctx?.step("Validating Google token");
+    if (!token) {
+      ctx?.fail("Google token is required");
+      throw createError({
+        statusCode: 400,
+        message: "Google token is required",
+      });
     }
-    isNewUser = true;
-  } else {
-    // Check if the user has a provider_user entry
-    const providerUser = await models.providerUser.findOne({
-      where: { providerUserId: googleId, provider: "GOOGLE" },
-    });
 
-    if (!providerUser) {
+    ctx?.step("Verifying Google token");
+    let payload;
+    try {
+      payload = await verifyGoogleToken(token);
+    } catch (error) {
+      ctx?.step("Trying alternative token verification");
+      payload = await fetchGoogleUserInfo(token);
+    }
+
+    if (!payload) {
+      ctx?.fail("Invalid Google token");
+      throw createError({ statusCode: 400, message: "Invalid Google token" });
+    }
+
+    const {
+      sub: googleId,
+      email,
+      given_name: firstName,
+      family_name: lastName,
+    } = payload;
+
+    ctx?.step("Validating Google user data");
+    if (!googleId || !email || !firstName || !lastName) {
+      ctx?.fail("Incomplete user information from Google");
+      throw createError({ statusCode: 400, message: "Incomplete user information from Google" });
+    }
+
+    ctx?.step("Sanitizing user names");
+    // Sanitize and validate names
+    const sanitizedFirstName = sanitizeName(firstName);
+    const sanitizedLastName = sanitizeName(lastName);
+
+    if (!isValidName(sanitizedFirstName) || !isValidName(sanitizedLastName)) {
+      ctx?.fail("Invalid name format");
+      throw createError({
+        statusCode: 400,
+        message: "First name and last name must only contain letters and spaces"
+      });
+    }
+
+    ctx?.step(`Checking if user ${email} exists`);
+    // Check if user already exists
+    let user = await models.user.findOne({ where: { email } });
+
+    let isNewUser = false;
+    if (!user) {
+      ctx?.step("Creating new user account");
+      const roleName =
+        process.env.NEXT_PUBLIC_DEMO_STATUS === "true" ? "Admin" : "User";
+      await models.role.upsert({ name: roleName });
+
+      // Fetch the role to get its ID
+      const role = await models.role.findOne({ where: { name: roleName } });
+
+      if (!role) throw createError({ statusCode: 500, message: "Role not found after upsert." });
+
+      // Create the user with the roleId
+      user = await models.user.create({
+        firstName: sanitizedFirstName,
+        lastName: sanitizedLastName,
+        email,
+        roleId: role.id,
+        emailVerified: true,
+      });
+
+      ctx?.step("Creating Google provider link");
       // Create a provider_user entry
       await models.providerUser.create({
         provider: "GOOGLE",
         providerUserId: googleId,
         userId: user.id,
       });
-    }
-  }
 
-  return await returnUserWithTokens({
-    user: user,
-    message: isNewUser
-      ? "You have been registered successfully"
-      : "You have been logged in successfully",
-  });
+      if (ref) {
+        ctx?.step(`Processing referral code: ${ref}`);
+        try {
+          await handleReferralRegister(ref, user.id);
+        } catch (error) {
+          ctx?.step("Failed to process referral code", "warn");
+          logger.error("AUTH", "Error handling referral registration", error);
+        }
+      }
+      isNewUser = true;
+    } else {
+      ctx?.step("User exists, checking provider link");
+      // Check if the user has a provider_user entry
+      const providerUser = await models.providerUser.findOne({
+        where: { providerUserId: googleId, provider: "GOOGLE" },
+      });
+
+      if (!providerUser) {
+        ctx?.step("Creating Google provider link for existing user");
+        // Create a provider_user entry
+        await models.providerUser.create({
+          provider: "GOOGLE",
+          providerUserId: googleId,
+          userId: user.id,
+        });
+      }
+    }
+
+    ctx?.step("Generating session tokens");
+    const result = await returnUserWithTokens({
+      user: user,
+      message: isNewUser
+        ? "You have been registered successfully"
+        : "You have been logged in successfully",
+    });
+
+    ctx?.success(
+      isNewUser
+        ? `User ${email} registered with Google`
+        : `User ${email} logged in with Google`
+    );
+    return result;
+  } catch (error) {
+    ctx?.fail(error.message || "Google registration/login failed");
+    throw error;
+  }
 };

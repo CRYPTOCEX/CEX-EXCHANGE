@@ -11,6 +11,8 @@ export const metadata: OperationObject = {
   operationId: "listBinaryMarkets",
   tags: ["Exchange", "Binary", "Markets"],
   description: "Retrieves a list of all available binary trading markets.",
+  logModule: "EXCHANGE",
+  logTitle: "Get Binary Markets",
   responses: {
     200: {
       description: "A list of binary markets",
@@ -58,7 +60,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
+  const { ctx } = data;
+
   try {
+    ctx?.step("Fetching binary markets");
     const binaryMarkets = await models.binaryMarket.findAll({
       where: {
         status: true,
@@ -77,6 +82,7 @@ export default async (data: Handler) => {
       symbol: `${market.currency}/${market.pair}`,
     }));
 
+    ctx?.success(`Retrieved ${markets.length} binary markets`);
     return markets;
   } catch (error) {
     console.error("Error fetching binary markets:", error);

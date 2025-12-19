@@ -16,13 +16,18 @@ export const metadata = {
   responses: storeRecordResponses(BinaryDurationStoreSchema, "Binary Duration"),
   requiresAuth: true,
   permission: "create.binary.duration",
+  logModule: "ADMIN_BINARY",
+  logTitle: "Create binary duration",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { duration, profitPercentage, status } = body;
 
-  return await storeRecord({
+  ctx?.step("Validating binary duration data");
+
+  ctx?.step("Creating binary duration record");
+  const result = await storeRecord({
     model: "binaryDuration",
     data: {
       duration,
@@ -30,4 +35,7 @@ export default async (data: Handler) => {
       status: status !== undefined ? status : true,
     },
   });
+
+  ctx?.success("Binary duration created successfully");
+  return result;
 };

@@ -40,9 +40,14 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("AI Investment Plan"),
     500: serverErrorResponse,
   },
+  logModule: "AI",
+  logTitle: "Get AI trading plans",
 };
 
 export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step("Fetching active AI trading plans");
   const plans = await models.aiInvestmentPlan.findAll({
     where: { status: true },
     include: [
@@ -66,5 +71,7 @@ export default async (data: Handler) => {
       "status",
     ],
   });
+
+  ctx?.success(`Retrieved ${plans.length} active plan(s)`);
   return plans;
 };

@@ -1,7 +1,12 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { Clock } from "lucide-react";
+import { useColumns, useFormConfig } from "./columns";
+import { useTranslations } from "next-intl";
 export default function InvestmentDurationPage() {
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
   return (
     <DataTable
       apiEndpoint="/api/admin/finance/investment/duration"
@@ -13,14 +18,20 @@ export default function InvestmentDurationPage() {
         edit: "edit.investment.duration",
         delete: "delete.investment.duration",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate
       canEdit
       canDelete
       canView
-      title="Investment Duration Management"
+      title={t("investment_duration_management")}
+      description={t("manage_investment_plan_durations_and_timeframes")}
       itemTitle="Investment Duration"
       columns={columns}
+      formConfig={formConfig}
+      design={{
+        animation: "orbs",
+        icon: Clock,
+      }}
     />
   );
 }

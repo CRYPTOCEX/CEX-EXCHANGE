@@ -38,7 +38,8 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
   onClose,
   onWithdrawUpdated,
 }) => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -169,7 +170,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
         >
           <SheetHeader className="px-6 py-4 border-b bg-muted/30">
             <SheetTitle className="text-xl font-semibold">
-              Withdraw Transaction Details
+              {t("withdraw_transaction_details")}
             </SheetTitle>
           </SheetHeader>
           
@@ -179,8 +180,8 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center space-y-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                    <p className="text-lg font-medium">Loading transaction details...</p>
-                    <p className="text-sm text-muted-foreground">Please wait while we fetch the information</p>
+                    <p className="text-lg font-medium">{tCommon('loading_transaction_details')}</p>
+                    <p className="text-sm text-muted-foreground">{t("please_wait_while_we_fetch_the_information")}</p>
                   </div>
                 </div>
               ) : !transaction ? (
@@ -192,8 +193,8 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                       </svg>
                     </div>
                     <div>
-                      <p className="text-lg font-medium">Transaction not found</p>
-                      <p className="text-sm text-muted-foreground">The requested transaction could not be located</p>
+                      <p className="text-lg font-medium">{t("transaction_not_found")}</p>
+                      <p className="text-sm text-muted-foreground">{t("the_requested_transaction_could_not_be_located")}</p>
                     </div>
                   </div>
                 </div>
@@ -210,8 +211,8 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                             </svg>
                           </div>
                           <div>
-                            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Withdraw Transaction</h2>
-                            <p className="text-sm text-muted-foreground">Transaction ID: {transaction.id}</p>
+                            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{t("withdraw_transaction")}</h2>
+                            <p className="text-sm text-muted-foreground">{tCommon("transaction_id")}: {transaction.id}</p>
                           </div>
                         </div>
                         
@@ -244,7 +245,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                           -{transaction.amount} {transaction.wallet?.currency}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          Fee: {transaction.fee} {transaction.wallet?.currency}
+                          {tCommon("fee")}: {transaction.fee} {transaction.wallet?.currency}
                         </div>
                       </div>
                     </div>
@@ -258,7 +259,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                         <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        User Information
+                        {tCommon("user_information")}
                       </h3>
                       <div className="space-y-3">
                         <div className="flex items-center gap-3">
@@ -279,19 +280,19 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                         <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
-                        Wallet Details
+                        {t("wallet_details")}
                       </h3>
                       <div className="space-y-3">
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Currency:</span>
+                          <span className="text-muted-foreground">{tCommon("currency")}:</span>
                           <span className="font-medium">{transaction.wallet?.currency}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Type:</span>
+                          <span className="text-muted-foreground">{tCommon("type")}:</span>
                           <span className="font-medium">{transaction.wallet?.type}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Wallet ID:</span>
+                          <span className="text-muted-foreground">{tCommon("wallet_id")}:</span>
                           <span className="font-mono text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">
                             {transaction.walletId}
                           </span>
@@ -307,7 +308,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                         <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        Transaction Metadata
+                        {t("transaction_metadata")}
                       </h3>
                       <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4">
                         <pre className="text-sm font-mono whitespace-pre-wrap overflow-x-auto">
@@ -325,7 +326,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                       <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
-                      Transaction Management
+                      {t("transaction_management")}
                     </h3>
                     
                     <TransactionEditForm
@@ -351,7 +352,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
-                          Complete Transaction
+                          {t("complete_transaction")}
                         </Button>
                         <Button
                           variant="destructive"
@@ -362,7 +363,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
-                          Reject Transaction
+                          {tCommon("reject_transaction")}
                         </Button>
                       </div>
                     )}

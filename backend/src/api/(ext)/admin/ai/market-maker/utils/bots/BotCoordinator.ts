@@ -1,6 +1,6 @@
 import { BaseBot, MarketContext, TradeDecision } from "./BaseBot";
 import { BotManager } from "./BotManager";
-import { logInfo } from "@b/utils/logger";
+import { logger, logInfo } from "@b/utils/console";
 
 /**
  * Coordination rule types
@@ -76,7 +76,7 @@ export class BotCoordinator {
    */
   public setMarketRules(marketId: string, rules: CoordinationRule[]): void {
     this.marketRules.set(marketId, new Set(rules));
-    logInfo("ai-market-maker", `BotCoordinator: Set rules for market ${marketId}: ${rules.join(", ")}`, __filename);
+    logInfo("bot-coordinator", `Set rules for market ${marketId}: ${rules.join(", ")}`);
   }
 
   /**

@@ -41,6 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTokenReleaseStore } from "@/store/ico/token-release-store";
+import { useTranslations } from "next-intl";
 interface TransactionsTableProps {
   transactions: any[];
   isLoading: boolean;
@@ -60,6 +61,8 @@ export function TransactionsTable({
   status,
   tokenId,
 }: TransactionsTableProps) {
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
   const { fetchTransactions, paginationMeta, sortOptions, setSortOptions } =
     useTokenReleaseStore();
 
@@ -175,7 +178,7 @@ export function TransactionsTable({
   if (transactions.length === 0 && meta.totalItems === 0) {
     return (
       <div className="text-center py-12 bg-muted/30 rounded-lg">
-        <h3 className="text-xl font-medium mb-2">No transactions</h3>
+        <h3 className="text-xl font-medium mb-2">{t("no_transactions")}</h3>
         <p className="text-muted-foreground">
           {status === "PENDING" &&
             "There are no pending transactions that require token release."}
@@ -273,7 +276,7 @@ export function TransactionsTable({
               </TableHead>
             ))}
             {(status === "VERIFICATION" || status === "RELEASED") && (
-              <TableHead>Release Hash</TableHead>
+              <TableHead>{t("release_hash")}</TableHead>
             )}
             <TableHead className="text-right">
               {status === "PENDING" ? "Actions" : "Status"}
@@ -325,7 +328,7 @@ export function TransactionsTable({
                     {formatCurrency(transaction.amount * transaction.price)}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    ${transaction.price} per token
+                    ${transaction.price} {tExt("per_token")}
                   </div>
                 </TableCell>
                 <TableCell>

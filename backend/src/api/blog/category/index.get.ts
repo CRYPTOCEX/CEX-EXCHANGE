@@ -1,5 +1,6 @@
 // /server/api/blog/categories/index.get.ts
-import { models, sequelize } from "@b/db";
+import { models } from "@b/db";
+import { fn, col } from "sequelize";
 import {
   notFoundMetadataResponse,
   serverErrorResponse,
@@ -14,6 +15,8 @@ export const metadata: OperationObject = {
   operationId: "getCategories",
   tags: ["Blog"],
   requiresAuth: false,
+  logModule: "BLOG",
+  logTitle: "Get Categories",
   responses: {
     200: {
       description: "Categories retrieved successfully",
@@ -39,11 +42,14 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step("Fetching categories with post counts");
   const categories = await models.category.findAll({
     attributes: {
       include: [
         // Compute the count of published posts for each category
-        [sequelize.fn("COUNT", sequelize.col("posts.id")), "postCount"],
+        [fn("COUNT", col("posts.id")), "postCount"],
       ],
     },
     include: [
@@ -58,5 +64,6 @@ export default async (data: Handler) => {
     group: ["category.id"],
   });
 
+  ctx?.success(`Retrieved ${categories.length} categories`);
   return categories.map((category) => category.get({ plain: true }));
 };

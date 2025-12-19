@@ -2,6 +2,13 @@
 import { models } from "@b/db";
 import { messageBroker } from "@b/handler/Websocket";
 import { taskQueue } from "./task";
+import { logger } from "./console";
+
+export interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
 
 export interface NotificationOptions {
   userId: string;
@@ -19,8 +26,12 @@ export interface NotificationOptions {
   }>;
 }
 
-export async function createNotification(options: NotificationOptions) {
+export async function createNotification(
+  options: NotificationOptions,
+  ctx?: LogContext
+) {
   try {
+    ctx?.step?.("Creating notification");
     // Wrap the notification creation and sending in a task
     const task = async () => {
       const newRecord = await models.notification.create({
@@ -46,9 +57,12 @@ export async function createNotification(options: NotificationOptions) {
     };
 
     // Add the task to the queue and await its completion
-    return await taskQueue.add(task);
+    const result = await taskQueue.add(task);
+    ctx?.success?.("Notification created successfully");
+    return result;
   } catch (err) {
-    console.error("Failed to create notification", err);
+    logger.error("NOTIF", "Failed to create notification", err);
+    ctx?.fail?.(err.message);
     throw err;
   }
 }
@@ -65,9 +79,11 @@ export async function createAdminNotification(
     link?: string;
     primary?: boolean;
     onClick?: () => void;
-  }>
+  }>,
+  ctx?: LogContext
 ): Promise<void> {
   try {
+    ctx?.step?.(`Finding users with ${permissionName} permission`);
     // Find all users whose role includes the specified permission
     const users = await models.user.findAll({
       include: [
@@ -88,6 +104,7 @@ export async function createAdminNotification(
       attributes: ["id"],
     });
 
+    ctx?.step?.(`Creating notifications for ${users.length} admin users`);
     // Create a task for each user to send the notification
     const tasks = users.map((user) => {
       return async () => {
@@ -105,8 +122,10 @@ export async function createAdminNotification(
 
     // Add all tasks to the task queue and wait for them to complete
     await Promise.all(tasks.map((task) => taskQueue.add(task)));
+    ctx?.success?.(`Admin notifications created for ${users.length} users`);
   } catch (error) {
-    console.error("Failed to create admin notification", error);
+    logger.error("NOTIF", "Failed to create admin notification", error);
+    ctx?.fail?.(error.message);
     throw error;
   }
 }

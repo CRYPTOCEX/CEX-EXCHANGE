@@ -39,12 +39,16 @@ export const metadata: OperationObject = {
   },
   permission: "view.ai.investment",
   requiresAuth: true,
+  logModule: "ADMIN_AI",
+  logTitle: "Get AI investment",
+  demoMask: ["user.email"],
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("aiInvestment", params.id, [
+  ctx?.step(`Fetching investment ${params.id}`);
+  const result = await getRecord("aiInvestment", params.id, [
     {
       model: models.user,
       as: "user",
@@ -61,4 +65,7 @@ export default async (data) => {
       attributes: ["duration", "timeframe"],
     },
   ]);
+
+  ctx?.success("Investment retrieved");
+  return result;
 };

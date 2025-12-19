@@ -21,9 +21,11 @@ export const metadata: Metadata = {
 };
 
 export default function LaunchPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
-    <div className="container pt-8 pb-20 space-y-8">
+    <div className="container pt-8 pb-20 space-y-8 pt-20">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
@@ -37,7 +39,7 @@ export default function LaunchPage() {
         <Link href="/ico/creator">
           <Button variant="secondary">
             <ChevronLeft className="mr-2 h-4 w-4" />
-            {t("creator_dashboard")}
+            {tExt("creator_dashboard")}
           </Button>
         </Link>
       </div>
@@ -48,7 +50,7 @@ export default function LaunchPage() {
             <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value="form">{t("launch_form")}</TabsTrigger>
               <TabsTrigger value="requirements">
-                {t("Requirements")}
+                {tExt("requirements")}
               </TabsTrigger>
             </TabsList>
             <TabsContent value="form">
@@ -74,7 +76,7 @@ export default function LaunchPage() {
                   <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
                     1
                   </div>
-                  <h3 className="font-medium">{t("submit_application")}</h3>
+                  <h3 className="font-medium">{tExt("submit_application")}</h3>
                 </div>
                 <p className="text-sm text-muted-foreground pl-8">
                   {t("fill_out_the_token_information")}.
@@ -86,7 +88,7 @@ export default function LaunchPage() {
                   <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
                     2
                   </div>
-                  <h3 className="font-medium">{t("Verification")}</h3>
+                  <h3 className="font-medium">{tExt("verification")}</h3>
                 </div>
                 <p className="text-sm text-muted-foreground pl-8">
                   {t("our_team_will_project_details")}.
@@ -124,7 +126,7 @@ export default function LaunchPage() {
                   <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
                     5
                   </div>
-                  <h3 className="font-medium">{t("Launch")}</h3>
+                  <h3 className="font-medium">{t("launch")}</h3>
                 </div>
                 <p className="text-sm text-muted-foreground pl-8">
                   {t("your_token_offering_for_investors")}.
@@ -137,7 +139,7 @@ export default function LaunchPage() {
               </p>
               <Link href="/support" className="w-full">
                 <button className="w-full bg-primary/10 text-primary hover:bg-primary/20 py-2 rounded-md text-sm font-medium transition-colors">
-                  {t("contact_support")}
+                  {tCommon("contact_support")}
                 </button>
               </Link>
             </CardFooter>

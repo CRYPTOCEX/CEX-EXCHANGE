@@ -20,15 +20,17 @@ export function ActiveTradesTab({
   activeTrades,
   currentTime,
 }: ActiveTradesTabProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
     <Card>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
-          <CardTitle>{t("active_trades")}</CardTitle>
+          <CardTitle>{tExt("active_trades")}</CardTitle>
           <div className="flex items-center text-xs text-muted-foreground">
             <Clock className="h-3 w-3 mr-1" />
-            {t("updated")}
+            {tCommon("updated")}
             {currentTime}
           </div>
         </div>

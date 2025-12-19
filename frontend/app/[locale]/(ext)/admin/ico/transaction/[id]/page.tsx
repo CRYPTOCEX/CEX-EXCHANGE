@@ -46,7 +46,11 @@ import {
 } from "lucide-react";
 import { Icon } from "@iconify/react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "next-intl";
 export default function TransactionDetailsPage() {
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { id } = useParams() as {
     id: string;
   };
@@ -105,7 +109,7 @@ export default function TransactionDetailsPage() {
       case "PENDING":
         return (
           <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">
-            <Clock className="w-3 h-3 mr-1" /> User Invested
+            <Clock className="w-3 h-3 mr-1" /> {t("user_invested")}
           </Badge>
         );
       case "VERIFICATION":
@@ -116,14 +120,14 @@ export default function TransactionDetailsPage() {
                 icon="mdi:clock-time-four-outline"
                 className="w-3 h-3 mr-1"
               />
-              Release URL Submitted
+              {t("release_url_submitted")}
             </Badge>
           );
         }
         return (
           <Badge className="bg-blue-500 hover:bg-blue-600 text-white">
             <Icon icon="mdi:clock-time-four-outline" className="w-3 h-3 mr-1" />
-            Awaiting Release URL
+            {t("awaiting_release_url")}
           </Badge>
         );
       case "RELEASED":
@@ -188,7 +192,7 @@ export default function TransactionDetailsPage() {
     await removeTransactionNote(transaction.id);
   };
   return (
-    <div className="container mx-auto pb-20 space-y-6 max-w-7xl">
+    <div className="container mx-auto pt-20 pb-20 space-y-6 max-w-7xl">
       {/* Header Section */}
       <div className="flex flex-col space-y-4">
         {/* Breadcrumb */}
@@ -198,17 +202,17 @@ export default function TransactionDetailsPage() {
             className="flex items-center hover:text-primary transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Transactions
+            {t("back_to_transactions")}
           </Link>
         </div>
         {/* Header with Actions */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Transaction Details
+              {tCommon("transaction_details")}
             </h1>
             <p className="text-muted-foreground mt-1">
-              ID: {transaction.id} • Created {formatDate(transaction.createdAt)}
+              ID: {transaction.id} {tCommon("created")} {formatDate(transaction.createdAt)}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -231,7 +235,7 @@ export default function TransactionDetailsPage() {
         <CardHeader className="pb-2">
           <CardTitle className="text-xl flex items-center justify-between">
             <span className="flex items-center gap-2">
-              Transaction Overview
+              {tExt("transaction_overview")}
               {getStatusBadge(transaction.status)}
             </span>
             <div className="flex items-center justify-end gap-4">
@@ -260,7 +264,7 @@ export default function TransactionDetailsPage() {
             </div>
           </CardTitle>
           <CardDescription>
-            Comprehensive details about this transaction
+            {t("comprehensive_details_about_this_transaction")}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
@@ -270,7 +274,7 @@ export default function TransactionDetailsPage() {
               {/* Transaction ID */}
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Transaction ID
+                  {tCommon("transaction_id")}
                 </h3>
                 <div className="flex items-center">
                   <code className="bg-muted p-1.5 rounded text-xs md:text-sm truncate max-w-[250px]">
@@ -291,7 +295,7 @@ export default function TransactionDetailsPage() {
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Copy Transaction ID</p>
+                        <p>{t("copy_transaction_id")}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -300,7 +304,7 @@ export default function TransactionDetailsPage() {
               {/* Release URL */}
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Release URL
+                  {tExt("release_url")}
                 </h3>
                 <div className="flex items-center">
                   <code className="bg-muted p-1.5 rounded text-xs md:text-sm truncate max-w-[250px]">
@@ -326,7 +330,7 @@ export default function TransactionDetailsPage() {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Copy Release URL</p>
+                            <p>{t("copy_release_url")}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -349,7 +353,7 @@ export default function TransactionDetailsPage() {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>View on Blockchain Explorer</p>
+                            <p>{t("view_on_blockchain_explorer")}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -360,16 +364,16 @@ export default function TransactionDetailsPage() {
               {/* Amount & Price */}
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Amount & Price
+                  {t("amount_price")}
                 </h3>
                 <p className="text-xl font-semibold">
                   ${transaction.amount.toLocaleString()}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Price per token: ${transaction.price}
+                  {t("price_per_token")}{transaction.price}
                 </p>
                 <p className="text-sm font-medium mt-1">
-                  Token amount:{" "}
+                  {tExt("token_amount")}:{" "}
                   {(transaction.amount / transaction.price).toLocaleString()}{" "}
                   {transaction.offering.symbol}
                 </p>
@@ -377,7 +381,7 @@ export default function TransactionDetailsPage() {
               {/* Wallet Address */}
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Wallet Address
+                  {tCommon("wallet_address")}
                 </h3>
                 <div className="flex items-center">
                   <code className="bg-muted p-1.5 rounded text-xs truncate max-w-[250px]">
@@ -401,7 +405,7 @@ export default function TransactionDetailsPage() {
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Copy Wallet Address</p>
+                        <p>{t("copy_wallet_address")}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -431,7 +435,7 @@ export default function TransactionDetailsPage() {
                       </Link>
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Symbol: {transaction.offering.symbol}
+                      {tCommon("symbol")}: {transaction.offering.symbol}
                     </p>
                   </div>
                 </div>
@@ -466,7 +470,7 @@ export default function TransactionDetailsPage() {
                 <div className="space-y-2">
                   <div className="flex items-center">
                     <div className="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
-                    <span className="text-muted-foreground">Created:</span>
+                    <span className="text-muted-foreground">{tCommon("created")}:</span>
                     <span className="ml-1">
                       {formatDate(transaction.createdAt)}
                     </span>
@@ -475,7 +479,7 @@ export default function TransactionDetailsPage() {
                     transaction.updatedAt !== transaction.createdAt && (
                       <div className="flex items-center">
                         <div className="w-4 h-4 rounded-full bg-indigo-500 mr-2"></div>
-                        <span className="text-muted-foreground">Updated:</span>
+                        <span className="text-muted-foreground">{tCommon("updated")}:</span>
                         <span className="ml-1">
                           {formatDate(transaction.updatedAt)}
                         </span>
@@ -484,7 +488,7 @@ export default function TransactionDetailsPage() {
                   {transaction.status === "RELEASED" && (
                     <div className="flex items-center">
                       <div className="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
-                      <span className="text-muted-foreground">Released:</span>
+                      <span className="text-muted-foreground">{tCommon("released")}:</span>
                       <span className="ml-1">
                         {formatDate(transaction.updatedAt)}
                       </span>
@@ -499,16 +503,16 @@ export default function TransactionDetailsPage() {
       {/* Tabs Section */}
       <Tabs defaultValue="related">
         <TabsList>
-          <TabsTrigger value="related">Related Transactions</TabsTrigger>
+          <TabsTrigger value="related">{t("related_transactions")}</TabsTrigger>
           <TabsTrigger value="notes">Notes</TabsTrigger>
         </TabsList>
         {/* Related Transactions Tab */}
         <TabsContent value="related" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Related Transactions</CardTitle>
+              <CardTitle>{t("related_transactions")}</CardTitle>
               <CardDescription>
-                Other transactions from this investor for this offering
+                {t("other_transactions_from_this_offering")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -529,7 +533,7 @@ export default function TransactionDetailsPage() {
                             {relTx.id}
                           </Link>
                           <p className="text-sm text-muted-foreground">
-                            {relTx.amount} (Price: {relTx.price}) –{" "}
+                            {relTx.amount} {tCommon('price')}: {relTx.price}) –{" "}
                             {formatDate(relTx.createdAt)}
                           </p>
                         </div>
@@ -540,7 +544,7 @@ export default function TransactionDetailsPage() {
                 </div>
               ) : (
                 <p className="text-muted-foreground">
-                  No related transactions found.
+                  {t("no_related_transactions_found_1")}
                 </p>
               )}
             </CardContent>
@@ -550,9 +554,9 @@ export default function TransactionDetailsPage() {
         <TabsContent value="notes" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Admin Notes</CardTitle>
+              <CardTitle>{tCommon("admin_notes")}</CardTitle>
               <CardDescription>
-                Notes and comments about this transaction
+                {t("notes_and_comments_about_this_transaction")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -565,7 +569,7 @@ export default function TransactionDetailsPage() {
                 </h3>
                 <Textarea
                   className="min-h-[100px]"
-                  placeholder="Enter note..."
+                  placeholder={t("enter_note_ellipsis")}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   disabled={!canAddNote}
@@ -577,14 +581,14 @@ export default function TransactionDetailsPage() {
                       onClick={handleRemoveNote}
                       className="text-red-500 border-red-200 hover:bg-red-50"
                     >
-                      Remove Note
+                      {t("remove_note")}
                     </Button>
                   )}
                   <Button
                     onClick={handleSaveNote}
                     disabled={!canAddNote || !note.trim()}
                   >
-                    Save Note
+                    {t("save_note")}
                   </Button>
                 </div>
               </div>
@@ -596,10 +600,9 @@ export default function TransactionDetailsPage() {
       <Dialog open={openApproveDialog} onOpenChange={setOpenApproveDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Verify & Approve Transaction</DialogTitle>
+            <DialogTitle>{t("verify_approve_transaction")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to verify and approve this transaction? This
-              action will release funds to the creator.
+              {t("are_you_sure_you_want_to_1")} {t("this_action_will_release_funds_to_the_creator")}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -608,13 +611,13 @@ export default function TransactionDetailsPage() {
                 <AlertTriangle className="h-5 w-5 text-amber-400" />
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-amber-800">
-                    Please confirm that you have verified:
+                    {t("please_confirm_that_you_have_verified_1")}:
                   </h3>
                   <div className="mt-2 text-sm text-amber-700">
                     <ul className="list-disc pl-5 space-y-1">
-                      <li>The release URL is valid and accessible</li>
-                      <li>Transaction amount matches the investment record</li>
-                      <li>Wallet addresses match the records</li>
+                      <li>{t("the_release_url_is_valid_and_accessible")}</li>
+                      <li>{t("transaction_amount_matches_the_investment_record")}</li>
+                      <li>{t("wallet_addresses_match_the_records")}</li>
                     </ul>
                   </div>
                 </div>
@@ -633,7 +636,7 @@ export default function TransactionDetailsPage() {
               disabled={!canApprove}
               className="bg-green-600 hover:bg-green-700"
             >
-              Confirm Approval
+              {t("confirm_approval")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -642,14 +645,14 @@ export default function TransactionDetailsPage() {
       <Dialog open={openRejectDialog} onOpenChange={setOpenRejectDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reject Transaction</DialogTitle>
+            <DialogTitle>{tCommon("reject_transaction")}</DialogTitle>
             <DialogDescription>
-              Please provide a reason for rejecting this transaction.
+              {tCommon('please_provide_a_reason_for_rejecting_this_transaction')}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Textarea
-              placeholder="Enter reason for rejection..."
+              placeholder={t("enter_reason_for_rejection_ellipsis")}
               value={rejectNote}
               onChange={(e) => setRejectNote(e.target.value)}
             />
@@ -662,8 +665,7 @@ export default function TransactionDetailsPage() {
                   </h3>
                   <div className="mt-2 text-sm text-red-700">
                     <p>
-                      This action cannot be undone. The creator will be notified
-                      of the rejection.
+                      {tCommon('this_action_cannot_be_undone')} {t("the_creator_will_be_notified_of_the_rejection_1")}
                     </p>
                   </div>
                 </div>
@@ -682,7 +684,7 @@ export default function TransactionDetailsPage() {
               disabled={!canReject || !rejectNote.trim()}
               variant="destructive"
             >
-              Confirm Rejection
+              {t("confirm_rejection")}
             </Button>
           </DialogFooter>
         </DialogContent>

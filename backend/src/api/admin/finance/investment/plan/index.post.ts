@@ -7,6 +7,8 @@ export const metadata = {
   summary: "Stores a new Investment Plan",
   operationId: "storeInvestmentPlan",
   tags: ["Admin", "Investment Plans"],
+  logModule: "ADMIN_FIN",
+  logTitle: "Create Investment Plan",
   requestBody: {
     required: true,
     content: {
@@ -21,7 +23,7 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const {
     name,
     title,
@@ -42,6 +44,8 @@ export default async (data: Handler) => {
     walletType,
   } = body;
 
+  ctx?.step("Preparing investment plan data");
+
   const relations = durations
     ? [
         {
@@ -56,7 +60,13 @@ export default async (data: Handler) => {
       ]
     : [];
 
-  return await storeRecord({
+  if (durations) {
+    ctx?.step("Adding plan durations");
+  }
+
+  ctx?.step("Creating investment plan");
+
+  const result = await storeRecord({
     model: "investmentPlan",
     data: {
       name,
@@ -78,4 +88,7 @@ export default async (data: Handler) => {
     },
     relations,
   });
+
+  ctx?.success("Investment plan created successfully");
+  return result;
 };

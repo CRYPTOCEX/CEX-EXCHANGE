@@ -15,6 +15,7 @@ export function AuthHeaderControls({
   isMobile?: boolean;
 }) {
   const t = useTranslations("common");
+  const tComponentsAuth = useTranslations("components_auth");
   const returnTo = useReturnParam();
   const user = useUserStore((state) => state.user);
 
@@ -74,8 +75,8 @@ export function AuthHeaderControls({
             className="px-3 py-1.5 text-xs font-medium min-w-0 flex-shrink-0" 
             onClick={openRegisterModal}
           >
-            <span className="hidden xs:inline">{t("sign_up")}</span>
-            <span className="xs:hidden">Sign Up</span>
+            <span className="hidden xs:inline">{tComponentsAuth("sign_up")}</span>
+            <span className="xs:hidden">{tComponentsAuth("sign_up")}</span>
           </Button>
         </div>
       ) : (
@@ -84,7 +85,7 @@ export function AuthHeaderControls({
           <Button variant="ghost" onClick={openLoginModal}>
             {t("log_in")}
           </Button>
-          <Button onClick={openRegisterModal}>{t("sign_up")}</Button>
+          <Button onClick={openRegisterModal}>{tComponentsAuth("sign_up")}</Button>
         </div>
       )}
 

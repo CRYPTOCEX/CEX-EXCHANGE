@@ -3,17 +3,20 @@ import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import DataTable from "@/components/blocks/data-table";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Loader2 } from "lucide-react";
+import { ArrowLeft, Download, Loader2, TrendingUp } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { $fetch } from "@/lib/api";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 export default function ExchangeMarketPage() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const params = useParams();
   const [isImporting, setIsImporting] = useState(false);
+  const columns = useColumns();
+  const formConfig = useFormConfig();
 
   const handleImportMarkets = async (refresh?: () => void) => {
     setIsImporting(true);
@@ -42,7 +45,7 @@ export default function ExchangeMarketPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6`}>
       {/* Data Table */}
       <DataTable
         apiEndpoint="/api/admin/finance/exchange/market"
@@ -54,15 +57,21 @@ export default function ExchangeMarketPage() {
           edit: "edit.exchange.market",
           delete: "delete.exchange.market",
         }}
-        pageSize={10}
+        pageSize={12}
         canCreate={false}
         canEdit={true}
         canDelete={true}
         canView={true}
         title={t("exchange_markets")}
+        description={t("manage_exchange_market_pairs_and_trading_symbols")}
         itemTitle={t("exchange_market")}
         columns={columns}
+        formConfig={formConfig}
         isParanoid={false}
+        design={{
+          animation: "orbs",
+          icon: TrendingUp,
+        }}
         extraTopButtons={(refresh) => (
           <Button
             onClick={() => handleImportMarkets(refresh)}

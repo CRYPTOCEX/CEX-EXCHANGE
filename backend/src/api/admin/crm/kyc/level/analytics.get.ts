@@ -7,6 +7,8 @@ export const metadata = {
     "Fetches analytics data for KYC including total users, verified users, pending verifications, rejected verifications, and completion rates for each level.",
   operationId: "getKycAnalyticsData",
   tags: ["KYC", "Analytics"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Get KYC level analytics",
   responses: {
     200: {
       description: "KYC analytics data retrieved successfully.",
@@ -42,8 +44,11 @@ export const metadata = {
   requiresAuth: true,
 };
 
-export default async (_data: { query?: any }): Promise<any> => {
+export default async (data: Handler): Promise<any> => {
+  const { ctx } = data;
+
   try {
+    ctx?.step("Fetching analytics data");
     const applications = await models.kycApplication.findAll();
     const levels = await models.kycLevel.findAll();
     const users = await models.user.findAll();
@@ -80,6 +85,7 @@ export default async (_data: { query?: any }): Promise<any> => {
       })
       .sort((a, b) => a.level - b.level);
 
+    ctx?.success("KYC level analytics generated successfully");
     return {
       totalUsers,
       verifiedUsers,

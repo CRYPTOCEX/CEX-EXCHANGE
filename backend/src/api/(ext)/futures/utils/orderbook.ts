@@ -1,4 +1,4 @@
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import { OrderBookSide } from "./queries/orderbook";
 
 export async function updateOrderBookState(
@@ -26,8 +26,7 @@ export async function updateOrderBookState(
       })
     );
   } catch (error) {
-    logError("update_order_book_state", error, __filename);
-    console.error("Failed to update order book state:", error);
+    logger.error("ORDERBOOK", "Failed to update order book state", error);
   }
 }
 
@@ -42,7 +41,7 @@ export function applyUpdatesToOrderBook(
 
   ["bids", "asks"].forEach((side) => {
     if (!updates[side]) {
-      console.error(`No updates for ${side}`);
+      logger.warn("ORDERBOOK", `No updates for ${side}`);
       return;
     }
     for (const [price, updatedAmountStr] of Object.entries(updates[side])) {
@@ -59,10 +58,7 @@ export function applyUpdatesToOrderBook(
           delete updatedOrderBook[side][price];
         }
       } catch (e) {
-        logError("apply_updates_to_order_book", e, __filename);
-        console.error(
-          `Error converting ${updatedAmountStr} to BigInt: ${e.message}`
-        );
+        logger.error("ORDERBOOK", `Error converting ${updatedAmountStr} to BigInt`, e);
       }
     }
   });

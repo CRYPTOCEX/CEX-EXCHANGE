@@ -7,6 +7,8 @@ export const metadata: OperationObject = {
   description: "Unblock a user account and restore access",
   operationId: "unblockUser",
   tags: ["Admin", "CRM", "User"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Unblock user",
   parameters: [
     {
       index: 0,
@@ -41,9 +43,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, user } = data;
+  const { params, user, ctx } = data;
   const { id } = params;
 
+  ctx?.step("Validating user authorization");
   if (!user?.id) {
     throw createError({
       statusCode: 401,
@@ -51,6 +54,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Fetching target user");
   // Find the target user
   const targetUser = await models.user.findOne({
     where: { id },
@@ -70,6 +74,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Checking active block");
   // Check if user is currently blocked
   const activeBlock = await models.userBlock.findOne({
     where: {
@@ -94,18 +99,21 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Deactivating block record");
   // Deactivate the block record
   await models.userBlock.update(
     { isActive: false },
     { where: { id: activeBlock.id } }
   );
 
+  ctx?.step("Restoring user access");
   // Update user status back to ACTIVE
   await models.user.update(
     { status: "ACTIVE" },
     { where: { id } }
   );
 
+  ctx?.success();
   return {
     message: "User unblocked successfully",
   };

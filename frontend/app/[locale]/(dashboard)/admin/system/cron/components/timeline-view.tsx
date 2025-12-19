@@ -6,7 +6,8 @@ import { CheckCircle, XCircle, Play, Clock } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function TimelineView() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const { timelineEvents, cronJobs } = useCronStore();
 
   const getCronTitle = (cronName: string) => {
@@ -35,7 +36,7 @@ export function TimelineView() {
         {timelineEvents.length === 0 ? (
           <div className="text-center text-muted-foreground p-8">
             {t("no_timeline_events_yet")}.{" "}
-            {t("events_will_appear_here_as_cron_jobs_run")}.
+            {tDashboardAdmin("events_will_appear_here_as_cron_jobs_run")}.
           </div>
         ) : (
           timelineEvents.map((event) => (

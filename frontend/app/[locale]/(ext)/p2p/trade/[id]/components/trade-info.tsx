@@ -14,7 +14,8 @@ interface TradeInfoProps {
 }
 
 export function TradeInfo({ amount, coin, price, total, priceCurrency = "USD" }: TradeInfoProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtP2p = useTranslations("ext_p2p");
   const currencySymbol = getCurrencySymbol(priceCurrency);
 
   return (
@@ -22,7 +23,7 @@ export function TradeInfo({ amount, coin, price, total, priceCurrency = "USD" }:
       <Card className="p-4 bg-card/50 border-primary/10">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">{t("Amount")}</p>
+            <p className="text-sm text-muted-foreground">{t("amount")}</p>
             <p className="text-lg font-medium mt-1">
               {amount} {coin}
             </p>
@@ -36,11 +37,11 @@ export function TradeInfo({ amount, coin, price, total, priceCurrency = "USD" }:
       <Card className="p-4 bg-card/50 border-primary/10">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">{t("Price")}</p>
+            <p className="text-sm text-muted-foreground">{t("price")}</p>
             <p className="text-lg font-medium mt-1">
               {currencySymbol}{price.toLocaleString()}{" "}
               <span className="text-xs text-muted-foreground">
-                {t("per")} {coin}
+                {tExtP2p("per")} {coin}
               </span>
             </p>
           </div>
@@ -53,7 +54,7 @@ export function TradeInfo({ amount, coin, price, total, priceCurrency = "USD" }:
       <Card className="p-4 bg-card/50 border-primary/10">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">{t("Total")}</p>
+            <p className="text-sm text-muted-foreground">{t("total")}</p>
             <p className="text-lg font-medium mt-1">
               {currencySymbol}{total.toLocaleString()}
             </p>

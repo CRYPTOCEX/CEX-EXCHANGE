@@ -6,6 +6,8 @@ export const metadata: OperationObject = {
   summary: "Deletes a specific post",
   operationId: "deletePost",
   tags: ["Content", "Author", "Post"],
+  logModule: "BLOG",
+  logTitle: "Delete blog post",
   parameters: [
     {
       index: 0,
@@ -41,10 +43,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, query, user } = data;
+  const { params, query, user, ctx } = data;
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
+  ctx?.step("Verifying author credentials");
   const author = await models.author.findOne({
     where: { userId: user.id },
   });
@@ -52,10 +55,14 @@ export default async (data: Handler) => {
   if (!author)
     throw createError({ statusCode: 404, message: "Author not found" });
 
-  return handleSingleDelete({
+  ctx?.step("Deleting post");
+  const result = await handleSingleDelete({
     model: "post",
     id: params.id,
     query,
     where: { authorId: author.id },
   });
+
+  ctx?.success(`Post ${params.id} deleted by author ${author.id}`);
+  return result;
 };

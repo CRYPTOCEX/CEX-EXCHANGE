@@ -90,7 +90,7 @@ interface TradingActivityProps {
   isLoading: boolean;
 }
 export function TradingActivity({ trades, isLoading }: TradingActivityProps) {
-  const t = useTranslations("ext");
+  const tExt = useTranslations("ext");
   if (isLoading) {
     return <TradingActivitySkeleton />;
   }
@@ -229,8 +229,8 @@ export function TradingActivity({ trades, isLoading }: TradingActivityProps) {
 
       <Link href="/p2p/trade">
         <Button variant="outline" className="w-full justify-between group relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-violet-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <span className="relative z-10">{t("view_all_activity")}</span>
+          <div className={`absolute inset-0 bg-gradient-to-r from-blue-600 via-violet-500 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity`} />
+          <span className="relative z-10">{tExt("view_all_activity")}</span>
           <ChevronRight className="h-4 w-4 relative z-10" />
         </Button>
       </Link>
@@ -239,17 +239,18 @@ export function TradingActivity({ trades, isLoading }: TradingActivityProps) {
 }
 export function EmptyTradingActivity() {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
     <div className="border border-dashed rounded-xl p-8 text-center">
       <div className="flex flex-col items-center">
         <Activity className="h-12 w-12 text-muted-foreground/40 mb-4" />
-        <h3 className="text-lg font-medium mb-2">{t("no_trading_activity_yet")}</h3>
+        <h3 className="text-lg font-medium mb-2">{tCommon("no_trading_activity_yet")}</h3>
         <p className="text-muted-foreground max-w-md mb-6">
           {t("start_trading_with_other_users_to")}
         </p>
         <Link href="/p2p/offer">
           <Button>
-            <PlusCircle className="mr-2 h-4 w-4" /> {t("find_trading_partners")}
+            <PlusCircle className="mr-2 h-4 w-4" /> {tCommon("find_trading_partners")}
           </Button>
         </Link>
       </div>

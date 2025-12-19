@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 
 export function SafetyTips() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
   return (
     <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
       <CardHeader>

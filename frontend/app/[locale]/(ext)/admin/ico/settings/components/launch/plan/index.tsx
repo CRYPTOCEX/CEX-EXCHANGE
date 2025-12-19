@@ -24,7 +24,7 @@ export default function LaunchPlansConfiguration({
 }: {
   isActive: boolean;
 }) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const { setDirty } = useDirtyForm();
   const [plans, setPlans] = useState<icoLaunchPlanAttributes[]>([]);
   const [loading, setLoading] = useState(true);

@@ -1,19 +1,22 @@
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
-import { processForexInvestment } from "@b/utils/crons/forex";
+import { processForexInvestment } from "@b/api/(ext)/forex/utils/cron";
 import {
   notFoundMetadataResponse,
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Recovers a failed Forex investment",
   description: "Manually retries processing of a failed Forex investment.",
   operationId: "recoverForexInvestment",
-  tags: ["Admin", "Forex", "Investments"],
+  tags: ["Admin", "Forex", "Investment"],
   requiresAuth: true,
   permission: ["edit.forex.investment"],
+  logModule: "ADMIN_FOREX",
+  logTitle: "Recover forex investment",
   requestBody: {
     required: true,
     content: {
@@ -59,7 +62,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -67,9 +70,10 @@ export default async (data: Handler) => {
   const { investmentId } = body;
 
   try {
+    ctx?.step(`Validating forex investment ${investmentId}`);
     // Find the investment
     const investment = await models.forexInvestment.findOne({
-      where: { 
+      where: {
         id: investmentId,
         status: "CANCELLED"
       },
@@ -92,6 +96,7 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.step("Resetting investment status to ACTIVE");
     // Clear the metadata and set status back to ACTIVE
     await investment.update({
       status: "ACTIVE",
@@ -100,8 +105,10 @@ export default async (data: Handler) => {
 
     // Attempt to process the investment again
     try {
-      await processForexInvestment(investment);
-      
+      ctx?.step("Processing investment");
+      await processForexInvestment(investment, 0, ctx);
+
+      ctx?.success("Investment recovery initiated successfully");
       return {
         message: "Investment recovery initiated successfully",
         investment: {
@@ -110,6 +117,7 @@ export default async (data: Handler) => {
         },
       };
     } catch (processError) {
+      ctx?.fail("Failed to process investment");
       // If processing fails again, the cron job will handle it
       throw createError({
         statusCode: 500,
@@ -120,7 +128,7 @@ export default async (data: Handler) => {
     if (error.statusCode) {
       throw error;
     }
-    console.error("Error recovering forex investment:", error);
+    logger.error("FOREX", "Error recovering forex investment", error);
     throw createError({ statusCode: 500, message: "Internal Server Error" });
   }
 };

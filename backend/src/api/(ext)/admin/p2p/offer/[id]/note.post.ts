@@ -1,12 +1,20 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  notFoundResponse,
+  badRequestResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Add Admin Note to Offer",
-  description: "Adds a timestamped note to an offer as an admin. Notes are internal and not visible to users.",
-  operationId: "adminAddNoteToP2POffer",
-  tags: ["Admin", "Offers", "P2P"],
+  summary: "Add admin note to P2P offer",
+  description: "Adds an internal timestamped admin note to a P2P offer. Notes are stored in the adminNotes field and logged in admin activity for audit purposes.",
+  operationId: "addAdminNoteToP2POffer",
+  tags: ["Admin", "P2P", "Offer"],
   requiresAuth: true,
+  logModule: "ADMIN_P2P",
+  logTitle: "Add note to offer",
   parameters: [
     {
       index: 0,
@@ -34,29 +42,34 @@ export const metadata = {
   },
   responses: {
     200: { description: "Admin note added successfully." },
-    401: { description: "Unauthorized." },
-    404: { description: "Offer not found." },
-    500: { description: "Internal Server Error." },
+    401: unauthorizedResponse,
+    404: notFoundResponse("Resource"),
+    500: serverErrorResponse,
   },
   permission: "edit.p2p.offer",
 };
 
 export default async (data) => {
-  const { params, body } = data;
+  const { params, body, ctx } = data;
   const { id } = params;
   const { note } = body;
 
   try {
+    ctx?.step("Fetching offer");
     const offer = await models.p2pOffer.findByPk(id);
-    if (!offer)
+    if (!offer) {
+      ctx?.fail("Offer not found");
       throw createError({ statusCode: 404, message: "Offer not found" });
+    }
 
+    ctx?.step("Getting admin information");
     // Get admin's name for display
     const admin = await models.user.findByPk(data.user.id, {
       attributes: ["firstName", "lastName"],
     });
     const adminName = admin ? `${admin.firstName} ${admin.lastName}`.trim() : "Admin";
 
+    ctx?.step("Creating timestamped note");
     // Create timestamped note entry
     const timestamp = new Date().toISOString();
     const noteEntry = `[${timestamp}] ${adminName}: ${note}`;
@@ -67,10 +80,12 @@ export default async (data) => {
       ? `${currentNotes}\n${noteEntry}`
       : noteEntry;
 
+    ctx?.step("Updating offer with note");
     await offer.update({
       adminNotes: updatedNotes,
     });
 
+    ctx?.step("Logging admin activity");
     // Log admin activity
     await models.p2pAdminActivity.create({
       adminId: data.user.id,
@@ -82,10 +97,12 @@ export default async (data) => {
       },
     });
 
+    ctx?.success("Admin note added successfully");
     return {
       message: "Admin note added successfully."
     };
   } catch (err) {
+    ctx?.fail("Failed to add admin note");
     throw createError({
       statusCode: 500,
       message: "Internal Server Error: " + err.message,

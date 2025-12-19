@@ -38,10 +38,18 @@ export const metadata: OperationObject = {
   },
   permission: "view.blog.tag",
   requiresAuth: true,
+  logModule: "ADMIN_BLOG",
+  logTitle: "Get tag by ID",
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("tag", params.id);
+  ctx?.step("Validating tag ID");
+
+  ctx?.step("Fetching tag");
+  const result = await getRecord("tag", params.id);
+
+  ctx?.success("Tag retrieved successfully");
+  return result;
 };

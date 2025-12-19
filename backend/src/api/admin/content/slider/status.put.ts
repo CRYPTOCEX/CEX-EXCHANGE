@@ -30,10 +30,17 @@ export const metadata = {
   responses: updateRecordResponses("Slider"),
   requiresAuth: true,
   permission: "edit.slider",
+  logModule: "ADMIN_CMS",
+  logTitle: "Bulk update slider status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("slider", ids, status);
+
+  ctx?.step(`Updating status of ${ids?.length || 0} slider(s) to ${status ? 'active' : 'inactive'}`);
+  const result = await updateStatus("slider", ids, status);
+
+  ctx?.success("Successfully updated slider status");
+  return result;
 };

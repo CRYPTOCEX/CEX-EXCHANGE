@@ -10,6 +10,7 @@ import { makeUuid } from "@b/utils/passwords";
 import { MatchingEngine } from "../matchingEngine";
 import { getWalletByUserIdAndCurrency, updateWalletBalance } from "../wallet";
 import { getEcosystemToken } from "../tokens";
+import { logger } from "@b/utils/console";
 const scyllaKeyspace = process.env.SCYLLA_KEYSPACE || "trading";
 
 // Cache for token decimals to avoid repeated database queries
@@ -55,11 +56,11 @@ async function getSymbolDecimals(symbol: string): Promise<number> {
     }
 
     // If not found, default to 8 decimals (common for most crypto)
-    console.warn(`Could not find decimals for ${baseCurrency}, defaulting to 8`);
+    logger.warn("SCYLLA", `Could not find decimals for ${baseCurrency}, defaulting to 8`);
     tokenDecimalsCache.set(baseCurrency, 8);
     return 8;
   } catch (error) {
-    console.error(`Error fetching decimals for ${symbol}:`, error);
+    logger.error("SCYLLA", `Error fetching decimals for ${symbol}`, error);
     // Default to 8 decimals
     return 8;
   }
@@ -159,7 +160,7 @@ export async function getOrdersByUserId(userId: string): Promise<Order[]> {
     const orders = result.rows.map(mapRowToOrder);
     return orders;
   } catch (error) {
-    console.error(`[Scylla] Failed to fetch orders by userId: ${error.message}`, error);
+    logger.error("SCYLLA", `Failed to fetch orders by userId: ${error.message}`, error);
     throw new Error(`Failed to fetch orders by userId: ${error.message}`);
   }
 }
@@ -215,6 +216,34 @@ export async function cancelOrderByUuid(
   side: string,
   amount: bigint
 ): Promise<any> {
+  // IMPORTANT: First verify the order exists with this exact userId/createdAt/id combination
+  // This prevents ScyllaDB from creating a new row with null fields when UPDATE is called
+  // with a non-existent primary key (ScyllaDB's upsert behavior)
+  const checkQuery = `
+    SELECT id, symbol, status FROM ${scyllaKeyspace}.orders
+    WHERE "userId" = ? AND "createdAt" = ? AND id = ?;
+  `;
+  const checkParams = [userId, new Date(createdAt), id];
+
+  try {
+    const checkResult = await client.execute(checkQuery, checkParams, { prepare: true });
+    if (checkResult.rows.length === 0) {
+      // Order doesn't exist with this userId - don't create a ghost record
+      logger.warn("SCYLLA", `Order ${id} not found for user ${userId} at ${createdAt} - skipping cancellation to prevent ghost record`);
+      return;
+    }
+
+    // Verify the order is not already cancelled
+    const existingOrder = checkResult.rows[0];
+    if (existingOrder.status === "CANCELED" || existingOrder.status === "CLOSED") {
+      logger.debug("SCYLLA", `Order ${id} is already ${existingOrder.status} - skipping`);
+      return;
+    }
+  } catch (checkError) {
+    logger.error("SCYLLA", `Failed to check order existence: ${checkError.message}`, checkError);
+    throw checkError;
+  }
+
   const priceFormatted = fromBigInt(price);
   const orderbookSide = side === "BUY" ? "BIDS" : "ASKS";
   const orderbookAmount = await getOrderbookEntry(
@@ -246,9 +275,7 @@ export async function cancelOrderByUuid(
     // This is expected when canceling AI market maker orders - the orderbook gets rebuilt regularly
     // Only log in development to reduce noise
     if (process.env.NODE_ENV === "development") {
-      console.debug(
-        `No orderbook entry found for symbol: ${symbol}, price: ${priceFormatted}, side: ${orderbookSide}`
-      );
+      logger.debug("SCYLLA", `No orderbook entry found for symbol: ${symbol}, price: ${priceFormatted}, side: ${orderbookSide}`);
     }
   }
 
@@ -272,9 +299,7 @@ export async function cancelOrderByUuid(
   try {
     await client.batch(batchQueries, { prepare: true });
   } catch (error) {
-    console.error(
-      `Failed to cancel order and update orderbook: ${error.message}`
-    );
+    logger.error("SCYLLA", `Failed to cancel order and update orderbook: ${error.message}`, error);
     throw new Error(
       `Failed to cancel order and update orderbook: ${error.message}`
     );
@@ -303,7 +328,7 @@ export async function getOrderbookEntry(
       return null;
     }
   } catch (error) {
-    console.error(`Failed to fetch orderbook entry: ${error.message}`);
+    logger.error("SCYLLA", `Failed to fetch orderbook entry: ${error.message}`, error);
     throw new Error(`Failed to fetch orderbook entry: ${error.message}`);
   }
 }
@@ -339,6 +364,36 @@ export async function createOrder({
   marketMakerId?: string;
   botId?: string;
 }): Promise<Order> {
+  // CRITICAL VALIDATION: Prevent creating orders with null/undefined required fields
+  // This prevents ScyllaDB from accepting incomplete data that creates corrupted records
+  if (!userId || typeof userId !== 'string') {
+    throw new Error('Cannot create order: userId is required and must be a valid string');
+  }
+  if (!symbol || typeof symbol !== 'string') {
+    throw new Error('Cannot create order: symbol is required and must be a valid string');
+  }
+  if (!type || typeof type !== 'string') {
+    throw new Error('Cannot create order: type is required and must be a valid string');
+  }
+  if (!side || typeof side !== 'string') {
+    throw new Error('Cannot create order: side is required and must be a valid string');
+  }
+  if (!feeCurrency || typeof feeCurrency !== 'string') {
+    throw new Error('Cannot create order: feeCurrency is required and must be a valid string');
+  }
+  if (typeof price !== 'bigint') {
+    throw new Error('Cannot create order: price is required and must be a bigint');
+  }
+  if (typeof amount !== 'bigint') {
+    throw new Error('Cannot create order: amount is required and must be a bigint');
+  }
+  if (typeof cost !== 'bigint') {
+    throw new Error('Cannot create order: cost is required and must be a bigint');
+  }
+  if (typeof fee !== 'bigint') {
+    throw new Error('Cannot create order: fee is required and must be a bigint');
+  }
+
   const currentTimestamp = new Date();
   const query = `
     INSERT INTO ${scyllaKeyspace}.orders (id, "userId", symbol, type, "timeInForce", side, price, amount, filled, remaining, cost, fee, "feeCurrency", status, "createdAt", "updatedAt", "marketMakerId", "botId")
@@ -403,7 +458,7 @@ export async function createOrder({
     matchingEngine.addToQueue(newOrder);
     return newOrder;
   } catch (error) {
-    console.error(`Failed to create order: ${error.message}`);
+    logger.error("SCYLLA", `Failed to create order: ${error.message}`, error);
     throw new Error(`Failed to create order: ${error.message}`);
   }
 }
@@ -518,13 +573,13 @@ export async function getAllOpenOrders(): Promise<any[]> {
         allOrders.push(...result.rows);
       } catch (err) {
         // Skip errors for individual symbols
-        console.warn(`Failed to fetch open orders for symbol ${symbol}:`, err.message);
+        logger.warn("SCYLLA", `Failed to fetch open orders for symbol ${symbol}: ${err.message}`);
       }
     }
 
     return allOrders;
   } catch (error) {
-    console.error(`Failed to fetch all open orders: ${error.message}`);
+    logger.error("SCYLLA", `Failed to fetch all open orders: ${error.message}`, error);
     throw new Error(`Failed to fetch all open orders: ${error.message}`);
   }
 }
@@ -564,7 +619,7 @@ export async function getLastCandles(): Promise<Candle[]> {
 
     return latestCandles;
   } catch (error) {
-    console.error(`Failed to fetch latest candles: ${error.message}`);
+    logger.error("SCYLLA", `Failed to fetch latest candles: ${error.message}`, error);
     throw new Error(`Failed to fetch latest candles: ${error.message}`);
   }
 }
@@ -621,7 +676,7 @@ export async function getYesterdayCandles(): Promise<{
 
     return yesterdayCandles;
   } catch (error) {
-    console.error(`Failed to fetch yesterday's candles: ${error.message}`);
+    logger.error("SCYLLA", `Failed to fetch yesterday's candles: ${error.message}`, error);
     throw new Error(`Failed to fetch yesterday's candles: ${error.message}`);
   }
 }
@@ -684,7 +739,7 @@ export async function fetchOrderBooks(): Promise<OrderBookDatas[] | null> {
       side: row.side,
     }));
   } catch (error) {
-    console.error(`Failed to fetch order books: ${error.message}`);
+    logger.error("SCYLLA", `Failed to fetch order books: ${error.message}`, error);
     return null;
   }
 }
@@ -715,7 +770,7 @@ export async function updateOrderBookInDB(
   try {
     await client.execute(query, params, { prepare: true });
   } catch (error) {
-    console.error(`Failed to update order book: ${error.message}`);
+    logger.error("SCYLLA", `Failed to update order book: ${error.message}`, error);
   }
 }
 
@@ -804,7 +859,7 @@ export async function deleteAllMarketData(symbol: string) {
   try {
     await client.batch(batchQueries, { prepare: true });
   } catch (err) {
-    console.error(`Failed to delete all market data: ${err.message}`);
+    logger.error("SCYLLA", `Failed to delete all market data: ${err.message}`, err);
   }
 }
 
@@ -812,7 +867,7 @@ async function cancelAndRefundOrder(userId, id, createdAt) {
   const order = await getOrderByUuid(userId, id, createdAt);
 
   if (!order) {
-    console.warn(`Order not found for UUID: ${id}`);
+    logger.warn("SCYLLA", `Order not found for UUID: ${id}`);
     return;
   }
 
@@ -837,7 +892,7 @@ async function cancelAndRefundOrder(userId, id, createdAt) {
 
   const wallet = await getWalletByUserIdAndCurrency(userId, walletCurrency);
   if (!wallet) {
-    console.warn(`${walletCurrency} wallet not found for user ID: ${userId}`);
+    logger.warn("SCYLLA", `${walletCurrency} wallet not found for user ID: ${userId}`);
     return;
   }
 
@@ -887,9 +942,7 @@ export async function getOrders(
         remaining: fromBigInt(order.remaining),
       }));
   } catch (error) {
-    console.error(
-      `Failed to fetch orders by userId and symbol: ${error.message}`
-    );
+    logger.error("SCYLLA", `Failed to fetch orders by userId and symbol: ${error.message}`, error);
     throw new Error(
       `Failed to fetch orders by userId and symbol: ${error.message}`
     );
@@ -972,7 +1025,7 @@ export async function getRecentTrades(
           });
         }
       } catch (parseError) {
-        console.error(`Failed to parse trades for order ${row.id}:`, parseError);
+        logger.error("SCYLLA", `Failed to parse trades for order ${row.id}`, parseError);
         continue;
       }
     }
@@ -1007,12 +1060,12 @@ export async function getRecentTrades(
       sortedTrades.sort((a, b) => b.timestamp - a.timestamp);
     } catch (tradesTableError) {
       // Trades table might not exist yet, ignore error
-      console.debug(`Trades table query failed (may not exist yet): ${tradesTableError.message}`);
+      logger.debug("SCYLLA", `Trades table query failed (may not exist yet): ${tradesTableError.message}`);
     }
 
     return sortedTrades.slice(0, limit);
   } catch (error) {
-    console.error(`Failed to fetch recent trades for ${symbol}:`, error.message);
+    logger.error("SCYLLA", `Failed to fetch recent trades for ${symbol}: ${error.message}`, error);
     throw new Error(`Failed to fetch recent trades: ${error.message}`);
   }
 }
@@ -1048,7 +1101,7 @@ export async function insertTrade(
       { prepare: true }
     );
   } catch (error) {
-    console.error(`Failed to insert trade for ${symbol}:`, error.message);
+    logger.error("SCYLLA", `Failed to insert trade for ${symbol}: ${error.message}`, error);
     // Don't throw - trade recording is not critical
   }
 }
@@ -1091,7 +1144,7 @@ export async function getOHLCV(
 
     return ohlcv;
   } catch (error) {
-    console.error(`Failed to fetch OHLCV for ${symbol} ${interval}:`, error.message);
+    logger.error("SCYLLA", `Failed to fetch OHLCV for ${symbol} ${interval}: ${error.message}`, error);
     throw new Error(`Failed to fetch OHLCV: ${error.message}`);
   }
 }

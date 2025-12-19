@@ -41,6 +41,7 @@ import {
 import { Link } from "@/i18n/routing";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { IntegrationHero } from "./components/integration-hero";
 
 // Platform integration data
 const INTEGRATIONS = [
@@ -109,7 +110,9 @@ const CodeBlock = ({ code, language = "php" }: { code: string; language?: string
 };
 
 export default function IntegrationsClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_gateway");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [activeIntegration, setActiveIntegration] = useState("woocommerce");
   const activePlugin = INTEGRATIONS.find((i) => i.id === activeIntegration);
 
@@ -157,30 +160,26 @@ export default function IntegrationsClient() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Integrations</h1>
-          <p className="text-muted-foreground mt-1">
-            {t("connect_your_e_commerce_platform_to")}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link href="/gateway/docs">
-            <Button variant="outline">
-              <FileCode className="h-4 w-4 mr-2" />
-              API Documentation
-            </Button>
-          </Link>
-          <Link href="/gateway/settings?tab=api-keys">
-            <Button>
-              <Key className="h-4 w-4 mr-2" />
-              {t("get_api_keys")}
-            </Button>
-          </Link>
-        </div>
-      </div>
+    <div className="w-full">
+      <IntegrationHero
+        rightContent={
+          <div className="flex items-center gap-2">
+            <Link href="/gateway/docs">
+              <Button variant="outline">
+                <FileCode className="h-4 w-4 mr-2" />
+                API Documentation
+              </Button>
+            </Link>
+            <Link href="/gateway/settings?tab=api-keys">
+              <Button>
+                <Key className="h-4 w-4 mr-2" />
+                {t("get_api_keys")}
+              </Button>
+            </Link>
+          </div>
+        }
+      />
+      <div className="container mx-auto space-y-8 pb-12 pt-8">
 
       {/* Platform Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -446,7 +445,7 @@ export default function IntegrationsClient() {
                       <div className="flex items-start gap-3">
                         <RefreshCcw className="h-5 w-5 text-primary mt-0.5" />
                         <div>
-                          <h4 className="font-medium">{t("webhook_configuration")}</h4>
+                          <h4 className="font-medium">{tExt("webhook_configuration")}</h4>
                           <p className="text-sm text-muted-foreground mb-2">
                             {t("the_plugin_automatically_handles_webhooks_your")}:
                           </p>
@@ -461,7 +460,7 @@ export default function IntegrationsClient() {
               <TabsContent value="testing" className="space-y-6">
                 <Alert className="border-yellow-500/50 bg-yellow-500/10">
                   <AlertCircle className="h-4 w-4 text-yellow-600" />
-                  <AlertTitle className="text-yellow-600">{t("test_mode_1")}</AlertTitle>
+                  <AlertTitle className="text-yellow-600">{tCommon('test_mode')}</AlertTitle>
                   <AlertDescription>
                     {t("always_test_your_integration_in_test")} {t("test_transactions_dont_affect_real_balances")}
                   </AlertDescription>
@@ -513,7 +512,7 @@ export default function IntegrationsClient() {
                       <div className="flex-1">
                         <h4 className="font-medium">{t("verify_order_status")}</h4>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {t("after_payment_check_that_your_woocommerce")}
+                          {t("after_payment_check_that_your_woocommerce")} ({t("woocommerce_order_status_flow")})
                         </p>
                       </div>
                     </div>
@@ -560,7 +559,7 @@ export default function IntegrationsClient() {
                     <AccordionContent className="text-muted-foreground">
                       <ul className="list-disc list-inside space-y-2">
                         <li>{t("verify_webhooks_are_configured_in_your")}</li>
-                        <li>{t("check_that_your_site_is_accessible")}</li>
+                        <li>{t("check_that_your_site_is_accessible")} ({t("webhooks_cant_reach_localhost")})</li>
                         <li>{t("ensure_the_webhook_url_is_correct")}: <code className="px-1 py-0.5 bg-muted rounded">https://your-store.com/?wc-api=bicrypto_gateway</code></li>
                         <li>{t("check_webhook_delivery_status_in_your")}</li>
                       </ul>
@@ -621,6 +620,7 @@ export default function IntegrationsClient() {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }

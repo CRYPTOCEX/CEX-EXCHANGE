@@ -36,13 +36,16 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Support Ticket"),
   requiresAuth: true,
   permission: "edit.support.ticket",
+  logModule: "ADMIN_SUP",
+  logTitle: "Update ticket status",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
 
+  ctx?.step("Broadcasting status update to clients");
   messageBroker.broadcastToSubscribedClients(
     `/api/user/support/ticket/${id}`,
     { id },
@@ -54,5 +57,10 @@ export default async (data: Handler) => {
       },
     }
   );
-  return updateStatus("supportTicket", id, status);
+
+  ctx?.step("Updating ticket status");
+  const result = await updateStatus("supportTicket", id, status);
+
+  ctx?.success("Ticket status updated");
+  return result;
 };

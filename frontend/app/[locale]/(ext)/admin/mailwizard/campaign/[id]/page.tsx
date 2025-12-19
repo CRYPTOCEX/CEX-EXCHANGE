@@ -11,9 +11,11 @@ import { CampaignTargets } from "@/app/[locale]/(ext)/admin/mailwizard/campaign/
 import CampaignControlButtons from "@/app/[locale]/(ext)/admin/mailwizard/campaign/components/controls";
 import CampaignProgress from "@/app/[locale]/(ext)/admin/mailwizard/campaign/components/progress";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 export default function CampaignEdit() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const params = useParams();
   // Ensure the param is a string
@@ -28,7 +30,7 @@ export default function CampaignEdit() {
     }
   }, [campaignId, setCampaignId, fetchTemplates, fetchCampaign]);
   return (
-    <div className="space-y-5">
+    <div className={`container ${PAGE_PADDING} space-y-5`}>
       {/* Page Title + Back Button */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -44,7 +46,7 @@ export default function CampaignEdit() {
           onClick={() => router.push("/admin/mailwizard/campaign")}
         >
           <Icon icon="lucide:arrow-left" className="mr-2 h-4 w-4" />
-          {t("Back")}
+          {tCommon("back")}
         </Button>
       </div>
       <div>

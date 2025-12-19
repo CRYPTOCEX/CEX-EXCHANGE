@@ -13,27 +13,30 @@ export const metadata: OperationObject = {
   responses: deleteRecordResponses("AI Investment"),
   permission: "delete.ai.investment",
   requiresAuth: true,
+  logModule: "ADMIN_AI",
+  logTitle: "Delete AI investment",
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
+  const { params, query, ctx } = data;
 
   const externalData: { transactionId?: string } = {};
 
   const preDelete = async () => {
+    ctx?.step("Processing wallet refund");
     const transaction = await models.transaction.findOne({
       where: { referenceId: params.id },
       include: [{ model: models.wallet, as: "wallet" }],
     });
 
     if (!transaction) {
-      console.warn("Transaction not found for id:", params.id);
+      ctx?.warn(`Transaction not found for id: ${params.id}`);
       // Skip wallet update and transaction deletion if transaction is missing.
       return;
     }
 
     if (!transaction.wallet) {
-      console.warn("Wallet not found for transaction:", transaction.id);
+      ctx?.warn(`Wallet not found for transaction: ${transaction.id}`);
       return;
     }
 
@@ -45,22 +48,28 @@ export default async (data: Handler) => {
     );
 
     externalData.transactionId = transaction.id;
+    ctx?.step("Wallet refunded");
   };
 
   const postDelete = async () => {
     // Only delete the transaction if it was found and processed.
     if (externalData.transactionId) {
+      ctx?.step("Cleaning up transaction record");
       await models.transaction.destroy({
         where: { id: externalData.transactionId },
       });
     }
   };
 
-  return await handleSingleDelete({
+  ctx?.step(`Deleting investment ${params.id}`);
+  const result = await handleSingleDelete({
     model: "aiInvestment",
     id: params.id,
     query: { ...query, force: "true", restore: undefined },
     preDelete,
     postDelete,
   });
+
+  ctx?.success("Investment deleted successfully");
+  return result;
 };

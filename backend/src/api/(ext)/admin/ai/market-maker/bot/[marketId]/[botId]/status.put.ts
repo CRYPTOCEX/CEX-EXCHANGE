@@ -7,9 +7,13 @@ import {
 import { createError } from "@b/utils/error";
 
 export const metadata: OperationObject = {
-  summary: "Update bot status (pause/resume/cooldown)",
-  operationId: "updateAiMarketMakerBotStatus",
+  summary: "Update AI Market Maker bot operational status",
+  operationId: "updateMarketMakerBotStatus",
   tags: ["Admin", "AI Market Maker", "Bot"],
+  description:
+    "Changes the operational status of an AI bot (ACTIVE, PAUSED, or COOLDOWN). Validates that bots can only be activated when their parent market maker is active. All status changes are logged in the market maker history with previous and new status details.",
+  logModule: "ADMIN_MM",
+  logTitle: "Update Bot Status",
   parameters: [
     {
       index: 0,
@@ -24,7 +28,7 @@ export const metadata: OperationObject = {
       name: "botId",
       in: "path",
       required: true,
-      description: "ID of the bot",
+      description: "ID of the bot to update",
       schema: { type: "string" },
     },
   ],
@@ -38,11 +42,11 @@ export const metadata: OperationObject = {
             status: {
               type: "string",
               enum: ["ACTIVE", "PAUSED", "COOLDOWN"],
-              description: "New bot status",
+              description: "New operational status for the bot",
             },
             cooldownMinutes: {
               type: "number",
-              description: "Cooldown duration in minutes (for COOLDOWN status)",
+              description: "Cooldown duration in minutes (only applicable when status is COOLDOWN)",
             },
           },
           required: ["status"],
@@ -52,21 +56,55 @@ export const metadata: OperationObject = {
   },
   responses: {
     200: {
-      description: "Bot status updated successfully",
+      description: "Bot status updated successfully with status change details",
       content: {
         "application/json": {
           schema: {
             type: "object",
             properties: {
-              message: { type: "string" },
-              status: { type: "string" },
+              message: {
+                type: "string",
+                description: "Success message with new status",
+              },
+              botId: {
+                type: "string",
+                description: "ID of the updated bot",
+              },
+              botName: {
+                type: "string",
+                description: "Name of the updated bot",
+              },
+              previousStatus: {
+                type: "string",
+                description: "Previous bot status",
+              },
+              newStatus: {
+                type: "string",
+                description: "New bot status",
+              },
+            },
+          },
+        },
+      },
+    },
+    400: {
+      description: "Invalid status change request",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              message: {
+                type: "string",
+                description: "Error message (e.g., cannot activate bot when market maker is not active)",
+              },
             },
           },
         },
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("Bot"),
+    404: notFoundMetadataResponse("Bot or AI Market Maker"),
     500: serverErrorResponse,
   },
   requiresAuth: true,
@@ -74,9 +112,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, body } = data;
+  const { params, body, ctx } = data;
   const { status, cooldownMinutes } = body;
 
+  ctx?.step("Fetch bot from database");
   const bot = await models.aiBot.findOne({
     where: {
       id: params.botId,
@@ -88,6 +127,7 @@ export default async (data: Handler) => {
     throw createError(404, "Bot not found");
   }
 
+  ctx?.step("Validate market maker status");
   // Get market maker to check status
   const marketMaker = await models.aiMarketMaker.findByPk(params.marketId);
   if (!marketMaker) {
@@ -104,9 +144,11 @@ export default async (data: Handler) => {
 
   const previousStatus = bot.status;
 
+  ctx?.step("Update bot status");
   // Update bot status
   await bot.update({ status });
 
+  ctx?.step("Create history record for status change");
   // Log the change
   await models.aiMarketMakerHistory.create({
     marketMakerId: params.marketId,
@@ -122,6 +164,7 @@ export default async (data: Handler) => {
     poolValueAtAction: 0,
   });
 
+  ctx?.success("Bot status updated successfully");
   return {
     message: `Bot status updated to ${status}`,
     botId: bot.id,

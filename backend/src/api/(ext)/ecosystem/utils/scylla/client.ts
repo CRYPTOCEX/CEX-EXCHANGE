@@ -1,5 +1,5 @@
 import { Client, auth, policies, types } from "cassandra-driver";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 // Token-aware load balancing policy
 const loadBalancingPolicy = new policies.loadBalancing.TokenAwarePolicy(
@@ -65,13 +65,13 @@ async function connectWithRetry(retries: number, delay: number) {
     await client.connect();
     return true;
   } catch (err) {
-    logError("scylla", err, __filename);
+    logger.error("ECOSYSTEM", "Failed to connect to ScyllaDB", err);
     if (retries > 0) {
-      console.warn(`Connection failed. Retrying in ${delay / 1000} seconds...`);
+      logger.warn("SCYLLA", `Connection failed. Retrying in ${delay / 1000} seconds...`);
       await new Promise((resolve) => setTimeout(resolve, delay));
       return connectWithRetry(retries - 1, delay * 2);
     } else {
-      console.error("Max retries reached. Could not connect to ScyllaDB.");
+      logger.error("SCYLLA", "Max retries reached. Could not connect to ScyllaDB.");
       return false;
     }
   }
@@ -103,7 +103,7 @@ export function initialize(): Promise<void> {
   })();
 
   initializationPromise.catch((err) => {
-    logError("scylla", err, __filename);
+    logger.error("ECOSYSTEM", "Failed to initialize ScyllaDB", err);
     initializationPromise = null;
   });
 
@@ -140,11 +140,10 @@ async function initializeDatabase(
         await runMigrations(keyspace);
       }
     } catch (err) {
-      console.log(err);
-      logError("scylla", err, __filename);
+      logger.error("ECOSYSTEM", "Failed to create ScyllaDB tables", err);
     }
   } catch (error) {
-    logError("scylla", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to initialize ScyllaDB database", error);
   }
 }
 
@@ -165,7 +164,7 @@ async function runMigrations(keyspace: string) {
     } catch (err: any) {
       // Ignore "already exists" errors - column was already added
       if (!err.message?.includes("already exists") && !err.message?.includes("Invalid column name")) {
-        console.warn(`[Scylla Migration] Warning: ${err.message}`);
+        logger.warn("SCYLLA", `Migration warning: ${err.message}`);
       }
     }
   }
@@ -354,7 +353,7 @@ const futuresViewQueries = [
 // Graceful shutdown
 const shutdown = async () => {
   await client.shutdown();
-  console.info("ScyllaDB client disconnected");
+  logger.info("SCYLLA", "Client disconnected");
   process.exit(0);
 };
 

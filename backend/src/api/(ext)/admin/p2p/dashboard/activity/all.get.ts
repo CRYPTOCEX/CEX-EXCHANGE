@@ -7,6 +7,8 @@ export const metadata = {
     "Retrieves all P2P activity logs with pagination and filtering options for the admin dashboard.",
   operationId: "getAllAdminP2PActivity",
   tags: ["Admin", "Dashboard", "Activity", "P2P"],
+  logModule: "ADMIN_P2P",
+  logTitle: "Get All P2P Activities",
   requiresAuth: true,
   parameters: [
     {
@@ -64,6 +66,7 @@ export const metadata = {
     500: { description: "Internal Server Error." },
   },
   permission: "view.p2p.activity",
+  demoMask: ["activities.user.email"],
 };
 
 // Helper function to format action types into readable titles
@@ -197,7 +200,9 @@ function getActivityIcon(type: string): string {
 
 export default async (data: any) => {
   try {
-    const { query } = data;
+    const { query, ctx } = data;
+    ctx?.step("Fetching all P2P activity logs");
+
     const page = parseInt(query.page) || 1;
     const limit = Math.min(parseInt(query.limit) || 20, 100);
     const offset = (page - 1) * limit;
@@ -278,6 +283,9 @@ export default async (data: any) => {
     const totalPages = Math.ceil(totalCount / limit);
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
+
+
+    ctx?.success("P2P activity logs retrieved successfully");
 
     return {
       activities,

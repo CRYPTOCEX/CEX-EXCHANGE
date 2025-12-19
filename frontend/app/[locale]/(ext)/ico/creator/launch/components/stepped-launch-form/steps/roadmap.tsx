@@ -22,6 +22,8 @@ export default function RoadmapStep({
   maxRoadmapItems = 999,
 }: RoadmapStepProps) {
   const t = useTranslations("ext");
+  const tExtIco = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
   const addRoadmapItem = () => {
     updateFormData("roadmap", [
       ...formData.roadmap,
@@ -75,7 +77,7 @@ export default function RoadmapStep({
             disabled={formData.roadmap.length >= maxRoadmapItems}
           >
             <Plus className="h-4 w-4 mr-1" />
-            {t("add_milestone")}
+            {tExtIco("add_milestone")}
           </Button>
         </div>
       </div>
@@ -84,8 +86,8 @@ export default function RoadmapStep({
         <Alert className="bg-amber-50 text-amber-800 border-amber-200">
           <AlertCircle className="h-4 w-4 text-amber-800" />
           <AlertDescription>
-            {t("youve_reached_the_in_your")} {formData.selectedPlan.name}
-            {t("plan")}.
+            {tExtIco("youve_reached_the_in_your")} {formData.selectedPlan.name}
+            {tCommon("plan")}.
             {formData.selectedPlan.name !== "Premium" &&
               " Consider upgrading your plan for more roadmap items."}
           </AlertDescription>

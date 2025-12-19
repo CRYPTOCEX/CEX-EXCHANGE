@@ -19,7 +19,7 @@ export default function PaymentStep({
   errors,
   isAdmin = false, // add default
 }: PaymentStepProps & { isAdmin?: boolean }) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
   const plan = formData.selectedPlan as unknown as icoLaunchPlanAttributes;
 
   // Local states for terms, payment status, wallet details, etc.
@@ -153,7 +153,7 @@ export default function PaymentStep({
 
       {isPaymentComplete && (
         <p className="text-sm font-medium text-green-600">
-          {t("balance_verified_your_payment_will_be_processed_upon_submission")}
+          {t("balance_verified_your_payment_will_be")}
         </p>
       )}
     </div>

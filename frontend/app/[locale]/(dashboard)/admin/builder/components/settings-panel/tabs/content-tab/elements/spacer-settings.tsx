@@ -6,12 +6,14 @@ import {
   LabeledSwitch,
 } from "../../structure-tab/ui-components";
 import type { SettingsProps } from "../settings-map";
+import { useTranslations } from "next-intl";
 
 export function SpacerSettings({
   element,
   settings,
   onSettingChange,
 }: SettingsProps) {
+  const t = useTranslations("dashboard_admin");
   return (
     <div className="space-y-4">
       <LabeledSlider
@@ -38,7 +40,7 @@ export function SpacerSettings({
         />
         <LabeledSwitch
           id="showInEditor"
-          label="Show in Editor"
+          label={t("show_in_editor")}
           checked={settings.showInEditor !== false}
           onCheckedChange={(checked) =>
             onSettingChange("showInEditor", checked)
@@ -47,7 +49,7 @@ export function SpacerSettings({
       </div>
       <LabeledSlider
         id="mobileHeight"
-        label="Mobile Height"
+        label={t("mobile_height")}
         min={0}
         max={200}
         step={5}

@@ -7,6 +7,8 @@ export const metadata = {
   description: "Checks if an ICO offering is eligible for refunds and returns refund details",
   operationId: "checkRefundEligibility",
   tags: ["ICO", "Refunds"],
+  logModule: "ICO",
+  logTitle: "Get Refund Eligibility",
   requiresAuth: true,
   parameters: [
     {
@@ -50,10 +52,13 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Fetching refund eligibility");
 
   const { offeringId } = params;
 
@@ -152,6 +157,8 @@ export default async (data: Handler) => {
   }
   
   refundDetails.totalInvestors = uniqueInvestors.size;
+
+  ctx?.success("Get Refund Eligibility retrieved successfully");
 
   return {
     eligible,

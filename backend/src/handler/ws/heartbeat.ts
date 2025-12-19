@@ -8,7 +8,7 @@
  * This abstraction improves clarity and makes the heartbeat logic easier to test.
  */
 
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 // Types for clarity
 export type ClientRecord = { ws: any; subscriptions: Set<string> };
@@ -32,30 +32,30 @@ export function startHeartbeat(clients: ClientsMap, interval: number) {
           try {
             clientRecord.ws.close();
           } catch (error) {
-            logError("websocket", error, route);
+            logger.error("WS", `Failed to close connection for client ${clientId}`, error);
           }
           routeClients.delete(clientId);
         } 
         // Only check isAlive after the first interval (give clients time to connect)
         else if (!isFirstCheck && !clientRecord.ws.isAlive) {
           // Client didn't respond to last ping, but give them one more chance
-          console.log(`Client ${clientId} on route ${route} missed a heartbeat, sending final ping`);
+          logger.debug("WS", `Client ${clientId} missed heartbeat, sending final ping`);
           try {
             clientRecord.ws.ping();
             // Give them one more interval to respond
             setTimeout(() => {
               if (!clientRecord.ws.isAlive) {
-                console.log(`Client ${clientId} on route ${route} failed to respond, closing connection`);
+                logger.debug("WS", `Client ${clientId} failed to respond, closing`);
                 try {
                   clientRecord.ws.close();
                 } catch (error) {
-                  logError("websocket", error, route);
+                  logger.error("WS", `Failed to close unresponsive client ${clientId}`, error);
                 }
                 routeClients.delete(clientId);
               }
             }, interval / 2); // Wait half the interval for response
           } catch (error) {
-            logError("websocket", error, route);
+            logger.error("WS", `Failed to send final ping to client ${clientId}`, error);
             routeClients.delete(clientId);
           }
         } else {
@@ -64,7 +64,7 @@ export function startHeartbeat(clients: ClientsMap, interval: number) {
           try {
             clientRecord.ws.ping();
           } catch (error) {
-            logError("websocket", error, route);
+            logger.error("WS", `Failed to ping client ${clientId} during heartbeat`, error);
             routeClients.delete(clientId);
           }
         }

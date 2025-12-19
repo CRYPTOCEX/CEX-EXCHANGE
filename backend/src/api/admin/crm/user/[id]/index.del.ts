@@ -10,6 +10,8 @@ export const metadata: OperationObject = {
   summary: "Deletes a specific user by UUID",
   operationId: "deleteUserByUuid",
   tags: ["Admin", "CRM", "User"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Delete user",
   parameters: deleteRecordParams("user"),
   responses: deleteRecordResponses("User"),
   requiresAuth: true,
@@ -17,7 +19,9 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, query, user } = data;
+  const { params, query, user, ctx } = data;
+
+  ctx?.step("Validating user authorization");
   if (!user?.id) {
     throw createError({
       statusCode: 401,
@@ -38,6 +42,7 @@ export default async (data: Handler) => {
 
   const { id } = params;
 
+  ctx?.step("Validating target user");
   // Optional: Check if user to be deleted is also a super admin
   // and prevent that if desired. For example:
   const targetUser = await models.user.findOne({
@@ -51,9 +56,12 @@ export default async (data: Handler) => {
     });
   }
 
-  return handleSingleDelete({
+  ctx?.step("Deleting user");
+  const result = await handleSingleDelete({
     model: "user",
     id,
     query,
   });
+  ctx?.success();
+  return result;
 };

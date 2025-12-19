@@ -50,6 +50,23 @@ function DrawerContent({
   children,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Content>) {
+  // Check if children includes a DrawerDescription component
+  const hasDescription = React.Children.toArray(children).some((child) => {
+    if (React.isValidElement(child)) {
+      // Check direct children
+      if (child.type === DrawerDescription) return true;
+
+      // Check nested children (like inside DrawerHeader)
+      if (child.props?.children) {
+        const nestedChildren = React.Children.toArray(child.props.children);
+        return nestedChildren.some((nested) =>
+          React.isValidElement(nested) && nested.type === DrawerDescription
+        );
+      }
+    }
+    return false;
+  });
+
   return (
     <DrawerPortal data-slot="drawer-portal">
       <DrawerOverlay />
@@ -59,14 +76,20 @@ function DrawerContent({
           "group/drawer-content bg-background fixed z-[71] flex h-auto flex-col",
           "data-[vaul-drawer-direction=top]:inset-x-0 data-[vaul-drawer-direction=top]:top-0 data-[vaul-drawer-direction=top]:mb-24 data-[vaul-drawer-direction=top]:max-h-[80vh] data-[vaul-drawer-direction=top]:rounded-b-lg",
           "data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:max-h-[80vh] data-[vaul-drawer-direction=bottom]:rounded-t-lg",
-          "data-[vaul-drawer-direction=right]:inset-y-0 data-[vaul-drawer-direction=right]:right-0 data-[vaul-drawer-direction=right]:w-3/4 sm:data-[vaul-drawer-direction=right]:max-w-sm",
-          "data-[vaul-drawer-direction=left]:inset-y-0 data-[vaul-drawer-direction=left]:left-0 data-[vaul-drawer-direction=left]:w-3/4 sm:data-[vaul-drawer-direction=left]:max-w-sm",
+          "data-[vaul-drawer-direction=right]:inset-y-0 data-[vaul-drawer-direction=right]:right-0",
+          "data-[vaul-drawer-direction=left]:inset-y-0 data-[vaul-drawer-direction=left]:left-0",
           className
         )}
         data-vaul-no-drag
+        aria-describedby={hasDescription ? undefined : "drawer-description-fallback"}
         {...props}
       >
         <div className="bg-muted mx-auto mt-4 hidden h-2 w-[100px] shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block" />
+        {!hasDescription && (
+          <DrawerPrimitive.Description id="drawer-description-fallback" className="sr-only">
+            Drawer content
+          </DrawerPrimitive.Description>
+        )}
         {children}
       </DrawerPrimitive.Content>
     </DrawerPortal>

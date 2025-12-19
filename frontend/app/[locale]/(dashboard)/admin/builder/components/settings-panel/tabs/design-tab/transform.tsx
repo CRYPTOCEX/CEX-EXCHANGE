@@ -6,11 +6,11 @@ import type { TransformProps } from "./types";
 import { useTranslations } from "next-intl";
 
 export function Transform({ settings, onSettingChange }: TransformProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   return (
     <div className="space-y-2 max-w-full">
       <div>
-        <Label className="text-xs mb-1 block">{t("Rotate")}</Label>
+        <Label className="text-xs mb-1 block">{t("rotate")}</Label>
         <SliderWithInput
           value={settings.rotate || 0}
           onChange={(value) => onSettingChange("rotate", value)}
@@ -64,7 +64,7 @@ export function Transform({ settings, onSettingChange }: TransformProps) {
         </div>
       </div>
       <div>
-        <Label className="text-xs mb-1 block">{t("Skew")}</Label>
+        <Label className="text-xs mb-1 block">{t("skew")}</Label>
         <div className="grid grid-cols-2 gap-2">
           <SliderWithInput
             value={settings.skewX || 0}

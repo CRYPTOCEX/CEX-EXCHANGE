@@ -54,7 +54,8 @@ const sections = [
 ];
 
 export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("binary_components");
+  const tCommon = useTranslations("common");
 
   // Content for each section (moved inside component to access t)
   const sectionContent = {
@@ -66,7 +67,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
             <div className="aspect-video relative rounded-md overflow-hidden mb-6">
               <Image
                 src="/binary-options-chart.png"
-                alt="Binary trading chart"
+                alt={t("binary_trading_chart")}
                 width={800}
                 height={450}
                 className="object-cover"
@@ -94,7 +95,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
                   <div className="min-w-5 mt-1 mr-2">•</div>
                   <div>
                     <span className="font-medium text-gray-900 dark:text-white">
-                      {t("choose")}
+                      {tCommon("choose")}
                     </span>
                     {t("select_an_expiry_time")}
                   </div>
@@ -103,7 +104,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
                   <div className="min-w-5 mt-1 mr-2">•</div>
                   <div>
                     <span className="font-medium text-gray-900 dark:text-white">
-                      {t("trade")}
+                      {tCommon("trade")}
                     </span>
                     {t("place_your_trade_and_wait_for_the_outcome")}
                   </div>
@@ -123,7 +124,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
             <div className="aspect-video relative rounded-md overflow-hidden mb-6">
               <Image
                 src="/binary-options-mechanics.png"
-                alt="Binary options mechanics"
+                alt={t("binary_options_mechanics")}
                 width={800}
                 height={450}
                 className="object-cover"
@@ -172,7 +173,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
             <div className="aspect-video relative rounded-md overflow-hidden mb-6">
               <Image
                 src="/binary-options-patterns.png"
-                alt="Trading strategies"
+                alt={t("trading_strategies")}
                 width={800}
                 height={450}
                 className="object-cover"
@@ -223,7 +224,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
             <div className="aspect-video relative rounded-md overflow-hidden mb-6">
               <Image
                 src="/trading-risk-management.png"
-                alt="Risk management"
+                alt={tCommon("risk_management")}
                 width={800}
                 height={450}
                 className="object-cover"
@@ -235,7 +236,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
             </p>
             <div className="bg-gray-100 dark:bg-zinc-900 p-4 rounded-lg border border-gray-200 dark:border-zinc-800">
               <h4 className="font-semibold text-[#F7941D] mb-2">
-                {t("the_1%_rule")}
+                {t("the_1_rule")}
               </h4>
               <p className="text-gray-600 dark:text-gray-300 text-sm">
                 {t("never_risk_more_single_trade")}.{" "}
@@ -244,9 +245,9 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
               <div className="mt-3 p-3 bg-gray-50 dark:bg-black rounded-lg">
                 <div className="text-sm">{t("example_calculation")}</div>
                 <div className="font-mono text-sm mt-1">
-                  <div>{t("account_balance_$1000")}</div>
-                  <div>{t("maximum_risk_per_trade_(1%)_$10")}</div>
-                  <div>{t("maximum_risk_per_trade_(2%)_$20")}</div>
+                  <div>{t("account_balance_1000")}</div>
+                  <div>{t("maximum_risk_per_trade_1_10")}</div>
+                  <div>{t("maximum_risk_per_trade_2_20")}</div>
                 </div>
               </div>
             </div>
@@ -263,7 +264,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
             <div className="aspect-video relative rounded-md overflow-hidden mb-6">
               <Image
                 src="/binary-options-platform.png"
-                alt="Platform overview"
+                alt={t("platform_overview")}
                 width={800}
                 height={450}
                 className="object-cover"
@@ -284,10 +285,10 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
               </div>
               <div className="bg-gray-100 dark:bg-zinc-900 p-3 rounded-lg border border-gray-200 dark:border-zinc-800">
                 <h4 className="font-semibold text-gray-900 dark:text-white">
-                  {t("trading_panel")}
+                  {tCommon("trading_panel")}
                 </h4>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">
-                  {t("located_to_the_direction_(call_put)")}.
+                  {`${t("located_to_the_direction_call_put")} (Call Put)`}.
                 </p>
               </div>
               <div className="bg-gray-100 dark:bg-zinc-900 p-3 rounded-lg border border-gray-200 dark:border-zinc-800">
@@ -403,7 +404,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
           <button
             onClick={onClose}
             className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
-            aria-label="Close guide"
+            aria-label={t("close_guide")}
           >
             <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           </button>
@@ -454,13 +455,13 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
                 }`}
               >
                 <ChevronLeft className="w-4 h-4 mr-1" />
-                {t("Previous")}
+                {tCommon('prev')}
               </button>
 
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                {t("Step")}
+                {tCommon("step")}
                 {currentStepNumber}
-                {t("of")}
+                {tCommon("of")}
                 {totalSteps}
               </div>
 
@@ -477,7 +478,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
                     : "bg-[#F7941D] hover:bg-[#FF8A00] text-white"
                 }`}
               >
-                {t("Next")}
+                {tCommon("next")}
                 <ChevronRight className="w-4 h-4 ml-1" />
               </button>
             </div>

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import type { ComponentProps, Condition } from "./types";
 import { RemoveButton, inputClass } from "./utils";
+import { useTranslations } from "next-intl";
 const ConditionRow = ({
   condition,
   index,
@@ -25,6 +26,7 @@ const ConditionRow = ({
   onChange: (index: number, field: "type" | "value", value: string) => void;
   onRemove: (index: number) => void;
 }) => {
+  const tDashboard = useTranslations("dashboard");
   return (
     <div className="flex items-center gap-2">
       <Select
@@ -32,7 +34,7 @@ const ConditionRow = ({
         onValueChange={(value) => onChange(index, "type", value)}
       >
         <SelectTrigger className={`${inputClass} flex-1`}>
-          <SelectValue placeholder="Condition type" />
+          <SelectValue placeholder={tDashboard("condition_type")} />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="device">Device</SelectItem>
@@ -47,7 +49,7 @@ const ConditionRow = ({
           onValueChange={(value) => onChange(index, "value", value)}
         >
           <SelectTrigger className={`${inputClass} flex-1`}>
-            <SelectValue placeholder="Select device" />
+            <SelectValue placeholder={tDashboard("select_device")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="desktop">Desktop</SelectItem>
@@ -59,7 +61,7 @@ const ConditionRow = ({
         <Input
           value={condition.value}
           onChange={(e) => onChange(index, "value", e.target.value)}
-          placeholder="Condition value"
+          placeholder={tDashboard("condition_value")}
           className={`${inputClass} flex-1`}
         />
       )}
@@ -68,6 +70,7 @@ const ConditionRow = ({
   );
 };
 export function Conditions({ settings, onSettingChange }: ComponentProps) {
+  const tCommon = useTranslations("common");
   const [conditions, setConditions] = useState<Condition[]>(
     settings.conditions || []
   );
@@ -100,7 +103,7 @@ export function Conditions({ settings, onSettingChange }: ComponentProps) {
   return (
     <div className="space-y-3">
       <div className="space-y-1">
-        <Label className="text-xs">Display Conditions</Label>
+        <Label className="text-xs">{tCommon("display_conditions")}</Label>
         <div className="space-y-2">
           {conditions.map((condition, index) => (
             <ConditionRow
@@ -118,10 +121,10 @@ export function Conditions({ settings, onSettingChange }: ComponentProps) {
           onClick={addCondition}
           className="mt-2 h-7 text-xs w-full"
         >
-          <Plus className="h-3 w-3 mr-1" /> Add Condition
+          <Plus className="h-3 w-3 mr-1" /> {tCommon("add_condition")}
         </Button>
         <p className="text-xs text-muted-foreground mt-1">
-          Set conditions for when this element should be displayed
+          {tCommon("set_conditions_for_be_displayed")}
         </p>
       </div>
     </div>

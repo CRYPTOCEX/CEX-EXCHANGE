@@ -24,6 +24,7 @@ export function FeaturedPlansSection({
   trendingPlans,
 }: FeaturedPlansSectionProps) {
   const t = useTranslations("common");
+  const tInvestment = useTranslations("investment");
   // Show up to 3 trending plans, or create mock data if none available
   const displayPlans =
     trendingPlans.length > 0
@@ -161,18 +162,18 @@ export function FeaturedPlansSection({
               className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-red-100 dark:from-orange-950/50 dark:to-red-950/50 border border-orange-200 dark:border-orange-800 rounded-full px-4 py-2 text-sm font-medium text-orange-700 dark:text-orange-300 mb-6"
             >
               <Star className="w-4 h-4" />
-              {t("trending_investment_plans")}
+              {tInvestment("trending_investment_plans")}
             </motion.div>
 
             <h2 className="text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-              {t("start_your")}{" "}
+              {tInvestment("start_your")}{" "}
               <span className="bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent">
                 {t("investment_journey")}
               </span>
             </h2>
 
             <p className="text-xl text-zinc-600 dark:text-zinc-300 max-w-3xl mx-auto leading-relaxed">
-              {t("choose_from_our_risk_effectively")}
+              {tInvestment("choose_from_our_risk_effectively")}
             </p>
           </motion.div>
 
@@ -218,7 +219,7 @@ export function FeaturedPlansSection({
                           className={`bg-gradient-to-r ${gradient} text-white border-0 shadow-lg`}
                         >
                           <TrendingUp className="w-3 h-3 mr-1" />
-                          {t("Trending")}
+                          {t("trending")}
                         </Badge>
                       </div>
                     )}
@@ -319,7 +320,7 @@ export function FeaturedPlansSection({
                 size="lg"
                 className="border-2 border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-300 group"
               >
-                {t("view_all_investment_plans")}
+                {tInvestment("view_all_investment_plans")}
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>

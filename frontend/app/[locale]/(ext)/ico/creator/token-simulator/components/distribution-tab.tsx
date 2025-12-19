@@ -17,7 +17,8 @@ export function DistributionTab({
   totalSupply,
   onDistributionChange,
 }: DistributionTabProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
   const totalAllocation = distribution.reduce(
     (sum, item) => sum + item.value,
     0
@@ -49,7 +50,7 @@ export function DistributionTab({
                   </div>
                   <span className="text-xs text-muted-foreground">
                     {formatNumber(tokensForItem)}
-                    {t("tokens")}
+                    {tCommon("tokens")}
                   </span>
                 </div>
 

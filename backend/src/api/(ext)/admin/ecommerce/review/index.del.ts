@@ -32,14 +32,21 @@ export const metadata: OperationObject = {
   responses: commonBulkDeleteResponses("E-commerce Reviews"),
   requiresAuth: true,
   permission: "delete.ecommerce.review",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Bulk Delete E-commerce Reviews",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step("Deleting E-commerce reviews");
+  const result = await handleBulkDelete({
     model: "ecommerceReview",
     ids,
     query,
   });
+
+  ctx?.success("Successfully deleted E-commerce reviews");
+  return result;
 };

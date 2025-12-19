@@ -8,6 +8,8 @@ export const metadata: OperationObject = {
   operationId: "reviewTicket",
   tags: ["Support"],
   requiresAuth: true,
+  logModule: "USER",
+  logTitle: "Review support ticket",
   parameters: [
     {
       index: 0,
@@ -37,29 +39,43 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, user, body } = data;
+  const { params, user, body, ctx } = data;
   const { id } = params;
 
-  if (!user?.id) throw createError(401, "Unauthorized");
+  if (!user?.id) {
+    ctx?.fail("User not authenticated");
+    throw createError(401, "Unauthorized");
+  }
 
+  ctx?.step("Finding support ticket");
   const ticket = await models.supportTicket.findOne({
     where: { id, userId: user.id },
   });
-  if (!ticket) throw createError(404, "Ticket not found");
-  if (ticket.satisfaction) throw createError(400, "Satisfaction already set");
+  if (!ticket) {
+    ctx?.fail("Ticket not found");
+    throw createError(404, "Ticket not found");
+  }
+  if (ticket.satisfaction) {
+    ctx?.fail("Satisfaction already set");
+    throw createError(400, "Satisfaction already set");
+  }
 
+  ctx?.step("Validating satisfaction rating");
   const { satisfaction } = body;
   if (
     typeof satisfaction !== "number" ||
     satisfaction < 1 ||
     satisfaction > 5
   ) {
+    ctx?.fail("Invalid satisfaction rating");
     throw createError(400, "Satisfaction must be between 1 and 5");
   }
 
+  ctx?.step("Saving satisfaction rating");
   ticket.satisfaction = satisfaction;
   await ticket.save();
 
+  ctx?.success("Satisfaction rating submitted");
   return {
     message: "Satisfaction submitted",
     data: ticket.get({ plain: true }),

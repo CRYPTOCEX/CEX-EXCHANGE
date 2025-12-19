@@ -2,16 +2,18 @@ import { models } from "@b/db";
 import { aiMarketMakerSchema } from "../../utils";
 import {
   unauthorizedResponse,
-  notFoundMetadataResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+  notFoundResponse,
+} from "@b/utils/schema/errors";
 import { createError } from "@b/utils/error";
 import { getBotTradeStats } from "../../utils/scylla/queries";
 
 export const metadata: OperationObject = {
-  summary: "Retrieves detailed information of a specific AI Market Maker by ID",
-  operationId: "getAiMarketMakerById",
-  tags: ["Admin", "AI Market Maker", "Market Maker"],
+  summary: "Get AI Market Maker market by ID",
+  operationId: "getAiMarketMakerMarketById",
+  tags: ["Admin", "AI Market Maker", "Market"],
+  description:
+    "Retrieves comprehensive details of a specific AI Market Maker market including pool balances, P&L tracking, bot configurations with performance statistics from both MySQL and ScyllaDB, ecosystem market details, and recent activity history (last 50 entries).",
   parameters: [
     {
       index: 0,
@@ -53,15 +55,19 @@ export const metadata: OperationObject = {
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("AI Market Maker"),
+    404: notFoundResponse("AI Market Maker Market"),
     500: serverErrorResponse,
   },
   permission: "view.ai.market-maker.market",
   requiresAuth: true,
+  logModule: "ADMIN_AI",
+  logTitle: "Get Market Maker Market",
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
+
+  ctx?.step("Get Market Maker Market");
 
   const marketMaker = await models.aiMarketMaker.findByPk(params.id, {
     include: [
@@ -133,6 +139,7 @@ export default async (data: Handler) => {
     };
   });
 
+  ctx?.success("Get Market Maker Market retrieved successfully");
   return {
     ...marketMaker.toJSON(),
     bots: enhancedBots,

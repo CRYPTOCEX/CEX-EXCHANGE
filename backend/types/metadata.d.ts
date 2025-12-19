@@ -62,6 +62,22 @@ interface ResponseObject {
   };
 }
 
+/**
+ * Demo mask field specification for masking confidential data in demo mode.
+ * Supports both simple paths and nested object paths.
+ *
+ * @example
+ * // Simple field masking
+ * demoMask: ["email", "phone"]
+ *
+ * // Nested field masking (for included models)
+ * demoMask: ["user.email", "user.phone", "referrer.email"]
+ *
+ * // Array items with nested paths (items.* means each item in the array)
+ * demoMask: ["items.user.email", "items.referrer.email"]
+ */
+type DemoMaskField = string;
+
 // Operation Object
 interface OperationObject {
   tags?: string[];
@@ -70,7 +86,7 @@ interface OperationObject {
   operationId?: string;
   parameters?: ParameterObject[];
   requestBody?: RequestBodyObject;
-  responses: Record<string, ResponseObject>;
+  responses?: Record<string, ResponseObject>;
   deprecated?: boolean;
   security?: Array<Record<string, string[]>>;
   requiresAuth?: boolean;
@@ -81,6 +97,19 @@ interface OperationObject {
     max: number;
   };
   responseType?: "json" | "binary"; // For binary file downloads
+  middleware?: string[]; // Array of middleware names to apply (e.g., rate limiters)
+  logModule?: string; // Module name for logging (e.g., "USER", "KYC", "EMAIL")
+  logTitle?: string; // Title/description for logging (e.g., "Delete account", "Upload KYC document")
+  /**
+   * Array of field paths to mask in demo mode (when NEXT_PUBLIC_DEMO_STATUS=true).
+   * Used to hide confidential data like emails, phones, and other PII in responses.
+   *
+   * Supports dot notation for nested fields:
+   * - "email" - masks the email field at root level
+   * - "user.email" - masks email within user object
+   * - "items.user.email" - masks email within user object for each item in items array
+   */
+  demoMask?: DemoMaskField[];
 }
 
 // Paths Object

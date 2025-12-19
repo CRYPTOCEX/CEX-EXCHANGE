@@ -11,6 +11,7 @@ import { SearchInput } from "./utils";
 import Modal from "@/components/ui/modal";
 import { ScrollableSnapshot } from "../../components/shared/scrollable-snapshot";
 import { useRouter } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 interface Page {
   id: string;
   title: string;
@@ -26,6 +27,8 @@ interface PageSelectionModalProps {
   onClose: () => void;
 }
 export function PageSelectionModal({ onClose }: PageSelectionModalProps) {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { toast } = useToast();
   const [pages, setPages] = useState<Page[]>([]);
@@ -94,7 +97,7 @@ export function PageSelectionModal({ onClose }: PageSelectionModalProps) {
   };
   return (
     <Modal
-      title="Select a Page to Edit"
+      title={t("select_a_page_to_edit")}
       onClose={onClose}
       color="purple"
       showHeader={true}
@@ -104,7 +107,7 @@ export function PageSelectionModal({ onClose }: PageSelectionModalProps) {
         <div className="flex items-center mb-4">
           <div className="relative flex-1">
             <SearchInput
-              placeholder="Search pages..."
+              placeholder={tCommon("search_pages_ellipsis")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -144,7 +147,7 @@ export function PageSelectionModal({ onClose }: PageSelectionModalProps) {
                       <div className="flex items-center justify-center h-full bg-gray-50">
                         <div className="text-center p-4">
                           <div className="text-muted-foreground text-sm">
-                            No preview available
+                            {t("no_preview_available")}
                           </div>
                         </div>
                       </div>

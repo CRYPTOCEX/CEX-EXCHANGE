@@ -5,7 +5,7 @@ import { Icon } from "@iconify/react";
 import { useTranslations } from "next-intl";
 
 export default function BestPracticesSection() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const practices = [
     {
       category: "Getting Started",
@@ -164,7 +164,7 @@ export default function BestPracticesSection() {
   const importanceColors: Record<string, { bg: string; text: string }> = {
     critical: { bg: "bg-red-500/10 dark:bg-red-500/20", text: "text-red-500" },
     high: { bg: "bg-amber-500/10 dark:bg-amber-500/20", text: "text-amber-500" },
-    medium: { bg: "bg-blue-500/10 dark:bg-blue-500/20", text: "text-blue-500" },
+    medium: { bg: "bg-purple-500/10 dark:bg-purple-500/20", text: "text-purple-500" },
   };
 
   const categoryColors: Record<string, { bg: string; text: string }> = {

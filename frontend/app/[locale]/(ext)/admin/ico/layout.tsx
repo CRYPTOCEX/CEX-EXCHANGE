@@ -1,7 +1,8 @@
 import type React from "react";
 import type { Metadata } from "next";
+import SiteHeader from "@/components/partials/header/site-header";
 import Footer from "@/components/partials/footer";
-import { IcoAdminMenu } from "./components/navbar";
+import { menu, colorSchema } from "./menu";
 
 export const metadata: Metadata = {
   title: {
@@ -11,17 +12,15 @@ export const metadata: Metadata = {
   description: "Launch and invest in the next generation of digital assets",
 };
 
-export default function RootLayout({
+export default function AdminIcoLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <>
-      <IcoAdminMenu />
-      <main className="flex-1 mx-auto pt-14 md:pt-18 min-h-screen">
-        {children}
-      </main>
+      <SiteHeader menu={menu} colorSchema={colorSchema} userPath="/ico" />
+      <main className="flex-1">{children}</main>
       <Footer />
     </>
   );

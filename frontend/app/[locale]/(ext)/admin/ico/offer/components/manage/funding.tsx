@@ -21,7 +21,8 @@ import { useAdminOfferStore } from "@/store/ico/admin/admin-offer-store";
 import { useTranslations } from "next-intl";
 
 export function OfferingFundingChart() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const { offering, fundingData, fetchFundingChart, offerMetrics } =
     useAdminOfferStore();
 
@@ -41,7 +42,7 @@ export function OfferingFundingChart() {
   if (!offering || !fundingData) {
     return (
       <div className="min-h-[300px] flex items-center justify-center">
-        <p>{t("loading_chart_data")}.</p>
+        <p>{tCommon("loading_chart_data")}.</p>
       </div>
     );
   }
@@ -72,10 +73,10 @@ export function OfferingFundingChart() {
           onValueChange={(v) => setTimeRange(v as any)}
         >
           <TabsList>
-            <TabsTrigger value="7d">{t("7_days")}</TabsTrigger>
-            <TabsTrigger value="30d">{t("30_days")}</TabsTrigger>
-            <TabsTrigger value="90d">{t("90_days")}</TabsTrigger>
-            <TabsTrigger value="all">{t("all_time")}</TabsTrigger>
+            <TabsTrigger value="7d">{`7 ${tCommon('days')}`}</TabsTrigger>
+            <TabsTrigger value="30d">{`30 ${tCommon('days')}`}</TabsTrigger>
+            <TabsTrigger value="90d">{`90 ${tCommon('days')}`}</TabsTrigger>
+            <TabsTrigger value="all">{tCommon("all_time")}</TabsTrigger>
           </TabsList>
         </Tabs>
         <div className="flex items-center gap-2">
@@ -85,7 +86,7 @@ export function OfferingFundingChart() {
             onClick={() => setChartType("area")}
             className="h-8"
           >
-            {t("Area")}
+            {tCommon("area")}
           </Button>
           <Button
             variant={chartType === "bar" ? "default" : "outline"}
@@ -93,7 +94,7 @@ export function OfferingFundingChart() {
             onClick={() => setChartType("bar")}
             className="h-8"
           >
-            {t("Bar")}
+            {t("bar")}
           </Button>
         </div>
       </div>
@@ -110,8 +111,8 @@ export function OfferingFundingChart() {
                   <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
                 </linearGradient>
                 <linearGradient id="colorValid" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.1} />
+                  <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0.1} />
                 </linearGradient>
                 <linearGradient id="colorRejected" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
@@ -165,7 +166,7 @@ export function OfferingFundingChart() {
                 type="monotone"
                 dataKey="validCumulative"
                 name="Valid Raised"
-                stroke="#10b981"
+                stroke="#14b8a6"
                 fillOpacity={1}
                 fill="url(#colorValid)"
                 strokeWidth={2}
@@ -275,7 +276,7 @@ export function OfferingFundingChart() {
           <CardContent className="p-4 flex justify-between items-center">
             <div>
               <p className="text-sm text-green-600 font-medium">
-                {t("Progress")}
+                {tCommon("progress")}
               </p>
               <p className="text-2xl font-bold">{progressPercentage}%</p>
             </div>

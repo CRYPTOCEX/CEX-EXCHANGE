@@ -1,4 +1,4 @@
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 interface UTXONodeConfig {
   host: string;
@@ -43,14 +43,14 @@ export class GenericUTXONodeService {
   }
 
   public async initialize(): Promise<void> {
-    console.log(`[${this.config.chain}_NODE] Initializing ${this.config.chain} Core RPC connection`);
+    logger.info(`${this.config.chain}_NODE`, `Initializing ${this.config.chain} Core RPC connection`);
     try {
       const info = await this.rpcCall("getblockchaininfo", []);
-      console.log(`[${this.config.chain}_NODE] Connected - Blocks: ${info.blocks}, Chain: ${info.chain}`);
+      logger.success(`${this.config.chain}_NODE`, `Connected - Blocks: ${info.blocks}, Chain: ${info.chain}`);
 
       await this.ensureWalletExists();
     } catch (error) {
-      console.error(`[${this.config.chain}_NODE] Failed to initialize: ${error.message}`);
+      logger.error(`${this.config.chain}_NODE`, `Failed to initialize: ${error.message}`);
       throw error;
     }
   }
@@ -58,7 +58,7 @@ export class GenericUTXONodeService {
   private async ensureWalletExists(): Promise<void> {
     try {
       await this.rpcCall("loadwallet", [this.config.walletName]);
-      console.log(`[${this.config.chain}_NODE] Loaded existing wallet: ${this.config.walletName}`);
+      logger.info(`${this.config.chain}_NODE`, `Loaded existing wallet: ${this.config.walletName}`);
     } catch (error) {
       if (error.message.includes("not found") || error.message.includes("does not exist")) {
         try {
@@ -72,7 +72,7 @@ export class GenericUTXONodeService {
             true,  // descriptors (may fail on older versions)
             false, // load_on_startup
           ]);
-          console.log(`[${this.config.chain}_NODE] Created new watch-only wallet: ${this.config.walletName}`);
+          logger.success(`${this.config.chain}_NODE`, `Created new watch-only wallet: ${this.config.walletName}`);
         } catch (createError) {
           if (createError.message.includes("descriptors")) {
             // Fallback: create without descriptors (older versions)
@@ -83,13 +83,13 @@ export class GenericUTXONodeService {
               "",
               false,
             ]);
-            console.log(`[${this.config.chain}_NODE] Created wallet (legacy mode): ${this.config.walletName}`);
+            logger.success(`${this.config.chain}_NODE`, `Created wallet (legacy mode): ${this.config.walletName}`);
           } else {
-            console.error(`[${this.config.chain}_NODE] Failed to create wallet: ${createError.message}`);
+            logger.error(`${this.config.chain}_NODE`, `Failed to create wallet: ${createError.message}`);
           }
         }
       } else if (error.message.includes("already loaded")) {
-        console.log(`[${this.config.chain}_NODE] Wallet already loaded: ${this.config.walletName}`);
+        logger.info(`${this.config.chain}_NODE`, `Wallet already loaded: ${this.config.walletName}`);
       } else {
         throw error;
       }
@@ -122,7 +122,7 @@ export class GenericUTXONodeService {
 
       return data.result;
     } catch (error) {
-      logError(`${this.config.chain.toLowerCase()}_node_rpc_call`, error, __filename);
+      logger.error(`${this.config.chain}_NODE`, "RPC call failed", error);
       throw error;
     }
   }
@@ -154,7 +154,7 @@ export class GenericUTXONodeService {
 
       return data.result;
     } catch (error) {
-      logError(`${this.config.chain.toLowerCase()}_node_wallet_rpc_call`, error, __filename);
+      logger.error(`${this.config.chain}_NODE`, "Wallet RPC call failed", error);
       throw error;
     }
   }
@@ -163,12 +163,12 @@ export class GenericUTXONodeService {
 
   public async importAddress(address: string, label: string = ""): Promise<void> {
     try {
-      console.log(`[${this.config.chain}_NODE] Importing address ${address}`);
+      logger.debug(`${this.config.chain}_NODE`, `Importing address ${address}`);
       await this.walletRpcCall("importaddress", [address, label, false]);
-      console.log(`[${this.config.chain}_NODE] Successfully imported address ${address}`);
+      logger.info(`${this.config.chain}_NODE`, `Successfully imported address ${address}`);
     } catch (error) {
       if (error.message.includes("already have this key")) {
-        console.log(`[${this.config.chain}_NODE] Address ${address} already imported`);
+        logger.debug(`${this.config.chain}_NODE`, `Address ${address} already imported`);
       } else {
         throw error;
       }
@@ -181,7 +181,7 @@ export class GenericUTXONodeService {
       const addressTxs = transactions.filter((tx: any) => tx.address === address);
       return addressTxs;
     } catch (error) {
-      console.error(`[${this.config.chain}_NODE] Failed to get transactions for ${address}: ${error.message}`);
+      logger.error(`${this.config.chain}_NODE`, `Failed to get transactions for ${address}: ${error.message}`);
       throw error;
     }
   }
@@ -192,7 +192,7 @@ export class GenericUTXONodeService {
       const balance = unspent.reduce((sum: number, utxo: any) => sum + utxo.amount, 0);
       return balance;
     } catch (error) {
-      console.error(`[${this.config.chain}_NODE] Failed to get balance for ${address}: ${error.message}`);
+      logger.error(`${this.config.chain}_NODE`, `Failed to get balance for ${address}: ${error.message}`);
       return 0;
     }
   }
@@ -202,7 +202,7 @@ export class GenericUTXONodeService {
       const utxos = await this.walletRpcCall("listunspent", [minconf, 9999999, [address]]);
       return utxos;
     } catch (error) {
-      console.error(`[${this.config.chain}_NODE] Failed to list unspent for ${address}: ${error.message}`);
+      logger.error(`${this.config.chain}_NODE`, `Failed to list unspent for ${address}: ${error.message}`);
       return [];
     }
   }
@@ -217,7 +217,7 @@ export class GenericUTXONodeService {
     try {
       return await this.rpcCall("getrawtransaction", [txid, verbose]);
     } catch (error) {
-      console.error(`[${this.config.chain}_NODE] Failed to get raw transaction ${txid}: ${error.message}`);
+      logger.error(`${this.config.chain}_NODE`, `Failed to get raw transaction ${txid}: ${error.message}`);
       throw error;
     }
   }
@@ -226,7 +226,7 @@ export class GenericUTXONodeService {
     try {
       return await this.rpcCall("decoderawtransaction", [txHex]);
     } catch (error) {
-      console.error(`[${this.config.chain}_NODE] Failed to decode raw transaction: ${error.message}`);
+      logger.error(`${this.config.chain}_NODE`, `Failed to decode raw transaction: ${error.message}`);
       throw error;
     }
   }
@@ -234,10 +234,10 @@ export class GenericUTXONodeService {
   public async sendRawTransaction(hexString: string): Promise<string> {
     try {
       const txid = await this.rpcCall("sendrawtransaction", [hexString]);
-      console.log(`[${this.config.chain}_NODE] Transaction broadcasted: ${txid}`);
+      logger.success(`${this.config.chain}_NODE`, `Transaction broadcasted: ${txid}`);
       return txid;
     } catch (error) {
-      console.error(`[${this.config.chain}_NODE] Failed to broadcast transaction: ${error.message}`);
+      logger.error(`${this.config.chain}_NODE`, `Failed to broadcast transaction: ${error.message}`);
       throw error;
     }
   }
@@ -248,7 +248,7 @@ export class GenericUTXONodeService {
     try {
       return await this.rpcCall("estimatesmartfee", [confTarget]);
     } catch (error) {
-      console.error(`[${this.config.chain}_NODE] Failed to estimate fee: ${error.message}`);
+      logger.error(`${this.config.chain}_NODE`, `Failed to estimate fee: ${error.message}`);
       return {};
     }
   }
@@ -259,7 +259,7 @@ export class GenericUTXONodeService {
     try {
       return await this.rpcCall("getmempoolinfo", []);
     } catch (error) {
-      console.error(`[${this.config.chain}_NODE] Failed to get mempool info: ${error.message}`);
+      logger.error(`${this.config.chain}_NODE`, `Failed to get mempool info: ${error.message}`);
       return null;
     }
   }
@@ -284,7 +284,7 @@ export class GenericUTXONodeService {
 
   public async bumpFee(txid: string, options?: { confTarget?: number; feeRate?: number }): Promise<{ txid: string; origfee: number; fee: number; errors?: string[] }> {
     try {
-      console.log(`[${this.config.chain}_NODE] Bumping fee for transaction ${txid}`);
+      logger.info(`${this.config.chain}_NODE`, `Bumping fee for transaction ${txid}`);
 
       const bumpOptions: any = {};
       if (options?.confTarget) {
@@ -296,15 +296,11 @@ export class GenericUTXONodeService {
 
       const result = await this.walletRpcCall("bumpfee", [txid, bumpOptions]);
 
-      console.log(`[${this.config.chain}_NODE] Fee bumped successfully:`, {
-        newTxid: result.txid,
-        originalFee: result.origfee,
-        newFee: result.fee,
-      });
+      logger.success(`${this.config.chain}_NODE`, `Fee bumped successfully: newTxid=${result.txid}, originalFee=${result.origfee}, newFee=${result.fee}`);
 
       return result;
     } catch (error) {
-      console.error(`[${this.config.chain}_NODE] Failed to bump fee for ${txid}: ${error.message}`);
+      logger.error(`${this.config.chain}_NODE`, `Failed to bump fee for ${txid}: ${error.message}`);
       throw error;
     }
   }
@@ -328,11 +324,11 @@ export class GenericUTXONodeService {
 
   public async abandonTransaction(txid: string): Promise<void> {
     try {
-      console.log(`[${this.config.chain}_NODE] Abandoning transaction ${txid}`);
+      logger.info(`${this.config.chain}_NODE`, `Abandoning transaction ${txid}`);
       await this.walletRpcCall("abandontransaction", [txid]);
-      console.log(`[${this.config.chain}_NODE] Transaction ${txid} abandoned successfully`);
+      logger.success(`${this.config.chain}_NODE`, `Transaction ${txid} abandoned successfully`);
     } catch (error) {
-      console.error(`[${this.config.chain}_NODE] Failed to abandon transaction ${txid}: ${error.message}`);
+      logger.error(`${this.config.chain}_NODE`, `Failed to abandon transaction ${txid}: ${error.message}`);
       throw error;
     }
   }

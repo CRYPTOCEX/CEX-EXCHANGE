@@ -33,7 +33,8 @@ import type * as React from "react";
 import { useTranslations } from "next-intl";
 
 export function TradeSettingsStep() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
   const { tradeData, updateTradeData, markStepComplete, currentStep } =
     useWizard();
   const [autoCancelEnabled, setAutoCancelEnabled] = useState(true);
@@ -275,7 +276,7 @@ export function TradeSettingsStep() {
       </p>
 
       {!tradeTerms.trim() && (
-        <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30">
+        <Alert className="bg-red-50 dark:bg-red-900/30 border-red-200/50 dark:border-red-700/50">
           <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
           <AlertDescription className="text-red-600 dark:text-red-400">
             {t("trade_terms_are_required")}
@@ -289,7 +290,7 @@ export function TradeSettingsStep() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
                 <Clock className="h-4 w-4 text-primary" />
-                {t("Auto-Cancellation")}
+                {t("auto_cancellation")}
               </CardTitle>
               <Switch
                 checked={autoCancelEnabled}
@@ -308,7 +309,7 @@ export function TradeSettingsStep() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <Label>{t("auto-cancel_duration")}</Label>
+                  <Label>{t("auto_cancel_duration")}</Label>
                   <Badge variant="outline">
                     {formatDuration(Number.parseInt(autoCancelDuration))}
                   </Badge>
@@ -321,14 +322,14 @@ export function TradeSettingsStep() {
                     <SelectValue placeholder={t("select_duration")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="15">{t("15_minutes")}</SelectItem>
-                    <SelectItem value="30">{t("30_minutes")}</SelectItem>
-                    <SelectItem value="60">{t("1_hour")}</SelectItem>
-                    <SelectItem value="120">{t("2_hours")}</SelectItem>
-                    <SelectItem value="360">{t("6_hours")}</SelectItem>
-                    <SelectItem value="720">{t("12_hours")}</SelectItem>
-                    <SelectItem value="1440">{t("1_day")}</SelectItem>
-                    <SelectItem value="2880">{t("2_days")}</SelectItem>
+                    <SelectItem value="15">{`15 ${tCommon('minutes')}`}</SelectItem>
+                    <SelectItem value="30">{`30 ${tCommon('minutes')}`}</SelectItem>
+                    <SelectItem value="60">{`1 ${tCommon('hour')}`}</SelectItem>
+                    <SelectItem value="120">{`2 ${tCommon('hours')}`}</SelectItem>
+                    <SelectItem value="360">{`6 ${tCommon('hours')}`}</SelectItem>
+                    <SelectItem value="720">{`12 ${tCommon('hours')}`}</SelectItem>
+                    <SelectItem value="1440">{`1 ${tCommon('day')}`}</SelectItem>
+                    <SelectItem value="2880">{`2 ${tCommon('days')}`}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -391,7 +392,7 @@ export function TradeSettingsStep() {
                     {t("your_offer_will_public_marketplace")}.{" "}
                     {t("only_users_with_accept_it")}.
                   </p>
-                  <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+                  <Alert className="bg-blue-50 dark:bg-blue-900/30 border-blue-200/50 dark:border-blue-700/50">
                     <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     <AlertDescription className="text-blue-600 dark:text-blue-400">
                       {t("youll_receive_a_the_offer")}.{" "}
@@ -409,7 +410,7 @@ export function TradeSettingsStep() {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <AlertCircle className="h-4 w-4 text-primary" />
-            {t("trade_terms_&_instructions")}
+            {t("trade_terms_instructions")}
           </CardTitle>
           <CardDescription>
             {t("provide_additional_terms_the_trade")}
@@ -419,7 +420,7 @@ export function TradeSettingsStep() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="trade-terms" className="flex items-center gap-1">
-                {t("trade_terms")} <span className="text-red-500">*</span>
+                {tCommon("trade_terms")} <span className="text-red-500">*</span>
               </Label>
               <Textarea
                 id="trade-terms"
@@ -427,7 +428,7 @@ export function TradeSettingsStep() {
                 value={tradeTerms}
                 onChange={handleTradeTermsChange}
                 rows={3}
-                className={!tradeTerms.trim() ? "border-red-300 focus:border-red-500" : ""}
+                className={!tradeTerms.trim() ? "border-red-200/50 dark:border-red-700/50" : ""}
               />
               <p className="text-xs text-muted-foreground">
                 {t("these_terms_will_your_offer")}
@@ -436,7 +437,7 @@ export function TradeSettingsStep() {
 
             <div className="space-y-2">
               <Label htmlFor="trade-instructions">
-                {t("additional_notes_(optional)")}
+                {t("additional_notes_optional")}
               </Label>
               <Textarea
                 id="trade-instructions"
@@ -457,7 +458,7 @@ export function TradeSettingsStep() {
         <Info className="h-4 w-4" />
         <AlertDescription>
           {t("these_settings_help_for_counterparties")}.{" "}
-          {t("well-configured_settings_can_fewer_disputes")}.
+          {t("well_configured_settings_can_fewer_disputes")}.
         </AlertDescription>
       </Alert>
     </div>

@@ -35,10 +35,12 @@ export const metadata = {
   responses: updateRecordResponses("Exchange Order"),
   requiresAuth: true,
   permission: "edit.exchange.order",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Exchange Order Status",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
   return updateStatus("exchangeOrder", id, status);

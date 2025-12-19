@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Sparkles, Layers, Percent, Clock } from "lucide-react";
 import { PoolFormBasicInfo } from "./pool-form-basic-info";
 import { PoolFormStakingDetails } from "./pool-form-staking-details";
 import { PoolFormDescription } from "./pool-form-description";
@@ -22,9 +22,14 @@ import { imageUploader } from "@/utils/upload";
 import { useStakingAdminPoolsStore } from "@/store/staking/admin/pool";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { HeroSection } from "@/components/ui/hero-section";
+import { StatsGroup } from "@/components/ui/stats-group";
+import { motion } from "framer-motion";
 
 export default function StakingPoolFormPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { id } = useParams() as { id?: string };
   const poolId = id;
   const pools = useStakingAdminPoolsStore((state) => state.pools);
@@ -233,7 +238,7 @@ export default function StakingPoolFormPage() {
         <CardContent className="pt-6">
           <div className="flex flex-col items-center justify-center h-64 text-center">
             <p className="text-red-500 mb-4">
-              {t("error")}
+              {"Error"}
               {error}
             </p>
             <Link href="/admin/staking/pool" className="inline-block">
@@ -251,67 +256,117 @@ export default function StakingPoolFormPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading pool data...</p>
+          <p className="text-muted-foreground">{t("loading_pool_data_ellipsis")}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link
-            href={
-              isEditMode
-                ? `/admin/staking/pool/${poolId}`
-                : "/admin/staking/pool"
-            }
-            className="inline-block"
-          >
-            <Button variant="outline" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {isEditMode
-                ? `Edit ${selectedPool?.name || "Staking Pool"}`
-                : "Create New Staking Pool"}
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              {isEditMode
-                ? "Update the details of this staking pool"
-                : "Configure a new staking pool for your users"}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          {isEditMode && (
+    <div className="min-h-screen bg-linear-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+      {/* Hero Section */}
+      <HeroSection
+        breadcrumb={{
+          icon: <ArrowLeft className="h-4 w-4" />,
+          text: isEditMode ? t("back_to_pool_details") : tExt("back_to_pools"),
+          href: isEditMode ? `/admin/staking/pool/${poolId}` : "/admin/staking/pool",
+          className: "text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300",
+        }}
+        title={[
+          { text: isEditMode ? tCommon("edit") + " " : tCommon("create") + " " },
+          { text: t("staking_pool"), gradient: "bg-gradient-to-r from-violet-600 via-indigo-500 to-violet-600 dark:from-violet-400 dark:via-indigo-400 dark:to-violet-400" },
+        ]}
+        description={isEditMode
+          ? t("update_the_details_of_this_staking_pool")
+          : t("configure_a_new_staking_pool_for_your_users")}
+        paddingTop="pt-24"
+        paddingBottom="pb-12"
+        layout="split"
+        rightContent={
+          <div className="flex gap-2">
+            {isEditMode && (
+              <Button
+                variant="outline"
+                onClick={handleDelete}
+                disabled={isSaving}
+                className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {t("delete_pool")}
+              </Button>
+            )}
             <Button
-              variant="outline"
-              onClick={handleDelete}
+              onClick={handleSave}
               disabled={isSaving}
+              className="bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg shadow-violet-500/25"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {t("delete_pool")}
+              <Save className="mr-2 h-4 w-4" />
+              {isSaving ? tCommon("saving") + "..." : tCommon("save")}
             </Button>
-          )}
-          <Button onClick={handleSave} disabled={isSaving}>
-            <Save className="mr-2 h-4 w-4" />
-            {isSaving ? "Saving..." : "Save Pool"}
-          </Button>
-        </div>
-      </div>
+          </div>
+        }
+        rightContentAlign="center"
+        background={{
+          orbs: [
+            {
+              color: "#8b5cf6",
+              position: { top: "-10rem", right: "-10rem" },
+              size: "20rem",
+            },
+            {
+              color: "#6366f1",
+              position: { bottom: "-5rem", left: "-5rem" },
+              size: "15rem",
+            },
+          ],
+        }}
+        particles={{
+          count: 6,
+          type: "floating",
+          colors: ["#8b5cf6", "#6366f1"],
+          size: 8,
+        }}
+      >
+        <StatsGroup
+          stats={[
+            {
+              icon: Percent,
+              label: tCommon("apr"),
+              value: `${formData.apr}%`,
+              iconColor: "text-violet-500",
+              iconBgColor: "bg-violet-500/10",
+            },
+            {
+              icon: Clock,
+              label: tCommon("lock_period"),
+              value: `${formData.lockPeriod} ${tCommon("days")}`,
+              iconColor: "text-indigo-500",
+              iconBgColor: "bg-indigo-500/10",
+            },
+            {
+              icon: Layers,
+              label: tCommon("status"),
+              value: formData.status,
+              iconColor: "text-violet-500",
+              iconBgColor: "bg-violet-500/10",
+            },
+          ]}
+        />
+      </HeroSection>
 
-      {(saveError || error) && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
-          <p>{saveError || error}</p>
-        </div>
-      )}
+      <div className="container mx-auto py-8 space-y-6">
+        {(saveError || error) && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+            <p>{saveError || error}</p>
+          </div>
+        )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        >
         <div className="lg:col-span-2">
           <Card>
             <CardHeader className="pb-3">
@@ -328,16 +383,16 @@ export default function StakingPoolFormPage() {
               >
                 <TabsList className="grid grid-cols-4 w-full">
                   <TabsTrigger value="basic-info">
-                    {t("basic_info")}
+                    {tCommon("basic_info")}
                   </TabsTrigger>
                   <TabsTrigger value="staking-details">
-                    {t("staking_details")}
+                    {tExt("staking_details")}
                   </TabsTrigger>
                   <TabsTrigger value="profit-settings">
                     {t("profit_settings")}
                   </TabsTrigger>
                   <TabsTrigger value="description">
-                    {t("Description")}
+                    {tCommon("description")}
                   </TabsTrigger>
                 </TabsList>
 
@@ -401,7 +456,7 @@ export default function StakingPoolFormPage() {
                       setActiveTab(tabs[currentIndex - 1]);
                     }}
                   >
-                    {t("Previous")}
+                    {tCommon('prev')}
                   </Button>
                 )}
                 {activeTab !== "description" ? (
@@ -418,7 +473,7 @@ export default function StakingPoolFormPage() {
                       setActiveTab(tabs[currentIndex + 1]);
                     }}
                   >
-                    {t("Next")}
+                    {tCommon("next")}
                   </Button>
                 ) : (
                   <Button
@@ -438,7 +493,8 @@ export default function StakingPoolFormPage() {
         <div className="lg:col-span-1">
           <PoolFormPreview formData={formData} />
         </div>
+        </motion.div>
       </div>
-    </>
+    </div>
   );
 }

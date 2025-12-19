@@ -76,6 +76,8 @@ interface NFTFilters {
   sortBy?: string;
   isMinted?: boolean;
   isListed?: boolean;
+  limit?: number;
+  offset?: number;
 }
 
 // Helper function to filter out undefined values
@@ -125,7 +127,7 @@ interface NFTStore {
   updateCollection: (id: string, data: any) => Promise<void>;
   
   // Marketplace actions
-  listToken: (tokenId: string, data: any) => Promise<void>;
+  listToken: (tokenId: string, data: any) => Promise<{ error: string | null; data: any }>;
   buyToken: (listingId: string) => Promise<void>;
   cancelListing: (listingId: string) => Promise<void>;
   makeOffer: (tokenId: string, data: any) => Promise<void>;
@@ -136,7 +138,12 @@ interface NFTStore {
   
   // Toggle favorite (convenience method)
   toggleFavorite: (id: string, type: "token" | "collection") => Promise<void>;
-  
+
+  // Follow/Unfollow creators
+  followCreator: (userId: string) => Promise<void>;
+  unfollowCreator: (userId: string) => Promise<void>;
+  toggleFollowCreator: (userId: string) => Promise<void>;
+
   // Utilities
   setFilters: (filters: NFTFilters) => void;
   clearError: () => void;
@@ -801,6 +808,118 @@ export const useNftStore = create<NFTStore>((set, get) => ({
       }
     } catch (error: any) {
       console.error("Failed to fetch chain stats:", error);
+    }
+  },
+
+  // Follow creator with optimistic updates
+  followCreator: async (userId: string) => {
+    // Optimistic update: immediately update UI
+    const currentCreators = get().topCreators;
+    const updatedCreators = currentCreators.map(creator =>
+      creator.userId === userId || creator.id === userId
+        ? {
+            ...creator,
+            isFollowing: true,
+            followers: (creator.followers || 0) + 1,
+          }
+        : creator
+    );
+    set({ topCreators: updatedCreators });
+
+    try {
+      const { data, error } = await $fetch({
+        url: "/api/nft/social/follow",
+        method: "POST",
+        body: { userId, action: "follow" },
+        successMessage: "Following creator!",
+      });
+
+      // If API call fails, revert the optimistic update
+      if (error) {
+        const revertedCreators = currentCreators.map(creator =>
+          creator.userId === userId || creator.id === userId
+            ? {
+                ...creator,
+                isFollowing: false,
+                followers: Math.max((creator.followers || 0) - 1, 0),
+              }
+            : creator
+        );
+        set({ topCreators: revertedCreators });
+      }
+    } catch (error) {
+      // Revert optimistic update on network error
+      const revertedCreators = currentCreators.map(creator =>
+        creator.userId === userId || creator.id === userId
+          ? {
+              ...creator,
+              isFollowing: false,
+              followers: Math.max((creator.followers || 0) - 1, 0),
+            }
+          : creator
+      );
+      set({ topCreators: revertedCreators });
+    }
+  },
+
+  // Unfollow creator with optimistic updates
+  unfollowCreator: async (userId: string) => {
+    // Optimistic update: immediately update UI
+    const currentCreators = get().topCreators;
+    const updatedCreators = currentCreators.map(creator =>
+      creator.userId === userId || creator.id === userId
+        ? {
+            ...creator,
+            isFollowing: false,
+            followers: Math.max((creator.followers || 0) - 1, 0),
+          }
+        : creator
+    );
+    set({ topCreators: updatedCreators });
+
+    try {
+      const { data, error } = await $fetch({
+        url: "/api/nft/social/follow",
+        method: "POST",
+        body: { userId, action: "unfollow" },
+        successMessage: "Unfollowed creator!",
+      });
+
+      // If API call fails, revert the optimistic update
+      if (error) {
+        const revertedCreators = currentCreators.map(creator =>
+          creator.userId === userId || creator.id === userId
+            ? {
+                ...creator,
+                isFollowing: true,
+                followers: (creator.followers || 0) + 1,
+              }
+            : creator
+        );
+        set({ topCreators: revertedCreators });
+      }
+    } catch (error) {
+      // Revert optimistic update on network error
+      const revertedCreators = currentCreators.map(creator =>
+        creator.userId === userId || creator.id === userId
+          ? {
+              ...creator,
+              isFollowing: true,
+              followers: (creator.followers || 0) + 1,
+            }
+          : creator
+      );
+      set({ topCreators: revertedCreators });
+    }
+  },
+
+  // Toggle follow (convenience method)
+  toggleFollowCreator: async (userId: string) => {
+    const creator = get().topCreators.find(c => c.userId === userId || c.id === userId);
+    if (creator?.isFollowing) {
+      await get().unfollowCreator(userId);
+    } else {
+      await get().followCreator(userId);
     }
   },
 

@@ -10,12 +10,15 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Get price in USD for a currency",
   description: "Returns the price in USD for a given currency and wallet type.",
   operationId: "getCurrencyPriceInUSD",
   tags: ["Finance", "Currency"],
+  logModule: "FINANCE",
+  logTitle: "Get currency price in USD",
   parameters: [
     {
       name: "currency",
@@ -62,18 +65,25 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
-  if (!user?.id) throw createError(401, "Unauthorized");
+  const { user, query, ctx } = data;
+
+  if (!user?.id) {
+    ctx?.fail("User not authenticated");
+    throw createError(401, "Unauthorized");
+  }
 
   const { currency, type } = query;
 
+  ctx?.step("Validating price query parameters");
   if (!currency || !type) {
-    console.error("[Currency Price API] Missing required parameters:", { currency, type });
+    logger.error("CURRENCY", "Missing required parameters for price lookup", { currency, type });
+    ctx?.fail("Missing required query parameters");
     throw createError(400, "Missing required query parameters");
   }
 
   let priceUSD: number;
   try {
+    ctx?.step(`Fetching price for ${currency} (${type})`);
     switch (type) {
       case "FIAT":
         priceUSD = await getFiatPriceInUSD(currency);
@@ -85,37 +95,40 @@ export default async (data: Handler) => {
         priceUSD = await getEcoPriceInUSD(currency);
         break;
       default:
-        console.error(`[Currency Price API] Invalid type:`, type);
+        logger.error("CURRENCY", `Invalid wallet type for price lookup: ${type}`);
+        ctx?.fail(`Invalid wallet type: ${type}`);
         throw createError(400, `Invalid type: ${type}`);
     }
 
+    ctx?.step("Validating price data");
     if (priceUSD === null || priceUSD === undefined || isNaN(priceUSD)) {
-      console.error(`[Currency Price API] Invalid price returned:`, {
+      logger.error("CURRENCY", `Invalid price returned for ${currency} (${type})`, {
         currency,
         type,
         priceUSD,
         priceType: typeof priceUSD
       });
+      ctx?.fail(`Price not found for ${currency} (${type})`);
       throw createError(404, `Price not found for ${currency} (${type})`);
     }
 
     // Warn if price is 0 (valid but unusual - might indicate no trading activity)
     if (priceUSD === 0) {
-      console.warn(`[Currency Price API] Price is 0 for ${currency} (${type}) - no trading activity or unlisted token`);
+      logger.warn("CURRENCY", `Price is 0 for ${currency} (${type}) - no trading activity or unlisted token`);
+      ctx?.warn(`Price is 0 for ${currency} (${type})`);
     }
 
+    ctx?.success(`Retrieved price for ${currency} (${type}): $${priceUSD}`);
     return {
       status: true,
       message: "Price in USD retrieved successfully",
       data: priceUSD,
     };
   } catch (error: any) {
-    console.error(`[Currency Price API] Error fetching price:`, {
-      currency,
-      type,
-      error: error.message,
-      stack: error.stack
-    });
+    logger.error("CURRENCY", `Error fetching price for ${currency} (${type})`, error);
+    if (!error.statusCode) {
+      ctx?.fail(`Error fetching price for ${currency} (${type})`);
+    }
     throw error;
   }
 };

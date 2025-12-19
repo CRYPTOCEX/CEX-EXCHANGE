@@ -4,6 +4,8 @@ export const metadata = {
   summary: "Deletes a specific Admin Profit record",
   operationId: "deleteAdminProfit",
   tags: ["Admin", "Finance", "Profits"],
+  logModule: "ADMIN_FIN",
+  logTitle: "Delete Profit",
   parameters: [
     {
       name: "id",
@@ -47,12 +49,17 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
+  const { params, query, ctx } = data;
   const { id } = params;
 
-  return await handleSingleDelete({
+  ctx?.step("Deleting admin profit");
+
+  const result = await handleSingleDelete({
     model: "adminProfit",
     id,
     query,
   });
+
+  ctx?.success("Admin profit deleted successfully");
+  return result;
 };

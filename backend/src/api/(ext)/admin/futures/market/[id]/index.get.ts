@@ -1,15 +1,17 @@
-import { baseMarketSchema } from "@b/api/exchange/market/utils";
+import { getRecord } from "@b/utils/query";
 import {
-  getRecord,
   unauthorizedResponse,
-  notFoundMetadataResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+  notFoundResponse,
+} from "@b/utils/schema/errors";
+import { futuresMarketSchema } from "../utils";
 
 export const metadata: OperationObject = {
-  summary: "Retrieves detailed information of a specific futures market by ID",
+  summary: "Retrieves detailed information of a specific futures market",
   operationId: "getFuturesMarketById",
-  tags: ["Admin", "Futures Markets"],
+  tags: ["Admin", "Futures", "Market"],
+  description:
+    "Fetches complete details of a futures market including currency pair, status, trending indicators, and trading parameters such as precision, limits, and fees.",
   parameters: [
     {
       index: 0,
@@ -22,26 +24,32 @@ export const metadata: OperationObject = {
   ],
   responses: {
     200: {
-      description: "Futures market details",
+      description: "Futures market details retrieved successfully",
       content: {
         "application/json": {
           schema: {
             type: "object",
-            properties: baseMarketSchema, // Define this schema in your utils if it's not already defined
+            properties: futuresMarketSchema,
           },
         },
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("Futures Market"),
+    404: notFoundResponse("Futures Market"),
     500: serverErrorResponse,
   },
-  permission: "view.futures.market",
   requiresAuth: true,
+  permission: "view.futures.market",
+  logModule: "ADMIN_FUT",
+  logTitle: "Get Futures Market",
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("futuresMarket", params.id);
+  ctx?.step("Fetching futures market record");
+  const result = await getRecord("futuresMarket", params.id);
+
+  ctx?.success("Retrieved futures market");
+  return result;
 };

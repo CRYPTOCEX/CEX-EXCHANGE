@@ -15,14 +15,15 @@ export function ChatHeader({
   ticketStatus,
   onStatusChange,
 }: ChatHeaderProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components_blocks");
+  const tCommon = useTranslations("common");
   const showCloseButton =
     ticketStatus !== "CLOSED" && (isSupport || ticketStatus !== "RESOLVED");
 
   return (
     <CardHeader className="bg-card text-card-foreground border-b px-4 py-3">
       <div className="flex justify-between items-center">
-        <CardTitle className="text-xl font-bold">{t("Chat")}</CardTitle>
+        <CardTitle className="text-xl font-bold">{tCommon("chat")}</CardTitle>
         <div className="flex items-center gap-2">
           {isSupport && showCloseButton && (
             <Button

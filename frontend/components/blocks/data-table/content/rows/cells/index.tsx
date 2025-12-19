@@ -8,6 +8,7 @@ import { BooleanCell } from "./boolean";
 import { CompoundCell } from "./compound";
 import { ToggleCell, ToggleConfig } from "./toggle";
 import { ImageCell } from "./image";
+import { CustomFieldsCell } from "./custom-fields";
 import Rating from "./rating";
 import { Link } from "@/i18n/routing";
 
@@ -26,7 +27,8 @@ export type CellRenderType =
   | { type: "select" }
   | { type: "toggle"; config: ToggleConfig }
   | { type: "image"; size?: "sm" | "md" | "lg" | "xl" }
-  | { type: "link"; config: { target?: string } };
+  | { type: "link"; config: { target?: string } }
+  | { type: "customFields"; config?: { maxDisplay?: number } };
 
 interface CellRendererProps {
   renderType?: CellRenderType | ((value: any, row: any) => React.ReactNode);
@@ -87,7 +89,7 @@ export function CellRenderer({
       );
     case "badge":
       return (
-        <BadgeCell value={String(value)} row={row} config={renderType.config} />
+        <BadgeCell value={value} row={row} config={renderType.config} />
       );
     case "tags":
     case "multiselect":
@@ -152,6 +154,14 @@ export function CellRenderer({
         >
           {String(value)}
         </Link>
+      );
+    case "customFields":
+      return (
+        <CustomFieldsCell
+          value={value}
+          row={row}
+          maxDisplay={renderType.config?.maxDisplay ?? 3}
+        />
       );
     default:
       return <TextCell value={String(value)} row={row} breakText={breakText} />;

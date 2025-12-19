@@ -47,12 +47,17 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("Author"),
     500: serverErrorResponse,
   },
+  logModule: "ADMIN_BLOG",
+  logTitle: "Get author options",
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
+
+  ctx?.step("Validating user authorization");
   if (!user?.id) throw createError(401, "Unauthorized");
 
+  ctx?.step("Fetching approved authors");
   const authors = await models.author.findAll({
     where: { status: "APPROVED" },
     include: [
@@ -63,9 +68,13 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.step("Formatting author options");
   const formatted = authors.map((author) => ({
     id: author.id,
     name: `${author.user.firstName} ${author.user.lastName}`,
   }));
+
+  ctx?.success(`${formatted.length} author options retrieved`);
   return formatted;
 };

@@ -546,7 +546,7 @@ export default function ElementRenderer({
   element,
   isEditMode,
 }: ElementRendererProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const { theme } = useTheme();
   const { updateElement } = useBuilderStore();
 

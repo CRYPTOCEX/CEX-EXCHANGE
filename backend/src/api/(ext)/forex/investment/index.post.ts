@@ -2,7 +2,7 @@ import { models, sequelize } from "@b/db";
 import { sendInvestmentEmail } from "@b/utils/emails";
 import { createError } from "@b/utils/error";
 import { createNotification } from "@b/utils/notifications";
-import { logInfo, logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import { ForexFraudDetector } from "@b/api/(ext)/forex/utils/forex-fraud-detector";
 
 import {
@@ -21,6 +21,8 @@ export const metadata: OperationObject = {
     windowMs: 3600000, // 1 hour
     max: 10 // 10 investments per hour
   },
+  logModule: "FOREX",
+  logTitle: "Create forex investment",
   requestBody: {
     required: true,
     content: {
@@ -100,7 +102,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body, req } = data;
+  const { user, body, req, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -108,6 +110,8 @@ export default async (data: Handler) => {
   const { planId, durationId, amount, acceptTerms } = body;
 
   try {
+    ctx?.step("Validating investment parameters");
+
     // Verify terms acceptance
     if (!acceptTerms) {
       throw createError({
@@ -115,66 +119,76 @@ export default async (data: Handler) => {
         message: "You must accept the investment terms and conditions to proceed",
       });
     }
+
+    ctx?.step("Verifying user account");
     const userPk = await models.user.findByPk(user.id);
     if (!userPk) {
       throw createError({ statusCode: 404, message: "User not found" });
     }
 
+    ctx?.step("Fetching investment plan details");
     const plan = await models.forexPlan.findByPk(planId);
     if (!plan) {
       throw createError({ statusCode: 404, message: "Plan not found" });
     }
-    
+
+    ctx?.step("Validating investment amount");
     if (
       (plan.minAmount && amount < plan.minAmount) ||
       (plan.maxAmount && amount > plan.maxAmount)
     ) {
-      throw createError({ 
-        statusCode: 400, 
-        message: `Amount must be between ${plan.minAmount || 0} and ${plan.maxAmount || 'unlimited'}` 
+      throw createError({
+        statusCode: 400,
+        message: `Amount must be between ${plan.minAmount || 0} and ${plan.maxAmount || 'unlimited'}`
       });
     }
 
+    ctx?.step("Checking forex account balance");
     const account = await models.forexAccount.findOne({
       where: { userId: user.id, type: "LIVE" },
     });
     if (!account) {
       throw createError({ statusCode: 404, message: "Live account not found" });
     }
-    
+
     if (account.balance && account.balance < amount) {
-      throw createError({ 
-        statusCode: 400, 
-        message: "Insufficient balance in your account" 
-      });
-    }
-    
-    const newBalance = (account.balance || 0) - amount;
-    if (newBalance < 0) {
-      throw createError({ 
-        statusCode: 400, 
-        message: "Insufficient balance in your account" 
+      throw createError({
+        statusCode: 400,
+        message: "Insufficient balance in your account"
       });
     }
 
+    const newBalance = (account.balance || 0) - amount;
+    if (newBalance < 0) {
+      throw createError({
+        statusCode: 400,
+        message: "Insufficient balance in your account"
+      });
+    }
+
+    ctx?.step("Fetching investment duration");
     const duration = await models.forexDuration.findByPk(durationId);
     if (!duration) {
       throw createError({ statusCode: 404, message: "Duration not found" });
     }
 
+    ctx?.step("Running fraud detection checks");
     // Fraud detection check
     const fraudCheck = await ForexFraudDetector.checkInvestment(
       user.id,
+      amount,
       planId,
-      amount
+      ctx
     );
-    
+
     if (!fraudCheck.isValid) {
-      throw createError({ 
-        statusCode: 400, 
-        message: fraudCheck.reason || "Investment flagged for security review" 
+      throw createError({
+        statusCode: 400,
+        message: fraudCheck.reason || "Investment flagged for security review"
       });
     }
+
+    ctx?.step("Calculating investment end date");
 
     const endDate = new Date();
     switch (duration.timeframe) {
@@ -194,6 +208,7 @@ export default async (data: Handler) => {
         throw createError({ statusCode: 400, message: "Invalid timeframe" });
     }
 
+    ctx?.step("Creating investment record and deducting from account");
     const investment = await sequelize.transaction(async (t) => {
       const investment = await models.forexInvestment.create(
         {
@@ -220,14 +235,15 @@ export default async (data: Handler) => {
       );
 
       // Log the investment creation
-      logInfo(
-        "forex-investment",
-        `User ${user.id} created forex investment ${investment.id} with plan ${planId}. Amount: ${amount} USD, Duration: ${duration.duration} ${duration.timeframe}, ROI: ${plan.roi}`,
-        __filename
+      logger.info(
+        "FOREX_INVESTMENT",
+        `User ${user.id} created forex investment ${investment.id} with plan ${planId}. Amount: ${amount} USD, Duration: ${duration.duration} ${duration.timeframe}, ROI: ${plan.roi}`
       );
 
       return investment;
     });
+
+    ctx?.step("Sending email and notification");
 
     try {
       await sendInvestmentEmail(
@@ -235,7 +251,8 @@ export default async (data: Handler) => {
         plan,
         duration,
         investment,
-        "NewForexInvestmentCreated"
+        "NewForexInvestmentCreated",
+        ctx
       );
       await createNotification({
         userId: user.id,
@@ -257,15 +274,19 @@ export default async (data: Handler) => {
       // Don't fail the investment creation if email fails
     }
 
+    ctx?.success(`Created forex investment in ${plan.name} for ${amount} USD (${duration.duration} ${duration.timeframe})`);
+
     return investment;
   } catch (error: any) {
+    ctx?.fail(error.message || "Failed to create forex investment");
+
     // Log the error
-    logError(
-      "forex-investment-error",
-      new Error(`Forex investment creation failed for user ${user.id}, plan ${planId}: ${error.message}. Details: planId=${planId}, durationId=${durationId}, amount=${amount}`),
-      __filename
+    logger.error(
+      "FOREX_INVESTMENT_ERROR",
+      `Forex investment creation failed for user ${user.id}, plan ${planId}: ${error.message}. Details: planId=${planId}, durationId=${durationId}, amount=${amount}`,
+      error
     );
-    
+
     if (error.statusCode) {
       throw error;
     }

@@ -31,7 +31,9 @@ export default function AffiliateGeneralSettingsSection({
   settings = {},
   onUpdate,
 }: AffiliateGeneralSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const safeSettings = {
     RequireApproval: settings.RequireApproval ?? false,
     MlmSystem: settings.MlmSystem ?? "DIRECT",
@@ -227,12 +229,12 @@ export default function AffiliateGeneralSettingsSection({
             onValueChange={handleMlmSystemChange}
           >
             <SelectTrigger id="mlmSystem" className="w-full">
-              <SelectValue placeholder="Select MLM system" />
+              <SelectValue placeholder={t("select_mlm_system")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="DIRECT">{t("DIRECT")}</SelectItem>
-              <SelectItem value="BINARY">{t("BINARY")}</SelectItem>
-              <SelectItem value="UNILEVEL">{t("UNILEVEL")}</SelectItem>
+              <SelectItem value="DIRECT">{tExt("direct")}</SelectItem>
+              <SelectItem value="BINARY">{tCommon("binary")}</SelectItem>
+              <SelectItem value="UNILEVEL">{t("unilevel")}</SelectItem>
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground mt-1">
@@ -246,7 +248,7 @@ export default function AffiliateGeneralSettingsSection({
               htmlFor="binaryLevels"
               className="block text-sm font-medium mb-1.5"
             >
-              {t("binary_levels")}
+              {tCommon("binary_levels")}
             </Label>
             <Input
               id="binaryLevels"
@@ -258,7 +260,7 @@ export default function AffiliateGeneralSettingsSection({
               onChange={handleBinaryLevelsChange}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              {t("number_of_levels_in_the_binary_structure_(2-7)")}.
+              {t("number_of_levels_in_the_binary_structure_2_7")} (2-7).
             </p>
           </div>
         )}
@@ -269,7 +271,7 @@ export default function AffiliateGeneralSettingsSection({
               htmlFor="unilevelLevels"
               className="block text-sm font-medium mb-1.5"
             >
-              {t("unilevel_levels")}
+              {tCommon("unilevel_levels")}
             </Label>
             <Input
               id="unilevelLevels"
@@ -281,7 +283,7 @@ export default function AffiliateGeneralSettingsSection({
               onChange={handleUnilevelLevelsChange}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              {t("number_of_levels_in_the_unilevel_structure_(2-7)")}.
+              {t("number_of_levels_in_the_unilevel_structure_2_7")} (2-7).
             </p>
           </div>
         )}
@@ -303,9 +305,9 @@ export default function AffiliateGeneralSettingsSection({
                     htmlFor={key}
                     className="block text-sm font-medium mb-1.5"
                   >
-                    {t("Level")}
+                    {tCommon("level")}
                     {level}
-                    {t("Percentage")}
+                    {tCommon("percentage")}
                   </Label>
                   <Input
                     id={key}
@@ -344,9 +346,9 @@ export default function AffiliateGeneralSettingsSection({
                     htmlFor={key}
                     className="block text-sm font-medium mb-1.5"
                   >
-                    {t("Level")}
+                    {tCommon("level")}
                     {level}
-                    {t("Percentage")}
+                    {tCommon("percentage")}
                   </Label>
                   <Input
                     id={key}

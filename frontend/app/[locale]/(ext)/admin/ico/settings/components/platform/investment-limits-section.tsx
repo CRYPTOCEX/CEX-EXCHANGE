@@ -14,7 +14,8 @@ export default function InvestmentLimitsSection({
   maxAmount,
   onUpdate,
 }: InvestmentLimitsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">{t("investment_limits")}</h3>
@@ -22,22 +23,22 @@ export default function InvestmentLimitsSection({
         <Input
           id="min-investment"
           type="number"
-          label="Minimum Investment Amount ($)"
+          label={`${tCommon("minimum_investment_amount")} ($)`}
           value={minAmount ?? ""}
           onChange={(e) =>
             onUpdate("icoMinInvestmentAmount", Number(e.target.value))
           }
-          placeholder="Enter minimum investment amount"
+          placeholder={t("enter_minimum_investment_amount")}
         />
         <Input
           id="max-investment"
           type="number"
-          label="Maximum Investment Amount ($)"
+          label={`${tCommon("maximum_investment_amount")} ($)`}
           value={maxAmount ?? ""}
           onChange={(e) =>
             onUpdate("icoMaxInvestmentAmount", Number(e.target.value))
           }
-          placeholder="Enter maximum investment amount"
+          placeholder={t("enter_maximum_investment_amount")}
         />
       </div>
     </div>

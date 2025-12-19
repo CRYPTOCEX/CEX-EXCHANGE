@@ -13,6 +13,7 @@ import ConditionalLayoutProvider from "@/components/layout/conditional-layout-pr
 import { SettingsStatus } from "@/components/development/settings-status";
 import { GlobalAuthDetector } from "@/components/auth/global-auth-detector";
 import { Geist, Geist_Mono } from "next/font/google";
+import { getTranslations } from "next-intl/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -141,6 +142,8 @@ interface RootLayoutProps {
 export default async function RootLayout(
   props: RootLayoutProps
 ): Promise<React.JSX.Element> {
+  const t = await getTranslations("layout");
+  const tCommon = await getTranslations("common");
   try {
     const params = await props.params;
     const { children } = props;
@@ -221,11 +224,16 @@ export default async function RootLayout(
 
     // Always return a valid layout, even if some data is missing
     return (
-      <html lang={locale} suppressHydrationWarning>
+      <html lang={locale} suppressHydrationWarning data-scroll-behavior="smooth" className="notranslate" translate="no">
         <head>
+          {/* Favicons - files are replaced directly via admin upload */}
+          <link rel="icon" type="image/webp" sizes="16x16" href="/img/logo/favicon-16x16.webp" />
+          <link rel="icon" type="image/webp" sizes="32x32" href="/img/logo/favicon-32x32.webp" />
+          <link rel="icon" type="image/webp" sizes="96x96" href="/img/logo/favicon-96x96.webp" />
+          <link rel="apple-touch-icon" sizes="180x180" href="/img/logo/apple-icon-180x180.webp" />
           {/* Conditionally load TradingView library if chart type is set to TradingView */}
           {settings?.chartType === "TRADINGVIEW" && (
-            <script 
+            <script
               src="/lib/chart/charting_library/charting_library/charting_library.standalone.js"
               async
             />
@@ -257,17 +265,16 @@ export default async function RootLayout(
   } catch (error) {
     // Return a minimal fallback layout that won't cause additional errors
     return (
-      <html lang="en" suppressHydrationWarning>
+      <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className="notranslate" translate="no">
         <body className="min-h-screen bg-background font-sans antialiased">
           <div className="flex h-screen w-full flex-col items-center justify-center space-y-4">
             <div className="text-center">
-              <h1 className="text-2xl font-bold">Application Error</h1>
+              <h1 className="text-2xl font-bold">{t("application_error")}</h1>
               <p className="text-muted-foreground mt-2">
-                Failed to initialize the application. Please try refreshing the
-                page.
+                {t("failed_to_initialize_the_application")} {tCommon("please_try_refreshing_the_page")}
               </p>
               <p className="text-xs text-muted-foreground mt-4">
-                Error:{" "}
+                {tCommon("error")}:{" "}
                 {error instanceof Error ? error.message : "Unknown error"}
               </p>
             </div>

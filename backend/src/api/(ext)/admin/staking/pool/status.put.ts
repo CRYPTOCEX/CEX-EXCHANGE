@@ -4,6 +4,8 @@ export const metadata: OperationObject = {
   summary: "Bulk updates the status of Staking Pools",
   operationId: "bulkUpdateStakingPoolStatus",
   tags: ["Admin", "Staking", "Pools"],
+  logModule: "ADMIN_STAKE",
+  logTitle: "Update Pool Status",
   requestBody: {
     required: true,
     content: {

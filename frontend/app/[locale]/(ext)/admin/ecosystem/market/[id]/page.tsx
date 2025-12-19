@@ -13,6 +13,7 @@ import { Link, useRouter } from "@/i18n/routing";
 import { useParams } from "next/navigation";
 import Stepper from "@/components/ui/stepper";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 /* ----------------------- Type Definitions ----------------------- */
 export type Metadata = {
@@ -61,7 +62,8 @@ const defaultFormValues: MarketForm = {
 const TOTAL_STEPS = 4;
 /* ----------------------- EditEcosystemMarket Component ----------------------- */
 const EditEcosystemMarket = () => {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   const router = useRouter();
   const { id } = useParams();
   const [formData, setFormData] = useState<MarketForm>(defaultFormValues);
@@ -188,7 +190,7 @@ const EditEcosystemMarket = () => {
   }
   return (
     <div
-      className="p-5"
+      className={`container ${PAGE_PADDING}`}
       onKeyDown={(e) => {
         // prevent Enter from skipping steps prematurely
         if (e.key === "Enter" && step < TOTAL_STEPS) {
@@ -197,14 +199,14 @@ const EditEcosystemMarket = () => {
       }}
     >
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">{t("edit_ecosystem_market")}</h1>
+        <h1 className="text-2xl font-bold">{tExtAdmin("edit_ecosystem_market")}</h1>
         <Link href="/admin/ecosysatem/market">
           <Button variant="outline">
             <Icon
               icon="akar-icons:arrow-left"
               className="mr-2 cursor-pointer"
             />
-            {t("Back")}
+            {t("back")}
           </Button>
         </Link>
       </div>

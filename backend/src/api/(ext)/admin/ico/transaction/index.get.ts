@@ -20,15 +20,20 @@ export const metadata = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "ADMIN_ICO",
+  logTitle: "Get ICO Transactions",
   permission: "view.ico.transaction",
+  demoMask: ["items.user.email"],
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+  ctx?.step("Validate user authentication");
   if (!user) {
     throw new Error("Unauthorized");
   }
 
+  ctx?.success("Get ICO Transactions retrieved successfully");
   return getFiltered({
     model: models.icoTransaction,
     query: query,

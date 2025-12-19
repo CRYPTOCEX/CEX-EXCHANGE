@@ -12,6 +12,8 @@ export const metadata: OperationObject = {
     "Fetches an active KYC (Know Your Customer) level by its ID. This endpoint requires authentication.",
   operationId: "getKycLevelById",
   tags: ["KYC"],
+  logModule: "USER",
+  logTitle: "Get KYC level",
   parameters: [
     {
       index: 0,
@@ -57,15 +59,20 @@ export default async (data: {
   user?: { id?: unknown };
   params: { id: string };
   body: unknown;
+  ctx?: any;
 }) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
 
   if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { id } = params;
-  return getKycLevelById(id);
+  ctx?.step("Retrieving KYC level");
+  const result = await getKycLevelById(id);
+  ctx?.success("KYC level retrieved successfully");
+  return result;
 };
 
 export async function getKycLevelById(id: string): Promise<kycLevelAttributes> {

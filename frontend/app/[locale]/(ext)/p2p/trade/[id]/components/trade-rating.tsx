@@ -25,7 +25,9 @@ interface TradeRatingProps {
 }
 
 export function TradeRating({ tradeId, counterparty }: TradeRatingProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [feedback, setFeedback] = useState("");
@@ -102,7 +104,7 @@ export function TradeRating({ tradeId, counterparty }: TradeRatingProps) {
               <p className="text-sm text-muted-foreground mt-2">
                 {t("your_rating")}{" "}
                 {rating}{" "}
-                {t("out_of_5_stars")}
+                {tExt("out_of_5_stars")}
               </p>
             </div>
           </div>
@@ -136,7 +138,7 @@ export function TradeRating({ tradeId, counterparty }: TradeRatingProps) {
             <div>
               <p className="font-medium">{counterparty.name}</p>
               <p className="text-sm text-muted-foreground">
-                {t("trade_#")}{tradeId}
+                {tCommon("trade")}{tradeId}
               </p>
             </div>
           </div>
@@ -169,7 +171,7 @@ export function TradeRating({ tradeId, counterparty }: TradeRatingProps) {
 
           <div className="space-y-2">
             <label htmlFor="feedback" className="text-sm font-medium">
-              {t("additional_feedback_(optional)")}
+              {t("additional_feedback_optional")}
             </label>
             <Textarea
               id="feedback"

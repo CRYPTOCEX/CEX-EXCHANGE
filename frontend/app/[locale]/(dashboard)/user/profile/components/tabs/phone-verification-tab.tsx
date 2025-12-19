@@ -48,7 +48,8 @@ const $fetch = async ({ url, method, body }: any) => {
 };
 
 export function PhoneVerificationTab() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
   const { user, setUser } = useUserStore();
   const { toast } = useToast();
 
@@ -255,15 +256,15 @@ export function PhoneVerificationTab() {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-              {t("phone_verification")}
+              {tCommon("phone_verification")}
             </CardTitle>
             <CardDescription className="text-base mt-2 dark:text-zinc-400">
-              {t("secure_your_account_with_two-factor_authentication")}
+              {t("secure_your_account_with_two_factor_authentication")}
             </CardDescription>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground dark:text-zinc-400">
-              <span>{t("Progress")}</span>
+              <span>{tCommon("progress")}</span>
               <span>{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-2 dark:bg-zinc-800" />
@@ -278,7 +279,7 @@ export function PhoneVerificationTab() {
                   htmlFor="phone"
                   className="text-base font-medium dark:text-zinc-200"
                 >
-                  {t("phone_number")}
+                  {tCommon("phone_number")}
                 </Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground dark:text-zinc-400 w-5 h-5" />
@@ -302,7 +303,7 @@ export function PhoneVerificationTab() {
               <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/50">
                 <Phone className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <AlertDescription className="text-blue-800 dark:text-blue-300">
-                  <strong>{t("secure_&_private")}</strong>
+                  <strong>{t("secure_private")}</strong>
                   {t("your_phone_number_third_parties")}.
                 </AlertDescription>
               </Alert>
@@ -335,7 +336,7 @@ export function PhoneVerificationTab() {
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground dark:text-zinc-500">
-                    {t("Complete")}
+                    {tCommon("complete")}
                   </p>
                 </div>
               </div>
@@ -438,7 +439,7 @@ export function PhoneVerificationTab() {
                     className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-950/50"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
-                    {t("resend_code")}
+                    {tCommon("resend_code")}
                   </Button>
                 )}
               </div>
@@ -451,7 +452,7 @@ export function PhoneVerificationTab() {
                   className="flex-1 h-12 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  {t("Back")}
+                  {tCommon("back")}
                 </Button>
                 <Button
                   onClick={handleVerifyCode}
@@ -461,7 +462,7 @@ export function PhoneVerificationTab() {
                   {isLoading ? (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      {t("Verifying")}.
+                      {tCommon("verifying")}.
                     </>
                   ) : (
                     <>
@@ -485,10 +486,10 @@ export function PhoneVerificationTab() {
 
               <div className="space-y-3">
                 <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {t("phone_verified_successfully_🎉")}
+                  {t("phone_verified_successfully")}
                 </h3>
                 <p className="text-muted-foreground dark:text-zinc-400">
-                  {t("your_account_is_two-factor_authentication")}
+                  {t("your_account_is_two_factor_authentication")}
                 </p>
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-950/50 rounded-full">
                   <Shield className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -504,7 +505,7 @@ export function PhoneVerificationTab() {
                     {t("enhanced_security")}
                   </div>
                   <div className="text-blue-600 dark:text-blue-400">
-                    {t("two-factor_authentication_active")}
+                    {t("two_factor_authentication_active")}
                   </div>
                 </div>
                 <div className="p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg">

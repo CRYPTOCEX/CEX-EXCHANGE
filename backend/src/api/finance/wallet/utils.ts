@@ -7,6 +7,12 @@ import {
   baseStringSchema,
 } from "@b/utils/schema";
 
+interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
+
 export const baseWalletSchema = {
   id: baseStringSchema("ID of the wallet"),
   userId: baseStringSchema("ID of the user who owns the wallet"),
@@ -47,8 +53,11 @@ export async function getWallet(
   userId: string,
   type: string,
   currency: string,
-  hasTransactions = false
+  hasTransactions = false,
+  ctx?: LogContext
 ) {
+  ctx?.step?.(`Fetching wallet for user ${userId}, type ${type}, currency ${currency}`);
+
   const include = hasTransactions
     ? [
         {
@@ -79,8 +88,11 @@ export async function getWalletSafe(
   userId: string,
   type: string,
   currency: string,
-  hasTransactions = false
+  hasTransactions = false,
+  ctx?: LogContext
 ) {
+  ctx?.step?.(`Safely fetching wallet for user ${userId}, type ${type}, currency ${currency}`);
+
   const include = hasTransactions
     ? [
         {
@@ -107,7 +119,9 @@ export async function getWalletSafe(
   return response.get({ plain: true });
 }
 
-export async function getWalletById(id: string): Promise<walletAttributes> {
+export async function getWalletById(id: string, ctx?: LogContext): Promise<walletAttributes> {
+  ctx?.step?.(`Fetching wallet by ID: ${id}`);
+
   const response = await models.wallet.findOne({
     where: { id },
   });
@@ -120,8 +134,11 @@ export async function getWalletById(id: string): Promise<walletAttributes> {
 }
 
 export async function getTransactions(
-  id: string
+  id: string,
+  ctx?: LogContext
 ): Promise<transactionAttributes[]> {
+  ctx?.step?.(`Fetching transactions for wallet ID: ${id}`);
+
   const wallet = await models.wallet.findOne({
     where: { id },
   });
@@ -129,6 +146,8 @@ export async function getTransactions(
   if (!wallet) {
     throw new Error("Wallet not found");
   }
+
+  ctx?.step?.(`Fetching transaction records for wallet ${wallet.id}`);
 
   return (
     await models.transaction.findAll({

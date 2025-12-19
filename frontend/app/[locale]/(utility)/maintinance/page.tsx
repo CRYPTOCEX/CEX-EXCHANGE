@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 import NavbarLogo from "@/components/elements/navbar-logo";
 
 const CommingSoonPage = () => {
-  const t = useTranslations("utility");
+  const t = useTranslations("common");
   const { theme } = useTheme();
   const LightImage = "/images/utility/construction-light.png";
   const DarkImage = "/images/utility/construction-dark.png";

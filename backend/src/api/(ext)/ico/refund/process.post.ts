@@ -2,13 +2,16 @@ import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
 import { createNotification } from "@b/utils/notifications";
 import { Op } from "sequelize";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Process Refunds for Failed ICO",
   description: "Processes refunds for all investors of a failed ICO offering. Only the offering owner or admin can initiate refunds.",
-  operationId: "processIcoRefunds", 
+  operationId: "processIcoRefunds",
   tags: ["ICO", "Refunds"],
   requiresAuth: true,
+  logModule: "ICO_REFUND",
+  logTitle: "Process ICO refunds",
   requestBody: {
     required: true,
     content: {
@@ -56,19 +59,21 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Validating refund request");
   const { offeringId, reason } = body;
   if (!offeringId || !reason) {
     throw createError({ statusCode: 400, message: "Missing required fields" });
   }
 
   const transaction = await sequelize.transaction();
-  
+
   try {
+    ctx?.step("Retrieving offering details");
     // Find the offering
     const offering = await models.icoTokenOffering.findByPk(offeringId, {
       include: [{
@@ -82,6 +87,7 @@ export default async (data: Handler) => {
       throw createError({ statusCode: 404, message: "Offering not found" });
     }
 
+    ctx?.step("Verifying user permissions");
     // Check if user is owner or admin
     const isOwner = offering.userId === user.id;
     // Check admin role through user model
@@ -105,6 +111,7 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.step("Retrieving pending transactions for refund");
     // Find all pending refund transactions
     const pendingTransactions = await models.icoTransaction.findAll({
       where: {
@@ -134,6 +141,7 @@ export default async (data: Handler) => {
       reason: string;
     }> = [];
 
+    ctx?.step(`Processing ${pendingTransactions.length} refund transactions`);
     // Process each transaction
     for (const icoTransaction of pendingTransactions) {
       try {
@@ -209,7 +217,7 @@ export default async (data: Handler) => {
         refundedCount++;
         totalRefunded += refundAmount;
       } catch (error) {
-        console.error(`Failed to refund transaction ${icoTransaction.id}:`, error);
+        logger.error("ICO_REFUND", `Failed to refund transaction ${icoTransaction.id}`, error);
         failedRefunds.push({
           transactionId: icoTransaction.id,
           userId: icoTransaction.userId,
@@ -218,6 +226,7 @@ export default async (data: Handler) => {
       }
     }
 
+    ctx?.step("Updating offering records and creating audit log");
     // Update offering notes if all refunds processed
     if (failedRefunds.length === 0) {
       await offering.update(
@@ -255,6 +264,7 @@ export default async (data: Handler) => {
 
     await transaction.commit();
 
+    ctx?.step("Sending notifications to offering owner");
     // Send notification to offering owner
     if (!isOwner) {
       await createNotification({
@@ -268,6 +278,8 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.success(`Processed ${refundedCount} refunds totaling ${totalRefunded} ${offering.purchaseWalletCurrency}`);
+
     return {
       message: "Refunds processed successfully",
       refundedCount,
@@ -276,6 +288,7 @@ export default async (data: Handler) => {
     };
   } catch (err: any) {
     await transaction.rollback();
+    ctx?.fail(err.message || "Failed to process refunds");
     throw err;
   }
 };

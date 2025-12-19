@@ -1,5 +1,6 @@
-import { models, sequelize } from "@b/db";
+import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { fn, col } from "sequelize";
 
 export const metadata = {
   summary: "Get Admin Dashboard Stats",
@@ -7,6 +8,8 @@ export const metadata = {
     "Retrieves aggregated statistics for the admin dashboard of the P2P platform, including total offers, active trades, open disputes, platform revenue, pending verifications, and flagged trades.",
   operationId: "getAdminP2PDashboardStats",
   tags: ["Admin", "Dashboard", "P2P"],
+  logModule: "ADMIN_P2P",
+  logTitle: "Get P2P Dashboard Stats",
   requiresAuth: true,
   responses: {
     200: { description: "Stats retrieved successfully." },
@@ -18,6 +21,9 @@ export const metadata = {
 
 export default async (data) => {
   try {
+    const { ctx } = data;
+    ctx?.step("Fetching P2P dashboard statistics");
+
     // Count total offers instead of total users
     const totalOffers = await models.p2pOffer.count();
     // Placeholder for offer growth – ideally computed by comparing with a previous period
@@ -34,7 +40,7 @@ export default async (data) => {
 
     const revenueResult = await models.p2pCommission.findOne({
       attributes: [
-        [sequelize.fn("SUM", sequelize.col("amount")), "platformRevenue"],
+        [fn("SUM", col("amount")), "platformRevenue"],
       ],
       raw: true,
     });
@@ -45,6 +51,8 @@ export default async (data) => {
     const pendingVerifications = 0;
     const flaggedTrades = 0;
     const systemHealth = "Good";
+
+    ctx?.success("P2P dashboard statistics retrieved successfully");
 
     return {
       totalOffers,

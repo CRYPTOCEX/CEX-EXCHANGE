@@ -2,7 +2,7 @@ import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function EmptySearchState() {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   return (
     <div className="flex items-center justify-center h-32 text-muted-foreground dark:text-zinc-500">
       <div className="text-center">

@@ -35,13 +35,17 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("User"),
     500: serverErrorResponse,
   },
+  logModule: "ADMIN_CRM",
+  logTitle: "Get User Options",
+  demoMask: ["name"],
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) throw createError(401, "Unauthorized");
 
   try {
+    ctx?.step("Fetching active users");
     // Retrieve only active users.
     const users = await models.user.findAll({
       where: { status: "ACTIVE" },
@@ -59,6 +63,7 @@ export default async (data: Handler) => {
       };
     });
 
+    ctx?.success("User options retrieved successfully");
     return formatted;
   } catch (error) {
     throw createError(500, "An error occurred while fetching users");

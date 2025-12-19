@@ -1,100 +1,110 @@
 "use client";
 
 import { Link } from "@/i18n/routing";
-import { Compass, Shield, Users, Zap } from "lucide-react";
+import { Compass, Shield, Users, Zap, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingOffers } from "./market-trends";
-import { useP2PStore } from "@/store/p2p/p2p-store";
-import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { HeroSection } from "@/components/ui/hero-section";
+import { StatsGroup } from "@/components/ui/stats-group";
 
 interface OffersHeroProps {
   totalOffers: number;
   isLoadingP2PStats: boolean;
-  formatOfferCount: (count: number) => string;
 }
 
 export function OffersHero({
   totalOffers,
   isLoadingP2PStats,
-  formatOfferCount,
 }: OffersHeroProps) {
-  const t = useTranslations("ext");
-  const { tradeOffers } = useP2PStore();
-  const [hasOffers, setHasOffers] = useState(true);
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
 
-  useEffect(() => {
-    setHasOffers(tradeOffers && tradeOffers.length > 0);
-  }, [tradeOffers]);
+  // Format offer count with commas
+  const formatOfferCount = (count: number) => {
+    return count ? count.toLocaleString() : "0";
+  };
 
   return (
-    <div className="relative overflow-hidden rounded-xl border bg-gradient-to-r from-primary/10 via-primary/5 to-background p-6 shadow-sm">
-      <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl"></div>
-      <div className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl"></div>
-
-      <div className="relative z-10 grid gap-8 md:grid-cols-2">
-        <div
-          className={`space-y-4 ${!hasOffers ? "md:col-span-2 max-w-3xl mx-auto text-center" : ""}`}
-        >
-          <h1 className="text-3xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            {t("find_the")}{" "}
-            <span className="text-primary">{t("perfect_offer")}</span>{" "}
-            {t("for_your_crypto_needs")}
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-[600px] mx-auto">
-            {t("browse_through_hundreds_payment_options")}.
-          </p>
-
-          <div className="flex flex-wrap gap-3 pt-2 justify-center">
-            <Link href="/p2p/guided-matching" className="gap-2">
-              <Button size="lg">
-                <Compass className="h-4 w-4" />
-                {t("find_best_offers")}
-              </Button>
-            </Link>
-            <Link href="/p2p/offer/create" className="gap-2">
-              <Button size="lg" variant="outline">
-                <Zap className="h-4 w-4" />
-                {t("create_offer")}
-              </Button>
-            </Link>
-          </div>
-
-          <div className="flex flex-wrap gap-4 pt-2 justify-center">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Zap className="h-4 w-4 text-primary" />
-              </div>
-              <span className="text-sm">{t("competitive_rates")}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Shield className="h-4 w-4 text-primary" />
-              </div>
-              <span className="text-sm">{t("secure_escrow")}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Users className="h-4 w-4 text-primary" />
-              </div>
-              <span className="text-sm">
-                {isLoadingP2PStats ? (
-                  <Skeleton className="h-4 w-16" />
-                ) : (
-                  `${formatOfferCount(totalOffers)}+ Offers`
-                )}
-              </span>
-            </div>
-          </div>
+    <HeroSection
+      badge={{
+        icon: <Sparkles className="h-3.5 w-3.5" />,
+        text: "P2P Marketplace",
+        gradient: `from-blue-500/10 to-violet-500/10`,
+        iconColor: `text-blue-500`,
+        textColor: `text-blue-600 dark:text-blue-400`,
+      }}
+      title={[
+        { text: t("find_the") + " " },
+        { text: t("perfect_offer"), gradient: `from-blue-600 via-violet-500 to-blue-600` },
+        { text: " " + t("for_your_crypto_needs") },
+      ]}
+      description={t("browse_through_hundreds_payment_options") + "."}
+      paddingTop="pt-24"
+      paddingBottom="pb-16"
+      layout="split"
+      background={{
+        orbs: [
+          {
+            color: "#3b82f6",
+            position: { top: "-10rem", right: "-10rem" },
+            size: "20rem",
+          },
+          {
+            color: "#8b5cf6",
+            position: { bottom: "-5rem", left: "-5rem" },
+            size: "15rem",
+          },
+        ],
+      }}
+      particles={{
+        count: 6,
+        type: "floating",
+        colors: ["#3b82f6", "#8b5cf6"],
+        size: 8,
+      }}
+      rightContent={
+        <div className="flex flex-col gap-3 w-full sm:w-auto lg:mt-8">
+          <Link href="/p2p/guided-matching">
+            <Button size="lg" className={`w-full sm:w-48 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-600 text-white font-semibold rounded-xl shadow-lg`}>
+              <Compass className="mr-2 h-5 w-5" />
+              {t("find_best_offers")}
+            </Button>
+          </Link>
+          <Link href="/p2p/offer/create">
+            <Button size="lg" variant="outline" className={`w-full sm:w-48 border-2 border-blue-500/50 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 dark:hover:bg-blue-500/20 font-semibold rounded-xl shadow-lg`}>
+              <Zap className="mr-2 h-5 w-5" />
+              {tCommon("create_offer")}
+            </Button>
+          </Link>
         </div>
-
-        {hasOffers && (
-          <div className="flex items-center justify-center">
-            <TrendingOffers />
-          </div>
-        )}
-      </div>
-    </div>
+      }
+    >
+      <StatsGroup
+        stats={[
+          {
+            icon: Zap,
+            label: t("competitive_rates"),
+            value: "",
+            iconColor: `text-blue-500`,
+            iconBgColor: `bg-blue-500/10`,
+          },
+          {
+            icon: Shield,
+            label: t("secure_escrow"),
+            value: "",
+            iconColor: `text-blue-500`,
+            iconBgColor: `bg-blue-500/10`,
+          },
+          {
+            icon: Users,
+            label: isLoadingP2PStats ? "" : `${formatOfferCount(totalOffers)}+ Offers`,
+            value: "",
+            iconColor: `text-blue-500`,
+            iconBgColor: `bg-blue-500/10`,
+          },
+        ]}
+      />
+    </HeroSection>
   );
 }

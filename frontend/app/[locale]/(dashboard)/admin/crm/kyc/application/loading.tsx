@@ -4,7 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslations } from "next-intl";
 
 export default function Loading() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -38,10 +39,10 @@ export default function Loading() {
 
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="grid grid-cols-5 w-full md:w-auto">
-          <TabsTrigger value="all">{t("All")}</TabsTrigger>
-          <TabsTrigger value="pending">{t("Pending")}</TabsTrigger>
-          <TabsTrigger value="approved">{t("Approved")}</TabsTrigger>
-          <TabsTrigger value="rejected">{t("Rejected")}</TabsTrigger>
+          <TabsTrigger value="all">{tCommon("all")}</TabsTrigger>
+          <TabsTrigger value="pending">{tCommon("pending")}</TabsTrigger>
+          <TabsTrigger value="approved">{tCommon("approved")}</TabsTrigger>
+          <TabsTrigger value="rejected">{tCommon("rejected")}</TabsTrigger>
           <TabsTrigger value="additional_info_required">
             {t("needs_info")}
           </TabsTrigger>
@@ -52,7 +53,7 @@ export default function Loading() {
             <CardHeader className="pb-3">
               <div className="flex justify-between items-center">
                 <div>
-                  <CardTitle>{t("Applications")}</CardTitle>
+                  <CardTitle>{t("applications")}</CardTitle>
                   <Skeleton className="h-4 w-32 mt-1" />
                 </div>
                 <Skeleton className="h-9 w-32" />

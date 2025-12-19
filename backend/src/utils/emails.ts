@@ -7,6 +7,14 @@ import {
 } from "./mailer";
 import { format } from "date-fns";
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
+
+interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
+
 const APP_EMAILER = process.env.APP_EMAILER || "nodemailer-service";
 
 export const emailQueue = new Bull("emailQueue", {
@@ -21,22 +29,23 @@ emailQueue.process(async (job) => {
 
   try {
     await sendEmail(emailData, emailType);
-    console.log("Email sent successfully");
+    logger.debug("EMAIL", `Email sent: ${emailType}`);
   } catch (error) {
-    console.error("Failed to send email:", error);
-    // Optionally: Re-queue or handle the job based on the error
+    logger.error("EMAIL", `Failed to send email: ${emailType}`, error);
     throw error;
   }
 });
 
 export async function sendEmail(
   specificVariables: any,
-  templateName: string
+  templateName: string,
+  ctx?: LogContext
 ): Promise<void> {
   let processedTemplate: string;
   let processedSubject: string;
 
   try {
+    ctx?.step?.(`Processing email template: ${templateName}`);
     const result = await fetchAndProcessEmailTemplate(
       specificVariables,
       templateName
@@ -44,18 +53,21 @@ export async function sendEmail(
     processedTemplate = result.processedTemplate;
     processedSubject = result.processedSubject;
   } catch (error) {
-    console.error("Error processing email template:", error);
+    logger.error("EMAIL", "Error processing email template", error);
+    ctx?.fail?.((error as Error).message);
     throw error;
   }
 
   let finalEmailHtml: string;
   try {
+    ctx?.step?.("Preparing email template");
     finalEmailHtml = await prepareEmailTemplate(
       processedTemplate,
       processedSubject
     );
   } catch (error) {
-    console.error("Error preparing email template:", error);
+    logger.error("EMAIL", "Error preparing email template", error);
+    ctx?.fail?.((error as Error).message);
     throw error;
   }
 
@@ -67,9 +79,12 @@ export async function sendEmail(
   const emailer = APP_EMAILER;
 
   try {
+    ctx?.step?.(`Sending email to ${specificVariables["TO"]}`);
     await sendEmailWithProvider(emailer, options);
+    ctx?.success?.(`Email sent successfully to ${specificVariables["TO"]}`);
   } catch (error) {
-    console.error("Error sending email with provider:", error);
+    logger.error("EMAIL", "Error sending email with provider", error);
+    ctx?.fail?.((error as Error).message);
     throw error;
   }
 }
@@ -79,8 +94,10 @@ export async function sendChatEmail(
   receiver: any,
   chat: any,
   message: any,
-  emailType: string
+  emailType: string,
+  ctx?: LogContext
 ) {
+  ctx?.step?.(`Queueing chat email to ${receiver.email}`);
   const emailData = {
     TO: receiver.email,
     SENDER_NAME: sender.firstName,
@@ -89,20 +106,29 @@ export async function sendChatEmail(
     TICKET_ID: chat.id,
   };
 
-  await emailQueue.add({
-    emailData,
-    emailType,
-  });
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType,
+    });
+    ctx?.success?.(`Chat email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
 export async function sendFiatTransactionEmail(
   user: any,
   transaction: any,
   currency,
-  newBalance: number
+  newBalance: number,
+  ctx?: LogContext
 ) {
   // Define the type of email template to use, which matches the SQL record
   const emailType = "FiatWalletTransaction";
+
+  ctx?.step?.(`Queueing fiat transaction email to ${user.email}`);
 
   // Prepare the email data
   const emailData = {
@@ -118,12 +144,20 @@ export async function sendFiatTransactionEmail(
   };
 
   // Send the email
-  await emailQueue.add({ emailData, emailType });
+  try {
+    await emailQueue.add({ emailData, emailType });
+    ctx?.success?.(`Fiat transaction email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
-export async function sendBinaryOrderEmail(user: any, order: any) {
+export async function sendBinaryOrderEmail(user: any, order: any, ctx?: LogContext) {
   // Define the type of email template to use, which matches the SQL record
   const emailType = "BinaryOrderResult";
+
+  ctx?.step?.(`Queueing binary order email to ${user.email}`);
 
   let profit = 0;
   let sign;
@@ -159,7 +193,13 @@ export async function sendBinaryOrderEmail(user: any, order: any) {
   };
 
   // Send the email
-  await emailQueue.add({ emailData, emailType });
+  try {
+    await emailQueue.add({ emailData, emailType });
+    ctx?.success?.(`Binary order email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
 export async function sendWalletBalanceUpdateEmail(
@@ -167,10 +207,13 @@ export async function sendWalletBalanceUpdateEmail(
   wallet: any,
   action: "added" | "subtracted",
   amount: number,
-  newBalance: number
+  newBalance: number,
+  ctx?: LogContext
 ) {
   // Define the type of email template to use, which matches the SQL record
   const emailType = "WalletBalanceUpdate";
+
+  ctx?.step?.(`Queueing wallet balance update email to ${user.email}`);
 
   // Prepare the email data
   const emailData = {
@@ -183,7 +226,13 @@ export async function sendWalletBalanceUpdateEmail(
   };
 
   // Send the email
-  await emailQueue.add({ emailData, emailType });
+  try {
+    await emailQueue.add({ emailData, emailType });
+    ctx?.success?.(`Wallet balance update email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
 export async function sendTransactionStatusUpdateEmail(
@@ -191,10 +240,13 @@ export async function sendTransactionStatusUpdateEmail(
   transaction: any,
   wallet: any,
   newBalance: number,
-  note?: string | null
+  note?: string | null,
+  ctx?: LogContext
 ) {
   // Define the type of email template to use, which matches the SQL record
   const emailType = "TransactionStatusUpdate";
+
+  ctx?.step?.(`Queueing transaction status update email to ${user.email}`);
 
   // Prepare the email data
   const emailData = {
@@ -210,12 +262,20 @@ export async function sendTransactionStatusUpdateEmail(
   };
 
   // Send the email
-  await emailQueue.add({ emailData, emailType });
+  try {
+    await emailQueue.add({ emailData, emailType });
+    ctx?.success?.(`Transaction status update email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
-export async function sendAuthorStatusUpdateEmail(user: any, author: any) {
+export async function sendAuthorStatusUpdateEmail(user: any, author: any, ctx?: LogContext) {
   // Define the type of email template to use, which matches the SQL record
   const emailType = "AuthorStatusUpdate";
+
+  ctx?.step?.(`Queueing author status update email to ${user.email}`);
 
   // Prepare the email data
   const emailData = {
@@ -226,7 +286,13 @@ export async function sendAuthorStatusUpdateEmail(user: any, author: any) {
   };
 
   // Send the email
-  await emailQueue.add({ emailData, emailType });
+  try {
+    await emailQueue.add({ emailData, emailType });
+    ctx?.success?.(`Author status update email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
 export async function sendOutgoingTransferEmail(
@@ -234,9 +300,13 @@ export async function sendOutgoingTransferEmail(
   toUser: any,
   wallet: any,
   amount: number,
-  transactionId: string
+  transactionId: string,
+  ctx?: LogContext
 ) {
   const emailType = "OutgoingWalletTransfer";
+
+  ctx?.step?.(`Queueing outgoing transfer email to ${user.email}`);
+
   const emailData = {
     TO: user.email,
     FIRSTNAME: user.firstName,
@@ -247,7 +317,13 @@ export async function sendOutgoingTransferEmail(
     RECIPIENT_NAME: `${toUser.firstName} ${toUser.lastName}`,
   };
 
-  await emailQueue.add({ emailData, emailType });
+  try {
+    await emailQueue.add({ emailData, emailType });
+    ctx?.success?.(`Outgoing transfer email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
 export async function sendIncomingTransferEmail(
@@ -255,9 +331,13 @@ export async function sendIncomingTransferEmail(
   fromUser: any,
   wallet: any,
   amount: number,
-  transactionId: string
+  transactionId: string,
+  ctx?: LogContext
 ) {
   const emailType = "IncomingWalletTransfer";
+
+  ctx?.step?.(`Queueing incoming transfer email to ${user.email}`);
+
   const emailData = {
     TO: user.email,
     FIRSTNAME: user.firstName,
@@ -268,16 +348,25 @@ export async function sendIncomingTransferEmail(
     SENDER_NAME: `${fromUser.firstName} ${fromUser.lastName}`,
   };
 
-  await emailQueue.add({ emailData, emailType });
+  try {
+    await emailQueue.add({ emailData, emailType });
+    ctx?.success?.(`Incoming transfer email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
 export async function sendSpotWalletWithdrawalConfirmationEmail(
   user: userAttributes,
   transaction: transactionAttributes,
-  wallet: walletAttributes
+  wallet: walletAttributes,
+  ctx?: LogContext
 ) {
   // Define the type of email template to use, which matches the SQL record
   const emailType = "SpotWalletWithdrawalConfirmation";
+
+  ctx?.step?.(`Queueing spot wallet withdrawal confirmation email to ${user.email}`);
 
   // Prepare the email data
   const emailData = {
@@ -293,17 +382,26 @@ export async function sendSpotWalletWithdrawalConfirmationEmail(
   };
 
   // Send the email
-  await emailQueue.add({ emailData, emailType });
+  try {
+    await emailQueue.add({ emailData, emailType });
+    ctx?.success?.(`Spot wallet withdrawal confirmation email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
 export async function sendSpotWalletDepositConfirmationEmail(
   user: userAttributes,
   transaction: transactionAttributes,
   wallet: walletAttributes,
-  chain: string
+  chain: string,
+  ctx?: LogContext
 ) {
   // Define the type of email template to use, which should match the SQL record
   const emailType = "SpotWalletDepositConfirmation";
+
+  ctx?.step?.(`Queueing spot wallet deposit confirmation email to ${user.email}`);
 
   // Prepare the email data
   const emailData = {
@@ -317,7 +415,13 @@ export async function sendSpotWalletDepositConfirmationEmail(
   };
 
   // Send the email
-  await emailQueue.add({ emailData, emailType });
+  try {
+    await emailQueue.add({ emailData, emailType });
+    ctx?.success?.(`Spot wallet deposit confirmation email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
 export async function sendAiInvestmentEmail(
@@ -328,8 +432,11 @@ export async function sendAiInvestmentEmail(
   emailType:
     | "NewAiInvestmentCreated"
     | "AiInvestmentCompleted"
-    | "AiInvestmentCanceled"
+    | "AiInvestmentCanceled",
+  ctx?: LogContext
 ) {
+  ctx?.step?.(`Queueing AI investment email to ${user.email}`);
+
   const resultSign =
     investment.result === "WIN" ? "+" : investment.result === "LOSS" ? "-" : "";
   const emailData = {
@@ -347,7 +454,13 @@ export async function sendAiInvestmentEmail(
         : "N/A",
   };
 
-  await emailQueue.add({ emailData, emailType });
+  try {
+    await emailQueue.add({ emailData, emailType });
+    ctx?.success?.(`AI investment email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
 export async function sendInvestmentEmail(
@@ -362,8 +475,11 @@ export async function sendInvestmentEmail(
     | "InvestmentUpdated"
     | "NewForexInvestmentCreated"
     | "ForexInvestmentCompleted"
-    | "ForexInvestmentCanceled"
+    | "ForexInvestmentCanceled",
+  ctx?: LogContext
 ) {
+  ctx?.step?.(`Queueing investment email to ${user.email}`);
+
   const resultSign =
     investment.result === "WIN" ? "+" : investment.result === "LOSS" ? "-" : "";
 
@@ -378,7 +494,13 @@ export async function sendInvestmentEmail(
     PROFIT: `${resultSign}${investment.profit}` || "N/A",
   };
 
-  await emailQueue.add({ emailData, emailType });
+  try {
+    await emailQueue.add({ emailData, emailType });
+    ctx?.success?.(`Investment email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
 export async function sendIcoContributionEmail(
@@ -387,8 +509,11 @@ export async function sendIcoContributionEmail(
   token: any,
   phase: any,
   emailType: "IcoNewContribution" | "IcoContributionPaid",
-  transactionId?: string
+  transactionId?: string,
+  ctx?: LogContext
 ) {
+  ctx?.step?.(`Queueing ICO contribution email to ${user.email}`);
+
   const contributionDate = new Date(contribution.createdAt).toLocaleDateString(
     "en-US",
     {
@@ -418,11 +543,19 @@ export async function sendIcoContributionEmail(
     emailData["CONTRIBUTION_STATUS"] = contribution.status;
   }
 
-  await emailQueue.add({ emailData, emailType });
+  try {
+    await emailQueue.add({ emailData, emailType });
+    ctx?.success?.(`ICO contribution email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
 // Function to send an email when a user initiates a stake
-export async function sendStakingInitiationEmail(user, stake, pool, reward) {
+export async function sendStakingInitiationEmail(user, stake, pool, reward, ctx?: LogContext) {
+  ctx?.step?.(`Queueing staking initiation email to ${user.email}`);
+
   const stakeDate = new Date(stake.stakeDate).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -450,13 +583,21 @@ export async function sendStakingInitiationEmail(user, stake, pool, reward) {
     EXPECTED_REWARD: reward,
   };
 
-  await emailQueue.add({
-    emailData,
-    emailType: "StakingInitiationConfirmation",
-  });
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "StakingInitiationConfirmation",
+    });
+    ctx?.success?.(`Staking initiation email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
-export async function sendStakingRewardEmail(user, stake, pool, reward) {
+export async function sendStakingRewardEmail(user, stake, pool, reward, ctx?: LogContext) {
+  ctx?.step?.(`Queueing staking reward email to ${user.email}`);
+
   const distributionDate = format(
     new Date(stake.releaseDate),
     "MMMM do, yyyy 'at' hh:mm a"
@@ -471,9 +612,17 @@ export async function sendStakingRewardEmail(user, stake, pool, reward) {
     DISTRIBUTION_DATE: distributionDate,
   };
 
-  await emailQueue.add({ emailData, emailType: "StakingRewardDistribution" });
+  try {
+    await emailQueue.add({ emailData, emailType: "StakingRewardDistribution" });
+    ctx?.success?.(`Staking reward email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
-export async function sendOrderConfirmationEmail(user, order, product) {
+export async function sendOrderConfirmationEmail(user, order, product, ctx?: LogContext) {
+  ctx?.step?.(`Queueing order confirmation email to ${user.email}`);
+
   const orderDate = new Date(order.createdAt).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -539,7 +688,13 @@ export async function sendOrderConfirmationEmail(user, order, product) {
     PRODUCT_TYPE: product.type,
   };
 
-  await emailQueue.add({ emailData, emailType: "OrderConfirmation" });
+  try {
+    await emailQueue.add({ emailData, emailType: "OrderConfirmation" });
+    ctx?.success?.(`Order confirmation email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
 /**
@@ -553,8 +708,11 @@ export async function sendOrderConfirmationEmail(user, order, product) {
 export async function sendEmailToTargetWithTemplate(
   to: string,
   subject: string,
-  html: string
+  html: string,
+  ctx?: LogContext
 ): Promise<void> {
+  ctx?.step?.(`Sending email to ${to}`);
+
   // Options for the email.
   const options: EmailOptions = {
     to,
@@ -565,10 +723,18 @@ export async function sendEmailToTargetWithTemplate(
   // Select the email provider.
   const emailer = APP_EMAILER;
 
-  await sendEmailWithProvider(emailer, options);
+  try {
+    await sendEmailWithProvider(emailer, options);
+    ctx?.success?.(`Email sent successfully to ${to}`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
-export async function sendKycEmail(user: any, kyc: any, type: string) {
+export async function sendKycEmail(user: any, kyc: any, type: string, ctx?: LogContext) {
+  ctx?.step?.(`Queueing KYC email to ${user.email}`);
+
   // For submission emails, use CREATED_AT; otherwise (updates) use UPDATED_AT.
   const timestampLabel = type === "KycSubmission" ? "CREATED_AT" : "UPDATED_AT";
   const timestampDate =
@@ -592,7 +758,13 @@ export async function sendKycEmail(user: any, kyc: any, type: string) {
   }
 
   // Add the email to the queue using your emailQueue system.
-  await emailQueue.add({ emailData, emailType: type });
+  try {
+    await emailQueue.add({ emailData, emailType: type });
+    ctx?.success?.(`KYC email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
 }
 
 export async function sendForexTransactionEmail(
@@ -600,8 +772,11 @@ export async function sendForexTransactionEmail(
   transaction: any,
   account: any,
   currency: any,
-  transactionType: "FOREX_DEPOSIT" | "FOREX_WITHDRAW"
+  transactionType: "FOREX_DEPOSIT" | "FOREX_WITHDRAW",
+  ctx?: LogContext
 ) {
+  ctx?.step?.(`Queueing forex transaction email to ${user.email}`);
+
   const emailData = {
     TO: user.email,
     FIRSTNAME: user.firstName,
@@ -619,5 +794,569 @@ export async function sendForexTransactionEmail(
     emailType = "ForexWithdrawalConfirmation";
   }
 
-  await emailQueue.add({ emailData, emailType });
+  try {
+    await emailQueue.add({ emailData, emailType });
+    ctx?.success?.(`Forex transaction email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    throw error;
+  }
+}
+
+// ============================================
+// COPY TRADING EMAIL FUNCTIONS
+// ============================================
+
+/**
+ * Send email when a user applies to become a copy trading leader
+ */
+export async function sendCopyTradingLeaderApplicationEmail(
+  user: any,
+  leader: any,
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing copy trading leader application email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    DISPLAY_NAME: leader.displayName,
+    CREATED_AT: format(new Date(leader.createdAt), "MMMM do, yyyy 'at' hh:mm a"),
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingLeaderApplicationSubmitted",
+    });
+    ctx?.success?.(`Copy trading leader application email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue copy trading leader application email", error);
+  }
+}
+
+/**
+ * Send email when a leader application is approved
+ */
+export async function sendCopyTradingLeaderApprovedEmail(
+  user: any,
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing copy trading leader approval email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingLeaderApplicationApproved",
+    });
+    ctx?.success?.(`Copy trading leader approval email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue copy trading leader approval email", error);
+  }
+}
+
+/**
+ * Send email when a leader application is rejected
+ */
+export async function sendCopyTradingLeaderRejectedEmail(
+  user: any,
+  rejectionReason: string,
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing copy trading leader rejection email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    REJECTION_REASON: rejectionReason,
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingLeaderApplicationRejected",
+    });
+    ctx?.success?.(`Copy trading leader rejection email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue copy trading leader rejection email", error);
+  }
+}
+
+/**
+ * Send email when a leader is suspended
+ */
+export async function sendCopyTradingLeaderSuspendedEmail(
+  user: any,
+  suspensionReason: string,
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing copy trading leader suspension email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    SUSPENSION_REASON: suspensionReason,
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingLeaderSuspended",
+    });
+    ctx?.success?.(`Copy trading leader suspension email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue copy trading leader suspension email", error);
+  }
+}
+
+/**
+ * Send email when a leader gets a new follower
+ */
+export async function sendCopyTradingNewFollowerEmail(
+  user: any,
+  follower: any,
+  followerUser: any,
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing new follower email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    FOLLOWER_NAME: `${followerUser.firstName} ${followerUser.lastName}`,
+    COPY_MODE: follower.copyMode,
+    STARTED_AT: format(new Date(follower.createdAt), "MMMM do, yyyy 'at' hh:mm a"),
+    URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingLeaderNewFollower",
+    });
+    ctx?.success?.(`New follower email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue new follower email", error);
+  }
+}
+
+/**
+ * Send email when a follower stops copying
+ */
+export async function sendCopyTradingFollowerStoppedEmail(
+  user: any,
+  follower: any,
+  followerUser: any,
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing follower stopped email to ${user.email}`);
+
+  // Calculate days followed
+  const startDate = new Date(follower.createdAt);
+  const endDate = new Date();
+  const daysFollowed = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    FOLLOWER_NAME: `${followerUser.firstName} ${followerUser.lastName}`,
+    STOPPED_AT: format(endDate, "MMMM do, yyyy 'at' hh:mm a"),
+    DAYS_FOLLOWED: daysFollowed.toString(),
+    URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingLeaderFollowerStopped",
+    });
+    ctx?.success?.(`Follower stopped email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue follower stopped email", error);
+  }
+}
+
+/**
+ * Send email when a follower starts copying a leader
+ */
+export async function sendCopyTradingSubscriptionStartedEmail(
+  user: any,
+  follower: any,
+  leader: any,
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing subscription started email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    LEADER_NAME: leader.displayName,
+    RISK_LEVEL: leader.riskLevel || "Medium",
+    TRADING_STYLE: leader.tradingStyle || "Balanced",
+    WIN_RATE: leader.winRate?.toString() || "N/A",
+    COPY_MODE: follower.copyMode,
+    MAX_DAILY_LOSS: follower.maxDailyLoss?.toString() || "Not Set",
+    MAX_POSITION_SIZE: follower.maxPositionSize?.toString() || "Not Set",
+    URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingFollowerSubscriptionStarted",
+    });
+    ctx?.success?.(`Subscription started email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue subscription started email", error);
+  }
+}
+
+/**
+ * Send email when a follower's subscription is paused
+ */
+export async function sendCopyTradingSubscriptionPausedEmail(
+  user: any,
+  leaderName: string,
+  pauseReason: string,
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing subscription paused email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    LEADER_NAME: leaderName,
+    PAUSE_REASON: pauseReason,
+    URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingFollowerSubscriptionPaused",
+    });
+    ctx?.success?.(`Subscription paused email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue subscription paused email", error);
+  }
+}
+
+/**
+ * Send email when a follower's subscription is resumed
+ */
+export async function sendCopyTradingSubscriptionResumedEmail(
+  user: any,
+  leaderName: string,
+  copyMode: string,
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing subscription resumed email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    LEADER_NAME: leaderName,
+    COPY_MODE: copyMode,
+    URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingFollowerSubscriptionResumed",
+    });
+    ctx?.success?.(`Subscription resumed email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue subscription resumed email", error);
+  }
+}
+
+/**
+ * Send email when a follower's subscription is stopped
+ */
+export async function sendCopyTradingSubscriptionStoppedEmail(
+  user: any,
+  leaderName: string,
+  stats: {
+    totalTrades: number;
+    winRate: number;
+    totalProfit: number;
+    roi: number;
+  },
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing subscription stopped email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    LEADER_NAME: leaderName,
+    TOTAL_TRADES: stats.totalTrades.toString(),
+    WIN_RATE: stats.winRate.toFixed(2),
+    TOTAL_PROFIT: stats.totalProfit.toFixed(2),
+    ROI: stats.roi.toFixed(2),
+    URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingFollowerSubscriptionStopped",
+    });
+    ctx?.success?.(`Subscription stopped email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue subscription stopped email", error);
+  }
+}
+
+/**
+ * Send email when a copy trade closes with profit
+ */
+export async function sendCopyTradingTradeProfitEmail(
+  user: any,
+  leaderName: string,
+  trade: {
+    symbol: string;
+    side: string;
+    entryPrice: number;
+    exitPrice: number;
+    profit: number;
+    yourProfit: number;
+    profitSharePercent: number;
+    leaderProfitShare: number;
+  },
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing trade profit email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    LEADER_NAME: leaderName,
+    SYMBOL: trade.symbol,
+    SIDE: trade.side,
+    ENTRY_PRICE: trade.entryPrice.toString(),
+    EXIT_PRICE: trade.exitPrice.toString(),
+    PROFIT: trade.profit.toFixed(2),
+    YOUR_PROFIT: trade.yourProfit.toFixed(2),
+    PROFIT_SHARE_PERCENT: trade.profitSharePercent.toString(),
+    LEADER_PROFIT_SHARE: trade.leaderProfitShare.toFixed(2),
+    URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingTradeProfit",
+    });
+    ctx?.success?.(`Trade profit email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue trade profit email", error);
+  }
+}
+
+/**
+ * Send email when a copy trade closes with loss
+ */
+export async function sendCopyTradingTradeLossEmail(
+  user: any,
+  leaderName: string,
+  subscriptionId: string,
+  trade: {
+    symbol: string;
+    side: string;
+    entryPrice: number;
+    exitPrice: number;
+    loss: number;
+  },
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing trade loss email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    LEADER_NAME: leaderName,
+    SYMBOL: trade.symbol,
+    SIDE: trade.side,
+    ENTRY_PRICE: trade.entryPrice.toString(),
+    EXIT_PRICE: trade.exitPrice.toString(),
+    LOSS: trade.loss.toFixed(2),
+    SUBSCRIPTION_ID: subscriptionId,
+    URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingTradeLoss",
+    });
+    ctx?.success?.(`Trade loss email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue trade loss email", error);
+  }
+}
+
+/**
+ * Send email when daily loss limit is reached
+ */
+export async function sendCopyTradingDailyLossLimitEmail(
+  user: any,
+  leaderName: string,
+  dailyLossLimit: number,
+  currentLoss: number,
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing daily loss limit email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    LEADER_NAME: leaderName,
+    DAILY_LOSS_LIMIT: dailyLossLimit.toFixed(2),
+    CURRENT_LOSS: currentLoss.toFixed(2),
+    URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingDailyLossLimitReached",
+    });
+    ctx?.success?.(`Daily loss limit email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue daily loss limit email", error);
+  }
+}
+
+/**
+ * Send email when there's insufficient balance to copy a trade
+ */
+export async function sendCopyTradingInsufficientBalanceEmail(
+  user: any,
+  leaderName: string,
+  subscriptionId: string,
+  symbol: string,
+  requiredAmount: number,
+  availableBalance: number,
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing insufficient balance email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    LEADER_NAME: leaderName,
+    SYMBOL: symbol,
+    REQUIRED_AMOUNT: requiredAmount.toFixed(2),
+    AVAILABLE_BALANCE: availableBalance.toFixed(2),
+    SUBSCRIPTION_ID: subscriptionId,
+    URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingInsufficientBalance",
+    });
+    ctx?.success?.(`Insufficient balance email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue insufficient balance email", error);
+  }
+}
+
+/**
+ * Send email when a leader earns profit share
+ */
+export async function sendCopyTradingProfitShareEarnedEmail(
+  user: any,
+  followerName: string,
+  symbol: string,
+  followerProfit: number,
+  profitSharePercent: number,
+  profitShareAmount: number,
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing profit share earned email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    FOLLOWER_NAME: followerName,
+    SYMBOL: symbol,
+    FOLLOWER_PROFIT: followerProfit.toFixed(2),
+    PROFIT_SHARE_PERCENT: profitSharePercent.toString(),
+    PROFIT_SHARE_AMOUNT: profitShareAmount.toFixed(2),
+    URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingProfitShareEarned",
+    });
+    ctx?.success?.(`Profit share earned email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue profit share earned email", error);
+  }
+}
+
+/**
+ * Send email when a follower pays profit share
+ */
+export async function sendCopyTradingProfitSharePaidEmail(
+  user: any,
+  leaderName: string,
+  symbol: string,
+  yourProfit: number,
+  profitSharePercent: number,
+  profitShareAmount: number,
+  netProfit: number,
+  ctx?: LogContext
+) {
+  ctx?.step?.(`Queueing profit share paid email to ${user.email}`);
+
+  const emailData = {
+    TO: user.email,
+    FIRSTNAME: user.firstName,
+    LEADER_NAME: leaderName,
+    SYMBOL: symbol,
+    YOUR_PROFIT: yourProfit.toFixed(2),
+    PROFIT_SHARE_PERCENT: profitSharePercent.toString(),
+    PROFIT_SHARE_AMOUNT: profitShareAmount.toFixed(2),
+    NET_PROFIT: netProfit.toFixed(2),
+    URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+  };
+
+  try {
+    await emailQueue.add({
+      emailData,
+      emailType: "CopyTradingProfitSharePaid",
+    });
+    ctx?.success?.(`Profit share paid email queued successfully`);
+  } catch (error) {
+    ctx?.fail?.((error as Error).message);
+    logger.error("EMAIL", "Failed to queue profit share paid email", error);
+  }
 }

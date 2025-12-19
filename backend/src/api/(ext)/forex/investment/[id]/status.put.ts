@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
     "Fetches details of a specific Forex investment for the logged-in user.",
   operationId: "getForexInvestmentStatus",
   tags: ["Forex", "Investments"],
+  logModule: "FOREX",
+  logTitle: "Get investment status",
   parameters: [
     {
       name: "id",
@@ -42,48 +44,57 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
-  const investment = await models.forexInvestment.findOne({
-    where: {
-      id: params.id,
-      userId: user.id,
-    },
-    include: [
-      {
-        model: models.forexPlan,
-        as: "plan",
-        attributes: [
-          "id",
-          "name",
-          "title",
-          "description",
-          "profit_percentage",
-          "image",
-        ],
-      },
-      {
-        model: models.user,
-        as: "user",
-        attributes: ["id", "uuid", "avatar", "first_name", "last_name"],
-      },
-      {
-        model: models.forexDuration,
-        as: "duration",
-        attributes: ["id", "duration", "timeframe"],
-      },
-    ],
-  });
+  try {
+    ctx?.step("Retrieving forex investment details");
 
-  if (!investment) {
-    throw createError({
-      statusCode: 404,
-      message: "Forex investment not found",
+    const investment = await models.forexInvestment.findOne({
+      where: {
+        id: params.id,
+        userId: user.id,
+      },
+      include: [
+        {
+          model: models.forexPlan,
+          as: "plan",
+          attributes: [
+            "id",
+            "name",
+            "title",
+            "description",
+            "profit_percentage",
+            "image",
+          ],
+        },
+        {
+          model: models.user,
+          as: "user",
+          attributes: ["id", "uuid", "avatar", "first_name", "last_name"],
+        },
+        {
+          model: models.forexDuration,
+          as: "duration",
+          attributes: ["id", "duration", "timeframe"],
+        },
+      ],
     });
-  }
 
-  return investment;
+    if (!investment) {
+      throw createError({
+        statusCode: 404,
+        message: "Forex investment not found",
+      });
+    }
+
+    ctx?.success(`Retrieved investment ${params.id} status: ${investment.status}`);
+
+    return investment;
+  } catch (error: any) {
+    ctx?.fail(error.message || "Failed to retrieve forex investment status");
+    throw error;
+  }
 };

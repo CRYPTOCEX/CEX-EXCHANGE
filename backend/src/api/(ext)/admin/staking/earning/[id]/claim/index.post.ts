@@ -1,47 +1,45 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { createNotification } from "@b/utils/notifications";
+import {
+  badRequestResponse,
+  unauthorizedResponse,
+  notFoundResponse,
+  serverErrorResponse,
+  successMessageResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
   summary: "Claim Admin Earning",
-  description: "Marks an admin earning as claimed.",
   operationId: "claimAdminEarning",
-  tags: ["Staking", "Admin", "Earnings"],
+  description:
+    "Marks an admin earning record as claimed. This updates the isClaimed flag to true, indicating that the platform has processed and claimed this earning. Once claimed, the earning cannot be claimed again.",
+  tags: ["Admin", "Staking", "Earnings"],
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Claim Admin Earning",
   parameters: [
     {
       index: 0,
       name: "id",
       in: "path",
       required: true,
-      schema: { type: "string" },
-      description: "Earning ID",
+      schema: { type: "string", format: "uuid" },
+      description: "Admin earning record ID",
     },
   ],
   responses: {
-    200: {
-      description: "Earning claimed successfully",
-      content: {
-        "application/json": {
-          schema: {
-            type: "object",
-            properties: {
-              message: { type: "string" },
-            },
-          },
-        },
-      },
-    },
-    400: { description: "Bad Request" },
-    401: { description: "Unauthorized" },
-    404: { description: "Earning not found" },
-    500: { description: "Internal Server Error" },
+    200: successMessageResponse("Admin earning claimed successfully"),
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    404: notFoundResponse("Admin Earning"),
+    500: serverErrorResponse,
   },
   permission: "edit.staking.earning",
 };
 
-export default async (data: { user?: any; params?: any }) => {
-  const { user, params } = data;
+export default async (data: { user?: any; params?: any; ctx?: any }) => {
+  const { user, params, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -53,6 +51,7 @@ export default async (data: { user?: any; params?: any }) => {
   }
 
   try {
+    ctx?.step("Find earning to claim");
     // Find the earning to claim
     const earning = await models.stakingAdminEarning.findOne({
       where: { id: earningId },
@@ -69,9 +68,11 @@ export default async (data: { user?: any; params?: any }) => {
     }
 
     if (earning.isClaimed) {
+      ctx?.success("Earning already claimed");
       return { message: "Earning already claimed" };
     }
 
+    ctx?.step("Mark earning as claimed");
     // Update the earning to claimed
     await earning.update({ isClaimed: true });
 
@@ -92,7 +93,7 @@ export default async (data: { user?: any; params?: any }) => {
             primary: true,
           },
         ],
-      });
+      }, ctx);
     } catch (notifErr) {
       console.error(
         "Failed to create notification for claiming admin earning",
@@ -101,6 +102,7 @@ export default async (data: { user?: any; params?: any }) => {
       // Continue execution even if notification fails
     }
 
+    ctx?.success("Earning claimed successfully");
     return { message: "Earning claimed successfully" };
   } catch (error) {
     if (error.statusCode === 404) {

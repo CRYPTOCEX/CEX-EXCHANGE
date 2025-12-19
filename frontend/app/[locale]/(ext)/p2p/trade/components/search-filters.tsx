@@ -49,7 +49,9 @@ export function SearchFilters({
   onFiltersChange,
   availableCurrencies = [],
 }: SearchFiltersProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
 
   const handleSearchChange = (value: string) => {
     onFiltersChange({ ...filters, search: value });
@@ -128,7 +130,7 @@ export function SearchFilters({
           <PopoverTrigger asChild>
             <Button variant="outline" className="flex items-center gap-1">
               <Filter className="h-4 w-4 mr-1" />
-              {t("Filters")}
+              {tCommon("filters")}
               {activeFilterCount > 0 && (
                 <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
                   {activeFilterCount}
@@ -143,7 +145,7 @@ export function SearchFilters({
               <Separator />
 
               <div className="space-y-2">
-                <h5 className="text-sm font-medium">{t("trade_type")}</h5>
+                <h5 className="text-sm font-medium">{tCommon("trade_type")}</h5>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -153,7 +155,7 @@ export function SearchFilters({
                         handleTradeTypeChange("buy", checked as boolean)
                       }
                     />
-                    <Label htmlFor="buy">{t("buy_orders")}</Label>
+                    <Label htmlFor="buy">{tCommon("buy_orders")}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -163,13 +165,13 @@ export function SearchFilters({
                         handleTradeTypeChange("sell", checked as boolean)
                       }
                     />
-                    <Label htmlFor="sell">{t("sell_orders")}</Label>
+                    <Label htmlFor="sell">{tCommon("sell_orders")}</Label>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h5 className="text-sm font-medium">{t("Status")}</h5>
+                <h5 className="text-sm font-medium">{tCommon("status")}</h5>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -179,7 +181,7 @@ export function SearchFilters({
                         handleStatusChange("active", checked as boolean)
                       }
                     />
-                    <Label htmlFor="active">{t("Active")}</Label>
+                    <Label htmlFor="active">{tCommon("active")}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -189,7 +191,7 @@ export function SearchFilters({
                         handleStatusChange("completed", checked as boolean)
                       }
                     />
-                    <Label htmlFor="completed">{t("Completed")}</Label>
+                    <Label htmlFor="completed">{tCommon("completed")}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -199,7 +201,7 @@ export function SearchFilters({
                         handleStatusChange("disputed", checked as boolean)
                       }
                     />
-                    <Label htmlFor="disputed">{t("Disputed")}</Label>
+                    <Label htmlFor="disputed">{tExt("disputed")}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -209,32 +211,32 @@ export function SearchFilters({
                         handleStatusChange("cancelled", checked as boolean)
                       }
                     />
-                    <Label htmlFor="cancelled">{t("Cancelled")}</Label>
+                    <Label htmlFor="cancelled">{tCommon("cancelled")}</Label>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h5 className="text-sm font-medium">{t("date_range")}</h5>
+                <h5 className="text-sm font-medium">{tExt("date_range")}</h5>
                 <Select value={filters.dateRange} onValueChange={handleDateRangeChange}>
                   <SelectTrigger>
                     <SelectValue placeholder={t("select_date_range")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">{t("all_time")}</SelectItem>
-                    <SelectItem value="today">{t("Today")}</SelectItem>
+                    <SelectItem value="all">{tCommon("all_time")}</SelectItem>
+                    <SelectItem value="today">{t("today")}</SelectItem>
                     <SelectItem value="week">{t("this_week")}</SelectItem>
-                    <SelectItem value="month">{t("this_month")}</SelectItem>
+                    <SelectItem value="month">{tCommon("this_month")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex justify-between">
                 <Button variant="outline" size="sm" onClick={handleReset}>
-                  {t("Reset")}
+                  {tExt("reset")}
                 </Button>
                 <Button size="sm" onClick={() => {}}>
-                  {t("apply_filters")}
+                  {tExt("apply_filters")}
                 </Button>
               </div>
             </div>
@@ -265,11 +267,11 @@ export function SearchFilters({
 
         <Select value={filters.sortBy} onValueChange={handleSortChange}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder={t("sort_by")} />
+            <SelectValue placeholder={tCommon("sort_by")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="newest">{t("newest_first")}</SelectItem>
-            <SelectItem value="oldest">{t("oldest_first")}</SelectItem>
+            <SelectItem value="newest">{tCommon("newest_first")}</SelectItem>
+            <SelectItem value="oldest">{tCommon("oldest_first")}</SelectItem>
             <SelectItem value="value_high">{t("highest_value")}</SelectItem>
             <SelectItem value="value_low">{t("lowest_value")}</SelectItem>
           </SelectContent>

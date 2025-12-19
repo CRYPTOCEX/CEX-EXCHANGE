@@ -8,6 +8,8 @@ export const metadata = {
   description: "Deletes an existing custom payment method by its ID. Prevents deletion if the payment method is being used by active offers or ongoing trades.",
   operationId: "deletePaymentMethod",
   tags: ["P2P", "Payment Method"],
+  logModule: "P2P",
+  logTitle: "Delete payment method",
   requiresAuth: true,
   parameters: [
     {
@@ -28,14 +30,15 @@ export const metadata = {
   },
 };
 
-export default async (data: { params?: any; user?: any }) => {
-  const { params, user } = data;
+export default async (data: { params?: any; user?: any; ctx?: any }) => {
+  const { params, user, ctx } = data;
   const id = params?.id;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Finding and validating payment method ownership");
   try {
     const paymentMethod = await models.p2pPaymentMethod.findByPk(id);
     if (!paymentMethod) {
@@ -90,7 +93,10 @@ export default async (data: { params?: any; user?: any }) => {
       });
     }
 
+    ctx?.step("Deleting payment method");
     await paymentMethod.destroy();
+
+    ctx?.success(`Deleted payment method: ${paymentMethod.name}`);
 
     return { message: "Payment method deleted successfully." };
   } catch (err: any) {

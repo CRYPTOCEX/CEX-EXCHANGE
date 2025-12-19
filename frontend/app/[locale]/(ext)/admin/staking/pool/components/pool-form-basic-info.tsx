@@ -28,7 +28,9 @@ export function PoolFormBasicInfo({
   validationErrors = {},
   hasSubmitted = false,
 }: PoolFormBasicInfoProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   // Change the useState line to initialize iconFile as null instead of using formData.icon
   const [iconFile, setIconFile] = useState<File | string | null>(null);
   const [errors, setErrors] = useState({
@@ -124,8 +126,8 @@ export function PoolFormBasicInfo({
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Input
-          label="Pool Name"
-          placeholder="Bitcoin Staking"
+          label={t("pool_name")}
+          placeholder={t("bitcoin_staking")}
           value={formData.name}
           onChange={(e) => handleInputChange("name", e.target.value)}
           onBlur={(e) => validateField("name", e.target.value)}
@@ -138,11 +140,11 @@ export function PoolFormBasicInfo({
               "Pool name must be at least 2 characters"
             ),
           ]}
-          description="The name displayed to users"
+          description={t("the_name_displayed_to_users")}
         />
 
         <Input
-          label="Token Name"
+          label={tExt("token_name")}
           placeholder="Bitcoin"
           value={formData.token}
           onChange={(e) => handleInputChange("token", e.target.value)}
@@ -150,11 +152,11 @@ export function PoolFormBasicInfo({
           error={hasError("token")}
           errorMessage={getErrorMessage("token")}
           validationRules={[validationRules.required("Token name is required")]}
-          description="The full name of the token"
+          description={t("the_full_name_of_the_token")}
         />
 
         <Input
-          label="Token Symbol"
+          label={tExt("token_symbol")}
           placeholder="BTC"
           value={formData.symbol}
           onChange={(e) => handleInputChange("symbol", e.target.value)}
@@ -164,7 +166,7 @@ export function PoolFormBasicInfo({
           validationRules={[
             validationRules.required("Token symbol is required"),
           ]}
-          description="The abbreviated symbol (e.g., BTC, ETH)"
+          description={t("the_abbreviated_symbol_e_g_btc_eth")}
         />
 
         <div className="flex flex-col space-y-2">
@@ -174,21 +176,21 @@ export function PoolFormBasicInfo({
           >
             <SelectTrigger
               title="Status"
-              description="Current status of the staking pool"
+              description={t("current_status_of_the_staking_pool")}
               className="w-full"
             >
-              <SelectValue placeholder="Select status" />
+              <SelectValue placeholder={tCommon("select_status")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ACTIVE">{t("Active")}</SelectItem>
-              <SelectItem value="INACTIVE">{t("Inactive")}</SelectItem>
-              <SelectItem value="COMING_SOON">{t("coming_soon")}</SelectItem>
+              <SelectItem value="ACTIVE">{tCommon("active")}</SelectItem>
+              <SelectItem value="INACTIVE">{tCommon("inactive")}</SelectItem>
+              <SelectItem value="COMING_SOON">{tCommon("coming_soon")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <Input
-          label="Display Order"
+          label={t("display_order")}
           type="number"
           value={formData.order.toString()}
           onChange={(e) =>
@@ -202,12 +204,12 @@ export function PoolFormBasicInfo({
             validationRules.numeric("Display order must be a number"),
             validationRules.min(1, "Display order must be at least 1"),
           ]}
-          description="Order in which the pool appears in listings"
+          description={t("order_in_which_the_pool_appears_in_listings")}
         />
 
         <div className="md:col-span-2">
           <ImageUpload
-            title="Token Icon"
+            title={tExt("token_icon")}
             value={iconFile}
             onChange={handleIconChange}
             error={hasError("icon")}
@@ -229,7 +231,7 @@ export function PoolFormBasicInfo({
             htmlFor="isPromoted"
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            {t("Promoted")}
+            {t("promoted")}
           </label>
           <p className="text-sm text-muted-foreground">
             {t("promoted_pools_will_user_interface")}

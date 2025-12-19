@@ -25,6 +25,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { $fetch } from "@/lib/api";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 // Updated types based on actual API response
 interface ShippingAttributes {
@@ -122,6 +123,9 @@ interface UserAttributes {
   avatar?: string;
 }
 export default function ShippingClient() {
+  const t = useTranslations("ext_ecommerce");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { user } = useUserStore();
   const [isLoading, setIsLoading] = useState(true);
   const [shippings, setShippings] = useState<ShippingAttributes[]>([]);
@@ -206,29 +210,33 @@ export default function ShippingClient() {
   };
   if (!user) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
-        <div className="text-center py-16 bg-gray-50 rounded-lg shadow-sm dark:bg-zinc-800">
-          <ShoppingBag className="mx-auto h-16 w-16 text-gray-400 dark:text-zinc-500" />
-          <h2 className="mt-4 text-2xl font-bold text-gray-900 dark:text-zinc-100">
-            Please sign in to view your shipping details
-          </h2>
-          <p className="mt-2 text-gray-500 dark:text-zinc-400 max-w-md mx-auto">
-            You need to be logged in to access your shipping information.
-          </p>
-          <div className="mt-6 flex justify-center gap-4">
-            <Link
-              href="/ecommerce/order"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/ecommerce"
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600"
-            >
-              <Home className="mr-2 h-4 w-4" />
-              Back to Home
-            </Link>
+      <div className={`bg-linear-to-b from-amber-50/30 via-white to-emerald-50/30 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 min-h-screen pb-12 pt-20`}>
+        <div className="container py-16">
+          <div className={`text-center py-16 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-amber-200 dark:border-amber-700`}>
+            <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full bg-linear-to-br from-amber-600/10 to-emerald-600/10 dark:from-amber-600/30 dark:to-emerald-600/30 mb-6 mx-auto`}>
+              <ShoppingBag className={`h-10 w-10 text-amber-600 dark:text-amber-400`} />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
+              {t("please_sign_in_to_view_your_shipping_details")}
+            </h2>
+            <p className="text-gray-600 dark:text-zinc-400 max-w-md mx-auto mb-8">
+              {t("you_need_to_be_logged_in")}
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Link
+                href="/ecommerce/order"
+                className={`inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-linear-to-r from-amber-600 to-emerald-600 hover:from-amber-700 hover:to-emerald-700 transition-all duration-200`}
+              >
+                {tCommon("sign_in")}
+              </Link>
+              <Link
+                href="/ecommerce"
+                className={`inline-flex items-center px-6 py-3 border border-amber-500 dark:border-amber-700 text-sm font-medium rounded-xl text-amber-700 dark:text-amber-400 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm hover:bg-amber-500/10 dark:hover:bg-amber-600/20 transition-all duration-200`}
+              >
+                <Home className="mr-2 h-4 w-4" />
+                {tCommon("back_to_home")}
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -236,25 +244,43 @@ export default function ShippingClient() {
   }
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center justify-center h-64">
-          <Loader2 className="h-12 w-12 animate-spin text-indigo-600" />
-          <p className="mt-4 text-gray-500 dark:text-zinc-400">
-            Loading shipping information...
-          </p>
+      <div className={`bg-linear-to-b from-amber-50/30 via-white to-emerald-50/30 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 min-h-screen pb-12 pt-20`}>
+        <div className="container py-16">
+          <div className="flex flex-col items-center justify-center h-64">
+            <Loader2 className={`h-12 w-12 animate-spin text-amber-600 dark:text-amber-400`} />
+            <p className="mt-4 text-gray-600 dark:text-zinc-400">
+              {t("loading_shipping_information_ellipsis")}
+            </p>
+          </div>
         </div>
       </div>
     );
   }
   return (
-    <div className="bg-white dark:bg-zinc-900 dark:text-zinc-100">
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-zinc-100">
-            Shipping & Tracking
+    <div className={`bg-linear-to-b from-amber-50/30 via-white to-emerald-50/30 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 min-h-screen pb-12 pt-24`}>
+      {/* Subtle decorative background glows */}
+      <div className={`absolute top-20 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none`} />
+      <div className={`absolute top-1/2 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none`} />
+
+      <div className="relative container">
+        {/* Premium Hero Section */}
+        <div className="text-center mb-8">
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 mb-6`}>
+            <Truck className={`h-4 w-4 text-amber-600 dark:text-amber-400`} />
+            <span className={`text-sm font-medium text-amber-700 dark:text-amber-400`}>
+              {t("track_your_orders")}
+            </span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <span className={`bg-clip-text text-transparent bg-linear-to-r from-amber-600 via-amber-500 to-emerald-600 dark:from-amber-400 dark:via-amber-500 dark:to-emerald-400`}>
+              {t("shipping_tracking")}
+            </span>
           </h1>
-          <div className="flex items-center text-sm text-gray-500 dark:text-zinc-400">
-            <Truck className="h-4 w-4 mr-1" />
+          <p className="text-lg md:text-xl text-gray-600 dark:text-zinc-400 max-w-2xl mx-auto mb-4">
+            {t("monitor_your_shipments_and_delivery_status")}
+          </p>
+          <div className="flex items-center justify-center text-sm text-gray-500 dark:text-zinc-400">
+            <Package className="h-4 w-4 mr-1" />
             {shippings.length} shipment{shippings.length !== 1 ? "s" : ""}
           </div>
         </div>
@@ -268,7 +294,7 @@ export default function ShippingClient() {
                 </div>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-red-800 dark:text-red-300">
-                    Error loading shipping data
+                    {t("error_loading_shipping_data")}
                   </h3>
                   <div className="mt-2 text-sm text-red-700 dark:text-red-400">
                     <p>{error}</p>
@@ -279,22 +305,22 @@ export default function ShippingClient() {
           )}
 
           {!error && (!shippings || shippings.length === 0) ? (
-            <div className="bg-gray-50 rounded-lg p-8 text-center dark:bg-zinc-800">
-              <Package className="mx-auto h-12 w-12 text-gray-400 dark:text-zinc-500" />
-              <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-zinc-100">
-                No shipments found
-              </h3>
-              <p className="mt-2 text-gray-500 dark:text-zinc-400 max-w-md mx-auto">
-                You don't have any physical products being shipped yet.
-              </p>
-              <div className="mt-6">
-                <Link
-                  href="/ecommerce/product"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
-                >
-                  Browse Products
-                </Link>
+            <div className={`bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-amber-200 dark:border-amber-700 p-12 text-center`}>
+              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full bg-linear-to-br from-amber-600/10 to-emerald-600/10 dark:from-amber-600/30 dark:to-emerald-600/30 mb-6`}>
+                <Package className={`h-10 w-10 text-amber-600 dark:text-amber-400`} />
               </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-zinc-100 mb-3">
+                {t("no_shipments_found")}
+              </h3>
+              <p className="text-gray-600 dark:text-zinc-400 max-w-md mx-auto mb-8">
+                {t("you_dont_have_any_physical_products")}
+              </p>
+              <Link
+                href="/ecommerce/product"
+                className={`inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-linear-to-r from-amber-600 to-emerald-600 hover:from-amber-700 hover:to-emerald-700 transition-all duration-200`}
+              >
+                {tCommon("browse_products")}
+              </Link>
             </div>
           ) : (
             <div className="space-y-6">
@@ -307,17 +333,17 @@ export default function ShippingClient() {
                     return (
                       <div
                         key={`${shipping.id}-${order.id}`}
-                        className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm dark:bg-zinc-800 dark:border-zinc-700"
+                        className={`bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm border border-amber-200 dark:border-amber-700 rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-300`}
                       >
                         {/* Header */}
-                        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 dark:bg-zinc-700/50 dark:border-zinc-600">
+                        <div className={`bg-linear-to-r from-amber-500/5 to-emerald-500/5 px-6 py-4 border-b border-amber-200 dark:border-amber-700`}>
                           <div className="flex items-center justify-between">
                             <div>
-                              <h3 className="text-lg font-medium text-gray-900 dark:text-zinc-100">
-                                Order #{order.id}
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">
+                                {tCommon("order")}{order.id}
                               </h3>
-                              <p className="text-sm text-gray-500 dark:text-zinc-400">
-                                Placed on{" "}
+                              <p className="text-sm text-gray-600 dark:text-zinc-400">
+                                {tExt("placed_on")}{" "}
                                 {order.createdAt
                                   ? new Date(
                                       order.createdAt
@@ -326,7 +352,7 @@ export default function ShippingClient() {
                               </p>
                             </div>
                             <span
-                              className={`px-3 py-1 text-sm font-medium rounded-full flex items-center ${getShippingStatusColor(shippingStatus)}`}
+                              className={`px-4 py-2 text-sm font-semibold rounded-full flex items-center shadow-lg ${getShippingStatusColor(shippingStatus)}`}
                             >
                               {getShippingStatusIcon(shippingStatus)}
                               {shippingStatus}
@@ -367,7 +393,7 @@ export default function ShippingClient() {
                                         </h5>
                                         <div className="flex items-center justify-between mt-1">
                                           <p className="text-sm text-gray-500 dark:text-zinc-400">
-                                            Qty:{" "}
+                                            {t("qty")}:{" "}
                                             {product.ecommerceOrderItem
                                               ?.quantity || 1}
                                           </p>
@@ -380,7 +406,7 @@ export default function ShippingClient() {
                                         </div>
                                         {product.type === "DOWNLOADABLE" && (
                                           <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                                            Digital Product
+                                            {tExt("digital_product")}
                                           </p>
                                         )}
                                       </div>
@@ -396,12 +422,12 @@ export default function ShippingClient() {
                             <div className="bg-gray-50 p-4 rounded-md dark:bg-zinc-700/50">
                               <h4 className="text-sm font-medium text-gray-900 dark:text-zinc-100 mb-3 flex items-center">
                                 <Truck className="h-4 w-4 mr-2" />
-                                Shipping Details
+                                {t("shipping_details")}
                               </h4>
                               <div className="space-y-2 text-sm">
                                 <div className="flex justify-between">
                                   <span className="text-gray-500 dark:text-zinc-400">
-                                    Load ID:
+                                    {tExt("load_id_1")}:
                                   </span>
                                   <span className="text-gray-900 dark:text-zinc-100">
                                     {shipping.loadId}
@@ -409,7 +435,7 @@ export default function ShippingClient() {
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-500 dark:text-zinc-400">
-                                    Shipper:
+                                    {tExt("shipper_1")}:
                                   </span>
                                   <span className="text-gray-900 dark:text-zinc-100">
                                     {shipping.shipper}
@@ -417,7 +443,7 @@ export default function ShippingClient() {
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-500 dark:text-zinc-400">
-                                    Transporter:
+                                    {tExt("transporter_1")}:
                                   </span>
                                   <span className="text-gray-900 dark:text-zinc-100">
                                     {shipping.transporter}
@@ -425,7 +451,7 @@ export default function ShippingClient() {
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-500 dark:text-zinc-400">
-                                    Vehicle:
+                                    {tExt("vehicle_1")}:
                                   </span>
                                   <span className="text-gray-900 dark:text-zinc-100">
                                     {shipping.vehicle}
@@ -434,7 +460,7 @@ export default function ShippingClient() {
                                 <div className="flex justify-between">
                                   <span className="text-gray-500 dark:text-zinc-400 flex items-center">
                                     <Weight className="h-3 w-3 mr-1" />
-                                    Weight:
+                                    {tExt("weight_1")}:
                                   </span>
                                   <span className="text-gray-900 dark:text-zinc-100">
                                     {shipping.weight} kg
@@ -442,7 +468,7 @@ export default function ShippingClient() {
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-500 dark:text-zinc-400">
-                                    Volume:
+                                    {tCommon("volume")}:
                                   </span>
                                   <span className="text-gray-900 dark:text-zinc-100">
                                     {shipping.volume} m³
@@ -450,7 +476,7 @@ export default function ShippingClient() {
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-500 dark:text-zinc-400">
-                                    Type:
+                                    {tCommon("type")}:
                                   </span>
                                   <span className="text-gray-900 dark:text-zinc-100">
                                     {shipping.goodsType}
@@ -459,7 +485,7 @@ export default function ShippingClient() {
                                 {shipping.cost && (
                                   <div className="flex justify-between">
                                     <span className="text-gray-500 dark:text-zinc-400">
-                                      Shipping Cost:
+                                      {t("shipping_cost_1")}:
                                     </span>
                                     <span className="text-gray-900 dark:text-zinc-100">
                                       ${shipping.cost.toFixed(2)}
@@ -469,7 +495,7 @@ export default function ShippingClient() {
                                 {shipping.tax && (
                                   <div className="flex justify-between">
                                     <span className="text-gray-500 dark:text-zinc-400">
-                                      Tax:
+                                      {tExt("tax")}:
                                     </span>
                                     <span className="text-gray-900 dark:text-zinc-100">
                                       ${shipping.tax.toFixed(2)}
@@ -480,7 +506,7 @@ export default function ShippingClient() {
                                   <div className="flex justify-between">
                                     <span className="text-gray-500 dark:text-zinc-400 flex items-center">
                                       <Calendar className="h-3 w-3 mr-1" />
-                                      Expected:
+                                      {t("expected_1")}:
                                     </span>
                                     <span className="text-gray-900 dark:text-zinc-100">
                                       {new Date(
@@ -496,7 +522,7 @@ export default function ShippingClient() {
                             <div className="bg-gray-50 p-4 rounded-md dark:bg-zinc-700/50">
                               <h4 className="text-sm font-medium text-gray-900 dark:text-zinc-100 mb-3 flex items-center">
                                 <User className="h-4 w-4 mr-2" />
-                                Customer Information
+                                {tCommon("customer_information")}
                               </h4>
                               <div className="space-y-1 text-sm text-gray-600 dark:text-zinc-300">
                                 <div className="flex items-center">
@@ -545,7 +571,7 @@ export default function ShippingClient() {
                                 </div>
                                 <div className="ml-3">
                                   <p className="text-sm text-blue-700 dark:text-blue-300">
-                                    Your package is on the way!{" "}
+                                    {t("your_package_is_on_the_way")}{" "}
                                     {shipping.deliveryDate
                                       ? `Estimated delivery on ${new Date(shipping.deliveryDate).toLocaleDateString()}.`
                                       : "Estimated delivery in 2-3 business days."}
@@ -563,7 +589,7 @@ export default function ShippingClient() {
                                 </div>
                                 <div className="ml-3">
                                   <p className="text-sm text-green-700 dark:text-green-300">
-                                    Package delivered successfully!{" "}
+                                    {t("package_delivered_successfully")}{" "}
                                     {shipping.deliveryDate &&
                                       `Delivered on ${new Date(shipping.deliveryDate).toLocaleDateString()}.`}
                                   </p>
@@ -580,7 +606,7 @@ export default function ShippingClient() {
                                 </div>
                                 <div className="ml-3">
                                   <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                                    Your order is being prepared for shipment.
+                                    {t("your_order_is_being_prepared_for_shipment_1")}
                                   </p>
                                 </div>
                               </div>

@@ -2,20 +2,7 @@ import { create } from "zustand";
 import { $fetch } from "@/lib/api";
 import { useCreatorStore } from "./creator-store";
 
-export type icoRoadmapItemAttributes = {
-  id: string;
-  offeringId: string;
-  title: string;
-  description: string;
-  date: string;
-  completed: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
-  deletedAt?: Date;
-};
-
-export type icoRoadmapItemCreationAttributes =
-  Partial<icoRoadmapItemAttributes>;
+// Uses global icoRoadmapItemAttributes and icoRoadmapItemCreationAttributes from types/models.d.ts
 
 type RoadmapStore = {
   roadmapItems: icoRoadmapItemAttributes[];

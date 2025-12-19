@@ -6,6 +6,7 @@ import { TradingViewChart } from "@/components/blocks/tradingview-chart";
 import { useTradingViewLoader } from "@/components/blocks/tradingview-chart/script-loader";
 import type { Symbol, TimeFrame } from "@/store/trade/use-binary-store";
 import type { MarketMetadata } from "@/lib/precision-utils";
+import { useTranslations } from "next-intl";
 
 interface ChartSwitcherProps {
   symbol: Symbol;
@@ -36,6 +37,7 @@ export default function ChartSwitcher({
   onPriceUpdate,
   metadata,
 }: ChartSwitcherProps) {
+  const t = useTranslations("components_blocks");
   const { settings, settingsFetched, isLoading } = useConfigStore();
   const { isLoaded: isTradingViewLoaded, isLoading: isTradingViewLoading, error: tradingViewError } = useTradingViewLoader();
   
@@ -46,7 +48,7 @@ export default function ChartSwitcher({
       <div className="w-full h-full bg-background dark:bg-zinc-950 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-muted-foreground text-sm">Loading chart settings...</p>
+          <p className="text-muted-foreground text-sm">{t("loading_chart_settings_ellipsis")}</p>
         </div>
       </div>
     );
@@ -63,7 +65,7 @@ export default function ChartSwitcher({
         <div className="w-full h-full bg-background dark:bg-zinc-950 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-muted-foreground text-sm">Loading TradingView chart...</p>
+            <p className="text-muted-foreground text-sm">{t("loading_tradingview_chart_ellipsis")}</p>
           </div>
         </div>
       );

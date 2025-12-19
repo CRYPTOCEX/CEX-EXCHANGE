@@ -35,7 +35,9 @@ export function ReleaseDrawer({
   tokenId,
   onSuccess,
 }: ReleaseDrawerProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { toast } = useToast();
   const [releaseUrl, setReleaseUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -124,7 +126,7 @@ export function ReleaseDrawer({
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm text-muted-foreground mb-1">
-                          {t("Investor")}
+                          {t("investor")}
                         </p>
                         <p className="font-medium">
                           {transaction.user
@@ -134,7 +136,7 @@ export function ReleaseDrawer({
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground mb-1">
-                          {t("Amount")}
+                          {tCommon("amount")}
                         </p>
                         <p className="font-medium">
                           {formatNumber(transaction.amount)}
@@ -143,7 +145,7 @@ export function ReleaseDrawer({
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">
-                        {t("wallet_address")}
+                        {tCommon("wallet_address")}
                       </p>
                       <p className="font-medium break-all text-sm font-mono bg-muted/50 p-2 rounded-md">
                         {transaction.walletAddress || "N/A"}
@@ -152,7 +154,7 @@ export function ReleaseDrawer({
                   </div>
 
                   <div className="space-y-2 mb-6">
-                    <Label htmlFor="release-url">{t("release_url")}</Label>
+                    <Label htmlFor="release-url">{tExt("release_url")}</Label>
                     <Input
                       id="release-url"
                       placeholder="https://..."
@@ -167,7 +169,7 @@ export function ReleaseDrawer({
 
                   <Alert className="mb-4">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>{t("Important")}</AlertTitle>
+                    <AlertTitle>{tExt("important")}</AlertTitle>
                     <AlertDescription>
                       {t("make_sure_you_release_url")}.
                     </AlertDescription>
@@ -193,7 +195,7 @@ export function ReleaseDrawer({
                   <div className="space-y-3 bg-muted/30 p-4 rounded-lg">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">
-                        {t("Investor")}
+                        {t("investor")}
                       </p>
                       <p className="font-medium">
                         {transaction.user
@@ -204,7 +206,7 @@ export function ReleaseDrawer({
 
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">
-                        {t("token_amount")}
+                        {tExt("token_amount")}
                       </p>
                       <p className="font-medium">
                         {formatNumber(transaction.amount)}
@@ -213,7 +215,7 @@ export function ReleaseDrawer({
 
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">
-                        {t("wallet_address")}
+                        {tCommon("wallet_address")}
                       </p>
                       <p className="font-mono text-sm break-all">
                         {transaction.walletAddress || "N/A"}
@@ -222,7 +224,7 @@ export function ReleaseDrawer({
 
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">
-                        {t("release_url")}
+                        {tExt("release_url")}
                       </p>
                       <p className="font-mono text-sm break-all bg-background p-2 rounded border">
                         {releaseUrl}
@@ -246,7 +248,7 @@ export function ReleaseDrawer({
                   </p>
                   <div className="bg-muted/30 p-3 rounded-lg mt-4">
                     <p className="text-sm text-muted-foreground mb-1">
-                      {t("release_url")}
+                      {tExt("release_url")}
                     </p>
                     <p className="font-mono text-sm break-all">{releaseUrl}</p>
                   </div>
@@ -266,14 +268,14 @@ export function ReleaseDrawer({
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-background mr-2"></div>
-                  {t("Submitting")}.
+                  {tCommon("submitting")}.
                 </>
               ) : (
                 <>
                   {step === "form" && (
                     <>
                       <Send className="h-4 w-4 mr-2" />
-                      {t("Continue")}
+                      {tExt("continue")}
                     </>
                   )}
                   {step === "confirm" && (
@@ -285,7 +287,7 @@ export function ReleaseDrawer({
                   {step === "success" && (
                     <>
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      {t("Done")}
+                      {tCommon("done")}
                     </>
                   )}
                 </>
@@ -294,7 +296,7 @@ export function ReleaseDrawer({
             {step !== "success" && (
               <DrawerClose asChild>
                 <Button variant="outline" onClick={handleClose}>
-                  {t("Cancel")}
+                  {tCommon("cancel")}
                 </Button>
               </DrawerClose>
             )}

@@ -89,7 +89,7 @@ interface OnboardingStatus {
 }
 
 export default function NFTAdminDashboard() {
-  const t = useTranslations();
+  const t = useTranslations("ext_admin");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatus | null>(null);
@@ -225,7 +225,7 @@ export default function NFTAdminDashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className=" space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">NFT Admin Dashboard</h1>
         </div>
@@ -248,7 +248,7 @@ export default function NFTAdminDashboard() {
 
   if (error) {
     return (
-      <div className="space-y-6">
+      <div className=" space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">NFT Admin Dashboard</h1>
         </div>
@@ -265,7 +265,7 @@ export default function NFTAdminDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className=" space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

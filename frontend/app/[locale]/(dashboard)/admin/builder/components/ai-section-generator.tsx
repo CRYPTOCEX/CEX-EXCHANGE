@@ -64,7 +64,8 @@ export function AISectionGenerator({
   isInline = false,
   onSectionGenerated,
 }: AISectionGeneratorProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [prompt, setPrompt] = useState("");
   const [sectionType, setSectionType] = useState("general");
   const [styleGuide, setStyleGuide] = useState("");
@@ -221,7 +222,7 @@ export function AISectionGenerator({
             <div onClick={handleSelectClick} className="w-full">
               <Select value={sectionType} onValueChange={setSectionType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select section type" />
+                  <SelectValue placeholder={t("select_section_type")} />
                 </SelectTrigger>
                 <SelectContent>
                   {sectionTypes.map((type) => (
@@ -238,13 +239,13 @@ export function AISectionGenerator({
             <Label htmlFor="prompt">{t("describe_what_you_want")}</Label>
             <Textarea
               id="prompt"
-              placeholder="Describe the section you want to create..."
+              placeholder={t("describe_the_section_you_want_to_create_ellipsis")}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               className="min-h-[100px]"
             />
             <p className="text-xs text-muted-foreground">
-              {t("example_create_a_call-to-action_button")}
+              {t("example_create_a_call_to_action_button")}
             </p>
           </div>
 
@@ -253,7 +254,7 @@ export function AISectionGenerator({
               htmlFor="style-guide"
               className="flex items-center justify-between"
             >
-              <span>{t("style_guide_(optional)")}</span>
+              <span>{t("style_guide_optional")}</span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -269,7 +270,7 @@ export function AISectionGenerator({
             </Label>
             <Textarea
               id="style-guide"
-              placeholder="Add any style preferences or brand guidelines..."
+              placeholder={t("add_any_style_preferences_or_brand")}
               value={styleGuide}
               onChange={(e) => setStyleGuide(e.target.value)}
               className="min-h-[80px]"
@@ -284,7 +285,7 @@ export function AISectionGenerator({
             {isGenerating ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {t("Generating")}.
+                {t("generating")}.
               </>
             ) : (
               <>
@@ -314,7 +315,7 @@ export function AISectionGenerator({
 
           <div className="border rounded-md overflow-hidden">
             <div className="bg-gray-50 p-2 text-xs font-medium border-b">
-              {t("Preview")}
+              {tCommon("preview")}
             </div>
             <div className="p-4 max-h-[400px] overflow-auto bg-white">
               {generatedSection && (
@@ -329,7 +330,7 @@ export function AISectionGenerator({
             </Label>
             <Textarea
               id="feedback"
-              placeholder="Describe how you'd like to improve this section..."
+              placeholder={t("describe_how_youd_like_to_improve")}
               value={feedbackPrompt}
               onChange={(e) => setFeedbackPrompt(e.target.value)}
               className="min-h-[80px]"
@@ -345,7 +346,7 @@ export function AISectionGenerator({
               {isImproving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {t("Improving")}.
+                  {tCommon("improving")}.
                 </>
               ) : (
                 <>
@@ -369,7 +370,7 @@ export function AISectionGenerator({
             </span>
             <Button variant="outline" size="sm" className="h-8 text-green-600">
               <ThumbsUp className="h-4 w-4 mr-1" />
-              {t("Good")}
+              {t("good")}
             </Button>
             <Button variant="outline" size="sm" className="h-8 text-red-600">
               <ThumbsDown className="h-4 w-4 mr-1" />
@@ -413,7 +414,7 @@ export function AISectionGenerator({
             onClick={handleClose}
             disabled={isGenerating}
           >
-            {t("Cancel")}
+            {tCommon("cancel")}
           </Button>
         </DialogFooter>
       </DialogContent>

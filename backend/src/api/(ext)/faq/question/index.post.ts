@@ -9,6 +9,8 @@ export const metadata = {
     "Allows a user to submit a question if they cannot find an answer in the FAQs.",
   operationId: "submitFAQQuestion",
   tags: ["FAQ"],
+  logModule: "FAQ",
+  logTitle: "Submit FAQ Question",
   requestBody: {
     required: true,
     content: {
@@ -33,53 +35,62 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
+  const { body, user, ctx } = data;
+
+  ctx?.step("Applying rate limiting");
   // Apply rate limiting
   await faqQuestionRateLimit(data);
-  
-  const { body, user } = data;
+
   if (!user?.id) {
+    ctx?.fail("Unauthorized");
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { email, question } = body;
   if (!email || !question) {
+    ctx?.fail("Missing required fields");
     throw createError({ statusCode: 400, message: "Missing required fields" });
   }
 
   // Validate email
-  const emailValidation = validateEmail(email);
+  const emailValidation = validateEmail(email, ctx);
   if (!emailValidation.isValid) {
-    throw createError({ 
-      statusCode: 400, 
-      message: emailValidation.errors.join(', ') 
+    throw createError({
+      statusCode: 400,
+      message: emailValidation.errors.join(', ')
     });
   }
 
   // Validate question
-  const questionValidation = validateFAQQuestion(question);
+  const questionValidation = validateFAQQuestion(question, ctx);
   if (!questionValidation.isValid) {
-    throw createError({ 
-      statusCode: 400, 
-      message: questionValidation.errors.join(', ') 
+    throw createError({
+      statusCode: 400,
+      message: questionValidation.errors.join(', ')
     });
   }
 
+  ctx?.step("Fetching user details");
   const userPk = await models.user.findByPk(user.id);
   if (!userPk) {
+    ctx?.fail("User not found");
     throw createError({ statusCode: 400, message: "User not found" });
   }
 
   try {
+    ctx?.step("Creating FAQ question record");
     const newQuestion = await models.faqQuestion.create({
       userId: user.id,
-      name: sanitizeInput(userPk.firstName + " " + userPk.lastName),
+      name: sanitizeInput(userPk.firstName + " " + userPk.lastName, ctx),
       email: email.trim().toLowerCase(),
-      question: sanitizeInput(question),
+      question: sanitizeInput(question, ctx),
       status: "PENDING",
     });
+    ctx?.success(`FAQ question submitted successfully (ID: ${newQuestion.id})`);
     return newQuestion;
   } catch (error) {
     console.error("Error submitting FAQ question:", error);
+    ctx?.fail(error instanceof Error ? error.message : "Failed to submit question");
     throw createError({
       statusCode: 500,
       message:

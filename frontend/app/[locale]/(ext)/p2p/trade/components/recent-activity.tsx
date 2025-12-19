@@ -39,12 +39,14 @@ interface RecentActivityProps {
 }
 
 export function RecentActivity({ recentActivity }: RecentActivityProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtP2p = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
   return (
     <Card>
       <CardHeader>
         <CardTitle>{t("recent_activity")}</CardTitle>
-        <CardDescription>{t("latest_updates_on_your_trades")}</CardDescription>
+        <CardDescription>{tExtP2p("latest_updates_on_your_trades")}</CardDescription>
       </CardHeader>
       <CardContent>
         {recentActivity && recentActivity.length > 0 ? (
@@ -66,7 +68,7 @@ export function RecentActivity({ recentActivity }: RecentActivityProps) {
                                 ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
                                 : activity.type === ACTIVITY_TYPE.TRADE_UPDATE
                                   ? "bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-400"
-                                  : "bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400"
+                                  : "bg-violet-100 text-violet-600 dark:bg-violet-950 dark:text-violet-400"
                     }`}
                   >
                     {activity.type === ACTIVITY_TYPE.TRADE_CREATED ? (
@@ -116,7 +118,7 @@ export function RecentActivity({ recentActivity }: RecentActivityProps) {
       <CardFooter>
         <Link href="/p2p/dashboard" className="w-full">
           <Button variant="ghost" size="sm">
-            {t("view_all_activity")}
+            {tExt("view_all_activity")}
           </Button>
         </Link>
       </CardFooter>

@@ -28,7 +28,9 @@ import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 
 export function ReviewStep() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { tradeData, markStepComplete } = useWizard();
 
   // Use useEffect to mark the step as complete after render
@@ -124,7 +126,7 @@ export function ReviewStep() {
                 {amount.min}
               </Badge>
               <Badge variant="outline">
-                {t("max")}{" "}
+                {tCommon("max")}{" "}
                 {amount.max}
               </Badge>
             </div>
@@ -148,7 +150,7 @@ export function ReviewStep() {
               {amount.min}
             </Badge>
             <Badge variant="outline">
-              {t("max")}{" "}
+              {tCommon("max")}{" "}
               {amount.max}
             </Badge>
           </div>
@@ -199,7 +201,7 @@ export function ReviewStep() {
         <Card className="overflow-hidden border-t-4 border-t-blue-500 shadow-sm hover:shadow transition-shadow">
           <CardContent className="p-6 space-y-5">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">{t("trade_details")}</h3>
+              <h3 className="font-semibold text-lg">{tCommon("trade_details")}</h3>
               <Badge
                 variant={
                   tradeData.tradeType?.toLowerCase() === "buy"
@@ -222,7 +224,7 @@ export function ReviewStep() {
                 </div>
                 <div className="flex-1">
                   <h4 className="font-medium text-sm text-muted-foreground">
-                    {t("trade_type")}
+                    {tCommon("trade_type")}
                   </h4>
                   <p
                     className={cn(
@@ -242,7 +244,7 @@ export function ReviewStep() {
                 </div>
                 <div className="flex-1">
                   <h4 className="font-medium text-sm text-muted-foreground">
-                    {t("wallet_type")}
+                    {tCommon("wallet_type")}
                   </h4>
                   <p className="text-lg font-medium">
                     {getWalletTypeName(tradeData.walletType) || "Not specified"}
@@ -252,12 +254,12 @@ export function ReviewStep() {
 
               {/* Currency */}
               <div className="flex items-start gap-4">
-                <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full">
-                  <Bitcoin className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-full">
+                  <Bitcoin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="flex-1">
                   <h4 className="font-medium text-sm text-muted-foreground">
-                    {t("Currency")}
+                    {tCommon("currency")}
                   </h4>
                   <p className="text-lg font-medium">
                     {tradeData.currency ||
@@ -273,7 +275,7 @@ export function ReviewStep() {
         {/* Amount & Pricing Card */}
         <Card className="overflow-hidden border-t-4 border-t-green-500 shadow-sm hover:shadow transition-shadow">
           <CardContent className="p-6 space-y-5">
-            <h3 className="font-semibold text-lg">{t("amount_&_pricing")}</h3>
+            <h3 className="font-semibold text-lg">{t("amount_pricing")}</h3>
 
             <Separator />
 
@@ -285,7 +287,7 @@ export function ReviewStep() {
                 </div>
                 <div className="flex-1">
                   <h4 className="font-medium text-sm text-muted-foreground">
-                    {t("Amount")}
+                    {tCommon("amount")}
                   </h4>
                   {formatAmount(
                     getAmount(),
@@ -301,7 +303,7 @@ export function ReviewStep() {
                 </div>
                 <div className="flex-1">
                   <h4 className="font-medium text-sm text-muted-foreground">
-                    {t("Price")}
+                    {tCommon("price")}
                   </h4>
                   {formatPrice(
                     getPrice(),
@@ -317,15 +319,15 @@ export function ReviewStep() {
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Payment Methods Card */}
-        <Card className="overflow-hidden border-t-4 border-t-purple-500 shadow-sm hover:shadow transition-shadow">
+        <Card className="overflow-hidden border-t-4 border-t-blue-500 shadow-sm hover:shadow transition-shadow">
           <CardContent className="p-6 space-y-5">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">{t("payment_methods")}</h3>
+              <h3 className="font-semibold text-lg">{tExt("payment_methods")}</h3>
               <Badge variant="outline" className="px-3 py-1">
                 {Array.isArray(tradeData.paymentMethods)
                   ? tradeData.paymentMethods.length
                   : 0}{" "}
-                {t("Selected")}
+                {tCommon("selected")}
               </Badge>
             </div>
 
@@ -373,7 +375,7 @@ export function ReviewStep() {
         {/* Trade Settings Card */}
         <Card className="overflow-hidden border-t-4 border-t-teal-500 shadow-sm hover:shadow transition-shadow">
           <CardContent className="p-6 space-y-5">
-            <h3 className="font-semibold text-lg">{t("trade_settings")}</h3>
+            <h3 className="font-semibold text-lg">{tCommon("trade_settings")}</h3>
 
             <Separator />
 
@@ -390,11 +392,11 @@ export function ReviewStep() {
                   <div className="flex items-center gap-2">
                     <p className="text-lg font-medium">
                       {tradeData.tradeSettings?.autoCancel || "30"}{" "}
-                      {t("minutes")}
+                      {tCommon("minutes")}
                     </p>
                     {!tradeData.tradeSettings?.autoCancel && (
                       <Badge variant="outline" className="text-xs">
-                        {t("Default")}
+                        {t("default")}
                       </Badge>
                     )}
                   </div>
@@ -408,7 +410,7 @@ export function ReviewStep() {
                 </div>
                 <div className="flex-1">
                   <h4 className="font-medium text-sm text-muted-foreground">
-                    {t("Visibility")}
+                    {t("visibility")}
                   </h4>
                   <div className="flex items-center gap-2">
                     <p className="text-lg font-medium capitalize">
@@ -416,7 +418,7 @@ export function ReviewStep() {
                     </p>
                     {!tradeData.tradeSettings?.visibility && (
                       <Badge variant="outline" className="text-xs">
-                        {t("Default")}
+                        {t("default")}
                       </Badge>
                     )}
                   </div>
@@ -448,7 +450,7 @@ export function ReviewStep() {
         {/* Location Settings Card */}
         <Card className="overflow-hidden border-t-4 border-t-emerald-500 shadow-sm hover:shadow transition-shadow">
           <CardContent className="p-6 space-y-5">
-            <h3 className="font-semibold text-lg">{t("location_settings")}</h3>
+            <h3 className="font-semibold text-lg">{tExt("location_settings")}</h3>
 
             <Separator />
 
@@ -540,17 +542,17 @@ export function ReviewStep() {
                       {tradeData.userRequirements.minCompletedTrades > 0 && (
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="px-3 py-1">
-                            {t("Min")}.
+                            {tCommon("min")}.
                             {tradeData.userRequirements.minCompletedTrades}{" "}
-                            {t("completed_trades")}
+                            {tExt("completed_trades")}
                           </Badge>
                         </div>
                       )}
                       {tradeData.userRequirements.minSuccessRate > 0 && (
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="px-3 py-1">
-                            {t("Min")}.
-                            {tradeData.userRequirements.minSuccessRate}% {t("success_rate")}
+                            {tCommon("min")}.
+                            {tradeData.userRequirements.minSuccessRate}% {tCommon("success_rate")}
                           </Badge>
                         </div>
                       )}
@@ -566,18 +568,18 @@ export function ReviewStep() {
 
                 {/* Trust & Security */}
                 <div className="flex items-start gap-4">
-                  <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full">
-                    <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-full">
+                    <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium text-sm text-muted-foreground">
-                      {t("trust_&_security")}
+                      {t("trust_security")}
                     </h4>
                     <div className="mt-3 space-y-2">
                       {tradeData.userRequirements.minAccountAge > 0 && (
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="px-3 py-1">
-                            {t("Min")}. {t("account_age")}{" "}
+                            {tCommon("min")}. {tCommon("account_age")}{" "}
                             {formatAccountAge(
                               tradeData.userRequirements.minAccountAge
                             )}

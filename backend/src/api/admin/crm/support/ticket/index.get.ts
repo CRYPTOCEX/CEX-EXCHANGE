@@ -11,6 +11,7 @@ import {
 import { crudParameters, paginationSchema } from "@b/utils/constants";
 import { supportTicketSchema } from "./utils";
 import { Op } from "sequelize";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Lists support tickets with pagination and filtering",
@@ -44,6 +45,7 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "access.support.ticket",
+  demoMask: ["items.user.email", "items.agent.email"],
 };
 
 export default async (data: Handler) => {
@@ -79,17 +81,17 @@ export default async (data: Handler) => {
           try {
             ticket.messages = JSON.parse(ticket.messages);
           } catch (e) {
-            console.warn('Failed to parse messages JSON:', e);
+            logger.warn("SUPPORT", "Failed to parse messages JSON");
             ticket.messages = [];
           }
         }
-        
+
         // Parse tags if it's a string
         if (typeof ticket.tags === 'string') {
           try {
             ticket.tags = JSON.parse(ticket.tags);
           } catch (e) {
-            console.warn('Failed to parse tags JSON:', e);
+            logger.warn("SUPPORT", "Failed to parse tags JSON");
             ticket.tags = [];
           }
         }
@@ -104,12 +106,12 @@ export default async (data: Handler) => {
 
     return result;
   } catch (error) {
-    console.error("Error fetching support tickets:", error);
-    
+    logger.error("SUPPORT", "Error fetching support tickets", error);
+
     if (error.statusCode) {
       throw error; // Re-throw createError errors
     }
-    
+
     throw createError({
       statusCode: 500,
       message: "Failed to fetch support tickets",

@@ -26,13 +26,15 @@ interface PoolFormPreviewProps {
 
 export function PoolFormPreview({ formData }: PoolFormPreviewProps) {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   return (
     <div className="space-y-6">
       <Card className="sticky top-6">
         <CardHeader>
-          <CardTitle>{t("pool_preview")}</CardTitle>
+          <CardTitle>{tExtAdmin("pool_preview")}</CardTitle>
           <CardDescription>
-            {t("preview_how_your_staking_pool_will_appear_to_users")}
+            {tExtAdmin("preview_how_your_staking_pool_will_appear_to_users")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -72,7 +74,7 @@ export function PoolFormPreview({ formData }: PoolFormPreviewProps) {
             <CardContent className="pb-2">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">{t("APR")}</span>
+                  <span className="text-muted-foreground">{tCommon("apr")}</span>
                   <span className="text-xl font-bold text-green-500">
                     {formData.apr}%
                   </span>
@@ -81,16 +83,15 @@ export function PoolFormPreview({ formData }: PoolFormPreviewProps) {
                 <div className="space-y-1">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      {t("lock_period")}
+                      {tCommon("lock_period")}:
                     </span>
                     <span>
-                      {formData.lockPeriod}
-                      {t("days")}
+                      {formData.lockPeriod} {tCommon("days")}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      {t("Min")}. {t("Stake")}
+                      {tCommon("min")}. {t("stake")}:
                     </span>
                     <span>
                       {formData.minStake} {formData.symbol || "SYM"}
@@ -99,7 +100,7 @@ export function PoolFormPreview({ formData }: PoolFormPreviewProps) {
                   {formData.maxStake && (
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">
-                        {t("Max")}. {t("Stake")}
+                        {tCommon("max")}. {t("stake")}:
                       </span>
                       <span>
                         {formData.maxStake} {formData.symbol || "SYM"}
@@ -111,7 +112,7 @@ export function PoolFormPreview({ formData }: PoolFormPreviewProps) {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      {t("pool_capacity")}
+                      {t("pool_capacity")}:
                     </span>
                     <span>
                       {formData.maxPoolSize
@@ -141,15 +142,16 @@ export function PoolFormPreview({ formData }: PoolFormPreviewProps) {
                 </div>
 
                 {formData.description && (
-                  <div className="mt-2 text-sm text-muted-foreground line-clamp-2">
-                    {formData.description}
-                  </div>
+                  <div
+                    className="mt-2 text-sm text-muted-foreground line-clamp-2 prose prose-sm dark:prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ __html: formData.description }}
+                  />
                 )}
               </div>
             </CardContent>
             <CardFooter className="pt-2">
               <Button className="w-full">
-                {t("view_details")}
+                {tCommon("view_details")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </CardFooter>
@@ -164,10 +166,11 @@ export function PoolFormPreview({ formData }: PoolFormPreviewProps) {
                 <div className="flex items-start gap-2">
                   <ShieldAlert className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="font-medium text-sm">{t("Risks")}</h4>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                      {formData.risks}
-                    </p>
+                    <h4 className="font-medium text-sm">{t("risks")}</h4>
+                    <div
+                      className="text-sm text-muted-foreground line-clamp-2 mt-1 prose prose-sm dark:prose-invert max-w-none"
+                      dangerouslySetInnerHTML={{ __html: formData.risks }}
+                    />
                   </div>
                 </div>
               )}
@@ -176,10 +179,11 @@ export function PoolFormPreview({ formData }: PoolFormPreviewProps) {
                 <div className="flex items-start gap-2">
                   <Award className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="font-medium text-sm">{t("Rewards")}</h4>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                      {formData.rewards}
-                    </p>
+                    <h4 className="font-medium text-sm">{t("rewards")}</h4>
+                    <div
+                      className="text-sm text-muted-foreground line-clamp-2 mt-1 prose prose-sm dark:prose-invert max-w-none"
+                      dangerouslySetInnerHTML={{ __html: formData.rewards }}
+                    />
                   </div>
                 </div>
               )}
@@ -191,16 +195,17 @@ export function PoolFormPreview({ formData }: PoolFormPreviewProps) {
                     <h4 className="font-medium text-sm">
                       {t("profit_source")}
                     </h4>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                      {formData.profitSource}
-                    </p>
+                    <div
+                      className="text-sm text-muted-foreground line-clamp-2 mt-1 prose prose-sm dark:prose-invert max-w-none"
+                      dangerouslySetInnerHTML={{ __html: formData.profitSource }}
+                    />
                   </div>
                 </div>
               )}
 
               {formData.externalPoolUrl && (
                 <div className="flex items-start gap-2">
-                  <ExternalLink className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
+                  <ExternalLink className="h-5 w-5 text-violet-500 mt-0.5 flex-shrink-0" />
                   <div>
                     <h4 className="font-medium text-sm">
                       {t("external_pool")}

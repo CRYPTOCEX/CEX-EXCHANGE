@@ -33,14 +33,18 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("AI Investment"),
     500: serverErrorResponse,
   },
+  logModule: "AI",
+  logTitle: "Get all AI investments",
   requiresAuth: true,
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
+
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
+  ctx?.step("Fetching all user investments");
   const investments = await models.aiInvestment.findAll({
     where: {
       userId: user.id,
@@ -72,5 +76,7 @@ export default async (data: Handler) => {
       ["createdAt", "ASC"],
     ],
   });
+
+  ctx?.success(`Retrieved ${investments.length} investment(s)`);
   return investments;
 };

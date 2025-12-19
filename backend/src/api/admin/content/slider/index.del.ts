@@ -30,14 +30,21 @@ export const metadata = {
   responses: commonBulkDeleteResponses("Sliders"),
   requiresAuth: true,
   permission: "delete.slider",
+  logModule: "ADMIN_CMS",
+  logTitle: "Bulk delete sliders",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step(`Bulk deleting ${ids?.length || 0} slider(s)`);
+  const result = await handleBulkDelete({
     model: "slider",
     ids,
     query,
   });
+
+  ctx?.success("Successfully deleted slider(s)");
+  return result;
 };

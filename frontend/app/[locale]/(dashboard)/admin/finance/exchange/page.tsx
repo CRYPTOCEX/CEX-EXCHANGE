@@ -1,7 +1,12 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { TrendingUp } from "lucide-react";
+import { useColumns } from "./columns";
+import { useTranslations } from "next-intl";
 export default function ExchangeProviderPage() {
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/finance/exchange/provider"
@@ -11,15 +16,18 @@ export default function ExchangeProviderPage() {
         view: "view.exchange",
         create: "create.exchange",
         edit: "edit.exchange",
-        delete: "delete.exchange",
-      }}
-      pageSize={10}
+        delete: "delete.exchange"}}
+      pageSize={12}
       canView={true}
       viewLink="/admin/finance/exchange/[productId]"
       isParanoid={false}
-      title="Exchange Management"
+      title={t("exchange_management")}
+      description={t("manage_cryptocurrency_exchanges_and_integrations")}
       itemTitle="Exchange"
       columns={columns}
+      design={{
+        animation: "orbs",
+        icon: TrendingUp}}
     />
   );
 }

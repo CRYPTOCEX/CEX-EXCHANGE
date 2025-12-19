@@ -21,7 +21,9 @@ import {
 import { useTranslations } from "next-intl";
 
 function ConfigurationsPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
@@ -81,7 +83,7 @@ function ConfigurationsPage() {
     }
   }, [tabParam]);
   return (
-    <div className="space-y-6">
+    <div className="pt-20 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
           {t("platform_configurations")}
@@ -96,8 +98,8 @@ function ConfigurationsPage() {
         className="space-y-4"
       >
         <TabsList>
-          <TabsTrigger value="blockchains">{t("Blockchains")}</TabsTrigger>
-          <TabsTrigger value="token-types">{t("token_types")}</TabsTrigger>
+          <TabsTrigger value="blockchains">{t("blockchains")}</TabsTrigger>
+          <TabsTrigger value="token-types">{tExt("token_types")}</TabsTrigger>
           <TabsTrigger value="launch-plans">{t("launch_plans")}</TabsTrigger>
           <TabsTrigger value="platform-settings">
             {t("platform_settings")}
@@ -122,12 +124,12 @@ function ConfigurationsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t("discard_unsaved_changes")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("you_have_unsaved_changes")}. {t("are_you_sure_switch_tabs")}
+              {tCommon("you_have_unsaved_changes")}. {t("are_you_sure_switch_tabs")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={cancelTabChange}>
-              {t("No")}
+              {tCommon("no")}
             </AlertDialogCancel>
             <AlertDialogAction onClick={confirmTabChange} variant="destructive">
               {t("yes_discard")}

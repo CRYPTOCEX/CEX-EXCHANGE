@@ -15,10 +15,15 @@ export const metadata = {
   responses: deleteRecordResponses("Transaction"),
   requiresAuth: true,
   permission: "delete.deposit",
+  logModule: "ADMIN_FIN",
+  logTitle: "Delete deposit log",
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
+  const { params, query, ctx } = data;
+
+  ctx?.step("Fetching deposit log record");
+  ctx?.step("Deleting associated admin profit");
   // Delete associated admin profit if it exists
   await models.adminProfit.destroy({
     where: {
@@ -26,9 +31,13 @@ export default async (data: Handler) => {
     },
   });
 
-  return handleSingleDelete({
+  ctx?.step("Deleting deposit log");
+  const result = await handleSingleDelete({
     model: "transaction",
     id: params.id,
     query,
   });
+
+  ctx?.success("Deposit log deleted successfully");
+  return result;
 };

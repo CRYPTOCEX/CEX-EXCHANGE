@@ -3,7 +3,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useTranslations } from "next-intl";
 
 export function PlatformDisabledBanner() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
   return (
     <Alert 
       variant="destructive" 
@@ -13,7 +14,7 @@ export function PlatformDisabledBanner() {
       <AlertTitle className="text-red-800 dark:text-red-300">{t("p2p_trading_disabled")}</AlertTitle>
       <AlertDescription className="text-red-700 dark:text-red-400">
         {t("p2p_trading_is_currently_disabled_on_the_platform")}.{" "}
-        {t("please_check_back_later")}.
+        {tCommon("please_check_back_later")}.
       </AlertDescription>
     </Alert>
   );

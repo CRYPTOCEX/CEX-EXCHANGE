@@ -11,9 +11,10 @@ import {
 } from "../../utils";
 
 export const metadata = {
-  summary: "Updates an existing transaction",
-  operationId: "updateTransaction",
-  tags: ["Admin", "Wallets", "Transactions"],
+  summary: "Updates a Forex withdrawal transaction",
+  description: "Updates a pending Forex withdrawal transaction including status, amount, fee, and description. Handles balance adjustments and sends notification emails based on status changes (COMPLETED or REJECTED).",
+  operationId: "updateForexWithdrawal",
+  tags: ["Admin", "Forex", "Withdraw"],
   parameters: [
     {
       index: 0,
@@ -38,10 +39,12 @@ export const metadata = {
   responses: updateRecordResponses("Transaction"),
   requiresAuth: true,
   permission: "edit.forex.withdraw",
+  logModule: "ADMIN_FOREX",
+  logTitle: "Update forex withdrawal",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params , ctx } = data;
   const { id } = params;
   const {
     status,
@@ -51,6 +54,10 @@ export default async (data: Handler) => {
     referenceId,
     metadata: requestMetadata,
   } = body;
+
+  ctx?.step("Validating data");
+
+  ctx?.step(`Updating record ${id}`);
 
   const transaction = await models.transaction.findOne({
     where: { id },
@@ -103,9 +110,9 @@ export default async (data: Handler) => {
       }
 
       if (status === "REJECTED") {
-        await updateForexAccountBalance(account, cost, true, t);
+        await updateForexAccountBalance(account, cost, true, t, ctx);
       } else if (status === "COMPLETED") {
-        await updateWalletBalance(wallet, cost, true, t);
+        await updateWalletBalance(wallet, cost, true, t, ctx);
       }
 
       const user = await models.user.findOne({
@@ -117,7 +124,8 @@ export default async (data: Handler) => {
           transaction,
           account,
           wallet.currency,
-          transaction.type as "FOREX_WITHDRAW"
+          transaction.type as "FOREX_WITHDRAW",
+          ctx
         );
       }
     }

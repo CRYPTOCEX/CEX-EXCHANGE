@@ -70,7 +70,11 @@ interface ActivityItem {
 }
 
 export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_nft");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
+  const tExtAdmin = useTranslations("ext_admin");
   const { user } = useUserStore();
   const { toggleFavorite } = useNftStore();
 
@@ -253,10 +257,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
           // Show notification for new bid (if not from current user)
           const latestBid = update.data[0];
           if (latestBid && latestBid.bidderId !== user?.id) {
-            toast.info(t("New bid placed: {amount} {currency}", {
-              amount: formatCurrency(latestBid.amount, latestBid.currency),
-              currency: latestBid.currency
-            }));
+            toast.info(`${t("new_bid_placed")}: ${formatCurrency(latestBid.amount, latestBid.currency)} ${latestBid.currency}`);
           }
         }
       });
@@ -442,7 +443,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
   }, [token.name, token.description, t]);
 
   const formatTimeLeft = useCallback((milliseconds: number) => {
-    if (milliseconds <= 0) return t("auction_ended");
+    if (milliseconds <= 0) return tCommon("auction_ended");
     
     const days = Math.floor(milliseconds / (1000 * 60 * 60 * 24));
     const hours = Math.floor((milliseconds % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -505,7 +506,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
                       )}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {t("Floor")}: {formatCurrency(token.collection.floorPrice || 0, token.collection.currency)}
+                      {t("floor")}: {formatCurrency(token.collection.floorPrice || 0, token.collection.currency)}
                     </div>
                   </div>
                 </div>
@@ -522,11 +523,11 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Eye className="h-4 w-4" />
-                {formatNumber(token.views || 0)} {t("views")}
+                {formatNumber(token.views || 0)} {tExt("views")}
               </div>
               <div className="flex items-center gap-1">
                 <Heart className="h-4 w-4" />
-                {formatNumber(token.likes || 0)} {t("likes")}
+                {formatNumber(token.likes || 0)} {tExtAdmin("likes")}
               </div>
             </div>
           </div>
@@ -540,15 +541,15 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
               className={isFavorited ? "text-red-500" : ""}
             >
               <Heart className={`h-4 w-4 mr-2 ${isFavorited ? "fill-current" : ""}`} />
-              {isFavorited ? t("Favorited") : t("Favorite")}
+              {isFavorited ? t("favorited") : t("favorite")}
             </Button>
             <Button variant="outline" size="sm" onClick={handleShare}>
               <Share2 className="h-4 w-4 mr-2" />
-              {t("Share")}
+              {tExt("share")}
             </Button>
             <Button variant="outline" size="sm">
               <RefreshCw className="h-4 w-4 mr-2" />
-              {t("Refresh")}
+              {tExt("refresh")}
             </Button>
             
             {/* WebSocket Connection Status */}
@@ -556,17 +557,17 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
               {isConnected ? (
                 <>
                   <Wifi className="h-3 w-3 text-green-500" />
-                  {t("Live")}
+                  {tCommon("live")}
                 </>
               ) : (
                 <>
                   <WifiOff className="h-3 w-3 text-red-500" />
-                  {t("Offline")}
+                  {tExt("offline")}
                 </>
               )}
               {lastUpdate && (
                 <span className="ml-1">
-                  {t("Updated")} {formatTimeAgo(lastUpdate.toISOString())}
+                  {tCommon("updated")} {formatTimeAgo(lastUpdate.toISOString())}
                 </span>
               )}
             </div>
@@ -585,7 +586,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
                   ) : (
                     <>
                       <Tag className="h-5 w-5" />
-                      {t("fixed_price")}
+                      {tExt("fixed_price")}
                     </>
                   )}
                 </CardTitle>
@@ -600,10 +601,10 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
                     {timeLeft > 0 ? (
                       <div className="flex items-center gap-2 text-orange-600">
                         <Clock className="h-4 w-4" />
-                        {formatTimeLeft(timeLeft)} {t("remaining")}
+                        {formatTimeLeft(timeLeft)} {tDashboardAdmin("remaining")}
                       </div>
                     ) : (
-                      <div className="text-red-600">{t("auction_ended")}</div>
+                      <div className="text-red-600">{tCommon("auction_ended")}</div>
                     )}
 
                     {bids.length > 0 && (
@@ -632,7 +633,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
                           <p>{t("are_you_sure_you_want_to_buy")} {token.name}?</p>
                           <div className="flex gap-2">
                             <Button variant="outline" onClick={() => setShowBuyModal(false)}>
-                              {t("Cancel")}
+                              {tCommon("cancel")}
                             </Button>
                             <Button onClick={handleBuyNow} disabled={isLoading}>
                               {isLoading ? <LoadingSpinner /> : t("confirm_purchase")}
@@ -673,7 +674,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
                           </div>
                           <div className="flex gap-2">
                             <Button variant="outline" onClick={() => setShowBidModal(false)}>
-                              {t("Cancel")}
+                              {tCommon("cancel")}
                             </Button>
                             <Button onClick={handlePlaceBid} disabled={isLoading || !bidAmount}>
                               {isLoading ? <LoadingSpinner /> : t("place_bid")}
@@ -698,7 +699,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
                         </DialogHeader>
                         <div className="space-y-4">
                           <div>
-                            <Label htmlFor="offerAmount">{t("offer_amount")}</Label>
+                            <Label htmlFor="offerAmount">{tCommon("offer_amount")}</Label>
                             <Input
                               id="offerAmount"
                               type="number"
@@ -710,7 +711,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
                           </div>
                           <div className="flex gap-2">
                             <Button variant="outline" onClick={() => setShowOfferModal(false)}>
-                              {t("Cancel")}
+                              {tCommon("cancel")}
                             </Button>
                             <Button onClick={handleMakeOffer} disabled={isLoading || !offerAmount}>
                               {isLoading ? <LoadingSpinner /> : t("make_offer")}
@@ -726,7 +727,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
                       <DialogTrigger asChild>
                         <Button variant="outline" className="flex-1">
                           <Send className="h-4 w-4 mr-2" />
-                          {t("transfer")}
+                          {tCommon("transfer")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
@@ -749,10 +750,10 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
                           </div>
                           <div className="flex gap-2">
                             <Button variant="outline" onClick={() => setShowTransferModal(false)}>
-                              {t("Cancel")}
+                              {tCommon("cancel")}
                             </Button>
                             <Button onClick={handleTransfer} disabled={isLoading || !transferAddress}>
-                              {isLoading ? <LoadingSpinner /> : t("transfer")}
+                              {isLoading ? <LoadingSpinner /> : tCommon("transfer")}
                             </Button>
                           </div>
                         </div>
@@ -767,10 +768,10 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">{t("Overview")}</TabsTrigger>
-              <TabsTrigger value="bids">{t("Bids")}</TabsTrigger>
-              <TabsTrigger value="offers">{t("Offers")}</TabsTrigger>
-              <TabsTrigger value="activity">{t("Activity")}</TabsTrigger>
+              <TabsTrigger value="overview">{tCommon("overview")}</TabsTrigger>
+              <TabsTrigger value="bids">{tExtAdmin("bids")}</TabsTrigger>
+              <TabsTrigger value="offers">{tExt("offers")}</TabsTrigger>
+              <TabsTrigger value="activity">{tExt("activity")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4">
@@ -778,7 +779,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
               {token.description && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t("Description")}</CardTitle>
+                    <CardTitle>{tCommon("description")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground">{token.description}</p>
@@ -790,7 +791,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
               {token.attributes && token.attributes.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t("Attributes")}</CardTitle>
+                    <CardTitle>{t("attributes")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-3">
@@ -846,7 +847,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
             <TabsContent value="offers" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>{t("Offers")}</CardTitle>
+                  <CardTitle>{tExt("offers")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {offers.length > 0 ? (
@@ -881,7 +882,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
             <TabsContent value="activity" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>{t("Activity")}</CardTitle>
+                  <CardTitle>{tExt("activity")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {activities.length > 0 ? (
@@ -900,7 +901,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
                     </div>
                   ) : (
                     <p className="text-muted-foreground text-center py-4">
-                      {t("no_activity_yet")}
+                      {tExt("no_activity_yet")}
                     </p>
                   )}
                 </CardContent>
@@ -928,7 +929,9 @@ interface SimilarNFTsProps {
 }
 
 function SimilarNFTs({ collectionId, currentTokenId, category }: SimilarNFTsProps) {
-  const t = useTranslations();
+  const t = useTranslations("ext_nft")
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");;
   const [similarTokens, setSimilarTokens] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -1022,7 +1025,7 @@ function SimilarNFTs({ collectionId, currentTokenId, category }: SimilarNFTsProp
                     {token.name}
                   </h4>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{formatNumber(token.views || 0)} {t("views")}</span>
+                    <span>{formatNumber(token.views || 0)} {tExt("views")}</span>
                     {token.currentListing && (
                       <span className="font-medium text-primary">
                         {formatCurrency(token.currentListing.price, token.currentListing.currency)}
@@ -1039,7 +1042,7 @@ function SimilarNFTs({ collectionId, currentTokenId, category }: SimilarNFTsProp
           <div className="mt-6 text-center">
             <Link href={`/nft/collection/${collectionId}`}>
               <Button variant="outline">
-                {t("view_all")} ({similarTokens.length})
+                {tCommon("view_all")} ({similarTokens.length})
               </Button>
             </Link>
           </div>

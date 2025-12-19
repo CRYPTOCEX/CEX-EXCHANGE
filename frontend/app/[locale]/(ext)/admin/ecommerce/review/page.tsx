@@ -1,8 +1,15 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { ecommerceReviewAnalytics } from "./analytics";
+import { useColumns, useFormConfig } from "./columns";
+import { useAnalytics } from "./analytics";
+import { Star } from "lucide-react";
+import { useTranslations } from "next-intl";
+
 export default function EcommerceReviewPage() {
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+  const analytics = useAnalytics();
   return (
     <DataTable
       apiEndpoint="/api/admin/ecommerce/review"
@@ -14,14 +21,22 @@ export default function EcommerceReviewPage() {
         edit: "edit.ecommerce.review",
         delete: "delete.ecommerce.review",
       }}
-      pageSize={10}
+      pageSize={12}
       canEdit
       canDelete
       canView
-      title="Ecommerce Reviews"
+      title={t("product_reviews")}
+      description={t("moderate_customer_reviews")}
       itemTitle="Review"
       columns={columns}
-      analytics={ecommerceReviewAnalytics}
+      formConfig={formConfig}
+      analytics={analytics}
+      design={{
+        animation: "orbs",
+        primaryColor: "amber",
+        secondaryColor: "emerald",
+        icon: Star,
+      }}
     />
   );
 }

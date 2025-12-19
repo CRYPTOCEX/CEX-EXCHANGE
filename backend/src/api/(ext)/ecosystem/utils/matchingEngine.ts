@@ -26,7 +26,7 @@ import {
   normalizeTimeToInterval,
 } from "./ws";
 import { getEcoSystemMarkets } from "./markets";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import { stringify as uuidStringify } from "uuid";
 
 // Cache for AI market maker symbols - refreshed periodically
@@ -75,14 +75,14 @@ async function getAiMarketMakerSymbols(forceRefresh: boolean = false): Promise<S
     aiMarketMakerCacheLastRefresh = now;
 
     if (symbols.size > 0) {
-      console.info(`[MatchingEngine] Found ${symbols.size} AI market maker symbols: ${Array.from(symbols).join(", ")}`);
+      logger.info("ECO_ENGINE", `Found ${symbols.size} AI market maker symbols: ${Array.from(symbols).join(", ")}`);
     }
 
     return symbols;
   } catch (error) {
     // If we can't fetch AI market maker symbols, return empty set
     // This allows normal operation if AI market maker module is not available
-    logError("get_ai_market_maker_symbols", error, __filename);
+    logger.error("ECO_ENGINE", "Failed to get AI market maker symbols", error);
     return new Set();
   }
 }
@@ -160,20 +160,12 @@ export class MatchingEngine {
         const updatedAt = new Date(order.updatedAt);
 
         if (isNaN(createdAt.getTime()) || isNaN(updatedAt.getTime())) {
-          logError(
-            "matching_engine",
-            new Error("Invalid date in order"),
-            __filename
-          );
+          logger.error("ECO_ENGINE", "Invalid date in order", new Error("Invalid date in order"));
           return;
         }
 
         if (!order.userId?.buffer || !order.id?.buffer) {
-          logError(
-            "matching_engine",
-            new Error("Invalid Uuid in order"),
-            __filename
-          );
+          logger.error("ECO_ENGINE", "Invalid Uuid in order", new Error("Invalid Uuid in order"));
           return;
         }
 
@@ -215,10 +207,7 @@ export class MatchingEngine {
 
       await this.processQueue();
     } catch (error) {
-      logError("matching_engine", error, __filename);
-      console.error(
-        `Failed to populate order queue with open orders: ${error}`
-      );
+      logger.error("ECO_ENGINE", "Failed to populate order queue with open orders", error);
     }
   }
 
@@ -299,7 +288,7 @@ export class MatchingEngine {
                 await client.execute(deleteQuery, [symbol, priceStr, side], { prepare: true });
                 ghostEntriesRemoved++;
               } catch (deleteError) {
-                console.error(`[ORDERBOOK_SYNC] Failed to remove ghost entry for ${symbol}:`, deleteError.message);
+                logger.error("ECO_ENGINE", `Failed to remove ghost entry for ${symbol}: ${deleteError.message}`);
               }
             } else {
               // Amount mismatch: orderbook amount doesn't match sum of open orders
@@ -313,7 +302,7 @@ export class MatchingEngine {
                 );
                 ghostEntriesRemoved++;
               } catch (updateError) {
-                console.error(`[ORDERBOOK_SYNC] Failed to fix amount for ${symbol}:`, updateError.message);
+                logger.error("ECO_ENGINE", `Failed to fix amount for ${symbol}: ${updateError.message}`);
               }
             }
           }
@@ -339,7 +328,7 @@ export class MatchingEngine {
                 );
                 ghostEntriesRemoved++;
               } catch (insertError) {
-                console.error(`[ORDERBOOK_SYNC] Failed to add missing BID entry for ${symbol}:`, insertError.message);
+                logger.error("ECO_ENGINE", `Failed to add missing BID entry for ${symbol}: ${insertError.message}`);
               }
             }
           }
@@ -360,7 +349,7 @@ export class MatchingEngine {
                 );
                 ghostEntriesRemoved++;
               } catch (insertError) {
-                console.error(`[ORDERBOOK_SYNC] Failed to add missing ASK entry for ${symbol}:`, insertError.message);
+                logger.error("ECO_ENGINE", `Failed to add missing ASK entry for ${symbol}: ${insertError.message}`);
               }
             }
           }
@@ -369,13 +358,12 @@ export class MatchingEngine {
 
       // Only log if there were issues fixed
       if (ghostEntriesRemoved > 0) {
-        console.log(`[ORDERBOOK_SYNC] Fixed ${ghostEntriesRemoved} orderbook discrepancies`);
+        logger.info("ECO_ENGINE", `Fixed ${ghostEntriesRemoved} orderbook discrepancies`);
         // Refresh orderbook broadcasts
         await this.refreshOrderBooks();
       }
     } catch (error) {
-      logError("orderbook_sync", error, __filename);
-      console.error(`[ORDERBOOK_SYNC] Sync failed:`, error);
+      logger.error("ECO_ENGINE", "Orderbook sync failed", error);
     }
   }
 
@@ -427,7 +415,7 @@ export class MatchingEngine {
               );
 
               if (!sellerWallet) {
-                console.warn(`[ORDERBOOK_VALIDATION] Wallet not found for user ${order.userId}, currency ${baseCurrency}`);
+                logger.warn("ECO_ENGINE", `Wallet not found for user ${order.userId}, currency ${baseCurrency}`);
                 invalidOrders.push(order);
                 continue;
               }
@@ -445,7 +433,7 @@ export class MatchingEngine {
                     await updateWalletBalance(sellerWallet, orderAmount, "subtract");
                     ordersFixed++;
                   } catch (lockError) {
-                    console.error(`[ORDERBOOK_VALIDATION] Failed to lock funds for ${symbol}:`, lockError.message);
+                    logger.error("ECO_ENGINE", `Failed to lock funds for ${symbol}: ${lockError.message}`);
                     invalidOrders.push(order);
                   }
                 } else {
@@ -461,7 +449,7 @@ export class MatchingEngine {
               );
 
               if (!buyerWallet) {
-                console.warn(`[ORDERBOOK_VALIDATION] Wallet not found for user ${order.userId}, currency ${quoteCurrency}`);
+                logger.warn("ECO_ENGINE", `Wallet not found for user ${order.userId}, currency ${quoteCurrency}`);
                 invalidOrders.push(order);
                 continue;
               }
@@ -479,7 +467,7 @@ export class MatchingEngine {
                     await updateWalletBalance(buyerWallet, orderCost, "subtract");
                     ordersFixed++;
                   } catch (lockError) {
-                    console.error(`[ORDERBOOK_VALIDATION] Failed to lock funds for ${symbol}:`, lockError.message);
+                    logger.error("ECO_ENGINE", `Failed to lock funds for ${symbol}: ${lockError.message}`);
                     invalidOrders.push(order);
                   }
                 } else {
@@ -489,7 +477,7 @@ export class MatchingEngine {
               }
             }
           } catch (error) {
-            console.error(`[ORDERBOOK_VALIDATION] Error validating order ${order.id}:`, error.message);
+            logger.error("ECO_ENGINE", `Error validating order ${order.id}: ${error.message}`);
             invalidOrders.push(order);
           }
         }
@@ -526,7 +514,7 @@ export class MatchingEngine {
 
               invalidOrdersCancelled++;
             } catch (cancelError) {
-              console.error(`[ORDERBOOK_VALIDATION] Failed to cancel order for ${symbol}:`, cancelError.message);
+              logger.error("ECO_ENGINE", `Failed to cancel order for ${symbol}: ${cancelError.message}`);
             }
           }
         }
@@ -534,9 +522,7 @@ export class MatchingEngine {
 
       // Only log if there were issues
       if (ordersFixed > 0 || invalidOrdersCancelled > 0) {
-        console.log(
-          `[ORDERBOOK_VALIDATION] Fixed ${ordersFixed} orders, cancelled ${invalidOrdersCancelled} invalid orders`
-        );
+        logger.info("ECO_ENGINE", `Fixed ${ordersFixed} orders, cancelled ${invalidOrdersCancelled} invalid orders`);
       }
 
       if (ordersFixed > 0 || invalidOrdersCancelled > 0) {
@@ -585,8 +571,7 @@ export class MatchingEngine {
         }
       }
     } catch (error) {
-      logError("orderbook_validation", error, __filename);
-      console.error(`[ORDERBOOK_VALIDATION] Validation failed:`, error);
+      logger.error("ECO_ENGINE", "Orderbook validation failed", error);
     }
   }
 
@@ -612,7 +597,7 @@ export class MatchingEngine {
         await handleOrderBookBroadcast(symbol, mappedOrderBook[symbol]);
       }
     } catch (error) {
-      console.error("[ORDERBOOK_VALIDATION] Failed to refresh orderbooks:", error);
+      logger.error("ECO_ENGINE", `Failed to refresh orderbooks: ${error}`);
     }
   }
 
@@ -627,8 +612,7 @@ export class MatchingEngine {
         this.lastCandle[candle.symbol][candle.interval] = candle;
       });
     } catch (error) {
-      logError("matching_engine", error, __filename);
-      console.error(`Failed to initialize last candles: ${error}`);
+      logger.error("ECO_ENGINE", "Failed to initialize last candles", error);
     }
   }
 
@@ -643,8 +627,7 @@ export class MatchingEngine {
         }
       });
     } catch (error) {
-      logError("matching_engine", error, __filename);
-      console.error(`Failed to initialize yesterday's candles: ${error}`);
+      logger.error("ECO_ENGINE", "Failed to initialize yesterday's candles", error);
     }
   }
 
@@ -729,9 +712,7 @@ export class MatchingEngine {
   ) {
     const locked = this.lockOrders(ordersToUpdate);
     if (!locked) {
-      console.warn(
-        "Couldn't obtain a lock on all orders, skipping this batch."
-      );
+      logger.warn("ECO_ENGINE", "Couldn't obtain a lock on all orders, skipping this batch.");
       return;
     }
 
@@ -753,11 +734,10 @@ export class MatchingEngine {
       try {
         await client.batch(updateQueries, { prepare: true });
       } catch (error) {
-        logError("matching_engine", error, __filename);
-        console.error("Failed to batch update:", error);
+        logger.error("ECO_ENGINE", "Failed to batch update", error);
       }
     } else {
-      console.warn("No queries to batch update.");
+      logger.warn("ECO_ENGINE", "No queries to batch update.");
     }
 
     this.unlockOrders(ordersToUpdate);
@@ -773,11 +753,7 @@ export class MatchingEngine {
       !order.updatedAt ||
       isNaN(new Date(order.updatedAt).getTime())
     ) {
-      logError(
-        "matching_engine",
-        new Error("Invalid date in order"),
-        __filename
-      );
+      logger.error("ECO_ENGINE", "Invalid date in order", new Error("Invalid date in order"));
       return;
     }
 
@@ -800,8 +776,7 @@ export class MatchingEngine {
     try {
       trades = JSON.parse(order.trades);
     } catch (error) {
-      logError("matching_engine", error, __filename);
-      console.error("Failed to parse trades:", error);
+      logger.error("ECO_ENGINE", "Failed to parse trades", error);
       return [];
     }
 
@@ -814,12 +789,7 @@ export class MatchingEngine {
     } else if (order.price !== undefined) {
       finalPrice = order.price;
     } else {
-      logError(
-        "matching_engine",
-        new Error("Neither trade prices nor order price are available"),
-        __filename
-      );
-      console.error("Neither trade prices nor order price are available");
+      logger.error("ECO_ENGINE", "Neither trade prices nor order price are available", new Error("Neither trade prices nor order price are available"));
       return [];
     }
 

@@ -1,6 +1,7 @@
 import { models, sequelize } from '@b/db'
 import { createError } from '@b/utils/error'
 import { sendFiatTransactionEmail } from '@b/utils/emails'
+import { logger } from '@b/utils/console'
 import {
   validatePaysafeConfig,
   makeApiRequest,
@@ -16,6 +17,8 @@ export const metadata = {
   operationId: 'verifyPaysafePayment',
   tags: ['Finance', 'Deposit', 'Paysafe'],
   requiresAuth: true,
+  logModule: "PAYSAFE_DEPOSIT",
+  logTitle: "Verify Paysafe payment",
   requestBody: {
     required: true,
     content: {
@@ -146,8 +149,8 @@ export default async (data: Handler) => {
         }
       } catch (error) {
         // If no payment found, the payment might still be in handle state
-        console.log('Payment not found, might still be processing:', error.message)
-        
+        logger.warn('PAYSAFE', `Payment not found, might still be processing: ${error.message}`)
+
         return {
           success: true,
           data: {
@@ -269,7 +272,7 @@ export default async (data: Handler) => {
             updatedWallet?.balance || paymentAmount
           )
         } catch (emailError) {
-          console.error('Failed to send confirmation email:', emailError)
+          logger.error('PAYSAFE', 'Failed to send confirmation email', emailError)
           // Don't fail the transaction if email fails
         }
       }
@@ -292,8 +295,8 @@ export default async (data: Handler) => {
     }
 
   } catch (error) {
-    console.error('Paysafe payment verification error:', error)
-    
+    logger.error('PAYSAFE', 'Payment verification error', error)
+
     if (error instanceof PaysafeError) {
       throw createError({
         statusCode: error.status,

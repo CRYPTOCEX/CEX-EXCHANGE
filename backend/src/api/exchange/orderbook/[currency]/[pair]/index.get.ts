@@ -1,5 +1,6 @@
 import { baseOrderBookSchema } from "@b/api/exchange/utils";
 import ExchangeManager from "@b/utils/exchange";
+import { logger } from "@b/utils/console";
 import {
   notFoundMetadataResponse,
   serverErrorResponse,
@@ -17,6 +18,8 @@ export const metadata: OperationObject = {
   operationId: "getMarketOrderBook",
   tags: ["Exchange", "Markets"],
   description: "Retrieves the order book for a specific market pair.",
+  logModule: "EXCHANGE",
+  logTitle: "Get Orderbook for Pair",
   parameters: [
     {
       name: "currency",
@@ -58,10 +61,13 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { currency, pair } = data.params;
-  const limit = data.query.limit ? parseInt(data.query.limit, 10) : 50; // Default to 50 if no limit specified
+  const { params, query, ctx } = data;
+  const { currency, pair } = params;
+  const limit = query.limit ? parseInt(query.limit, 10) : 50; // Default to 50 if no limit specified
+  const symbol = `${currency}/${pair}`;
 
   try {
+    ctx?.step(`Fetching orderbook for ${symbol}`);
     // Check for ban status
     const unblockTime = await loadBanStatus();
     if (await handleBanStatus(unblockTime)) {
@@ -71,7 +77,7 @@ export default async (data: Handler) => {
       );
     }
 
-    const exchange = await ExchangeManager.startExchange();
+    const exchange = await ExchangeManager.startExchange(ctx);
     if (!exchange) {
       throw createError(
         503,
@@ -79,17 +85,15 @@ export default async (data: Handler) => {
       );
     }
 
-    const orderBook = await exchange.fetchOrderBook(
-      `${currency}/${pair}`,
-      limit
-    );
+    const orderBook = await exchange.fetchOrderBook(symbol, limit);
 
+    ctx?.success(`Orderbook retrieved for ${symbol}`);
     return {
       asks: orderBook.asks,
       bids: orderBook.bids,
     };
   } catch (error) {
-    console.error(`Failed to fetch order book: ${error.message}`);
+    logger.error("EXCHANGE", "Failed to fetch order book", error);
     if (error.statusCode === 503) {
       throw error;
     }

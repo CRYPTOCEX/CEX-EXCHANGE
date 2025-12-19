@@ -28,6 +28,9 @@ interface OfferingComparisonMetricsProps {
 export function OfferingComparisonMetrics({
   expanded,
 }: OfferingComparisonMetricsProps) {
+  const t = useTranslations("ext");
+  const tExtAdmin = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const { offerMetrics, platformMetrics } = useAdminOfferStore();
 
   // If either metric is not loaded, show a skeleton.
@@ -94,7 +97,6 @@ export function OfferingComparisonMetrics({
     icon: JSX.Element,
     inverse = false
   ) => {
-    const t = useTranslations("ext");
     const diff = calculateDifference(offeringVal, platformVal);
     const { icon: trendIcon, color } = getPerformanceIndicator(diff, inverse);
 
@@ -108,7 +110,7 @@ export function OfferingComparisonMetrics({
             <div className="flex flex-col">
               <span className="text-sm font-medium">{title}</span>
               <span className="text-xs text-muted-foreground">
-                {t("vs")}. {t("platform_average")}
+                {t("vs")}. {tExtAdmin("platform_average")}
               </span>
             </div>
           </div>
@@ -131,7 +133,7 @@ export function OfferingComparisonMetrics({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger className="text-xs text-muted-foreground whitespace-nowrap">
-                {t("avg")}
+                {tCommon("avg")}
                 {formatValue(platformVal, format)}
               </TooltipTrigger>
               <TooltipContent>

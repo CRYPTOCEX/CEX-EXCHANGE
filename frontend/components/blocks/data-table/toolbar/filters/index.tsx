@@ -32,50 +32,51 @@ export function DataTableFilters() {
     const config = column.render.config;
     const primary = config.primary;
     const secondary = config.secondary;
+    const columnTitle = column.title || "";
 
     return (
       <>
         {primary &&
           (Array.isArray(primary.key) ? (
-            (primary.key as string[]).map((subKey: string, index: number) => (
-              <TextFilter
-                key={`${column.key}-${subKey}`}
-                label={`${column.title} (${
-                  Array.isArray(primary.title)
-                    ? primary.title[index]
-                    : primary.title
-                })`}
-                // If disablePrefixSort is true, use the subKey as is
-                columnKey={
-                  column.disablePrefixSort ? subKey : `${column.key}.${subKey}`
-                }
-                icon={primary.icon}
-                description={
-                  Array.isArray(primary.description)
-                    ? primary.description[index]
-                    : primary.description
-                }
-                onChange={(fieldKey, value, operator) =>
-                  updateFilter(fieldKey, { value, operator })
-                }
-                columnFilters={Object.entries(filters).map(([id, val]) => ({
-                  id,
-                  value: val,
-                }))}
-                db={db}
-              />
-            ))
+            (primary.key as string[]).map((subKey: string, index: number) => {
+              const primaryTitle = Array.isArray(primary.title)
+                ? (primary.title[index] || "")
+                : (primary.title || "");
+              const primaryDescription = Array.isArray(primary.description)
+                ? (primary.description[index] || "")
+                : (primary.description || "");
+              return (
+                <TextFilter
+                  key={`${column.key}-${subKey}`}
+                  label={`${columnTitle} (${primaryTitle})`}
+                  // If disablePrefixSort is true, use the subKey as is
+                  columnKey={
+                    column.disablePrefixSort ? subKey : `${column.key}.${subKey}`
+                  }
+                  icon={primary.icon}
+                  description={primaryDescription}
+                  onChange={(fieldKey, value, operator) =>
+                    updateFilter(fieldKey, { value, operator })
+                  }
+                  columnFilters={Object.entries(filters).map(([id, val]) => ({
+                    id,
+                    value: val,
+                  }))}
+                  db={db}
+                />
+              );
+            })
           ) : (
             <TextFilter
               key={`${column.key}-primary`}
-              label={`${column.title} (${primary.title})`}
+              label={`${columnTitle} (${primary.title || ""})`}
               columnKey={
                 column.disablePrefixSort
                   ? primary.key
                   : `${column.key}.${primary.key}`
               }
               icon={primary.icon}
-              description={primary.description}
+              description={primary.description || ""}
               onChange={(fieldKey, value, operator) =>
                 updateFilter(fieldKey, { value, operator })
               }
@@ -89,14 +90,14 @@ export function DataTableFilters() {
         {secondary && (
           <TextFilter
             key={`${column.key}-${secondary.key}`}
-            label={`${column.title} (${secondary.title})`}
+            label={`${columnTitle} (${secondary.title || ""})`}
             columnKey={
               column.disablePrefixSort
                 ? secondary.key
                 : `${column.key}.${secondary.key}`
             }
             icon={secondary.icon}
-            description={secondary.description}
+            description={secondary.description || ""}
             onChange={(fieldKey, value, operator) =>
               updateFilter(fieldKey, { value, operator })
             }
@@ -116,14 +117,18 @@ export function DataTableFilters() {
       return renderCompoundFilters(column);
     }
 
+    // Use title and description directly (already human-readable)
+    const label = column.title || "";
+    const description = column.description || "";
+
     switch (column.type) {
       case "date":
         return (
           <DateFilter
             key={column.key}
-            label={column.title}
+            label={label}
             columnKey={column.key}
-            description={column.description}
+            description={description}
             onChange={(fieldKey, value) =>
               updateFilterImmediate(fieldKey, value)
             }
@@ -133,10 +138,10 @@ export function DataTableFilters() {
         return (
           <SelectFilter
             key={column.key}
-            label={column.title}
+            label={label}
             columnKey={column.key}
             options={column.options || []}
-            description={column.description}
+            description={description}
             onChange={(fieldKey, value) =>
               updateFilterImmediate(fieldKey, value)
             }
@@ -146,9 +151,9 @@ export function DataTableFilters() {
         return (
           <SwitchFilter
             key={column.key}
-            label={column.title}
+            label={label}
             columnKey={column.key}
-            description={column.description}
+            description={description}
             value={filters[column.key]?.value}
             onChange={(fieldKey, value) =>
               updateFilterImmediate(fieldKey, value)
@@ -159,9 +164,9 @@ export function DataTableFilters() {
         return (
           <RangeFilter
             key={column.key}
-            label={column.title}
+            label={label}
             columnKey={column.key}
-            description={column.description}
+            description={description}
             onChange={(fieldKey, value, operator) =>
               debouncedUpdateFilter(fieldKey, { value, operator })
             }
@@ -174,10 +179,10 @@ export function DataTableFilters() {
         return (
           <MultiSelectFilter
             key={column.key}
-            label={column.title}
+            label={label}
             columnKey={column.key}
             options={column.options || []}
-            description={column.description}
+            description={description}
             onChange={(fieldKey, value) =>
               updateFilterImmediate(fieldKey, value)
             }
@@ -187,10 +192,10 @@ export function DataTableFilters() {
         return (
           <TextFilter
             key={column.key}
-            label={column.title}
+            label={label}
             columnKey={column.key}
             icon={column.icon}
-            description={column.description}
+            description={description}
             onChange={(fieldKey, value, operator) =>
               debouncedUpdateFilter(fieldKey, { value, operator })
             }

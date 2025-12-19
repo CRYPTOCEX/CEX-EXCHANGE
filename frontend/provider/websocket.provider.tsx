@@ -36,22 +36,28 @@ export const WebSocketProvider = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isPlayingRef = useRef(false);
   const lastPlayTimeRef = useRef(0);
-  
-  // Initialize audio only once
+  const audioLoadedRef = useRef(false);
+  const audioUnlockedRef = useRef(false);
+
+  // Initialize audio only once - use lazy loading to prevent glitches on page load
   useEffect(() => {
     if (typeof Audio !== "undefined" && !audioRef.current) {
-      audioRef.current = new Audio("/sound/notification.mp3");
-      audioRef.current.preload = "auto";
+      audioRef.current = new Audio();
+      // Don't set src yet - we'll load it lazily on first user interaction
       audioRef.current.volume = 0.7;
-      
+
       // Add event listeners to track audio state
       audioRef.current.onended = () => {
         isPlayingRef.current = false;
       };
-      
-      audioRef.current.onerror = (e) => {
-        console.warn("Audio failed to load:", e);
+
+      audioRef.current.onerror = () => {
+        audioLoadedRef.current = false;
         isPlayingRef.current = false;
+      };
+
+      audioRef.current.oncanplaythrough = () => {
+        audioLoadedRef.current = true;
       };
     }
   }, []);
@@ -75,32 +81,53 @@ export const WebSocketProvider = ({
     soundEnabledRef.current = soundEnabled;
   }, [soundEnabled]);
 
-  // Effect to unlock audio on first user interaction with throttling
+  // Effect to load and unlock audio on first user interaction (no audible playback)
   useEffect(() => {
-    let isUnlocked = false;
-    
-    const unlockAudio = () => {
-      if (audioRef.current && !isUnlocked) {
-        isUnlocked = true;
-        audioRef.current
-          .play()
-          .then(() => {
-            audioRef.current?.pause();
-            audioRef.current!.currentTime = 0;
-            console.log("Audio unlocked successfully");
-          })
-          .catch((err) => console.warn("Audio unlock failed:", err));
-        document.removeEventListener("click", unlockAudio);
-        document.removeEventListener("touchstart", unlockAudio);
+    const loadAndUnlockAudio = () => {
+      if (audioRef.current && !audioUnlockedRef.current) {
+        audioUnlockedRef.current = true;
+
+        // Set the source and start loading
+        audioRef.current.src = "/sound/notification.mp3";
+        audioRef.current.load();
+
+        // Create a silent AudioContext to unlock audio on iOS/Safari
+        // This is more reliable than play/pause which can cause glitches
+        try {
+          const AudioContext =
+            window.AudioContext || (window as any).webkitAudioContext;
+          if (AudioContext) {
+            const ctx = new AudioContext();
+            // Create and immediately stop a silent buffer to unlock
+            const buffer = ctx.createBuffer(1, 1, 22050);
+            const source = ctx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(ctx.destination);
+            source.start(0);
+            source.stop(0);
+            // Resume context if suspended (required for some browsers)
+            if (ctx.state === "suspended") {
+              ctx.resume();
+            }
+          }
+        } catch {
+          // AudioContext not available, audio should still work on user interaction
+        }
+
+        document.removeEventListener("click", loadAndUnlockAudio);
+        document.removeEventListener("touchstart", loadAndUnlockAudio);
+        document.removeEventListener("keydown", loadAndUnlockAudio);
       }
     };
 
-    document.addEventListener("click", unlockAudio, { once: true });
-    document.addEventListener("touchstart", unlockAudio, { once: true });
-    
+    document.addEventListener("click", loadAndUnlockAudio, { once: true });
+    document.addEventListener("touchstart", loadAndUnlockAudio, { once: true });
+    document.addEventListener("keydown", loadAndUnlockAudio, { once: true });
+
     return () => {
-      document.removeEventListener("click", unlockAudio);
-      document.removeEventListener("touchstart", unlockAudio);
+      document.removeEventListener("click", loadAndUnlockAudio);
+      document.removeEventListener("touchstart", loadAndUnlockAudio);
+      document.removeEventListener("keydown", loadAndUnlockAudio);
     };
   }, []);
 
@@ -109,23 +136,39 @@ export const WebSocketProvider = ({
     if (!soundEnabledRef.current || !audioRef.current || isPlayingRef.current) {
       return;
     }
-    
+
+    // Don't play if audio hasn't been loaded yet (user hasn't interacted)
+    if (!audioUnlockedRef.current) {
+      return;
+    }
+
     const now = Date.now();
     // Throttle audio to prevent spam (min 1 second between notifications)
     if (now - lastPlayTimeRef.current < 1000) {
       return;
     }
-    
+
     lastPlayTimeRef.current = now;
     isPlayingRef.current = true;
-    
+
+    // Reset to start and play
     audioRef.current.currentTime = 0;
-    audioRef.current
-      .play()
-      .catch((err) => {
-        console.warn("Sound blocked by browser:", err);
+
+    // Only play if audio is ready
+    if (audioLoadedRef.current) {
+      audioRef.current.play().catch(() => {
         isPlayingRef.current = false;
       });
+    } else {
+      // Audio not loaded yet, try to load and play
+      audioRef.current.oncanplaythrough = () => {
+        audioLoadedRef.current = true;
+        audioRef.current?.play().catch(() => {
+          isPlayingRef.current = false;
+        });
+      };
+      audioRef.current.load();
+    }
   }, []);
 
   // Create the WebSocketManager only once per userId/config (removed handleNotificationMessage dependency)

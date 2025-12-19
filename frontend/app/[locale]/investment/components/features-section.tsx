@@ -108,7 +108,8 @@ const additionalFeatures = [
 ];
 
 export function FeaturesSection() {
-  const t = useTranslations("common");
+  const t = useTranslations("investment");
+  const tCommon = useTranslations("common");
   return (
     <section className="py-24 bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-950 dark:to-zinc-900">
       <div className="container mx-auto px-4">
@@ -194,7 +195,7 @@ export function FeaturesSection() {
           >
             <div className="text-center mb-12">
               <h3 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-                {t("everything_you_need_to_succeed")}
+                {tCommon("everything_you_need_to_succeed")}
               </h3>
               <p className="text-lg text-zinc-600 dark:text-zinc-300 max-w-2xl mx-auto">
                 {t("our_comprehensive_platform_integrated_solution")}

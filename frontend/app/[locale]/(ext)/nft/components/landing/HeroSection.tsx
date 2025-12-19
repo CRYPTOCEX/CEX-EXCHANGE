@@ -17,9 +17,9 @@ import { Link } from "@/i18n/routing";
 import { useNftStore } from "@/store/nft/nft-store";
 import CountUp from "react-countup";
 import { useTranslations } from "next-intl";
-
 export default function HeroSection() {
-  const t = useTranslations("nft");
+  const t = useTranslations("ext_nft");
+  const tCommon = useTranslations("common");
   const { marketplaceStats, fetchMarketplaceStats } = useNftStore();
   const [mounted, setMounted] = useState(false);
   const [heroSearchQuery, setHeroSearchQuery] = useState("");
@@ -46,7 +46,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-24">
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-20">
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5">
         {/* Animated Gradient Orbs */}
@@ -85,7 +85,7 @@ export default function HeroSection() {
       </div>
 
       {/* Content */}
-      <div className="container relative z-10 px-4 sm:px-6 lg:px-8 py-6">
+      <div className="container relative z-10 py-6">
         <div className="max-w-6xl mx-auto">
           {/* Badge */}
           <motion.div
@@ -138,7 +138,7 @@ export default function HeroSection() {
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder={t("search_nfts_collections_or_creators_ellipsis")}
+                    placeholder={tCommon('search_nfts_collections_or_creators')}
                     className="pl-12 h-12 border-0 bg-transparent focus-visible:ring-0 text-base"
                     value={heroSearchQuery}
                     onChange={(e) => setHeroSearchQuery(e.target.value)}

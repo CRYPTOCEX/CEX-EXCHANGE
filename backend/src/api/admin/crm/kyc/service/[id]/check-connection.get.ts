@@ -1,6 +1,7 @@
 import { createError } from "@b/utils/error";
 import crypto from "crypto";
 import OpenAI from "openai"; // For SumSub branch
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Check Verification Service Connection",
@@ -8,6 +9,8 @@ export const metadata = {
     "Checks the connection status with a specific verification service.",
   operationId: "checkVerificationServiceConnection",
   tags: ["KYC", "Verification Services"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Check verification service connection",
   parameters: [
     {
       index: 0,
@@ -45,24 +48,36 @@ export const metadata = {
   },
 };
 
-export default async (data: { params: { id: string } }): Promise<any> => {
-  try {
-    const { id } = data.params;
+export default async (data: Handler): Promise<any> => {
+  const { params, ctx } = data;
 
+  try {
+    const { id } = params;
+    ctx?.step(`Checking connection to ${id}`);
+
+    let result;
     if (id.startsWith("sumsub")) {
-      return await checkSumSubConnection();
+      result = await checkSumSubConnection();
     } else if (id.startsWith("gemini")) {
-      return await checkGeminiConnection(id);
+      result = await checkGeminiConnection(id);
     } else if (id.startsWith("deepseek")) {
-      return await checkDeepSeekConnection();
+      result = await checkDeepSeekConnection();
     } else {
       throw createError({
         statusCode: 404,
         message: "Verification service not found",
       });
     }
+
+    if (result.connected) {
+      ctx?.success("Connection successful");
+    } else {
+      ctx?.warn(`Connection failed: ${result.message}`);
+    }
+    return result;
   } catch (error: any) {
-    console.error("Error in checkVerificationServiceConnection:", error);
+    ctx?.fail("Failed to check connection");
+    logger.error("KYC", "Error in checkVerificationServiceConnection", error);
     throw createError({
       statusCode: error.statusCode || 500,
       message:

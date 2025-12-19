@@ -12,10 +12,13 @@ import {
 import { forexDurationSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary: "Lists Forex Durations with pagination and optional filtering",
+  summary: "Lists all Forex durations",
+  description: "Retrieves a paginated list of all Forex durations with optional filtering and sorting. Durations define the time periods available for Forex investments.",
   operationId: "listForexDurations",
-  tags: ["Admin", "Forex", "Durations"],
+  tags: ["Admin", "Forex", "Duration"],
   parameters: crudParameters,
+  logModule: "ADMIN_FOREX",
+  logTitle: "Get Forex Durations",
   responses: {
     200: {
       description: "List of Forex Durations with pagination information",
@@ -24,7 +27,7 @@ export const metadata: OperationObject = {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -46,13 +49,17 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching forex durations");
+  const result = await getFiltered({
     model: models.forexDuration,
     query,
     sortField: query.sortField || "duration",
     timestamps: false,
     numericFields: ["duration"],
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} forex durations`);
+  return result;
 };

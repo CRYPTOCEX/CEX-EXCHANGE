@@ -116,7 +116,8 @@ const COMMON_EMOJIS = [
 ];
 
 export function TradeChat({ tradeId, counterparty, wsMessages, onNewMessage }: TradeChatProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -404,7 +405,7 @@ export function TradeChat({ tradeId, counterparty, wsMessages, onNewMessage }: T
                   variant="outline"
                   className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
                 >
-                  {t("Online")}
+                  {tCommon("online")}
                 </Badge>
               </div>
             </div>
@@ -415,7 +416,7 @@ export function TradeChat({ tradeId, counterparty, wsMessages, onNewMessage }: T
                 <div className="flex items-center text-xs text-muted-foreground">
                   <Info className="h-3 w-3 mr-1" />
                   <span>
-                    {t("trade_#")}
+                    {tCommon("trade")}
                     {tradeId}
                   </span>
                 </div>
@@ -580,7 +581,7 @@ export function TradeChat({ tradeId, counterparty, wsMessages, onNewMessage }: T
           </div>
           <Input
             ref={inputRef}
-            placeholder={t("type_your_message_ellipsis")}
+            placeholder={tCommon("type_your_message_ellipsis")}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onFocus={() => {

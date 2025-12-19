@@ -15,6 +15,8 @@ export const metadata: OperationObject = {
   summary: "Lists all p2p offers with pagination and optional filtering",
   operationId: "listP2POffers",
   tags: ["Admin", "P2P", "Offers"],
+  logModule: "P2P",
+  logTitle: "List offers",
   parameters: crudParameters,
   responses: {
     200: {
@@ -43,8 +45,9 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
+  ctx?.step("Fetching active P2P offers");
   // Only show ACTIVE offers in the public marketplace
   // PAUSED offers should not appear in listings
   // Admins can see all offers through the admin panel at /admin/extensions/p2p/offers
@@ -79,5 +82,6 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.success(`Retrieved ${result.pagination?.totalItems || 0} offers`);
   return result;
 };

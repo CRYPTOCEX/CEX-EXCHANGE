@@ -9,11 +9,12 @@ import {
 import { FilterWrapper } from "./filter-wrapper";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface SelectFilterProps {
   label: string;
   columnKey: string;
-  options: { value: string; label: string }[];
+  options: { value: string | number | boolean; label: string }[];
   description?: string;
   onChange: (
     key: string,
@@ -28,11 +29,12 @@ export function SelectFilter({
   description,
   onChange,
 }: SelectFilterProps) {
+  const t = useTranslations("components_blocks");
   const [value, setValue] = React.useState<string | undefined>(undefined);
 
   const handleChange = (newValue: string) => {
     setValue(newValue);
-    const selectedOption = options.find((option) => option.value === newValue);
+    const selectedOption = options.find((option) => String(option.value) === newValue);
     onChange(
       columnKey,
       selectedOption ? { value: newValue, operator: "equal" } : undefined
@@ -64,13 +66,13 @@ export function SelectFilter({
         )}
         <Select value={value || ""} onValueChange={handleChange}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder={`Filter by ${label.toLowerCase()}`} />
+            <SelectValue placeholder={`${t("filter_by")} ${label.toLowerCase()}`} />
           </SelectTrigger>
           <SelectContent>
             {options.map((option) => (
               <SelectItem
-                key={option.value}
-                value={option.value}
+                key={String(option.value)}
+                value={String(option.value)}
                 className="cursor-pointer"
               >
                 {option.label}

@@ -26,7 +26,7 @@ const ErrorBlock = () => {
         <div className="max-w-[740px]">
           <Image
             src={imageSrc}
-            alt="error image"
+            alt={t("error_image")}
             width={740}
             height={400}
             className="w-full h-full object-cover"

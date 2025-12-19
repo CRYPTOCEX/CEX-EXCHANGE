@@ -37,7 +37,10 @@ import { ReleaseDrawer } from "../../components/release/release-drawer";
 import { useTranslations } from "next-intl";
 
 export function TokenReleaseClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
+  const tExtAdmin = useTranslations("ext_admin");
   const params = useParams();
   const tokenId = params.id as string;
   const { toast } = useToast();
@@ -138,8 +141,8 @@ export function TokenReleaseClient() {
 
   const percentageSold = totalSupply > 0 ? (tokensSold / totalSupply) * 100 : 0;
   const percentageRaised =
-    offering.targetAmount > 0
-      ? ((offering.currentRaised ?? 0) / offering.targetAmount) * 100
+    (offering.targetAmount ?? 0) > 0
+      ? ((offering.currentRaised ?? 0) / (offering.targetAmount ?? 0)) * 100
       : 0;
 
   const getStatusColor = (status: string) => {
@@ -156,7 +159,7 @@ export function TokenReleaseClient() {
   return (
     <div className="pb-16">
       {/* Hero Header */}
-      <div className="bg-gradient-to-b from-primary/10 to-background pt-8 pb-6">
+      <div className="bg-gradient-to-b from-primary/10 to-background pb-6 pt-20">
         <div className="container">
           <Link href={`/ico/creator/token/${tokenId}`}>
             <Button variant="ghost" size="sm" className="mb-4">
@@ -253,8 +256,8 @@ export function TokenReleaseClient() {
                       {formatCurrency(offering.currentRaised ?? 0)}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {t("target")}
-                      {formatCurrency(offering.targetAmount)}
+                      {tExtAdmin("target")}
+                      {formatCurrency((offering.targetAmount ?? 0))}
                     </p>
                     <div className="mt-2 h-2 w-full bg-muted rounded-full overflow-hidden">
                       <div
@@ -271,7 +274,7 @@ export function TokenReleaseClient() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium flex items-center gap-2">
                       <Users className="h-4 w-4 text-primary" />
-                      {t("Participants")}
+                      {tExt("participants")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -279,7 +282,7 @@ export function TokenReleaseClient() {
                       {offering.participants}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {t("active_investors")}
+                      {tCommon("active_investors")}
                     </p>
                     <div className="mt-4 flex items-center gap-2">
                       <Badge variant="outline" className="bg-primary/10">
@@ -302,27 +305,27 @@ export function TokenReleaseClient() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-primary" />
-                      {t("Timeline")}
+                      {tCommon("timeline")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground">
-                          {t("start_date")}
+                          {tExt("start_date")}
                         </span>
                         <span>{formatDate(offering.startDate)}</span>
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground">
-                          {t("end_date")}
+                          {tCommon("end_date")}
                         </span>
                         <span>{formatDate(offering.endDate)}</span>
                       </div>
                       {offering.currentPhase && (
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-muted-foreground">
-                            {t("current_phase")}
+                            {tCommon("current_phase")}
                           </span>
                           <span>{offering.currentPhase.name}</span>
                         </div>
@@ -374,7 +377,7 @@ export function TokenReleaseClient() {
                     <Card>
                       <CardHeader>
                         <CardTitle className="text-lg">
-                          {t("current_phase")}
+                          {tCommon("current_phase")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
@@ -449,7 +452,7 @@ export function TokenReleaseClient() {
             >
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle className="h-5 w-5 text-green-500" />
-                <p className="font-medium">{t("Released")}</p>
+                <p className="font-medium">{tCommon("released")}</p>
               </div>
               <p className="text-2xl font-bold">
                 {paginationMeta.released.totalItems}
@@ -464,7 +467,7 @@ export function TokenReleaseClient() {
             >
               <div className="flex items-center gap-2 mb-2">
                 <XCircle className="h-5 w-5 text-red-500" />
-                <p className="font-medium">{t("Rejected")}</p>
+                <p className="font-medium">{tCommon("rejected")}</p>
               </div>
               <p className="text-2xl font-bold">
                 {paginationMeta.rejected.totalItems}
@@ -503,12 +506,12 @@ export function TokenReleaseClient() {
               className="w-full"
             >
               <TabsList className="hidden">
-                <TabsTrigger value="PENDING">{t("Pending")}</TabsTrigger>
+                <TabsTrigger value="PENDING">{tCommon("pending")}</TabsTrigger>
                 <TabsTrigger value="VERIFICATION">
-                  {t("Verification")}
+                  {tExt("verification")}
                 </TabsTrigger>
-                <TabsTrigger value="RELEASED">{t("Released")}</TabsTrigger>
-                <TabsTrigger value="REJECTED">{t("Rejected")}</TabsTrigger>
+                <TabsTrigger value="RELEASED">{tCommon("released")}</TabsTrigger>
+                <TabsTrigger value="REJECTED">{tCommon("rejected")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="PENDING" className="mt-0">

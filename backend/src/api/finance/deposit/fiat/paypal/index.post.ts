@@ -20,6 +20,8 @@ export const metadata: OperationObject = {
   description: "Initiates a PayPal payment process by creating a new order.",
   operationId: "createPayPalPayment",
   tags: ["Finance", "Deposit"],
+  logModule: "PAYPAL_DEPOSIT",
+  logTitle: "Create PayPal payment",
   requestBody: {
     description: "Payment information and application type",
     content: {
@@ -47,19 +49,23 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user?.id) throw new Error("Unauthorized");
 
   const { amount, currency } = body;
 
+  ctx?.step("Fetching payment gateway configuration");
   const paypalGateway = await models.depositGateway.findOne({
     where: { alias: "paypal", status: true },
   });
 
   if (!paypalGateway) {
+    ctx?.fail("Payment gateway not found");
     throw new Error("PayPal gateway not found");
   }
 
+  ctx?.step("Calculating fees");
   const fixedFee = paypalGateway.fixedFee || 0;
   const percentageFee = paypalGateway.percentageFee || 0;
   const taxAmount = Math.max(
@@ -121,6 +127,7 @@ export default async (data: Handler) => {
 
   try {
     const ordersController = paypalOrdersController();
+    ctx?.step("Creating PayPal order");
     const { result: order } = await ordersController.createOrder({
       body: orderRequest,
     });

@@ -80,7 +80,8 @@ const benefits = [
 ];
 
 export function HowItWorksSection() {
-  const t = useTranslations("common");
+  const t = useTranslations("investment");
+  const tCommon = useTranslations("common");
   const { stats, statsLoading } = useInvestmentStore();
 
   // Format currency
@@ -113,13 +114,13 @@ export function HowItWorksSection() {
               className="inline-flex items-center gap-2 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800 rounded-full px-4 py-2 text-sm font-medium text-green-700 dark:text-green-300 mb-6"
             >
               <BarChart3 className="w-4 h-4" />
-              {t("simple_process")}
+              {tCommon("simple_process")}
             </motion.div>
 
             <h2 className="text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               {t("how_it")}{" "}
               <span className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                {t("Works")}
+                {t("works")}
               </span>
             </h2>
 
@@ -245,7 +246,7 @@ export function HowItWorksSection() {
                       : "$0"}
                 </div>
                 <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {t("total_invested")}
+                  {tCommon("total_invested")}
                 </div>
               </motion.div>
               <motion.div
@@ -263,7 +264,7 @@ export function HowItWorksSection() {
                       : "0"}
                 </div>
                 <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {t("active_investors")}
+                  {tCommon("active_investors")}
                 </div>
               </motion.div>
               <motion.div
@@ -277,7 +278,7 @@ export function HowItWorksSection() {
                   {statsLoading ? "..." : stats ? `${stats.totalPlans}+` : "0+"}
                 </div>
                 <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {t("investment_plans")}
+                  {tCommon("investment_plans")}
                 </div>
               </motion.div>
             </div>

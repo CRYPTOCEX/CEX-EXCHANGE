@@ -38,7 +38,8 @@ export function TradeEscrow({
   onDisputeTrade,
   loading = false,
 }: TradeEscrowProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
   const currencySymbol = getCurrencySymbol(trade.offer?.priceCurrency || "USD");
 
   // Backend uses: PENDING, PAYMENT_SENT, COMPLETED, CANCELLED, DISPUTED
@@ -118,7 +119,7 @@ export function TradeEscrow({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        {t("escrow_fee")}
+                        {tExt("escrow_fee")}
                       </span>
                       <span className="font-medium">
                         {trade.escrowFee ? `${trade.escrowFee} ${trade.coin}` : `${(trade.amount * 0.002).toFixed(8)} ${trade.coin}`}
@@ -136,7 +137,7 @@ export function TradeEscrow({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        {t("auto-release")}
+                        {t("auto_release")}
                       </span>
                       <Badge
                         variant="outline"
@@ -190,7 +191,7 @@ export function TradeEscrow({
               <Shield className="h-6 w-6 text-muted-foreground" />
             </div>
             <h3 className="font-medium">
-              {t("Escrow")}
+              {t("escrow")}
               {isCompleted(trade.status) ? " Released" : " Not Active"}
             </h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">

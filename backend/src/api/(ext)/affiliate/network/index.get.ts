@@ -15,6 +15,8 @@ export const metadata = {
   operationId: "getAffiliateNetworkNode",
   tags: ["Affiliate", "Network"],
   requiresAuth: true,
+  logModule: "AFFILIATE",
+  logTitle: "Get affiliate network tree",
   responses: {
     200: { description: "Network data retrieved successfully." },
     401: { description: "Unauthorized – login required." },
@@ -28,11 +30,13 @@ interface Handler {
 }
 
 export default async function handler(data: Handler) {
-  const { user } = data;
+  const { user, ctx } = data as any;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Loading MLM system settings from cache");
   // Load MLM settings
   const cache = CacheManager.getInstance();
   const mlmSettingsRaw = await cache.getSetting("mlmSettings");
@@ -43,6 +47,7 @@ export default async function handler(data: Handler) {
     | "UNILEVEL"
     | null;
 
+  ctx?.step("Fetching user profile data");
   // Fetch user record
   const userRecord = await models.user.findByPk(user.id, {
     attributes: [
@@ -59,6 +64,7 @@ export default async function handler(data: Handler) {
     throw createError({ statusCode: 404, message: "User not found" });
   }
 
+  ctx?.step("Building user profile");
   // Build base profile
   const userProfile = {
     id: userRecord.id,
@@ -69,6 +75,7 @@ export default async function handler(data: Handler) {
     joinDate: userRecord.createdAt.toISOString(),
   };
 
+  ctx?.step("Calculating total rewards");
   // Total rewards sum
   const rewardsRow = await models.mlmReferralReward.findOne({
     attributes: [[fn("SUM", col("reward")), "totalRewards"]],
@@ -77,6 +84,7 @@ export default async function handler(data: Handler) {
   });
   const totalRewards = parseFloat(rewardsRow?.totalRewards as any) || 0;
 
+  ctx?.step("Looking up upline referrer");
   // Upline lookup
   let upline: any = null;
   const upr = await models.mlmReferral.findOne({
@@ -121,19 +129,21 @@ export default async function handler(data: Handler) {
     };
   }
 
+  ctx?.step(`Fetching ${mlmSystem || 'DIRECT'} network tree data`);
   // Fetch raw tree data
   let treeDataRaw: any;
   switch (mlmSystem) {
     case "BINARY":
-      treeDataRaw = await listBinaryReferrals(userRecord, mlmSettings);
+      treeDataRaw = await listBinaryReferrals(userRecord, mlmSettings, ctx);
       break;
     case "UNILEVEL":
-      treeDataRaw = await listUnilevelReferrals(userRecord, mlmSettings);
+      treeDataRaw = await listUnilevelReferrals(userRecord, mlmSettings, ctx);
       break;
     default:
-      treeDataRaw = await listDirectReferrals(userRecord);
+      treeDataRaw = await listDirectReferrals(userRecord, ctx);
   }
 
+  ctx?.step("Normalizing network tree structure");
   // Recursive normalization with depth limit to prevent memory exhaustion
   function normalizeNode(n: any, level = 0, visited = new Set()): any {
     // Prevent infinite recursion and memory leaks
@@ -221,6 +231,7 @@ export default async function handler(data: Handler) {
     role: "You",
   };
 
+  ctx?.success(`Retrieved ${mlmSystem || 'DIRECT'} network tree with ${treeData.teamSize || 0} team members`);
   return {
     user: enrichedUser,
     totalRewards,

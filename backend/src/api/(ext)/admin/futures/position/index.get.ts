@@ -1,10 +1,10 @@
 import { crudParameters, paginationSchema } from "@b/utils/constants";
 import {
   unauthorizedResponse,
-  notFoundMetadataResponse,
   serverErrorResponse,
-} from "@b/utils/query";
-import { positionSchema } from "./utils"; // Adjust as needed
+  notFoundResponse,
+} from "@b/utils/schema/errors";
+import { positionSchema } from "./utils";
 
 // Safe import for ecosystem modules
 let getFiltered: any;
@@ -15,10 +15,12 @@ try {
   // Ecosystem extension not available
 }
 
-export const metadata = {
-  summary: "List all futures positions",
+export const metadata: OperationObject = {
+  summary: "Lists all futures positions with pagination and filtering",
   operationId: "listFuturesPositions",
-  tags: ["Admin", "Futures Positions"],
+  tags: ["Admin", "Futures", "Position"],
+  description:
+    "Retrieves a paginated list of all futures positions from ScyllaDB with support for filtering, sorting, and search. Returns position details including side, entry price, amount, leverage, unrealized PnL, stop loss, take profit, and associated user information.",
   parameters: crudParameters,
   responses: {
     200: {
@@ -32,32 +34,26 @@ export const metadata = {
                 type: "array",
                 items: { type: "object", properties: positionSchema },
               },
-              pagination: {
-                type: "object",
-                properties: {
-                  totalItems: { type: "number" },
-                  currentPage: { type: "number" },
-                  perPage: { type: "number" },
-                  totalPages: { type: "number" },
-                },
-              },
+              pagination: paginationSchema,
             },
           },
         },
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("Futures Positions"),
+    404: notFoundResponse("Futures Positions"),
     500: serverErrorResponse,
   },
-  permission: "view.futures.position",
   requiresAuth: true,
+  permission: "view.futures.position",
+  logModule: "ADMIN_FUTURES",
+  logTitle: "List futures positions",
 };
 
 const keyspace = process.env.SCYLLA_FUTURES_KEYSPACE || "futures";
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
   if (!getFiltered) {
     return {
@@ -66,6 +62,7 @@ export default async (data: Handler) => {
     };
   }
 
+  ctx?.step("Fetching futures positions");
   const table = "position"; // Note: table name is "position" (singular) as created
   const partitionKeys = ["userId"];
 
@@ -90,5 +87,6 @@ export default async (data: Handler) => {
     nonStringLikeColumns: ["userId"],
   });
 
+  ctx?.success(`Retrieved ${result.items.length} futures positions`);
   return result;
 };

@@ -13,6 +13,7 @@ import { getWalletSafe } from "@b/api/finance/wallet/utils";
 import { removeOrderFromTrackedOrders } from "../index.ws";
 import { createError } from "@b/utils/error";
 import { formatWaitTime, handleBanStatus, loadBanStatus } from "../../utils";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Cancel Order",
@@ -51,15 +52,18 @@ export const metadata: OperationObject = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "EXCHANGE",
+  logTitle: "Cancel exchange order",
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
   if (!user?.id) throw createError(401, "Unauthorized");
   const { id } = params;
 
   try {
     // Check for ban status
+    ctx?.step("Checking service availability");
     const unblockTime = await loadBanStatus();
     if (await handleBanStatus(unblockTime)) {
       const waitTime = unblockTime - Date.now();
@@ -71,6 +75,7 @@ export default async (data: Handler) => {
       );
     }
 
+    ctx?.step("Fetching order details");
     const order = await getOrder(id);
     if (!order) throw createError(404, "Order not found");
 
@@ -79,11 +84,13 @@ export default async (data: Handler) => {
 
     if (order.userId !== user.id) throw createError(401, "Unauthorized");
 
-    const exchange = await ExchangeManager.startExchange();
+    ctx?.step("Connecting to exchange");
+    const exchange = await ExchangeManager.startExchange(ctx);
     if (!exchange) throw createError(503, "Service currently unavailable");
 
     try {
       // Fetch the latest order data from the exchange
+      ctx?.step("Fetching latest order status from exchange");
       let orderData;
       if (exchange.has["fetchOrder"]) {
         orderData = await exchange.fetchOrder(order.referenceId, order.symbol);
@@ -96,6 +103,7 @@ export default async (data: Handler) => {
         throw createError(404, "Order not found");
 
       // Update the order in your database with the latest status
+      ctx?.step("Updating local order status");
       await updateOrderData(id, {
         status: orderData.status.toUpperCase(),
         filled: orderData.filled,
@@ -110,15 +118,18 @@ export default async (data: Handler) => {
 
       const [currency, pair] = order.symbol.split("/");
 
-      const currencyWallet = await getWalletSafe(user.id, "SPOT", currency);
-      const pairWallet = await getWalletSafe(user.id, "SPOT", pair);
+      ctx?.step(`Fetching wallets for ${currency} and ${pair}`);
+      const currencyWallet = await getWalletSafe(user.id, "SPOT", currency, false, ctx);
+      const pairWallet = await getWalletSafe(user.id, "SPOT", pair, false, ctx);
 
       if (!currencyWallet || !pairWallet)
         throw createError(500, "Failed to fetch wallets");
 
       // Refund the amount initially deducted
+      ctx?.step("Cancelling order on exchange");
       await exchange.cancelOrder(order.referenceId, order.symbol);
 
+      ctx?.step("Refunding wallet balance and removing order");
       await sequelize.transaction(async (transaction) => {
         if (order.side.toUpperCase() === "BUY") {
           // Refund cost to pairWallet (e.g., USDT)
@@ -145,15 +156,16 @@ export default async (data: Handler) => {
 
       removeOrderFromTrackedOrders(user.id, id);
 
+      ctx?.success(`Order cancelled successfully: ${order.side} ${order.amount} ${order.symbol}`);
       return {
         message: "Order cancelled successfully",
       };
     } catch (error) {
-      console.error("Error:", error);
+      logger.error("EXCHANGE", "Error cancelling order", error);
       throw new Error(error.message);
     }
   } catch (error) {
-    console.error("Error:", error);
+    logger.error("EXCHANGE", "Error processing order cancellation", error);
     if (error.statusCode === 503) {
       throw error;
     } else {

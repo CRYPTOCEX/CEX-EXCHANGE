@@ -11,7 +11,9 @@ import {
 import { useTranslations } from "next-intl";
 
 export default function ConfigurationSection() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-6">
       {/* Overview */}
@@ -48,7 +50,7 @@ export default function ConfigurationSection() {
                     <p className="text-sm text-muted-500 mt-1">
                       {t("master_switch_for_all_ai_market_maker")} {t("when_disabled_all_bots_stop_and")}
                     </p>
-                    <p className="text-xs text-blue-500 mt-2">
+                    <p className="text-xs text-purple-500 mt-2">
                       <Icon icon="mdi:lightbulb" className="w-3 h-3 inline mr-1" />
                       {t("use_this_for_scheduled_maintenance_or")}
                     </p>
@@ -59,14 +61,14 @@ export default function ConfigurationSection() {
                     <p className="text-sm text-muted-500 mt-1">
                       {t("pauses_all_markets_without_fully_stopping_them")} {t("bots_remain_ready_and_can_resume_quickly")}
                     </p>
-                    <p className="text-xs text-blue-500 mt-2">
+                    <p className="text-xs text-purple-500 mt-2">
                       <Icon icon="mdi:lightbulb" className="w-3 h-3 inline mr-1" />
                       {t("use_during_high_volatility_periods_or")}
                     </p>
                   </div>
 
                   <div className="border-l-2 border-red-500 pl-4">
-                    <h5 className="font-medium text-muted-800 dark:text-muted-100">{t("maintenance_mode")}</h5>
+                    <h5 className="font-medium text-muted-800 dark:text-muted-100">{tExt("maintenance_mode")}</h5>
                     <p className="text-sm text-muted-500 mt-1">
                       {t("completely_halts_trading_and_prevents_any")} {t("use_for_system_updates")}
                     </p>
@@ -79,23 +81,23 @@ export default function ConfigurationSection() {
               <AccordionTrigger>{t("bot_limits")}</AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-4 p-2">
-                  <div className="border-l-2 border-blue-500 pl-4">
+                  <div className="border-l-2 border-purple-500 pl-4">
                     <h5 className="font-medium text-muted-800 dark:text-muted-100">{t("max_concurrent_bots")}</h5>
                     <p className="text-sm text-muted-500 mt-1">
                       {t("maximum_number_of_bots_running_simultaneously")}
                     </p>
                     <div className="mt-2 p-2 bg-muted-100 dark:bg-muted-800 rounded text-xs">
-                      <strong>{t("recommended")}</strong> {t("_50_for_small_deployments_100")}
+                      <strong>{tCommon("recommended")}</strong> {t("n_50_for_small_deployments_100")}
                     </div>
                   </div>
 
-                  <div className="border-l-2 border-blue-500 pl-4">
+                  <div className="border-l-2 border-purple-500 pl-4">
                     <h5 className="font-medium text-muted-800 dark:text-muted-100">{t("bot_intervals")}</h5>
                     <p className="text-sm text-muted-500 mt-1">
                       {t("min_max_time_between_bot_actions")} {t("lower_values_more_activity_but_higher_server_load")}
                     </p>
                     <div className="mt-2 p-2 bg-muted-100 dark:bg-muted-800 rounded text-xs">
-                      <strong>{t("recommended")}</strong> {t("min_1000ms_max_30000ms")}
+                      <strong>{tCommon("recommended")}</strong> {t("min_1000ms_max_30000ms")}
                     </div>
                   </div>
                 </div>
@@ -103,11 +105,11 @@ export default function ConfigurationSection() {
             </AccordionItem>
 
             <AccordionItem value="risk-management">
-              <AccordionTrigger>{t("risk_management")}</AccordionTrigger>
+              <AccordionTrigger>{tCommon("risk_management")}</AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-4 p-2">
                   <div className="border-l-2 border-red-500 pl-4">
-                    <h5 className="font-medium text-muted-800 dark:text-muted-100">{t("max_daily_loss")}</h5>
+                    <h5 className="font-medium text-muted-800 dark:text-muted-100">{tExt("max_daily_loss")}</h5>
                     <p className="text-sm text-muted-500 mt-1">
                       {t("percentage_of_tvl_if_daily_losses")}
                     </p>
@@ -122,7 +124,7 @@ export default function ConfigurationSection() {
                       {t("price_volatility_percentage_that_triggers_automatic")} {t("protects_during_flash_crashes")}
                     </p>
                     <div className="mt-2 p-2 bg-muted-100 dark:bg-muted-800 rounded text-xs">
-                      <strong>{t("recommended")}</strong> {t("_5_15_depending_on_asset_volatility")}
+                      <strong>{tCommon("recommended")}</strong> {t("n_5_15_depending_on_asset_volatility")}
                     </div>
                   </div>
 
@@ -170,18 +172,18 @@ export default function ConfigurationSection() {
                     <div className="p-3 bg-muted-50 dark:bg-muted-800/50 rounded-lg">
                       <h5 className="font-medium text-sm text-muted-800 dark:text-muted-100">{t("aggression_level")}</h5>
                       <p className="text-xs text-muted-500 mt-1">
-                        {t("how_aggressively_to_move_toward_target_options")} <strong>Conservative</strong> {t("slow_natural_movement")}{" "}
-                        <strong>Moderate</strong> {t("balanced_approach_or")} <strong>Aggressive</strong> {t("faster_but_less_natural")}
+                        {t("how_aggressively_to_move_toward_target_options")} <strong>Conservative</strong> ({t("slow_natural_movement")}),{" "}
+                        <strong>Moderate</strong> ({t("balanced_approach_or")}), or <strong>Aggressive</strong> ({t("faster_but_less_natural")}).
                       </p>
                     </div>
                   </div>
 
-                  <div className="p-3 bg-blue-500/10 dark:bg-blue-500/20 rounded-lg">
+                  <div className="p-3 bg-purple-500/10 dark:bg-purple-500/20 rounded-lg">
                     <div className="flex gap-2">
-                      <Icon icon="mdi:information" className="w-5 h-5 text-blue-500 shrink-0" />
+                      <Icon icon="mdi:information" className="w-5 h-5 text-purple-500 shrink-0" />
                       <div>
-                        <h5 className="font-medium text-sm text-blue-700 dark:text-blue-300">{t("when_to_update_target_price")}</h5>
-                        <ul className="text-xs text-blue-600 dark:text-blue-400 mt-1 list-disc list-inside">
+                        <h5 className="font-medium text-sm text-purple-700 dark:text-purple-300">{t("when_to_update_target_price")}</h5>
+                        <ul className="text-xs text-purple-600 dark:text-purple-400 mt-1 list-disc list-inside">
                           <li>{t("when_fundamental_value_of_the_asset_changes")}</li>
                           <li>{t("to_respond_to_market_conditions")}</li>
                           <li>{t("during_planned_price_adjustments")}</li>
@@ -219,7 +221,7 @@ export default function ConfigurationSection() {
                         <tr className="border-b">
                           <td className="py-2 px-3 font-medium">Normal</td>
                           <td className="py-2 px-3">0.3% - 0.8%</td>
-                          <td className="py-2 px-3 text-muted-500">{t("most_markets_recommended")}</td>
+                          <td className="py-2 px-3 text-muted-500">{t("most_markets_recommended")} ({tCommon("recommended")})</td>
                         </tr>
                         <tr className="border-b">
                           <td className="py-2 px-3 font-medium">Wide</td>
@@ -273,8 +275,8 @@ export default function ConfigurationSection() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center">
-              <Icon icon="mdi:water" className="w-5 h-5 text-blue-500" />
+            <div className="w-10 h-10 rounded-lg bg-purple-500/10 dark:bg-purple-500/20 flex items-center justify-center">
+              <Icon icon="mdi:water" className="w-5 h-5 text-purple-500" />
             </div>
             <h3 className="text-lg font-semibold text-muted-800 dark:text-muted-100">
               {t("liquidity_pool_settings")}
@@ -299,7 +301,7 @@ export default function ConfigurationSection() {
 
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <Icon icon="mdi:currency-usd" className="w-5 h-5 text-blue-500" />
+                  <Icon icon="mdi:currency-usd" className="w-5 h-5 text-purple-500" />
                   <h5 className="font-medium text-muted-800 dark:text-muted-100">{t("quote_balance")}</h5>
                 </div>
                 <p className="text-xs text-muted-500">

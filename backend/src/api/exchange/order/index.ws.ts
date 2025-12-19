@@ -3,7 +3,7 @@ import { hasClients, messageBroker } from "@b/handler/Websocket";
 import { models } from "@b/db";
 import { getWalletSafe } from "@b/api/finance/wallet/utils";
 import { updateWalletQuery } from "./index.post";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import {
   loadBanStatus,
   saveBanStatus,
@@ -93,7 +93,7 @@ class OrderHandler {
         await updateWalletQuery(pairWallet.id, newBalance);
       }
     } catch (error) {
-      logError("wallet", error, __filename);
+      logger.error("EXCHANGE", "Failed to update wallet balance", error);
     }
   }
 
@@ -255,7 +255,7 @@ class OrderHandler {
         { where: { referenceId: orderId } }
       );
     } catch (error) {
-      logError("exchange", error, __filename);
+      logger.error("EXCHANGE", "Failed to update order", error);
     }
   }
 
@@ -266,7 +266,7 @@ class OrderHandler {
         force: true,
       });
     } catch (error) {
-      logError("exchange", error, __filename);
+      logger.error("EXCHANGE", "Failed to remove order", error);
     }
   }
 
@@ -452,7 +452,7 @@ class OrderHandler {
             this.stopInterval();
           }
         } catch (error) {
-          logError("exchange", error, __filename);
+          logger.error("EXCHANGE", "Error fetching orders for user", error);
           symbols = symbols.filter((s) => s !== symbol);
           const filteredOrders = userOrders.filter(
             (order) => order.symbol !== symbol

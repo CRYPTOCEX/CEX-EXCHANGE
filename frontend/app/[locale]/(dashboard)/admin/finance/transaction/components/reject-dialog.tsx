@@ -30,28 +30,29 @@ export const RejectDialog: React.FC<RejectDialogProps> = ({
   onReject,
   isLoading,
 }) => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="sm">
         <DialogHeader>
-          <DialogTitle>{t("reject_transaction")}</DialogTitle>
+          <DialogTitle>{tCommon("reject_transaction")}</DialogTitle>
         </DialogHeader>
         <DialogDescription>
           {t("provide_a_reason_for_rejection")}.{" "}
           {t("this_message_will_current_metadata")}.
         </DialogDescription>
         <Textarea
-          title="Rejection Reason"
+          title={tCommon("rejection_reason")}
           value={rejectionMessage}
           onChange={onRejectionMessageChange}
           rows={6}
-          placeholder="Enter rejection reason"
+          placeholder={tCommon("enter_rejection_reason")}
           className="w-full p-2 border-zinc-200 dark:border-zinc-700 rounded-md"
         />
         <DialogFooter>
           <Button color="destructive" onClick={onReject} disabled={isLoading}>
-            {t("reject_transaction")}
+            {tCommon("reject_transaction")}
           </Button>
         </DialogFooter>
       </DialogContent>

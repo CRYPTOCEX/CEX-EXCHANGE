@@ -18,7 +18,8 @@ import { Info, Shield, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function UserRequirementsStep() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
   const { tradeData, updateTradeData, markStepComplete, currentStep } =
     useWizard();
   const [minCompletedTrades, setMinCompletedTrades] = useState<number>(0);
@@ -150,7 +151,7 @@ export function UserRequirementsStep() {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <Label htmlFor="min-success-rate">
-                  {t("minimum_success_rate")}
+                  {`${t("minimum_success_rate")} (%)`}
                 </Label>
                 <Badge variant="outline">
                   {minSuccessRate > 0 ? `${minSuccessRate}%` : "No minimum"}
@@ -176,7 +177,7 @@ export function UserRequirementsStep() {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Shield className="h-4 w-4 text-primary" />
-            {t("trust_&_security_requirements")}
+            {t("trust_security_requirements")}
           </CardTitle>
           <CardDescription>
             {t("set_additional_security_potential_counterparties")}
@@ -187,7 +188,7 @@ export function UserRequirementsStep() {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <Label htmlFor="min-account-age">
-                  {t("minimum_account_age")}
+                  {tCommon('minimum_account_age_days')}
                 </Label>
                 <Badge variant="outline">
                   {formatAccountAge(minAccountAge)}

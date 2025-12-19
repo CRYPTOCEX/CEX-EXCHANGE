@@ -24,6 +24,7 @@ import {
   Languages,
 } from "lucide-react";
 import { useVerificationServiceStore } from "@/store/verification-service-store";
+import { useTranslations } from "next-intl";
 interface VerificationServicesViewProps {
   currentLevel: KycLevel | null;
   onUpdateLevel: (updatedLevel: KycLevel) => void;
@@ -205,6 +206,8 @@ export function VerificationServicesView({
   onUpdateLevel,
   onBack,
 }: VerificationServicesViewProps) {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const {
     services = [],
     fetchServices,
@@ -433,7 +436,7 @@ export function VerificationServicesView({
           <h1 className="text-3xl font-bold mb-6">KYC Verification Services</h1>
           <Alert className="mb-6 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800">
             <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-            <AlertTitle className="text-red-900 dark:text-red-100">Error Loading Verification Services</AlertTitle>
+            <AlertTitle className="text-red-900 dark:text-red-100">{t("error_loading_verification_services")}</AlertTitle>
             <AlertDescription className="text-red-700 dark:text-red-300">{error}</AlertDescription>
           </Alert>
           <Button onClick={fetchServices}>Retry</Button>
@@ -452,7 +455,7 @@ export function VerificationServicesView({
               onClick={handleDisconnect}
               className="ml-auto"
             >
-              Disconnect Service
+              {t("disconnect_service")}
             </Button>
           )}
         </div>
@@ -463,8 +466,7 @@ export function VerificationServicesView({
             KYC Verification Service Integration
           </h2>
           <p className="text-muted-foreground">
-            Select a verification service and template to automate KYC
-            verification
+            {t("select_a_verification_kyc_verification")}
           </p>
         </div>
 
@@ -532,11 +534,11 @@ export function VerificationServicesView({
                           <>
                             <div className="flex items-center">
                               <Globe className="h-4 w-4 mr-2" />
-                              All countries
+                              {t("all_countries")}
                             </div>
                             <div className="flex items-center">
                               <Languages className="h-4 w-4 mr-2" />
-                              All languages
+                              {t("all_languages")}
                             </div>
                             <div className="flex items-center">
                               <BrainCircuit className="h-4 w-4 mr-2" />
@@ -547,7 +549,7 @@ export function VerificationServicesView({
                           <>
                             <div className="flex items-center">
                               <Globe className="h-4 w-4 mr-2" />
-                              200+ countries
+                              {`200+ ${tCommon('countries')}`}
                             </div>
                             <div className="flex items-center">
                               <Layers className="h-4 w-4 mr-2" />
@@ -555,7 +557,7 @@ export function VerificationServicesView({
                             </div>
                             <div className="flex items-center">
                               <Shield className="h-4 w-4 mr-2" />
-                              Requires API Key
+                              {t("requires_api_key")}
                             </div>
                           </>
                         )}
@@ -588,8 +590,7 @@ export function VerificationServicesView({
                     {selectedService.name} API Connection
                   </h3>
                   <p className="text-muted-foreground">
-                    This service requires API credentials configured in your
-                    .env file.
+                    {t("this_service_requires_api_credentials_configured")}
                   </p>
                 </div>
 
@@ -597,7 +598,7 @@ export function VerificationServicesView({
                   {connectionStatus === "error" && !missingEnvVars?.length && (
                     <Alert className="bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800">
                       <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                      <AlertTitle className="text-red-900 dark:text-red-100">Connection Failed</AlertTitle>
+                      <AlertTitle className="text-red-900 dark:text-red-100">{t("connection_failed")}</AlertTitle>
                       <AlertDescription className="text-red-700 dark:text-red-300">{connectionError}</AlertDescription>
                     </Alert>
                   )}
@@ -605,7 +606,7 @@ export function VerificationServicesView({
                   {connectionStatus === "success" && (
                     <Alert className="bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800">
                       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                      <AlertTitle className="text-green-900 dark:text-green-100">Connection Successful</AlertTitle>
+                      <AlertTitle className="text-green-900 dark:text-green-100">{t("connection_successful")}</AlertTitle>
                       <AlertDescription className="text-green-700 dark:text-green-300">
                         API credentials verified successfully.
                       </AlertDescription>
@@ -616,15 +617,15 @@ export function VerificationServicesView({
                     <div className="space-y-4">
                       <Alert className="bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800">
                         <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                        <AlertTitle className="text-amber-900 dark:text-amber-100">Missing Environment Variables</AlertTitle>
+                        <AlertTitle className="text-amber-900 dark:text-amber-100">{t("missing_environment_variables")}</AlertTitle>
                         <AlertDescription className="text-amber-700 dark:text-amber-300">
-                          The following environment variables are required but not configured:
+                          {t("the_following_environment_variables_are_required")}:
                         </AlertDescription>
                       </Alert>
 
                       <div className="bg-amber-50/50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
                         <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-3">
-                          Required Variables:
+                          {t("required_variables_1")}:
                         </h4>
                         <ul className="space-y-2">
                           {missingEnvVars.map((envVar) => (
@@ -641,21 +642,21 @@ export function VerificationServicesView({
                       <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                         <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-2">
                           <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                          How to Configure:
+                          {t("how_to_configure_1")}:
                         </h4>
                         <ol className="space-y-2 list-decimal pl-5 text-sm text-blue-800 dark:text-blue-200">
                           <li>
-                            Edit your{" "}
+                            {tCommon("edit_your")}{" "}
                             <code className="bg-blue-100 dark:bg-blue-900/40 text-blue-900 dark:text-blue-100 px-2 py-0.5 rounded font-mono">
                               .env
                             </code>{" "}
                             file
                           </li>
-                          <li>Add the variables with their values</li>
-                          <li>Restart your server</li>
+                          <li>{t("add_the_variables_with_their_values")}</li>
+                          <li>{t("restart_your_server")}</li>
                         </ol>
                         <div className="mt-3 bg-blue-100 p-3 rounded-md">
-                          <p className="text-xs font-medium mb-1">Example:</p>
+                          <p className="text-xs font-medium mb-1">{t("example_1")}:</p>
                           <pre className="text-xs overflow-x-auto p-2 bg-blue-200 rounded">
                             {selectedService.type === "SUMSUB" ||
                             selectedService.id.startsWith("sumsub")
@@ -670,11 +671,9 @@ export function VerificationServicesView({
                   {isGeminiService && (
                     <Alert className="bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800">
                       <BrainCircuit className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                      <AlertTitle className="text-indigo-900 dark:text-indigo-100">Gemini AI Verification</AlertTitle>
+                      <AlertTitle className="text-indigo-900 dark:text-indigo-100">{t("gemini_ai_verification")}</AlertTitle>
                       <AlertDescription className="text-indigo-700 dark:text-indigo-300">
-                        Gemini requires an API key to access its AI-powered
-                        document verification capabilities. Ensure your KYC form
-                        includes document uploads for analysis.
+                        {t("gemini_requires_an_api_key_to")} {t("ensure_your_kyc_form_includes_document")}
                       </AlertDescription>
                     </Alert>
                   )}
@@ -693,11 +692,11 @@ export function VerificationServicesView({
 
                   <Alert className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
                     <Info className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                    <AlertTitle className="text-slate-900 dark:text-slate-100">Where to Get Credentials</AlertTitle>
+                    <AlertTitle className="text-slate-900 dark:text-slate-100">{t("where_to_get_credentials")}</AlertTitle>
                     <AlertDescription className="text-slate-700 dark:text-slate-300">
                       <p className="mb-3">
-                        Obtain your API credentials from your{" "}
-                        <span className="font-semibold">{selectedService.name}</span> dashboard.
+                        {t("obtain_your_api_credentials_from_your")}{" "}
+                        <span className="font-semibold">{selectedService.name}</span> {tCommon("dashboard")}
                       </p>
                       <Button
                         variant="default"
@@ -713,7 +712,7 @@ export function VerificationServicesView({
                           )
                         }
                       >
-                        View Docs <ExternalLink className="ml-1 h-3 w-3" />
+                        {tCommon("view_docs")} <ExternalLink className="ml-1 h-3 w-3" />
                       </Button>
                     </AlertDescription>
                   </Alert>
@@ -762,10 +761,9 @@ export function VerificationServicesView({
                   {isGeminiService && (
                     <Alert className="mt-4 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800">
                       <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                      <AlertTitle className="text-amber-900 dark:text-amber-100">Document Requirement</AlertTitle>
+                      <AlertTitle className="text-amber-900 dark:text-amber-100">{t("document_requirement")}</AlertTitle>
                       <AlertDescription className="text-amber-700 dark:text-amber-300">
-                        Gemini requires document images for AI verification.
-                        Ensure your form includes them.
+                        {t("gemini_requires_document_images_for_ai")} {t("ensure_your_form_includes_them_1")}
                       </AlertDescription>
                     </Alert>
                   )}
@@ -824,11 +822,10 @@ export function VerificationServicesView({
                       <div className="text-center p-8 border rounded-lg">
                         <BrainCircuit className="h-12 w-12 mx-auto mb-4 text-primary/50" />
                         <h3 className="text-xl font-bold mb-2">
-                          Dynamic AI Verification
+                          {t("dynamic_ai_verification")}
                         </h3>
                         <p className="text-muted-foreground mb-4">
-                          Gemini adapts to your form structure. Include document
-                          images for verification.
+                          {t("gemini_adapts_to_your_form_structure_1")} {t("include_document_images_for_verification_1")}
                         </p>
                       </div>
                     )}
@@ -876,7 +873,7 @@ export function VerificationServicesView({
 
                 <div className="border rounded-lg overflow-hidden">
                   <div className="bg-muted p-4 font-medium">
-                    Template Fields
+                    {t("template_fields")}
                   </div>
                   <ScrollArea className="h-[400px]">
                     <div className="divide-y">
@@ -901,7 +898,7 @@ export function VerificationServicesView({
                                 )}
                               </div>
                               <div className="text-sm text-muted-foreground mt-1">
-                                Type: {field.type}
+                                {tCommon("type")}: {field.type}
                               </div>
                             </div>
                             <Badge
@@ -921,7 +918,7 @@ export function VerificationServicesView({
                   selectedTemplate.requiredDocuments.length > 0 && (
                     <div className="border rounded-lg overflow-hidden">
                       <div className="bg-muted p-4 font-medium">
-                        Required Documents
+                        {t("required_documents")}
                       </div>
                       <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         {selectedTemplate.requiredDocuments.map(
@@ -946,8 +943,7 @@ export function VerificationServicesView({
                     <BrainCircuit className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                     <AlertTitle className="text-indigo-900 dark:text-indigo-100">AI-Powered Verification</AlertTitle>
                     <AlertDescription className="text-indigo-700 dark:text-indigo-300">
-                      Gemini AI will verify document images against provided
-                      data, supporting all languages and countries.
+                      {t("gemini_ai_will_verify_document_images")}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -956,8 +952,7 @@ export function VerificationServicesView({
                   <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                   <AlertTitle className="text-amber-900 dark:text-amber-100">Important</AlertTitle>
                   <AlertDescription className="text-amber-700 dark:text-amber-300">
-                    Confirming will add these fields to your KYC level, mapped
-                    to {selectedService?.name}.
+                    {t("confirming_will_add_mapped_to")} {selectedService?.name}.
                   </AlertDescription>
                 </Alert>
 
@@ -979,11 +974,10 @@ export function VerificationServicesView({
               <>
                 <div className="bg-muted/50 p-6 rounded-lg mb-6">
                   <h3 className="text-xl font-bold mb-2">
-                    Dynamic AI Verification
+                    {t("dynamic_ai_verification")}
                   </h3>
                   <p className="text-muted-foreground">
-                    Gemini adapts to your custom form, verifying data against
-                    uploaded documents.
+                    {t("gemini_adapts_to_your_custom_form")}
                   </p>
                 </div>
 
@@ -992,11 +986,10 @@ export function VerificationServicesView({
                     <BrainCircuit className="h-6 w-6 mr-3 text-primary mt-1" />
                     <div>
                       <h4 className="text-lg font-medium mb-2">
-                        How Gemini Works
+                        {t("how_gemini_works")}
                       </h4>
                       <p className="text-muted-foreground mb-4">
-                        Gemini uses AI to verify documents globally, detecting
-                        fraud and extracting data.
+                        {t("gemini_uses_ai_to_verify_documents")}
                       </p>
                     </div>
                   </div>
@@ -1007,9 +1000,9 @@ export function VerificationServicesView({
                         <FileImage className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <h5 className="font-medium">Document Analysis</h5>
+                        <h5 className="font-medium">{t("document_analysis")}</h5>
                         <p className="text-sm text-muted-foreground">
-                          Extracts and verifies data from IDs and passports.
+                          {t("extracts_and_verifies_data_from_ids_and_passports_1")}
                         </p>
                       </div>
                     </div>
@@ -1020,7 +1013,7 @@ export function VerificationServicesView({
                       <div>
                         <h5 className="font-medium">Multi-Language</h5>
                         <p className="text-sm text-muted-foreground">
-                          Supports documents in any language.
+                          {t("supports_documents_in_any_language_1")}
                         </p>
                       </div>
                     </div>
@@ -1029,9 +1022,9 @@ export function VerificationServicesView({
                         <AlertTriangle className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <h5 className="font-medium">Fraud Detection</h5>
+                        <h5 className="font-medium">{t("fraud_detection")}</h5>
                         <p className="text-sm text-muted-foreground">
-                          Identifies tampered or fake documents.
+                          {t("identifies_tampered_or_fake_documents_1")}
                         </p>
                       </div>
                     </div>
@@ -1039,29 +1032,28 @@ export function VerificationServicesView({
 
                   <Alert className="mb-6 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800">
                     <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                    <AlertTitle className="text-amber-900 dark:text-amber-100">Document Requirement</AlertTitle>
+                    <AlertTitle className="text-amber-900 dark:text-amber-100">{t("document_requirement")}</AlertTitle>
                     <AlertDescription className="text-amber-700 dark:text-amber-300">
-                      Include at least one document image field (e.g., ID,
-                      passport) in your form.
+                      {t("include_at_least_one_document_image")}
                     </AlertDescription>
                   </Alert>
 
                   <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-md border border-blue-100 dark:border-blue-700">
                     <h4 className="font-medium text-blue-800 dark:text-blue-100 mb-2">
-                      Recommended Fields:
+                      {t("recommended_fields_1")}:
                     </h4>
                     <ul className="space-y-2 list-disc pl-5 text-sm text-blue-700 dark:text-blue-300">
                       <li>
-                        <strong>ID Front</strong> (required)
+                        <strong>ID Front</strong> {`(${tCommon("required")})`}
                       </li>
                       <li>
-                        <strong>ID Back</strong> (recommended)
+                        <strong>ID Back</strong> {`(${tCommon("recommended")})`}
                       </li>
                       <li>
-                        <strong>Selfie</strong> (recommended)
+                        <strong>Selfie</strong> {`(${tCommon("recommended")})`}
                       </li>
                       <li>
-                        <strong>Personal Info</strong> (e.g., Name, DOB)
+                        <strong>{tCommon("personal_info")}</strong> {`(${t("e_g_name_dob")})`}
                       </li>
                     </ul>
                   </div>
@@ -1075,7 +1067,7 @@ export function VerificationServicesView({
                     Back
                   </Button>
                   <Button onClick={handleConfirm} className="flex items-center">
-                    Continue with Dynamic Verification{" "}
+                    {t("continue_with_dynamic_verification")}{" "}
                     <Check className="ml-1 h-4 w-4" />
                   </Button>
                 </div>

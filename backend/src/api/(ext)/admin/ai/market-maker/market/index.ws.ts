@@ -1,8 +1,14 @@
 import { messageBroker } from "@b/handler/Websocket";
 import { models } from "@b/db";
 import { getRecentBotTrades } from "../utils/scylla/queries";
+import { logger } from "@b/utils/console";
 
-export const metadata = {
+export const metadata: OperationObject = {
+  summary: "WebSocket connection for AI Market Maker market real-time updates",
+  operationId: "connectAiMarketMakerMarketWebSocket",
+  tags: ["Admin", "AI Market Maker", "Market"],
+  description:
+    "Establishes a WebSocket connection for real-time updates on AI Market Maker markets. Event-driven architecture - sends initial data on subscription, then pushes updates only when events occur (trades, orders, status changes, bot activities). Supports subscribing/unsubscribing to specific market makers with automatic cleanup on disconnect.",
   requiresAuth: true,
   permission: "view.ai.market-maker.market",
 };
@@ -48,14 +54,14 @@ class AiMarketMakerDataHandler {
       });
 
       if (!marketMaker) {
-        console.warn(`[AI Market Maker WS] Market maker ${marketMakerId} not found`);
+        logger.warn("AI_MM_WS", `Market maker ${marketMakerId} not found`);
         return;
       }
 
       makerData = marketMaker.get({ plain: true }) as any;
       symbol = makerData.market ? `${makerData.market.currency}/${makerData.market.pair}` : null;
     } catch (error) {
-      console.error(`[AI Market Maker WS] Failed to fetch market maker ${marketMakerId}:`, error);
+      logger.error("AI_MM_WS", `Failed to fetch market maker ${marketMakerId}`, error);
       errors.push("Failed to load market maker data");
       return; // Cannot continue without market maker data
     }
@@ -65,7 +71,7 @@ class AiMarketMakerDataHandler {
       try {
         recentTrades = await getRecentBotTrades(makerData.marketId, 20);
       } catch (error) {
-        console.error(`[AI Market Maker WS] Failed to fetch recent trades for ${marketMakerId}:`, error);
+        logger.error("AI_MM_WS", `Failed to fetch recent trades for ${marketMakerId}`, error);
         errors.push("Failed to load recent trades");
         // Continue with empty trades array
       }
@@ -79,7 +85,7 @@ class AiMarketMakerDataHandler {
         limit: 20,
       });
     } catch (error) {
-      console.error(`[AI Market Maker WS] Failed to fetch history for ${marketMakerId}:`, error);
+      logger.error("AI_MM_WS", `Failed to fetch history for ${marketMakerId}`, error);
       errors.push("Failed to load activity history");
       // Continue with empty history array
     }
@@ -167,14 +173,14 @@ class AiMarketMakerDataHandler {
    */
   public async addSubscription(marketMakerId: string, clientId: string): Promise<void> {
     if (!marketMakerId) {
-      console.warn("[AI Market Maker WS] No marketMakerId provided in subscription request");
+      logger.warn("AI_MM_WS", "No marketMakerId provided in subscription request");
       return;
     }
 
     // Validate market maker exists
     const marketMaker = await models.aiMarketMaker.findByPk(marketMakerId);
     if (!marketMaker) {
-      console.warn(`[AI Market Maker WS] Market maker ${marketMakerId} not found`);
+      logger.warn("AI_MM_WS", `Market maker ${marketMakerId} not found`);
       return;
     }
 
@@ -187,7 +193,7 @@ class AiMarketMakerDataHandler {
     // Send initial data to the newly subscribed client
     await this.sendInitialData(marketMakerId);
 
-    console.info(`[AI Market Maker WS] Client ${clientId} subscribed to market maker ${marketMakerId}`);
+    logger.info("AI_MM_WS", `Client ${clientId} subscribed to market maker ${marketMakerId}`);
   }
 
   /**
@@ -202,7 +208,7 @@ class AiMarketMakerDataHandler {
         this.activeSubscriptions.delete(marketMakerId);
       }
 
-      console.info(`[AI Market Maker WS] Client ${clientId} unsubscribed from market maker ${marketMakerId}`);
+      logger.info("AI_MM_WS", `Client ${clientId} unsubscribed from market maker ${marketMakerId}`);
     }
   }
 
@@ -217,13 +223,13 @@ class AiMarketMakerDataHandler {
     const subscriptions = this.activeSubscriptions.get(marketMakerId);
     if (!subscriptions || subscriptions.size === 0) {
       if (process.env.NODE_ENV === "development" && event.type === "TRADE") {
-        console.debug(`[AI Market Maker WS] No subscribers for market ${marketMakerId}, skipping ${event.type} broadcast`);
+        logger.debug("AI_MM_WS", `No subscribers for market ${marketMakerId}, skipping ${event.type} broadcast`);
       }
       return;
     }
 
     if (process.env.NODE_ENV === "development") {
-      console.debug(`[AI Market Maker WS] Broadcasting ${event.type} to ${subscriptions.size} subscribers for market ${marketMakerId}`);
+      logger.debug("AI_MM_WS", `Broadcasting ${event.type} to ${subscriptions.size} subscribers for market ${marketMakerId}`);
     }
 
     // Note: path must match the actual WebSocket route
@@ -281,7 +287,7 @@ class AiMarketMakerDataHandler {
     }
 
     if (marketMakersToCleanup.length > 0) {
-      console.info(`[AI Market Maker WS] Cleaned up subscriptions for disconnected client ${clientId}`);
+      logger.info("AI_MM_WS", `Cleaned up subscriptions for disconnected client ${clientId}`);
     }
   }
 }
@@ -337,12 +343,12 @@ export default async (data: Handler, message: any) => {
   const clientId = data.user?.id;
 
   if (!clientId) {
-    console.error("[AI Market Maker WS] No client ID found");
+    logger.error("AI_MM_WS", "No client ID found");
     return;
   }
 
   if (!marketMakerId) {
-    console.error("[AI Market Maker WS] No marketMakerId in payload");
+    logger.error("AI_MM_WS", "No marketMakerId in payload");
     return;
   }
 

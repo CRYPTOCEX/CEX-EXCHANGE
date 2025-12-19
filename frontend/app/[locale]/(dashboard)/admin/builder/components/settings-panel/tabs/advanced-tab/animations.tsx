@@ -16,7 +16,8 @@ import { LabeledSelect, SliderWithInput } from "../structure-tab/ui-components";
 import { useTranslations } from "next-intl";
 
 export function Animations({ settings, onSettingChange }: ComponentProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -46,7 +47,7 @@ export function Animations({ settings, onSettingChange }: ComponentProps) {
               onValueChange={(value) => onSettingChange("animationType", value)}
             >
               <SelectTrigger className={inputClass}>
-                <SelectValue placeholder="Select animation" />
+                <SelectValue placeholder={t("select_animation")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="fadeIn">{t("fade_in")}</SelectItem>
@@ -54,17 +55,17 @@ export function Animations({ settings, onSettingChange }: ComponentProps) {
                 <SelectItem value="slideDown">{t("slide_down")}</SelectItem>
                 <SelectItem value="slideLeft">{t("slide_left")}</SelectItem>
                 <SelectItem value="slideRight">{t("slide_right")}</SelectItem>
-                <SelectItem value="zoomIn">{t("zoom_in")}</SelectItem>
-                <SelectItem value="zoomOut">{t("zoom_out")}</SelectItem>
+                <SelectItem value="zoomIn">{tCommon("zoom_in")}</SelectItem>
+                <SelectItem value="zoomOut">{tCommon("zoom_out")}</SelectItem>
                 <SelectItem value="flipX">{t("flip_x")}</SelectItem>
                 <SelectItem value="flipY">{t("flip_y")}</SelectItem>
-                <SelectItem value="bounce">{t("Bounce")}</SelectItem>
-                <SelectItem value="pulse">{t("Pulse")}</SelectItem>
-                <SelectItem value="shake">{t("Shake")}</SelectItem>
-                <SelectItem value="swing">{t("Swing")}</SelectItem>
-                <SelectItem value="tada">{t("Tada")}</SelectItem>
-                <SelectItem value="wobble">{t("Wobble")}</SelectItem>
-                <SelectItem value="jello">{t("Jello")}</SelectItem>
+                <SelectItem value="bounce">{t("bounce")}</SelectItem>
+                <SelectItem value="pulse">{t("pulse")}</SelectItem>
+                <SelectItem value="shake">{t("shake")}</SelectItem>
+                <SelectItem value="swing">{t("swing")}</SelectItem>
+                <SelectItem value="tada">{t("tada")}</SelectItem>
+                <SelectItem value="wobble">{t("wobble")}</SelectItem>
+                <SelectItem value="jello">{t("jello")}</SelectItem>
                 <SelectItem value="heartBeat">{t("heart_beat")}</SelectItem>
                 <SelectItem value="rubberBand">{t("rubber_band")}</SelectItem>
               </SelectContent>
@@ -72,7 +73,7 @@ export function Animations({ settings, onSettingChange }: ComponentProps) {
           </div>
 
           <div className="space-y-1">
-            <Label className="text-xs">{t("Duration")}</Label>
+            <Label className="text-xs">{tCommon("duration")}</Label>
             <SliderWithInput
               value={settings.animationDuration || 1}
               onChange={(value) => onSettingChange("animationDuration", value)}
@@ -84,7 +85,7 @@ export function Animations({ settings, onSettingChange }: ComponentProps) {
           </div>
 
           <div className="space-y-1">
-            <Label className="text-xs">{t("Delay")}</Label>
+            <Label className="text-xs">{t("delay")}</Label>
             <SliderWithInput
               value={settings.animationDelay || 0}
               onChange={(value) => onSettingChange("animationDelay", value)}
@@ -96,7 +97,7 @@ export function Animations({ settings, onSettingChange }: ComponentProps) {
           </div>
 
           <div className="space-y-1">
-            <Label className="text-xs">{t("Easing")}</Label>
+            <Label className="text-xs">{t("easing")}</Label>
             <LabeledSelect
               id="animationEasing"
               label=""
@@ -119,7 +120,7 @@ export function Animations({ settings, onSettingChange }: ComponentProps) {
                   label: "Spring",
                 },
               ]}
-              placeholder="Select easing"
+              placeholder={t("select_easing")}
             />
           </div>
 
@@ -138,7 +139,7 @@ export function Animations({ settings, onSettingChange }: ComponentProps) {
                 { value: "3", label: "Three times" },
                 { value: "infinite", label: "Infinite" },
               ]}
-              placeholder="Select count"
+              placeholder={t("select_count")}
             />
           </div>
 

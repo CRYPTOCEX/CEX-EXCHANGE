@@ -36,14 +36,14 @@ function CustomOptionRow({
   onChange,
   onRemove,
 }: CustomOptionRowProps) {
-  const t = useTranslations("common");
+  const tCommon = useTranslations("common");
   return (
     <tr className="border-b last:border-none">
       {/* Option Title */}
       <td className="px-4 py-2">
         <Input
           type="text"
-          placeholder="Ex: username"
+          placeholder={tCommon("ex_username")}
           value={option.title}
           onChange={(e) => onChange(index, "title", e.target.value)}
           className="w-full"
@@ -58,10 +58,10 @@ function CustomOptionRow({
         >
           <SelectTrigger className="min-w-[80px]">{option.type}</SelectTrigger>
           <SelectContent>
-            <SelectItem value="input">{t("Input")}</SelectItem>
-            <SelectItem value="textarea">{t("Textarea")}</SelectItem>
-            <SelectItem value="file">{t("file_upload")}</SelectItem>
-            <SelectItem value="image">{t("image_upload")}</SelectItem>
+            <SelectItem value="input">{tCommon("input")}</SelectItem>
+            <SelectItem value="textarea">{tCommon("textarea")}</SelectItem>
+            <SelectItem value="file">{tCommon("file_upload")}</SelectItem>
+            <SelectItem value="image">{tCommon("image_upload")}</SelectItem>
           </SelectContent>
         </Select>
       </td>
@@ -95,7 +95,7 @@ function CustomOptionRow({
             htmlFor={`required-${index}`}
             className="text-sm cursor-pointer select-none"
           >
-            {t("Required")}
+            {tCommon("required")}
           </label>
         </div>
       </td>
@@ -149,10 +149,10 @@ export function KycCustomOptions({
           <thead className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
             <tr>
               <th className="px-4 py-2 text-left">{t("option_title")}</th>
-              <th className="px-4 py-2 text-left">{t("Type")}</th>
-              <th className="px-4 py-2 text-left">{t("Level")}</th>
-              <th className="px-4 py-2 text-center">{t("Required")}</th>
-              <th className="px-4 py-2 text-right">{t("Actions")}</th>
+              <th className="px-4 py-2 text-left">{t("type")}</th>
+              <th className="px-4 py-2 text-left">{t("level")}</th>
+              <th className="px-4 py-2 text-center">{t("required")}</th>
+              <th className="px-4 py-2 text-right">{t("actions")}</th>
             </tr>
           </thead>
 

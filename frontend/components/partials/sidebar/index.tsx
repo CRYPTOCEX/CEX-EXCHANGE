@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React from "react";
 import { cn } from "@/lib/utils";
 import { useSidebar, useThemeStore } from "@/store";
 import { useUserStore } from "@/store/user";
@@ -16,10 +16,11 @@ import { useTheme } from "next-themes";
 import { NotificationBell } from "../header/notification-bell";
 import LanguageSelector from "../header/language-selector";
 import { Button } from "@/components/ui/button";
-
-const defaultTheme = process.env.NEXT_PUBLIC_DEFAULT_THEME || "dark";
+import { useTranslations } from "next-intl";
 
 const MobileSidebar = ({ className, menu = "user" }: { className?: string; menu?: "user" | "admin" | any[] }) => {
+  const t = useTranslations("components");
+  const tCommon = useTranslations("common");
   const { mobileMenu, setMobileMenu } = useSidebar();
   const { collapsed } = useSidebar();
   const { isRtl } = useThemeStore();
@@ -33,12 +34,9 @@ const MobileSidebar = ({ className, menu = "user" }: { className?: string; menu?
   // Check if layout switcher is enabled (handle both string and boolean values)
   const layoutSwitcherEnabled = settings?.layoutSwitcher === true || settings?.layoutSwitcher === "true";
 
-  // Set default theme if layout switcher is disabled
-  useEffect(() => {
-    if (!layoutSwitcherEnabled && theme !== defaultTheme) {
-      setTheme(defaultTheme);
-    }
-  }, [layoutSwitcherEnabled, theme, setTheme]);
+  // Note: Theme is controlled by ThemeProvider in providers.tsx
+  // When layoutSwitcher is disabled, the defaultTheme is already set in ThemeProvider
+  // We don't need to force it here as it would override the user's stored preference on every mount
 
   // Normalize menu items - same as MainMenu
   const normalizeMenuItems = (menuItems: any[]) =>
@@ -151,10 +149,10 @@ const MobileSidebar = ({ className, menu = "user" }: { className?: string; menu?
                     {!settingsFetched ? (
                       <div className="space-y-2">
                         <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
-                        <p>Loading menu...</p>
+                        <p>{tCommon('loading_menu')}</p>
                       </div>
                     ) : (
-                      <p>No menu available</p>
+                      <p>{t("no_menu_available")}</p>
                     )}
                   </div>
                 </div>

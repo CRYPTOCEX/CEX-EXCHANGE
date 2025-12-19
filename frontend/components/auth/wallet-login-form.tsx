@@ -326,7 +326,8 @@ export default function WalletLoginForm({
   onSuccess,
   onCancel,
 }: WalletLoginFormProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components_auth");
+  const tCommon = useTranslations("common");
   const [error, setError] = useState<string | null>(null);
   const account = useAppKitAccount();
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -371,10 +372,10 @@ export default function WalletLoginForm({
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-semibold text-green-900 dark:text-green-300">
-                {t("wallet_connected")}
+                {tCommon("wallet_connected")}
               </h3>
               <p className="text-green-700 dark:text-green-400">
-                {t("your_wallet_is_connected")}. {t("address")}
+                {t("your_wallet_is_connected")}. {tCommon("address")}
                 {walletAddress.slice(0, 6)}
                 {walletAddress.slice(-4)}
               </p>
@@ -392,10 +393,10 @@ export default function WalletLoginForm({
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-300">
-                {t("connect_your_crypto_wallet")}
+                {tCommon("connect_your_crypto_wallet")}
               </h3>
               <p className="text-blue-700 dark:text-blue-400">
-                {t("link_your_wallet_secure_transactions")}.
+                {tCommon("link_your_wallet_secure_transactions")}.
               </p>
               <div className="flex flex-wrap gap-2 mt-2">
                 <Badge
@@ -403,21 +404,21 @@ export default function WalletLoginForm({
                   className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-800"
                 >
                   <Shield className="h-3 w-3 mr-1" />
-                  {t("Secure")}
+                  {tCommon("secure")}
                 </Badge>
                 <Badge
                   variant="outline"
                   className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-800"
                 >
                   <Zap className="h-3 w-3 mr-1" />
-                  {t("Fast")}
+                  {tCommon("fast")}
                 </Badge>
                 <Badge
                   variant="outline"
                   className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-800"
                 >
                   <Globe className="h-3 w-3 mr-1" />
-                  {t("Multi-chain")}
+                  {tCommon("multi_chain")}
                 </Badge>
               </div>
             </div>
@@ -429,7 +430,7 @@ export default function WalletLoginForm({
         <WalletLoginButton onSuccess={onSuccess} />
 
         <Button variant="ghost" onClick={onCancel} className="w-full">
-          {t("Cancel")}
+          {tCommon("cancel")}
         </Button>
       </div>
 

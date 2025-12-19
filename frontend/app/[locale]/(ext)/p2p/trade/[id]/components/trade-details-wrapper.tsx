@@ -26,7 +26,7 @@ function getP2PTradeWsUrl(tradeId: string): string {
 }
 
 export function TradeDetailsWrapper({ tradeId }: TradeDetailsWrapperProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { currentTrade, isLoadingTradeById, tradeByIdError, fetchTradeById } =

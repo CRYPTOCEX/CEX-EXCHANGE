@@ -39,9 +39,14 @@ export const metadata = {
     500: serverErrorResponse,
   },
   permission: "view.spot.currency",
+  logModule: "ADMIN_FIN",
+  logTitle: "Get Exchange Currency",
 };
 
-export default async (params: { id: string }) => {
+export default async (data: Handler) => {
+  const { params, ctx } = data;
+
+  ctx?.step("Fetching exchange currency");
   const currency = await models.exchangeCurrency.findOne({
     where: { id: parseInt(params.id) },
   });
@@ -49,6 +54,8 @@ export default async (params: { id: string }) => {
   if (!currency) {
     throw new Error("Currency not found");
   }
+
+  ctx?.success("Exchange currency retrieved successfully");
   return currency.get({ plain: true });
 };
 

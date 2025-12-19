@@ -94,7 +94,7 @@ export const VirtualizedElementGrid = memo<VirtualizedElementGridProps>(
     containerHeight = 600,
     overscan = 3,
   }) => {
-    const t = useTranslations("dashboard");
+    const t = useTranslations("dashboard_admin");
     const [scrollTop, setScrollTop] = useState(0);
     const containerRef = useRef<HTMLDivElement>(null);
 

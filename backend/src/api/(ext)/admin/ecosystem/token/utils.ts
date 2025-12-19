@@ -7,6 +7,12 @@ import {
   baseEnumSchema,
 } from "@b/utils/schema";
 
+interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
+
 const redis = RedisSingleton.getInstance();
 
 const CACHE_KEY_PREFIX = "ecosystem_token_icon:";
@@ -14,10 +20,18 @@ const CACHE_EXPIRY = 3600; // 1 hour in seconds
 
 export async function updateIconInCache(
   currency: string,
-  icon: string
+  icon: string,
+  ctx?: LogContext
 ): Promise<void> {
-  const cacheKey = `${CACHE_KEY_PREFIX}${currency}`;
-  await redis.set(cacheKey, icon, "EX", CACHE_EXPIRY);
+  try {
+    ctx?.step?.(`Updating icon in cache for currency ${currency}`);
+    const cacheKey = `${CACHE_KEY_PREFIX}${currency}`;
+    await redis.set(cacheKey, icon, "EX", CACHE_EXPIRY);
+    ctx?.success?.(`Icon cached for ${currency}`);
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }
 
 const id = baseStringSchema("ID of the ecosystem token");
@@ -177,30 +191,64 @@ export const ecosystemTokenStoreSchema = {
 };
 
 // Fetch all tokens without filtering
-export async function getEcosystemTokensAll(): Promise<
-  ecosystemTokenAttributes[]
-> {
-  return models.ecosystemToken.findAll();
+export async function getEcosystemTokensAll(
+  ctx?: LogContext
+): Promise<ecosystemTokenAttributes[]> {
+  try {
+    ctx?.step?.("Fetching all ecosystem tokens");
+    const tokens = await models.ecosystemToken.findAll();
+    ctx?.success?.(`Found ${tokens.length} ecosystem token(s)`);
+    return tokens;
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }
 
 // Fetch a single token by chain and currency
 export async function getEcosystemTokenByChainAndCurrency(
   chain: string,
-  currency: string
+  currency: string,
+  ctx?: LogContext
 ): Promise<ecosystemTokenAttributes | null> {
-  return models.ecosystemToken.findOne({
-    where: {
-      chain,
-      currency,
-    },
-  });
+  try {
+    ctx?.step?.(`Fetching token for chain ${chain} and currency ${currency}`);
+    const token = await models.ecosystemToken.findOne({
+      where: {
+        chain,
+        currency,
+      },
+    });
+    if (token) {
+      ctx?.success?.(`Token found for ${chain}/${currency}`);
+    } else {
+      ctx?.step?.(`No token found for ${chain}/${currency}`);
+    }
+    return token;
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }
 
 // Fetch a single token by ID
 export async function getEcosystemTokenById(
-  id: string
+  id: string,
+  ctx?: LogContext
 ): Promise<ecosystemTokenAttributes | null> {
-  return models.ecosystemToken.findByPk(id);
+  try {
+    ctx?.step?.(`Fetching token with ID ${id}`);
+    const token = await models.ecosystemToken.findByPk(id);
+    if (token) {
+      ctx?.success?.(`Token found with ID ${id}`);
+    } else {
+      ctx?.step?.(`No token found with ID ${id}`);
+    }
+    return token;
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }
 
 // Fetch tokens by chain
@@ -216,16 +264,8 @@ export async function getEcosystemTokensByChain(
 }
 
 // Create a new token
-export async function createEcosystemToken({
-  chain,
-  name,
-  currency,
-  contract,
-  decimals,
-  type,
-  network,
-}): Promise<ecosystemTokenCreationAttributes> {
-  return models.ecosystemToken.create({
+export async function createEcosystemToken(
+  {
     chain,
     name,
     currency,
@@ -233,23 +273,33 @@ export async function createEcosystemToken({
     decimals,
     type,
     network,
-    status: true,
-    contractType: "PERMIT",
-  });
+  },
+  ctx?: LogContext
+): Promise<ecosystemTokenCreationAttributes> {
+  try {
+    ctx?.step?.(`Creating ecosystem token ${name} (${currency}) on ${chain}`);
+    const token = await models.ecosystemToken.create({
+      chain,
+      name,
+      currency,
+      contract,
+      decimals,
+      type,
+      network,
+      status: true,
+      contractType: "PERMIT",
+    });
+    ctx?.success?.(`Token ${name} created successfully`);
+    return token;
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }
 
 // Import a new token
-export async function importEcosystemToken({
-  name,
-  currency,
-  chain,
-  network,
-  type,
-  contract,
-  decimals,
-  contractType,
-}): Promise<ecosystemTokenAttributes> {
-  return models.ecosystemToken.create({
+export async function importEcosystemToken(
+  {
     name,
     currency,
     chain,
@@ -257,47 +307,94 @@ export async function importEcosystemToken({
     type,
     contract,
     decimals,
-    status: true,
     contractType,
-  });
+  },
+  ctx?: LogContext
+): Promise<ecosystemTokenAttributes> {
+  try {
+    ctx?.step?.(`Importing token ${name} (${currency}) on ${chain}`);
+    const token = await models.ecosystemToken.create({
+      name,
+      currency,
+      chain,
+      network,
+      type,
+      contract,
+      decimals,
+      status: true,
+      contractType,
+    });
+    ctx?.success?.(`Token ${name} imported successfully`);
+    return token;
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }
 
 // Update a token's icon
 export async function updateAdminTokenIcon(
   id: number,
-  icon: string
+  icon: string,
+  ctx?: LogContext
 ): Promise<void> {
-  await models.ecosystemToken.update(
-    { icon },
-    {
-      where: { id },
-    }
-  );
+  try {
+    ctx?.step?.(`Updating icon for token ID ${id}`);
+    await models.ecosystemToken.update(
+      { icon },
+      {
+        where: { id },
+      }
+    );
+    ctx?.success?.(`Token icon updated for ID ${id}`);
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }
 
 // Fetch tokens without permit
-export async function getNoPermitTokens(chain: string) {
-  return models.ecosystemToken.findAll({
-    where: {
-      chain,
-      contractType: "NO_PERMIT",
-      network: process.env[`${chain}_NETWORK`],
-      status: true,
-    },
-  });
+export async function getNoPermitTokens(
+  chain: string,
+  ctx?: LogContext
+) {
+  try {
+    ctx?.step?.(`Fetching NO_PERMIT tokens for chain ${chain}`);
+    const tokens = await models.ecosystemToken.findAll({
+      where: {
+        chain,
+        contractType: "NO_PERMIT",
+        network: process.env[`${chain}_NETWORK`],
+        status: true,
+      },
+    });
+    ctx?.success?.(`Found ${tokens.length} NO_PERMIT token(s) for ${chain}`);
+    return tokens;
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }
 
 // Update multiple tokens' status in bulk
 export async function updateStatusBulk(
   ids: number[],
-  status: boolean
+  status: boolean,
+  ctx?: LogContext
 ): Promise<void> {
-  await models.ecosystemToken.update(
-    { status },
-    {
-      where: { id: ids },
-    }
-  );
+  try {
+    ctx?.step?.(`Updating status for ${ids.length} token(s)`);
+    await models.ecosystemToken.update(
+      { status },
+      {
+        where: { id: ids },
+      }
+    );
+    ctx?.success?.(`Status updated for ${ids.length} token(s)`);
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }
 
 // Update a token with precision, limits, and fee
@@ -305,16 +402,24 @@ export async function updateAdminToken(
   id: number,
   precision: number,
   limits: any,
-  fee: any
+  fee: any,
+  ctx?: LogContext
 ): Promise<void> {
-  await models.ecosystemToken.update(
-    {
-      precision,
-      limits,
-      fee,
-    },
-    {
-      where: { id },
-    }
-  );
+  try {
+    ctx?.step?.(`Updating token details for ID ${id}`);
+    await models.ecosystemToken.update(
+      {
+        precision,
+        limits,
+        fee,
+      },
+      {
+        where: { id },
+      }
+    );
+    ctx?.success?.(`Token details updated for ID ${id}`);
+  } catch (error) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }

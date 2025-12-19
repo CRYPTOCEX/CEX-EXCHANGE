@@ -73,6 +73,22 @@ export interface BinaryDuration {
   status: boolean;
 }
 
+// Simple in-memory cache for market data
+const marketDataCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 60000; // 1 minute cache
+
+function getCachedData(key: string): any | null {
+  const cached = marketDataCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  return null;
+}
+
+function setCachedData(key: string, data: any): void {
+  marketDataCache.set(key, { data, timestamp: Date.now() });
+}
+
 // Global cleanup registry for intervals and subscriptions
 class CleanupRegistry {
   private intervals = new Set<NodeJS.Timeout>();
@@ -666,13 +682,21 @@ export const useBinaryStore = create<BinaryState>()(
           try {
             // Prevent duplicate calls if already loading
             if (get().isLoadingDurations) {
-              console.log("Binary durations already loading, skipping duplicate call");
               return;
             }
 
             // Check if we already have durations data
             if (get().binaryDurations.length > 0) {
-              console.log("Binary durations already loaded, skipping fetch");
+              return;
+            }
+
+            // Check cache first
+            const cached = getCachedData('binary_durations');
+            if (cached) {
+              set({
+                binaryDurations: cached,
+                selectedExpiryMinutes: cached.find((d: BinaryDuration) => d.status)?.duration || cached[0].duration,
+              });
               return;
             }
 
@@ -684,10 +708,12 @@ export const useBinaryStore = create<BinaryState>()(
             });
 
             if (!error && Array.isArray(data)) {
+              // Cache the result
+              setCachedData('binary_durations', data);
+
               set({
                 binaryDurations: data,
                 isLoadingDurations: false,
-                // Set default expiry to the first active duration
                 ...(data.length > 0
                   ? {
                       selectedExpiryMinutes:
@@ -697,11 +723,9 @@ export const useBinaryStore = create<BinaryState>()(
                   : {}),
               });
             } else {
-              console.error("Failed to fetch binary durations:", error);
               set({ isLoadingDurations: false });
             }
           } catch (error) {
-            console.error("Failed to fetch binary durations:", error);
             set({ isLoadingDurations: false });
           }
         },
@@ -711,13 +735,30 @@ export const useBinaryStore = create<BinaryState>()(
           try {
             // Prevent duplicate calls if already loading
             if (get().isLoadingMarkets) {
-              console.log("Binary markets already loading, skipping duplicate call");
               return;
             }
 
             // Check if we already have markets data
             if (get().binaryMarkets.length > 0) {
-              console.log("Binary markets already loaded, skipping fetch");
+              return;
+            }
+
+            // Check cache first
+            const cached = getCachedData('binary_markets');
+            if (cached) {
+              set({ binaryMarkets: cached });
+
+              // Still set current symbol if needed
+              requestAnimationFrame(() => {
+                const { activeMarkets, currentSymbol } = get();
+                if (cached.length > 0 && (activeMarkets.length === 0 || !currentSymbol)) {
+                  const bestMarket = selectBestMarket(cached);
+                  if (bestMarket) {
+                    const symbol = bestMarket.symbol || `${bestMarket.currency}/${bestMarket.pair}`;
+                    get().setCurrentSymbol(symbol);
+                  }
+                }
+              });
               return;
             }
 
@@ -730,6 +771,10 @@ export const useBinaryStore = create<BinaryState>()(
 
             if (!error && Array.isArray(data)) {
               const markets = data;
+
+              // Cache the result
+              setCachedData('binary_markets', markets);
+
               set({ binaryMarkets: markets, isLoadingMarkets: false });
 
               // Use requestAnimationFrame to defer additional state updates
@@ -1124,14 +1169,18 @@ export const initializeBinaryStore = async (): Promise<void> => {
 export const cleanupBinaryStore = () => {
   console.log("Cleaning up binary store on page navigation...");
   cleanupRegistry.cleanup();
-  
+
   // Reset store state if needed
   const store = useBinaryStore.getState();
   store.cleanup();
 
-  // Reset initialization flags
+  // CRITICAL: Reset initialization flags AND promise to allow re-initialization
   isInitializing = false;
   isInitialized = false;
+  initializationPromise = null;
+
+  // Clear cache on cleanup to ensure fresh data on next visit
+  marketDataCache.clear();
 };
 
 // Export cleanup registry for external cleanup management

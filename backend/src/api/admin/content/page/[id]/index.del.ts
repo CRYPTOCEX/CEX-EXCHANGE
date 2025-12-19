@@ -12,13 +12,20 @@ export const metadata: OperationObject = {
   responses: deleteRecordResponses("Page"),
   permission: "delete.page",
   requiresAuth: true,
+  logModule: "ADMIN_CMS",
+  logTitle: "Delete page",
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
-  return handleSingleDelete({
+  const { params, query, ctx } = data;
+
+  ctx?.step(`Deleting page with ID: ${params.id}`);
+  const result = await handleSingleDelete({
     model: "page",
     id: params.id,
     query,
   });
+
+  ctx?.success("Page deleted successfully");
+  return result;
 };

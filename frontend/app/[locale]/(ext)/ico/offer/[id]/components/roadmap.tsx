@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import { CheckCircle2, Circle } from "lucide-react";
-
 export function Roadmap({
   items,
 }: {
@@ -13,7 +12,7 @@ export function Roadmap({
       {items.map((item) => (
         <div key={item.id} className="flex gap-4">
           {item.completed ? (
-            <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+            <CheckCircle2 className={"h-6 w-6 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5"} />
           ) : (
             <Circle className="h-6 w-6 text-muted-foreground shrink-0 mt-0.5" />
           )}

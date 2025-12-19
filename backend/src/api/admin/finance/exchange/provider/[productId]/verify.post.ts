@@ -50,10 +50,12 @@ export const metadata = {
     500: serverErrorResponse,
   },
   permission: "edit.exchange",
+  logModule: "ADMIN_FIN",
+  logTitle: "Verify Exchange Provider",
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
   const { productId } = params;
 
   if (!productId) {
@@ -61,6 +63,7 @@ export default async (data: Handler) => {
   }
 
   // Find the exchange by productId
+  ctx?.step("Finding exchange");
   const exchange = await models.exchange.findOne({
     where: { productId },
   });
@@ -70,7 +73,9 @@ export default async (data: Handler) => {
   }
 
   // Test the exchange credentials
-  const result = await ExchangeManager.testExchangeCredentials(exchange.name);
-  
+  ctx?.step("Testing exchange credentials");
+  const result = await ExchangeManager.testExchangeCredentials(exchange.name, ctx);
+
+  ctx?.success();
   return result;
 };

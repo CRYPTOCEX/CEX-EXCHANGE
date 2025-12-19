@@ -23,7 +23,9 @@ interface EditTokenData {
 }
 
 function EditTokenContent() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const router = useRouter();
   const params = useParams();
   const tokenId = params.id as string;
@@ -144,7 +146,7 @@ function EditTokenContent() {
           <Link href="/admin/ecosystem/token">
             <Button variant="outline">
               <Icon icon="lucide:arrow-left" className="mr-2 h-4 w-4" />
-              {t("Back")}
+              {tCommon("back")}
             </Button>
           </Link>
         </div>
@@ -175,7 +177,7 @@ function EditTokenContent() {
           <Link href="/admin/ecosystem/token">
             <Button variant="outline" disabled>
               <Icon icon="lucide:arrow-left" className="mr-2 h-4 w-4" />
-              {t("Back")}
+              {tCommon("back")}
             </Button>
           </Link>
         </div>
@@ -206,7 +208,7 @@ function EditTokenContent() {
           <Link href="/admin/ecosystem/token">
             <Button variant="outline">
               <Icon icon="lucide:arrow-left" className="mr-2 h-4 w-4" />
-              {t("Back")}
+              {tCommon("back")}
             </Button>
           </Link>
         </div>
@@ -217,13 +219,13 @@ function EditTokenContent() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Icon icon="lucide:image" className="h-5 w-5" />
-                {t("token_icon")}
+                {tExt("token_icon")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ImageUpload
                 value={methods.watch("icon")}
-                onChange={(file) => methods.setValue("icon", file)}
+                onChange={(file) => methods.setValue("icon", file ?? "")}
                 title="Upload Token Icon"
                 size="sm"
               />

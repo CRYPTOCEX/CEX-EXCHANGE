@@ -24,7 +24,7 @@ export const SectionSettings = ({
   settings,
   handleSettingChange,
 }: SectionSettingsProps) => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const { updateSection } = useBuilderStore();
 
   return (
@@ -41,7 +41,7 @@ export const SectionSettings = ({
             }
           >
             <LayoutTemplate className="h-4 w-4" />
-            <span>{t("Regular")}</span>
+            <span>{t("regular")}</span>
           </Button>
           <Button
             variant={section.type === "specialty" ? "default" : "outline"}
@@ -52,7 +52,7 @@ export const SectionSettings = ({
             }
           >
             <LayoutList className="h-4 w-4" />
-            <span>{t("Specialty")}</span>
+            <span>{t("specialty")}</span>
           </Button>
           <Button
             variant={section.type === "fullwidth" ? "default" : "outline"}
@@ -63,7 +63,7 @@ export const SectionSettings = ({
             }
           >
             <Maximize2 className="h-4 w-4" />
-            <span>{t("Fullwidth")}</span>
+            <span>{t("fullwidth")}</span>
           </Button>
         </div>
       </div>
@@ -83,7 +83,7 @@ export const SectionSettings = ({
             }
           >
             <Monitor className="h-3.5 w-3.5" />
-            <span>{t("Desktop")}</span>
+            <span>{t("desktop")}</span>
           </Button>
           <Button
             variant={settings.visibleTablet !== false ? "default" : "outline"}
@@ -97,7 +97,7 @@ export const SectionSettings = ({
             }
           >
             <Tablet className="h-3.5 w-3.5" />
-            <span>{t("Tablet")}</span>
+            <span>{t("tablet")}</span>
           </Button>
           <Button
             variant={settings.visibleMobile !== false ? "default" : "outline"}
@@ -111,7 +111,7 @@ export const SectionSettings = ({
             }
           >
             <Smartphone className="h-3.5 w-3.5" />
-            <span>{t("Mobile")}</span>
+            <span>{t("mobile")}</span>
           </Button>
         </div>
       </div>

@@ -17,7 +17,10 @@ import { formatPhoneCode } from "@/lib/countries";
 import { useTranslations } from "next-intl";
 
 export default function MerchantRegisterClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_gateway");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
+  const tExtAdmin = useTranslations("ext_admin");
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +83,7 @@ export default function MerchantRegisterClient() {
       });
 
       if (fetchError) {
-        setError(fetchError.message);
+        setError(fetchError);
         return;
       }
 
@@ -94,7 +97,7 @@ export default function MerchantRegisterClient() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-8">
+    <div className="max-w-2xl mx-auto py-8 pt-16">
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center p-4 rounded-full bg-primary/10 mb-4">
           <CreditCard className="h-10 w-10 text-primary" />
@@ -115,13 +118,13 @@ export default function MerchantRegisterClient() {
       <form onSubmit={handleSubmit}>
         <Card>
           <CardHeader>
-            <CardTitle>{t("business_information")}</CardTitle>
+            <CardTitle>{tCommon("business_information")}</CardTitle>
             <CardDescription>{t("tell_us_about_your_business")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">{t("business_name")}</Label>
+                <Label htmlFor="name">{tExtAdmin("business_name")}</Label>
                 <Input
                   id="name"
                   name="name"
@@ -146,19 +149,19 @@ export default function MerchantRegisterClient() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="email">{t("business_email")}</Label>
+                <Label htmlFor="email">{tExtAdmin("business_email")}</Label>
                 <Input
                   id="email"
                   name="email"
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder={t("business_example_com")}
+                  placeholder={"business@example.com"}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">{t("phone_number")} {phoneCode && <span className="text-muted-foreground text-xs">({phoneCode})</span>}</Label>
+                <Label htmlFor="phone">{tCommon("phone_number")} {phoneCode && <span className="text-muted-foreground text-xs">({phoneCode})</span>}</Label>
                 <Input
                   id="phone"
                   name="phone"
@@ -232,16 +235,16 @@ export default function MerchantRegisterClient() {
                 <CountrySelect
                   value={formData.country}
                   onValueChange={handleCountryChange}
-                  placeholder={t("select_country_ellipsis")}
+                  placeholder={tCommon('select_country')}
                 />
               </div>
               <div className="space-y-2">
-                <Label>{t("state_province")}</Label>
+                <Label>{tExt("state_province")}</Label>
                 <StateSelect
                   value={formData.state}
                   onValueChange={handleStateChange}
                   countryCode={formData.country}
-                  placeholder={t("select_state_ellipsis")}
+                  placeholder={tCommon('select_state')}
                   disabled={!formData.country}
                 />
               </div>
@@ -256,12 +259,12 @@ export default function MerchantRegisterClient() {
                   onValueChange={(value) => setFormData((prev) => ({ ...prev, city: value }))}
                   countryCode={formData.country}
                   stateName={formData.state}
-                  placeholder={t("select_city_ellipsis")}
+                  placeholder={tCommon('select_city')}
                   disabled={!formData.state}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="postalCode">{t("postal_code")}</Label>
+                <Label htmlFor="postalCode">{tExt("postal_code")}</Label>
                 <Input
                   id="postalCode"
                   name="postalCode"
@@ -275,13 +278,13 @@ export default function MerchantRegisterClient() {
 
             {/* Row 3: Street Address (full width) */}
             <div className="space-y-2">
-              <Label htmlFor="address">{t("street_address")}</Label>
+              <Label htmlFor="address">{tCommon("street_address")}</Label>
               <Input
                 id="address"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                placeholder={t("_123_business_street_suite_100")}
+                placeholder={`123 ${tCommon('business_street_suite_100')}`}
                 disabled={!formData.city}
               />
             </div>

@@ -1,7 +1,7 @@
 import { BaseBot, BotStatus, MarketContext, TradeDecision } from "./BaseBot";
 import { BotFactory, MarketBotConfig } from "./BotFactory";
 import { OrderManager } from "../engine/OrderManager";
-import { logInfo, logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 /**
  * Bot statistics
@@ -69,7 +69,7 @@ export class BotManager {
 
     // Don't reinitialize if already exists
     if (this.marketGroups.has(marketId)) {
-      logInfo("ai-market-maker", `BotManager: Market ${marketId} already initialized`, __filename);
+      logger.info("BOT_MANAGER", `Market ${marketId} already initialized`);
       return;
     }
 
@@ -92,7 +92,7 @@ export class BotManager {
     // Store order manager reference
     this.orderManagers.set(marketId, orderManager);
 
-    logInfo("ai-market-maker", `BotManager: Initialized ${bots.length} bots for market ${marketId}`, __filename);
+    logger.info("BOT_MANAGER", `Initialized ${bots.length} bots for market ${marketId}`);
   }
 
   /**
@@ -105,7 +105,7 @@ export class BotManager {
     }
 
     if (group.isRunning) {
-      logInfo("ai-market-maker", `BotManager: Market ${marketId} already running`, __filename);
+      logger.info("BOT_MANAGER", `Market ${marketId} already running`);
       return;
     }
 
@@ -119,7 +119,7 @@ export class BotManager {
     // Start trading loop
     this.startTradingLoop(marketId);
 
-    logInfo("ai-market-maker", `BotManager: Started ${group.bots.length} bots for market ${marketId}`, __filename);
+    logger.info("BOT_MANAGER", `Started ${group.bots.length} bots for market ${marketId}`);
   }
 
   /**
@@ -144,7 +144,7 @@ export class BotManager {
 
     group.isRunning = false;
 
-    logInfo("ai-market-maker", `BotManager: Stopped bots for market ${marketId}`, __filename);
+    logger.info("BOT_MANAGER", `Stopped bots for market ${marketId}`);
   }
 
   /**
@@ -158,7 +158,7 @@ export class BotManager {
       await bot.pause();
     }
 
-    logInfo("ai-market-maker", `BotManager: Paused bots for market ${marketId}`, __filename);
+    logger.info("BOT_MANAGER", `Paused bots for market ${marketId}`);
   }
 
   /**
@@ -172,7 +172,7 @@ export class BotManager {
       await bot.resume();
     }
 
-    logInfo("ai-market-maker", `BotManager: Resumed bots for market ${marketId}`, __filename);
+    logger.info("BOT_MANAGER", `Resumed bots for market ${marketId}`);
   }
 
   /**
@@ -196,7 +196,7 @@ export class BotManager {
 
     this.marketGroups.delete(marketId);
     this.orderManagers.delete(marketId);
-    logInfo("ai-market-maker", `BotManager: Removed market ${marketId}`, __filename);
+    logger.info("BOT_MANAGER", `Removed market ${marketId}`);
   }
 
   /**
@@ -219,7 +219,7 @@ export class BotManager {
       await bot.start();
     }
 
-    logInfo("ai-market-maker", `BotManager: Added bot ${bot.getBotId()} to market ${marketId}`, __filename);
+    logger.info("BOT_MANAGER", `Added bot ${bot.getBotId()} to market ${marketId}`);
   }
 
   /**
@@ -237,7 +237,7 @@ export class BotManager {
 
     group.bots.splice(botIndex, 1);
 
-    logInfo("ai-market-maker", `BotManager: Removed bot ${botId} from market ${marketId}`, __filename);
+    logger.info("BOT_MANAGER", `Removed bot ${botId} from market ${marketId}`);
   }
 
   /**
@@ -347,7 +347,7 @@ export class BotManager {
           }
         }
       } catch (error: any) {
-        logError("ai-market-maker", error instanceof Error ? error : new Error(String(error)), __filename);
+        logger.error("BOT_MANAGER", "Error executing trade", error instanceof Error ? error : new Error(String(error)));
       }
     }
 
@@ -395,7 +395,7 @@ export class BotManager {
         const context = await this.buildMarketContext(marketId, orderManager);
         await this.executeTradingRound(marketId, context);
       } catch (error: any) {
-        logError("ai-market-maker", error instanceof Error ? error : new Error(String(error)), __filename);
+        logger.error("BOT_MANAGER", "Error in trading loop", error instanceof Error ? error : new Error(String(error)));
       }
     }, interval);
   }
@@ -474,7 +474,7 @@ export class BotManager {
     this.marketGroups.clear();
     this.orderManagers.clear();
 
-    logInfo("ai-market-maker", "BotManager: Shutdown complete", __filename);
+    logger.info("BOT_MANAGER", "Shutdown complete");
   }
 }
 

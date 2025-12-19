@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "updateRoadmapItem",
   tags: ["ICO", "Creator", "Roadmap"],
   requiresAuth: true,
+  logModule: "ICO_ROADMAP",
+  logTitle: "Update roadmap item",
   parameters: [
     {
       index: 0,
@@ -54,8 +56,8 @@ export const metadata = {
   },
 };
 
-export default async (data: { user?: any; params?: any; body?: any }) => {
-  const { user, params, body } = data;
+export default async (data: { user?: any; params?: any; body?: any; ctx?: any }) => {
+  const { user, params, body, ctx } = data;
   const { id, roadmapId } = params;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -67,6 +69,8 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     });
   }
 
+  ctx?.step("Validating roadmap update request");
+
   const roadmapItem = await models.icoRoadmapItem.findOne({
     where: { id: roadmapId, offeringId: id },
   });
@@ -77,8 +81,10 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
   // Save the old title before updating for notification details.
   const oldTitle = roadmapItem.title;
 
+  ctx?.step("Updating roadmap item");
   await roadmapItem.update(body);
 
+  ctx?.step("Sending notification");
   // Create a notification about the update.
   try {
     await createNotification({
@@ -105,5 +111,6 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     console.error("Failed to create update notification", notifErr);
   }
 
+  ctx?.success(`Updated roadmap item "${body.title}"`);
   return { message: "Roadmap item updated successfully" };
 };

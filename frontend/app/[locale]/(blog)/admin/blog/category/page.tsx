@@ -1,7 +1,14 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { FolderTree } from "lucide-react";
+import { useColumns, useFormConfig } from "./columns";
+import { useTranslations } from "next-intl";
+
 export default function CategoryPage() {
+  const t = useTranslations("blog_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/blog/category"
@@ -13,14 +20,20 @@ export default function CategoryPage() {
         edit: "edit.blog.category",
         delete: "delete.blog.category",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate
       canEdit
       canDelete
       canView
-      title="Category Management"
+      title={t("category_management")}
+      description={t("organize_and_manage_blog_post_categories")}
       itemTitle="Category"
       columns={columns}
+      formConfig={formConfig}
+      design={{
+        animation: "orbs",
+        icon: FolderTree,
+      }}
     />
   );
 }

@@ -36,7 +36,9 @@ import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
 export default function BlockchainConfiguration() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const [blockchains, setBlockchains] = useState<icoBlockchainAttributes[]>([]);
   const [selectedBlockchain, setSelectedBlockchain] =
     useState<icoBlockchainAttributes | null>(null);
@@ -160,10 +162,10 @@ export default function BlockchainConfiguration() {
           <Table className="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead>{t("display_name")}</TableHead>
-                <TableHead>{t("Value")}</TableHead>
-                <TableHead>{t("Status")}</TableHead>
-                <TableHead className="text-right">{t("Actions")}</TableHead>
+                <TableHead>{tExt("display_name")}</TableHead>
+                <TableHead>{tCommon("value")}</TableHead>
+                <TableHead>{tCommon("status")}</TableHead>
+                <TableHead className="text-right">{tCommon("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -228,17 +230,17 @@ export default function BlockchainConfiguration() {
             <AlertDialogTitle>{t("are_you_sure")}</AlertDialogTitle>
             <AlertDialogDescription>
               {t("this_will_permanently_delete_the_blockchain")}
-              {selectedBlockchain?.name}. {t("this_action_cannot_be_undone")}.
+              {selectedBlockchain?.name}. {tCommon("this_action_cannot_be_undone")}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
               variant={"destructive"}
               disabled={isSaving}
             >
-              {t("Delete")}
+              {tCommon("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

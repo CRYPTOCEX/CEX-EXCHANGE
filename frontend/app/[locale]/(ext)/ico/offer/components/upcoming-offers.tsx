@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -21,24 +21,20 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useOfferStore } from "@/store/ico/offer/offer-store";
-import { useFilterStore } from "@/store/ico/offer/filter-store";
 import { formatDate } from "@/lib/ico/utils";
 import { Link } from "@/i18n/routing";
 import { CountdownTimer } from "../../components/countdown-timer";
 import { useConfigStore } from "@/store/config";
 import { formatCrypto } from "@/utils/formatters";
 import { useTranslations } from "next-intl";
-
 export function UpcomingTokenOfferings() {
-  const t = useTranslations("ext");
-  const { upcomingOfferings, isLoadingUpcoming, fetchUpcomingOfferings } =
-    useOfferStore();
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
+  const tExtAdmin = useTranslations("ext_admin");
+  const { upcomingOfferings, isLoadingUpcoming } = useOfferStore();
   const { settings } = useConfigStore();
-  const { getQueryParams } = useFilterStore();
   const [notifiedOfferings, setNotifiedOfferings] = useState<string[]>([]);
-  useEffect(() => {
-    fetchUpcomingOfferings(getQueryParams());
-  }, [fetchUpcomingOfferings, getQueryParams]);
   const toggleNotification = (id: string) => {
     setNotifiedOfferings((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
@@ -69,7 +65,7 @@ export function UpcomingTokenOfferings() {
           {t("no_upcoming_offerings_match_your_filters")}
         </h3>
         <p className="text-muted-foreground mt-2">
-          {t("try_adjusting_your_search_or_filter_criteria")}
+          {tCommon("try_adjusting_your_search_or_filter_criteria")}
         </p>
       </div>
     );
@@ -89,9 +85,9 @@ export function UpcomingTokenOfferings() {
               <div className="flex justify-between items-start">
                 <Badge
                   variant="secondary"
-                  className="bg-primary/10 hover:bg-primary/20 text-primary"
+                  className={"bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 border hover:opacity-80"}
                 >
-                  {t("coming_soon")}
+                  {tCommon("coming_soon")}
                 </Badge>
                 <Button
                   variant="ghost"
@@ -123,7 +119,7 @@ export function UpcomingTokenOfferings() {
                 <div className="bg-muted/30 p-2 rounded-lg flex flex-col">
                   <p className="text-xs text-muted-foreground mb-1 flex items-center">
                     <Calendar className="h-3 w-3 mr-1" />
-                    {t("start_date")}
+                    {tExt("start_date")}
                   </p>
                   <p className="font-medium">
                     {formatDate(offering.startDate)}
@@ -132,7 +128,7 @@ export function UpcomingTokenOfferings() {
                 <div className="bg-muted/30 p-2 rounded-lg flex flex-col">
                   <p className="text-xs text-muted-foreground mb-1 flex items-center">
                     <Target className="h-3 w-3 mr-1" />
-                    {t("Target")}
+                    {tExtAdmin("target")}
                   </p>
                   <p className="font-medium">
                     {formatCrypto(offering.targetAmount, currency)}
@@ -150,7 +146,7 @@ export function UpcomingTokenOfferings() {
                 <div className="bg-muted/30 p-2 rounded-lg flex flex-col">
                   <p className="text-xs text-muted-foreground mb-1 flex items-center">
                     <CreditCard className="h-3 w-3 mr-1" />
-                    {t("Min")}. {t("Investment")}
+                    {tCommon("min")}. {tCommon("investment")}
                   </p>
                   <p className="font-medium">
                     {formatCrypto(settings["icoMinInvestmentAmount"], currency)}
@@ -169,7 +165,7 @@ export function UpcomingTokenOfferings() {
               {offering.phases && offering.phases.length > 0 && (
                 <div className="mt-4 pt-4 border-t">
                   <p className="text-sm font-medium mb-2">
-                    {t("offering_phases")}
+                    {tExt("offering_phases")}
                   </p>
                   <div className="space-y-2">
                     {offering.phases.map((phase, index) => (
@@ -191,7 +187,7 @@ export function UpcomingTokenOfferings() {
             <CardFooter className="relative z-10">
               <Link href={`/ico/offer/${offering.id}`} className="w-full">
                 <Button variant="outline" className="w-full group">
-                  {t("learn_more")}
+                  {tCommon("learn_more")}
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>

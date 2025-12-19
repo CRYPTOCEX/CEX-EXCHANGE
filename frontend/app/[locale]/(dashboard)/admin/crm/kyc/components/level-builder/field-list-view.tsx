@@ -27,6 +27,7 @@ import {
   ArrowDownUp,
   CreditCard,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 // Add this helper function to get the appropriate color for each field type
 const getFieldTypeColor = (type: string): string => {
@@ -67,6 +68,7 @@ export function FieldListView({
   handleRemoveField,
   handleReorderFields,
 }: FieldListViewProps) {
+  const t = useTranslations("dashboard_admin");
   // State to track dragging
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
@@ -232,7 +234,7 @@ export function FieldListView({
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Edit field</p>
+                          <p>{t("edit_field")}</p>
                         </TooltipContent>
                       </Tooltip>
 
@@ -251,7 +253,7 @@ export function FieldListView({
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Duplicate field</p>
+                          <p>{t("duplicate_field")}</p>
                         </TooltipContent>
                       </Tooltip>
 
@@ -270,7 +272,7 @@ export function FieldListView({
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Delete field</p>
+                          <p>{t("delete_field")}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

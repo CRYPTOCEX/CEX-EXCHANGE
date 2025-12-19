@@ -23,7 +23,8 @@ interface OnboardingStep {
 }
 
 export function WalletOnboarding({ onComplete, onSkip }: WalletOnboardingProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("ext_nft");
+  const tCommon = useTranslations("common");
   const { connectWallet: connectWalletStore, isConnected } = useWalletStore();
   const [currentStep, setCurrentStep] = useState(0);
   const [walletDetected, setWalletDetected] = useState(false);
@@ -109,10 +110,10 @@ export function WalletOnboarding({ onComplete, onSkip }: WalletOnboardingProps) 
               {t("a_web3_wallet_is_like_a")}
             </p>
             <ul className="mt-2 space-y-1 text-sm text-gray-700 dark:text-gray-400">
-              <li>{t("store_cryptocurrencies_and_nfts")}</li>
-              <li>{t("sign_transactions_securely")}</li>
-              <li>{t("connect_to_decentralized_apps_dapps")}</li>
-              <li>{t("maintain_full_control_of_your_assets")}</li>
+              <li>• {t("store_cryptocurrencies_and_nfts")}</li>
+              <li>• {t("sign_transactions_securely")}</li>
+              <li>• {t("connect_to_decentralized_apps_dapps")}</li>
+              <li>• {t("maintain_full_control_of_your_assets")}</li>
             </ul>
           </div>
 
@@ -198,7 +199,7 @@ export function WalletOnboarding({ onComplete, onSkip }: WalletOnboardingProps) 
             {isConnected ? (
               <div className="space-y-4">
                 <CheckCircle className="w-16 h-16 text-green-600 dark:text-green-500 mx-auto" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">{t("wallet_connected")}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">{tCommon("wallet_connected")}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   {t("your_wallet_is_now_connected_to_the_marketplace")}
                 </p>
@@ -258,7 +259,7 @@ export function WalletOnboarding({ onComplete, onSkip }: WalletOnboardingProps) 
         <div className="space-y-6">
           <div className="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-lg p-6 text-center">
             <CheckCircle className="w-16 h-16 text-green-600 dark:text-green-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2 text-green-900 dark:text-green-400">{t("setup_complete")}</h3>
+            <h3 className="text-lg font-semibold mb-2 text-green-900 dark:text-green-400">{tCommon("setup_complete")}</h3>
             <p className="text-sm text-gray-700 dark:text-gray-400">
               {t("your_wallet_is_connected_and_youre")}
             </p>

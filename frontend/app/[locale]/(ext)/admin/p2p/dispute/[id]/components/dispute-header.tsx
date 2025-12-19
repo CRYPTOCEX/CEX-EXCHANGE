@@ -71,7 +71,8 @@ export function DisputeHeader({
   priority,
   dispute,
 }: DisputeHeaderProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
 
   const reportedBy = dispute?.reportedBy || {};
   const against = dispute?.against || {};
@@ -100,7 +101,7 @@ export function DisputeHeader({
                   href={`/admin/crm/user/${reportedBy.id}`}
                   className="text-xs text-primary hover:underline"
                 >
-                  {t("view_profile")}
+                  {tExt("view_profile")}
                 </Link>
               )}
             </div>
@@ -114,7 +115,7 @@ export function DisputeHeader({
                 className="flex items-center gap-1"
               >
                 <AlertTriangle className="h-3 w-3" />
-                {t("Dispute")}
+                {tExt("dispute")}
               </Badge>
               <DisputeStatusBadge status={status} />
               <PriorityBadge priority={priority} />
@@ -142,14 +143,14 @@ export function DisputeHeader({
           {/* Against */}
           <div className="flex items-center gap-3 flex-1 justify-end">
             <div className="text-right">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("Against")}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("against")}</p>
               <p className="font-semibold">{getUserName(against)}</p>
               {against.id && (
                 <Link
                   href={`/admin/crm/user/${against.id}`}
                   className="text-xs text-primary hover:underline"
                 >
-                  {t("view_profile")}
+                  {tExt("view_profile")}
                 </Link>
               )}
             </div>

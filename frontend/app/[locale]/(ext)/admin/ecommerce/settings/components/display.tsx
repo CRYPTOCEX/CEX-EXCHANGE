@@ -16,11 +16,12 @@ export default function DisplaySettingsSection({
   settings,
   onUpdate,
 }: DisplaySettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   return (
     <Card className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-800">
       <CardContent className="space-y-6 pt-6">
-        <h3 className="text-lg font-medium">{t("display_settings")}</h3>
+        <h3 className="text-lg font-medium">{tCommon("display_settings")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="productsPerPage">{t("products_per_page")}</Label>
@@ -31,7 +32,7 @@ export default function DisplaySettingsSection({
               onChange={(e) =>
                 onUpdate("ecommerceProductsPerPage", Number(e.target.value))
               }
-              placeholder="Enter products per page"
+              placeholder={t("enter_products_per_page")}
               min="1"
               max="100"
               className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"

@@ -1,6 +1,7 @@
 import { messageBroker } from "@b/handler/Websocket";
 import { models } from "@b/db";
 import { Op } from "sequelize";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   requiresAuth: true,
@@ -77,7 +78,7 @@ class P2PTradeDataHandler {
       });
 
       if (!trade) {
-        console.warn(`[P2P Trade WS] Trade ${tradeId} not found or user ${userId} not authorized`);
+        logger.warn("P2P_WS", `Trade ${tradeId} not found or user ${userId} not authorized`);
         return;
       }
 
@@ -111,7 +112,7 @@ class P2PTradeDataHandler {
         try {
           timeline = JSON.parse(timeline);
         } catch (e) {
-          console.error('[P2P Trade WS] Failed to parse timeline JSON:', e);
+          logger.error("P2P_WS", `Failed to parse timeline JSON: ${e}`);
           timeline = [];
         }
       }
@@ -144,7 +145,7 @@ class P2PTradeDataHandler {
         }
       );
     } catch (error) {
-      console.error(`[P2P Trade WS] Error sending initial data for trade ${tradeId}:`, error);
+      logger.error("P2P_WS", `Error sending initial data for trade ${tradeId}: ${error}`);
     }
   }
 
@@ -184,7 +185,7 @@ class P2PTradeDataHandler {
 
       return hasAdminAccess;
     } catch (error) {
-      console.error("[P2P Trade WS] Error checking admin status:", error);
+      logger.error("P2P_WS", `Error checking admin status: ${error}`);
       return false;
     }
   }
@@ -194,7 +195,7 @@ class P2PTradeDataHandler {
    */
   public async addSubscription(tradeId: string, userId: string, isAdminSubscription = false): Promise<void> {
     if (!tradeId || !userId) {
-      console.warn("[P2P Trade WS] No tradeId or userId provided in subscription request");
+      logger.warn("P2P_WS", "No tradeId or userId provided in subscription request");
       return;
     }
 
@@ -220,7 +221,7 @@ class P2PTradeDataHandler {
     }
 
     if (!trade) {
-      console.warn(`[P2P Trade WS] Trade ${tradeId} not found or user ${userId} not authorized`);
+      logger.warn("P2P_WS", `Trade ${tradeId} not found or user ${userId} not authorized`);
       return;
     }
 
@@ -233,7 +234,7 @@ class P2PTradeDataHandler {
     // Send initial data to the newly subscribed client
     await this.sendInitialData(tradeId, userId, isAdmin);
 
-    console.info(`[P2P Trade WS] ${isAdmin ? 'Admin' : 'User'} ${userId} subscribed to trade ${tradeId}`);
+    logger.info("P2P_WS", `${isAdmin ? 'Admin' : 'User'} ${userId} subscribed to trade ${tradeId}`);
   }
 
   /**
@@ -248,7 +249,7 @@ class P2PTradeDataHandler {
         this.activeSubscriptions.delete(tradeId);
       }
 
-      console.info(`[P2P Trade WS] User ${userId} unsubscribed from trade ${tradeId}`);
+      logger.debug("P2P_WS", `User ${userId} unsubscribed from trade ${tradeId}`);
     }
   }
 
@@ -311,7 +312,7 @@ class P2PTradeDataHandler {
     }
 
     if (tradesToCleanup.length > 0) {
-      console.info(`[P2P Trade WS] Cleaned up subscriptions for disconnected client ${clientId}`);
+      logger.debug("P2P_WS", `Cleaned up subscriptions for disconnected client ${clientId}`);
     }
   }
 }
@@ -342,12 +343,12 @@ export default async (data: Handler, message: any) => {
   const userId = data.user?.id;
 
   if (!userId) {
-    console.error("[P2P Trade WS] No user ID found - authentication required");
+    logger.error("P2P_WS", "No user ID found - authentication required");
     return;
   }
 
   if (!tradeId) {
-    console.error("[P2P Trade WS] No tradeId in payload");
+    logger.error("P2P_WS", "No tradeId in payload");
     return;
   }
 

@@ -1,5 +1,3 @@
-// /api/mlmReferralConditions/structure.get.ts
-
 import {
   listBinaryReferrals,
   listDirectReferrals,
@@ -8,20 +6,25 @@ import {
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { CacheManager } from "@b/utils/cache";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  notFoundResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata: OperationObject = {
-  summary: "Fetch MLM node details by UUID",
+  summary: "Fetches MLM node details by user ID",
   description:
-    "Retrieves information about a specific MLM node using its UUID.",
-  operationId: "getNodeById",
-  tags: ["Admin", "MLM", "Referrals"],
+    "Retrieves detailed information about a user MLM node including their downline structure. The structure varies based on MLM system (DIRECT/BINARY/UNILEVEL). Returns user information and their referral network.",
+  operationId: "getAffiliateNodeById",
+  tags: ["Admin", "Affiliate", "Referral"],
   parameters: [
     {
       index: 0,
       name: "id",
       in: "path",
       required: true,
-      schema: { type: "string", description: "UUID of the node user" },
+      schema: { type: "string", format: "uuid", description: "User ID" },
     },
   ],
   responses: {
@@ -31,38 +34,26 @@ export const metadata: OperationObject = {
         "application/json": {
           schema: {
             type: "object",
-            properties: {
-              id: { type: "number", description: "User ID" },
-              firstName: { type: "string", description: "First name" },
-              lastName: { type: "string", description: "Last name" },
-              referrals: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    id: { type: "number", description: "Referral ID" },
-                  },
-                },
-              },
-            },
+            description: "User node with referral details",
           },
         },
       },
     },
-    404: {
-      description: "Node not found",
-    },
-    500: {
-      description: "Internal server error",
-    },
+    401: unauthorizedResponse,
+    404: notFoundResponse("Node"),
+    500: serverErrorResponse,
   },
+  requiresAuth: true,
   permission: "view.affiliate.referral",
+  logModule: "ADMIN_AFFILIATE",
+  logTitle: "Get MLM node details",
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
   const { id } = params;
 
+  ctx?.step(`Fetching user node with ID: ${id}`);
   const user = await models.user.findByPk(id, {
     include: [
       {
@@ -86,7 +77,7 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 404, message: "User not found" });
   }
 
-  // Load settings from CacheManager
+  ctx?.step("Loading MLM system settings");
   const cacheManager = CacheManager.getInstance();
   const settings = await cacheManager.getSettings();
   const mlmSettings = settings.has["mlmSettings"]
@@ -94,21 +85,23 @@ export default async (data: Handler) => {
     : null;
   const mlmSystem = settings.has["mlmSystem"] || null;
 
+  ctx?.step(`Processing ${mlmSystem || 'DIRECT'} referral structure`);
   let nodeDetails;
   switch (mlmSystem) {
     case "DIRECT":
-      nodeDetails = await listDirectReferrals(user);
+      nodeDetails = await listDirectReferrals(user, ctx);
       break;
     case "BINARY":
-      nodeDetails = await listBinaryReferrals(user, mlmSettings);
+      nodeDetails = await listBinaryReferrals(user, mlmSettings, ctx);
       break;
     case "UNILEVEL":
-      nodeDetails = await listUnilevelReferrals(user, mlmSettings);
+      nodeDetails = await listUnilevelReferrals(user, mlmSettings, ctx);
       break;
     default:
-      nodeDetails = await listDirectReferrals(user);
+      nodeDetails = await listDirectReferrals(user, ctx);
       break;
   }
 
+  ctx?.success("Node details retrieved successfully");
   return nodeDetails;
 };

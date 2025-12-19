@@ -22,7 +22,7 @@ export default function LeverageSlider({
   calculateLiquidationPrice,
   currentPrice,
 }: LeverageSliderProps) {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   // Handle leverage change
   const handleLeverageChange = (value: number[]) => {
     setLeverage(value[0]);
@@ -34,7 +34,7 @@ export default function LeverageSlider({
   return (
     <div className="mb-4">
       <div className="flex justify-between items-center mb-1">
-        <label className="text-xs text-muted-foreground">{t("Leverage")}</label>
+        <label className="text-xs text-muted-foreground">{tCommon("leverage")}</label>
         <span className="text-xs font-medium">
           {leverage} x
         </span>

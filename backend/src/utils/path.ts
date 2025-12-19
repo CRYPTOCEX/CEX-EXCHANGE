@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { logger } from "@b/utils/console";
 
 /**
  * Resolves the correct path for file uploads in different environments
@@ -27,14 +28,14 @@ export function resolveUploadPath(relativePath: string, fallbackPaths: string[] 
   for (const testPath of allPaths) {
     const parentDir = path.dirname(testPath);
     if (fs.existsSync(parentDir)) {
-      console.log(`[PATH-DEBUG] Selected path: ${testPath} (parent exists: ${parentDir})`);
+      logger.debug("PATH", `Selected: ${testPath}`);
       return testPath;
     }
   }
-  
+
   // If no parent directory exists, return the first standard path
   const defaultPath = standardPaths[0];
-  console.log(`[PATH-DEBUG] No existing parent found, using default: ${defaultPath}`);
+  logger.debug("PATH", `No existing parent found, using default: ${defaultPath}`);
   return defaultPath;
 }
 
@@ -46,19 +47,19 @@ export function resolveUploadPath(relativePath: string, fallbackPaths: string[] 
 export async function ensureDirectoryExists(dirPath: string, recursive: boolean = true): Promise<void> {
   try {
     await fs.promises.access(dirPath);
-    console.log(`[PATH-DEBUG] Directory exists: ${dirPath}`);
+    logger.debug("PATH", `Directory exists: ${dirPath}`);
   } catch (error) {
     if (error.code === "ENOENT") {
       try {
-        console.log(`[PATH-DEBUG] Creating directory: ${dirPath}`);
+        logger.debug("PATH", `Creating directory: ${dirPath}`);
         await fs.promises.mkdir(dirPath, { recursive });
-        console.log(`[PATH-DEBUG] Directory created successfully: ${dirPath}`);
+        logger.debug("PATH", `Directory created: ${dirPath}`);
       } catch (mkdirError) {
-        console.error(`[PATH-DEBUG] Failed to create directory: ${dirPath}`, mkdirError);
+        logger.error("PATH", `Failed to create directory: ${dirPath}`, mkdirError);
         throw new Error(`Failed to create directory: ${mkdirError.message}`);
       }
     } else {
-      console.error(`[PATH-DEBUG] Directory access error: ${dirPath}`, error);
+      logger.error("PATH", `Directory access error: ${dirPath}`, error);
       throw error;
     }
   }
@@ -75,10 +76,10 @@ export async function tryMultiplePaths(paths: string[]): Promise<string> {
       await ensureDirectoryExists(testPath);
       return testPath;
     } catch (error) {
-      console.error(`[PATH-DEBUG] Failed to use path ${testPath}:`, error.message);
+      logger.debug("PATH", `Failed to use path ${testPath}: ${error.message}`);
       continue;
     }
   }
-  
+
   throw new Error(`Failed to create directory in any of the attempted paths: ${paths.join(", ")}`);
 } 

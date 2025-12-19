@@ -26,7 +26,8 @@ const DeleteConfirmationDialog = ({
   defaultToast?: boolean;
   toastMessage?: string;
 }) => {
-  const t = useTranslations("common");
+  const t = useTranslations("components_auth");
+  const tCommon = useTranslations("common");
   const [isPending, startTransition] = useTransition();
 
   const handleConfirm = async () => {
@@ -45,12 +46,12 @@ const DeleteConfirmationDialog = ({
         <AlertDialogHeader>
           <AlertDialogTitle>{t("are_you_absolutely_sure")}</AlertDialogTitle>
           <AlertDialogDescription>
-            {t("this_action_cannot_be_undone")}.{" "}
+            {tCommon("this_action_cannot_be_undone")}.{" "}
             {t("this_will_permanently_our_servers")}.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose}>{t("Cancel")}</AlertDialogCancel>
+          <AlertDialogCancel onClick={onClose}>{tCommon("cancel")}</AlertDialogCancel>
           <AlertDialogAction
             className={isPending ? "pointer-events-none" : ""}
             onClick={() => startTransition(handleConfirm)}

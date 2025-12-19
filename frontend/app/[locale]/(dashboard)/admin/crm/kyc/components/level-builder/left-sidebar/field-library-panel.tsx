@@ -130,7 +130,8 @@ export function FieldLibraryPanel({
   handleAddField,
   setLeftSidebarOpen,
 }: FieldLibraryPanelProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [searchQuery, setSearchQuery] = useState("");
   const [hoveredField, setHoveredField] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
@@ -194,7 +195,7 @@ export function FieldLibraryPanel({
                   ? "bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm"
                   : "text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-300"
               }`}
-              aria-label="List view"
+              aria-label={tCommon("list_view")}
             >
               <LayoutList className="h-3.5 w-3.5" />
             </button>
@@ -205,7 +206,7 @@ export function FieldLibraryPanel({
                   ? "bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm"
                   : "text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-300"
               }`}
-              aria-label="Grid view"
+              aria-label={tCommon("grid_view")}
             >
               <Grid className="h-3.5 w-3.5" />
             </button>
@@ -228,7 +229,7 @@ export function FieldLibraryPanel({
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400 dark:text-zinc-500" />
           <Input
-            placeholder="Search fields..."
+            placeholder={t("search_fields_ellipsis")}
             className="pl-9 bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 h-9"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -243,31 +244,31 @@ export function FieldLibraryPanel({
               value="all"
               className="rounded-none data-[state=active]:bg-white data-[state=active]:dark:bg-zinc-800 data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary"
             >
-              {t("All")}
+              {tCommon("all")}
             </TabsTrigger>
             <TabsTrigger
               value="basic"
               className="rounded-none data-[state=active]:bg-white data-[state=active]:dark:bg-zinc-800 data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary"
             >
-              {t("Basic")}
+              {tCommon("basic")}
             </TabsTrigger>
             <TabsTrigger
               value="choice"
               className="rounded-none data-[state=active]:bg-white data-[state=active]:dark:bg-zinc-800 data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary"
             >
-              {t("Choice")}
+              {t("choice")}
             </TabsTrigger>
             <TabsTrigger
               value="special"
               className="rounded-none data-[state=active]:bg-white data-[state=active]:dark:bg-zinc-800 data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary"
             >
-              {t("Special")}
+              {t("special")}
             </TabsTrigger>
             <TabsTrigger
               value="verification"
               className="rounded-none data-[state=active]:bg-white data-[state=active]:dark:bg-zinc-800 data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary"
             >
-              {t("Verify")}
+              {tCommon("verify")}
             </TabsTrigger>
           </TabsList>
 
@@ -293,7 +294,7 @@ export function FieldLibraryPanel({
                       className="mt-4 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
                       onClick={() => setSearchQuery("")}
                     >
-                      {t("clear_search")}
+                      {tCommon("clear_search")}
                     </Button>
                   </div>
                 ) : (

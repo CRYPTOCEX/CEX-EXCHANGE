@@ -11,6 +11,7 @@ import {
 import { ethers } from "ethers";
 import { processTransaction, createTransactionDetails } from "../DepositUtils";
 import { storeAndBroadcastTransaction } from "@b/api/(ext)/ecosystem/utils/redis/deposit";
+import { logger } from "@b/utils/console";
 
 interface EVMOptions {
   wallet: walletAttributes;
@@ -41,9 +42,7 @@ export class EVMDeposits implements IDepositMonitor {
 
   public async watchDeposits(): Promise<void> {
     if (!this.active) {
-      console.log(
-        `[INFO] Monitor for ${this.chain} is not active, skipping watchDeposits`
-      );
+      logger.debug("EVM_DEPOSIT", `Monitor for ${this.chain} is not active, skipping watchDeposits`);
       return;
     }
 
@@ -56,9 +55,7 @@ export class EVMDeposits implements IDepositMonitor {
           provider = await initializeHttpProvider(this.chain);
         }
         if (!provider) {
-          console.error(
-            `[ERROR] No provider available for chain ${this.chain}`
-          );
+          logger.error("EVM_DEPOSIT", `No provider available for chain ${this.chain}`);
           return;
         }
       }
@@ -71,9 +68,7 @@ export class EVMDeposits implements IDepositMonitor {
         await this.watchTokenDeposits(provider, feeDecimals);
       }
     } catch (error) {
-      console.error(
-        `[ERROR] Error in watchDeposits for ${this.chain}: ${error.message}`
-      );
+      logger.error("EVM_DEPOSIT", `Error in watchDeposits for ${this.chain}: ${error.message}`);
       this.active = false;
     }
   }
@@ -85,9 +80,7 @@ export class EVMDeposits implements IDepositMonitor {
     let consecutiveErrors = 0;
     const MAX_CONSECUTIVE_ERRORS = 10; // Increased from 5 to 10 for better resilience
 
-    console.log(
-      `[INFO] Starting native deposit monitoring for ${this.chain} address ${this.address}`
-    );
+    logger.info("EVM_DEPOSIT", `Starting native deposit monitoring for ${this.chain} address ${this.address}`);
 
     const verifyDeposits = async () => {
       if (depositFound || !this.active) {
@@ -110,9 +103,7 @@ export class EVMDeposits implements IDepositMonitor {
             consecutiveErrors = 0; // Reset error counter on success
 
             try {
-              console.log(
-                `[SUCCESS] Found native deposit for ${this.chain}: ${tx.hash}`
-              );
+              logger.success("EVM_DEPOSIT", `Found native deposit for ${this.chain}: ${tx.hash}`);
 
               const txDetails = await createTransactionDetails(
                 "NATIVE",
@@ -126,18 +117,14 @@ export class EVMDeposits implements IDepositMonitor {
               );
               await storeAndBroadcastTransaction(txDetails, tx.hash);
 
-              console.log(
-                `[SUCCESS] Native deposit ${tx.hash} processed successfully - stopping monitor`
-              );
+              logger.success("EVM_DEPOSIT", `Native deposit ${tx.hash} processed successfully - stopping monitor`);
 
               // Mark deposit as found and stop monitoring
               depositFound = true;
               this.stopPolling();
               return; // Exit immediately
             } catch (error) {
-              console.error(
-                `[ERROR] Error processing native transaction ${tx.hash}: ${error.message}`
-              );
+              logger.error("EVM_DEPOSIT", `Error processing native transaction ${tx.hash}: ${error.message}`);
               // Don't mark as depositFound if processing failed - will retry on next poll
             }
 
@@ -151,24 +138,16 @@ export class EVMDeposits implements IDepositMonitor {
         consecutiveErrors++;
 
         // Log error details for debugging
-        console.error(
-          `[EVM_MONITOR_ERROR] ${this.chain} Error fetching transactions (attempt ${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS})`
-        );
-        console.error(
-          `[EVM_MONITOR_ERROR] ${this.chain} Error message: ${error.message}`
-        );
+        logger.error("EVM_DEPOSIT", `${this.chain} Error fetching transactions (attempt ${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS})`);
+        logger.error("EVM_DEPOSIT", `${this.chain} Error message: ${error.message}`);
 
         // Log full error for first few attempts
         if (consecutiveErrors <= 3) {
-          console.error(
-            `[EVM_MONITOR_ERROR] ${this.chain} Full error:`, error
-          );
+          logger.debug("EVM_DEPOSIT", `${this.chain} Full error: ${JSON.stringify(error)}`);
         }
 
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-          console.error(
-            `[EVM_MONITOR_ERROR] ${this.chain} Max consecutive errors (${MAX_CONSECUTIVE_ERRORS}) reached, stopping monitor`
-          );
+          logger.error("EVM_DEPOSIT", `${this.chain} Max consecutive errors (${MAX_CONSECUTIVE_ERRORS}) reached, stopping monitor`);
           this.stopPolling();
           return;
         }
@@ -185,9 +164,7 @@ export class EVMDeposits implements IDepositMonitor {
       }
       // Exponential backoff: 10s, 20s, 40s, 60s (max)
       const backoffMs = Math.min(10000 * Math.pow(2, consecutiveErrors - 1), 60000);
-      console.log(
-        `[EVM_MONITOR] ${this.chain} Next poll in ${backoffMs / 1000}s (${consecutiveErrors} consecutive errors)`
-      );
+      logger.debug("EVM_DEPOSIT", `${this.chain} Next poll in ${backoffMs / 1000}s (${consecutiveErrors} consecutive errors)`);
       return backoffMs;
     };
 
@@ -198,9 +175,7 @@ export class EVMDeposits implements IDepositMonitor {
           scheduleNext();
         }, getInterval());
       } else if (depositFound) {
-        console.log(
-          `[INFO] Native deposit found for ${this.chain}, stopping monitoring`
-        );
+        logger.info("EVM_DEPOSIT", `Native deposit found for ${this.chain}, stopping monitoring`);
       }
     };
 
@@ -211,16 +186,12 @@ export class EVMDeposits implements IDepositMonitor {
     try {
       const token = await getEcosystemToken(this.chain, this.currency);
       if (!token) {
-        console.error(
-          `[ERROR] Token ${this.currency} not found for chain ${this.chain}`
-        );
+        logger.error("EVM_DEPOSIT", `Token ${this.currency} not found for chain ${this.chain}`);
         return;
       }
 
       const decimals = token.decimals;
-      console.log(
-        `[INFO] Starting token deposit monitoring for ${this.currency} on ${this.chain} at address ${this.address}`
-      );
+      logger.info("EVM_DEPOSIT", `Starting token deposit monitoring for ${this.currency} on ${this.chain} at address ${this.address}`);
 
       const filter = {
         address: token.contract,
@@ -237,16 +208,12 @@ export class EVMDeposits implements IDepositMonitor {
       // Enhanced event listener with better error handling
       this.eventListener = async (log) => {
         if (!this.active) {
-          console.log(
-            `[INFO] Monitor inactive, ignoring event for ${this.chain}`
-          );
+          logger.debug("EVM_DEPOSIT", `Monitor inactive, ignoring event for ${this.chain}`);
           return;
         }
 
         try {
-          console.log(
-            `[INFO] Token transfer event detected for ${this.currency} on ${this.chain}: ${log.transactionHash}`
-          );
+          logger.info("EVM_DEPOSIT", `Token transfer event detected for ${this.currency} on ${this.chain}: ${log.transactionHash}`);
 
           const success = await processTransaction(
             this.contractType === "NO_PERMIT" ? "NO_PERMIT" : "PERMIT",
@@ -260,9 +227,7 @@ export class EVMDeposits implements IDepositMonitor {
           );
 
           if (success) {
-            console.log(
-              `[SUCCESS] Token deposit ${log.transactionHash} processed successfully`
-            );
+            logger.success("EVM_DEPOSIT", `Token deposit ${log.transactionHash} processed successfully`);
 
             // Enhanced cleanup - different timeout based on contract type
             const cleanupTimeout =
@@ -272,15 +237,11 @@ export class EVMDeposits implements IDepositMonitor {
 
             setTimeout(() => {
               this.stopEventListener();
-              console.log(
-                `[INFO] Token deposit monitoring stopped after ${cleanupTimeout / 1000}s for ${this.chain}`
-              );
+              logger.info("EVM_DEPOSIT", `Token deposit monitoring stopped after ${cleanupTimeout / 1000}s for ${this.chain}`);
             }, cleanupTimeout);
           }
         } catch (error) {
-          console.error(
-            `[ERROR] Error in token deposit handler for ${this.chain}: ${error.message}`
-          );
+          logger.error("EVM_DEPOSIT", `Error in token deposit handler for ${this.chain}: ${error.message}`);
         }
       };
 
@@ -288,15 +249,11 @@ export class EVMDeposits implements IDepositMonitor {
       provider.on(filter, this.eventListener);
 
       provider.on("error", (error) => {
-        console.error(
-          `[ERROR] Provider error for ${this.chain}: ${error.message}`
-        );
+        logger.error("EVM_DEPOSIT", `Provider error for ${this.chain}: ${error.message}`);
 
         // Attempt reconnection for WebSocket providers
         if (provider.websocket) {
-          console.log(
-            `[INFO] Attempting to reconnect WebSocket provider for ${this.chain}`
-          );
+          logger.info("EVM_DEPOSIT", `Attempting to reconnect WebSocket provider for ${this.chain}`);
           setTimeout(async () => {
             try {
               const newProvider = await initializeWebSocketProvider(this.chain);
@@ -305,9 +262,7 @@ export class EVMDeposits implements IDepositMonitor {
                 await this.watchTokenDeposits(newProvider, feeDecimals);
               }
             } catch (reconnectError) {
-              console.error(
-                `[ERROR] Failed to reconnect provider for ${this.chain}: ${reconnectError.message}`
-              );
+              logger.error("EVM_DEPOSIT", `Failed to reconnect provider for ${this.chain}: ${reconnectError.message}`);
             }
           }, 5000);
         }
@@ -316,17 +271,15 @@ export class EVMDeposits implements IDepositMonitor {
       // Add connection monitoring
       if (provider.websocket) {
         provider.websocket.on("close", () => {
-          console.warn(`[WARN] WebSocket connection closed for ${this.chain}`);
+          logger.warn("EVM_DEPOSIT", `WebSocket connection closed for ${this.chain}`);
         });
 
         provider.websocket.on("open", () => {
-          console.log(`[INFO] WebSocket connection opened for ${this.chain}`);
+          logger.info("EVM_DEPOSIT", `WebSocket connection opened for ${this.chain}`);
         });
       }
     } catch (error) {
-      console.error(
-        `[ERROR] Error setting up token deposit monitoring for ${this.chain}: ${error.message}`
-      );
+      logger.error("EVM_DEPOSIT", `Error setting up token deposit monitoring for ${this.chain}: ${error.message}`);
       this.active = false;
     }
   }
@@ -337,11 +290,9 @@ export class EVMDeposits implements IDepositMonitor {
       if (provider) {
         try {
           provider.off(this.eventFilter, this.eventListener);
-          console.log(`[INFO] Event listener removed for ${this.chain}`);
+          logger.debug("EVM_DEPOSIT", `Event listener removed for ${this.chain}`);
         } catch (error) {
-          console.error(
-            `[ERROR] Error removing event listener for ${this.chain}: ${error.message}`
-          );
+          logger.error("EVM_DEPOSIT", `Error removing event listener for ${this.chain}: ${error.message}`);
         }
       }
       this.eventListener = null;
@@ -350,7 +301,7 @@ export class EVMDeposits implements IDepositMonitor {
   }
 
   public stopPolling(): void {
-    console.log(`[INFO] Stopping EVM deposit monitoring for ${this.chain}`);
+    logger.info("EVM_DEPOSIT", `Stopping EVM deposit monitoring for ${this.chain}`);
 
     this.active = false;
 
@@ -361,6 +312,6 @@ export class EVMDeposits implements IDepositMonitor {
 
     this.stopEventListener();
 
-    console.log(`[SUCCESS] EVM deposit monitoring stopped for ${this.chain}`);
+    logger.success("EVM_DEPOSIT", `EVM deposit monitoring stopped for ${this.chain}`);
   }
 }

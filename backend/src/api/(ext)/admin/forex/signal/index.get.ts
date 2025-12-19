@@ -12,10 +12,13 @@ import {
 import { forexSignalSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary: "Lists all Forex Signals with pagination and optional filtering",
+  summary: "Lists all Forex signals",
+  description: "Retrieves a paginated list of all Forex trading signals with filtering and sorting options. Signals can be subscribed to by users with Forex accounts.",
   operationId: "listForexSignals",
-  tags: ["Admin", "Forex", "Signals"],
+  tags: ["Admin", "Forex", "Signal"],
   parameters: crudParameters,
+  logModule: "ADMIN_FOREX",
+  logTitle: "Get Forex Signals",
   responses: {
     200: {
       description: "List of Forex Signals with pagination information",
@@ -46,7 +49,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
   // Using the getFiltered function which processes all CRUD parameters, including sorting and filtering
   return getFiltered({

@@ -1,5 +1,6 @@
 import { models } from '@b/db'
 import { createError } from '@b/utils/error'
+import { logger } from '@b/utils/console'
 import {
   validatePaystackConfig,
   makePaystackRequest,
@@ -222,7 +223,7 @@ export default async (data: Handler) => {
       }
     } catch (paystackError) {
       // If Paystack API fails, return current local status
-      console.warn('Failed to check Paystack status:', paystackError)
+      logger.warn('PAYSTACK', 'Failed to check Paystack status', paystackError)
     }
 
     // Return current local status if API call failed

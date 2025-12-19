@@ -19,7 +19,7 @@ export default function InvestmentLayout({
   return (
     <div className="min-h-screen">
       <InvestmentNavbar />
-      <main className="flex-1 mx-auto pt-14 md:pt-18">{children}</main>
+      <main className="flex-1 mx-auto">{children}</main>
       <Footer />
     </div>
   );

@@ -9,7 +9,8 @@ import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
 export default function PreviewMode() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const { page, togglePreviewMode, viewMode } = useBuilderStore();
   const [showJson, setShowJson] = useState(false);
 
@@ -47,7 +48,7 @@ export default function PreviewMode() {
               {t("error_loading_preview")}
             </h3>
             <p className="text-gray-500 dark:text-zinc-400">
-              {t("unable_to_load_page_content")}. {t("please_try_again")}.
+              {t("unable_to_load_page_content")}. {tCommon("please_try_again")}.
             </p>
           </div>
         </div>

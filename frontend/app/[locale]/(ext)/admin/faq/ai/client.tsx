@@ -24,7 +24,9 @@ import { useAIStore } from "@/store/faq/ai-store";
 import { useTranslations } from "next-intl";
 
 export function FAQAIAssistant() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"single" | "page" | "all">(
     "single"
@@ -172,7 +174,7 @@ export function FAQAIAssistant() {
                   {t("batch_ai_enhancement")}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {t("enhance_multiple_faqs_ai-powered_improvements")}.
+                  {t("enhance_multiple_faqs_ai_powered_improvements")}.
                 </p>
               </div>
             </div>
@@ -204,7 +206,7 @@ export function FAQAIAssistant() {
                   className="data-[state=active]:bg-white data-[state=active]:shadow-sm"
                 >
                   <Zap className="h-4 w-4 mr-2" />
-                  {t("all_faqs")}
+                  {tExt("all_faqs")}
                 </TabsTrigger>
               </TabsList>
 
@@ -290,7 +292,7 @@ export function FAQAIAssistant() {
                     <AlertTitle>
                       {t("improve_all")}
                       {faqs.length}
-                      {t("FAQs")}
+                      {t("faqs")}
                     </AlertTitle>
                     <AlertDescription>
                       {t("this_will_process_all_faqs_in_the_system")}.{" "}
@@ -316,9 +318,9 @@ export function FAQAIAssistant() {
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {processedCount}
-                            {t("of")}
+                            {tCommon("of")}
                             {totalToProcess}
-                            {t("complete")}
+                            {tCommon("complete")}
                           </p>
                         </div>
                         <div className="text-2xl font-bold tabular-nums">
@@ -350,14 +352,16 @@ export function FAQAIAssistant() {
                       exit={{ opacity: 0, y: -10 }}
                       className="mt-8 space-y-4"
                     >
-                      <h3 className="text-lg font-medium">{t("Results")}</h3>
+                      <h3 className="text-lg font-medium">
+                        {tCommon("results")}
+                      </h3>
                       <div className="grid gap-4 md:grid-cols-3">
                         <div className="rounded-lg border bg-white/50 backdrop-blur-sm p-4 space-y-2">
                           <div className="flex items-center gap-2">
                             <div className="rounded-full bg-green-100 p-1">
                               <Check className="h-4 w-4 text-green-600" />
                             </div>
-                            <p className="font-medium">{t("Improved")}</p>
+                            <p className="font-medium">{t("improved")}</p>
                           </div>
                           <p className="text-2xl font-bold">
                             {results.improved.length}
@@ -369,7 +373,7 @@ export function FAQAIAssistant() {
                             <div className="rounded-full bg-red-100 p-1">
                               <AlertCircle className="h-4 w-4 text-red-600" />
                             </div>
-                            <p className="font-medium">{t("Failed")}</p>
+                            <p className="font-medium">{tCommon("failed")}</p>
                           </div>
                           <p className="text-2xl font-bold">
                             {results.failed.length}
@@ -381,7 +385,7 @@ export function FAQAIAssistant() {
                             <div className="rounded-full bg-yellow-100 p-1">
                               <AlertCircle className="h-4 w-4 text-yellow-600" />
                             </div>
-                            <p className="font-medium">{t("Skipped")}</p>
+                            <p className="font-medium">{t("skipped")}</p>
                           </div>
                           <p className="text-2xl font-bold">
                             {results.skipped.length}
@@ -412,7 +416,7 @@ export function FAQAIAssistant() {
                     {isProcessing ? (
                       <>
                         <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
-                        {t("Processing")}.
+                        {tCommon("processing")}.
                       </>
                     ) : (
                       <>

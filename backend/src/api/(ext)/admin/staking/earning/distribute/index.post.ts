@@ -1,15 +1,23 @@
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
 import { createNotification } from "@b/utils/notifications";
+import {
+  badRequestResponse,
+  unauthorizedResponse,
+  notFoundResponse,
+  serverErrorResponse,
+  successMessageResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Distribute Earnings",
+  summary: "Distribute Earnings to Stakers",
+  operationId: "distributeStakingEarnings",
   description:
-    "Distributes earnings by splitting the given amount into admin fee and user earnings, and creates proper records for both.",
-  operationId: "distributeEarnings",
-  tags: ["Staking", "Admin", "Earnings"],
+    "Distributes earnings to all active stakers in a pool. The total amount is split into admin fees (based on pool's adminFeePercentage) and user earnings. Admin fees are recorded as a PLATFORM_FEE admin earning. User earnings are distributed proportionally to each active position based on their staked amount. Creates earning records for both admin and users, and logs the distribution activity.",
+  tags: ["Admin", "Staking", "Earnings"],
   requiresAuth: true,
-  parameters: [],
+  logModule: "ADMIN_STAKE",
+  logTitle: "Distribute Earnings",
   requestBody: {
     required: true,
     content: {
@@ -17,9 +25,22 @@ export const metadata = {
         schema: {
           type: "object",
           properties: {
-            poolId: { type: "string" },
-            amount: { type: "number" },
-            distributionType: { type: "string", enum: ["regular", "bonus"] },
+            poolId: {
+              type: "string",
+              format: "uuid",
+              description: "ID of the staking pool to distribute earnings for",
+            },
+            amount: {
+              type: "number",
+              minimum: 0,
+              description: "Total amount to distribute (before admin fee)",
+            },
+            distributionType: {
+              type: "string",
+              enum: ["regular", "bonus"],
+              description:
+                "Type of distribution: 'regular' for standard earnings or 'bonus' for extra rewards",
+            },
           },
           required: ["poolId", "amount", "distributionType"],
         },
@@ -27,28 +48,19 @@ export const metadata = {
     },
   },
   responses: {
-    200: {
-      description: "Earnings distributed successfully",
-      content: {
-        "application/json": {
-          schema: {
-            type: "object",
-            properties: {
-              message: { type: "string" },
-            },
-          },
-        },
-      },
-    },
-    400: { description: "Bad Request" },
-    401: { description: "Unauthorized" },
-    500: { description: "Internal Server Error" },
+    200: successMessageResponse(
+      "Earnings distributed successfully to all active stakers"
+    ),
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    404: notFoundResponse("Staking Pool"),
+    500: serverErrorResponse,
   },
   permission: "create.staking.earning",
 };
 
-export default async (data: { user?: any; body?: any }) => {
-  const { user, body } = data;
+export default async (data: { user?: any; body?: any; ctx?: any }) => {
+  const { user, body, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -73,18 +85,21 @@ export default async (data: { user?: any; body?: any }) => {
   const t = await sequelize.transaction();
 
   try {
+    ctx?.step("Fetch pool");
     // Fetch the pool
     const pool = await models.stakingPool.findByPk(poolId, { transaction: t });
     if (!pool) {
       throw createError({ statusCode: 404, message: "Pool not found" });
     }
 
+    ctx?.step("Calculate admin fee and user earnings");
     // Calculate admin fee and user earnings
     const adminFee = parseFloat(
       ((amount * pool.adminFeePercentage) / 100).toFixed(4)
     );
     const userEarningTotal = parseFloat((amount - adminFee).toFixed(4));
 
+    ctx?.step("Create admin earning record");
     // Create the admin earning record
     await models.stakingAdminEarning.create(
       {
@@ -97,6 +112,7 @@ export default async (data: { user?: any; body?: any }) => {
       { transaction: t }
     );
 
+    ctx?.step("Get active staking positions");
     // Get active staking positions for the pool
     const positions = await models.stakingPosition.findAll({
       where: { poolId: pool.id, status: "ACTIVE" },
@@ -111,6 +127,7 @@ export default async (data: { user?: any; body?: any }) => {
       });
     }
 
+    ctx?.step("Distribute earnings to positions");
     // Determine the staking earning type from distributionType
     const earningType = distributionType.toUpperCase(); // "REGULAR" or "BONUS"
 
@@ -136,6 +153,7 @@ export default async (data: { user?: any; body?: any }) => {
       }
     }
 
+    ctx?.step("Log distribution activity");
     // Log the distribution activity
     await models.stakingAdminActivity.create(
       {
@@ -166,11 +184,12 @@ export default async (data: { user?: any; body?: any }) => {
             primary: true,
           },
         ],
-      });
+      }, ctx);
     } catch (notifErr) {
       console.error("Failed to create notification", notifErr);
     }
 
+    ctx?.success("Earnings distributed successfully");
     return { message: "Earnings distributed successfully" };
   } catch (error) {
     await t.rollback();

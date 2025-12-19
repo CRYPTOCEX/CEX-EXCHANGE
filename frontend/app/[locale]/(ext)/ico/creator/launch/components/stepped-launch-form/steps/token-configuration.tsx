@@ -16,7 +16,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslations } from "next-intl";
-
 interface TokenConfigurationStepProps {
   formData: FormData;
   updateFormData: (field: keyof FormData, value: any) => void;
@@ -28,7 +27,8 @@ export default function TokenConfigurationStep({
   updateFormData,
   errors,
 }: TokenConfigurationStepProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
   const [blockchains, setBlockchains] = useState<icoBlockchainAttributes[]>([]);
   const [tokenTypes, setTokenTypes] = useState<icoTokenTypeAttributes[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -105,9 +105,9 @@ export default function TokenConfigurationStep({
                 title="Blockchain"
                 error={!!errors.blockchain}
                 errorMessage={errors.blockchain}
-                description="The blockchain network your token will be deployed on"
+                description={t("the_blockchain_network_your_token_will")}
               >
-                <SelectValue placeholder="Select blockchain" />
+                <SelectValue placeholder={t("select_blockchain")} />
               </SelectTrigger>
               <SelectContent>
                 {blockchains.map((blockchain) => (
@@ -140,12 +140,12 @@ export default function TokenConfigurationStep({
               <SelectTrigger
                 id="tokenType"
                 className="w-full"
-                title="Token Type"
+                title={tExt("token_type")}
                 error={!!errors.tokenType}
                 errorMessage={errors.tokenType}
-                description="The type of token you are creating"
+                description={t("the_type_of_token_you_are_creating")}
               >
-                <SelectValue placeholder="Select token type" />
+                <SelectValue placeholder={t("select_token_type")} />
               </SelectTrigger>
               <SelectContent>
                 {tokenTypes.map((tokenType) => (
@@ -162,15 +162,15 @@ export default function TokenConfigurationStep({
         <Input
           id="totalSupply"
           type="number"
-          placeholder="e.g. 1000000"
+          placeholder={t("e_g_1000000")}
           value={formData.totalSupply}
           onChange={(e) =>
             updateFormData("totalSupply", Number(e.target.value))
           }
-          title="Total Supply"
+          title={tExt("total_supply")}
           error={!!errors.totalSupply}
           errorMessage={errors.totalSupply}
-          description="The total number of tokens that will ever exist"
+          description={t("the_total_number_of_tokens_that_will_ever_exist")}
         />
 
         {/* Initial Token Price Input */}
@@ -178,28 +178,28 @@ export default function TokenConfigurationStep({
           id="targetAmount"
           type="number"
           step="0.000001"
-          placeholder="e.g. 0.05"
+          placeholder={t("e_g_0_05")}
           value={formData.targetAmount}
           onChange={(e) =>
             updateFormData("targetAmount", Number(e.target.value))
           }
-          title="Initial Token Price (USD)"
+          title={t("initial_token_price_usd")}
           error={!!errors.targetAmount}
           errorMessage={errors.targetAmount}
-          description="The initial price per token in USD"
+          description={t("the_initial_price_per_token_in_usd")}
         />
       </div>
 
       {/* Token Description Textarea */}
       <Textarea
         id="description"
-        placeholder="Brief description of your token"
+        placeholder={t("brief_description_of_your_token")}
         value={formData.description}
         onChange={(e) => updateFormData("description", e.target.value)}
-        title="Token Description"
+        title={t("token_description")}
         error={!!errors.description}
         errorMessage={errors.description}
-        description="A short description of your token's purpose and features"
+        description={t("a_short_description_of_your_tokens")}
       />
     </div>
   );

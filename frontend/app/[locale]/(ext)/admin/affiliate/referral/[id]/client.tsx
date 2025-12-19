@@ -44,6 +44,10 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useParams } from "next/navigation";
+import AffiliateDetailLoading from "./loading";
+import AffiliateDetailErrorState from "./error-state";
+import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 interface AffiliateDetailClientProps {
   isModal?: boolean;
@@ -58,6 +62,9 @@ export default function AffiliateDetailClient({
   onUpdated,
   affiliateId 
 }: AffiliateDetailClientProps) {
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const params = useParams();
   const id = affiliateId || (params?.id as string);
   const {
@@ -107,173 +114,45 @@ export default function AffiliateDetailClient({
     return value.toLocaleString();
   };
   if (loading) {
-    return (
-      <div className={isModal ? "space-y-6" : "container mx-auto py-4 md:py-6 px-4 md:px-6 space-y-6"}>
-        <div className="flex items-center gap-2">
-          {!isModal && (
-            <Link href="/admin/affiliate/referral">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-          )}
-          <Skeleton className="h-9 w-48" />
-          <Skeleton className="h-6 w-20" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
-          {/* Profile Card Skeleton */}
-          <Card className="md:col-span-1">
-            <CardHeader>
-              <Skeleton className="h-6 w-24" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col items-center mb-6">
-                <Skeleton className="w-24 h-24 rounded-full mb-4" />
-                <Skeleton className="h-6 w-32 mb-1" />
-                <Skeleton className="h-4 w-40" />
-              </div>
-
-              <div className="space-y-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <Skeleton className="h-4 w-4" />
-                    <Skeleton className="h-4 w-full" />
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-4 border-t dark:border-gray-800">
-                <Skeleton className="h-5 w-28 mb-2" />
-                <Skeleton className="h-16 w-full" />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Stats and Tabs Skeleton */}
-          <div className="md:col-span-3 space-y-6">
-            {/* Stats Cards Skeleton */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[1, 2, 3].map((i) => (
-                <Card key={i}>
-                  <CardHeader className="pb-2">
-                    <Skeleton className="h-4 w-24" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center">
-                      <Skeleton className="h-5 w-5 mr-2" />
-                      <Skeleton className="h-8 w-20" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Tabs Skeleton */}
-            <div>
-              <div className="border-b mb-4">
-                <div className="flex space-x-2">
-                  {["Performance", "Network", "Rewards"].map((tab) => (
-                    <Skeleton key={tab} className="h-10 w-28" />
-                  ))}
-                </div>
-              </div>
-
-              {/* Tab Content Skeleton */}
-              <div className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <Skeleton className="h-6 w-40 mb-1" />
-                    <Skeleton className="h-4 w-60" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-[300px] w-full" />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <Skeleton className="h-6 w-40" />
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i}>
-                        <div className="flex justify-between mb-1">
-                          <Skeleton className="h-4 w-32" />
-                          <Skeleton className="h-4 w-16" />
-                        </div>
-                        <Skeleton className="h-2 w-full" />
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-        </div>
+    return isModal ? (
+      <div className="space-y-6 px-6 py-4">
+        <Skeleton className="h-9 w-48" />
+        <Skeleton className="h-[400px] w-full" />
       </div>
+    ) : (
+      <AffiliateDetailLoading />
     );
   }
   if (error) {
-    return (
-      <div className={isModal ? "space-y-6" : "container mx-auto py-4 md:py-6 px-4 md:px-6 space-y-6"}>
-        <div className="flex items-center gap-2">
-          {!isModal && (
-            <Link href="/admin/affiliate/referral">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-          )}
-          <h1 className="text-2xl md:text-3xl font-bold">Error</h1>
-        </div>
+    return isModal ? (
+      <div className="space-y-6 px-6 py-4">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error loading affiliate data</AlertTitle>
+          <AlertTitle>{t("error_loading_affiliate_data")}</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-        <div className="flex justify-center">
-          <Button onClick={() => fetchAffiliateDetails(id)}>Try Again</Button>
-        </div>
       </div>
+    ) : (
+      <AffiliateDetailErrorState error={error} />
     );
   }
   if (!affiliate) {
-    return (
-      <div className={isModal ? "space-y-6" : "container mx-auto py-4 md:py-6 px-4 md:px-6 space-y-6"}>
-        <div className="flex items-center gap-2">
-          {!isModal && (
-            <Link href="/admin/affiliate/referral">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-          )}
-          <h1 className="text-2xl md:text-3xl font-bold">
-            Affiliate Not Found
-          </h1>
-        </div>
+    return isModal ? (
+      <div className="space-y-6 px-6 py-4">
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>No data available</AlertTitle>
+          <AlertTitle>{tCommon("no_data_available")}</AlertTitle>
           <AlertDescription>
-            The requested affiliate could not be found or has been deleted.
+            {t("the_requested_affiliate_could_not_be")}
           </AlertDescription>
         </Alert>
-        {!isModal && (
-          <div className="flex justify-center">
-            <Link href="/admin/affiliate/referral">
-              <Button>
-                Return to Affiliates
-              </Button>
-            </Link>
-          </div>
-        )}
       </div>
+    ) : (
+      <AffiliateDetailErrorState notFound />
     );
   }
   return (
-    <div className={isModal ? "space-y-6" : "container mx-auto py-4 md:py-6 px-4 md:px-6 space-y-6"}>
+    <div className={isModal ? "space-y-6" : `container ${PAGE_PADDING} space-y-6`}>
       <div className={isModal ? "px-6 py-4 mb-4 md:mb-6" : "flex flex-wrap items-center gap-2 mb-4 md:mb-6"}>
         <div className="flex flex-wrap items-center gap-2">
           {!isModal && (
@@ -307,7 +186,7 @@ export default function AffiliateDetailClient({
                 {affiliate.name}
               </h3>
               <p className="text-sm text-muted-foreground text-center">
-                Affiliate ID: {affiliate.id}
+                {t("affiliate_id_1")}: {affiliate.id}
               </p>
             </div>
 
@@ -334,7 +213,7 @@ export default function AffiliateDetailClient({
 
             <div className="pt-4 border-t dark:border-gray-800">
               <h4 className="font-medium mb-2 text-sm md:text-base">
-                Referral Link
+                {t("referral_link")}
               </h4>
               <div className="p-2 bg-muted rounded text-xs md:text-sm break-all">
                 https://example.com/ref/{affiliate.referralCode || affiliate.id}
@@ -348,7 +227,7 @@ export default function AffiliateDetailClient({
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
-                  Total Referrals
+                  {tExt("total_referrals")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -364,7 +243,7 @@ export default function AffiliateDetailClient({
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
-                  Total Earnings
+                  {tCommon("total_earnings")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -380,7 +259,7 @@ export default function AffiliateDetailClient({
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
-                  Conversion Rate
+                  {tExt("conversion_rate")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -404,9 +283,9 @@ export default function AffiliateDetailClient({
             <TabsContent value="performance" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Earnings History</CardTitle>
+                  <CardTitle>{tExt("earnings_history")}</CardTitle>
                   <CardDescription>
-                    Monthly earnings for the last 6 months
+                    {t("monthly_earnings_for_the_last_6_months")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -460,7 +339,7 @@ export default function AffiliateDetailClient({
                     ) : (
                       <div className="flex items-center justify-center h-full">
                         <p className="text-muted-foreground">
-                          No earnings data available
+                          {tExt("no_earnings_data_available")}
                         </p>
                       </div>
                     )}
@@ -470,13 +349,13 @@ export default function AffiliateDetailClient({
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Performance Metrics</CardTitle>
+                  <CardTitle>{tExt("performance_metrics")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
                     <div className="flex justify-between mb-1">
                       <span className="text-sm font-medium">
-                        Conversion Rate
+                        {tExt("conversion_rate")}
                       </span>
                       <span className="text-sm font-medium">
                         {affiliate.conversionRate || "12.5"}%
@@ -491,7 +370,7 @@ export default function AffiliateDetailClient({
                   <div>
                     <div className="flex justify-between mb-1">
                       <span className="text-sm font-medium">
-                        Click-through Rate
+                        {t("click_through_rate")}
                       </span>
                       <span className="text-sm font-medium">
                         {affiliate.ctr || "8.3"}%
@@ -503,7 +382,7 @@ export default function AffiliateDetailClient({
                   <div>
                     <div className="flex justify-between mb-1">
                       <span className="text-sm font-medium">
-                        Average Order Value
+                        {t("average_order_value")}
                       </span>
                       <span className="text-sm font-medium">
                         ${affiliate.aov || "125"}
@@ -523,16 +402,16 @@ export default function AffiliateDetailClient({
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle>Referral Network</CardTitle>
+                    <CardTitle>{t("referral_network")}</CardTitle>
                     <CardDescription>
-                      Direct and indirect referrals
+                      {t("direct_and_indirect_referrals")}
                     </CardDescription>
                   </div>
                 </CardHeader>
                 <CardContent>
                   {network.length === 0 ? (
                     <div className="text-center py-10 text-muted-foreground">
-                      No referrals found for this affiliate.
+                      {t("no_referrals_found_for_this_affiliate_1")}
                     </div>
                   ) : (
                     <div className="rounded-md border dark:border-gray-800 overflow-x-auto">
@@ -551,7 +430,7 @@ export default function AffiliateDetailClient({
                               Earnings
                             </TableHead>
                             <TableHead className="text-right hidden lg:table-cell">
-                              Join Date
+                              {t("join_date")}
                             </TableHead>
                           </TableRow>
                         </TableHeader>
@@ -608,15 +487,15 @@ export default function AffiliateDetailClient({
             <TabsContent value="rewards" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Reward History</CardTitle>
+                  <CardTitle>{tExt("reward_history")}</CardTitle>
                   <CardDescription>
-                    Commissions and bonuses earned
+                    {t("commissions_and_bonuses_earned")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {rewards.length === 0 ? (
                     <div className="text-center py-10 text-muted-foreground">
-                      No rewards found for this affiliate.
+                      {t("no_rewards_found_for_this_affiliate_1")}
                     </div>
                   ) : (
                     <div className="rounded-md border dark:border-gray-800 overflow-x-auto">

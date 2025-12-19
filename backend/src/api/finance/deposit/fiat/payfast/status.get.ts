@@ -1,5 +1,6 @@
 import { models } from '@b/db'
 import { createError } from '@b/utils/error'
+import { logger } from '@b/utils/console'
 import {
   validatePayFastConfig,
   mapPayFastStatus,
@@ -163,7 +164,7 @@ export default async (data: Handler) => {
       }
 
     } catch (apiError) {
-      console.error('PayFast status check error:', apiError)
+      logger.error('PAYFAST', 'Status check error', apiError)
       // Continue with local status if API fails
     }
 
@@ -190,8 +191,8 @@ export default async (data: Handler) => {
     }
 
   } catch (error) {
-    console.error('PayFast status check error:', error)
-    
+    logger.error('PAYFAST', 'Status check error', error)
+
     throw createError({
       statusCode: error.statusCode || 500,
       message: error.message || 'Failed to check PayFast payment status',

@@ -13,6 +13,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { Lightbox } from "@/components/ui/lightbox";
+import { useTranslations } from "next-intl";
 
 interface ChatMessagesProps {
   messages: MessageType[];
@@ -25,6 +26,7 @@ export function ChatMessages({
   isReplying,
   isSupport,
 }: ChatMessagesProps) {
+  const t = useTranslations("components_blocks");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [displayedMessages, setDisplayedMessages] = useState<MessageType[]>([]);
@@ -157,7 +159,7 @@ export function ChatMessages({
                           <div className={hasText ? "mt-2" : ""}>
                             <Lightbox
                               src={message.attachment!}
-                              alt="Chat attachment"
+                              alt={t("chat_attachment")}
                               className="w-48 h-48 object-cover"
                               wrapperClassName="block overflow-hidden rounded-lg border border-zinc-200 shadow-2xs transition-shadow hover:shadow-md"
                             />

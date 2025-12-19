@@ -16,6 +16,8 @@ export const metadata: OperationObject = {
   summary: "Lists all ecommerce orders with pagination and optional filtering",
   operationId: "listEcommerceOrders",
   tags: ["E-commerce", "Orders"],
+  logModule: "ECOM",
+  logTitle: "Get Orders",
   parameters: crudParameters,
   responses: {
     200: {
@@ -47,7 +49,8 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 

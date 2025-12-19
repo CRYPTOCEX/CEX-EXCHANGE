@@ -1,22 +1,35 @@
+"use client";
+
 import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
 
-export const analytics: AnalyticsConfig = [
-  // First row: KPI cards and a pie chart for user status distribution.
+import { useTranslations } from "next-intl";
+export function useAnalytics() {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
+  return [
+  // ─────────────────────────────────────────────────────────────
+  // Group 1: User Status Overview – KPI Grid & Pie Chart
+  // ─────────────────────────────────────────────────────────────
   [
     {
-      type: "kpi",
-      layout: { cols: 2, rows: 2 },
+      type: "kpi" as const,
+      layout: { cols: 3, rows: 2 },
+      responsive: {
+        mobile: { cols: 1, rows: 5, span: 1 },
+        tablet: { cols: 3, rows: 2, span: 2 },
+        desktop: { cols: 3, rows: 2, span: 2 }
+      },
       items: [
         {
           id: "total_users",
-          title: "Total Users",
-          metric: "total", // 'total' is automatically computed (COUNT(*))
+          title: tCommon("total_users"),
+          metric: "total",
           model: "user",
           icon: "User",
         },
         {
           id: "active_users",
-          title: "Active Users",
+          title: tCommon("active_users"),
           metric: "active",
           model: "user",
           aggregation: { field: "status", value: "ACTIVE" },
@@ -24,15 +37,23 @@ export const analytics: AnalyticsConfig = [
         },
         {
           id: "inactive_users",
-          title: "Inactive Users",
+          title: t("inactive_users"),
           metric: "inactive",
           model: "user",
           aggregation: { field: "status", value: "INACTIVE" },
           icon: "UserX",
         },
         {
+          id: "suspended_users",
+          title: tCommon("suspended"),
+          metric: "suspended",
+          model: "user",
+          aggregation: { field: "status", value: "SUSPENDED" },
+          icon: "UserCog",
+        },
+        {
           id: "banned_users",
-          title: "Banned Users",
+          title: t("banned_users"),
           metric: "banned",
           model: "user",
           aggregation: { field: "status", value: "BANNED" },
@@ -41,12 +62,17 @@ export const analytics: AnalyticsConfig = [
       ],
     },
     {
-      type: "chart",
+      type: "chart" as const,
+      responsive: {
+        mobile: { cols: 1 },
+        tablet: { cols: 1 },
+        desktop: { cols: 1 }
+      },
       items: [
         {
           id: "userStatusDistribution",
-          title: "User Status Distribution",
-          type: "pie",
+          title: t("user_status_distribution"),
+          type: "pie" as const,
           model: "user",
           metrics: ["active", "inactive", "suspended", "banned"],
           config: {
@@ -55,25 +81,25 @@ export const analytics: AnalyticsConfig = [
             status: [
               {
                 value: "ACTIVE",
-                label: "Active",
+                label: tCommon("active"),
                 color: "green",
                 icon: "mdi:user-check",
               },
               {
                 value: "INACTIVE",
-                label: "Inactive",
+                label: tCommon("inactive"),
                 color: "gray",
                 icon: "mdi:user-off",
               },
               {
                 value: "SUSPENDED",
-                label: "Suspended",
+                label: tCommon("suspended"),
                 color: "amber",
                 icon: "mdi:user-lock",
               },
               {
                 value: "BANNED",
-                label: "Banned",
+                label: tCommon("banned"),
                 color: "red",
                 icon: "mdi:user-remove",
               },
@@ -83,50 +109,64 @@ export const analytics: AnalyticsConfig = [
       ],
     },
   ],
-  // Second row: A line chart for user registrations over time and a pie chart for email verification.
+
+  // ─────────────────────────────────────────────────────────────
+  // Group 2: Email Verification Overview – KPI Grid & Pie Chart
+  // ─────────────────────────────────────────────────────────────
   [
     {
-      type: "chart",
+      type: "kpi" as const,
+      layout: { cols: 2, rows: 1 },
+      responsive: {
+        mobile: { cols: 1, rows: 2, span: 1 },
+        tablet: { cols: 2, rows: 1, span: 2 },
+        desktop: { cols: 2, rows: 1, span: 2 }
+      },
       items: [
         {
-          id: "userRegistrationsOverTime",
-          title: "User Registrations Over Time",
-          type: "line",
+          id: "verified_emails",
+          title: tCommon("verified"),
+          metric: "verified",
           model: "user",
-          metrics: ["total", "active", "inactive", "suspended", "banned"],
-          timeframes: ["24h", "7d", "30d", "3m", "6m", "y"],
-          labels: {
-            total: "Total Users",
-            active: "Active",
-            inactive: "Inactive",
-            suspended: "Suspended",
-            banned: "Banned",
-          },
+          aggregation: { field: "emailVerified", value: "true" },
+          icon: "MailCheck",
+        },
+        {
+          id: "unverified_emails",
+          title: tCommon("not_verified"),
+          metric: "not_verified",
+          model: "user",
+          aggregation: { field: "emailVerified", value: "false" },
+          icon: "MailX",
         },
       ],
     },
     {
-      type: "chart",
+      type: "chart" as const,
+      responsive: {
+        mobile: { cols: 1, span: 1 },
+        tablet: { cols: 1, span: 1 },
+        desktop: { cols: 1, span: 1 }
+      },
       items: [
         {
           id: "emailVerificationDistribution",
-          title: "Email Verification Distribution",
-          type: "pie",
+          title: t("email_verification_distribution"),
+          type: "pie" as const,
           model: "user",
           metrics: ["verified", "not_verified"],
           config: {
-            // For booleans, we assume the DB returns "true"/"false" as strings.
             field: "emailVerified",
             status: [
               {
                 value: "true",
-                label: "Verified",
+                label: tCommon("verified"),
                 color: "blue",
                 icon: "mdi:check",
               },
               {
                 value: "false",
-                label: "Not Verified",
+                label: tCommon("not_verified"),
                 color: "gray",
                 icon: "mdi:close",
               },
@@ -136,4 +176,34 @@ export const analytics: AnalyticsConfig = [
       ],
     },
   ],
-];
+
+  // ─────────────────────────────────────────────────────────────
+  // Group 3: User Registrations Over Time – Full-Width Line Chart
+  // ─────────────────────────────────────────────────────────────
+  {
+    type: "chart" as const,
+    responsive: {
+      mobile: { cols: 1, span: 1 },
+      tablet: { cols: 1, span: 1 },
+      desktop: { cols: 1, span: 1 }
+    },
+    items: [
+      {
+        id: "userRegistrationsOverTime",
+        title: t("user_registrations_over_time"),
+        type: "line" as const,
+        model: "user",
+        metrics: ["total", "active", "inactive", "suspended", "banned"],
+        timeframes: ["24h", "7d", "30d", "3m", "6m", "y"],
+        labels: {
+          total: "Total Users",
+          active: "Active",
+          inactive: "Inactive",
+          suspended: "Suspended",
+          banned: "Banned",
+        },
+      },
+    ],
+  },
+] as AnalyticsConfig;
+}

@@ -40,13 +40,15 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { id } = params;
 
+  ctx?.step(`Fetching staking position ${id}`);
   // Get the position with related data
   const position = await models.stakingPosition.findOne({
     where: { id },
@@ -108,5 +110,6 @@ export default async (data: Handler) => {
     timeRemaining,
   };
 
+  ctx?.success(`Staking position ${id} retrieved successfully`);
   return { position: enhancedPosition };
 };

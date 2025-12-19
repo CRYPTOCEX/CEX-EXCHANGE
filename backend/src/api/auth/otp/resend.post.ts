@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
   tags: ["Auth"],
   description: "Resends the OTP for 2FA",
   requiresAuth: false,
+  logModule: "2FA",
+  logTitle: "Resend 2FA code",
   requestBody: {
     required: true,
     content: {
@@ -64,26 +66,46 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { id, type } = body;
 
-  const user = await getUserWith2FA(id);
-  const otp = generateOtp(user.twoFactor.secret);
+  try {
+    ctx?.step("Validating resend request");
+    if (!id || !type) {
+      ctx?.fail("User ID and type are required");
+      throw createError({
+        statusCode: 400,
+        message: "User ID and type are required",
+      });
+    }
 
-  if (type === "SMS") {
-    await handleSmsResend(user.phone, otp);
-  } else if (type === "EMAIL") {
-    await handleEmailResend(user.email, user.firstName, otp);
-  } else {
-    throw createError({
-      statusCode: 400,
-      message: "Invalid 2FA type or 2FA method not enabled",
-    });
+    ctx?.step("Looking up user with 2FA");
+    const user = await getUserWith2FA(id);
+
+    ctx?.step("Generating new OTP");
+    const otp = generateOtp(user.twoFactor.secret);
+
+    ctx?.step(`Resending OTP via ${type}`);
+    if (type === "SMS") {
+      await handleSmsResend(user.phone, otp);
+    } else if (type === "EMAIL") {
+      await handleEmailResend(user.email, user.firstName, otp);
+    } else {
+      ctx?.fail("Invalid 2FA type");
+      throw createError({
+        statusCode: 400,
+        message: "Invalid 2FA type or 2FA method not enabled",
+      });
+    }
+
+    ctx?.success(`OTP resent successfully via ${type}`);
+    return {
+      message: "OTP resent successfully",
+    };
+  } catch (error) {
+    ctx?.fail(error.message || "Failed to resend OTP");
+    throw error;
   }
-
-  return {
-    message: "OTP resent successfully",
-  };
 };
 
 // Generate OTP

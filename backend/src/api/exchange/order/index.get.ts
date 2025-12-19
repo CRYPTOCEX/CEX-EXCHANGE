@@ -16,6 +16,8 @@ export const metadata: OperationObject = {
   operationId: "listOrders",
   tags: ["Exchange", "Orders"],
   description: "Retrieves a list of orders for the authenticated user.",
+  logModule: "EXCHANGE",
+  logTitle: "List Orders",
   parameters: [
     {
       name: "type",
@@ -59,10 +61,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, query, ctx } = data;
   if (!user?.id) throw new Error("Unauthorized");
-  const { currency, pair, type } = data.query;
+  const { currency, pair, type } = query;
 
+  ctx?.step(`Fetching ${type} orders for ${currency}/${pair}`);
   const orders = await models.exchangeOrder.findAll({
     where: {
       userId: user.id,
@@ -71,5 +74,6 @@ export default async (data: Handler) => {
     },
   });
 
+  ctx?.success(`Retrieved ${orders.length} orders`);
   return orders;
 };

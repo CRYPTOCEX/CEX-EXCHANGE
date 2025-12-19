@@ -32,7 +32,11 @@ import { Separator } from "@/components/ui/separator";
 import { useAdminOfferStore } from "@/store/ico/admin/admin-offer-store";
 import InvestorsList from "./transaction";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/ico/utils";
+import { useTranslations } from "next-intl";
 export const TokenDetailsSection = () => {
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { offering, offerMetrics } = useAdminOfferStore();
   const [activeTab, setActiveTab] = useState("overview");
   const calculateProgress = () => {
@@ -69,9 +73,9 @@ export const TokenDetailsSection = () => {
         <TabsContent value="overview" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Token Information</CardTitle>
+              <CardTitle>{tExt("token_information")}</CardTitle>
               <CardDescription>
-                Basic information about the {offering.name} token
+                {t("basic_information_about_the")} {offering.name} token
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -82,7 +86,7 @@ export const TokenDetailsSection = () => {
                       <div className="flex items-center gap-2">
                         <Tag className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                          Token Name
+                          {tExt("token_name")}
                         </span>
                       </div>
                       <span className="font-medium">{offering.name}</span>
@@ -95,7 +99,7 @@ export const TokenDetailsSection = () => {
                       <div className="flex items-center gap-2">
                         <Tag className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                          Token Symbol
+                          {tExt("token_symbol")}
                         </span>
                       </div>
                       <span className="font-medium">{offering.symbol}</span>
@@ -108,7 +112,7 @@ export const TokenDetailsSection = () => {
                       <div className="flex items-center gap-2">
                         <Shield className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                          Token Type
+                          {tExt("token_type")}
                         </span>
                       </div>
                       <span className="font-medium capitalize">
@@ -123,7 +127,7 @@ export const TokenDetailsSection = () => {
                       <div className="flex items-center gap-2">
                         <Layers className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                          Total Supply
+                          {tExt("total_supply")}
                         </span>
                       </div>
                       <span className="font-medium">
@@ -140,7 +144,7 @@ export const TokenDetailsSection = () => {
                       <div className="flex items-center gap-2">
                         <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                          Token Price
+                          {tExt("token_price")}
                         </span>
                       </div>
                       <span className="font-medium">
@@ -155,7 +159,7 @@ export const TokenDetailsSection = () => {
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                          Start Date
+                          {tExt("start_date")}
                         </span>
                       </div>
                       <span className="font-medium">
@@ -170,7 +174,7 @@ export const TokenDetailsSection = () => {
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                          End Date
+                          {tCommon("end_date")}
                         </span>
                       </div>
                       <span className="font-medium">
@@ -200,7 +204,7 @@ export const TokenDetailsSection = () => {
               <div className="mt-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium">
-                    Fundraising Progress
+                    {t("fundraising_progress")}
                   </span>
                   <span className="text-sm text-muted-foreground">
                     {formatCurrency(offerMetrics?.currentRaised || 0)} of{" "}
@@ -209,7 +213,7 @@ export const TokenDetailsSection = () => {
                 </div>
                 <Progress value={calculateProgress()} className="h-2" />
                 <p className="text-xs text-muted-foreground mt-2">
-                  {calculateProgress().toFixed(2)}% of target raised
+                  {calculateProgress().toFixed(2)}% {t("of_target_raised")}
                 </p>
               </div>
 
@@ -232,7 +236,7 @@ export const TokenDetailsSection = () => {
                   <div className="flex items-start gap-3">
                     <Wallet className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                     <div>
-                      <h4 className="font-medium mb-1">Use of Funds</h4>
+                      <h4 className="font-medium mb-1">{tExt("use_of_funds")}</h4>
                       <div className="flex flex-wrap gap-2 mt-2">
                         {(() => {
                           try {
@@ -266,9 +270,9 @@ export const TokenDetailsSection = () => {
         <TabsContent value="phases" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Offering Phases</CardTitle>
+              <CardTitle>{tExt("offering_phases")}</CardTitle>
               <CardDescription>
-                Token sale phases and allocations
+                {t("token_sale_phases_and_allocations")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -291,14 +295,14 @@ export const TokenDetailsSection = () => {
                                       {phase.name}
                                     </h3>
                                     <p className="text-sm text-muted-foreground">
-                                      Duration: {phase.duration} days
+                                      {tCommon("duration")}: {phase.duration} days
                                     </p>
                                   </div>
                                   <Badge
                                     variant="outline"
                                     className="md:self-start"
                                   >
-                                    {formatCurrency(phase.tokenPrice)} per token
+                                    {formatCurrency(phase.tokenPrice)} {tExt("per_token")}
                                   </Badge>
                                 </div>
 
@@ -338,7 +342,7 @@ export const TokenDetailsSection = () => {
                                   <div>
                                     <div className="flex items-center justify-between mb-2">
                                       <span className="text-sm font-medium">
-                                        Sales Progress
+                                        {t("sales_progress")}
                                       </span>
                                       <span className="text-sm text-muted-foreground">
                                         {(
@@ -382,9 +386,9 @@ export const TokenDetailsSection = () => {
               ) : (
                 <div className="flex flex-col items-center justify-center py-12">
                   <HelpCircle className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <h3 className="text-lg font-medium">No Phases Defined</h3>
+                  <h3 className="text-lg font-medium">{t("no_phases_defined")}</h3>
                   <p className="text-sm text-muted-foreground text-center max-w-md mt-2">
-                    This token offering does not have any defined phases.
+                    {t("this_token_offering_does_not_have")}
                   </p>
                 </div>
               )}
@@ -395,9 +399,9 @@ export const TokenDetailsSection = () => {
         <TabsContent value="roadmap" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Project Roadmap</CardTitle>
+              <CardTitle>{tExt("project_roadmap")}</CardTitle>
               <CardDescription>
-                Development milestones and timeline
+                {t("development_milestones_and_timeline")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -463,9 +467,9 @@ export const TokenDetailsSection = () => {
               ) : (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Milestone className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <h3 className="text-lg font-medium">No Roadmap Items</h3>
+                  <h3 className="text-lg font-medium">{t("no_roadmap_items")}</h3>
                   <p className="text-sm text-muted-foreground text-center max-w-md mt-2">
-                    This token offering does not have any defined roadmap items.
+                    {t('this_token_offering_does_not_have')}
                   </p>
                 </div>
               )}
@@ -476,9 +480,9 @@ export const TokenDetailsSection = () => {
         <TabsContent value="links" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>External Resources</CardTitle>
+              <CardTitle>{t("external_resources")}</CardTitle>
               <CardDescription>
-                Important links and resources for the {offering.name} token
+                {t("important_links_and_resources_for_the")} {offering.name} token
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -518,10 +522,9 @@ export const TokenDetailsSection = () => {
               ) : (
                 <div className="flex flex-col items-center justify-center py-12">
                   <LinkIcon className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <h3 className="text-lg font-medium">No Links Available</h3>
+                  <h3 className="text-lg font-medium">{t("no_links_available")}</h3>
                   <p className="text-sm text-muted-foreground text-center max-w-md mt-2">
-                    There are no external links available for this token
-                    offering.
+                    {t("there_are_no_external_links_available")}
                   </p>
                 </div>
               )}
@@ -530,7 +533,7 @@ export const TokenDetailsSection = () => {
                 <div className="mt-6">
                   <Card>
                     <CardHeader className="pb-3">
-                      <CardTitle>Project Website</CardTitle>
+                      <CardTitle>{t("project_website")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center justify-between">

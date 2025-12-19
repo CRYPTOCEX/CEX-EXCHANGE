@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { validationRules } from "@/utils/validation";
 import type { PoolFormValues } from "./pool-form";
+import { useTranslations } from "next-intl";
 
 interface PoolFormStakingDetailsProps {
   formData: PoolFormValues;
@@ -18,6 +19,9 @@ export function PoolFormStakingDetails({
   validationErrors = {},
   hasSubmitted = false,
 }: PoolFormStakingDetailsProps) {
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [errors, setErrors] = useState({
     apr: "",
     minStake: "",
@@ -98,7 +102,7 @@ export function PoolFormStakingDetails({
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Input
-          label="Annual Percentage Rate (APR)"
+          label={`${tCommon('annual_percentage_rate')} (APR)`}
           type="number"
           step="0.1"
           value={formData.apr.toString()}
@@ -114,11 +118,11 @@ export function PoolFormStakingDetails({
             validationRules.min(0, "APR must be a positive number"),
           ]}
           validateOnChange
-          description="The annual yield percentage for stakers"
+          description={t("the_annual_yield_percentage_for_stakers")}
         />
 
         <Input
-          label="Lock Period (days)"
+          label={`${t("lock_period_days")} (days)`}
           type="number"
           value={formData.lockPeriod.toString()}
           onChange={(e) =>
@@ -136,11 +140,11 @@ export function PoolFormStakingDetails({
             validationRules.min(1, "Lock period must be at least 1 day"),
           ]}
           validateOnChange
-          description="Number of days tokens must remain staked"
+          description={t("number_of_days_tokens_must_remain_staked")}
         />
 
         <Input
-          label="Minimum Stake"
+          label={tExt("minimum_stake")}
           type="number"
           step="0.01"
           value={formData.minStake.toString()}
@@ -159,11 +163,11 @@ export function PoolFormStakingDetails({
             validationRules.min(0, "Minimum stake must be a positive number"),
           ]}
           validateOnChange
-          description="Minimum amount users can stake"
+          description={t("minimum_amount_users_can_stake")}
         />
 
         <Input
-          label="Maximum Stake (optional)"
+          label={t("maximum_stake_optional")}
           type="number"
           step="0.01"
           value={formData.maxStake?.toString() || ""}
@@ -172,11 +176,11 @@ export function PoolFormStakingDetails({
               e.target.value === "" ? null : Number.parseFloat(e.target.value);
             handleInputChange("maxStake", value);
           }}
-          description="Maximum amount users can stake (leave empty for no limit)"
+          description={t("maximum_amount_users_can_stake_leave")}
         />
 
         <Input
-          label="Available to Stake"
+          label={t("available_to_stake")}
           type="number"
           step="0.01"
           value={formData.availableToStake.toString()}
@@ -198,7 +202,7 @@ export function PoolFormStakingDetails({
             ),
           ]}
           validateOnChange
-          description="Total amount available in the staking pool"
+          description={t("total_amount_available_in_the_staking_pool")}
         />
       </div>
     </div>

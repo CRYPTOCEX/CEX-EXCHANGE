@@ -13,6 +13,7 @@ import {
   type CheckoutActions,
   type MultiWalletState,
 } from "@/app/[locale]/(ext)/gateway/checkout/[paymentIntentId]/designs";
+import { formatCurrencyAuto } from "@/utils/currency";
 
 const DESIGN_COMPONENTS = {
   v1: DesignV1,
@@ -328,11 +329,7 @@ const mockActions: CheckoutActions = {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   },
   formatCurrency: (amount: number, currency: string) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency,
-      minimumFractionDigits: 2,
-    }).format(amount);
+    return formatCurrencyAuto(amount, currency);
   },
   addWalletAllocation: () => {},
   removeWalletAllocation: () => {},

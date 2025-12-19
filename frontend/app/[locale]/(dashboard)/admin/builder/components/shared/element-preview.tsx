@@ -22,7 +22,8 @@ export default function ElementPreview({
   settings = {},
   className,
 }: ElementPreviewProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   // Helper to get icon component by name
   const getIconByName = (name: string, size = 16, color = "#7c3aed") => {
     const iconProps = { size, color, className: "inline-block" };
@@ -185,7 +186,7 @@ export default function ElementPreview({
         >
           <div className="w-full h-4 border border-dashed border-zinc-200 dark:border-zinc-700 rounded-sm flex items-center justify-center">
             <span className="text-[8px] text-zinc-400 dark:text-zinc-500">
-              {t("Space")}
+              {t("space")}
             </span>
           </div>
         </div>
@@ -225,7 +226,7 @@ export default function ElementPreview({
           <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-sm p-1 w-full h-8">
             <div className="w-full h-full bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-600 rounded-sm flex items-center justify-center">
               <span className="text-[8px] text-zinc-500 dark:text-zinc-400">
-                {t("Container")}
+                {t("container")}
               </span>
             </div>
           </div>
@@ -332,7 +333,7 @@ export default function ElementPreview({
           )}
         >
           <div className="px-2 py-1 bg-purple-600 text-white rounded-sm text-[8px]">
-            {t("Button")}
+            {t("button")}
           </div>
         </div>
       );
@@ -447,7 +448,7 @@ export default function ElementPreview({
               <div className="text-[6px]">{'BTC/USDT'}</div>
             </div>
             <div className="text-[6px] text-green-500">
-              {'+2'}. {'5%'}
+              +2. 5%
             </div>
             <div className="w-8 h-4">
               <svg viewBox="0 0 32 16" className="w-full h-full">
@@ -472,7 +473,7 @@ export default function ElementPreview({
           )}
         >
           <span className="text-[8px] text-zinc-500 dark:text-zinc-400">
-            {t("Preview")}
+            {tCommon("preview")}
           </span>
         </div>
       );

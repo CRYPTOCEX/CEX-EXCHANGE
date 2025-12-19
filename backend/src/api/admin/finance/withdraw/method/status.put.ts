@@ -30,10 +30,17 @@ export const metadata = {
   responses: updateRecordResponses("Withdraw Method"),
   requiresAuth: true,
   permission: "edit.withdraw.method",
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk Update Method Status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("withdrawMethod", ids, status);
+
+  ctx?.step("Bulk updating withdraw method status");
+  const result = await updateStatus("withdrawMethod", ids, status);
+
+  ctx?.success("Withdraw method status updated successfully");
+  return result;
 };

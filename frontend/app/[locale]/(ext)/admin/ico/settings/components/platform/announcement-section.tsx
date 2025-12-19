@@ -16,16 +16,17 @@ export default function AnnouncementSection({
   isActive,
   onUpdate,
 }: AnnouncementSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">{t("platform_announcement")}</h3>
       <Textarea
         id="announcement-message"
-        label="Announcement Message"
+        label={tCommon("announcement_message")}
         value={message ?? ""}
         onChange={(e) => onUpdate("icoAnnouncementMessage", e.target.value)}
-        placeholder="Enter an announcement message to display to all users"
+        placeholder={t("enter_an_announcement_message_to_display")}
       />
       <div className="flex items-center space-x-2">
         <Switch

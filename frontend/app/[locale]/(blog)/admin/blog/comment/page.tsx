@@ -1,8 +1,16 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { commentAnalytics } from "./analytics";
+import { MessageSquare } from "lucide-react";
+import { useColumns, useFormConfig } from "./columns";
+import { useAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
+
 export default function CommentPage() {
+  const t = useTranslations("blog_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+  const analytics = useAnalytics();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/blog/comment"
@@ -14,14 +22,20 @@ export default function CommentPage() {
         edit: "edit.blog.comment",
         delete: "delete.blog.comment",
       }}
-      pageSize={10}
+      pageSize={12}
       canEdit
       canDelete
       canView
-      title="Comment Management"
+      title={t("comment_management")}
+      description={t("moderate_and_manage_reader_comments_on_blog_posts")}
       itemTitle="Comment"
       columns={columns}
-      analytics={commentAnalytics}
+      formConfig={formConfig}
+      analytics={analytics}
+      design={{
+        animation: "orbs",
+        icon: MessageSquare,
+      }}
     />
   );
 }

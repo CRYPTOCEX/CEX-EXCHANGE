@@ -9,7 +9,7 @@ interface TradeProgressProps {
 }
 
 export function TradeProgress({ status }: TradeProgressProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
 
   // Normalize status to uppercase for comparison
   const normalizedStatus = status?.toUpperCase() || "";

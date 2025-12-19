@@ -1,17 +1,19 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { useColumns } from "./columns";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { Icon } from "@iconify/react";
+import { Coins } from "lucide-react";
 import { $fetch } from "@/lib/api";
 import { useTableStore } from "@/components/blocks/data-table/store";
 import { useTranslations } from "next-intl";
 
 const api = "/api/admin/finance/currency/spot";
 export default function SpotCurrencyPage() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
   const [loading, setLoading] = useState(false);
   const [missingCurrencies, setMissingCurrencies] = useState<
     { id: string; currency: string }[]
@@ -61,49 +63,49 @@ export default function SpotCurrencyPage() {
   useEffect(() => {
     fetchMissingCurrencies();
   }, []);
-  return (
-    <>
-      {missingCurrencies.length > 0 && (
-        <div className="mb-4">
-          <Alert
-            color="destructive"
-            className="flex flex-col sm:flex-row justify-between items-center"
-          >
-            <div className="flex items-center gap-2">
-              <Icon
-                icon="mdi:alert-circle"
-                className="h-8 w-8 text-destructive"
-              />
-              <div>
-                <h2 className="text-lg font-medium">
-                  {t("missing_currencies")}
-                </h2>
-                <p className="text-sm">
-                  {t("the_following_currencies_the_system")}{" "}
-                  {missingCurrencies.map((currency, index) => (
-                    <span key={currency.id}>
-                      {currency.currency}
-                      {index < missingCurrencies.length - 1 ? ", " : ""}
-                    </span>
-                  ))}
-                </p>
-              </div>
-            </div>
-            <Button
-              type="button"
-              color="primary"
-              variant="soft"
-              onClick={activateMissingCurrencies}
-              disabled={loading}
-              loading={loading}
-              className="mt-2 sm:mt-0"
-            >
-              {t("activate_missing_currencies")}
-            </Button>
-          </Alert>
+
+  // Alert content for missing currencies
+  const missingCurrenciesAlert = missingCurrencies.length > 0 ? (
+    <Alert
+      color="destructive"
+      className="flex flex-col sm:flex-row justify-between items-center"
+    >
+      <div className="flex items-center gap-2">
+        <Icon
+          icon="mdi:alert-circle"
+          className="h-8 w-8 text-destructive"
+        />
+        <div>
+          <h2 className="text-lg font-medium">
+            {t("missing_currencies")}
+          </h2>
+          <p className="text-sm">
+            {t("the_following_currencies_the_system")}{" "}
+            {missingCurrencies.map((currency, index) => (
+              <span key={currency.id}>
+                {currency.currency}
+                {index < missingCurrencies.length - 1 ? ", " : ""}
+              </span>
+            ))}
+          </p>
         </div>
-      )}
-      <DataTable
+      </div>
+      <Button
+        type="button"
+        color="primary"
+        variant="soft"
+        onClick={activateMissingCurrencies}
+        disabled={loading}
+        loading={loading}
+        className="mt-2 sm:mt-0"
+      >
+        {t("activate_missing_currencies")}
+      </Button>
+    </Alert>
+  ) : null;
+
+  return (
+    <DataTable
         apiEndpoint={api}
         model="exchangeCurrency"
         permissions={{
@@ -113,15 +115,21 @@ export default function SpotCurrencyPage() {
           edit: "edit.spot.currency",
           delete: "delete.spot.currency",
         }}
-        pageSize={10}
+        pageSize={12}
         canCreate={false}
         canEdit={false}
         canDelete={false}
         isParanoid={false}
         canView={true}
-        title="Spot Currencies"
+        title={t("spot_currencies")}
+        description={t("manage_spot_trading_currencies_and_market_pairs")}
         itemTitle="Spot Currency"
         columns={columns}
+        design={{
+          animation: "orbs",
+          icon: Coins,
+        }}
+        alertContent={missingCurrenciesAlert}
         extraTopButtons={(refresh) => (
           <Button
             type="button"
@@ -134,6 +142,5 @@ export default function SpotCurrencyPage() {
           </Button>
         )}
       />
-    </>
   );
 }

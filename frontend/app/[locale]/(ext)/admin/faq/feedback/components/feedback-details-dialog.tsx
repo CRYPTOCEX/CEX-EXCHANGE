@@ -47,7 +47,9 @@ export function FeedbackDetailsDialog({
   feedback,
   faq,
 }: FeedbackDetailsDialogProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
@@ -57,7 +59,7 @@ export function FeedbackDetailsDialog({
 
         <div className="space-y-6 py-4">
           <div>
-            <h3 className="text-lg font-medium mb-2">{t("faq_question")}</h3>
+            <h3 className="text-lg font-medium mb-2">{tCommon("faq_question")}</h3>
             <div className="flex items-start justify-between">
               <p className="text-base">
                 {faq ? faq.question : `FAQ ID: ${feedback.faqId}`}
@@ -69,12 +71,12 @@ export function FeedbackDetailsDialog({
                 {feedback.isHelpful ? (
                   <>
                     <ThumbsUp className="h-3 w-3 mr-1" />
-                    {t("Helpful")}
+                    {tExt("helpful")}
                   </>
                 ) : (
                   <>
                     <ThumbsDown className="h-3 w-3 mr-1" />
-                    {t("not_helpful")}
+                    {tCommon("not_helpful")}
                   </>
                 )}
               </Badge>
@@ -103,7 +105,7 @@ export function FeedbackDetailsDialog({
             <div>
               <h4 className="text-sm font-medium mb-2 flex items-center">
                 <User className="h-4 w-4 mr-1" />
-                {t("user_id")}
+                {tCommon("user_id")}
               </h4>
               <p className="text-sm bg-muted p-2 rounded">
                 {feedback.userId || "Anonymous"}
@@ -144,7 +146,7 @@ export function FeedbackDetailsDialog({
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("Close")}
+            {tCommon("close")}
           </Button>
           <Link href={`/admin/faq/${feedback.faqId}`}>
             <Button variant={feedback.isHelpful ? "default" : "destructive"}>

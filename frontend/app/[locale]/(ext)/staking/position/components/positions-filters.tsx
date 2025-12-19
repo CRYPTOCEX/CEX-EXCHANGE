@@ -34,7 +34,9 @@ export function PositionsFilters({
   searchTerm,
   onSearchChange,
 }: PositionsFiltersProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtStaking = useTranslations("ext_staking");
+  const tExt = useTranslations("ext");
   const [showSearch, setShowSearch] = useState(false);
 
   const sortOptions = [
@@ -55,7 +57,7 @@ export function PositionsFilters({
         <div className="relative w-full sm:w-auto">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search positions..."
+            placeholder={tExtStaking("search_positions_ellipsis")}
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-9 w-full sm:w-[200px]"
@@ -80,7 +82,7 @@ export function PositionsFilters({
           onClick={() => setShowSearch(true)}
         >
           <Search className="h-4 w-4 mr-2" />
-          {t("Search")}
+          {t("search")}
         </Button>
       )}
 
@@ -88,18 +90,18 @@ export function PositionsFilters({
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="h-9">
             <SlidersHorizontal className="h-4 w-4 mr-2" />
-            {t("Filter")}
+            {t("filter")}
             <ChevronDown className="h-3.5 w-3.5 ml-1" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[200px]">
-          <DropdownMenuLabel>{t("filter_by_pool")}</DropdownMenuLabel>
+          <DropdownMenuLabel>{tExtStaking("filter_by_pool")}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuCheckboxItem
             checked={selectedPool === null}
             onCheckedChange={() => onPoolChange(null)}
           >
-            {t("all_pools")}
+            {tExt("all_pools")}
           </DropdownMenuCheckboxItem>
           {pools.map((pool) => (
             <DropdownMenuCheckboxItem

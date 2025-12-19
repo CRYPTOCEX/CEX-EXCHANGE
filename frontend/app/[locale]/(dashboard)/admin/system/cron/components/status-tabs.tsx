@@ -13,7 +13,8 @@ import {
 import { useTranslations } from "next-intl";
 
 export function StatusTabs() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const { activeTab, setActiveTab, cronJobs } = useCronStore();
 
   // Count jobs by status
@@ -38,7 +39,7 @@ export function StatusTabs() {
             className="flex items-center justify-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
             <LayoutGrid className="h-4 w-4" />
-            <span>{t("All")}</span>
+            <span>{t("all")}</span>
             <Badge
               variant="secondary"
               className="ml-1 bg-gray-200 dark:bg-gray-700 text-xs"
@@ -52,7 +53,7 @@ export function StatusTabs() {
             className="flex items-center justify-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
             <Clock className="h-4 w-4 text-slate-500" />
-            <span>{t("Idle")}</span>
+            <span>{tDashboardAdmin("idle")}</span>
             <Badge
               variant="secondary"
               className="ml-1 bg-slate-200 dark:bg-slate-700 text-xs"
@@ -66,7 +67,7 @@ export function StatusTabs() {
             className="flex items-center justify-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
             <Activity className="h-4 w-4 text-blue-500" />
-            <span>{t("Running")}</span>
+            <span>{tDashboardAdmin("running")}</span>
             <Badge
               variant="secondary"
               className="ml-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs"
@@ -80,7 +81,7 @@ export function StatusTabs() {
             className="flex items-center justify-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
             <CheckCircle className="h-4 w-4 text-green-500" />
-            <span>{t("Completed")}</span>
+            <span>{t("completed")}</span>
             <Badge
               variant="secondary"
               className="ml-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs"
@@ -94,7 +95,7 @@ export function StatusTabs() {
             className="flex items-center justify-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
             <XCircle className="h-4 w-4 text-red-500" />
-            <span>{t("Failed")}</span>
+            <span>{t("failed")}</span>
             <Badge
               variant="secondary"
               className="ml-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs"

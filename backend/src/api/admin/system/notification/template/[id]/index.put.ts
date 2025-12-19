@@ -30,14 +30,19 @@ export const metadata = {
   responses: updateRecordResponses("Notification Template"),
   requiresAuth: true,
   permission: "edit.notification.template",
+  logModule: "ADMIN_SYS",
+  logTitle: "Update notification template",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { subject, emailBody, smsBody, pushBody, email, sms, push } = body;
 
-  return await updateRecord("notificationTemplate", id, {
+  ctx?.step("Validating notification template data");
+
+  ctx?.step(`Updating notification template ${id}`);
+  const result = await updateRecord("notificationTemplate", id, {
     subject,
     emailBody,
     smsBody,
@@ -46,4 +51,7 @@ export default async (data: Handler) => {
     sms,
     push,
   });
+
+  ctx?.success("Notification template updated successfully");
+  return result;
 };

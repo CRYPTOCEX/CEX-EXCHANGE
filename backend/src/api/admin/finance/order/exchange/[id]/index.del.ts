@@ -14,10 +14,12 @@ export const metadata = {
   responses: deleteRecordResponses("Exchange Order"),
   requiresAuth: true,
   permission: "delete.exchange.order",
+  logModule: "ADMIN_FIN",
+  logTitle: "Delete Exchange Order",
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
+  const { params, query, ctx } = data;
   return handleSingleDelete({
     model: "exchangeOrder",
     id: params.id,

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { chainConfigs } from "./chains";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 export async function getSmartContract(contractPath: string, name: string) {
   // Check if we're already in the backend directory
@@ -23,8 +23,7 @@ export async function getSmartContract(contractPath: string, name: string) {
       throw new Error(`Failed to extract bytecode or ABI for ${name}`);
     return { abi, bytecode };
   } catch (error) {
-    logError("get_smart_contract", error, __filename);
-    console.error(`Failed to read contract JSON for ${name}: ${error.message}`);
+    logger.error("SMART_CONTRACT", `Failed to read contract JSON for ${name}`, error);
     throw error;
   }
 }
@@ -58,7 +57,7 @@ export const getContractAbi = async (
 
     // Handle API errors gracefully
     if (data.status === "0" && data.message === "NOTOK") {
-      console.error(`[ETHERSCAN_API_ERROR] Contract ABI for ${contractAddress}: ${data.result}`);
+      logger.warn("CONTRACT_ABI", `Etherscan API error for contract ABI ${contractAddress}: ${data.result}`);
       throw new Error(`Contract ABI not available: ${data.result}`);
     }
 
@@ -68,7 +67,7 @@ export const getContractAbi = async (
 
     return data.result;
   } catch (error) {
-    logError("get_contract_abi", error, __filename);
+    logger.error("CONTRACT_ABI", "Failed to fetch contract ABI", error);
     throw new Error(`Failed to fetch contract ABI: ${error.message}`);
   }
 };

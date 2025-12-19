@@ -20,12 +20,13 @@ export function SortingField({
   onFieldChange,
 }: SortingFieldProps) {
   const t = useTranslations("common");
+  const tComponentsBlocks = useTranslations("components_blocks");
   return (
     <div className="space-y-2">
       <h3 className="font-semibold">{t("sort_by")}</h3>
       <Select value={selectedField} onValueChange={onFieldChange}>
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select field to sort by" />
+          <SelectValue placeholder={tComponentsBlocks("select_field_to_sort_by")} />
         </SelectTrigger>
         <SelectContent>
           {sortableFields.map((field) => (

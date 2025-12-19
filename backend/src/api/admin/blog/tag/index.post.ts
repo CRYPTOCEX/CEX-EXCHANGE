@@ -18,13 +18,18 @@ export const metadata: OperationObject = {
   responses: storeRecordResponses(tagStoreSchema, "Tag"),
   requiresAuth: true,
   permission: "create.blog.tag",
+  logModule: "ADMIN_BLOG",
+  logTitle: "Create tag",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { name, slug, image, description } = body;
 
-  return await storeRecord({
+  ctx?.step("Validating tag data");
+
+  ctx?.step("Creating tag");
+  const result = await storeRecord({
     model: "tag",
     data: {
       name,
@@ -33,4 +38,7 @@ export default async (data: Handler) => {
       description,
     },
   });
+
+  ctx?.success("Tag created successfully");
+  return result;
 };

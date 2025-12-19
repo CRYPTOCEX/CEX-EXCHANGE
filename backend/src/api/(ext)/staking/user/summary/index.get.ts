@@ -44,11 +44,13 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Fetching user staking summary");
   // Get user's active positions
   const positions = await models.stakingPosition.findAll({
     where: {
@@ -169,6 +171,7 @@ export default async (data: Handler) => {
       Number.parseFloat(earning.getDataValue("unclaimed")) || 0;
   });
 
+  ctx?.success("User staking summary retrieved successfully");
   return {
     summary: {
       totalStaked,

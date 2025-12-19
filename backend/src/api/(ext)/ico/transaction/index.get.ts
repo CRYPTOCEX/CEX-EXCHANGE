@@ -13,6 +13,8 @@ export const metadata = {
   summary: "Lists ICO transactions with optional filters",
   operationId: "listIcoTransactions",
   tags: ["User", "Ico", "Transaction"],
+  logModule: "ICO",
+  logTitle: "Get ICO Transactions",
   parameters: crudParameters,
   responses: {
     200: {
@@ -44,12 +46,14 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+
+  ctx?.step("Fetching get ico transactions");
   if (!user) {
     throw new Error("Unauthorized");
   }
 
-  return getFiltered({
+  const result = await getFiltered({
     model: models.icoTransaction,
     where: { userId: user.id },
     query,
@@ -62,4 +66,8 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success("Get ICO Transactions retrieved successfully");
+
+  return result;
 };

@@ -15,10 +15,12 @@ export const metadata = {
   responses: deleteRecordResponses("Transaction"),
   requiresAuth: true,
   permission: "delete.transfer",
+  logModule: "ADMIN_FIN",
+  logTitle: "Delete Transfer",
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
+  const { params, query, ctx } = data;
   // Delete associated admin profit if it exists
   await models.adminProfit.destroy({
     where: {

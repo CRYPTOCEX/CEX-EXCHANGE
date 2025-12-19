@@ -14,7 +14,7 @@ export function WatchlistSortButtons({
   sortCriteria,
   onSort,
 }: WatchlistSortButtonsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   // Get the primary sort field and direction
   const primarySort = sortCriteria[0] || { field: "name", direction: "asc" };
 
@@ -44,7 +44,7 @@ export function WatchlistSortButtons({
         )}
         onClick={() => onSort("name")}
       >
-        {t("Name")}
+        {t("name")}
         {getSortIcon("name")}
       </button>
       <button
@@ -56,7 +56,7 @@ export function WatchlistSortButtons({
         )}
         onClick={() => onSort("price")}
       >
-        {t("Price")}
+        {t("price")}
         {getSortIcon("price")}
       </button>
       <button
@@ -68,7 +68,7 @@ export function WatchlistSortButtons({
         )}
         onClick={() => onSort("change")}
       >
-        {t("Change")}
+        {t("change")}
         {getSortIcon("change")}
       </button>
       <button
@@ -80,7 +80,7 @@ export function WatchlistSortButtons({
         )}
         onClick={() => onSort("volume")}
       >
-        {t("Volume")}
+        {t("volume")}
         {getSortIcon("volume")}
       </button>
     </div>

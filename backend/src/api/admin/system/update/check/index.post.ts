@@ -55,8 +55,22 @@ export const metadata = {
     },
   },
   // requiresAuth: true,
+  logModule: "ADMIN_SYS",
+  logTitle: "Check product update",
 };
 
 export default async (data) => {
-  return checkUpdate(data.body.productId, data.body.currentVersion);
+  const { ctx } = data;
+
+  ctx?.step(`Checking updates for product ${data.body.productId}`);
+
+  const result = await checkUpdate(data.body.productId, data.body.currentVersion) as any;
+
+  if (result.updateAvailable) {
+    ctx?.success(`Update available: ${result.latestVersion}`);
+  } else {
+    ctx?.success("Product is up to date");
+  }
+
+  return result;
 };

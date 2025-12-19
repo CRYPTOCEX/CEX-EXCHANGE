@@ -9,6 +9,8 @@ export const metadata: OperationObject = {
     "Allows a user to submit a review for a product they have purchased. Users can only review products once, but they can update their review.",
   operationId: "createEcommerceReview",
   tags: ["Ecommerce", "Reviews"],
+  logModule: "ECOM",
+  logTitle: "Create or update review",
   parameters: [
     {
       index: 0,
@@ -45,7 +47,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params, body } = data;
+  const { user, params, body, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -53,6 +55,7 @@ export default async (data: Handler) => {
   const { productId } = params;
   const { rating, comment } = body;
 
+  ctx?.step("Verifying product purchase");
   // Check if the user has purchased the product
   const userHasPurchased = await models.ecommerceOrder.findOne({
     where: {
@@ -74,12 +77,14 @@ export default async (data: Handler) => {
   });
 
   if (!userHasPurchased) {
+    ctx?.fail("User has not purchased this product");
     throw createError({
       statusCode: 400,
       message: "You have not purchased this product",
     });
   }
 
+  ctx?.step("Creating or updating review");
   // Execute upsert transaction
   const result = await sequelize.transaction(async (transaction) => {
     const [review, created] = await models.ecommerceReview.upsert(
@@ -100,6 +105,8 @@ export default async (data: Handler) => {
       created,
     };
   });
+
+  ctx?.success(`Review ${result.created ? "created" : "updated"} with rating ${rating}`);
 
   return {
     message: `Review successfully ${result.created ? "created" : "updated"}.`,

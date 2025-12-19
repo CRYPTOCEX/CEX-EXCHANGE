@@ -1,5 +1,6 @@
 import { baseNumberSchema, baseStringSchema } from "@b/utils/schema";
 import { RedisSingleton } from "@b/utils/redis";
+import { logger } from "@b/utils/console";
 
 const redis = RedisSingleton.getInstance();
 
@@ -23,7 +24,7 @@ export function formatWaitTime(ms) {
 export async function handleBanStatus(unblockTime) {
   if (Date.now() < unblockTime) {
     const waitTime = unblockTime - Date.now();
-    console.log(`Exchange is banned for ${formatWaitTime(waitTime)} more`);
+    logger.info("EXCHANGE", `Exchange is banned for ${formatWaitTime(waitTime)} more`);
     // Don't block HTTP requests - just return true to indicate ban is active
     return true;
   }

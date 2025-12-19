@@ -1,6 +1,7 @@
 import { models, sequelize } from "@b/db";
 import { Op } from "sequelize";
 import { createNotification } from "@b/utils/notifications";
+import { logger } from "@b/utils/console";
 
 export async function checkAndProcessFailedOfferings(): Promise<void> {
   const transaction = await sequelize.transaction();
@@ -127,7 +128,7 @@ export async function checkAndProcessFailedOfferings(): Promise<void> {
     await transaction.commit();
   } catch (error) {
     await transaction.rollback();
-    console.error('Error checking failed offerings:', error);
+    logger.error("ICO_REFUND", "Error checking failed offerings", error);
     throw error;
   }
 }
@@ -222,7 +223,7 @@ export async function processAutomaticRefunds(): Promise<void> {
           refundedCount++;
           totalRefunded += refundAmount;
         } catch (error) {
-          console.error(`Failed to refund transaction ${icoTransaction.id}:`, error);
+          logger.error("ICO_REFUND", `Failed to refund transaction ${icoTransaction.id}`, error);
         }
       }
 
@@ -248,7 +249,7 @@ export async function processAutomaticRefunds(): Promise<void> {
     await transaction.commit();
   } catch (error) {
     await transaction.rollback();
-    console.error('Error processing automatic refunds:', error);
+    logger.error("ICO_REFUND", "Error processing automatic refunds", error);
     throw error;
   }
 }

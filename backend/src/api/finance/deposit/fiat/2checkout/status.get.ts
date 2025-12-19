@@ -6,6 +6,7 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Check 2Checkout payment status",
@@ -115,7 +116,7 @@ export default async (data: Handler) => {
         failureReason: metadata.failureReason,
       };
     } catch (error) {
-      console.error("Error parsing transaction metadata:", error);
+      logger.error("2CHECKOUT", "Error parsing transaction metadata", error);
     }
 
     return {

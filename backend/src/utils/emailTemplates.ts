@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { createError } from "../utils/error";
+import { logger } from "./console";
 
 export interface EmailTemplateOptions {
   templateName: string;
@@ -21,12 +22,12 @@ function getEmailTemplatesPath(): string {
 
   for (const templatePath of templatePaths) {
     if (fs.existsSync(templatePath)) {
-      console.log(`\x1b[32mEmail templates directory found at: ${templatePath}\x1b[0m`);
+      logger.debug("EMAIL", `Templates directory found at: ${templatePath}`);
       return templatePath;
     }
   }
 
-  console.warn(`\x1b[33mWarning: No email templates directory found. Tried paths: ${templatePaths.join(", ")}\x1b[0m`);
+  logger.warn("EMAIL", `No email templates directory found. Tried paths: ${templatePaths.join(", ")}`);
   // Return the first path as fallback (production path)
   return templatePaths[0];
 }
@@ -56,13 +57,13 @@ export function replaceTemplateVariables(
   variables: Record<string, string | number | undefined>
 ): string {
   if (typeof template !== "string") {
-    console.error("Template is not a string");
+    logger.error("EMAIL", "Template is not a string");
     return "";
   }
 
   return Object.entries(variables).reduce((acc, [key, value]) => {
     if (value === undefined) {
-      console.warn(`Variable ${key} is undefined`);
+      logger.warn("EMAIL", `Variable ${key} is undefined`);
       return acc;
     }
     return acc.replace(new RegExp(`%${key}%`, "g"), String(value));
@@ -92,7 +93,7 @@ export function getAvailableTemplates(): string[] {
       .filter((file) => file.endsWith(".html"))
       .map((file) => file.replace(".html", ""));
   } catch (error) {
-    console.error("Error reading templates directory:", error);
+    logger.error("EMAIL", "Error reading templates directory", error);
     return [];
   }
 }

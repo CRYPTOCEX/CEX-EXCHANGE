@@ -46,6 +46,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Lightbox } from "@/components/ui/lightbox";
 import { imageUploader } from "@/utils/upload";
 import { useUserStore } from "@/store/user";
+import { useTranslations } from "next-intl";
 
 interface SupportMessage {
   type: "client" | "agent";
@@ -113,6 +114,8 @@ const getImportanceColor = (importance: string) => {
   }
 };
 export default function TicketDetailPage() {
+  const t = useTranslations("support_ticket");
+  const tCommon = useTranslations("common");
   const params = useParams<{ id: string }>();
   const [ticket, setTicket] = useState<supportTicketAttributes | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -663,7 +666,7 @@ export default function TicketDetailPage() {
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-zinc-400">
-            Loading ticket details...
+            {t("loading_ticket_details_ellipsis")}
           </p>
         </div>
       </div>
@@ -677,16 +680,15 @@ export default function TicketDetailPage() {
             <AlertCircle className="h-12 w-12 text-white" />
           </div>
           <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-zinc-100">
-            Ticket not found
+            {t("ticket_not_found")}
           </h3>
           <p className="text-gray-600 dark:text-zinc-400 text-center mb-8 max-w-md">
-            The ticket you're looking for doesn't exist or you don't have
-            permission to view it.
+            {t("the_ticket_youre_looking_for_doesnt")}
           </p>
           <Link href="/support">
             <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Support
+              {t("back_to_support")}
             </Button>
           </Link>
         </div>
@@ -734,7 +736,7 @@ export default function TicketDetailPage() {
   ];
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/20 dark:from-zinc-950 dark:via-blue-950/10 dark:to-indigo-950/10">
-      <div className="container mx-auto p-6 max-w-7xl">
+      <div className="container mx-auto p-6 container">
         <div className="mb-6">
           {/* Enhanced Header */}
           <Card className="border-0 bg-gradient-to-r from-white via-blue-50/50 to-indigo-50/30 dark:from-zinc-900 dark:via-blue-950/20 dark:to-indigo-950/10 shadow-xl backdrop-blur-sm rounded-2xl overflow-hidden">
@@ -752,7 +754,7 @@ export default function TicketDetailPage() {
                       </CardTitle>
                       <CardDescription className="text-gray-600 dark:text-zinc-400 flex items-center gap-4">
                         <span className="font-medium">
-                          Ticket #{ticket.id.slice(0, 8)}
+                          {`${tCommon("ticket")} #`}{ticket.id.slice(0, 8)}
                         </span>
                         <span>•</span>
                         <span>
@@ -765,7 +767,7 @@ export default function TicketDetailPage() {
                         <div className="flex items-center gap-2">
                           <Zap className="h-4 w-4 text-green-500" />
                           <span className="text-green-600 dark:text-green-400">
-                            Response: {ticket.responseTime || 0}min
+                            {t("response")}: {ticket.responseTime || 0}min
                           </span>
                         </div>
                       </CardDescription>
@@ -814,21 +816,21 @@ export default function TicketDetailPage() {
                         className="hover:bg-gray-50 dark:hover:bg-zinc-700 cursor-pointer"
                       >
                         <Download className="h-4 w-4 mr-2" />
-                        Export as JSON
+                        {tCommon("export_as_json")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={exportTicketToCSV}
                         className="hover:bg-gray-50 dark:hover:bg-zinc-700 cursor-pointer"
                       >
                         <Download className="h-4 w-4 mr-2" />
-                        Export as CSV
+                        {t("export_as_csv")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleCopyTicketLink(ticket.id)}
                         className="hover:bg-gray-50 dark:hover:bg-zinc-700 cursor-pointer"
                       >
                         <Copy className="h-4 w-4 mr-2" />
-                        Copy Ticket Link
+                        {t("copy_ticket_link")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -885,7 +887,7 @@ export default function TicketDetailPage() {
                         {message.sender === "agent" && message.senderName && (
                           <p className="text-sm font-medium mb-2 text-gray-600 dark:text-zinc-400 flex items-center gap-2">
                             <Shield className="h-4 w-4 text-blue-500" />
-                            {message.senderName} • Support Agent
+                            {message.senderName} {t("support_agent")}
                           </p>
                         )}
 
@@ -937,7 +939,7 @@ export default function TicketDetailPage() {
                                             rel="noopener noreferrer"
                                             className="text-sm underline hover:no-underline"
                                           >
-                                            View Attachment
+                                            {t("view_attachment")}
                                           </a>
                                         </div>
                                       );
@@ -958,7 +960,7 @@ export default function TicketDetailPage() {
                               <div className="flex items-center gap-1">
                                 <CheckCircle2 className="h-3 w-3 text-green-500" />
                                 <span className="text-xs text-green-600 dark:text-green-400">
-                                  Verified Agent
+                                  {t("verified_agent")}
                                 </span>
                               </div>
                             )}
@@ -987,7 +989,7 @@ export default function TicketDetailPage() {
                       <Textarea
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Type your message..."
+                        placeholder={tCommon("type_your_message_ellipsis")}
                         className="flex-1 min-h-[80px] resize-none bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all"
                         onKeyPress={(e) => {
                           if (e.key === "Enter" && !e.shiftKey) {
@@ -1016,10 +1018,10 @@ export default function TicketDetailPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-400">
-                      <span>Press Enter to send, Shift+Enter for new line</span>
+                      <span>{t("press_enter_to_send_shift_enter_for_new_line")}</span>
                       {!wsConnected && (
                         <span className="text-amber-600 dark:text-amber-400">
-                          • Using fallback mode
+                          {t("using_fallback_mode")}
                         </span>
                       )}
                     </div>
@@ -1028,7 +1030,7 @@ export default function TicketDetailPage() {
                   <div className="text-center py-6">
                     <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-3" />
                     <p className="text-gray-500 dark:text-zinc-400 text-lg">
-                      This ticket has been resolved.
+                      {t("this_ticket_has_been_resolved")}
                     </p>
                   </div>
                 )}
@@ -1044,7 +1046,7 @@ export default function TicketDetailPage() {
                 <CardHeader className="pb-4">
                   <CardTitle className="text-base text-gray-900 dark:text-zinc-100 flex items-center gap-2">
                     <Shield className="h-5 w-5 text-blue-500" />
-                    Support Agent
+                    {t("support_agent")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1095,7 +1097,7 @@ export default function TicketDetailPage() {
                 <CardHeader>
                   <CardTitle className="text-base text-gray-900 dark:text-zinc-100 flex items-center gap-2">
                     <Clock className="h-5 w-5 text-blue-500" />
-                    Progress Timeline
+                    {t("progress_timeline")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1126,14 +1128,14 @@ export default function TicketDetailPage() {
                 <CardHeader>
                   <CardTitle className="text-base text-gray-900 dark:text-zinc-100 flex items-center gap-2">
                     <AlertCircle className="h-5 w-5 text-blue-500" />
-                    Ticket Details
+                    {tCommon("ticket_details")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-zinc-400">
-                        Created:
+                        {tCommon("created")}:
                       </span>
                       <span className="text-gray-900 dark:text-zinc-100 font-medium">
                         {ticket.createdAt
@@ -1143,7 +1145,7 @@ export default function TicketDetailPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-zinc-400">
-                        Last Update:
+                        {t("last_update")}:
                       </span>
                       <span className="text-gray-900 dark:text-zinc-100 font-medium">
                         {ticket.updatedAt
@@ -1153,7 +1155,7 @@ export default function TicketDetailPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-zinc-400">
-                        Response Time:
+                        {tCommon("response_time")}:
                       </span>
                       <span className="text-green-600 dark:text-green-400 font-medium flex items-center gap-1">
                         <Zap className="h-3 w-3" />
@@ -1162,7 +1164,7 @@ export default function TicketDetailPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-zinc-400">
-                        Priority:
+                        {tCommon("priority")}:
                       </span>
                       <Badge
                         className={getImportanceColor(ticket.importance)}
@@ -1173,7 +1175,7 @@ export default function TicketDetailPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-zinc-400">
-                        Status:
+                        {tCommon("status")}:
                       </span>
                       <Badge
                         className={getStatusColor(ticket.status)}
@@ -1184,7 +1186,7 @@ export default function TicketDetailPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-zinc-400">
-                        Connection:
+                        {t("connection")}:
                       </span>
                       <Badge
                         variant="outline"
@@ -1203,7 +1205,7 @@ export default function TicketDetailPage() {
                     <div className="mt-4 p-4 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 rounded-xl border border-amber-200 dark:border-amber-800">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                          Satisfaction Rating
+                          {t("satisfaction_rating")}
                         </span>
                         <div className="flex items-center gap-1">
                           {[...Array(5)].map((_, i) => (

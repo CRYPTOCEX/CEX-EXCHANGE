@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import RichTextEditor from "@/components/ui/editor";
+import { WysiwygEditor } from "@/components/ui/wysiwyg";
 import { validationRules } from "@/utils/validation";
 import type { PoolFormValues } from "./pool-form";
 import { useTranslations } from "next-intl";
@@ -20,7 +20,8 @@ export function PoolFormDescription({
   validationErrors = {},
   hasSubmitted = false,
 }: PoolFormDescriptionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const [errors, setErrors] = useState({
     description: "",
     risks: "",
@@ -72,16 +73,17 @@ export function PoolFormDescription({
     <div className="space-y-6">
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-          {t("Description")}
+          {tCommon("description")}
         </label>
-        <RichTextEditor
+        <WysiwygEditor
           value={formData.description}
           onChange={(content) => {
             handleInputChange("description", content);
             validateField("description", content);
           }}
-          placeholder="Describe the staking pool and its benefits..."
+          placeholder={t("describe_the_staking_pool_and_its")}
           uploadDir="staking-pools"
+          minHeight={300}
         />
         {hasError("description") && (
           <div className="flex items-center gap-2 text-red-500 text-sm mt-1 bg-red-50 dark:bg-red-900/10 p-2 rounded-md">
@@ -96,7 +98,7 @@ export function PoolFormDescription({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Textarea
           title="Risks"
-          placeholder="Describe potential risks for stakers"
+          placeholder={t("describe_potential_risks_for_stakers")}
           className="min-h-[150px]"
           value={formData.risks}
           onChange={(e) => handleInputChange("risks", e.target.value)}
@@ -110,12 +112,12 @@ export function PoolFormDescription({
               "Risks description must be at least 10 characters"
             ),
           ]}
-          description="Potential risks users should be aware of"
+          description={t("potential_risks_users_should_be_aware_of")}
         />
 
         <Textarea
           title="Rewards"
-          placeholder="Describe the rewards structure"
+          placeholder={t("describe_the_rewards_structure")}
           className="min-h-[150px]"
           value={formData.rewards}
           onChange={(e) => handleInputChange("rewards", e.target.value)}
@@ -129,7 +131,7 @@ export function PoolFormDescription({
               "Rewards description must be at least 10 characters"
             ),
           ]}
-          description="Details about rewards distribution and schedule"
+          description={t("details_about_rewards_distribution_and_schedule")}
         />
       </div>
     </div>

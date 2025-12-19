@@ -28,6 +28,8 @@ export const metadata: OperationObject = {
   description: "Closes an open futures position for the logged-in user.",
   operationId: "closeFuturesPosition",
   tags: ["Futures", "Positions"],
+  logModule: "FUTURES",
+  logTitle: "Close futures position",
   requestBody: {
     required: true,
     content: {
@@ -72,14 +74,19 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
+
+  ctx?.step?.("Validating user authentication");
   if (!user?.id) {
+    ctx?.fail?.("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { currency, pair, side } = body;
 
+  ctx?.step?.("Validating request parameters");
   if (!currency || !pair || !side) {
+    ctx?.fail?.("Missing required parameters");
     throw createError({
       statusCode: 400,
       message: "Invalid request parameters",
@@ -88,8 +95,10 @@ export default async (data: Handler) => {
   const symbol = `${currency}/${pair}`;
 
   try {
+    ctx?.step?.(`Fetching position for ${symbol} (${side})`);
     const position = await getPosition(user.id, symbol, side);
     if (!position) {
+      ctx?.fail?.("Position not found");
       throw createError({
         statusCode: 404,
         message: "Position not found",
@@ -97,25 +106,32 @@ export default async (data: Handler) => {
     }
 
     if (position.status !== "OPEN") {
+      ctx?.fail?.("Position is not open");
       throw createError({
         statusCode: 400,
         message: "Position is not open",
       });
     }
 
+    ctx?.step?.("Calculating final balance change");
     const finalBalanceChange = calculateFinalBalanceChange(position);
 
+    ctx?.step?.(`Fetching ${pair} wallet`);
     const wallet = await getWallet(
       position.userId,
       "FUTURES",
-      symbol.split("/")[1]
+      symbol.split("/")[1],
+      false,
+      ctx
     );
 
     if (wallet) {
       if (!updateWalletBalance) {
+        ctx?.fail?.("Ecosystem extension not available");
         throw new Error("Ecosystem extension not available for wallet operations");
       }
 
+      ctx?.step?.(`Updating wallet balance by ${finalBalanceChange > 0 ? "+" : ""}${finalBalanceChange}`);
       if (finalBalanceChange > 0) {
         await updateWalletBalance(wallet, finalBalanceChange, "add");
       } else {
@@ -127,10 +143,13 @@ export default async (data: Handler) => {
       }
     }
 
+    ctx?.step?.("Updating position status to CLOSED");
     await updatePositionStatus(position.userId, position.id, "CLOSED");
 
+    ctx?.success?.(`Position closed successfully for ${symbol}`);
     return { message: "Position closed and balance updated successfully" };
   } catch (error) {
+    ctx?.fail?.(`Failed to close position: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: `Failed to close position: ${error.message}`,

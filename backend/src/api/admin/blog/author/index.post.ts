@@ -18,17 +18,25 @@ export const metadata: OperationObject = {
   responses: storeRecordResponses(authorStoreSchema, "Author"),
   requiresAuth: true,
   permission: "create.blog.author",
+  logModule: "ADMIN_BLOG",
+  logTitle: "Create author",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { userId, status } = body;
 
-  return await storeRecord({
+  ctx?.step("Validating author data");
+
+  ctx?.step("Creating author");
+  const result = await storeRecord({
     model: "author",
     data: {
       userId,
       status,
     },
   });
+
+  ctx?.success("Author created successfully");
+  return result;
 };

@@ -26,7 +26,7 @@ interface Chain {
   status: "active" | "coming-soon";
 }
 
-// Chain display configuration
+// Chain display configuration - using purple/pink theme colors for some chains
 const chainConfig: Record<string, { name: string; symbol: string; color: string }> = {
   ETH: { name: "Ethereum", symbol: "ETH", color: "from-blue-500 to-purple-500" },
   BSC: { name: "BNB Chain", symbol: "BNB", color: "from-amber-400 to-yellow-500" },
@@ -90,7 +90,7 @@ export default function MultiChainSection() {
   };
 
   return (
-    <section ref={ref} className="py-20 bg-muted/20 relative overflow-hidden">
+    <section ref={ref} className="py-20 relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0">
         <motion.div
@@ -120,7 +120,7 @@ export default function MultiChainSection() {
         />
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="container relative z-10">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
           <motion.div

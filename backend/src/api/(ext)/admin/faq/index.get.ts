@@ -1,13 +1,18 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { Op } from "sequelize";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  paginationSchema,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Get FAQs for Admin",
+  summary: "Get FAQs with Filters",
   description:
-    "Retrieves FAQs with pagination and filters for admin management.",
-  operationId: "getAdminFAQs",
-  tags: ["FAQ", "Admin"],
+    "Retrieves FAQs with pagination and filtering options. Supports searching by question/answer text, filtering by category, status, and page path. Returns paginated results sorted by order.",
+  operationId: "getAdminFaqs",
+  tags: ["Admin", "FAQ", "Pagination"],
   requiresAuth: true,
   parameters: [
     {
@@ -16,7 +21,7 @@ export const metadata = {
       in: "query",
       required: false,
       schema: { type: "number" },
-      description: "Page number for pagination",
+      description: "Page number for pagination (default: 1)",
     },
     {
       index: 1,
@@ -24,7 +29,7 @@ export const metadata = {
       in: "query",
       required: false,
       schema: { type: "number" },
-      description: "Number of items per page",
+      description: "Number of items per page (default: 10)",
     },
     {
       index: 2,
@@ -47,7 +52,7 @@ export const metadata = {
       name: "status",
       in: "query",
       required: false,
-      schema: { type: "string" },
+      schema: { type: "string", enum: ["active", "inactive", "all"] },
       description: "Filter by FAQ status: active, inactive, or all",
     },
     {
@@ -67,29 +72,27 @@ export const metadata = {
           schema: {
             type: "object",
             properties: {
-              items: { type: "array", items: { type: "object" } },
-              pagination: {
-                type: "object",
-                properties: {
-                  currentPage: { type: "number" },
-                  totalPages: { type: "number" },
-                  totalItems: { type: "number" },
-                  perPage: { type: "number" },
-                },
+              items: {
+                type: "array",
+                items: { type: "object" },
+                description: "Array of FAQ items",
               },
+              pagination: paginationSchema,
             },
           },
         },
       },
     },
-    401: { description: "Unauthorized" },
-    500: { description: "Internal Server Error" },
+    401: unauthorizedResponse,
+    500: serverErrorResponse,
   },
   permission: "view.faq",
+  logModule: "ADMIN_FAQ",
+  logTitle: "Get FAQs for admin",
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -117,12 +120,14 @@ export default async (data: Handler) => {
   const perPage = parseInt(query.limit, 10) || 10;
   const offset = (page - 1) * perPage;
 
+  ctx?.step("Fetching FAQs with filters");
   const { count, rows } = await models.faq.findAndCountAll({
     where,
     order: [["order", "ASC"]],
     offset,
     limit: perPage,
   });
+  ctx?.success("FAQs retrieved successfully");
 
   return {
     items: rows,

@@ -24,7 +24,8 @@ export default function P2PPlatformSettingsSection({
   settings = {},
   onUpdate,
 }: P2PPlatformSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
   const safeSettings = {
     Enabled: settings.Enabled ?? true,
     MaintenanceMode: settings.MaintenanceMode ?? false,
@@ -61,7 +62,7 @@ export default function P2PPlatformSettingsSection({
           <div className="flex items-center justify-between border p-4 rounded-lg">
             <div className="space-y-0.5">
               <span className="text-sm font-medium">
-                {t("maintenance_mode")}
+                {tExt("maintenance_mode")}
               </span>
               <p className="text-xs text-muted-foreground">
                 {t("put_the_p2p_platform_in_maintenance_mode")}.{" "}
@@ -100,7 +101,7 @@ export default function P2PPlatformSettingsSection({
                 {t("allow_guest_browsing")}
               </span>
               <p className="text-xs text-muted-foreground">
-                {t("allow_non-logged-in_users_to_browse_offers")}.{" "}
+                {t("allow_non_logged_in_users_to_browse_offers")}.{" "}
                 {t("they_will_still_need_to_log_in_to_trade")}.
               </p>
             </div>

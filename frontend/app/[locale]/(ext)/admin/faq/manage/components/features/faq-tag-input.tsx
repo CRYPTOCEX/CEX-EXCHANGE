@@ -30,7 +30,8 @@ export function TagInput({
   error,
   errorMessage,
 }: TagInputProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   const [inputValue, setInputValue] = useState("");
   const [isAtMaxTags, setIsAtMaxTags] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -120,7 +121,7 @@ export function TagInput({
         <p className="text-sm text-amber-500">
           {t("maximum_of")}
           {maxTags}
-          {t("tags_allowed")}
+          {tExtAdmin("tags_allowed")}
         </p>
       )}
 

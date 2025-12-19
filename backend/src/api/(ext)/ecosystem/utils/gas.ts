@@ -1,5 +1,5 @@
 import type { Provider, TransactionRequest } from "ethers";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 export async function estimateGas(
   transaction: TransactionRequest,
@@ -16,10 +16,9 @@ export async function estimateGas(
 
     return adjustedGasEstimate;
   } catch (error: any) {
-    logError("gas_estimation", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to estimate gas for transaction", error);
     if (error.data) {
-      console.error("Revert reason:", error.data.reason);
-      console.error("Revert data:", error.data);
+      logger.error("GAS", "Revert reason", { reason: error.data.reason, data: error.data });
     }
     throw new Error("Failed to estimate gas");
   }
@@ -41,7 +40,7 @@ export async function getAdjustedGasPrice(
 
     return adjustedGasPrice;
   } catch (error: any) {
-    logError("gas_price_adjustment", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to adjust gas price", error);
     throw new Error("Failed to adjust gas price");
   }
 }

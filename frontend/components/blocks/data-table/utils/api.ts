@@ -46,7 +46,7 @@ export const handleSubmit = async ({
   isEdit,
   columns,
 }: {
-  id: string;
+  id?: string;
   apiEndpoint: string;
   data: any;
   isEdit: boolean;

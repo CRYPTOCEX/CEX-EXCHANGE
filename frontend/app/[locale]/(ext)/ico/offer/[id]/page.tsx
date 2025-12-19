@@ -40,9 +40,11 @@ import OfferingLoading from "./loading";
 import { useUserStore } from "@/store/user";
 import KycRequiredNotice from "@/components/blocks/kyc/kyc-required-notice";
 import { useTranslations } from "next-intl";
-
 export default function OfferingPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   const { id } = useParams() as { id: string };
   const router = useRouter();
   const { offering, isLoading, error, fetchOffering, reset } = useOfferStore();
@@ -79,7 +81,7 @@ export default function OfferingPage() {
             {error || "Offering not found"}
           </div>
           <Button onClick={() => router.push("/ico/offer")}>
-            {t("back_to_offerings")}
+            {tCommon("back_to_offerings")}
           </Button>
         </div>
       </div>
@@ -142,14 +144,14 @@ export default function OfferingPage() {
   return (
     <>
       {/* Hero Section with Background */}
-      <div className="relative bg-gradient-to-b from-primary/10 to-background pt-8 pb-6">
+      <div className="relative bg-gradient-to-b from-primary/10 to-background pb-6 pt-20">
         <div className="container">
           <Link
             href="/ico/offer"
             className="text-sm text-muted-foreground hover:text-primary mb-4 flex items-center w-fit"
           >
             <ArrowLeft className="mr-1 h-4 w-4" />
-            {t("back_to_offerings")}
+            {tCommon("back_to_offerings")}
           </Link>
 
           <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -179,10 +181,12 @@ export default function OfferingPage() {
                     variant={statusVariant}
                     className={
                       statusVariant === "default"
-                        ? "bg-green-500/10 text-green-500 hover:bg-green-500/20 border-green-500/20"
+                        ? "bg-teal-100 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-800 border hover:opacity-90"
                         : statusVariant === "destructive"
                         ? "bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20"
-                        : ""
+                        : statusVariant === "secondary"
+                        ? "bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 border"
+                        : "bg-gray-100 dark:bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800 border"
                     }
                   >
                     {statusIcon}
@@ -194,7 +198,7 @@ export default function OfferingPage() {
                       className="bg-amber-500/10 text-amber-500 border-amber-500/20"
                     >
                       <Sparkles className="h-3 w-3 mr-1" />
-                      {t("Featured")}
+                      {tExt("featured")}
                     </Badge>
                   )}
                   {currentPhase !== null && (
@@ -202,7 +206,7 @@ export default function OfferingPage() {
                       variant="outline"
                       className="bg-primary/5 border-primary/20"
                     >
-                      Phase: {currentPhase?.name}
+                      {t("phase")}: {currentPhase?.name}
                     </Badge>
                   )}
                 </div>
@@ -220,7 +224,7 @@ export default function OfferingPage() {
                     rel="noopener noreferrer"
                   >
                     <Button variant="outline" size="lg" className="gap-2">
-                      {t("visit_website")}
+                      {tExt("visit_website")}
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </Link>
@@ -232,7 +236,7 @@ export default function OfferingPage() {
               <Card className="bg-card/70 backdrop-blur-sm border-primary/10 shadow-lg">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">
-                    {t("funding_progress")}
+                    {tExt("funding_progress")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -240,11 +244,11 @@ export default function OfferingPage() {
                     <div>
                       <div className="flex justify-between mb-2">
                         <span className="text-sm font-medium">
-                          {progress.toFixed(1)}% {t("complete")}
+                          {progress.toFixed(1)}% {tCommon("complete")}
                         </span>
                         <span className="text-sm font-medium">
                           {daysLeft}{" "}
-                          {t("days_left")}
+                          {tExt("days_left")}
                         </span>
                       </div>
                       <Progress
@@ -267,7 +271,7 @@ export default function OfferingPage() {
                       <div className="bg-background/50 p-3 rounded-lg">
                         <p className="text-xs text-muted-foreground mb-1 flex items-center">
                           <Users className="h-3 w-3 mr-1" />
-                          {t("Participants")}
+                          {tExt("participants")}
                         </p>
                         <p className="font-medium">
                           {(offering?.participants ?? 0).toLocaleString()}
@@ -276,7 +280,7 @@ export default function OfferingPage() {
                       <div className="bg-background/50 p-3 rounded-lg">
                         <p className="text-xs text-muted-foreground mb-1 flex items-center">
                           <DollarSign className="h-3 w-3 mr-1" />
-                          {t("token_price")}
+                          {tExt("token_price")}
                         </p>
                         <p className="font-medium">
                           {formatCurrency(offering?.tokenPrice ?? 0, purchaseCurrency)}
@@ -289,7 +293,7 @@ export default function OfferingPage() {
                   {canInvest ? (
                     <Link href="#invest" className="w-full">
                       <Button className="w-full" size="lg">
-                        {t("invest_now")}
+                        {tCommon("invest_now")}
                         <Zap className="ml-1 h-4 w-4" />
                       </Button>
                     </Link>
@@ -304,7 +308,7 @@ export default function OfferingPage() {
                       {hasStarted && hasEnded && (
                         <>
                           <AlertCircle className="mr-1 h-4 w-4" />
-                          {t("ended")}
+                          {tExt("ended")}
                         </>
                       )}
                       {hasStarted && !hasEnded && !hasActivePhase && (
@@ -369,7 +373,7 @@ export default function OfferingPage() {
                 <CardContent className="p-4">
                   <DollarSign className="h-5 w-5 text-primary mb-2" />
                   <p className="text-xs text-muted-foreground">
-                    {t("Min")}. {t("Investment")}
+                    {tCommon("min")}. {tCommon("investment")}
                   </p>
                   <p className="font-semibold">
                     {formatCurrency(settings["icoMinInvestmentAmount"], purchaseCurrency)}
@@ -380,7 +384,7 @@ export default function OfferingPage() {
                 <CardContent className="p-4">
                   <Calendar className="h-5 w-5 text-primary mb-2" />
                   <p className="text-xs text-muted-foreground">
-                    {!hasStarted ? t("start_date") : t("end_date")}
+                    {!hasStarted ? tExt("start_date") : tCommon("end_date")}
                   </p>
                   <p className="font-semibold">
                     {formatDate(!hasStarted ? (offering?.startDate ?? new Date()) : (offering?.endDate ?? new Date()))}
@@ -392,11 +396,11 @@ export default function OfferingPage() {
                   <CardContent className="p-4">
                     <Zap className="h-5 w-5 text-primary mb-2" />
                     <p className="text-xs text-muted-foreground">
-                      {t("current_phase")}
+                      {tCommon("current_phase")}
                     </p>
                     <p className="font-semibold">{currentPhase?.name}</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {(currentPhase?.remaining ?? 0).toLocaleString()} tokens left
+                      {(currentPhase?.remaining ?? 0).toLocaleString()} {t("tokens_left")}
                     </p>
                   </CardContent>
                 </Card>
@@ -404,7 +408,7 @@ export default function OfferingPage() {
               <Card className="bg-primary/5 border-0">
                 <CardContent className="p-4">
                   <Target className="h-5 w-5 text-primary mb-2" />
-                  <p className="text-xs text-muted-foreground">{t("Target")}</p>
+                  <p className="text-xs text-muted-foreground">{tExtAdmin("target")}</p>
                   <p className="font-semibold">
                     {formatCurrency(offering?.targetAmount ?? 0, purchaseCurrency)}
                   </p>
@@ -420,8 +424,8 @@ export default function OfferingPage() {
                     <TabsTrigger value="details">
                       {t("project_details")}
                     </TabsTrigger>
-                    <TabsTrigger value="team">{t("Team")}</TabsTrigger>
-                    <TabsTrigger value="roadmap">{t("Roadmap")}</TabsTrigger>
+                    <TabsTrigger value="team">{tExt("team")}</TabsTrigger>
+                    <TabsTrigger value="roadmap">{tExt("roadmap")}</TabsTrigger>
                   </TabsList>
                 </CardHeader>
                 <CardContent className="pt-6">
@@ -441,7 +445,7 @@ export default function OfferingPage() {
             {/* FAQ Section */}
             <Card className="border-0 shadow-md mb-8">
               <CardHeader>
-                <CardTitle>{t("frequently_asked_questions")}</CardTitle>
+                <CardTitle>{tCommon('faq_question')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -475,10 +479,10 @@ export default function OfferingPage() {
                 </div>
                 <div className="space-y-2">
                   <h3 className="font-medium">
-                    {t("is_there_a_lock-up_period")}
+                    {t("is_there_a_lock_up_period")}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {t("token_lock-up_periods_vary_by_project")}.{" "}
+                    {t("token_lock_up_periods_vary_by_project")}.{" "}
                     {t("please_refer_to_periods_for")}
                     {offering?.name}
                   </p>
@@ -490,7 +494,7 @@ export default function OfferingPage() {
           {/* Investment Form Column */}
           <div className="space-y-6" id="invest">
             <div className="sticky top-22">
-              {offering && <InvestmentForm offering={offering} />}
+              {offering && <InvestmentForm offering={offering as any} />}
               {/* Trust Indicators */}
               <Card className="mt-6 border-0 bg-muted/30">
                 <CardContent className="p-4">
@@ -515,7 +519,7 @@ export default function OfferingPage() {
                     </li>
                     <li className="flex items-start">
                       <CheckCircleIcon className="h-4 w-4 mr-2 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>{t("24_7_customer_support_for_investors")}</span>
+                      <span>{t("n_24_7_customer_support_for_investors")}</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -526,13 +530,13 @@ export default function OfferingPage() {
                 <Card className="mt-6 border-0 shadow-sm">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base">
-                      {t("recent_activity")}
+                      {tCommon("recent_activity")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-3">
                       <div className="text-sm text-muted-foreground text-center py-4">
-                        {t("no_recent_activity")}
+                        {tExt("no_recent_activity")}
                       </div>
                     </div>
                   </CardContent>

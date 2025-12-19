@@ -13,7 +13,8 @@ import type { ComponentProps } from "./types";
 import { useTranslations } from "next-intl";
 
 export function Transitions({ settings, onSettingChange }: ComponentProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-3">
       <div className="space-y-1">
@@ -32,7 +33,7 @@ export function Transitions({ settings, onSettingChange }: ComponentProps) {
             { value: "background", label: "Background Only" },
             { value: "custom", label: "Custom" },
           ]}
-          placeholder="Select property"
+          placeholder={t("select_property")}
         />
       </div>
       {settings.transitionProperty === "custom" && (
@@ -45,15 +46,15 @@ export function Transitions({ settings, onSettingChange }: ComponentProps) {
             onChange={(e) =>
               onSettingChange("transitionCustomProperty", e.target.value)
             }
-            placeholder="opacity, transform, background"
+            placeholder={t("opacity_transform_background")}
           />
           <p className="text-xs text-muted-foreground mt-1">
-            {t("comma-separated_list_of_css_properties")}
+            {t("comma_separated_list_of_css_properties")}
           </p>
         </div>
       )}
       <div className="space-y-1">
-        <Label className="text-xs">{t("Duration")}</Label>
+        <Label className="text-xs">{tCommon("duration")}</Label>
         <SliderWithInput
           value={settings.transitionDuration || 0.3}
           onChange={(value) => onSettingChange("transitionDuration", value)}
@@ -87,11 +88,11 @@ export function Transitions({ settings, onSettingChange }: ComponentProps) {
               label: "Spring",
             },
           ]}
-          placeholder="Select timing"
+          placeholder={t("select_timing")}
         />
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">{t("Delay")}</Label>
+        <Label className="text-xs">{t("delay")}</Label>
         <SliderWithInput
           value={settings.transitionDelay || 0}
           onChange={(value) => onSettingChange("transitionDelay", value)}
@@ -117,7 +118,7 @@ export function Transitions({ settings, onSettingChange }: ComponentProps) {
             }
           >
             <div className="flex flex-col items-start text-left">
-              <span className="text-xs">{t("Elevate")}</span>
+              <span className="text-xs">{t("elevate")}</span>
               <span className="text-[10px] text-muted-foreground">
                 {t("lift_on_hover")}
               </span>
@@ -135,7 +136,7 @@ export function Transitions({ settings, onSettingChange }: ComponentProps) {
             }
           >
             <div className="flex flex-col items-start text-left">
-              <span className="text-xs">{t("Scale")}</span>
+              <span className="text-xs">{t("scale")}</span>
               <span className="text-[10px] text-muted-foreground">
                 {t("grow_on_hover")}
               </span>
@@ -153,7 +154,7 @@ export function Transitions({ settings, onSettingChange }: ComponentProps) {
             }
           >
             <div className="flex flex-col items-start text-left">
-              <span className="text-xs">{t("Glow")}</span>
+              <span className="text-xs">{t("glow")}</span>
               <span className="text-[10px] text-muted-foreground">
                 {t("add_shadow")}
               </span>
@@ -171,9 +172,9 @@ export function Transitions({ settings, onSettingChange }: ComponentProps) {
             }
           >
             <div className="flex flex-col items-start text-left">
-              <span className="text-xs">{t("Tilt")}</span>
+              <span className="text-xs">{t("tilt")}</span>
               <span className="text-[10px] text-muted-foreground">
-                {t("3d_rotation")}
+                {`3D ${tCommon('rotation')}`}
               </span>
             </div>
           </Button>

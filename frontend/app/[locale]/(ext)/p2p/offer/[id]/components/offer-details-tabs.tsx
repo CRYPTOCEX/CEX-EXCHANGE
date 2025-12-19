@@ -22,7 +22,9 @@ interface OfferDetailsTabsProps {
   timeLimit: number;
 }
 export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   // Parse JSON strings if they haven't been parsed already
   const amountConfig =
     typeof offer.amountConfig === "string"
@@ -57,7 +59,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
 
           <TabsContent value="details" className="p-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold">{t("offer_details")}</h3>
+              <h3 className="text-xl font-semibold">{tCommon("offer_details")}</h3>
               <Badge variant="outline" className="text-xs">
                 {priceConfig.model || "Fixed Price"}
               </Badge>
@@ -72,7 +74,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                   <div className="bg-muted/30 p-4 rounded-lg">
                     <div className="flex justify-between mb-2">
                       <span className="text-sm">
-                        {t("price_per")} {offer.currency}
+                        {tCommon("price_per")} {offer.currency}
                       </span>
                       <span className="font-medium">
                         {priceConfig.finalPrice.toLocaleString()} {offer.priceCurrency || priceConfig.currency || "USD"}
@@ -86,7 +88,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                     </div>
                     {priceConfig.marketPrice && (
                       <div className="flex justify-between">
-                        <span className="text-sm">{t("market_price")}</span>
+                        <span className="text-sm">{tCommon("market_price")}</span>
                         <span className="font-medium">
                           {priceConfig.marketPrice.toLocaleString()} USD
                         </span>
@@ -115,7 +117,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
               <div className="space-y-4">
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                    {t("trade_settings")}
+                    {tCommon("trade_settings")}
                   </h4>
                   <div className="bg-muted/30 p-4 rounded-lg">
                     <div className="flex justify-between mb-2">
@@ -131,7 +133,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                       </span>
                     </div>
                     <div className="flex justify-between mb-2">
-                      <span className="text-sm">{t("wallet_type")}</span>
+                      <span className="text-sm">{tCommon("wallet_type")}</span>
                       <span className="font-medium">{offer.walletType}</span>
                     </div>
                     <div className="flex justify-between">
@@ -157,7 +159,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                     <div className="flex items-start">
                       <Globe className="h-5 w-5 mr-2 text-muted-foreground mt-0.5" />
                       <div>
-                        <p className="font-medium">{t("restricted_countries")}</p>
+                        <p className="font-medium">{tExt("restricted_countries")}</p>
                         <div className="flex flex-wrap gap-2 mt-2">
                           {locationSettings.restrictions.map(
                             (country, index) => (
@@ -176,7 +178,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
 
           <TabsContent value="terms" className="p-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold">{t("terms_conditions")}</h3>
+              <h3 className="text-xl font-semibold">{tExt("terms_conditions")}</h3>
               <Badge variant="outline" className="text-xs">
                 Required
               </Badge>
@@ -185,7 +187,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
             <div className="bg-muted/30 p-5 rounded-lg">
               <h4 className="font-medium mb-3 flex items-center">
                 <Info className="h-4 w-4 mr-1.5 text-primary" />
-                {t("trade_terms")}
+                {tCommon("trade_terms")}
               </h4>
               <div className="text-sm whitespace-pre-line">
                 {tradeSettings.termsOfTrade ||
@@ -235,13 +237,13 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                   </div>
                 </div>
 
-                <div className="flex items-start p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-900">
-                  <Lock className="h-5 w-5 mr-3 text-purple-600 mt-0.5" />
+                <div className="flex items-start p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200/50 dark:border-blue-700/50">
+                  <Lock className="h-5 w-5 mr-3 text-blue-600 dark:text-blue-400 mt-0.5" />
                   <div>
-                    <p className="font-medium text-purple-800 dark:text-purple-400">
+                    <p className="font-medium text-blue-600 dark:text-blue-400">
                       {t("secure_chat")}
                     </p>
-                    <p className="text-sm text-purple-700 dark:text-purple-500 mt-1">
+                    <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
                       {t("end_to_end_encrypted_chat_for")}
                     </p>
                   </div>
@@ -264,7 +266,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
 
           <TabsContent value="payment" className="p-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold">{t("payment_methods")}</h3>
+              <h3 className="text-xl font-semibold">{tExt("payment_methods")}</h3>
               <Badge variant="outline" className="text-xs">
                 {offer.paymentMethods?.length || 0} Available
               </Badge>
@@ -289,7 +291,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                         <div className="flex items-center text-xs text-muted-foreground mt-1">
                           <Clock className="h-3 w-3 mr-1" />
                           <span>
-                            {t("processing_time")} {method.processingTime || "5-15"}{" "}
+                            {tCommon("processing_time")} {method.processingTime || "5-15"}{" "}
                             minutes
                           </span>
                         </div>
@@ -308,7 +310,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
             </Alert>
 
             <div className="bg-muted/30 p-4 rounded-lg">
-              <h4 className="font-medium mb-3">{t("payment_instructions")}</h4>
+              <h4 className="font-medium mb-3">{tCommon("payment_instructions")}</h4>
               <ol className="list-decimal list-inside space-y-2 text-sm">
                 <li>
                   {t("select_your_preferred_payment_method_when")}
@@ -355,7 +357,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center pb-2 border-b border-muted">
-                    <span className="text-sm">{t("minimum_success_rate")}</span>
+                    <span className="text-sm">{`${t("minimum_success_rate")} (%)`}</span>
                     <Badge
                       variant={
                         userRequirements.minSuccessRate > 0
@@ -388,7 +390,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                 </h4>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center pb-2 border-b border-muted">
-                    <span className="text-sm">{t("minimum_account_age")}</span>
+                    <span className="text-sm">{tCommon('minimum_account_age_days')}</span>
                     <Badge
                       variant={
                         userRequirements.minAccountAge > 0

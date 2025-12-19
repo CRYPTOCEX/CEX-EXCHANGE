@@ -1,13 +1,19 @@
 import { updateRecord, updateRecordResponses } from "@b/utils/query";
 import { createError } from "@b/utils/error";
 import { models } from "@b/db";
+import {
+  badRequestResponse,
+  unauthorizedResponse,
+  notFoundResponse,
+  serverErrorResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Set Recommended Launch Plan",
+  summary: "Set Recommended ICO Launch Plan",
   description:
-    "Updates the recommended flag for a launch plan. When setting recommended to true, it clears the flag from all launch plans that are currently true so that only one plan is recommended. When setting it to false, only that plan is updated.",
-  operationId: "setRecommendedLaunchPlan",
-  tags: ["ICO", "Admin", "LaunchPlans"],
+    "Updates the recommended flag for a launch plan. When setting recommended to true, automatically clears the flag from all other plans to ensure only one plan is recommended at a time.",
+  operationId: "setRecommendedIcoLaunchPlan",
+  tags: ["Admin", "ICO", "Settings"],
   parameters: [
     {
       index: 0,
@@ -19,7 +25,7 @@ export const metadata = {
     },
   ],
   requestBody: {
-    description: "Request body must contain the recommended flag.",
+    description: "Request body must contain the recommended flag",
     content: {
       "application/json": {
         schema: {
@@ -28,7 +34,7 @@ export const metadata = {
             recommended: {
               type: "boolean",
               description:
-                "Recommended flag. When true, this plan will be the only recommended plan; when false, this plan will be marked as not recommended.",
+                "Recommended flag. When true, this plan will be the only recommended plan; when false, this plan will be marked as not recommended",
             },
           },
           required: ["recommended"],
@@ -36,17 +42,39 @@ export const metadata = {
       },
     },
   },
-  responses: updateRecordResponses("Launch Plan Recommended"),
+  responses: {
+    200: {
+      description: "Launch plan recommended status updated successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              message: { type: "string" },
+            },
+          },
+        },
+      },
+    },
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    404: notFoundResponse("Launch Plan"),
+    500: serverErrorResponse,
+  },
   requiresAuth: true,
   permission: "edit.ico.settings",
+  logModule: "ADMIN_ICO",
+  logTitle: "Set recommended launch plan",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { recommended } = body;
 
+  ctx?.step("Validating recommended flag");
   if (typeof recommended !== "boolean") {
+    ctx?.fail("Invalid recommended flag type");
     throw createError({
       statusCode: 400,
       message: "The recommended flag must be a boolean",
@@ -54,6 +82,7 @@ export default async (data: Handler) => {
   }
 
   if (recommended) {
+    ctx?.step("Clearing existing recommended plans");
     // Find all launch plans that are currently recommended (true) and update them to false.
     const recommendedPlans = await models.icoLaunchPlan.findAll({
       where: { recommended: true },
@@ -65,6 +94,9 @@ export default async (data: Handler) => {
     );
   }
 
-  // Finally, update the specified plan with the requested recommended flag.
-  return await updateRecord("icoLaunchPlan", id, { recommended });
+  ctx?.step("Setting recommended flag");
+  const result = await updateRecord("icoLaunchPlan", id, { recommended });
+
+  ctx?.success("Launch plan recommended flag updated successfully");
+  return result;
 };

@@ -44,12 +44,18 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.blog.comment",
+  demoMask: ["items.user.email"],
+  logModule: "ADMIN_BLOG",
+  logTitle: "List comments",
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Parsing query parameters");
+
+  ctx?.step("Fetching comments with filters");
+  const result = await getFiltered({
     model: models.comment,
     query,
     sortField: query.sortField || "createdAt",
@@ -66,4 +72,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success("Comments retrieved successfully");
+  return result;
 };

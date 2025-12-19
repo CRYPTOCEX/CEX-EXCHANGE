@@ -28,7 +28,8 @@ export function PoolFormProfitSettings({
   validationErrors = {},
   hasSubmitted = false,
 }: PoolFormProfitSettingsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
   const [errors, setErrors] = useState({
     externalPoolUrl: "",
     adminFeePercentage: "",
@@ -117,7 +118,7 @@ export function PoolFormProfitSettings({
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Input
-          label="External Pool URL"
+          label={t("external_pool_url")}
           placeholder="https://example.com/staking-pool"
           value={formData.externalPoolUrl || ""}
           onChange={(e) => handleInputChange("externalPoolUrl", e.target.value)}
@@ -135,23 +136,23 @@ export function PoolFormProfitSettings({
             }
           >
             <SelectTrigger
-              title="Earning Frequency"
-              description="How often earnings are distributed to users"
+              title={t("earning_frequency")}
+              description={t("how_often_earnings_are_distributed_to_users")}
               className="w-full"
             >
-              <SelectValue placeholder="Select earning frequency" />
+              <SelectValue placeholder={t("select_earning_frequency")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="DAILY">{t("Daily")}</SelectItem>
-              <SelectItem value="WEEKLY">{t("Weekly")}</SelectItem>
-              <SelectItem value="MONTHLY">{t("Monthly")}</SelectItem>
-              <SelectItem value="END_OF_TERM">{t("end_of_term")}</SelectItem>
+              <SelectItem value="DAILY">{tExt("daily")}</SelectItem>
+              <SelectItem value="WEEKLY">{tExt("weekly")}</SelectItem>
+              <SelectItem value="MONTHLY">{tExt("monthly")}</SelectItem>
+              <SelectItem value="END_OF_TERM">{tExt("end_of_term")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <Input
-          label="Admin Fee Percentage"
+          label={t("admin_fee_percentage")}
           type="number"
           step="0.1"
           min="0"
@@ -176,11 +177,11 @@ export function PoolFormProfitSettings({
             ),
           ]}
           validateOnChange
-          description="Percentage of earnings that goes to the platform"
+          description={t("percentage_of_earnings_that_goes_to_the_platform")}
         />
 
         <Input
-          label="Early Withdrawal Fee"
+          label={tExt("early_withdrawal_fee")}
           type="number"
           step="0.1"
           min="0"
@@ -205,7 +206,7 @@ export function PoolFormProfitSettings({
             ),
           ]}
           validateOnChange
-          description="Fee percentage for withdrawals before lock period ends"
+          description={t("fee_percentage_for_withdrawals_before_lock")}
         />
 
         <div className="md:col-span-2">
@@ -222,7 +223,7 @@ export function PoolFormProfitSettings({
                 htmlFor="autoCompound"
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                {t("auto-compound_earnings")}
+                {t("auto_compound_earnings")}
               </label>
               <p className="text-sm text-muted-foreground">
                 {t("when_enabled_user_their_stake")}
@@ -233,8 +234,8 @@ export function PoolFormProfitSettings({
 
         <div className="md:col-span-2">
           <Textarea
-            title="Profit Source"
-            placeholder="Describe how profits are generated for this pool"
+            title={tExt("profit_source")}
+            placeholder={t("describe_how_profits_are_generated_for_this_pool")}
             className="min-h-[100px]"
             value={formData.profitSource}
             onChange={(e) => handleInputChange("profitSource", e.target.value)}
@@ -248,14 +249,14 @@ export function PoolFormProfitSettings({
                 "Profit source description must be at least 10 characters"
               ),
             ]}
-            description="Explain how profits are generated for this staking pool"
+            description={t("explain_how_profits_are_generated_for")}
           />
         </div>
 
         <div className="md:col-span-2">
           <Textarea
-            title="Fund Allocation"
-            placeholder="Describe how funds are allocated (e.g., 60% lending, 30% DeFi, 10% reserve)"
+            title={tExt("fund_allocation")}
+            placeholder={t("describe_how_funds_are_allocated_e")}
             className="min-h-[100px]"
             value={formData.fundAllocation}
             onChange={(e) =>
@@ -273,7 +274,7 @@ export function PoolFormProfitSettings({
                 "Fund allocation description must be at least 10 characters"
               ),
             ]}
-            description="Explain how funds are allocated across different platforms or strategies"
+            description={t("explain_how_funds_are_allocated_across")}
           />
         </div>
       </div>

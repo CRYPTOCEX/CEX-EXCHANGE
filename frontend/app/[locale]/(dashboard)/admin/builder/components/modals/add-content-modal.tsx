@@ -30,7 +30,8 @@ export function AddContentModal({
   sectionId,
   rowId,
 }: AddContentModalProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [searchTerm, setSearchTerm] = useState("");
   const showRowOptions = nestingLevel < 2 && !!onAddRow;
   const [lastSelection, setLastSelection] = useLastSelection({
@@ -70,7 +71,7 @@ export function AddContentModal({
         <div className="w-64 border-r bg-zinc-50 dark:bg-zinc-900 dark:border-zinc-700 p-4 flex flex-col h-full">
           <div className="mb-4">
             <SearchInput
-              placeholder="Search..."
+              placeholder={tCommon("search")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />

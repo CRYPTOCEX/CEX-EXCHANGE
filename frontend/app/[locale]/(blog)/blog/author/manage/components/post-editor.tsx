@@ -5,7 +5,7 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/routing";
 import { useBlogStore } from "@/store/blog/user";
-import RichTextEditor from "@/components/ui/editor";
+import { WysiwygEditor } from "@/components/ui/wysiwyg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,7 +67,8 @@ interface PostFormData {
 }
 
 export function PostEditor({ postId }: PostEditorProps) {
-  const t = useTranslations("blog");
+  const t = useTranslations("common");
+  const tBlogBlog = useTranslations("blog_blog");
   const router = useRouter();
   const { categories, fetchCategories } = useBlogStore();
   const { settings } = useConfigStore();
@@ -487,7 +488,7 @@ export function PostEditor({ postId }: PostEditorProps) {
             className="flex-1 sm:flex-none dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700"
           >
             <Eye className="mr-2 h-4 w-4" />
-            {t("Preview")}
+            {t("preview")}
           </Button>
           <Button
             type="submit"
@@ -511,28 +512,28 @@ export function PostEditor({ postId }: PostEditorProps) {
             className="w-full dark:data-[state=active]:bg-zinc-700 dark:text-zinc-300 dark:data-[state=active]:text-zinc-100"
           >
             <FileText className="h-4 w-4 mr-2" />
-            {t("Content")}
+            {t("content")}
           </TabsTrigger>
           <TabsTrigger
             value="media"
             className="w-full dark:data-[state=active]:bg-zinc-700 dark:text-zinc-300 dark:data-[state=active]:text-zinc-100"
           >
             <ImageIcon className="h-4 w-4 mr-2" />
-            {t("Media")}
+            {t("media")}
           </TabsTrigger>
           <TabsTrigger
             value="metadata"
             className="w-full dark:data-[state=active]:bg-zinc-700 dark:text-zinc-300 dark:data-[state=active]:text-zinc-100"
           >
             <Layers className="h-4 w-4 mr-2" />
-            {t("Metadata")}
+            {t("metadata")}
           </TabsTrigger>
           <TabsTrigger
             value="settings"
             className="w-full dark:data-[state=active]:bg-zinc-700 dark:text-zinc-300 dark:data-[state=active]:text-zinc-100"
           >
             <Settings className="h-4 w-4 mr-2" />
-            {t("Settings")}
+            {t("settings")}
           </TabsTrigger>
         </TabsList>
 
@@ -545,14 +546,14 @@ export function PostEditor({ postId }: PostEditorProps) {
                   htmlFor="title"
                   className="text-base font-medium text-zinc-900 dark:text-zinc-100"
                 >
-                  {t("Title")}
+                  {t("title")}
                 </Label>
                 <Input
                   id="title"
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  placeholder="Enter a compelling title..."
+                  placeholder={tBlogBlog("enter_a_compelling_title_ellipsis")}
                   className="mt-1.5 h-12 text-lg font-medium dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                   required
                 />
@@ -564,14 +565,14 @@ export function PostEditor({ postId }: PostEditorProps) {
                   htmlFor="description"
                   className="text-base font-medium text-zinc-900 dark:text-zinc-100"
                 >
-                  {t("Description")}
+                  {t("description")}
                 </Label>
                 <Textarea
                   id="description"
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
-                  placeholder="Write a brief description of your post..."
+                  placeholder={tBlogBlog("write_a_brief_description_of_your_post_ellipsis")}
                   className="mt-1.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                   rows={3}
                 />
@@ -583,14 +584,17 @@ export function PostEditor({ postId }: PostEditorProps) {
                   htmlFor="content"
                   className="text-base font-medium text-zinc-900 dark:text-zinc-100"
                 >
-                  {t("Content")}
+                  {t("content")}
                 </Label>
                 <div className="mt-1.5 overflow-hidden">
-                  <RichTextEditor
+                  <WysiwygEditor
                     value={formData.content}
                     onChange={handleContentChange}
-                    placeholder="Write your post content here..."
+                    placeholder={tBlogBlog("write_your_post_content_here_ellipsis")}
                     uploadDir="blog-posts"
+                    minHeight={400}
+                    showWordCount
+                    userOnly
                   />
                 </div>
               </div>
@@ -603,16 +607,16 @@ export function PostEditor({ postId }: PostEditorProps) {
                   htmlFor="image"
                   className="text-base font-medium text-zinc-900 dark:text-zinc-100"
                 >
-                  {t("featured_image")}
+                  {tBlogBlog("featured_image")}
                 </Label>
                 <p className="text-sm text-muted-foreground mb-3 dark:text-zinc-400">
-                  {t("this_image_will_media_previews")}.
+                  {tBlogBlog("this_image_will_media_previews")}.
                 </p>
                 <div className="mt-1.5">
                   <ImageUpload
                     value={featuredImage}
                     onChange={handleImageChange}
-                    title="Featured Image"
+                    title={tBlogBlog("featured_image")}
                     error={!!uploadError}
                     errorMessage={uploadError || ""}
                     loading={isUploading}
@@ -629,7 +633,7 @@ export function PostEditor({ postId }: PostEditorProps) {
                     htmlFor="tags"
                     className="text-base font-medium text-zinc-900 dark:text-zinc-100"
                   >
-                    {t("Tags")}
+                    {t("tags")}
                   </Label>
                   <TooltipProvider>
                     <Tooltip>
@@ -639,23 +643,23 @@ export function PostEditor({ postId }: PostEditorProps) {
                         </div>
                       </TooltipTrigger>
                       <TooltipContent className="dark:bg-zinc-700 dark:text-zinc-100">
-                        <p>{t("tags_help_readers_discover_your_content")}</p>
+                        <p>{tBlogBlog("tags_help_readers_discover_your_content")}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
                 {settings && (
                   <p className="text-sm text-muted-foreground mb-3 dark:text-zinc-400">
-                    {t("you_can_add_up_to")}
+                    {tBlogBlog("you_can_add_up_to")}
                     {settings.maxTagsPerPost}
-                    {t("tags_to_your_post")}.{" "}
-                    {t("type_and_press_comma_or_enter_to_add_a_tag")}.
+                    {tBlogBlog("tags_to_your_post")}.{" "}
+                    {tBlogBlog("type_and_press_comma_or_enter_to_add_a_tag")}.
                   </p>
                 )}
                 <TagInput
                   value={formData.tagNames}
                   onChange={handleTagsChange}
-                  placeholder="Add tags (separate with comma)..."
+                  placeholder={tBlogBlog("add_tags_separate_with_comma_ellipsis")}
                   maxTags={settings?.maxTagsPerPost}
                   className="mt-1.5 dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-100"
                 />
@@ -670,10 +674,10 @@ export function PostEditor({ postId }: PostEditorProps) {
                     htmlFor="category"
                     className="text-base font-medium text-zinc-900 dark:text-zinc-100"
                   >
-                    {t("Category")}
+                    {t("category")}
                   </Label>
                   <p className="text-sm text-muted-foreground mb-3 dark:text-zinc-400">
-                    {t("select_the_category_that_best_fits_your_post")}.
+                    {tBlogBlog("select_the_category_that_best_fits_your_post")}.
                   </p>
                   <Select
                     value={formData.categoryId}
@@ -685,7 +689,7 @@ export function PostEditor({ postId }: PostEditorProps) {
                       id="category"
                       className="w-full dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-100"
                     >
-                      <SelectValue placeholder="Select a category" />
+                      <SelectValue placeholder={t("select_a_category")} />
                     </SelectTrigger>
                     <SelectContent className="dark:bg-zinc-800 dark:border-zinc-700">
                       {categories &&
@@ -708,10 +712,10 @@ export function PostEditor({ postId }: PostEditorProps) {
                     htmlFor="status"
                     className="text-base font-medium text-zinc-900 dark:text-zinc-100"
                   >
-                    {t("Status")}
+                    {t("status")}
                   </Label>
                   <p className="text-sm text-muted-foreground mb-3 dark:text-zinc-400">
-                    {t("set_as_draft_it_live")}.
+                    {tBlogBlog("set_as_draft_it_live")}.
                   </p>
                   <Select
                     value={formData.status}
@@ -723,20 +727,20 @@ export function PostEditor({ postId }: PostEditorProps) {
                       id="status"
                       className="w-full dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-100"
                     >
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder={t("select_status")} />
                     </SelectTrigger>
                     <SelectContent className="dark:bg-zinc-800 dark:border-zinc-700">
                       <SelectItem
                         value="DRAFT"
                         className="dark:text-zinc-100 dark:focus:bg-zinc-700"
                       >
-                        {t("Draft")}
+                        {t("draft")}
                       </SelectItem>
                       <SelectItem
                         value="PUBLISHED"
                         className="dark:text-zinc-100 dark:focus:bg-zinc-700"
                       >
-                        {t("Published")}
+                        {t("published")}
                       </SelectItem>
                     </SelectContent>
                   </Select>

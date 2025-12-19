@@ -7,6 +7,8 @@ export const metadata: OperationObject = {
   tags: ["Auth"],
   description: "Enables or disables OTP for the user",
   requiresAuth: true,
+  logModule: "2FA",
+  logTitle: "Toggle 2FA status",
   requestBody: {
     required: true,
     content: {
@@ -51,10 +53,33 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, user } = data;
-  if (!user) throw createError({ statusCode: 401, message: "unauthorized" });
+  const { body, user, ctx } = data;
 
-  return await toggleOTPQuery(user.id, body.status);
+  try {
+    ctx?.step("Validating user authentication");
+    if (!user) {
+      ctx?.fail("User not authenticated");
+      throw createError({ statusCode: 401, message: "unauthorized" });
+    }
+
+    ctx?.step("Validating status value");
+    if (typeof body.status !== "boolean") {
+      ctx?.fail("Status must be a boolean");
+      throw createError({
+        statusCode: 400,
+        message: "Status must be a boolean value",
+      });
+    }
+
+    ctx?.step(`${body.status ? "Enabling" : "Disabling"} 2FA`);
+    const result = await toggleOTPQuery(user.id, body.status);
+
+    ctx?.success(`2FA ${body.status ? "enabled" : "disabled"} successfully`);
+    return result;
+  } catch (error) {
+    ctx?.fail(error.message || "Failed to toggle 2FA");
+    throw error;
+  }
 };
 
 async function toggleOTPQuery(userId: string, status: boolean) {

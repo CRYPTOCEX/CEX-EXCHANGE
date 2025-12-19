@@ -45,10 +45,15 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
+
   if (!user) throw createError({ statusCode: 401, message: "Unauthorized" });
-  
+
   const { type, currency } = params;
-  
-  return getWallet(user.id, type, currency);
+
+  ctx?.step(`Fetching ${type} wallet for ${currency}`);
+  const wallet = await getWallet(user.id, type, currency);
+
+  ctx?.success(`Wallet retrieved successfully`);
+  return wallet;
 };

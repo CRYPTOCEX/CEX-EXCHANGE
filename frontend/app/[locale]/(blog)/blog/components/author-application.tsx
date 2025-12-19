@@ -17,7 +17,8 @@ import { useUserStore } from "@/store/user";
 import { useTranslations } from "next-intl";
 
 export function AuthorApplication() {
-  const t = useTranslations("blog");
+  const t = useTranslations("blog_blog");
+  const tCommon = useTranslations("common");
   const { user } = useUserStore();
   const [status, setStatus] = useState<string | null>(null);
   const { applyForAuthor, isLoading, error, fetchAuthor } = useBlogStore();
@@ -75,7 +76,7 @@ export function AuthorApplication() {
             </h3>
             <p className="text-zinc-500 dark:text-zinc-400">{error}</p>
             <Button onClick={() => window.location.reload()} className="mt-4">
-              {t("try_again")}
+              {tCommon("try_again")}
             </Button>
           </div>
         </CardContent>
@@ -90,7 +91,7 @@ export function AuthorApplication() {
           <div className="flex flex-col items-center text-center">
             <Clock className="h-16 w-16 text-yellow-500 mb-4" />
             <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
-              {t("application_pending")}
+              {tCommon("application_pending")}
             </h3>
             <p className="text-zinc-500 dark:text-zinc-400">
               {t("your_application_to_under_review")}{" "}

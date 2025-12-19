@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "calculateStakingRewards",
   tags: ["Staking", "Rewards", "Calculator"],
   requiresAuth: true,
+  logModule: "STAKING",
+  logTitle: "Calculate rewards",
   parameters: [],
   requestBody: {
     required: true,
@@ -65,13 +67,14 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { amount, duration } = body;
 
+  ctx?.step("Validating calculation parameters");
   if (!amount || amount <= 0) {
     throw createError({ statusCode: 400, message: "Invalid amount" });
   }
@@ -80,6 +83,7 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 400, message: "Invalid duration" });
   }
 
+  ctx?.step("Finding eligible staking pools");
   // Find active pools that match the criteria
   const whereClause: any = {
     status: "ACTIVE",
@@ -91,6 +95,7 @@ export default async (data: Handler) => {
     order: [["apr", "DESC"]],
   });
 
+  ctx?.step("Calculating potential rewards for each pool");
   // Calculate potential rewards for each pool
   const calculations = pools.map((pool) => {
     const { id, name, apr, symbol, icon, token } = pool;
@@ -110,6 +115,8 @@ export default async (data: Handler) => {
       totalReturn,
     };
   });
+
+  ctx?.success(`Calculated rewards for ${pools.length} pools`);
 
   return { calculations };
 };

@@ -3,6 +3,7 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 import { models } from "@b/db";
 import {
   getAuthorizeNetConfig,
@@ -19,6 +20,8 @@ export const metadata: OperationObject = {
   operationId: "createAuthorizeNetPayment",
   tags: ["Finance", "Deposit"],
   requiresAuth: true,
+  logModule: "AUTHORIZENET_DEPOSIT",
+  logTitle: "Create Authorize.Net payment",
   requestBody: {
     required: true,
     content: {
@@ -88,9 +91,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user?.id) throw new Error("User not authenticated");
 
+  ctx?.step("Fetching user account");
   const userPk = await models.user.findByPk(user.id);
   if (!userPk) throw new Error("User not found");
 
@@ -138,7 +143,8 @@ export default async (data: Handler) => {
     const config = getAuthorizeNetConfig();
     
     // Calculate fees
-    const fixedFee = authorizeNetGateway.fixedFee || 0;
+    ctx?.step("Calculating fees");
+  const fixedFee = authorizeNetGateway.fixedFee || 0;
     const percentageFee = authorizeNetGateway.percentageFee || 0;
     const feeAmount = Number(((amount * percentageFee) / 100 + fixedFee).toFixed(2));
     const totalAmount = Number((amount + feeAmount).toFixed(2));
@@ -147,7 +153,8 @@ export default async (data: Handler) => {
     const referenceId = `deposit_${user.id.toString()}_${Date.now()}`;
 
     // Create transaction record
-    const transaction = await models.transaction.create({
+    ctx?.step("Creating transaction record");
+      const transaction = await models.transaction.create({
       userId: user.id,
       type: "DEPOSIT",
       amount: amount,
@@ -230,7 +237,7 @@ export default async (data: Handler) => {
     };
 
   } catch (error) {
-    console.error("Authorize.Net payment creation error:", error);
+    logger.error("AUTHORIZENET", "Payment creation error", error);
     throw new Error(error instanceof Error ? error.message : "Failed to create Authorize.Net payment");
   }
 }; 

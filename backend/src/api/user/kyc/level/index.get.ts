@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
     "Fetches all currently active KYC (Know Your Customer) levels that are used for KYC processes. This endpoint is accessible without authentication and returns an array of levels that are marked as active in the system.",
   operationId: "getActiveKycLevels",
   tags: ["KYC"],
+  logModule: "USER",
+  logTitle: "List KYC levels",
   responses: {
     200: {
       description: "Active KYC levels retrieved successfully",
@@ -47,8 +49,12 @@ export const metadata: OperationObject = {
   requiresAuth: false,
 };
 
-export default async () => {
-  return getActiveKycLevels();
+export default async (data?: any) => {
+  const ctx = data?.ctx;
+  ctx?.step("Retrieving active KYC levels");
+  const result = await getActiveKycLevels();
+  ctx?.success(`Retrieved ${result.length} active KYC levels`);
+  return result;
 };
 
 export async function getActiveKycLevels(): Promise<kycLevelAttributes[]> {

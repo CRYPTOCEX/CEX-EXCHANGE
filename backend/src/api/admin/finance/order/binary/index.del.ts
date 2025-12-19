@@ -32,14 +32,21 @@ export const metadata = {
   responses: commonBulkDeleteResponses("Binary Orders"),
   requiresAuth: true,
   permission: "delete.binary.order",
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk Delete Binary Orders",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step("Delete Binary Orders...");
+  const result = await handleBulkDelete({
     model: "binaryOrder",
     ids,
     query,
   });
+
+  ctx?.success("Bulk Delete Binary Orders completed successfully");
+  return result;
 };

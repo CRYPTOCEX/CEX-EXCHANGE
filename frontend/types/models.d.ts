@@ -431,23 +431,45 @@ interface icoTokenOfferingAttributes {
   endDate: Date;
   description?: string;
   image?: string;
-  status: "DRAFT" | "ACTIVE" | "COMPLETED" | "CANCELLED" | "PENDING" | "SUCCESS" | "FAILED";
+  icon?: string;
+  status: "DRAFT" | "ACTIVE" | "COMPLETED" | "CANCELLED" | "PENDING" | "SUCCESS" | "FAILED" | "REJECTED";
   isPaused?: boolean;
   isFlagged?: boolean;
+  targetAmount?: number;
+  currentRaised?: number;
+  participants?: number;
+  // Additional properties used by components
+  purchaseWalletCurrency?: string;
+  featured?: boolean;
+  website?: string;
+  tokenPrice?: number;
+  currentPrice?: number;
+  priceChange?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 interface icoTeamMemberAttributes {
   id: string;
-  tokenOfferingId: string;
+  tokenOfferingId?: string;
   name: string;
   role: string;
   bio?: string;
   avatar?: string;
   socialLinks?: string;
+  twitter?: string;
+  linkedin?: string;
+  website?: string;
+  github?: string;
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+interface IcoAttachment {
+  type: "image" | "document" | "link";
+  url: string;
+  name: string;
+  file?: File;
 }
 
 interface icoTokenOfferingUpdateAttributes {
@@ -456,18 +478,31 @@ interface icoTokenOfferingUpdateAttributes {
   offeringId?: string;
   title: string;
   content: string;
-  attachments?: string[] | string;
+  attachments?: string[] | string | IcoAttachment[];
   publishedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
+interface IcoLaunchPlanFeatures {
+  maxTeamMembers?: number;
+  maxRoadmapItems?: number;
+  maxOfferingPhases?: number;
+  maxUpdatePosts?: number;
+  supportLevel?: "basic" | "standard" | "premium";
+  marketingSupport?: boolean;
+  auditIncluded?: boolean;
+  customTokenomics?: boolean;
+  priorityListing?: boolean;
+  kycRequired?: boolean;
+}
+
 interface icoLaunchPlanAttributes {
   id: string;
-  tokenOfferingId: string;
-  phase: string;
-  startDate: Date;
-  endDate: Date;
+  tokenOfferingId?: string;
+  phase?: string;
+  startDate?: Date;
+  endDate?: Date;
   name: string;
   price: number;
   currency: string;
@@ -476,7 +511,7 @@ interface icoLaunchPlanAttributes {
   status: boolean;
   sortOrder: number;
   description?: string;
-  features?: string[] | string;
+  features?: IcoLaunchPlanFeatures | string[] | string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -490,6 +525,9 @@ interface icoTokenOfferingPhaseAttributes {
   tokensSold?: number;
   startDate: Date;
   endDate: Date;
+  // Additional properties used by components
+  remaining?: number;
+  tokenPrice?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -501,23 +539,42 @@ interface icoTokenDetailAttributes {
   blockchain: string;
   contractAddress?: string;
   decimals?: number;
+  totalSupply?: number;
+  tokensForSale?: number;
   useOfFunds?: string | any[];
   links?: string[] | string | any;
+  tokenTypeData?: {
+    name?: string;
+    value?: string;
+    description?: string;
+  };
+  // Additional properties used by components
+  description?: string;
+  tokenType?: string;
+  salePercentage?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 interface icoRoadmapItemAttributes {
   id: string;
-  tokenOfferingId: string;
-  quarter: string;
-  year: number;
-  milestone: string;
-  description?: string;
-  status: "PENDING" | "IN_PROGRESS" | "COMPLETED";
+  offeringId: string;
+  title: string;
+  description: string;
+  date: string;
+  completed: boolean;
+  // Additional properties used by components
+  tokenOfferingId?: string;
+  quarter?: string;
+  year?: number;
+  milestone?: string;
+  status?: "PENDING" | "IN_PROGRESS" | "COMPLETED";
   createdAt?: Date;
   updatedAt?: Date;
+  deletedAt?: Date;
 }
+
+type icoRoadmapItemCreationAttributes = Partial<icoRoadmapItemAttributes>;
 
 interface icoBlockchainAttributes {
   id: string;
@@ -561,12 +618,18 @@ interface icoAdminActivityAttributes {
 interface investmentPlanAttributes {
   id: string;
   name: string;
+  title?: string;
   description?: string;
   minAmount: number;
   maxAmount: number;
   dailyProfit: number;
   duration: number;
   status: "ACTIVE" | "INACTIVE";
+  trending?: boolean;
+  profitPercentage?: number;
+  currency?: string;
+  walletType?: string;
+  durations?: Array<{ id: string; duration: number; timeframe: string }>;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -582,6 +645,7 @@ interface investmentAttributes {
   endDate?: Date;
   createdAt?: Date;
   updatedAt?: Date;
+  plan?: investmentPlanAttributes & { currency?: string };
 }
 
 // ==========================

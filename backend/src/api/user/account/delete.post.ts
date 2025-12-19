@@ -7,6 +7,8 @@ export const metadata: OperationObject = {
   description: "Allow users to delete their own account (soft delete)",
   operationId: "deleteOwnAccount",
   tags: ["User", "Account"],
+  logModule: "USER",
+  logTitle: "Delete account",
   requestBody: {
     required: true,
     content: {
@@ -47,16 +49,18 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
   const { confirmPassword } = body;
 
   if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({
       statusCode: 401,
       message: "Unauthorized",
     });
   }
 
+  ctx?.step("Retrieving user account");
   // Get current user with password for verification
   const currentUser = await models.user.findOne({
     where: { id: user.id },
@@ -70,14 +74,17 @@ export default async (data: Handler) => {
   });
 
   if (!currentUser) {
+    ctx?.fail("User not found");
     throw createError({
       statusCode: 404,
       message: "User not found",
     });
   }
 
+  ctx?.step("Validating user permissions");
   // Prevent super admin deletion
   if (currentUser.role && currentUser.role.name === "Super Admin") {
+    ctx?.fail("Super Admin accounts cannot be self-deleted");
     throw createError({
       statusCode: 403,
       message: "Super Admin accounts cannot be self-deleted",
@@ -87,7 +94,7 @@ export default async (data: Handler) => {
   // Verify password if provided
   if (confirmPassword && currentUser.password) {
     const isPasswordValid = await verifyPassword(currentUser.password, confirmPassword);
-    
+
     if (!isPasswordValid) {
       throw createError({
         statusCode: 400,
@@ -96,9 +103,11 @@ export default async (data: Handler) => {
     }
   }
 
+  ctx?.step("Deleting user account");
   // Soft delete the user account (sets deletedAt timestamp)
   await currentUser.destroy();
 
+  ctx?.success("Account deleted successfully");
   return {
     message: "Your account has been successfully deleted",
   };

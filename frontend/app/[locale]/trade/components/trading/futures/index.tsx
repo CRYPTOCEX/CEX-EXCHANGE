@@ -22,7 +22,8 @@ export default function FuturesTradingForm({
   symbol,
   onOrderSubmit,
 }: FuturesTradingFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tTradeComponents = useTranslations("trade_components");
   const [orderType, setOrderType] = useState<"market" | "limit">("market");
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [marketInfo, setMarketInfo] = useState<FuturesMarket | null>(null);
@@ -284,7 +285,7 @@ export default function FuturesTradingForm({
       <div className="px-3 py-1.5 bg-yellow-500/10 border-b border-yellow-500/20 flex items-center">
         <Zap className="h-3.5 w-3.5 text-yellow-500 mr-1.5" />
         <span className="text-xs font-medium text-yellow-600 dark:text-yellow-400">
-          {t("futures_trading")}
+          {tTradeComponents("futures_trading")}
         </span>
         <Badge className="ml-auto bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/30 text-[10px]">
           {symbol}
@@ -309,8 +310,8 @@ export default function FuturesTradingForm({
         onValueChange={(value) => setOrderType(value as "market" | "limit")}
       >
         <TabsList className="w-full grid grid-cols-2 rounded-none">
-          <TabTrigger value="market">{t("Market")}</TabTrigger>
-          <TabTrigger value="limit">{t("Limit")}</TabTrigger>
+          <TabTrigger value="market">{t("market")}</TabTrigger>
+          <TabTrigger value="limit">{t("limit")}</TabTrigger>
         </TabsList>
 
         <TabContent value="market" className="p-3 space-y-3">

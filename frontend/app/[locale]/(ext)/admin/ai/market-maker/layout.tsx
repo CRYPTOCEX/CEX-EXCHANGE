@@ -1,27 +1,28 @@
-import type React from "react";
-import type { Metadata } from "next";
-import Footer from "@/components/partials/footer";
-import AIMarketMakerAdminNavbar from "./components/navbar";
+"use client";
 
-export const metadata: Metadata = {
-  title: "AI Market Maker Admin Dashboard",
-  description: "Admin dashboard for AI-powered market making",
-};
+import type React from "react";
+import Footer from "@/components/partials/footer";
+import SiteHeader from "@/components/partials/header/site-header";
+import { menu, colorSchema } from "./menu";
+import { usePathname } from "@/i18n/routing";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
+  const pathname = usePathname();
+  const isSettingsPage = pathname.endsWith("/settings");
+
+  // Full-screen layout for settings page
+  if (isSettingsPage) {
+    return <>{children}</>;
+  }
+
   return (
     <>
-      <AIMarketMakerAdminNavbar />
-      <main
-        className="flex-1"
-        style={{ minHeight: "calc(100vh - 112px - 120px)" }}
-      >
-        {children}
-      </main>
+      <SiteHeader menu={menu} colorSchema={colorSchema} userPath="/" />
+      <main className="flex-1">{children}</main>
       <Footer />
     </>
   );

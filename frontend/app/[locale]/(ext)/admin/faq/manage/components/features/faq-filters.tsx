@@ -21,7 +21,7 @@ interface FAQFiltersProps {
 }
 
 export function FAQFilters({ viewMode, onViewModeChange }: FAQFiltersProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   const { filters, categories, setFilters } = useFAQAdminStore();
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -39,7 +39,7 @@ export function FAQFilters({ viewMode, onViewModeChange }: FAQFiltersProps) {
       <div className="relative flex-1">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search FAQs..."
+          placeholder={t("search_faqs_ellipsis")}
           className="pl-8 pr-8"
           defaultValue={filters.search}
           onKeyDown={handleSearch}
@@ -63,7 +63,7 @@ export function FAQFilters({ viewMode, onViewModeChange }: FAQFiltersProps) {
         }
       >
         <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="All Categories" />
+          <SelectValue placeholder={t("all_categories")} />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">{t("all_categories")}</SelectItem>
@@ -84,8 +84,8 @@ export function FAQFilters({ viewMode, onViewModeChange }: FAQFiltersProps) {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">{t("all_status")}</SelectItem>
-          <SelectItem value="active">{t("Active")}</SelectItem>
-          <SelectItem value="inactive">{t("Inactive")}</SelectItem>
+          <SelectItem value="active">{t("active")}</SelectItem>
+          <SelectItem value="inactive">{t("inactive")}</SelectItem>
         </SelectContent>
       </Select>
 

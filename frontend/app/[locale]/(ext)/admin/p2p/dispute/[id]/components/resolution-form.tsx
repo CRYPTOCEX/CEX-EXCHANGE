@@ -45,7 +45,8 @@ export function ResolutionForm({
   handleResolveDispute,
   isSubmitting,
 }: ResolutionFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const getOutcomeLabel = (outcome: string) => {
@@ -123,7 +124,7 @@ export function ResolutionForm({
               disabled={isSubmitting || !resolutionDetails.outcome}
               className="w-full"
             >
-              {isSubmitting ? t("Processing") : t("submit_resolution")}
+              {isSubmitting ? tCommon("processing") : t("submit_resolution")}
             </Button>
           </div>
         </CardContent>
@@ -140,7 +141,7 @@ export function ResolutionForm({
             <DialogDescription>
               {t("are_you_sure_you_want_to_resolve_this_dispute")}{" "}
               <strong>{getOutcomeLabel(resolutionDetails.outcome)}</strong>?{" "}
-              {t("this_action_cannot_be_undone")}
+              {tCommon("this_action_cannot_be_undone")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -149,14 +150,14 @@ export function ResolutionForm({
               onClick={() => setShowConfirmModal(false)}
               disabled={isSubmitting}
             >
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
             <Button
               variant="destructive"
               onClick={handleConfirm}
               disabled={isSubmitting}
             >
-              {isSubmitting ? t("Processing") : t("Confirm")}
+              {isSubmitting ? tCommon("processing") : tCommon("confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

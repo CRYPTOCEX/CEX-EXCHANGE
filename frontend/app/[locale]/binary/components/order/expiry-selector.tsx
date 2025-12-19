@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { Clock, Minus, Plus, Timer, Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 // Update the ref type to accept HTMLDivElement | null
 interface ExpirySelectorProps {
@@ -43,6 +44,7 @@ export default function ExpirySelector({
   isMobile = false,
   darkMode = true,
 }: ExpirySelectorProps) {
+  const t = useTranslations("binary_components");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -183,7 +185,7 @@ export default function ExpirySelector({
               <div
                 className={`text-xs font-medium ${darkMode ? "text-white" : "text-gray-800"} mb-2`}
               >
-                Expiry Time
+                {t("expiry_time")}
               </div>
               <div className="space-y-1">
                 {presetExpiryTimes.map((item) => {

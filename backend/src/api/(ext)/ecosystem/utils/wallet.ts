@@ -22,7 +22,7 @@ import {
   getCustodialWalletContract,
   getCustodialWalletTokenBalance,
 } from "./custodialWallet";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 
 export async function checkBlockchainExtensions() {
@@ -112,26 +112,37 @@ export async function getActiveTokensByCurrency(
   return filteredTokens;
 }
 
-export async function getWalletByUserIdAndCurrency(userId, currency) {
-  let generated = false;
-
+export async function getWalletByUserIdAndCurrency(
+  userId: string,
+  currency: string,
+  type: string = "ECO", // Default to ECO for backward compatibility
+  transaction?: any,
+  lock?: boolean // Whether to lock the row when using transaction
+) {
   // Step 1: Fetch the wallet for the specified user and currency.
   let wallet = await models.wallet.findOne({
     where: {
       userId,
       currency,
-      type: "ECO",
+      type, // Use provided type parameter
     },
     attributes: ["id", "type", "currency", "balance", "address"],
+    ...(transaction && { transaction }),
+    ...(transaction && lock && { lock: transaction.LOCK.UPDATE }),
   });
 
-  // Step 2: If no wallet is found, generate a new wallet.
-  if (!wallet) {
-    wallet = await storeWallet({ id: userId }, currency);
-    generated = true;
+  // Step 2: For COPY_TRADING wallets, return immediately (no address generation needed)
+  // CT wallets are internal-only and don't need blockchain addresses
+  if (type === "COPY_TRADING") {
+    return wallet; // Can be null - caller will create if needed
   }
 
-  // Step 3: If wallet is still not found after attempting creation, throw an error.
+  // Step 3: If no ECO wallet is found, generate a new wallet with addresses
+  if (!wallet) {
+    wallet = await storeWallet({ id: userId }, currency);
+  }
+
+  // Step 4: If wallet is still not found after attempting creation, throw an error.
   if (!wallet) {
     throw createError(404, "Wallet not found");
   }
@@ -154,8 +165,8 @@ export async function getWalletByUserIdAndCurrency(userId, currency) {
       }
     }
   } catch (error) {
-    console.error(`[ERROR] Failed to parse wallet address for wallet ${wallet.id}:`, error.message);
-    console.error(`[ERROR] Raw address value:`, wallet.address);
+    logger.error("WALLET", `Failed to parse wallet address for wallet ${wallet.id}: ${error.message}`);
+    logger.debug("WALLET", `Raw address value: ${wallet.address}`);
 
     // Try to repair common JSON errors
     if (typeof wallet.address === "string") {
@@ -163,7 +174,7 @@ export async function getWalletByUserIdAndCurrency(userId, currency) {
         // Fix missing colons (e.g., "balance"0.123 -> "balance":0.123)
         const repairedAddress = wallet.address.replace(/"(\w+)"(\d+\.?\d*)/g, '"$1":$2');
         addresses = JSON.parse(repairedAddress);
-        console.log(`[SUCCESS] Repaired corrupted wallet address JSON for wallet ${wallet.id}`);
+        logger.success("WALLET", `Repaired corrupted wallet address JSON for wallet ${wallet.id}`);
 
         // Save the repaired address back to database
         await models.wallet.update(
@@ -171,7 +182,7 @@ export async function getWalletByUserIdAndCurrency(userId, currency) {
           { where: { id: wallet.id } }
         );
       } catch (repairError) {
-        console.error(`[ERROR] Failed to repair wallet address:`, repairError.message);
+        logger.error("WALLET", `Failed to repair wallet address: ${repairError.message}`);
         // Reset to empty addresses object
         addresses = {};
       }
@@ -661,7 +672,7 @@ const handleTonNativeWallet = async (wallet, addresses, transaction) => {
 };
 
 const handleError = (message, throwIt = true) => {
-  console.error(message);
+  logger.error("WALLET", message);
   if (throwIt) {
     throw new Error(message);
   }
@@ -680,9 +691,7 @@ const handlePermitContract = async (
   });
 
   if (!masterWallet || !masterWallet.data) {
-    console.warn(
-      `Skipping chain ${token.chain} - Master wallet not found or not enabled`
-    );
+    logger.warn("WALLET", `Skipping chain ${token.chain} - Master wallet not found or not enabled`);
     return;
   }
 
@@ -768,7 +777,7 @@ export async function getMasterWalletByChain(
       attributes: walletResponseAttributes,
     });
   } catch (error) {
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Failed to get master wallet by chain", error);
     throw error;
   }
 }
@@ -787,7 +796,7 @@ export async function getMasterWalletByChainFull(
 
     return wallet;
   } catch (error) {
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Failed to get master wallet by chain", error);
     throw error;
   }
 }
@@ -798,24 +807,19 @@ export async function checkEcosystemAvailableFunds(
   totalAmount
 ) {
   try {
-    console.log(`[WALLET] Checking funds availability:`, {
-      walletId: userWallet.id,
-      totalAmount,
-      currentBalance: userWallet.balance
-    });
+    logger.debug("WALLET", `Checking funds availability: walletId=${userWallet.id}, totalAmount=${totalAmount}, currentBalance=${userWallet.balance}`);
 
     const totalAvailable = await getTotalAvailable(userWallet, walletData);
-    console.log(`[WALLET] Total available: ${totalAvailable}`);
+    logger.debug("WALLET", `Total available: ${totalAvailable}`);
 
     if (totalAvailable < totalAmount) {
-      console.error(`[WALLET] Insufficient funds: available ${totalAvailable} < required ${totalAmount}`);
+      logger.error("WALLET", `Insufficient funds: available ${totalAvailable} < required ${totalAmount}`);
       throw new Error("Insufficient funds for withdrawal including fee");
     }
 
     return totalAvailable;
   } catch (error) {
-    console.error(`[WALLET] Error checking funds:`, error);
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Error checking funds", error);
     if (error.message === "Insufficient funds for withdrawal including fee") {
       throw error;
     }
@@ -837,23 +841,22 @@ const getTotalAvailable = async (userWallet, walletData) => {
 
 export async function getGasPayer(chain, provider) {
   try {
-    console.log(`[WALLET] Getting gas payer for chain: ${chain}`);
+    logger.debug("WALLET", `Getting gas payer for chain: ${chain}`);
     const masterWallet = await getMasterWalletByChainFull(chain);
     if (!masterWallet) {
-      console.error(`[WALLET] Master wallet not found for chain: ${chain}`);
+      logger.error("WALLET", `Master wallet not found for chain: ${chain}`);
       throw new Error("Master wallet not found");
     }
     const { data } = masterWallet;
     if (!data) {
-      console.error(`[WALLET] Master wallet data not found for chain: ${chain}`);
+      logger.error("WALLET", `Master wallet data not found for chain: ${chain}`);
       throw new Error("Master wallet data not found");
     }
-    console.log(`[WALLET] Decrypting master wallet data`);
+    logger.debug("WALLET", `Decrypting master wallet data`);
     const decryptedMasterData = JSON.parse(decrypt(data));
     return new ethers.Wallet(decryptedMasterData.privateKey, provider);
   } catch (error) {
-    console.error(`[WALLET] Error getting gas payer:`, error);
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Error getting gas payer", error);
     throw new Error("Withdrawal failed - please try again later");
   }
 }
@@ -910,7 +913,7 @@ export const validateEcosystemBalances = async (
 
     return true;
   } catch (error) {
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Failed to validate ecosystem balances", error);
     throw error;
   }
 };
@@ -938,7 +941,7 @@ export const initializeContracts = async (chain, currency, provider) => {
       tokenDecimals,
     };
   } catch (error) {
-    logError("contract", error, __filename);
+    logger.error("WALLET", "Failed to initialize contracts", error);
     throw error;
   }
 };
@@ -981,7 +984,7 @@ export const executeEcosystemWithdrawal = async (
 
     return trx;
   } catch (error) {
-    logError("contract", error, __filename);
+    logger.error("WALLET", "Failed to execute ecosystem withdrawal", error);
     throw error;
   }
 };
@@ -1040,7 +1043,7 @@ export const executeNoPermitWithdrawal = async (
 
     return trx;
   } catch (error) {
-    logError("contract", error, __filename);
+    logger.error("WALLET", "Failed to execute no permit withdrawal", error);
     throw error;
   }
 };
@@ -1075,7 +1078,7 @@ export async function getAndValidateTokenOwner(
 
     return { actualTokenOwner, alternativeWalletUsed, alternativeWallet };
   } catch (error) {
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Failed to get and validate token owner", error);
     throw error;
   }
 }
@@ -1189,7 +1192,7 @@ export const executePermit = async (
 
     return tx;
   } catch (error) {
-    logError("contract", error, __filename);
+    logger.error("WALLET", "Failed to execute permit", error);
     throw error;
   }
 };
@@ -1216,7 +1219,7 @@ export const executeNativeWithdrawal = async (
 
     return response;
   } catch (error) {
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Failed to execute native withdrawal", error);
     throw error;
   }
 };
@@ -1235,7 +1238,7 @@ export async function getAndValidateNativeTokenOwner(
 
     return tokenOwner;
   } catch (error) {
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Failed to get and validate native token owner", error);
     throw error;
   }
 }
@@ -1249,7 +1252,7 @@ export async function getWalletData(walletId: string, chain: string) {
       },
     });
   } catch (error) {
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Failed to get wallet data", error);
     throw error;
   }
 }
@@ -1272,7 +1275,7 @@ export async function findAlternativeWalletData(walletData, amount) {
 
     return alternativeWalletData;
   } catch (error) {
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Failed to find alternative wallet data", error);
     throw error;
   }
 }
@@ -1287,7 +1290,7 @@ export async function getEcosystemPendingTransactions() {
       include: [{ model: models.wallet, where: { type: "ECO" } }],
     });
   } catch (error) {
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Failed to get ecosystem pending transactions", error);
     throw error;
   }
 }
@@ -1323,11 +1326,11 @@ export const handleEcosystemDeposit = async (trx) => {
     }
 
     const depositAmount = parseFloat(trx.amount);
-    console.log(`[DEPOSIT_DEBUG] Processing deposit for wallet ${wallet.id}`);
-    console.log(`[DEPOSIT_DEBUG] Current wallet balance: ${wallet.balance} ${wallet.currency}`);
-    console.log(`[DEPOSIT_DEBUG] Current chain balance: ${chainAddress.balance || 0} ${wallet.currency}`);
-    console.log(`[DEPOSIT_DEBUG] Deposit amount (trx.amount): ${trx.amount} ${wallet.currency}`);
-    console.log(`[DEPOSIT_DEBUG] Parsed deposit amount: ${depositAmount} ${wallet.currency}`);
+    logger.debug("DEPOSIT", `Processing deposit for wallet ${wallet.id}`);
+    logger.debug("DEPOSIT", `Current wallet balance: ${wallet.balance} ${wallet.currency}`);
+    logger.debug("DEPOSIT", `Current chain balance: ${chainAddress.balance || 0} ${wallet.currency}`);
+    logger.debug("DEPOSIT", `Deposit amount (trx.amount): ${trx.amount} ${wallet.currency}`);
+    logger.debug("DEPOSIT", `Parsed deposit amount: ${depositAmount} ${wallet.currency}`);
 
     // Apply precision to prevent floating-point errors
     const newChainBalance = updateBalancePrecision(
@@ -1340,8 +1343,8 @@ export const handleEcosystemDeposit = async (trx) => {
     );
     chainAddress.balance = newChainBalance;
 
-    console.log(`[DEPOSIT_DEBUG] New chain balance: ${chainAddress.balance} ${wallet.currency}`);
-    console.log(`[DEPOSIT_DEBUG] New wallet balance: ${walletBalance} ${wallet.currency}`);
+    logger.debug("DEPOSIT", `New chain balance: ${chainAddress.balance} ${wallet.currency}`);
+    logger.debug("DEPOSIT", `New wallet balance: ${walletBalance} ${wallet.currency}`);
 
     // Ensure the addresses object is properly formatted
     addresses[trx.chain] = {
@@ -1416,7 +1419,7 @@ export const handleEcosystemDeposit = async (trx) => {
 
     // Save UTXOs for UTXO-based chains (BTC, LTC, DOGE, DASH)
     if (utxoChains.includes(trx.chain) && trx.outputs && Array.isArray(trx.outputs)) {
-      console.log(`[UTXO_SAVE] Saving UTXOs for ${trx.chain} transaction ${trx.hash}`);
+      logger.debug("UTXO", `Saving UTXOs for ${trx.chain} transaction ${trx.hash}`);
 
       // Filter outputs that belong to this wallet's address
       const walletAddress = chainAddress.address;
@@ -1424,7 +1427,7 @@ export const handleEcosystemDeposit = async (trx) => {
         output.addresses && output.addresses.includes(walletAddress)
       );
 
-      console.log(`[UTXO_SAVE] Found ${walletOutputs.length} outputs for wallet address ${walletAddress}`);
+      logger.debug("UTXO", `Found ${walletOutputs.length} outputs for wallet address ${walletAddress}`);
 
       // Save each UTXO to the database
       for (let i = 0; i < trx.outputs.length; i++) {
@@ -1442,15 +1445,15 @@ export const handleEcosystemDeposit = async (trx) => {
               status: false, // false = unspent
             });
 
-            console.log(`[UTXO_SAVE] Saved UTXO: ${trx.hash}:${i} amount=${output.value} ${wallet.currency}`);
+            logger.debug("UTXO", `Saved UTXO: ${trx.hash}:${i} amount=${output.value} ${wallet.currency}`);
           } catch (utxoError) {
-            console.error(`[UTXO_SAVE] Failed to save UTXO ${trx.hash}:${i}: ${utxoError.message}`);
+            logger.error("UTXO", `Failed to save UTXO ${trx.hash}:${i}: ${utxoError.message}`);
             // Don't throw - continue processing other UTXOs
           }
         }
       }
 
-      console.log(`[UTXO_SAVE] Completed UTXO save for transaction ${trx.hash}`);
+      logger.debug("UTXO", `Completed UTXO save for transaction ${trx.hash}`);
     }
 
     const updatedWallet = await models.wallet.findOne({
@@ -1458,7 +1461,7 @@ export const handleEcosystemDeposit = async (trx) => {
     });
 
     // Update wallet_data balance with precision handling
-    console.log(`[DEPOSIT_WALLET_DATA] Updating wallet_data for walletId: ${wallet.id}, chain: ${trx.chain}`);
+    logger.debug("DEPOSIT", `Updating wallet_data for walletId: ${wallet.id}, chain: ${trx.chain}`);
     const walletData = await models.walletData.findOne({
       where: {
         walletId: wallet.id,
@@ -1467,22 +1470,22 @@ export const handleEcosystemDeposit = async (trx) => {
     });
 
     if (walletData) {
-      console.log(`[DEPOSIT_WALLET_DATA] Current wallet_data balance: ${walletData.balance}`);
-      console.log(`[DEPOSIT_WALLET_DATA] Deposit amount: ${trx.amount}`);
+      logger.debug("DEPOSIT", `Current wallet_data balance: ${walletData.balance}`);
+      logger.debug("DEPOSIT", `Deposit amount: ${trx.amount}`);
 
       // Parse both values to ensure numeric addition (not string concatenation)
       const currentBalance = parseFloat(walletData.balance) || 0;
       const depositAmount = parseFloat(trx.amount);
 
-      console.log(`[DEPOSIT_WALLET_DATA] Parsed current balance: ${currentBalance}`);
-      console.log(`[DEPOSIT_WALLET_DATA] Parsed deposit amount: ${depositAmount}`);
+      logger.debug("DEPOSIT", `Parsed current balance: ${currentBalance}`);
+      logger.debug("DEPOSIT", `Parsed deposit amount: ${depositAmount}`);
 
       const newBalance = updateBalancePrecision(
         currentBalance + depositAmount,
         trx.chain
       );
 
-      console.log(`[DEPOSIT_WALLET_DATA] New wallet_data balance: ${newBalance}`);
+      logger.debug("DEPOSIT", `New wallet_data balance: ${newBalance}`);
 
       await models.walletData.update(
         {
@@ -1496,9 +1499,9 @@ export const handleEcosystemDeposit = async (trx) => {
         }
       );
 
-      console.log(`[DEPOSIT_WALLET_DATA] Successfully updated wallet_data balance`);
+      logger.debug("DEPOSIT", `Successfully updated wallet_data balance`);
     } else {
-      console.error(`[DEPOSIT_WALLET_DATA] No wallet_data found for walletId: ${wallet.id}, chain: ${trx.chain}`);
+      logger.error("DEPOSIT", `No wallet_data found for walletId: ${wallet.id}, chain: ${trx.chain}`);
     }
 
     return {
@@ -1506,7 +1509,7 @@ export const handleEcosystemDeposit = async (trx) => {
       wallet: updatedWallet,
     };
   } catch (error) {
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Failed to handle ecosystem deposit", error);
     throw error;
   }
 };
@@ -1560,7 +1563,7 @@ export async function updatePrivateLedger(
       });
     }
   } catch (error) {
-    logError("ledger", error, __filename);
+    logger.error("WALLET", "Failed to update private ledger", error);
     throw error;
   }
 }
@@ -1663,7 +1666,7 @@ export const decrementWalletBalance = async (userWallet, chain, amount, dbTransa
       );
     }
   } catch (error) {
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Failed to decrement wallet balance", error);
     throw error;
   }
 };
@@ -1704,7 +1707,7 @@ export async function createPendingTransaction(
 
     return await models.transaction.create(createOptions);
   } catch (error) {
-    logError("transaction", error, __filename);
+    logger.error("WALLET", "Failed to create pending transaction", error);
     throw error;
   }
 }
@@ -1783,7 +1786,7 @@ export const refundUser = async (transaction) => {
       }
     }
   } catch (error) {
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Failed to refund user", error);
     throw error;
   }
 };
@@ -1823,7 +1826,7 @@ export const updateAlternativeWallet = async (currency, chain, amount) => {
       -amount
     );
   } catch (error) {
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Failed to update alternative wallet", error);
     throw error;
   }
 };
@@ -1831,7 +1834,8 @@ export const updateAlternativeWallet = async (currency, chain, amount) => {
 export async function updateWalletBalance(
   wallet: walletAttributes,
   balanceChange: number,
-  type: "add" | "subtract"
+  type: "add" | "subtract",
+  transaction?: any
 ): Promise<void> {
   try {
     if (!wallet) throw new Error("Wallet not found");
@@ -1839,9 +1843,13 @@ export async function updateWalletBalance(
     const roundTo8DecimalPlaces = (num: number) =>
       Math.round((num + Number.EPSILON) * 1e8) / 1e8;
 
-    // CRITICAL FIX: Fetch fresh wallet data from database to prevent stale data issues
-    // This prevents double-locking when multiple operations happen in sequence
-    const freshWallet = await models.wallet.findByPk(wallet.id);
+    // Fetch fresh wallet data with optional lock if inside transaction
+    const freshWallet = transaction
+      ? await models.wallet.findByPk(wallet.id, {
+          lock: transaction.LOCK.UPDATE,
+          transaction,
+        })
+      : await models.wallet.findByPk(wallet.id);
     if (!freshWallet) throw new Error("Wallet not found in database");
 
     let newBalance: number;
@@ -1877,10 +1885,11 @@ export async function updateWalletBalance(
       },
       {
         where: { id: wallet.id },
+        ...(transaction && { transaction }),
       }
     );
   } catch (error) {
-    logError("wallet", error, __filename);
+    logger.error("WALLET", "Failed to update wallet balance", error);
     throw error;
   }
 }
@@ -1942,7 +1951,7 @@ export async function updateWalletForFill(
       }
     );
   } catch (error) {
-    logError("wallet_fill", error, __filename);
+    logger.error("WALLET", "Failed to update wallet for fill", error);
     throw error;
   }
 }

@@ -7,6 +7,8 @@ export const metadata = {
     "Updates multiple KYC levels by their IDs with a specified status.",
   operationId: "bulkUpdateKycLevelsStatus",
   tags: ["KYC", "Levels"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Bulk update KYC level status",
   requestBody: {
     description:
       "Object containing an array of KYC level IDs and the new status",
@@ -55,7 +57,7 @@ export const metadata = {
 };
 
 export default async (data: Handler): Promise<any> => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
 
   if (
@@ -70,6 +72,7 @@ export default async (data: Handler): Promise<any> => {
     });
   }
 
+  ctx?.step(`Bulk updating ${ids.length} KYC levels to status: ${status}`);
   // Bulk update: set status to the provided value and update the updatedAt timestamp.
   const [affectedCount] = await models.kycLevel.update(
     { status, updatedAt: new Date() },
@@ -83,6 +86,7 @@ export default async (data: Handler): Promise<any> => {
     });
   }
 
+  ctx?.success(`${affectedCount} KYC levels updated to ${status}`);
   return {
     message: "KYC levels updated successfully.",
     count: affectedCount,

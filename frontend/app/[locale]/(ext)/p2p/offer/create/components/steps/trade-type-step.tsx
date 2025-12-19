@@ -8,7 +8,8 @@ import { ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function TradeTypeStep() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
   const { tradeData, updateTradeData, markStepComplete, isStepComplete } =
     useWizard();
 
@@ -90,7 +91,7 @@ export function TradeTypeStep() {
       </RadioGroup>
 
       <div className="bg-muted p-4 rounded-md">
-        <h4 className="font-medium mb-2">{t("what_happens_next")}</h4>
+        <h4 className="font-medium mb-2">{tCommon("what_happens_next")}</h4>
         <p className="text-sm text-muted-foreground">
           {tradeData.tradeType === "BUY"
             ? "You'll be able to browse sell offers from other users, or create your own buy offer specifying how much crypto you want to purchase and how you'll pay for it."

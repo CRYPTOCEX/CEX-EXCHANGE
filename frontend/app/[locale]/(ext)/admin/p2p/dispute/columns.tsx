@@ -1,232 +1,347 @@
-// src/config/disputeColumns.ts
+"use client";
 
-import { User } from "lucide-react";
-import { Mail } from "lucide-react";
-export const disputeColumns: ColumnDefinition[] = [
-  {
-    key: "id",
-    title: "Dispute ID",
-    type: "text",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "Unique dispute identifier",
-  },
-  {
-    key: "trade",
-    title: "Trade",
-    type: "text",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "Related trade ID",
-    render: {
-      type: "custom",
-      render: (_: any, row: any) => row.trade?.id || "-",
+import { User, Mail, AlertTriangle, FileText, Calendar, Hash, Activity, Shield } from "lucide-react";
+import type { FormConfig } from "@/components/blocks/data-table/types/table";
+
+import { useTranslations } from "next-intl";
+export function useColumns(): ColumnDefinition[] {
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
+  return [
+    {
+      key: "id",
+      title: tExtAdmin("dispute_id"),
+      type: "text",
+      icon: Hash,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("unique_identifier_for_the_dispute_case"),
+      priority: 3,
+      expandedOnly: true,
     },
-  },
-  {
-    key: "status",
-    title: "Status",
-    type: "select",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "Dispute status",
-    render: {
-      type: "badge",
-      config: {
-        withDot: true,
-        variant: (value: string) => {
-          switch (value) {
-            case "PENDING":
-              return "warning";
-            case "IN_PROGRESS":
-              return "info";
-            case "RESOLVED":
-              return "success";
-            default:
-              return "secondary";
-          }
+    {
+      key: "status",
+      title: tCommon("status"),
+      type: "select",
+      icon: Activity,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("current_resolution_status_of_the_dispute"),
+      priority: 1,
+      render: {
+        type: "badge",
+        config: {
+          withDot: true,
+          variant: (value: string) => {
+            switch (value) {
+              case "RESOLVED":
+                return "success";
+              case "PENDING":
+                return "warning";
+              case "IN_PROGRESS":
+              case "UNDER_REVIEW":
+                return "warning";
+              default:
+                return "secondary";
+            }
+          },
         },
       },
+      options: [
+        {
+          value: "PENDING",
+          label: tCommon("pending"),
+        },
+        {
+          value: "IN_PROGRESS",
+          label: tCommon("in_progress"),
+        },
+        {
+          value: "RESOLVED",
+          label: tCommon("resolved"),
+        },
+      ],
     },
-    options: [
-      {
-        value: "PENDING",
-        label: "Pending",
+    {
+      key: "priority",
+      title: tCommon("priority"),
+      type: "select",
+      icon: AlertTriangle,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("urgency_level_for_dispute_resolution_high"),
+      priority: 1,
+      render: {
+        type: "badge",
+        config: {
+          withDot: true,
+          variant: (value: string) => {
+            switch (value) {
+              case "HIGH":
+                return "destructive";
+              case "MEDIUM":
+                return "warning";
+              case "LOW":
+                return "secondary";
+              default:
+                return "secondary";
+            }
+          },
+        },
       },
-      {
-        value: "IN_PROGRESS",
-        label: "In Progress",
+      options: [
+        {
+          value: "HIGH",
+          label: tCommon("high"),
+        },
+        {
+          value: "MEDIUM",
+          label: tCommon("medium"),
+        },
+        {
+          value: "LOW",
+          label: tCommon("low"),
+        },
+      ],
+    },
+    {
+      key: "trade",
+      title: tCommon("trade"),
+      type: "text",
+      icon: FileText,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("associated_p2p_trade_id_that_is_being_disputed"),
+      priority: 2,
+      render: {
+        type: "custom",
+        render: (_: any, row: any) => row.trade?.id || "-",
       },
-      {
-        value: "RESOLVED",
-        label: "Resolved",
-      },
-    ],
-  },
-  {
-    key: "reportedBy",
-    title: "Reported By",
-    type: "compound",
-    icon: User,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "User who filed the dispute",
-    render: {
+    },
+    {
+      key: "reportedBy",
+      title: tExtAdmin("reported_by"),
       type: "compound",
-      config: {
-        image: {
-          key: "reportedBy.avatar",
-          fallback: "/img/placeholder.svg",
-          type: "image",
-          title: "Reporter Avatar",
-          description: "Reporter avatar",
-          editable: false,
-          usedInCreate: false,
-        },
-        primary: {
-          key: ["reportedBy.firstName", "reportedBy.lastName"],
-          title: ["First Name", "Last Name"],
-          description: ["Reporter first name", "Reporter last name"],
-          editable: false,
-          usedInCreate: false,
-          icon: User,
-        },
-        secondary: {
-          key: "reportedBy.email",
-          title: "Email",
-          icon: Mail,
-          editable: false,
-          usedInCreate: false,
+      icon: User,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("user_who_initiated_the_dispute_claim"),
+      priority: 2,
+      render: {
+        type: "compound",
+        config: {
+          image: {
+            key: "reportedBy.avatar",
+            fallback: "/img/placeholder.svg",
+            type: "image",
+            title: tExtAdmin("reporter_avatar"),
+            description: tExtAdmin("profile_avatar_of_the_user_who_filed_the_dispute"),
+          },
+          primary: {
+            key: ["reportedBy.firstName", "reportedBy.lastName"],
+            title: [tCommon("first_name"), tCommon("last_name")],
+            description: [tExtAdmin("reporters_first_name"), tExtAdmin("reporters_last_name")],
+            icon: User,
+          },
+          secondary: {
+            key: "reportedBy.email",
+            title: tCommon("email"),
+            icon: Mail,
+          },
         },
       },
     },
-  },
-  {
-    key: "against",
-    title: "Against",
-    type: "compound",
-    icon: User,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "User against whom the dispute is filed",
-    render: {
+    {
+      key: "against",
+      title: tExtAdmin("against"),
       type: "compound",
-      config: {
-        image: {
-          key: "against.avatar",
-          fallback: "/img/placeholder.svg",
-          type: "image",
-          title: "Avatar",
-          description: "User avatar",
-          editable: false,
-          usedInCreate: false,
-        },
-        primary: {
-          key: ["against.firstName", "against.lastName"],
-          title: ["First Name", "Last Name"],
-          description: ["Against first name", "Against last name"],
-          editable: false,
-          usedInCreate: false,
-          icon: User,
-        },
-        secondary: {
-          key: "against.email",
-          title: "Email",
-          icon: Mail,
-          editable: false,
-          usedInCreate: false,
+      icon: Shield,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("user_who_is_being_disputed_against"),
+      priority: 2,
+      render: {
+        type: "compound",
+        config: {
+          image: {
+            key: "against.avatar",
+            fallback: "/img/placeholder.svg",
+            type: "image",
+            title: tCommon("avatar"),
+            description: tExtAdmin("profile_avatar_of_the_disputed_user"),
+          },
+          primary: {
+            key: ["against.firstName", "against.lastName"],
+            title: [tCommon("first_name"), tCommon("last_name")],
+            description: [tExtAdmin("disputed_users_first_name"), tExtAdmin("disputed_users_last_name")],
+            icon: User,
+          },
+          secondary: {
+            key: "against.email",
+            title: tCommon("email"),
+            icon: Mail,
+          },
         },
       },
     },
-  },
-  {
-    key: "reason",
-    title: "Reason",
-    type: "text",
-    sortable: false,
-    searchable: true,
-    filterable: true,
-    description: "Reason for the dispute",
-  },
-  {
-    key: "filedOn",
-    title: "Filed On",
-    type: "date",
-    sortable: true,
-    searchable: false,
-    filterable: true,
-    description: "Date when the dispute was filed",
-    render: {
+    {
+      key: "reason",
+      title: tExtAdmin("reason"),
+      type: "text",
+      icon: FileText,
+      sortable: false,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("detailed_explanation_of_why_the_dispute_was_filed"),
+      priority: 3,
+      expandedOnly: true,
+    },
+    {
+      key: "filedOn",
+      title: tExtAdmin("filed_on_1"),
       type: "date",
-      format: "PPP",
+      icon: Calendar,
+      sortable: true,
+      searchable: false,
+      filterable: true,
+      description: tExtAdmin("date_and_time_when_the_dispute_was_submitted"),
+      priority: 3,
+      render: {
+        type: "date",
+        format: "PPP",
+      },
     },
-  },
-  {
-    key: "priority",
-    title: "Priority",
-    type: "select",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "Dispute priority",
-    render: {
-      type: "badge",
-      config: {
-        withDot: true,
-        variant: (value: string) => {
-          switch (value) {
-            case "HIGH":
-              return "destructive";
-            case "MEDIUM":
-              return "warning";
-            case "LOW":
-              return "default";
-            default:
-              return "default";
-          }
+  ];
+}
+
+export function useFormConfig(): FormConfig {
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
+  return {
+    create: {
+      title: tExtAdmin("create_new_dispute"),
+      description: tExtAdmin("file_a_new_p2p_trade_dispute"),
+      groups: [
+        {
+          id: "dispute-parties",
+          title: tExtAdmin("dispute_parties"),
+          icon: User,
+          priority: 1,
+          fields: [
+            { key: "reportedBy", required: true },
+            { key: "against", required: true },
+            { key: "trade", required: true },
+          ],
         },
-      },
+        {
+          id: "dispute-details",
+          title: tExtAdmin("dispute_details"),
+          icon: FileText,
+          priority: 2,
+          fields: [
+            { key: "reason", required: true },
+            { key: "details", required: false },
+            {
+              key: "amount",
+              required: true,
+              maxLength: 50
+            },
+            {
+              key: "priority",
+              required: true,
+              options: [
+                { value: "HIGH", label: tCommon("high") },
+                { value: "MEDIUM", label: tCommon("medium") },
+                { value: "LOW", label: tCommon("low") },
+              ],
+            },
+          ],
+        },
+        {
+          id: "dispute-status",
+          title: tExtAdmin("resolution_status"),
+          icon: Activity,
+          priority: 3,
+          fields: [
+            {
+              key: "status",
+              required: true,
+              options: [
+                { value: "PENDING", label: tCommon("pending") },
+                { value: "IN_PROGRESS", label: tCommon("in_progress") },
+                { value: "RESOLVED", label: tCommon("resolved") },
+              ],
+            },
+            { key: "filedOn", required: true },
+          ],
+        },
+      ],
     },
-    options: [
-      {
-        value: "HIGH",
-        label: "High",
-      },
-      {
-        value: "MEDIUM",
-        label: "Medium",
-      },
-      {
-        value: "LOW",
-        label: "Low",
-      },
-    ],
-  },
-  {
-    key: "actions",
-    title: "Actions",
-    type: "custom",
-    editable: false,
-    usedInCreate: false,
-    filterable: false,
-    searchable: false,
-    render: {
-      type: "custom",
-      render: (_: any, row: any) => {
-        return (
-          <a
-            href={`/admin/p2p/dispute/${row.id}`}
-            className="text-blue-500 underline"
-          >
-            View Details
-          </a>
-        );
-      },
+    edit: {
+      title: tExtAdmin("edit_dispute"),
+      description: tExtAdmin("update_dispute_details_priority_and_resolution"),
+      groups: [
+        {
+          id: "dispute-parties",
+          title: tExtAdmin("dispute_parties"),
+          icon: User,
+          priority: 1,
+          fields: [
+            { key: "reportedBy", required: true },
+            { key: "against", required: true },
+            { key: "trade", required: true },
+          ],
+        },
+        {
+          id: "dispute-details",
+          title: tExtAdmin("dispute_details"),
+          icon: FileText,
+          priority: 2,
+          fields: [
+            { key: "reason", required: true },
+            { key: "details", required: false },
+            {
+              key: "amount",
+              required: true,
+              maxLength: 50
+            },
+            {
+              key: "priority",
+              required: true,
+              options: [
+                { value: "HIGH", label: tCommon("high") },
+                { value: "MEDIUM", label: tCommon("medium") },
+                { value: "LOW", label: tCommon("low") },
+              ],
+            },
+          ],
+        },
+        {
+          id: "dispute-status",
+          title: tExtAdmin("resolution_status"),
+          icon: Activity,
+          priority: 3,
+          fields: [
+            {
+              key: "status",
+              required: true,
+              options: [
+                { value: "PENDING", label: tCommon("pending") },
+                { value: "IN_PROGRESS", label: tCommon("in_progress") },
+                { value: "RESOLVED", label: tCommon("resolved") },
+              ],
+            },
+            { key: "filedOn", required: true },
+            { key: "resolvedOn", required: false },
+          ],
+        },
+      ],
     },
-  },
-];
+  };
+}

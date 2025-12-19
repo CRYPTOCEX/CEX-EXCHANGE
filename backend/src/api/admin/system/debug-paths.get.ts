@@ -25,9 +25,14 @@ export const metadata = {
   },
   permission: "access.system",
   requiresAuth: true,
+  logModule: "ADMIN_SYSTEM",
+  logTitle: "Debug Paths",
 };
 
-export default async (data: any) => {
+export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step("Gathering path information");
   const isProduction = process.env.NODE_ENV === 'production';
   const cwd = process.cwd();
   
@@ -93,7 +98,8 @@ export default async (data: any) => {
   for (const dir of commonDirs) {
     directoryStatus[dir] = fs.existsSync(dir);
   }
-  
+
+  ctx?.success("Path debugging information retrieved");
   return {
     systemInfo,
     pathStatus,

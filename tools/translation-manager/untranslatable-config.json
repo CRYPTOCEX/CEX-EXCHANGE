@@ -1,6 +1,76 @@
 {
   "patterns": [
     {
+      "id": "email_address",
+      "name": "Email Addresses",
+      "description": "Email addresses should not be translated - use literal text instead",
+      "type": "value_pattern",
+      "pattern": "^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\.[a-zA-Z]{2,}$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "literal",
+      "enabled": true,
+      "examples": [
+        "support@shop.com",
+        "contact@example.org",
+        "admin@site.io"
+      ]
+    },
+    {
+      "id": "url_full",
+      "name": "Full URLs",
+      "description": "Full URLs should not be translated - use literal text instead",
+      "type": "value_pattern",
+      "pattern": "^https?://[^\\s]+$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "literal",
+      "enabled": true,
+      "examples": [
+        "https://example.com",
+        "http://api.service.com/endpoint",
+        "https://docs.example.org/guide"
+      ]
+    },
+    {
+      "id": "pure_number",
+      "name": "Pure Numbers",
+      "description": "Pure numbers and percentages should use variables, not hardcoded translations",
+      "type": "value_pattern",
+      "pattern": "^\\d+(\\.\\d+)?%?$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "literal",
+      "enabled": true,
+      "examples": [
+        "50",
+        "100%",
+        "3.14",
+        "0.5%"
+      ]
+    },
+    {
+      "id": "currency_amount",
+      "name": "Currency Amounts",
+      "description": "Currency amounts should use variables with formatting, not hardcoded values",
+      "type": "value_pattern",
+      "pattern": "^[$€£¥₹]?\\d+([.,]\\d+)?%?$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "literal",
+      "enabled": true,
+      "examples": [
+        "$100",
+        "€50.00",
+        "£25",
+        "¥1000"
+      ]
+    },
+    {
       "id": "empty_key",
       "name": "Empty Translation Keys",
       "description": "Keys that are empty strings or contain only quotes/brackets",

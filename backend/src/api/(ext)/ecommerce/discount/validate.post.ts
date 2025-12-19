@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
   operationId: "validateDiscountCode",
   tags: ["Ecommerce", "Discounts"],
   requiresAuth: true,
+  logModule: "ECOM",
+  logTitle: "Validate discount code",
   requestBody: {
     required: true,
     content: {
@@ -72,30 +74,33 @@ export const metadata: OperationObject = {
 export default async (data: Handler) => {
   // Apply rate limiting
   await rateLimiters.discountValidation(data);
-  const { user, body } = data;
+  const { user, body, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { code } = body;
 
+  ctx?.step("Validating discount code format");
   if (!code || typeof code !== "string") {
-    throw createError({ 
-      statusCode: 400, 
-      message: "Discount code is required" 
+    throw createError({
+      statusCode: 400,
+      message: "Discount code is required"
     });
   }
 
   try {
+    ctx?.step("Looking up discount code");
     // Find the discount by code
     const discount = await models.ecommerceDiscount.findOne({
-      where: { 
+      where: {
         code: code.toUpperCase().trim(),
         status: true, // Only active discounts
       },
     });
 
     if (!discount) {
+      ctx?.fail("Invalid discount code");
       return {
         error: "Invalid discount code",
         isValid: false,
@@ -105,8 +110,10 @@ export default async (data: Handler) => {
     const discountData = discount.get({ plain: true }) as any;
     const now = new Date();
 
+    ctx?.step("Checking discount validity dates");
     // Check if discount is still valid (not expired)
     if (discountData.validUntil && new Date(discountData.validUntil) < now) {
+      ctx?.fail("Discount code has expired");
       return {
         error: "This discount code has expired",
         isValid: false,
@@ -115,12 +122,14 @@ export default async (data: Handler) => {
 
     // Check if discount hasn't started yet
     if (discountData.validFrom && new Date(discountData.validFrom) > now) {
+      ctx?.fail("Discount code is not yet active");
       return {
         error: "This discount code is not yet active",
         isValid: false,
       };
     }
 
+    ctx?.step("Checking user usage history");
     // Check if user has already used this discount (if it's single-use)
     if (discountData.maxUses === 1) {
       const existingUse = await models.ecommerceUserDiscount.findOne({
@@ -131,6 +140,7 @@ export default async (data: Handler) => {
       });
 
       if (existingUse) {
+        ctx?.fail("User has already used this discount code");
         return {
           error: "You have already used this discount code",
           isValid: false,
@@ -138,6 +148,7 @@ export default async (data: Handler) => {
       }
     }
 
+    ctx?.step("Checking usage limits");
     // Check if discount has reached maximum uses
     if (discountData.maxUses && discountData.maxUses > 0) {
       const usageCount = await models.ecommerceUserDiscount.count({
@@ -147,6 +158,7 @@ export default async (data: Handler) => {
       });
 
       if (usageCount >= discountData.maxUses) {
+        ctx?.fail("Discount code has reached usage limit");
         return {
           error: "This discount code has reached its usage limit",
           isValid: false,
@@ -170,11 +182,14 @@ export default async (data: Handler) => {
         message = "Discount applied successfully!";
     }
 
+    ctx?.step("Creating user discount record");
     // Create user discount record to track usage
     await models.ecommerceUserDiscount.create({
       userId: user.id,
       discountId: discountData.id,
     });
+
+    ctx?.success(`Discount code "${discountData.code}" validated successfully`);
 
     return {
       id: discountData.id,
@@ -187,9 +202,9 @@ export default async (data: Handler) => {
 
   } catch (error) {
     console.error("Discount validation error:", error);
-    throw createError({ 
-      statusCode: 500, 
-      message: "Error validating discount code" 
+    throw createError({
+      statusCode: 500,
+      message: "Error validating discount code"
     });
   }
 }; 

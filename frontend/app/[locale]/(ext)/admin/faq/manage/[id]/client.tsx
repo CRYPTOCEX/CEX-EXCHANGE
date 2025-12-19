@@ -21,7 +21,8 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 export default function FAQFormPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   const searchParams = useSearchParams();
   const defaultPagePath = searchParams.get("page") || "";
   const { id } = useParams() as { id: string };
@@ -148,7 +149,7 @@ export default function FAQFormPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        {t("Loading")}.
+        {t("loading")}.
       </div>
     );
   }
@@ -168,8 +169,8 @@ export default function FAQFormPage() {
             <div>
               <h1 className="text-2xl font-bold">{pageTitle}</h1>
               <p className="text-sm text-muted-foreground">
-                {t("make_changes_to_your_faq_here")}.{" "}
-                {t("click_save_when_youre_done")}.
+                {tExtAdmin("make_changes_to_your_faq_here")}.{" "}
+                {tExtAdmin("click_save_when_youre_done")}.
               </p>
             </div>
           </div>
@@ -180,7 +181,7 @@ export default function FAQFormPage() {
                 onClick={() => setDeleteDialogOpen(true)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                {t("Delete")}
+                {t("delete")}
               </Button>
             )}
 
@@ -214,9 +215,9 @@ export default function FAQFormPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("delete_faq")}</AlertDialogTitle>
+            <AlertDialogTitle>{tExtAdmin("delete_faq")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("this_will_permanently_delete_the_faq")}
+              {tExtAdmin("this_will_permanently_delete_the_faq")}
               {faq?.question}
               .<br />
               <br />
@@ -224,9 +225,9 @@ export default function FAQFormPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} variant="destructive">
-              {t("Delete")}
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

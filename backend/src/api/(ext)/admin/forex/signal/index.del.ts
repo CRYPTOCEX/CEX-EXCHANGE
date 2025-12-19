@@ -7,9 +7,10 @@ import {
 } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Bulk deletes Forex signals by IDs",
+  summary: "Bulk deletes Forex signals",
+  description: "Deletes multiple Forex trading signal configurations by their IDs. This will remove signal references from associated accounts.",
   operationId: "bulkDeleteForexSignals",
-  tags: ["Admin", "Forex", "Signals"],
+  tags: ["Admin", "Forex", "Signal"],
   parameters: commonBulkDeleteParams("Forex Signals"),
   requestBody: {
     required: true,
@@ -32,14 +33,23 @@ export const metadata: OperationObject = {
   responses: commonBulkDeleteResponses("Forex Signals"),
   requiresAuth: true,
   permission: "delete.forex.signal",
+  logModule: "ADMIN_FOREX",
+  logTitle: "Bulk delete forex signals",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query , ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step(`Validating ${ids.length} IDs`);
+
+  ctx?.step(`Deleting ${ids.length} records`);
+  const result = await handleBulkDelete({
     model: "forexSignal",
     ids,
     query,
   });
+
+  ctx?.success(`Successfully deleted ${ids.length} records`);
+  return result;
 };

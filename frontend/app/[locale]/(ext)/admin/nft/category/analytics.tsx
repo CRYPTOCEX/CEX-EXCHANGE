@@ -1,4 +1,6 @@
-export const nftCategoryAnalytics = [
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
+export const nftCategoryAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   // Group 1: Category Overview – KPI Grid on Left, Pie Chart on Right
   // ─────────────────────────────────────────────────────────────
@@ -6,6 +8,11 @@ export const nftCategoryAnalytics = [
     {
       type: "kpi",
       layout: { cols: 3, rows: 2 },
+      responsive: {
+        mobile: { cols: 1, rows: 6, span: 1 },
+          tablet: { cols: 2, rows: 3, span: 2 },
+          desktop: { cols: 3, rows: 2, span: 2 },
+      },
       items: [
         {
           id: "total_categories",
@@ -34,6 +41,11 @@ export const nftCategoryAnalytics = [
     },
     {
       type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
       items: [
         {
           id: "categoryStatusDistribution",
@@ -68,6 +80,11 @@ export const nftCategoryAnalytics = [
   // ─────────────────────────────────────────────────────────────
   {
     type: "chart",
+    responsive: {
+      mobile: { cols: 1, rows: 1, span: 1 },
+      tablet: { cols: 1, rows: 1, span: 1 },
+      desktop: { cols: 1, rows: 1, span: 1 },
+    },
     items: [
       {
         id: "categoriesOverTime",
@@ -84,4 +101,4 @@ export const nftCategoryAnalytics = [
       },
     ],
   },
-];
+] satisfies AnalyticsConfig;

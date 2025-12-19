@@ -1,6 +1,7 @@
 import { createError } from '@b/utils/error'
 import { models, sequelize } from '@b/db'
 import { sendFiatTransactionEmail } from '@b/utils/emails'
+import { logger } from '@b/utils/console'
 import {
   makeApiRequest,
   validateMollieConfig,
@@ -15,6 +16,8 @@ export const metadata = {
   operationId: 'verifyMolliePayment',
   tags: ['Finance', 'Deposit', 'Mollie'],
   requiresAuth: true,
+  logModule: "MOLLIE_DEPOSIT",
+  logTitle: "Verify Mollie payment",
   requestBody: {
     required: true,
     content: {
@@ -79,7 +82,7 @@ interface Handler {
 }
 
 export default async (data: Handler) => {
-  const { body, user } = data
+  const { body, user, ctx } = data as any
 
   if (!user?.id) {
     throw createError({
@@ -178,7 +181,8 @@ export default async (data: Handler) => {
 
         // Find user's wallet for the currency
         const currency = transaction.metadata?.currency || 'EUR'
-        let wallet = await models.wallet.findOne({
+        ctx?.step("Finding or creating wallet");
+  let wallet = await models.wallet.findOne({
           where: {
             userId: user.id,
             currency: currency,
@@ -189,7 +193,8 @@ export default async (data: Handler) => {
 
         // Create wallet if it doesn't exist
         if (!wallet) {
-          wallet = await models.wallet.create(
+      ctx?.step("Creating new wallet");
+      wallet = await models.wallet.create(
             {
               userId: user.id,
               currency: currency,
@@ -202,7 +207,8 @@ export default async (data: Handler) => {
         }
 
         // Update wallet balance
-        await models.wallet.update(
+        ctx?.step("Updating wallet balance");
+      await models.wallet.update(
           {
             balance: wallet.balance + transaction.amount,
           },
@@ -219,7 +225,8 @@ export default async (data: Handler) => {
         if (molliePayment.settlementAmount && molliePayment.amount) {
           const originalAmount = parseMollieAmount(molliePayment.amount.value, molliePayment.amount.currency)
           const settlementAmount = parseMollieAmount(molliePayment.settlementAmount.value, molliePayment.settlementAmount.currency)
-          const fee = originalAmount - settlementAmount
+          ctx?.step("Calculating fees");
+  const fee = originalAmount - settlementAmount
 
           if (fee > 0) {
             await models.transaction.update(
@@ -244,7 +251,8 @@ export default async (data: Handler) => {
            },
          })
          
-         await sendFiatTransactionEmail(
+         ctx?.step("Sending notification email");
+    await sendFiatTransactionEmail(
            user,
            {
              id: transaction.uuid,
@@ -257,7 +265,7 @@ export default async (data: Handler) => {
            updatedWallet?.balance || 0
          )
        } catch (emailError) {
-         console.error('Failed to send confirmation email:', emailError)
+         logger.error("MOLLIE", "Failed to send confirmation email", emailError)
          // Don't throw error for email failure
        }
 
@@ -317,7 +325,7 @@ export default async (data: Handler) => {
       },
     }
   } catch (error) {
-    console.error('Mollie payment verification error:', error)
+    logger.error("MOLLIE", "Payment verification error", error)
 
     if (error.statusCode) {
       throw error

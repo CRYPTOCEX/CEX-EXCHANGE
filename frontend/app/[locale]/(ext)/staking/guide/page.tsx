@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Link } from "@/i18n/routing";
 import {
   ArrowRight,
@@ -7,7 +8,11 @@ import {
   Lightbulb,
   Shield,
   TrendingUp,
+  Sparkles,
+  Layers,
 } from "lucide-react";
+import { HeroSection } from "@/components/ui/hero-section";
+import { StatsGroup } from "@/components/ui/stats-group";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,34 +24,88 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslations } from "next-intl";
 
-export const metadata: Metadata = {
-  title: "Staking Guide | Learn How to Stake",
-  description:
-    "Learn how to stake your crypto assets and earn passive income with our comprehensive guide",
-};
-
 export default function StakingGuidePage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_staking");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
-    <>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">
-            {t("staking_guide")}
-          </h1>
-          <p className="text-muted-foreground">
-            {t("learn_how_to_passive_income")}
-          </p>
-        </div>
-        <Link href="/staking/pool">
-          <Button>
-            {t("start_staking")}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </Link>
-      </div>
+    <div className="min-h-screen bg-linear-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+      {/* Hero Section */}
+      <HeroSection
+        badge={{
+          icon: <Sparkles className="h-3.5 w-3.5" />,
+          text: t("staking_guide"),
+          gradient: `from-violet-500/10 to-indigo-500/10`,
+          iconColor: `text-violet-500`,
+          textColor: `text-violet-600 dark:text-violet-400`,
+        }}
+        title={[
+          { text: t("learn") + " " },
+          { text: tCommon("staking"), gradient: `from-violet-600 via-indigo-500 to-violet-600 dark:from-violet-400 dark:via-indigo-400 dark:to-violet-400` },
+        ]}
+        description={t("learn_how_to_passive_income")}
+        paddingTop="pt-24"
+        paddingBottom="pb-12"
+        layout="split"
+        rightContentAlign="center"
+        rightContent={
+          <Link href="/staking/pool">
+            <Button size="lg" className="bg-linear-to-r from-indigo-600 to-violet-600 hover:from-violet-700 hover:to-indigo-600 text-white font-semibold rounded-xl shadow-lg">
+              {t("start_staking")}
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
+        }
+        background={{
+          orbs: [
+            {
+              color: "#8b5cf6",
+              position: { top: "-10rem", right: "-10rem" },
+              size: "20rem",
+            },
+            {
+              color: "#6366f1",
+              position: { bottom: "-5rem", left: "-5rem" },
+              size: "15rem",
+            },
+          ],
+        }}
+        particles={{
+          count: 6,
+          type: "floating",
+          colors: ["#8b5cf6", "#6366f1"],
+          size: 8,
+        }}
+      >
+        <StatsGroup
+          stats={[
+            {
+              icon: BookOpen,
+              label: t("comprehensive_guides"),
+              value: "",
+              iconColor: `text-violet-500`,
+              iconBgColor: `bg-violet-500/10`,
+            },
+            {
+              icon: Layers,
+              label: t("step_by_step_tutorials"),
+              value: "",
+              iconColor: `text-indigo-500`,
+              iconBgColor: `bg-indigo-500/10`,
+            },
+            {
+              icon: Shield,
+              label: tExt("security_best_practices"),
+              value: "",
+              iconColor: `text-violet-500`,
+              iconBgColor: `bg-violet-500/10`,
+            },
+          ]}
+        />
+      </HeroSection>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="container mx-auto py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1">
           <div className="bg-card rounded-lg border p-6 sticky top-20">
             <h2 className="font-semibold text-lg mb-4">
@@ -81,7 +140,7 @@ export default function StakingGuidePage() {
               </li>
               <li>
                 <a href="#faq" className="text-primary hover:underline">
-                  {t("frequently_asked_questions")}
+                  {tCommon('faq_question')}
                 </a>
               </li>
             </ul>
@@ -90,12 +149,12 @@ export default function StakingGuidePage() {
               <div className="flex items-start">
                 <HelpCircle className="h-5 w-5 mr-2 text-primary mt-0.5" />
                 <div>
-                  <h3 className="font-semibold mb-1">{t("need_help")}</h3>
+                  <h3 className="font-semibold mb-1">{tCommon("need_help")}</h3>
                   <p className="text-sm text-muted-foreground">
                     {t("if_you_have_assist_you")}.
                   </p>
                   <Link href="/support" className="px-0 mt-2">
-                    <Button variant="link">{t("contact_support")}</Button>
+                    <Button variant="link">{tCommon("contact_support")}</Button>
                   </Link>
                 </div>
               </div>
@@ -131,7 +190,7 @@ export default function StakingGuidePage() {
                 </p>
                 <p>
                   {t("our_staking_platform_nodes_yourself")}.{" "}
-                  {t("we_handle_the_rate_(apr)")}.
+                  {t("we_handle_the_rate_apr")} (APR).
                 </p>
 
                 <h3 className="text-lg font-semibold mt-6">
@@ -156,7 +215,7 @@ export default function StakingGuidePage() {
                   <CardTitle>{t("how_to_stake")}</CardTitle>
                 </div>
                 <CardDescription>
-                  {t("a_step-by-step_guide_to_staking_your_crypto_assets")}
+                  {t("a_step_by_step_guide_to_staking_your_crypto_assets")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -176,14 +235,14 @@ export default function StakingGuidePage() {
                 </h3>
                 <p>{t("before_staking_carefully_details_including")}</p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>{t("apr_(annual_percentage_rate)")}</li>
+                  <li>{t("apr_annual_percentage_rate")} ({tCommon("annual_percentage_rate")})</li>
                   <li>
-                    {t("lock_period_(how_long_your_assets_will_be_staked)")}
+                    {t("lock_period_how_long_your_assets_will_be_staked")} ({t("how_long_your_assets_will_be_staked")})
                   </li>
                   <li>{t("minimum_and_maximum_stake_amounts")}</li>
                   <li>{t("early_withdrawal_fees")}</li>
                   <li>{t("reward_distribution_schedule")}</li>
-                  <li>{t("auto-compounding_options")}</li>
+                  <li>{t("auto_compounding_options")}</li>
                 </ul>
 
                 <h3 className="text-lg font-semibold mt-6">
@@ -210,7 +269,7 @@ export default function StakingGuidePage() {
                   {t("you_can_view_completed_stakes")}.
                 </p>
                 <Link href="/staking/dashboard" className="mt-2">
-                  <Button variant="outline">{t("go_to_dashboard")}</Button>
+                  <Button variant="outline">{tCommon("go_to_dashboard")}</Button>
                 </Link>
               </CardContent>
             </Card>
@@ -234,7 +293,7 @@ export default function StakingGuidePage() {
                 <p>{t("staking_rewards_are_main_factors")}</p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>{t("your_staked_amount")}</li>
-                  <li>{t("the_pools_apr_(annual_percentage_rate)")}</li>
+                  <li>{t("the_pools_apr_annual_percentage_rate")} ({tCommon("annual_percentage_rate")})</li>
                   <li>{t("the_duration_of_your_stake")}</li>
                 </ul>
                 <p className="mt-4">
@@ -250,29 +309,29 @@ export default function StakingGuidePage() {
                 <p>{t("rewards_are_distributed_can_be")}</p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>
-                    <strong>{t("daily")}</strong>
+                    <strong>{tExt("daily")}</strong>
                     {t("rewards_are_distributed_every_24_hours")}
                   </li>
                   <li>
-                    <strong>{t("weekly")}</strong>
+                    <strong>{tExt("weekly")}</strong>
                     {t("rewards_are_distributed_every_7_days")}
                   </li>
                   <li>
-                    <strong>{t("monthly")}</strong>
+                    <strong>{tExt("monthly")}</strong>
                     {t("rewards_are_distributed_every_30_days")}
                   </li>
                   <li>
-                    <strong>{t("end_of_term")}</strong>
+                    <strong>{tExt("end_of_term")}</strong>
                     {t("all_rewards_are_period_ends")}
                   </li>
                 </ul>
 
                 <h3 className="text-lg font-semibold mt-6">
-                  {t("Auto-Compounding")}
+                  {t("auto_compounding")}
                 </h3>
                 <p>
                   {t("some_pools_offer_higher_returns")}.{" "}
-                  {t("with_auto-compounding_your_stated_rate")}.
+                  {t("with_auto_compounding_your_stated_rate")}.
                 </p>
 
                 <h3 className="text-lg font-semibold mt-6">
@@ -307,7 +366,7 @@ export default function StakingGuidePage() {
                 </p>
 
                 <h3 className="text-lg font-semibold mt-6">
-                  {t("lock_period")}
+                  {tCommon("lock_period")}
                 </h3>
                 <p>
                   {t("when_you_stake_specified_period")}.{" "}
@@ -356,7 +415,7 @@ export default function StakingGuidePage() {
               <CardHeader>
                 <div className="flex items-center mb-2">
                   <HelpCircle className="h-5 w-5 mr-2 text-primary" />
-                  <CardTitle>{t("frequently_asked_questions")}</CardTitle>
+                  <CardTitle>{tCommon('faq_question')}</CardTitle>
                 </div>
                 <CardDescription>
                   {t("common_questions_about_staking")}
@@ -365,11 +424,11 @@ export default function StakingGuidePage() {
               <CardContent>
                 <Tabs defaultValue="general">
                   <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="general">{t("General")}</TabsTrigger>
+                    <TabsTrigger value="general">{tCommon("general")}</TabsTrigger>
                     <TabsTrigger value="technical">
-                      {t("Technical")}
+                      {t("technical")}
                     </TabsTrigger>
-                    <TabsTrigger value="rewards">{t("Rewards")}</TabsTrigger>
+                    <TabsTrigger value="rewards">{tExt("rewards")}</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="general" className="mt-6">
@@ -380,11 +439,9 @@ export default function StakingGuidePage() {
                         </h3>
                         <p className="text-muted-foreground">
                           {t("yes_each_staking_stake_requirement")}.{" "}
-                          {t(
-                            "This is clearly displayed on the pool details page"
-                          )}
-                          . {t("minimum_stakes_can_range_from_as_little_as")}.{" "}
-                          {t("01_btc_to_the_cryptocurrency")}.
+                          {t("this_is_clearly_displayed_on_pool_details_page")}.{" "}
+                          {t("minimum_stakes_can_range_from_as_little_as")}.{" "}
+                          {`01 ${tCommon('btc_to_larger_amounts_depending_on_the_cryptocurrency')}`}.
                         </p>
                       </div>
 
@@ -405,7 +462,7 @@ export default function StakingGuidePage() {
                         <p className="text-muted-foreground">
                           {t("staking_through_our_in_place")}.{" "}
                           {t("however_like_all_some_risks")}.{" "}
-                          {t("we_implement_industry-leading_your_assets")}.
+                          {t("we_implement_industry_leading_your_assets")}.
                         </p>
                       </div>
 
@@ -429,10 +486,7 @@ export default function StakingGuidePage() {
                         </h3>
                         <p className="text-muted-foreground">
                           {t("when_you_stake_blockchain_networks")}.{" "}
-                          {t(
-                            "These validators participate_stakers proportionally"
-                          )}
-                          .
+                          {t("these_validators_participate_stakers_proportionally")}.
                         </p>
                       </div>
 
@@ -525,7 +579,7 @@ export default function StakingGuidePage() {
 
           <div className="bg-primary text-primary-foreground p-8 rounded-lg text-center">
             <h2 className="text-2xl font-bold mb-4">
-              {t("ready_to_start_earning")}
+              {tExt("ready_to_start_earning")}
             </h2>
             <p className="mb-6">{t("now_that_you_passive_income")}.</p>
             <Link href="/staking/pool">
@@ -536,7 +590,8 @@ export default function StakingGuidePage() {
             </Link>
           </div>
         </div>
+        </div>
       </div>
-    </>
+    </div>
   );
 }

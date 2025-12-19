@@ -31,10 +31,17 @@ import {
   LayoutList,
   Layers,
   Sparkles,
+  Settings,
 } from "lucide-react";
+import { HeroSection } from "@/components/ui/hero-section";
+import { Card, CardContent } from "@/components/ui/card";
 
 // Feature Components
-import { AdvancedSearch, AdvancedSearchFilters, type SearchFilters } from "./components/features/advanced-search";
+import {
+  AdvancedSearch,
+  AdvancedSearchFilters,
+  type SearchFilters,
+} from "./components/features/advanced-search";
 
 // Dialog Components
 import { PreviewFAQDialog } from "./components/dialogs/preview-faq-dialog";
@@ -48,7 +55,9 @@ import { PageActionsMenu } from "./components/features/page-actions-menu";
 import { useTranslations } from "next-intl";
 
 export default function AdminFAQClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { toast } = useToast();
   const {
     faqs,
@@ -356,7 +365,7 @@ export default function AdminFAQClient() {
       status: "all",
       category: "all",
     };
-    
+
     setSearchFilters(defaultFilters);
     setSearchTerm("");
     setFilterCategory("all");
@@ -404,12 +413,12 @@ export default function AdminFAQClient() {
                     variant="outline"
                     className="text-xs bg-yellow-100 text-yellow-800 border-yellow-300"
                   >
-                    {t("Inactive")}
+                    {tCommon("inactive")}
                   </Badge>
                 )}
                 {faq.tags && faq.tags.length > 0 && (
                   <Badge variant="secondary" className="text-xs">
-                    {faq.tags.length}{" "}{t("tags")}
+                    {faq.tags.length} {tCommon("tags")}
                   </Badge>
                 )}
                 {faq.image && (
@@ -703,7 +712,9 @@ export default function AdminFAQClient() {
               <motion.div
                 className={cn(
                   "p-4",
-                  dropTargetPagePath === page.path && !dropTargetId && "bg-primary/5 border-2 border-dashed border-primary"
+                  dropTargetPagePath === page.path &&
+                    !dropTargetId &&
+                    "bg-primary/5 border-2 border-dashed border-primary"
                 )}
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
@@ -733,8 +744,7 @@ export default function AdminFAQClient() {
                   >
                     <Button variant="outline" type="button" size="sm">
                       <PlusCircle className="mr-2 h-3 w-3" />
-                      {t("add_faq_to")}{" "}
-                      {page.name}
+                      {t("add_faq_to")} {page.name}
                     </Button>
                   </Link>
                 </div>
@@ -764,21 +774,54 @@ export default function AdminFAQClient() {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {t("faq_management")}
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              {t("create_and_manage_your_users")}.
-            </p>
-          </div>
+    <div className="min-h-screen">
+      <HeroSection
+        badge={{
+          icon: <Sparkles className="h-3.5 w-3.5" />,
+          text: "Knowledge Base",
+          gradient: "from-sky-500/20 via-blue-500/20 to-sky-500/20",
+          iconColor: "text-sky-500",
+          textColor: "text-sky-600 dark:text-sky-400",
+        }}
+        title={[
+          { text: "FAQ " },
+          {
+            text: "Management",
+            gradient:
+              "from-sky-600 via-blue-500 to-sky-600 dark:from-sky-400 dark:via-blue-400 dark:to-sky-400",
+          },
+        ]}
+        description={t("create_and_manage_your_users")}
+        paddingTop="pt-24"
+        paddingBottom="pb-12"
+        layout="split"
+        background={{
+          orbs: [
+            {
+              color: "#0ea5e9",
+              position: { top: "-10rem", right: "-10rem" },
+              size: "20rem",
+            },
+            {
+              color: "#3b82f6",
+              position: { bottom: "-5rem", left: "-5rem" },
+              size: "15rem",
+            },
+          ],
+        }}
+        particles={{
+          count: 6,
+          type: "floating",
+          colors: ["#0ea5e9", "#3b82f6"],
+          size: 8,
+        }}
+        rightContent={
           <div className="flex gap-2">
             <Link href="/admin/faq/manage/new">
-              <Button type="button">
+              <Button
+                type="button"
+                className="bg-linear-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white shadow-lg font-semibold"
+              >
                 <PlusCircle className="mr-2 h-4 w-4" />
                 {t("add_faq")}
               </Button>
@@ -787,54 +830,75 @@ export default function AdminFAQClient() {
               <Button
                 variant="outline"
                 type="button"
-                className="border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
+                className="border-sky-500/50 text-sky-600 hover:bg-sky-500/10 dark:text-sky-400"
               >
                 <Sparkles className="mr-2 h-4 w-4" />
                 {t("ai_improve")}
               </Button>
             </Link>
           </div>
-        </div>
-      </div>
+        }
+        bottomSlot={
+          <Card className="bg-card/50 backdrop-blur border-sky-500/20">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-linear-to-br from-sky-500 to-blue-600 flex items-center justify-center">
+                  <Settings className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">
+                    {faqs.length} FAQs across {pageLinks.length} pages
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {faqs.filter(f => f.status).length} active, {faqs.filter(f => !f.status).length} inactive
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        }
+      />
 
-      {/* Search & Filters */}
+      {/* Main Content Container */}
+      <div className="container mx-auto py-8 space-y-6">
+        {/* Search & Filters */}
       <div className="space-y-4 mb-6">
         <div className="flex flex-col lg:flex-row gap-4">
-        <div className="flex-1">
-          <AdvancedSearch
-            onSearch={handleSearch}
-            categories={categories}
-            tags={allTags}
-            onClear={handleClearSearch}
+          <div className="flex-1">
+            <AdvancedSearch
+              onSearch={handleSearch}
+              categories={categories}
+              tags={allTags}
+              onClear={handleClearSearch}
               showFilters={showFilters}
               onToggleFilters={setShowFilters}
-          />
-        </div>
+            />
+          </div>
           <div className="flex items-start gap-2 lg:pt-0">
             <div className="flex items-center border rounded-md overflow-hidden bg-background">
-            <Button
-              variant={viewMode === "byPage" ? "default" : "ghost"}
+              <Button
+                variant={viewMode === "byPage" ? "default" : "ghost"}
                 size="default"
                 className="rounded-none border-0"
-              onClick={() => setViewMode("byPage")}
-            >
-              <Layers className="h-4 w-4 mr-2" />
-              {t("by_page")}
-            </Button>
-            <Separator orientation="vertical" className="h-8" />
-            <Button
-              variant={viewMode === "all" ? "default" : "ghost"}
+                onClick={() => setViewMode("byPage")}
+              >
+                <Layers className="h-4 w-4 mr-2" />
+                {t("by_page")}
+              </Button>
+              <Separator orientation="vertical" className="h-8" />
+              <Button
+                variant={viewMode === "all" ? "default" : "ghost"}
                 size="default"
                 className="rounded-none border-0"
-              onClick={() => setViewMode("all")}
-            >
-              <LayoutList className="h-4 w-4 mr-2" />
-              {t("all_faqs")}
-            </Button>
+                onClick={() => setViewMode("all")}
+              >
+                <LayoutList className="h-4 w-4 mr-2" />
+                {tExt("all_faqs")}
+              </Button>
+            </div>
           </div>
         </div>
-        </div>
-        
+
         {/* Full width filter panel */}
         <AdvancedSearchFilters
           showFilters={showFilters}
@@ -865,7 +929,7 @@ export default function AdminFAQClient() {
               className="mt-4"
               onClick={() => fetchFAQs()}
             >
-              {t("try_again")}
+              {tCommon("try_again")}
             </Button>
           </div>
         </div>
@@ -877,7 +941,7 @@ export default function AdminFAQClient() {
           transition={{ duration: 0.3 }}
         >
           <FileQuestion className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">{t("no_faqs_found")}</h3>
+          <h3 className="text-lg font-medium mb-2">{tExt("no_faqs_found")}</h3>
           <p className="text-muted-foreground mb-4 text-center max-w-md">
             {searchTerm || filterCategory !== "all" || filterStatus !== "all"
               ? "No FAQs match your current filters. Try adjusting your search criteria."
@@ -888,7 +952,7 @@ export default function AdminFAQClient() {
             filterStatus !== "all") && (
             <Button variant="outline" onClick={handleClearSearch}>
               <X className="mr-2 h-4 w-4" />
-              {t("clear_filters")}
+              {tCommon("clear_filters")}
             </Button>
           )}
         </motion.div>
@@ -900,55 +964,56 @@ export default function AdminFAQClient() {
         </div>
       )}
 
-      {/* Dialogs */}
-      <PreviewFAQDialog
-        faq={previewFaq}
-        open={previewDialogOpen}
-        onOpenChange={setPreviewDialogOpen}
-        onEdit={() => {
-          setPreviewDialogOpen(false);
-          if (previewFaq) {
-            setEditingFaq(previewFaq);
-            setEditDialogOpen(true);
-          }
-        }}
-      />
-
-      <DeleteFAQDialog
-        faq={faqToDelete}
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={handleDeleteFAQ}
-      />
-
-      <BulkActionDialog
-        action={bulkActionToConfirm as any}
-        count={selectedFaqs.length}
-        open={bulkActionDialogOpen}
-        onOpenChange={setBulkActionDialogOpen}
-        onConfirm={executeBulkAction}
-      />
-
-      {selectedPage && (
-        <ChangePageDialog
-          currentPage={selectedPage}
-          availablePages={pageLinks}
-          faqCount={faqsByPage[selectedPage.path]?.length || 0}
-          open={changePageDialogOpen}
-          onOpenChange={setChangePageDialogOpen}
-          onConfirm={handleMoveFaqs}
-          isSubmitting={isMovingFaqs}
+        {/* Dialogs */}
+        <PreviewFAQDialog
+          faq={previewFaq}
+          open={previewDialogOpen}
+          onOpenChange={setPreviewDialogOpen}
+          onEdit={() => {
+            setPreviewDialogOpen(false);
+            if (previewFaq) {
+              setEditingFaq(previewFaq);
+              setEditDialogOpen(true);
+            }
+          }}
         />
-      )}
 
-      <DeletePageDialog
-        page={pageToDelete}
-        faqCount={pageToDelete ? faqsByPage[pageToDelete.path]?.length || 0 : 0}
-        open={deletePageDialogOpen}
-        onOpenChange={setDeletePageDialogOpen}
-        onConfirm={confirmDeletePage}
-        isSubmitting={isDeletingPage}
-      />
+        <DeleteFAQDialog
+          faq={faqToDelete}
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          onConfirm={handleDeleteFAQ}
+        />
+
+        <BulkActionDialog
+          action={bulkActionToConfirm as any}
+          count={selectedFaqs.length}
+          open={bulkActionDialogOpen}
+          onOpenChange={setBulkActionDialogOpen}
+          onConfirm={executeBulkAction}
+        />
+
+        {selectedPage && (
+          <ChangePageDialog
+            currentPage={selectedPage}
+            availablePages={pageLinks}
+            faqCount={faqsByPage[selectedPage.path]?.length || 0}
+            open={changePageDialogOpen}
+            onOpenChange={setChangePageDialogOpen}
+            onConfirm={handleMoveFaqs}
+            isSubmitting={isMovingFaqs}
+          />
+        )}
+
+        <DeletePageDialog
+          page={pageToDelete}
+          faqCount={pageToDelete ? faqsByPage[pageToDelete.path]?.length || 0 : 0}
+          open={deletePageDialogOpen}
+          onOpenChange={setDeletePageDialogOpen}
+          onConfirm={confirmDeletePage}
+          isSubmitting={isDeletingPage}
+        />
+      </div>
     </div>
   );
 }

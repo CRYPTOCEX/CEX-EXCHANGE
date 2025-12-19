@@ -7,8 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 export default function ExtensionsPage() {
+  const t = useTranslations("dashboard_admin");
   const { extensions, fetchExtensions } = useExtensionStore();
   
   useEffect(() => {
@@ -36,7 +39,7 @@ export default function ExtensionsPage() {
   }, [extensions]);
 
   return (
-    <div className="space-y-6">
+    <div className={`container ${PAGE_PADDING} space-y-6`}>
       <TopBar />
       
       {/* Update Summary Alert */}
@@ -49,7 +52,7 @@ export default function ExtensionsPage() {
                 {updateStats.withUpdates} extension{updateStats.withUpdates !== 1 ? 's' : ''} 
               </span>
               <span className="text-orange-700 dark:text-orange-300 ml-1">
-                {updateStats.withUpdates === 1 ? 'has' : 'have'} updates available from the license system
+                {updateStats.withUpdates === 1 ? 'has' : 'have'} {t("updates_available_from_the_license_system")}
               </span>
             </div>
             <Button 

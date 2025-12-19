@@ -33,7 +33,7 @@ const getAggressionLevel = (aggression: string): number => {
 };
 
 export const MarketConfig: React.FC<MarketConfigProps> = ({ data, onRefresh }) => {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const quoteCurrency = data.market?.pair || "";
   const [loading, setLoading] = useState(false);
   const [config, setConfig] = useState({
@@ -103,8 +103,8 @@ export const MarketConfig: React.FC<MarketConfigProps> = ({ data, onRefresh }) =
       {/* Price Configuration */}
       <Card className="p-5 dark:border dark:border-slate-700">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-            <Icon icon="mdi:currency-usd" className="w-5 h-5 text-blue-500" />
+          <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+            <Icon icon="mdi:currency-usd" className="w-5 h-5 text-purple-500" />
           </div>
           <div>
             <h3 className="font-semibold text-foreground">
@@ -217,8 +217,8 @@ export const MarketConfig: React.FC<MarketConfigProps> = ({ data, onRefresh }) =
               <span>{t("fully_real_ecosystem")}</span>
             </div>
             <p className="text-sm text-muted-foreground mt-2">
-              {config.realLiquidityPercent}{t("of_orders_will_be_placed_as_real_ecosystem_orders")}
-              {100 - config.realLiquidityPercent}{t("will_be_ai_simulated_only")}
+              {config.realLiquidityPercent}% {t("of_orders_will_be_placed_as_real_ecosystem_orders")}{" "}
+              {100 - config.realLiquidityPercent}% {t("will_be_ai_simulated_only")}
             </p>
           </div>
 
@@ -277,7 +277,7 @@ export const MarketConfig: React.FC<MarketConfigProps> = ({ data, onRefresh }) =
                 className="w-full h-2 bg-muted dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
               />
               <p className="text-sm text-muted-foreground mt-2">
-                {t("trading_will_pause_if_price_moves_more_than")} {config.volatilityThreshold}{t("in_a_short_period")}
+                {t("trading_will_pause_if_price_moves_more_than")} {config.volatilityThreshold}% {t("in_a_short_period")}
               </p>
             </div>
           )}
@@ -286,7 +286,7 @@ export const MarketConfig: React.FC<MarketConfigProps> = ({ data, onRefresh }) =
 
       {/* Save Button */}
       <div className="flex justify-end gap-4">
-        <Button variant="outlined" onClick={onRefresh}>
+        <Button variant="outline" onClick={onRefresh}>
           <Icon icon="mdi:refresh" className="w-5 h-5 mr-1" />
           Reset
         </Button>

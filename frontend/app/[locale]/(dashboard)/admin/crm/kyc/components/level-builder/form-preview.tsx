@@ -57,7 +57,8 @@ export function FormPreview({
   levelName,
   levelDescription,
 }: FormPreviewProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [viewMode, setViewMode] = useState<"desktop" | "tablet" | "mobile">(
     "desktop"
   );
@@ -138,7 +139,7 @@ export function FormPreview({
                 <Eye className="h-4 w-4 text-blue-500" />
                 {t("form_preview")}
                 <Badge variant="outline" className="ml-2 font-normal">
-                  {t("Level")}{" "}
+                  {tCommon("level")}{" "}
                   {activeFields.length > 0
                     ? (activeFields[0]?.order ?? 0) + 1
                     : 1}
@@ -168,7 +169,7 @@ export function FormPreview({
                   )}
                   <span>
                     {showFieldHighlights ? "Hide" : "Show"}{" "}
-                    {t("Highlights")}
+                    {t("highlights")}
                   </span>
                 </Button>
               </TooltipTrigger>
@@ -203,10 +204,10 @@ export function FormPreview({
             >
               <TabsList className="h-8 bg-muted/60">
                 <TabsTrigger value="card" className="h-7 px-3 text-xs">
-                  {t("Card")}
+                  {t("card")}
                 </TabsTrigger>
                 <TabsTrigger value="default" className="h-7 px-3 text-xs">
-                  {t("Standard")}
+                  {tCommon("standard")}
                 </TabsTrigger>
               </TabsList>
             </Tabs>

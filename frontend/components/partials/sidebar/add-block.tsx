@@ -24,7 +24,7 @@ const AddBlock = ({
   title?: string;
   desc?: string;
 }) => {
-  const t = useTranslations("common");
+  const t = useTranslations("components");
   const [openVideo, setOpenVideo] = useState(false);
   return (
     <>
@@ -83,7 +83,7 @@ const AddBlock = ({
             width="100%"
             height="315"
             src="https://www.youtube.com/embed/8D6b3McyhhU?si=zGOlY311c21dR70j"
-            title="YouTube video player"
+            title={t("youtube_video_player")}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen

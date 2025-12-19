@@ -5,7 +5,8 @@ import { useSystemUpdateStore } from "@/store/update";
 import { useTranslations } from "next-intl";
 
 export function TopBar() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const { productVersion, licenseVerified } = useSystemUpdateStore();
 
   return (
@@ -13,7 +14,7 @@ export function TopBar() {
       <div className="flex flex-col space-y-1">
         <h1 className="text-2xl font-bold">{t("system_update")}</h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          {t("current_version")}{" "}
+          {tCommon("current_version")}{" "}
           <span className="font-medium text-blue-500">{productVersion}</span>
         </p>
       </div>

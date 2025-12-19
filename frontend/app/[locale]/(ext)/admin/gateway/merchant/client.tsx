@@ -7,6 +7,7 @@ import {
   Shield,
   Ban,
   Eye,
+  Store,
 } from "lucide-react";
 import DataTable from "@/components/blocks/data-table";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import { useTranslations } from "next-intl";
 import $fetch from "@/lib/api";
 import { Link } from "@/i18n/routing";
@@ -31,6 +32,8 @@ import { Link } from "@/i18n/routing";
 export default function AdminMerchantsPage() {
   const t = useTranslations("ext");
   const { toast } = useToast();
+  const columns = useColumns();
+  const formConfig = useFormConfig();
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     type: "",
@@ -105,7 +108,7 @@ export default function AdminMerchantsPage() {
       if (error) {
         toast({
           title: "Error",
-          description: error.message,
+          description: typeof error === 'string' ? error : "An error occurred",
           variant: "destructive",
         });
       } else {
@@ -180,26 +183,25 @@ export default function AdminMerchantsPage() {
           edit: "edit.gateway.merchant",
           delete: "delete.gateway.merchant",
         }}
-        pageSize={10}
+        pageSize={12}
         canCreate={false}
         canEdit={true}
         canDelete={true}
         canView={true}
-        title="Merchants"
+        viewLink="/admin/gateway/merchant/[id]"
+        title="Gateway Merchants"
+        description="Manage registered merchant accounts"
         itemTitle="Merchant"
         columns={columns}
+        formConfig={formConfig}
         isParanoid={false}
         extraRowActions={extraRowActions}
-        expandedButtons={(row) => (
-          <div className="flex gap-2">
-            <Link href={`/admin/gateway/merchant/${row.id}`}>
-              <Button variant="outline" size="sm">
-                <Eye className="h-4 w-4 mr-1" />
-                View Details
-              </Button>
-            </Link>
-          </div>
-        )}
+        design={{
+          animation: "orbs",
+          primaryColor: "indigo",
+          secondaryColor: "cyan",
+          icon: Store,
+        }}
       />
 
       {/* Confirmation Dialog */}

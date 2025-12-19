@@ -1,11 +1,17 @@
 import { updateRecordResponses, updateStatus } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Bulk updates the status of ecosystem UTXOs",
+  summary: "Bulk update ecosystem UTXO status",
   operationId: "bulkUpdateEcosystemUtxoStatus",
-  tags: ["Admin", "Ecosystem UTXOs"],
+  tags: ["Admin", "Ecosystem", "UTXO"],
+  description:
+    "Bulk updates the operational status of multiple ecosystem UTXOs. This endpoint allows administrators to activate or deactivate multiple UTXOs simultaneously by providing an array of UTXO IDs and the desired status. Useful for managing UTXO availability across the ecosystem.",
+  logModule: "ADMIN_ECO",
+  logTitle: "Bulk update UTXO status",
   requestBody: {
     required: true,
+    description:
+      "Array of UTXO IDs and the new status to apply (true for active/available, false for inactive/spent)",
     content: {
       "application/json": {
         schema: {
@@ -19,7 +25,7 @@ export const metadata: OperationObject = {
             status: {
               type: "boolean",
               description:
-                "New status to apply to the ecosystem UTXOs (true for active, false for inactive)",
+                "New operational status (true for active/available, false for inactive/spent)",
             },
           },
           required: ["ids", "status"],
@@ -33,7 +39,12 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("ecosystemUtxo", ids, status);
+
+  ctx?.step(`Updating status for ${ids.length} UTXO(s) to ${status}`);
+  const result = await updateStatus("ecosystemUtxo", ids, status);
+
+  ctx?.success(`Status updated for ${ids.length} UTXO(s)`);
+  return result;
 };

@@ -30,6 +30,7 @@ import { Link } from "@/i18n/routing";
 import { $fetch } from "@/lib/api";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 interface ExchangeProvider {
   id: string;
@@ -42,7 +43,8 @@ interface ExchangeProvider {
 }
 
 const ExchangeLicensePage = () => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const params = useParams();
   const productId = params.id as string;
@@ -115,7 +117,7 @@ const ExchangeLicensePage = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-8">
+      <div className={`container ${PAGE_PADDING}`}>
         <div className="flex items-center justify-center h-96 flex-col gap-5">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <span className="text-muted-foreground">
@@ -128,7 +130,7 @@ const ExchangeLicensePage = () => {
 
   if (!exchange) {
     return (
-      <div className="container mx-auto py-8">
+      <div className={`container ${PAGE_PADDING}`}>
         <div className="text-center">
           <h1 className="text-2xl font-bold text-destructive">
             {t("exchange_provider_not_found")}
@@ -149,13 +151,13 @@ const ExchangeLicensePage = () => {
 
   if (exchange.licenseStatus) {
     return (
-      <div className="container mx-auto py-8">
+      <div className={`container ${PAGE_PADDING}`}>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
             <Link href={`/admin/finance/exchange/${productId}`}>
               <Button variant="outline" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                {t("Back")}
+                {tCommon("back")}
               </Button>
             </Link>
             <div>
@@ -189,16 +191,16 @@ const ExchangeLicensePage = () => {
                 <div>
                   <p className="font-medium">
                     {exchange.title}
-                    {t("Exchange")}
+                    {t("exchange")}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {t("Version")}
+                    {tCommon("version")}
                     {exchange.version}
                   </p>
                 </div>
                 <Badge variant="default">
                   <CheckCircle className="h-3 w-3 mr-1" />
-                  {t("Licensed")}
+                  {t("licensed")}
                 </Badge>
               </div>
             </CardContent>
@@ -209,18 +211,18 @@ const ExchangeLicensePage = () => {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className={`container ${PAGE_PADDING}`}>
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Link href={`/admin/finance/exchange/${productId}`}>
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              {t("Back")}
+              {tCommon("back")}
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold">{t("activate_license")}</h1>
+            <h1 className="text-3xl font-bold">{tCommon("activate_license")}</h1>
             <p className="text-muted-foreground">
               {exchange.title}
               {t("exchange_provider")}
@@ -249,22 +251,22 @@ const ExchangeLicensePage = () => {
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{t("name")}</span>
+                <span className="text-sm font-medium">{tCommon("name")}</span>
                 <span className="text-sm">{exchange.title}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{t("version")}</span>
+                <span className="text-sm font-medium">{tCommon("version")}</span>
                 <Badge variant="outline">{exchange.version}</Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{t("status")}</span>
+                <span className="text-sm font-medium">{tCommon("status")}</span>
                 <Badge variant={exchange.status ? "default" : "secondary"}>
                   {exchange.status ? "Active" : "Inactive"}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">{t("license")}</span>
-                <Badge variant="destructive">{t("Unlicensed")}</Badge>
+                <Badge variant="destructive">{t("unlicensed")}</Badge>
               </div>
             </div>
           </CardContent>
@@ -287,7 +289,7 @@ const ExchangeLicensePage = () => {
               <Input
                 id="purchaseCode"
                 type="text"
-                placeholder="Enter your Envato purchase code"
+                placeholder={t("enter_your_envato_purchase_code")}
                 value={purchaseCode}
                 onChange={(e) => setPurchaseCode(e.target.value)}
                 disabled={activating}
@@ -308,13 +310,13 @@ const ExchangeLicensePage = () => {
               <Input
                 id="envatoUsername"
                 type="text"
-                placeholder="Enter your Envato username"
+                placeholder={tCommon("enter_your_envato_username")}
                 value={envatoUsername}
                 onChange={(e) => setEnvatoUsername(e.target.value)}
                 disabled={activating}
               />
               <p className="text-xs text-muted-foreground">
-                {t("your_envato_account_username_(buyer_username)")}
+                {t("your_envato_account_username_buyer_username")} ({t("buyer_username")})
               </p>
             </div>
 
@@ -331,17 +333,17 @@ const ExchangeLicensePage = () => {
                 {activating ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {t("Activating")}.
+                    {tCommon('enable')}.
                   </>
                 ) : (
                   <>
                     <Shield className="h-4 w-4 mr-2" />
-                    {t("activate_license")}
+                    {tCommon("activate_license")}
                   </>
                 )}
               </Button>
               <Link href={`/admin/finance/exchange/${productId}`}>
-                <Button variant="outline">{t("Cancel")}</Button>
+                <Button variant="outline">{tCommon("cancel")}</Button>
               </Link>
             </div>
           </CardContent>
@@ -350,7 +352,7 @@ const ExchangeLicensePage = () => {
         {/* Help Information */}
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle className="text-sm">{t("need_help")}</CardTitle>
+            <CardTitle className="text-sm">{tCommon("need_help")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="text-sm space-y-2">
@@ -361,12 +363,12 @@ const ExchangeLicensePage = () => {
                 <li>{t("log_in_to_your_codecanyon_account")}</li>
                 <li>{t("go_to_your_downloads_page")}</li>
                 <li>{t("find_this_item_and_click_download")}</li>
-                <li>{t("select_license_certificate_&_purchase_code")}</li>
+                <li>{t("select_license_certificate_purchase_code")}</li>
               </ul>
             </div>
             <Separator />
             <div className="flex items-center gap-2 text-sm">
-              <span>{t("need_more_help")}</span>
+              <span>{tCommon("need_more_help")}</span>
               <Link
                 href="https://help.market.envato.com/hc/en-us/articles/202822600-Where-Is-My-Purchase-Code-"
                 target="_blank"

@@ -5,6 +5,7 @@ import {
 } from "@b/utils/constants";
 import { createError } from "@b/utils/error";
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 import { authenticator } from "otplib";
 import QRCode from "qrcode";
 import { emailQueue } from "@b/utils/emails";
@@ -16,6 +17,8 @@ export const metadata: OperationObject = {
   tags: ["Auth"],
   description: "Generates an OTP secret for the user",
   requiresAuth: true,
+  logModule: "2FA",
+  logTitle: "Generate 2FA secret",
   requestBody: {
     required: true,
     content: {
@@ -69,32 +72,63 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, user } = data;
-  if (!user) throw createError({ statusCode: 401, message: "unauthorized" });
+  const { body, user, ctx } = data;
 
-  const userRecord = await getUserById(user.id);
-  const { type, phoneNumber } = body;
+  try {
+    ctx?.step("Validating user authentication");
+    if (!user) {
+      ctx?.fail("User not authenticated");
+      throw createError({ statusCode: 401, message: "unauthorized" });
+    }
 
-  authenticator.options = { window: 2 };
-  const secret = authenticator.generateSecret();
+    ctx?.step("Looking up user record");
+    const userRecord = await getUserById(user.id);
+    const { type, phoneNumber } = body;
 
-  switch (type) {
-    case "SMS":
-      return await handleSms2FA(userRecord, secret, phoneNumber);
-    case "APP":
-      return await handleApp2FA(userRecord, secret);
-    case "EMAIL":
-      return await handleEmail2FA(userRecord, secret);
-    default:
+    ctx?.step("Validating 2FA type");
+    if (!type) {
+      ctx?.fail("2FA type is required");
       throw createError({
         statusCode: 400,
-        message: "Invalid type or 2FA method not enabled",
+        message: "2FA type is required",
       });
+    }
+
+    ctx?.step("Generating OTP secret");
+    authenticator.options = { window: 2 };
+    const secret = authenticator.generateSecret();
+
+    ctx?.step(`Setting up ${type} 2FA`);
+    let result;
+    switch (type) {
+      case "SMS":
+        result = await handleSms2FA(userRecord, secret, phoneNumber, ctx);
+        break;
+      case "APP":
+        result = await handleApp2FA(userRecord, secret, ctx);
+        break;
+      case "EMAIL":
+        result = await handleEmail2FA(userRecord, secret, ctx);
+        break;
+      default:
+        ctx?.fail("Invalid 2FA type");
+        throw createError({
+          statusCode: 400,
+          message: "Invalid type or 2FA method not enabled",
+        });
+    }
+
+    ctx?.success(`${type} 2FA generated successfully`);
+    return result;
+  } catch (error) {
+    ctx?.fail(error.message || "Failed to generate OTP");
+    throw error;
   }
 };
 
 // Handle SMS 2FA
-async function handleSms2FA(user: any, secret: string, phoneNumber?: string) {
+async function handleSms2FA(user: any, secret: string, phoneNumber?: string, ctx?: any) {
+  ctx?.step("Checking SMS 2FA availability");
   if (process.env.NEXT_PUBLIC_2FA_SMS_STATUS !== "true") {
     throw createError({
       statusCode: 400,
@@ -116,12 +150,14 @@ async function handleSms2FA(user: any, secret: string, phoneNumber?: string) {
     });
   }
 
+  ctx?.step(`Saving phone number: ${phoneNumber}`);
   try {
     await savePhoneQuery(user.id, phoneNumber);
   } catch (error) {
     throw createError({ statusCode: 500, message: error.message });
   }
 
+  ctx?.step("Generating and sending SMS OTP");
   const otp = authenticator.generate(secret);
 
   try {
@@ -133,7 +169,7 @@ async function handleSms2FA(user: any, secret: string, phoneNumber?: string) {
       to: phoneNumber,
     });
   } catch (error) {
-    console.error("Error sending SMS OTP", error);
+    logger.error("AUTH", "Error sending SMS OTP", error);
     throw createError({ statusCode: 500, message: error.message });
   }
 
@@ -141,7 +177,8 @@ async function handleSms2FA(user: any, secret: string, phoneNumber?: string) {
 }
 
 // Handle APP 2FA
-async function handleApp2FA(user: any, secret: string) {
+async function handleApp2FA(user: any, secret: string, ctx?: any) {
+  ctx?.step("Checking APP 2FA availability");
   if (process.env.NEXT_PUBLIC_2FA_APP_STATUS !== "true") {
     throw createError({
       statusCode: 400,
@@ -156,6 +193,7 @@ async function handleApp2FA(user: any, secret: string) {
     });
   }
 
+  ctx?.step("Generating QR code for authenticator app");
   const otpAuth = authenticator.keyuri(user.email, appName, secret);
   const qrCode = await QRCode.toDataURL(otpAuth);
 
@@ -163,7 +201,8 @@ async function handleApp2FA(user: any, secret: string) {
 }
 
 // Handle Email 2FA
-async function handleEmail2FA(user: any, secret: string) {
+async function handleEmail2FA(user: any, secret: string, ctx?: any) {
+  ctx?.step("Checking email 2FA availability");
   if (process.env.NEXT_PUBLIC_2FA_EMAIL_STATUS !== "true") {
     throw createError({
       statusCode: 400,
@@ -174,6 +213,7 @@ async function handleEmail2FA(user: any, secret: string) {
   const email = user.email;
   const otp = authenticator.generate(secret);
 
+  ctx?.step(`Sending OTP to email: ${email}`);
   try {
     await emailQueue.add({
       emailData: {

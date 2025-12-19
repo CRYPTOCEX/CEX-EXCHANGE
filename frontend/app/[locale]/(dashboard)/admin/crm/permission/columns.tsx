@@ -1,46 +1,48 @@
-import { Shield } from "lucide-react";
+"use client";
+import { Shield, Hash, Tag } from "lucide-react";
 
-export const columns: ColumnDefinition[] = [
-  {
-    key: "id",
-    title: "ID",
-    type: "text",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    icon: Shield,
-    description: "Unique identifier for the permission",
-    priority: 1,
-  },
-  {
-    key: "name",
-    title: "Permission Name",
-    type: "text",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    // Even though the field is editable in the DataTable by default,
-    // we disable editing by not enabling the form control since this page is read-only.
-    editable: false,
-    usedInCreate: false,
-    icon: Shield,
-    description: "Name of the permission",
-    priority: 1,
-  },
-  {
-    key: "roles",
-    title: "Roles",
-    type: "tags",
-    icon: Shield,
-    sortable: false,
-    searchable: false,
-    filterable: false,
-    editable: false,
-    description: "Roles associated with the permission",
-    render: {
-      type: "tags",
-      config: { maxDisplay: 3 },
+import { useTranslations } from "next-intl";
+export function useColumns() {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
+  return [
+    {
+      key: "id",
+      title: tCommon("id"),
+      type: "text",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      icon: Hash,
+      description: t("unique_identifier_for_the_permission_record"),
+      priority: 3,
     },
-    priority: 2,
-  },
-];
+    {
+      key: "name",
+      title: t("permission_name"),
+      type: "text",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      icon: Shield,
+      description: t("unique_permission_name_for_access_control"),
+      priority: 1,
+    },
+    {
+      key: "roles",
+      title: t("roles"),
+      type: "tags",
+      icon: Tag,
+      sortable: false,
+      searchable: false,
+      filterable: false,
+      description: t("list_of_roles_that_have_been"),
+      render: {
+        type: "tags",
+        config: { maxDisplay: 3 },
+      },
+      priority: 2,
+    },
+  ];
+}
+

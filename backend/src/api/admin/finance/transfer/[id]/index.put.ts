@@ -4,6 +4,7 @@ import { models, sequelize } from "@b/db";
 import { transactionUpdateSchema } from "@b/api/finance/transaction/utils";
 import ExchangeManager from "@b/utils/exchange";
 import { RedisSingleton } from "@b/utils/redis";
+import { logger } from "@b/utils/console";
 // Safe import for Scylla queries (only available if extension is installed)
 async function getLastCandles() {
   try {
@@ -44,10 +45,12 @@ export const metadata = {
   responses: updateRecordResponses("Transaction"),
   requiresAuth: true,
   permission: "edit.transfer",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Transfer",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     status,
@@ -106,7 +109,7 @@ export default async (data: Handler) => {
         const tickers = cachedData ? JSON.parse(cachedData) : {};
 
         if (!tickers[fromCurrency]) {
-          const exchange = await ExchangeManager.startExchange();
+          const exchange = await ExchangeManager.startExchange(ctx);
           const ticker = await exchange.fetchTicker(`${fromCurrency}/USDT`);
           if (!ticker || !ticker.last) {
             throw new Error("Unable to fetch current market price");
@@ -153,7 +156,7 @@ function parseMetadata(metadataString) {
     metadataString = metadataString.replace(/\\/g, "");
     metadata = JSON.parse(metadataString) || {};
   } catch (e) {
-    console.error("Invalid JSON in metadata:", metadataString);
+    logger.error("TRANSFER", "Invalid JSON in metadata", e);
   }
   return metadata;
 }

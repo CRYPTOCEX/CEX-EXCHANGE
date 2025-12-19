@@ -22,7 +22,7 @@ export default function NFTContentSettingsSection({
   validationErrors = {},
   hasSubmitted = false,
 }: NFTContentSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const safeSettings = {
     RequireMetadataValidation: settings.RequireMetadataValidation ?? true,
   };
@@ -46,18 +46,18 @@ export default function NFTContentSettingsSection({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            {t("Metadata & IPFS")}
+            {t("metadata_ipfs")}
           </CardTitle>
           <CardDescription>
-            {t("Configure NFT metadata requirements")}
+            {t("configure_nft_metadata_requirements")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label htmlFor="metadataValidation">{t("Require Metadata Validation")}</Label>
+              <Label htmlFor="metadataValidation">{t("require_metadata_validation")}</Label>
               <p className="text-sm text-muted-foreground">
-                {t("Validate IPFS metadata URLs before accepting NFT listings")}
+                {t("validate_ipfs_metadata_urls_before_accepting")}
               </p>
             </div>
             <Switch
@@ -79,7 +79,7 @@ export default function NFTContentSettingsSection({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              {t("marketplace_uses_ipfs_decentralized_storage")}
+              {t("marketplace_uses_ipfs")} {t("marketplace_ipfs_user_note")} {t("marketplace_uses_ipfs_decentralized_storage")}
             </AlertDescription>
           </Alert>
         </CardContent>

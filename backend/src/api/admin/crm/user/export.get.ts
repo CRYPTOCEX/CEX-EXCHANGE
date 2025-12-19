@@ -5,6 +5,7 @@ import { models } from "@b/db";
 import * as XLSX from "xlsx";
 import * as fs from "fs";
 import * as path from "path";
+import { applyDemoMask } from "@b/utils/demoMask";
 
 export const metadata: OperationObject = {
   summary: "Export all users as an Excel file with detailed information",
@@ -49,8 +50,11 @@ export default async (data: Handler) => {
     LastLogin: user.lastLogin?.toISOString() || "N/A",
   }));
 
+  // Apply demo masking before creating Excel file
+  const maskedData = applyDemoMask(userData, ["Email", "Phone"]);
+
   // Create a worksheet
-  const worksheet = XLSX.utils.json_to_sheet(userData);
+  const worksheet = XLSX.utils.json_to_sheet(maskedData);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
 

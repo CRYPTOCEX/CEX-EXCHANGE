@@ -51,14 +51,14 @@ export default function ResetPasswordPage() {
                 <AlertTriangle className="h-12 w-12 text-amber-500" />
               </div>
               <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-600 to-amber-500">
-                Reset Link Required
+                {t("reset_link_required")}
               </h1>
               <p className="text-muted-foreground">
-                To reset your password, you need to click on the reset link sent to your email.
+                {t("to_reset_your_password_you_need")}
               </p>
               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-4">
                 <p className="text-sm text-amber-700 dark:text-amber-300">
-                  If you don't have a reset link, you can request a new one below.
+                  {t("if_you_dont_have_a_reset")}
                 </p>
               </div>
             </div>
@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
                 className="w-full py-6 px-8 relative overflow-hidden btn-glow transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
               >
                 <Key className="mr-2 h-4 w-4" />
-                Request Password Reset
+                {t("request_password_reset")}
               </Button>
               
               <Link href="/">
@@ -77,7 +77,7 @@ export default function ResetPasswordPage() {
                   variant="outline"
                   className="w-full py-6 px-8"
                 >
-                  Return to Home
+                  {t("return_to_home")}
                 </Button>
               </Link>
             </div>
@@ -105,10 +105,10 @@ export default function ResetPasswordPage() {
                 <Key className="h-12 w-12 text-primary" />
               </div>
               <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-                Reset Password
+                {t("reset_password")}
               </h1>
               <p className="text-muted-foreground">
-                Enter your new password below to reset your account password.
+                {t("enter_your_new_password_below_to")}
               </p>
             </div>
 
@@ -123,13 +123,13 @@ export default function ResetPasswordPage() {
 
         <div className="text-center mt-6 space-y-2">
           <p className="text-sm text-muted-foreground">
-            Remember your password?{" "}
+            {t("remember_your_password")}{" "}
             <Button
               variant="link"
               onClick={handleLoginClick}
               className="p-0 h-auto font-medium text-primary hover:underline"
             >
-              Sign in instead
+              {t("sign_in_instead")}
             </Button>
           </p>
           
@@ -138,7 +138,7 @@ export default function ResetPasswordPage() {
               variant="link" 
               className="p-0 h-auto text-sm text-muted-foreground hover:text-primary"
             >
-              Return to Home
+              {t("return_to_home")}
             </Button>
           </Link>
         </div>

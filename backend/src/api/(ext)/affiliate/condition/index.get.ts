@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
     "Lists all MLM Referral Conditions with pagination and optional filtering",
   operationId: "listMlmReferralConditions",
   tags: ["MLM", "Referral Conditions"],
+  logModule: "AFFILIATE",
+  logTitle: "List affiliate conditions",
   responses: {
     200: {
       description:
@@ -48,14 +50,20 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step("Fetching active referral conditions");
   const conditions = await models.mlmReferralCondition.findAll({
     where: { status: true },
   });
 
+  ctx?.step("Loading extension availability from cache");
   // Create a map of condition names and their presence in extensions
   const conditionExtensionMap = new Map<string, boolean>();
   const cacheManager = CacheManager.getInstance();
   const extensions = await cacheManager.getExtensions();
+
+  ctx?.step("Mapping conditions to extensions");
   conditions.forEach((condition) => {
     const conditionMapping: { [key: string]: string } = {
       STAKING_LOYALTY: "staking",
@@ -76,9 +84,11 @@ export default async (data: Handler) => {
     }
   });
 
+  ctx?.step("Filtering conditions based on available extensions");
   const filteredConditions = conditions.filter((condition) => {
     return conditionExtensionMap.get(condition.name);
   });
 
+  ctx?.success(`Retrieved ${filteredConditions.length} active affiliate conditions`);
   return filteredConditions;
 };

@@ -7,9 +7,10 @@ import {
 import { baseForexDurationSchema } from "../utils";
 
 export const metadata: OperationObject = {
-  summary: "Retrieves detailed information of a specific forex duration by ID",
-  operationId: "getForexDurationById",
-  tags: ["Admin", "Forex Durations"],
+  summary: "Gets a specific Forex duration",
+  description: "Retrieves detailed information about a specific Forex duration configuration by its ID.",
+  operationId: "getForexDuration",
+  tags: ["Admin", "Forex", "Duration"],
   parameters: [
     {
       index: 0,
@@ -38,10 +39,16 @@ export const metadata: OperationObject = {
   },
   permission: "view.forex.duration",
   requiresAuth: true,
+  logModule: "ADMIN_FOREX",
+  logTitle: "Get Forex Duration",
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("forexDuration", params.id);
+  ctx?.step("Fetching forex duration record");
+  const result = await getRecord("forexDuration", params.id);
+
+  ctx?.success("Retrieved forex duration");
+  return result;
 };

@@ -1,11 +1,14 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { useColumns } from "./columns";
 import { nftSaleAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
+import { TrendingUp } from "lucide-react";
 
 export default function NFTSalesPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/sale"
@@ -15,9 +18,8 @@ export default function NFTSalesPage() {
         view: "view.nft.sale",
         create: "create.nft.sale",
         edit: "edit.nft.sale",
-        delete: "delete.nft.sale",
-      }}
-      pageSize={10}
+        delete: "delete.nft.sale"}}
+      pageSize={12}
       canCreate={false}
       canEdit={false}
       canDelete={false}
@@ -25,9 +27,14 @@ export default function NFTSalesPage() {
       isParanoid={true}
       title="NFT Sales"
       itemTitle="Sale"
-      description={t("monitor_completed_sales_transactions_and_marketplace")}
+      description={t("track_and_analyze_completed_nft_sales")}
       columns={columns}
       analytics={nftSaleAnalytics}
+      design={{
+        animation: "orbs",
+        primaryColor: "purple",
+        secondaryColor: "pink",
+        icon: TrendingUp}}
     />
   );
 } 

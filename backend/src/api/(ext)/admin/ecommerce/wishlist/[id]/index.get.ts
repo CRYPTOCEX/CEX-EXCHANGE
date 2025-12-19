@@ -40,12 +40,15 @@ export const metadata: OperationObject = {
   },
   permission: "view.ecommerce.wishlist",
   requiresAuth: true,
+  demoMask: ["user.email"],
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("ecommerceWishlist", params.id, [
+  ctx?.step("Fetching wishlist item by ID");
+
+  const result = await getRecord("ecommerceWishlist", params.id, [
     {
       model: models.ecommerceProduct,
       as: "products",
@@ -61,4 +64,7 @@ export default async (data) => {
       attributes: ["id", "firstName", "lastName", "email", "avatar"],
     },
   ]);
+
+  ctx?.success("Wishlist retrieved successfully");
+  return result;
 };

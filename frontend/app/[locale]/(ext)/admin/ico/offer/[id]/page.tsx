@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,7 +43,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
-import { motion } from "framer-motion";
 import { TokenDetailsSection } from "@/app/[locale]/(ext)/admin/ico/offer/components/manage/details";
 import { OfferingTimeline } from "@/app/[locale]/(ext)/admin/ico/offer/components/manage/timeline";
 import { OfferingFundingChart } from "@/app/[locale]/(ext)/admin/ico/offer/components/manage/funding";
@@ -56,9 +55,18 @@ import { Lightbox } from "@/components/ui/lightbox";
 import OfferingLoading from "./loading";
 import { useTranslations } from "next-intl";
 import { useToast } from "@/hooks/use-toast";
+import { HeroSection } from "@/components/ui/hero-section";
+
+// ICO Theme hex colors for particles/orbs
+const ICO_COLORS = {
+  primary: "#14b8a6", // teal-500
+  secondary: "#06b6d4", // cyan-500
+};
 
 export default function OfferingDetailPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -165,7 +173,7 @@ export default function OfferingDetailPage() {
         <div className="mt-4">
           <Button onClick={() => router.push("/admin/ico/offer")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t("back_to_offerings")}
+            {tCommon("back_to_offerings")}
           </Button>
         </div>
       </div>
@@ -178,187 +186,205 @@ export default function OfferingDetailPage() {
     ((offerMetrics?.currentRaised ?? 0) / (offering.targetAmount || 1)) * 100;
   return (
     <>
-      <div className="min-h-screen pb-24">
-        {/* Hero section with gradient background */}
-        <div className="relative overflow-hidden mb-12 bg-gradient-to-br from-primary via-primary/90 to-primary/70 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="container mx-auto relative z-10 pt-8 pb-12"
-          >
-            <Link
-              href="/admin/ico/offer"
-              className="text-sm text-white/80 hover:text-white mb-4 flex items-center w-fit"
-            >
-              <ArrowLeft className="mr-1 h-4 w-4" />
-              {t("back_to_offerings")}
-            </Link>
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              {/* Token Icon */}
-              <div className="relative flex-shrink-0">
-                <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-background/20 backdrop-blur-sm p-1 shadow-xl">
-                  <div className="w-full h-full rounded-xl overflow-hidden bg-background flex items-center justify-center">
-                    {offering.icon ? (
-                      <Lightbox
-                        src={offering.icon || "/img/placeholder.svg"}
-                        alt={offering.name}
-                        width={100}
-                        height={100}
-                        className="object-cover rounded-lg"
-                      />
-                    ) : (
-                      <Layers className="w-12 h-12 text-muted-foreground" />
-                    )}
-                  </div>
-                </div>
-                <Badge
-                  className={cn(
-                    "absolute -bottom-2 right-0 px-3 py-1 font-medium border shadow-sm",
-                    getStatusColor(offering.status)
-                  )}
-                  variant="default"
-                >
-                  {offering.status}
-                </Badge>
-              </div>
-              {/* Token Info */}
-              <div className="flex-grow">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-                    <h1 className="text-3xl md:text-4xl font-bold text-white">
-                      {offering.name}
-                    </h1>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className="bg-white/20 backdrop-blur-sm text-white border-white/20 px-2.5 py-1"
-                      >
-                        {offering.symbol}
-                      </Badge>
-                      {offering.website && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-8 w-8 bg-white/20 backdrop-blur-sm border-white/20 text-white hover:bg-white/30"
-                                onClick={() =>
-                                  window.open(offering.website, "_blank")
-                                }
-                              >
-                                <Globe className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{t("visit_website")}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-2 text-white/90 max-w-2xl">
-                  {offering.tokenDetail?.description ||
-                    "No description available."}
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                    <div className="text-white/80 text-sm flex items-center gap-1.5">
-                      <Layers className="h-3.5 w-3.5" />
-                      <span>{t("token_price")}</span>
-                    </div>
-                    <div className="text-white font-semibold mt-1 text-lg">
-                      $
-                      {offering.tokenPrice?.toFixed(4) ?? "0.0000"}{" "}
-                      <span className="text-sm font-normal">
-                        {offering.purchaseWalletCurrency ?? "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                    <div className="text-white/80 text-sm flex items-center gap-1.5">
-                      <Users className="h-3.5 w-3.5" />
-                      <span>{t("Participants")}</span>
-                    </div>
-                    <div className="text-white font-semibold mt-1 text-lg">
-                      {offering.participants ?? 0}
-                    </div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                    <div className="text-white/80 text-sm flex items-center gap-1.5">
-                      <Calendar className="h-3.5 w-3.5" />
-                      <span>{t("start_date")}</span>
-                    </div>
-                    <div className="text-white font-semibold mt-1 text-lg">
-                      {offering.startDate ? formatDate(offering.startDate) : "N/A"}
-                    </div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                    <div className="text-white/80 text-sm flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span>{t("end_date")}</span>
-                    </div>
-                    <div className="text-white font-semibold mt-1 text-lg">
-                      {offering.endDate ? formatDate(offering.endDate) : "N/A"}
-                    </div>
-                  </div>
-                </div>
+      {/* Hero Section */}
+      <HeroSection
+        title={offering.name}
+        titleClassName="text-3xl md:text-4xl"
+        description={
+          offering.tokenDetail?.description || "No description available."
+        }
+        descriptionClassName="text-base md:text-lg max-w-2xl"
+        layout="split"
+        maxWidth="max-w-full"
+        paddingTop="pt-20"
+        paddingBottom="pb-6"
+        showBorder={false}
+        background={{
+          orbs: [
+            {
+              color: ICO_COLORS.primary,
+              position: { top: "-10rem", right: "-10rem" },
+              size: "20rem",
+            },
+            {
+              color: ICO_COLORS.secondary,
+              position: { bottom: "-5rem", left: "-5rem" },
+              size: "15rem",
+            },
+          ],
+        }}
+        particles={{
+          count: 6,
+          type: "floating",
+          colors: [ICO_COLORS.primary, ICO_COLORS.secondary],
+          size: 8,
+        }}
+        titleLeftContent={
+          <div className="relative">
+            <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-primary/10 p-1 shadow-lg">
+              <div className="w-full h-full rounded-xl overflow-hidden bg-background flex items-center justify-center">
+                {offering.icon ? (
+                  <Lightbox
+                    src={offering.icon || "/img/placeholder.svg"}
+                    alt={offering.name}
+                    width={100}
+                    height={100}
+                    className="object-cover rounded-lg"
+                  />
+                ) : (
+                  <Layers className="w-12 h-12 text-muted-foreground" />
+                )}
               </div>
             </div>
-            {/* Progress Bar */}
-            <div className="mt-8 bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-              <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-white">
-                    {t("fundraising_progress")}
-                  </h3>
-                  <Badge
-                    variant="outline"
-                    className="bg-white/20 text-white border-white/20"
-                  >
+            <Badge
+              className={cn(
+                "absolute -bottom-2 right-0 px-3 py-1 font-medium border shadow-sm",
+                getStatusColor(offering.status)
+              )}
+              variant="default"
+            >
+              {offering.status}
+            </Badge>
+          </div>
+        }
+        rightContent={
+          <Link href="/admin/ico/offer">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              {tCommon("back_to_offerings")}
+            </Button>
+          </Link>
+        }
+        rightContentAlign="start"
+        bottomSlot={
+          <div className="space-y-6">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card className="bg-primary/5 border-0">
+                <CardContent className="p-4">
+                  <Layers className="h-5 w-5 text-primary mb-2" />
+                  <p className="text-xs text-muted-foreground">
+                    {tExt("token_price")}
+                  </p>
+                  <p className="font-semibold">
+                    ${offering.tokenPrice?.toFixed(4) ?? "0.0000"}{" "}
+                    <span className="text-sm font-normal text-muted-foreground">
+                      {offering.purchaseWalletCurrency ?? "N/A"}
+                    </span>
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="bg-primary/5 border-0">
+                <CardContent className="p-4">
+                  <Users className="h-5 w-5 text-primary mb-2" />
+                  <p className="text-xs text-muted-foreground">
+                    {tExt("participants")}
+                  </p>
+                  <p className="font-semibold">{offering.participants ?? 0}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-primary/5 border-0">
+                <CardContent className="p-4">
+                  <Calendar className="h-5 w-5 text-primary mb-2" />
+                  <p className="text-xs text-muted-foreground">
+                    {tExt("start_date")}
+                  </p>
+                  <p className="font-semibold">
+                    {offering.startDate
+                      ? formatDate(offering.startDate)
+                      : "N/A"}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="bg-primary/5 border-0">
+                <CardContent className="p-4">
+                  <Clock className="h-5 w-5 text-primary mb-2" />
+                  <p className="text-xs text-muted-foreground">
+                    {tCommon("end_date")}
+                  </p>
+                  <p className="font-semibold">
+                    {offering.endDate ? formatDate(offering.endDate) : "N/A"}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Progress Card */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center justify-between">
+                  <span>{t("fundraising_progress")}</span>
+                  <Badge variant="outline">
                     {progressPercentage.toFixed(1)}%
                   </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-medium">
+                      ${(offerMetrics?.currentRaised ?? 0).toLocaleString()}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {tCommon("of")} $
+                      {(offering.targetAmount ?? 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <Progress
+                    value={progressPercentage}
+                    className="h-3 bg-primary/10"
+                  />
                 </div>
-                <div className="text-white flex items-center gap-1.5">
-                  <span className="font-semibold">
-                    $
-                    {(offerMetrics?.currentRaised ?? 0).toLocaleString()}
-                  </span>
-                  <span className="text-white/80">
-                    {t("of_$")}
-                    {(offering.targetAmount ?? 0).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-              <Progress
-                value={progressPercentage}
-                className="h-2.5 bg-white/20"
-              />
-              <div className="flex flex-wrap gap-4 mt-4 justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1.5 text-white/80">
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Shield className="h-4 w-4" />
-                    <span>{t("blockchain")}</span>
-                    <span className="font-medium text-white">
+                    <span>{tExt("blockchain")}:</span>
+                    <span className="font-medium text-foreground">
                       {offering.tokenDetail?.blockchain || "Not specified"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-white/80">
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Star className="h-4 w-4" />
-                    <span>{t("token_type")}</span>
-                    <span className="font-medium text-white capitalize">
+                    <span>{tExt("token_type")}:</span>
+                    <span className="font-medium text-foreground capitalize">
                       {offering.tokenDetail?.tokenType || "Not specified"}
                     </span>
                   </div>
                 </div>
-              </div>
-            </div>
-          </motion.div>
+              </CardContent>
+            </Card>
+          </div>
+        }
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline" className="bg-primary/10 px-2.5 py-1">
+            {offering.symbol}
+          </Badge>
+          {offering.website && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => window.open(offering.website, "_blank")}
+                  >
+                    <Globe className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{tExt("visit_website")}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
-        <div className="container mx-auto flex flex-col gap-6 relative z-20">
+      </HeroSection>
+
+      {/* Main Content */}
+      <div className="container mx-auto pt-6 pb-8 space-y-6">
+        <div className="flex flex-col gap-6">
           {/* Alert for review notes */}
           {offering.reviewNotes && (
             <Alert
@@ -378,10 +404,8 @@ export default function OfferingDetailPage() {
           {/* Admin Action Buttons */}
           <Card>
             <CardHeader>
-              <CardTitle>Admin Actions</CardTitle>
-              <CardDescription>
-                Manage this ICO offering
-              </CardDescription>
+              <CardTitle>{tCommon("admin_actions")}</CardTitle>
+              <CardDescription>{t("manage_this_ico_offering")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-3">
@@ -393,7 +417,9 @@ export default function OfferingDetailPage() {
                       className="bg-green-600 hover:bg-green-700"
                     >
                       <Check className="h-4 w-4 mr-2" />
-                      {processingAction === "approve" ? "Approving..." : "Approve Offering"}
+                      {processingAction === "approve"
+                        ? "Approving..."
+                        : "Approve Offering"}
                     </Button>
                     <Button
                       variant="destructive"
@@ -401,7 +427,7 @@ export default function OfferingDetailPage() {
                       disabled={processingAction === "reject"}
                     >
                       <AlertCircle className="h-4 w-4 mr-2" />
-                      Reject Offering
+                      {t("reject_offering")}
                     </Button>
                   </>
                 )}
@@ -410,14 +436,18 @@ export default function OfferingDetailPage() {
                   <Button
                     variant={offering.isPaused ? "default" : "outline"}
                     onClick={handlePauseResume}
-                    disabled={processingAction === "pause" || processingAction === "resume"}
+                    disabled={
+                      processingAction === "pause" ||
+                      processingAction === "resume"
+                    }
                   >
                     <Clock className="h-4 w-4 mr-2" />
-                    {processingAction === "pause" || processingAction === "resume"
+                    {processingAction === "pause" ||
+                    processingAction === "resume"
                       ? "Processing..."
                       : offering.isPaused
-                      ? "Resume Offering"
-                      : "Pause Offering"}
+                        ? "Resume Offering"
+                        : "Pause Offering"}
                   </Button>
                 )}
 
@@ -428,7 +458,7 @@ export default function OfferingDetailPage() {
                     disabled={processingAction === "flag"}
                   >
                     <AlertTriangle className="h-4 w-4 mr-2" />
-                    Flag for Review
+                    {tCommon("flag_for_review")}
                   </Button>
                 ) : (
                   <Button
@@ -450,7 +480,7 @@ export default function OfferingDetailPage() {
                     className="bg-red-600 hover:bg-red-700 border-red-700"
                   >
                     <AlertTriangle className="h-4 w-4 mr-2" />
-                    Emergency Cancel & Refund
+                    {t("emergency_cancel_refund")}
                   </Button>
                 )}
               </div>
@@ -462,7 +492,7 @@ export default function OfferingDetailPage() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center justify-between">
-                  <span>{t("funding_progress")}</span>
+                  <span>{tExt("funding_progress")}</span>
                   <Badge variant="outline" className="ml-2">
                     {offering.status === "ACTIVE" ? "Live" : "Final"}
                   </Badge>
@@ -497,18 +527,18 @@ export default function OfferingDetailPage() {
                   {showAllMetrics ? (
                     <>
                       <ChevronUp className="h-3 w-3 mr-1" />
-                      {t("show_less")}
+                      {tCommon("show_less")}
                     </>
                   ) : (
                     <>
                       <ChevronDown className="h-3 w-3 mr-1" />
-                      {t("show_more")}
+                      {tCommon("show_more")}
                     </>
                   )}
                 </Button>
               </CardTitle>
               <CardDescription>
-                {t("database-driven_metrics_compared_platform_averages")}
+                {t("database_driven_metrics_compared_platform_averages")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -532,7 +562,7 @@ export default function OfferingDetailPage() {
             </DialogDescription>
           </DialogHeader>
           <Textarea
-            placeholder="Enter rejection reason..."
+            placeholder={tCommon("enter_rejection_reason")}
             value={rejectNotes}
             onChange={(e) => setRejectNotes(e.target.value)}
             className="min-h-[100px]"
@@ -542,7 +572,7 @@ export default function OfferingDetailPage() {
               variant="outline"
               onClick={() => setRejectDialogOpen(false)}
             >
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -565,14 +595,14 @@ export default function OfferingDetailPage() {
             </DialogDescription>
           </DialogHeader>
           <Textarea
-            placeholder="Enter flag reason..."
+            placeholder={t("enter_flag_reason_ellipsis")}
             value={flagNotes}
             onChange={(e) => setFlagNotes(e.target.value)}
             className="min-h-[100px]"
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setFlagDialogOpen(false)}>
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -591,11 +621,11 @@ export default function OfferingDetailPage() {
           <DialogHeader>
             <DialogTitle className="text-red-600 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
-              Emergency Cancel ICO
+              {t("emergency_cancel_ico")}
             </DialogTitle>
             <DialogDescription>
-              This will IMMEDIATELY cancel the ICO and refund ALL active investors.
-              This action is irreversible and should only be used for scams or critical security issues.
+              {t("this_will_immediately_cancel_the_ico")}{" "}
+              {t("this_action_is_irreversible_and_should")}
             </DialogDescription>
           </DialogHeader>
           <Alert variant="destructive">
@@ -605,7 +635,7 @@ export default function OfferingDetailPage() {
             </AlertDescription>
           </Alert>
           <Textarea
-            placeholder="Enter detailed reason for emergency cancellation (minimum 10 characters)..."
+            placeholder={t("enter_detailed_reason_for_emergency_cancellation")}
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}
             className="min-h-[120px]"
@@ -620,9 +650,13 @@ export default function OfferingDetailPage() {
             <Button
               variant="destructive"
               onClick={handleEmergencyCancel}
-              disabled={cancelReason.trim().length < 10 || processingAction === "cancel"}
+              disabled={
+                cancelReason.trim().length < 10 || processingAction === "cancel"
+              }
             >
-              {processingAction === "cancel" ? "Cancelling..." : "Emergency Cancel & Refund All"}
+              {processingAction === "cancel"
+                ? "Cancelling..."
+                : "Emergency Cancel & Refund All"}
             </Button>
           </DialogFooter>
         </DialogContent>

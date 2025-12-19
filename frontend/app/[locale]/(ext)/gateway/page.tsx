@@ -1,5 +1,5 @@
-import { redirect } from "@/i18n/routing";
+import GatewayLandingClient from "./client";
 
 export default function GatewayPage() {
-  redirect("/gateway/dashboard");
+  return <GatewayLandingClient />;
 }

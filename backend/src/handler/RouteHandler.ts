@@ -6,7 +6,7 @@ import { HttpMethod, IErrorHandler, IRequestHandler, IRoute } from "../types";
 import { errHandlerFn, notFoundFn } from "../utils";
 import { Request } from "./Request";
 import { Response } from "./Response";
-import logger from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 export class RouteHandler {
   private routes: IRoute[] = [];
@@ -52,12 +52,7 @@ export class RouteHandler {
     try {
       fn(res, req, next);
     } catch (err) {
-      logger(
-        "error",
-        "route",
-        __filename,
-        `Error in middleware/handler: ${err.message}`
-      );
+      logger.error("ROUTE", "Error in middleware/handler", err);
       this.errorHandler(err, res, req);
     }
   }
@@ -120,12 +115,7 @@ export class RouteHandler {
         markResponseSent();
       });
     } catch (err) {
-      logger(
-        "error",
-        "route",
-        __filename,
-        `Error processing route: ${err.message}`
-      );
+      logger.error("ROUTE", "Error processing route", err);
       this.errorHandler(err, res, req);
       markResponseSent();
     }

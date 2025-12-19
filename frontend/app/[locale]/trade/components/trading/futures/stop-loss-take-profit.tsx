@@ -17,7 +17,7 @@ export default function StopLossTakeProfit({
   takeProfit,
   setTakeProfit,
 }: StopLossTakeProfitProps) {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   // Handle stop loss change
   const handleStopLossChange = (value: string) => {
     const numValue = Number.parseFloat(value);
@@ -42,7 +42,7 @@ export default function StopLossTakeProfit({
     <div className="grid grid-cols-2 gap-4 mb-4">
       <div>
         <label className="block text-xs text-muted-foreground mb-1">
-          {t("stop_loss")}
+          {tCommon("stop_loss")}
         </label>
         <div className="relative">
           <Input
@@ -60,7 +60,7 @@ export default function StopLossTakeProfit({
       </div>
       <div>
         <label className="block text-xs text-muted-foreground mb-1">
-          {t("take_profit")}
+          {tCommon("take_profit")}
         </label>
         <div className="relative">
           <Input

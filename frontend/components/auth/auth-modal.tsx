@@ -43,7 +43,7 @@ export function AuthModal({
   onViewChange,
   returnTo,
 }: AuthModalProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components_auth");
   const [view, setView] = useState<
     "login" | "register" | "register-success" | "forgot-password" | "reset-password" | "wallet-login"
   >(initialView);

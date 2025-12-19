@@ -41,10 +41,12 @@ export const metadata = {
   },
   requiresAuth: true,
   permission: "edit.admin.profit",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Admin Profit",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
 
   return await updateRecord("adminProfit", id, body);

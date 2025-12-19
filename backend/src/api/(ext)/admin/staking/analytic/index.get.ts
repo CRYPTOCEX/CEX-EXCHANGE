@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "getStakingAnalytics",
   tags: ["Staking", "Admin", "Analytics"],
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Get Staking Analytics",
   responses: {
     200: {
       description: "Analytics retrieved successfully",
@@ -70,14 +72,15 @@ export const metadata = {
   permission: "access.staking",
 };
 
-export default async (data: { user?: any }) => {
-  const { user } = data;
+export default async (data: { user?: any, ctx }) => {
+  const { user, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   try {
+    ctx?.step("Fetching data");
     // Get total staked amount
     const totalStakedResult = await models.stakingPosition.findOne({
       attributes: [[fn("SUM", col("amount")), "totalStaked"]],
@@ -288,6 +291,7 @@ export default async (data: { user?: any }) => {
     const earlyWithdrawalRate = 0;
     const retentionRate = 0;
 
+    ctx?.success("Staking analytics retrieved successfully");
     return {
       totalStaked,
       totalUsers,

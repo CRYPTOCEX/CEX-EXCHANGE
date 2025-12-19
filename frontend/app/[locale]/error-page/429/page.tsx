@@ -16,7 +16,7 @@ const ErrorPage = () => {
         <div className="max-w-[430px]">
           <Image
             src={theme === "dark" ? darkImage : lightImage}
-            alt="error image"
+            alt={t("error_image")}
             width={542}
             height={400}
             className="w-full h-full object-cover"

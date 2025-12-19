@@ -8,6 +8,8 @@ export const metadata: OperationObject = {
   tags: ["Auth"],
   description: "Resends email verification token to user's email address",
   requiresAuth: false,
+  logModule: "EMAIL",
+  logTitle: "Resend verification email",
   requestBody: {
     required: true,
     content: {
@@ -53,54 +55,69 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { email } = body;
 
-  if (!email) {
-    throw createError({
-      statusCode: 400,
-      message: "Email is required",
-    });
-  }
-
-  // Find the user by email
-  const user = await models.user.findOne({
-    where: { email },
-  });
-
-  if (!user) {
-    throw createError({
-      statusCode: 404,
-      message: "User not found with this email address",
-    });
-  }
-
-  // Check if email is already verified
-  if (user.emailVerified) {
-    throw createError({
-      statusCode: 400,
-      message: "Email is already verified",
-    });
-  }
-
-  // Check if email verification is enabled
-  if (process.env.NEXT_PUBLIC_VERIFY_EMAIL_STATUS !== "true") {
-    throw createError({
-      statusCode: 400,
-      message: "Email verification is not enabled on this platform",
-    });
-  }
-
   try {
-    await sendEmailVerificationToken(user.id, user.email);
-    
-    return {
-      message: "Verification email sent successfully. Please check your inbox.",
-    };
-  } catch (error) {
-    throw createError({
-      statusCode: 500,
-      message: "Failed to send verification email. Please try again later.",
+    ctx?.step("Validating resend request");
+    if (!email) {
+      ctx?.fail("Email is required");
+      throw createError({
+        statusCode: 400,
+        message: "Email is required",
+      });
+    }
+
+    ctx?.step(`Looking up user: ${email}`);
+    // Find the user by email
+    const user = await models.user.findOne({
+      where: { email },
     });
+
+    if (!user) {
+      ctx?.fail("User not found");
+      throw createError({
+        statusCode: 404,
+        message: "User not found with this email address",
+      });
+    }
+
+    ctx?.step("Checking email verification status");
+    // Check if email is already verified
+    if (user.emailVerified) {
+      ctx?.fail("Email already verified");
+      throw createError({
+        statusCode: 400,
+        message: "Email is already verified",
+      });
+    }
+
+    // Check if email verification is enabled
+    if (process.env.NEXT_PUBLIC_VERIFY_EMAIL_STATUS !== "true") {
+      ctx?.fail("Email verification not enabled");
+      throw createError({
+        statusCode: 400,
+        message: "Email verification is not enabled on this platform",
+      });
+    }
+
+    try {
+      ctx?.step("Sending verification email");
+      await sendEmailVerificationToken(user.id, user.email);
+
+      ctx?.success(`Verification email resent to ${email}`);
+      return {
+        message: "Verification email sent successfully. Please check your inbox.",
+      };
+    } catch (error) {
+      ctx?.fail("Failed to send verification email");
+      throw createError({
+        statusCode: 500,
+        message: "Failed to send verification email. Please try again later.",
+      });
+    }
+  } catch (error) {
+    ctx?.fail(error.message || "Failed to resend verification email");
+    throw error;
   }
 }; 

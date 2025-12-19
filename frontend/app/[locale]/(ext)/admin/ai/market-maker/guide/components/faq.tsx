@@ -11,7 +11,9 @@ import {
 import { useTranslations } from "next-intl";
 
 export default function FaqSection() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const faqCategories = [
     {
       title: "General Questions",
@@ -169,10 +171,10 @@ export default function FaqSection() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-muted-800 dark:text-muted-100">
-                {t("frequently_asked_questions")}
+                {tCommon('faq_question')}
               </h2>
               <p className="text-muted-600 dark:text-muted-400 mt-1">
-                {t("find_answers_to_common_questions_about")} {t("cant_find_what_youre_looking_for")} {t("check_the_other_guide_sections_or_contact_support")}
+                {t("find_answers_to_common_questions_about")} {tExt("cant_find_what_youre_looking_for")} {t("check_the_other_guide_sections_or_contact_support")}
               </p>
             </div>
           </div>
@@ -222,7 +224,7 @@ export default function FaqSection() {
           <div className="text-center">
             <Icon icon="mdi:help-circle-outline" className="w-12 h-12 text-muted-400 mx-auto mb-3" />
             <h3 className="text-lg font-semibold text-muted-800 dark:text-muted-100 mb-2">
-              {t("still_have_questions")}
+              {tExt("still_have_questions")}
             </h3>
             <p className="text-sm text-muted-500 mb-4 max-w-md mx-auto">
               {t("if_you_couldnt_find_the_answer")}

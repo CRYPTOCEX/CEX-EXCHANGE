@@ -16,7 +16,7 @@ export default function BotSettingsSection({
   settings = {},
   onUpdate,
 }: BotSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const safeSettings = {
     MaxConcurrentBots: settings.MaxConcurrentBots ?? 50,
   };
@@ -55,7 +55,7 @@ export default function BotSettingsSection({
             <div>
               <h5 className="text-sm font-medium text-info-700 dark:text-info-300">{t("bot_configuration")}</h5>
               <p className="text-xs text-info-600 dark:text-info-400 mt-1">
-                {t("individual_bot_settings_count_personality_intervals")}
+                {t("individual_bot_settings")} {t("individual_bot_settings_count_personality_intervals")}
               </p>
             </div>
           </div>

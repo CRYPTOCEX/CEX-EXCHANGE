@@ -9,7 +9,9 @@ import { Check, AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function LaunchRequirements() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-6">
       <Card>
@@ -34,7 +36,7 @@ export function LaunchRequirements() {
             <div className="flex items-start gap-2">
               <Check className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
               <div>
-                <h4 className="font-medium">{t("kyc_verification")}</h4>
+                <h4 className="font-medium">{tCommon("kyc_verification")}</h4>
                 <p className="text-sm text-muted-foreground">
                   {t("all_team_members_verification_process")}.
                 </p>
@@ -56,7 +58,7 @@ export function LaunchRequirements() {
             <div className="flex items-start gap-2">
               <Check className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
               <div>
-                <h4 className="font-medium">{t("Whitepaper")}</h4>
+                <h4 className="font-medium">{t("whitepaper")}</h4>
                 <p className="text-sm text-muted-foreground">
                   {t("your_project_must_and_roadmap")}.
                 </p>
@@ -132,7 +134,7 @@ export function LaunchRequirements() {
               <div>
                 <h4 className="font-medium">{t("review_process")}</h4>
                 <p className="text-sm text-muted-foreground">
-                  {t("the_review_process_typically_takes_1-2_weeks")}.{" "}
+                  {t("the_review_process_typically_takes_1_2_weeks")}.{" "}
                   {t("our_team_will_is_needed")}.
                 </p>
               </div>
@@ -141,7 +143,7 @@ export function LaunchRequirements() {
             <div className="flex items-start gap-2">
               <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
               <div>
-                <h4 className="font-medium">{t("platform_fees")}</h4>
+                <h4 className="font-medium">{tExt("platform_fees")}</h4>
                 <p className="text-sm text-muted-foreground">
                   {t("our_platform_charges_target_amount")}.
                 </p>
@@ -151,7 +153,7 @@ export function LaunchRequirements() {
             <div className="flex items-start gap-2">
               <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
               <div>
-                <h4 className="font-medium">{t("marketing_support")}</h4>
+                <h4 className="font-medium">{tExt("marketing_support")}</h4>
                 <p className="text-sm text-muted-foreground">
                   {t("we_provide_marketing_chosen_package")}.
                 </p>

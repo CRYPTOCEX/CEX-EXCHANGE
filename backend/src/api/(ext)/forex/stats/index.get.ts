@@ -12,6 +12,8 @@ export const metadata = {
     "Retrieves platform-wide forex stats: number of active investors, total invested amount, average return (completed investments), and number of countries served.",
   operationId: "getForexStats",
   tags: ["Forex", "Stats"],
+  logModule: "FOREX",
+  logTitle: "Get Forex Stats",
   responses: {
     200: {
       description: "Forex platform statistics retrieved successfully.",
@@ -42,7 +44,9 @@ export const metadata = {
   },
 };
 
-export default async function getForexStats() {
+export default async function getForexStats(data?: { ctx?: any }) {
+  const { ctx } = data || {};
+  ctx?.step("Processing request");
   try {
     // 1. Active Investors (unique user IDs with active investments)
     const activeInvestors = await models.forexInvestment.count({
@@ -75,6 +79,7 @@ export default async function getForexStats() {
       raw: true,
     });
     const averageReturn = Number(avgReturnRow?.averageReturn || 0);
+  ctx?.success("Request completed successfully");
 
     return {
       activeInvestors,

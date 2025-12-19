@@ -61,7 +61,9 @@ function getUserName(user: any): string {
 }
 
 export function OverviewTab({ dispute }: OverviewTabProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
 
   const reportedBy = dispute?.reportedBy || {};
   const against = dispute?.against || {};
@@ -79,7 +81,7 @@ export function OverviewTab({ dispute }: OverviewTabProps) {
             <AlertTriangle className="mt-0.5 h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
             <div>
               <h3 className="font-medium text-red-800 dark:text-red-300">
-                {t("dispute_reason")}
+                {tExt("dispute_reason")}
               </h3>
               <p className="mt-1 text-red-800 dark:text-red-300">{formatDisputeReason(dispute.reason)}</p>
             </div>
@@ -99,19 +101,19 @@ export function OverviewTab({ dispute }: OverviewTabProps) {
         {/* Trade Information */}
         {trade && trade.id && (
           <div>
-            <h3 className="mb-3 font-medium">Related Trade</h3>
+            <h3 className="mb-3 font-medium">{t("related_trade")}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30 min-w-0">
                 <DollarSign className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">{t("Amount")}</p>
+                  <p className="text-xs text-muted-foreground">{tCommon("amount")}</p>
                   <p className="font-medium text-sm truncate">{trade.amount || "N/A"} {trade.currency || ""}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30 min-w-0">
                 <Wallet className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">{t("Status")}</p>
+                  <p className="text-xs text-muted-foreground">{tCommon("status")}</p>
                   <Badge variant="outline" className="mt-0.5 text-xs">
                     {trade.status || "N/A"}
                   </Badge>
@@ -120,7 +122,7 @@ export function OverviewTab({ dispute }: OverviewTabProps) {
               <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30 min-w-0">
                 <CreditCard className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">Trade ID</p>
+                  <p className="text-xs text-muted-foreground">{tExt("trade_id")}</p>
                   <Link
                     href={`/admin/p2p/trade/${trade.id}`}
                     className="text-xs text-primary hover:underline font-mono truncate block"
@@ -132,7 +134,7 @@ export function OverviewTab({ dispute }: OverviewTabProps) {
               <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30 min-w-0">
                 <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">Filed On</p>
+                  <p className="text-xs text-muted-foreground">{t("filed_on_1")}</p>
                   <p className="text-xs truncate">{dispute.filedOn ? formatDate(dispute.filedOn) : "N/A"}</p>
                 </div>
               </div>
@@ -169,7 +171,7 @@ export function OverviewTab({ dispute }: OverviewTabProps) {
                     href={`/admin/crm/user/${reportedBy.id}`}
                     className="text-xs text-primary hover:underline"
                   >
-                    {t("view_profile")}
+                    {tExt("view_profile")}
                   </Link>
                 )}
               </div>
@@ -179,7 +181,7 @@ export function OverviewTab({ dispute }: OverviewTabProps) {
           <div>
             <h3 className="mb-3 font-medium flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-orange-500" />
-              {t("Against")}
+              {t("against")}
             </h3>
             <div className="flex items-center gap-3 p-4 rounded-lg border bg-orange-50/50 dark:bg-orange-950/20">
               <Avatar className="h-12 w-12 ring-2 ring-orange-500/30">
@@ -201,7 +203,7 @@ export function OverviewTab({ dispute }: OverviewTabProps) {
                     href={`/admin/crm/user/${against.id}`}
                     className="text-xs text-primary hover:underline"
                   >
-                    {t("view_profile")}
+                    {tExt("view_profile")}
                   </Link>
                 )}
               </div>

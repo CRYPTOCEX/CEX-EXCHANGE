@@ -11,7 +11,9 @@ import { WalletSelector } from "./WalletSelector";
 import { useTranslations } from "next-intl";
 
 export default function DesignV3({ state, actions, paymentIntentId }: CheckoutDesignProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_gateway");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { session, customerWallet, walletLoading, loading, error, processing, success, redirectUrl, timeLeft, isAuthenticated, multiWallet } = state;
   const { handleConfirmPayment, handleCancel, formatTime, formatCurrency, addWalletAllocation, removeWalletAllocation, updateWalletAllocation, autoAllocateWallets, clearAllocations } = actions;
 
@@ -32,7 +34,7 @@ export default function DesignV3({ state, actions, paymentIntentId }: CheckoutDe
           </div>
           <div className="space-y-2">
             <p className="text-white/80 font-medium">{t("preparing_checkout")}</p>
-            <p className="text-white/40 text-sm">{t("please_wait_ellipsis")}</p>
+            <p className="text-white/40 text-sm">{tCommon('please_wait')}</p>
           </div>
         </div>
       </div>
@@ -48,7 +50,7 @@ export default function DesignV3({ state, actions, paymentIntentId }: CheckoutDe
             <X className="w-14 h-14 text-red-400" />
           </div>
           <div className="space-y-3">
-            <h1 className="text-3xl font-semibold text-white">{t("something_went_wrong")}</h1>
+            <h1 className="text-3xl font-semibold text-white">{tCommon("something_went_wrong")}</h1>
             <p className="text-white/50 leading-relaxed">{error}</p>
           </div>
           <button onClick={handleCancel} className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors cursor-pointer">
@@ -88,7 +90,7 @@ export default function DesignV3({ state, actions, paymentIntentId }: CheckoutDe
           {redirectUrl && (
             <motion.a initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} href={redirectUrl}
               className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-xl px-8 py-4 rounded-2xl text-white font-medium transition-all border border-white/10 cursor-pointer">
-              {t("continue_shopping")} <ArrowUpRight className="w-4 h-4" />
+              {tExt("continue_shopping")} <ArrowUpRight className="w-4 h-4" />
             </motion.a>
           )}
         </motion.div>
@@ -187,7 +189,7 @@ export default function DesignV3({ state, actions, paymentIntentId }: CheckoutDe
                   </div>
                   <Link href={`/login?redirect=/gateway/checkout/${paymentIntentId}`} className="block cursor-pointer">
                     <button className="w-full py-4 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-400 hover:to-purple-400 text-white font-semibold rounded-2xl transition-all shadow-lg shadow-violet-500/25 flex items-center justify-center gap-2 cursor-pointer">
-                      {t("sign_in_to_continue")} <ArrowRight className="w-4 h-4" />
+                      {tCommon("sign_in_to_continue")} <ArrowRight className="w-4 h-4" />
                     </button>
                   </Link>
                   <div className="relative">
@@ -196,7 +198,7 @@ export default function DesignV3({ state, actions, paymentIntentId }: CheckoutDe
                   </div>
                   <Link href={`/register?redirect=/gateway/checkout/${paymentIntentId}`} className="block cursor-pointer">
                     <button className="w-full py-4 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 text-white font-medium rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer">
-                      <Sparkles className="w-4 h-4" /> {t("create_account")}
+                      <Sparkles className="w-4 h-4" /> {tCommon("create_account")}
                     </button>
                   </Link>
                 </div>
@@ -219,7 +221,7 @@ export default function DesignV3({ state, actions, paymentIntentId }: CheckoutDe
                     className={`w-full py-5 font-semibold rounded-2xl transition-all flex items-center justify-center gap-3 ${isPaymentReady
                       ? "bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white shadow-lg shadow-emerald-500/25 cursor-pointer"
                       : "bg-white/5 text-white/30 cursor-not-allowed"}`}>
-                    {processing ? <><Loader2 className="w-5 h-5 animate-spin" /> {t("processing_ellipsis")}</>
+                    {processing ? <><Loader2 className="w-5 h-5 animate-spin" /> {tCommon('processing')}</>
                       : <><Lock className="w-4 h-4" /> Pay {formatCurrency(session?.amount || 0, session?.currency || "USD")}</>}
                   </button>
                 </div>
@@ -246,7 +248,7 @@ export default function DesignV3({ state, actions, paymentIntentId }: CheckoutDe
                       <div className="text-center"><p className="text-white/50 text-sm">{t("you_need")} <span className="text-white font-medium">{formatCurrency(session!.amount - customerWallet.balance, session!.currency)}</span> more</p></div>
                       <Link href={`/finance/deposit?type=${session?.walletType?.toLowerCase()}&currency=${session?.currency}`} className="block cursor-pointer">
                         <button className="w-full py-4 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 text-white font-medium rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer">
-                          <Zap className="w-4 h-4 text-yellow-400" /> {t("add_funds")}
+                          <Zap className="w-4 h-4 text-yellow-400" /> {tCommon("add_funds")}
                         </button>
                       </Link>
                     </div>
@@ -255,7 +257,7 @@ export default function DesignV3({ state, actions, paymentIntentId }: CheckoutDe
                     className={`w-full py-5 font-semibold rounded-2xl transition-all flex items-center justify-center gap-3 ${customerWallet.sufficient
                       ? "bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white shadow-lg shadow-emerald-500/25 cursor-pointer"
                       : "bg-white/5 text-white/30 cursor-not-allowed"}`}>
-                    {processing ? <><Loader2 className="w-5 h-5 animate-spin" /> {t("processing_ellipsis")}</>
+                    {processing ? <><Loader2 className="w-5 h-5 animate-spin" /> {tCommon('processing')}</>
                       : <><Lock className="w-4 h-4" /> Pay {formatCurrency(session?.amount || 0, session?.currency || "USD")}</>}
                   </button>
                 </div>

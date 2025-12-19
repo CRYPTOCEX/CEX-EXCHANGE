@@ -23,7 +23,8 @@ import { StateSelect } from "@/components/ui/state-select";
 import { CitySelect } from "@/components/ui/city-select";
 
 export function LocationSettingsStep() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
   const { tradeData, updateTradeData, markStepComplete, currentStep } =
     useWizard();
   const [country, setCountry] = useState<string>("");
@@ -209,7 +210,7 @@ export function LocationSettingsStep() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-1">
-                {t("Country")} <span className="text-red-500">*</span>
+                {tCommon("country")} <span className="text-red-500">*</span>
               </Label>
               <CountrySelect
                 value={country}
@@ -220,23 +221,23 @@ export function LocationSettingsStep() {
             </div>
 
             <div className="space-y-2">
-              <Label>{t("region_state_(optional)")}</Label>
+              <Label>{t("region_state_optional")}</Label>
               <StateSelect
                 value={region}
                 onValueChange={handleRegionChange}
                 countryCode={country}
-                placeholder={t("select_state")}
+                placeholder={tCommon("select_state")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>{t("city_(optional)")}</Label>
+              <Label>{t("city_optional")}</Label>
               <CitySelect
                 value={city}
                 onValueChange={handleCityChange}
                 countryCode={country}
                 stateName={region}
-                placeholder={t("select_city")}
+                placeholder={tCommon("select_city")}
               />
             </div>
           </div>
@@ -268,7 +269,7 @@ export function LocationSettingsStep() {
               className="flex-1"
             />
             <Button type="button" onClick={addRestriction} className="px-4 h-10">
-              {t("Add")}
+              {tCommon("add")}
             </Button>
           </div>
 

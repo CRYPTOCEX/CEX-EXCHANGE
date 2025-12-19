@@ -1,8 +1,9 @@
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 
 export function parseTransactionMetadata(metadata: string | object) {
   if (!metadata) return {};
-  
+
   if (typeof metadata === "string") {
     try {
       // Unescape the string if it's not valid JSON
@@ -18,25 +19,25 @@ export function parseTransactionMetadata(metadata: string | object) {
         try {
           parsedMetadata = JSON.parse(parsedMetadata.trim());
         } catch (error) {
-          console.error(
-            "Error parsing transaction metadata on second attempt:",
-            parsedMetadata,
-            error.message
+          logger.error(
+            "WALLET",
+            "Error parsing transaction metadata on second attempt",
+            error
           );
           return {};
         }
       }
       return parsedMetadata;
     } catch (error) {
-      console.error(
-        "Error parsing transaction metadata on first attempt:",
-        metadata,
-        error.message
+      logger.error(
+        "WALLET",
+        "Error parsing transaction metadata on first attempt",
+        error
       );
       return {};
     }
   }
-  
+
   return metadata || {};
 }
 

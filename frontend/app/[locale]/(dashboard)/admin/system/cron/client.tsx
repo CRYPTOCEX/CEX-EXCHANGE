@@ -26,13 +26,15 @@ import { $fetch } from "@/lib/api";
 import WebSocketManager from "@/utils/ws";
 import { CronHealth } from "./components/health";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 export default function HomePage() {
   return <CronManagementClient />;
 }
 
 export function CronManagementClient() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   // Get state from store
   const {
     cronJobs,
@@ -128,7 +130,7 @@ export function CronManagementClient() {
   };
 
   return (
-    <div className="container mx-auto py-4 sm:py-6 space-y-4 sm:space-y-6 px-4 sm:px-6">
+    <div className={`container ${PAGE_PADDING}`}>
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -137,11 +139,11 @@ export function CronManagementClient() {
       >
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent truncate">
-            {t("cron_management")}
+            {tDashboardAdmin("cron_management")}
           </h1>
           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-1">
             <p className="text-sm sm:text-base text-muted-foreground truncate">
-              {t("real-time_cron_job_monitoring_dashboard")}
+              {tDashboardAdmin("real_time_cron_job_monitoring_dashboard")}
             </p>
             <span className="text-xs text-muted-foreground whitespace-nowrap">
               {currentTime ? currentTime.toLocaleTimeString() : ""}
@@ -158,7 +160,7 @@ export function CronManagementClient() {
           className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
           role="alert"
         >
-          <strong className="font-bold">{t("error")}</strong>
+          <strong className="font-bold">{"Error"}</strong>
           <span className="block sm:inline">{error}</span>
         </div>
       )}
@@ -176,8 +178,8 @@ export function CronManagementClient() {
           >
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">{t("Timeline")}</CardTitle>
-                <CardDescription className="text-sm">{t("recent_cron_job_events")}</CardDescription>
+                <CardTitle className="text-lg">{t("timeline")}</CardTitle>
+                <CardDescription className="text-sm">{tDashboardAdmin("recent_cron_job_events")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <TimelineView />
@@ -195,7 +197,7 @@ export function CronManagementClient() {
           <Card className="overflow-hidden">
             <div className="p-3 sm:p-4 border-b space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <CardTitle className="text-lg sm:text-xl">{t("cron_jobs")}</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">{tDashboardAdmin("cron_jobs")}</CardTitle>
                 <div className="w-full sm:w-auto">
                   <SearchBar />
                 </div>
@@ -243,11 +245,11 @@ export function CronManagementClient() {
                     <div className="border rounded-md overflow-hidden">
                       {/* Desktop table header */}
                       <div className="hidden md:grid md:grid-cols-12 gap-2 lg:gap-4 p-3 bg-muted font-medium text-sm">
-                        <div className="col-span-4">{t("Name")}</div>
-                        <div className="col-span-2">{t("Status")}</div>
-                        <div className="col-span-2">{t("Category")}</div>
-                        <div className="col-span-2">{t("Period")}</div>
-                        <div className="col-span-2">{t("last_run")}</div>
+                        <div className="col-span-4">{t("name")}</div>
+                        <div className="col-span-2">{t("status")}</div>
+                        <div className="col-span-2">{t("category")}</div>
+                        <div className="col-span-2">{t("period")}</div>
+                        <div className="col-span-2">{tDashboardAdmin("last_run")}</div>
                       </div>
 
                       <div className="h-[400px] sm:h-[500px] lg:h-[600px] overflow-auto">

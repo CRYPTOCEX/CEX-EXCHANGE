@@ -25,7 +25,8 @@ export default function P2PFeesSettingsSection({
   settings = {},
   onUpdate,
 }: P2PFeesSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const safeSettings = {
     MakerFee: settings.MakerFee ?? 0.1,
     TakerFee: settings.TakerFee ?? 0.2,
@@ -77,7 +78,7 @@ export default function P2PFeesSettingsSection({
         {/* Row for Fee Settings */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="makerFee">{t("maker_fee_(%)")}</Label>
+            <Label htmlFor="makerFee">{`${tCommon("maker_fee")} (%)`}</Label>
             <Input
               id="makerFee"
               type="number"
@@ -89,11 +90,11 @@ export default function P2PFeesSettingsSection({
               step="0.01"
             />
             <p className="text-xs text-muted-foreground">
-              {t("fee_charged_to_users_who_create_offers_(makers)")}.
+              {t("fee_charged_to_users_who_create_offers_makers")} (makers).
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="takerFee">{t("taker_fee_(%)")}</Label>
+            <Label htmlFor="takerFee">{`${tCommon("taker_fee")} (%)`}</Label>
             <Input
               id="takerFee"
               type="number"
@@ -105,7 +106,7 @@ export default function P2PFeesSettingsSection({
               step="0.01"
             />
             <p className="text-xs text-muted-foreground">
-              {t("fee_charged_to_users_who_accept_offers_(takers)")}.
+              {t("fee_charged_to_users_who_accept_offers_takers")} (takers).
             </p>
           </div>
         </div>
@@ -113,7 +114,7 @@ export default function P2PFeesSettingsSection({
         {/* Row for Additional Fee Settings */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="disputeFeePercent">{t("dispute_fee_(%)")}</Label>
+            <Label htmlFor="disputeFeePercent">{`${t("dispute_fee")} (%)`}</Label>
             <Input
               id="disputeFeePercent"
               type="number"

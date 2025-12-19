@@ -3,6 +3,7 @@
 import React, { memo, useMemo } from "react";
 import type { Element } from "@/types/builder";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 // Optimized Columns Element
 export const ColumnsElement = memo(({ element }: { element: Element }) => {
@@ -57,6 +58,7 @@ ColumnsElement.displayName = "ColumnsElement";
 
 // Optimized Container Element
 export const ContainerElement = memo(({ element }: { element: Element }) => {
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const settings = element.settings || {};
   const { borderRadius = 8, padding = 24 } = settings;
   const containerStyle = useMemo(
@@ -75,7 +77,7 @@ export const ContainerElement = memo(({ element }: { element: Element }) => {
       data-element-type="container"
     >
       <div className="text-gray-500 text-center py-4">
-        Container content goes here
+        {tDashboardAdmin("container_content_goes_here")}
       </div>
     </div>
   );

@@ -1,9 +1,12 @@
-import { updateRecordResponses, updateStatus } from "@b/utils/query";
+import { updateStatus } from "@b/utils/query";
+import { statusUpdateResponses } from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Bulk updates the status of Mailwizard Templates",
+  summary: "Bulk update template status",
   operationId: "bulkUpdateMailwizardTemplateStatus",
-  tags: ["Admin", "Mailwizard Templates"],
+  tags: ["Admin", "Mailwizard", "Templates"],
+  description:
+    "Updates the status of multiple Mailwizard templates simultaneously. Valid statuses: ACTIVE, INACTIVE, ARCHIVED. This allows for efficient batch status management of templates.",
   requestBody: {
     required: true,
     content: {
@@ -27,13 +30,20 @@ export const metadata = {
       },
     },
   },
-  responses: updateRecordResponses("Mailwizard Template"),
+  responses: statusUpdateResponses("Mailwizard Template"),
   requiresAuth: true,
   permission: "edit.mailwizard.template",
+  logModule: "ADMIN_MAIL",
+  logTitle: "Bulk update template status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("mailwizardTemplate", ids, status);
+
+  ctx?.step(`Updating status of ${ids.length} templates to ${status}`);
+  const result = await updateStatus("mailwizardTemplate", ids, status);
+
+  ctx?.success(`${ids.length} templates status updated successfully`);
+  return result;
 };

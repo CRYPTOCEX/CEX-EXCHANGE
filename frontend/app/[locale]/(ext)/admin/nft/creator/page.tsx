@@ -1,11 +1,15 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import { nftCreatorAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
+import { Users } from "lucide-react";
 
 export default function NFTCreatorsPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/creator"
@@ -17,7 +21,7 @@ export default function NFTCreatorsPage() {
         edit: "edit.nft.creator",
         delete: "delete.nft.creator",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={false}
       canEdit={true}
       canDelete={false}
@@ -25,9 +29,16 @@ export default function NFTCreatorsPage() {
       isParanoid={false}
       title="NFT Creators"
       itemTitle="Creator"
-      description={t("manage_creator_profiles_verification_status_and")}
+      description={t("manage_nft_creator_profiles_verification_status")}
       columns={columns}
+      formConfig={formConfig}
       analytics={nftCreatorAnalytics}
+      design={{
+        animation: "orbs",
+        primaryColor: "purple",
+        secondaryColor: "pink",
+        icon: Users,
+      }}
     />
   );
 }

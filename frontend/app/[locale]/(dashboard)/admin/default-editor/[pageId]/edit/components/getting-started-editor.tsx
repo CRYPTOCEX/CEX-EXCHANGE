@@ -10,6 +10,7 @@ import { Plus, Trash2, Users, DollarSign, TrendingUp, Target, CheckCircle, Setti
          Shield, Zap, CreditCard, Smartphone, Eye, Globe, Heart, Clock,
          Gift, Headphones, Lock, Database, Cloud, Rocket, Lightbulb } from "lucide-react";
 import { EditorProps, Step } from "./types";
+import { useTranslations } from "next-intl";
 
 // Create icon options - only using icons that are definitely available
 const iconOptions = [
@@ -67,6 +68,7 @@ function getIconComponent(iconName: string) {
 }
 
 export function GettingStartedEditor({ variables, getValue, updateVariable }: EditorProps) {
+  const t = useTranslations("dashboard_admin");
   const steps = getValue('gettingStarted.steps') || [];
 
   const addStep = () => {
@@ -101,7 +103,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
       {/* Section Header */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Section Header</h3>
+          <h3 className="text-lg font-semibold">{t("section_header")}</h3>
           
           <div>
             <Label htmlFor="getting-started-badge">Badge</Label>
@@ -109,7 +111,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
               id="getting-started-badge"
               value={getValue('gettingStarted.badge')}
               onChange={(e) => updateVariable('gettingStarted.badge', e.target.value)}
-              placeholder="e.g., Get Started"
+              placeholder={t("e_g_get_started")}
             />
           </div>
           
@@ -119,7 +121,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
               id="getting-started-title"
               value={getValue('gettingStarted.title')}
               onChange={(e) => updateVariable('gettingStarted.title', e.target.value)}
-              placeholder="e.g., Start Your"
+              placeholder={t("e_g_start_your")}
             />
           </div>
           
@@ -129,7 +131,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
               id="getting-started-subtitle"
               value={getValue('gettingStarted.subtitle')}
               onChange={(e) => updateVariable('gettingStarted.subtitle', e.target.value)}
-              placeholder="e.g., Trading Journey"
+              placeholder={t("e_g_trading_journey")}
             />
           </div>
         </div>
@@ -158,7 +160,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
           <h3 className="text-lg font-semibold">Steps</h3>
           <Button onClick={addStep} size="sm">
             <Plus className="w-4 h-4 mr-2" />
-            Add Step
+            {t("add_step")}
           </Button>
         </div>
 
@@ -186,7 +188,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
                     {/* Step Editor */}
                     <div className="space-y-3">
                       <div>
-                        <Label>Step Number</Label>
+                        <Label>{t("step_number")}</Label>
                         <Input
                           value={step.step}
                           onChange={(e) => updateStep(index, 'step', e.target.value)}
@@ -199,7 +201,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
                         <Input
                           value={step.title}
                           onChange={(e) => updateStep(index, 'title', e.target.value)}
-                          placeholder="Step title"
+                          placeholder={t("step_title")}
                         />
                       </div>
                       
@@ -209,7 +211,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
                           value={step.description}
                           onChange={(e) => updateStep(index, 'description', e.target.value)}
                           rows={2}
-                          placeholder="Step description"
+                          placeholder={t("step_description")}
                         />
                       </div>
                       
@@ -288,7 +290,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
         {steps.length > 0 && (
           <div className="mt-6 p-6 border rounded-lg bg-gradient-to-br from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
             <h4 className="text-sm font-medium mb-4 text-center text-gray-600 dark:text-gray-400">
-              Steps Flow Preview
+              {t("steps_flow_preview")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {steps.map((step: Step, index: number) => {

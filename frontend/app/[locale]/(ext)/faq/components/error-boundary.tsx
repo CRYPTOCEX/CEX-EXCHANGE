@@ -60,7 +60,7 @@ export class ErrorBoundary extends React.Component<
                 <CardTitle>Something went wrong</CardTitle>
               </div>
               <CardDescription>
-                An unexpected error occurred while loading FAQs. Please try again.
+                An unexpected error occurred while loading
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

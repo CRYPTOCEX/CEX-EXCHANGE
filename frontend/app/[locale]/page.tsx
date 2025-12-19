@@ -9,8 +9,10 @@ import { usePagesStore } from "@/store/pages-store";
 import { Section } from "@/types/builder";
 import { pageAttributes } from "@/types/builder";
 import SectionRenderer from "./(dashboard)/admin/builder/components/renderers/section-renderer";
+import { useTranslations } from "next-intl";
 
 export default function Home(): React.JSX.Element {
+  const t = useTranslations("common");
   const { settings } = useConfigStore();
   const { pages, currentPage, fetchPages, fetchPageById, isLoading, error } =
     usePagesStore();
@@ -142,7 +144,7 @@ export default function Home(): React.JSX.Element {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600">{t('loading')}</p>
         </div>
       </div>
     );
@@ -167,7 +169,7 @@ export default function Home(): React.JSX.Element {
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading page content...</p>
+            <p className="mt-4 text-gray-600">{t('loading_page_content')}</p>
           </div>
         </div>
       );

@@ -243,7 +243,7 @@ export function IPFSUploadGuide({ onComplete }: IPFSUploadGuideProps) {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
-                    <CheckCircle2 className="h-8 w-8 text-purple-600" />
+                    <CheckCircle2 className={`h-8 w-8 text-purple-600`} />
                     <div>
                       <p className="font-semibold">Trusted</p>
                       <p className="text-xs text-muted-foreground">Industry Standard</p>
@@ -319,7 +319,7 @@ export function IPFSUploadGuide({ onComplete }: IPFSUploadGuideProps) {
                         <ul className="space-y-2">
                           {step.details.map((detail, i) => (
                             <li key={i} className="flex items-start gap-2 text-sm">
-                              <ChevronRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                              <ChevronRight className={`h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0`} />
                               <span>{detail}</span>
                             </li>
                           ))}
@@ -337,28 +337,28 @@ export function IPFSUploadGuide({ onComplete }: IPFSUploadGuideProps) {
                           </Button>
                         )}
 
-                        {step.example && (
+                        {(step as any).example && (
                           <div className="mt-4 p-4 bg-muted rounded-lg">
                             <p className="text-xs font-semibold mb-2 flex items-center gap-2">
                               <Sparkles className="h-3 w-3" />
                               Example URL:
                             </p>
-                            {step.example.gatewayUrl && (
-                              <div className="flex items-center justify-between gap-2 p-3 bg-background rounded border-2 border-primary/20">
-                                <span className="text-xs font-mono truncate">{step.example.gatewayUrl}</span>
+                            {(step as any).example.gatewayUrl && (
+                              <div className={`flex items-center justify-between gap-2 p-3 bg-background rounded border-2 border-purple-200/20 dark:border-purple-800/20`}>
+                                <span className="text-xs font-mono truncate">{(step as any).example.gatewayUrl}</span>
                                 <Button
                                   size="sm"
                                   variant="ghost"
                                   className="h-8 w-8 p-0 flex-shrink-0"
-                                  onClick={() => navigator.clipboard.writeText(step.example.gatewayUrl!)}
+                                  onClick={() => navigator.clipboard.writeText((step as any).example.gatewayUrl!)}
                                 >
                                   <Copy className="h-4 w-4" />
                                 </Button>
                               </div>
                             )}
-                            {step.example.json && (
+                            {(step as any).example.json && (
                               <pre className="text-xs overflow-x-auto p-3 bg-background rounded mt-2">
-                                <code>{step.example.json}</code>
+                                <code>{(step as any).example.json}</code>
                               </pre>
                             )}
                           </div>

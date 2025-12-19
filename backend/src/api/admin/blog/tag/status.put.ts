@@ -30,10 +30,19 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Tag"),
   requiresAuth: true,
   permission: "edit.blog.tag",
+  logModule: "ADMIN_BLOG",
+  logTitle: "Bulk update tag status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("tag", ids, status);
+
+  ctx?.step("Validating tag IDs and status");
+
+  ctx?.step(`Updating status to ${status ? 'active' : 'inactive'} for ${ids.length} tags`);
+  const result = await updateStatus("tag", ids, status);
+
+  ctx?.success(`${ids.length} tags status updated successfully`);
+  return result;
 };

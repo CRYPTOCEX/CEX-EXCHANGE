@@ -12,21 +12,22 @@ import {
 import { aiInvestmentPlanSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary:
-    "Lists all AI investment plans with pagination and optional filtering",
-  operationId: "listAIInvestmentPlans",
-  tags: ["Admin", "AI Investment Plan"],
+  summary: "Lists all AI Investment Plans",
+  operationId: "listAiInvestmentPlans",
+  tags: ["Admin", "AI Investment", "Plan"],
+  description:
+    "Retrieves a paginated list of all AI Investment Plans with support for filtering, sorting, and searching. Includes associated investments and durations for each plan.",
   parameters: crudParameters,
   responses: {
     200: {
       description:
-        "List of AI investment plans with detailed information and pagination",
+        "List of AI Investment Plans with detailed information including investments and durations, along with pagination metadata",
       content: {
         "application/json": {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -45,12 +46,15 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.ai.investment.plan",
+  logModule: "ADMIN_AI",
+  logTitle: "List investment plans",
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching investment plans");
+  const result = await getFiltered({
     model: models.aiInvestmentPlan,
     query,
     sortField: query.sortField || "name",
@@ -68,4 +72,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} plan(s)`);
+  return result;
 };

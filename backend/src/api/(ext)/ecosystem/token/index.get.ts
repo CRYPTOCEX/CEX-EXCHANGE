@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
     "Fetches a list of all active tokens available in the ecosystem.",
   operationId: "listEcosystemTokens",
   tags: ["Ecosystem", "Tokens"],
+  logModule: "ECOSYSTEM",
+  logTitle: "List ecosystem tokens",
   responses: {
     200: {
       description: "Tokens retrieved successfully",
@@ -35,8 +37,11 @@ export const metadata: OperationObject = {
   },
 };
 
-export default async () => {
+export default async (data: Handler) => {
+  const { ctx } = data;
+
   try {
+    ctx?.step("Fetching active ecosystem tokens");
     const tokens = await models.ecosystemToken.findAll({
       where: { status: true },
       attributes: [
@@ -54,8 +59,11 @@ export default async () => {
         "fee",
       ],
     });
+
+    ctx?.success(`Retrieved ${tokens?.length || 0} active tokens`);
     return tokens;
   } catch (error) {
+    ctx?.fail(`Failed to fetch tokens: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: `Failed to fetch tokens: ${error.message}`,

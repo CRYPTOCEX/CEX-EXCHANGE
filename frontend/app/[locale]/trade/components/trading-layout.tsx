@@ -67,13 +67,13 @@ function TradingInterface({
   currentMarket,
 }: {
   currentSymbol: Symbol;
-  onSymbolChange: (symbol: Symbol, marketType?: "spot" | "futures") => void;
+  onSymbolChange: (symbol: Symbol, marketType?: "spot" | "eco" | "futures") => void;
   isFutures?: boolean;
   isEco?: boolean;
   handleFuturesOrderSubmit?: (orderData: any) => Promise<any>;
   currentMarket?: any;
 }) {
-  const t = useTranslations("ext");
+  const t = useTranslations("trade_components");
   const searchParams = useSearchParams();
   const {
     layoutConfig,
@@ -275,8 +275,8 @@ function TradingInterface({
       return <ChartPanel symbol={currentSymbol} metadata={currentMarket?.metadata} marketType={getMarketType()} />;
     } else if (panelId === "trading") {
       return (
-        <TradingFormPanel 
-          symbol={currentSymbol} 
+        <TradingFormPanel
+          symbol={currentSymbol}
           isFutures={isFutures}
           isEco={currentMarket?.isEco || false}
           onOrderSubmit={isFutures ? handleFuturesOrderSubmit : undefined}

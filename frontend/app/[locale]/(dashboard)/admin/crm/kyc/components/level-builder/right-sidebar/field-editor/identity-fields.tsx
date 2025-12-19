@@ -17,11 +17,14 @@ import { CreditCard, FileText, Info } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { IDENTITY_TYPES } from "@/app/[locale]/(dashboard)/user/kyc/components/dynamic-form/identity-field";
+import { useTranslations } from "next-intl";
 interface IdentityFieldsProps {
   field: any;
   onUpdate: (field: any) => void;
 }
 export function IdentityFields({ field, onUpdate }: IdentityFieldsProps) {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [selectedTypes, setSelectedTypes] = useState<string[]>(
     field.identityTypes?.map((t: any) => t.value) ||
       IDENTITY_TYPES.map((t) => t.value)
@@ -128,7 +131,7 @@ export function IdentityFields({ field, onUpdate }: IdentityFieldsProps) {
             id="field-description"
             value={field.description || ""}
             onChange={(e) => handleBasicChange("description", e.target.value)}
-            placeholder="Optional field description"
+            placeholder={t("optional_field_description")}
             className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary dark:bg-zinc-900 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
           />
         </div>
@@ -139,10 +142,10 @@ export function IdentityFields({ field, onUpdate }: IdentityFieldsProps) {
               htmlFor="field-required"
               className="text-gray-700 dark:text-zinc-300"
             >
-              Required Field
+              {tCommon("required_field")}
             </Label>
             <p className="text-xs text-gray-500 dark:text-zinc-500">
-              Users must complete this field
+              {t("users_must_complete_this_field")}
             </p>
           </div>
           <Switch
@@ -159,9 +162,9 @@ export function IdentityFields({ field, onUpdate }: IdentityFieldsProps) {
       <Separator className="bg-gray-200 dark:bg-zinc-800" />
 
       <div>
-        <h3 className="text-sm font-medium mb-2">Identity Document Types</h3>
+        <h3 className="text-sm font-medium mb-2">{t("identity_document_types")}</h3>
         <p className="text-xs text-muted-foreground mb-4">
-          Select which identity document types users can submit
+          {t("select_which_identity_can_submit")}
         </p>
 
         <div className="space-y-2">
@@ -209,7 +212,7 @@ export function IdentityFields({ field, onUpdate }: IdentityFieldsProps) {
                     </div>
                   </div>
                   <CardDescription className="text-xs mt-1">
-                    {type.fields.length} required document
+                    {type.fields.length} {t("required_document")}
                     {type.fields.length > 1 ? "s" : ""}
                   </CardDescription>
                 </CardHeader>
@@ -246,10 +249,10 @@ export function IdentityFields({ field, onUpdate }: IdentityFieldsProps) {
       <div className="flex items-center justify-between">
         <div>
           <Label htmlFor="require-selfie" className="text-sm font-medium">
-            Require Selfie with ID
+            {t("require_selfie_with_id")}
           </Label>
           <p className="text-xs text-muted-foreground mt-1">
-            Require users to submit a selfie holding their ID document
+            {t("require_users_to_id_document")}
           </p>
         </div>
         <Switch

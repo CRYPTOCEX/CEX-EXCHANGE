@@ -7,12 +7,14 @@ import { createError } from "@b/utils/error";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
-  summary: "Retrieves a list of forex durations",
+  summary: "Gets Forex duration options",
   description:
-    "This endpoint retrieves all available forex durations for selection.",
-  operationId: "getForexDurations",
-  tags: ["Forex", "Duration"],
+    "Retrieves all available Forex durations formatted as selectable options with ID and display name (e.g., '1 HOUR', '7 DAY'). Useful for dropdown selections in forms.",
+  operationId: "getForexDurationOptions",
+  tags: ["Admin", "Forex", "Duration"],
   requiresAuth: true,
+  logModule: "ADMIN_FOREX",
+  logTitle: "Get Forex Duration Options",
   responses: {
     200: {
       description: "Forex durations retrieved successfully",
@@ -38,7 +40,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) throw createError(401, "Unauthorized");
 
   try {

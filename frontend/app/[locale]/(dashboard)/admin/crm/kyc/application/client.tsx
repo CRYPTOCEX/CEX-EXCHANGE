@@ -14,15 +14,8 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import {
   AlertCircle,
   ArrowUpDown,
@@ -37,10 +30,6 @@ import {
   CalendarIcon,
   BarChart3,
   Layers,
-  FileCheck,
-  FileText,
-  User,
-  X,
 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -51,21 +40,10 @@ import {
 } from "@/components/ui/tooltip";
 import { useRouter } from "@/i18n/routing";
 import { $fetch } from "@/lib/api";
-import { AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 
-// Import the components from the detail page
-import { ApplicationDetailsTab } from "./components/application-details-tab";
-import { VerificationTab } from "./components/verification-tab";
-import { UserProfileTab } from "./components/user-tab";
-import { ReviewSidebar, VerificationTips } from "./components/sidebar";
-import { FullScreenImageViewer } from "./components/image-viewer";
-import {
-  type ApplicationStatus,
-  ProgressBar,
-  StatusBanner,
-  StatusConfirmation,
-  StatusUpdateSuccess,
-} from "./components/status";
+// Define the ApplicationStatus type
+type ApplicationStatus = "PENDING" | "APPROVED" | "REJECTED" | "ADDITIONAL_INFO_REQUIRED";
 
 // Define the ApplicationWithDetails type
 type ApplicationWithDetails = {
@@ -79,85 +57,9 @@ type ApplicationWithDetails = {
   user: any;
 };
 
-// Add print styles and drawer width override
-const printStyles = `
-  /* Force drawer to be 90% width */
-  [data-state="open"][data-side="right"] {
-    width: 90vw !important;
-    max-width: 90vw !important;
-    min-width: 90vw !important;
-  }
-  
-  /* Override any shadcn sheet content width */
-  .kyc-drawer-content {
-    width: 90vw !important;
-    max-width: 90vw !important;
-    min-width: 90vw !important;
-  }
-  
-  @media print {
-    /* Hide elements not needed for printing */
-    button, 
-    .no-print,
-    nav,
-    footer,
-    .sidebar,
-    [role="tablist"],
-    .verification-tips {
-      display: none !important;
-    }
-    
-    /* Ensure the page breaks properly */
-    .page-break {
-      page-break-before: always;
-    }
-    
-    /* Expand the main content to full width */
-    .main-content {
-      width: 100% !important;
-    }
-    
-    /* Ensure all sections are expanded */
-    .section-content {
-      display: block !important;
-      height: auto !important;
-      opacity: 1 !important;
-    }
-    
-    /* Improve contrast for printing */
-    * {
-      color: black !important;
-      background: white !important;
-      box-shadow: none !important;
-    }
-    
-    /* Ensure borders are visible */
-    .print-border {
-      border: 1px solid #ddd !important;
-    }
-    
-    /* Format the application header for print */
-    .application-header {
-      border-bottom: 2px solid #000 !important;
-      padding-bottom: 10px !important;
-      margin-bottom: 20px !important;
-    }
-    
-    /* Format the application status for print */
-    .application-status {
-      border: 1px solid #000 !important;
-      padding: 10px !important;
-      margin-bottom: 20px !important;
-    }
-    
-    /* Hide the progress bar in print */
-    .progress-container {
-      display: none !important;
-    }
-  }
-`;
-
 export default function ApplicationsClient() {
+  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [applications, setApplications] = useState<ApplicationWithDetails[]>([]);
   const [levels, setLevels] = useState<{ id: string; name: string; }[]>([]);
@@ -185,51 +87,12 @@ export default function ApplicationsClient() {
     perPage: perPage,
     totalPages: 1,
   });
-
-  // Drawer states
-  const [selectedApplication, setSelectedApplication] = useState<ApplicationWithDetails | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [drawerLoading, setDrawerLoading] = useState(false);
-  const [drawerError, setDrawerError] = useState<string | null>(null);
-
-  // Detail page states for drawer
-  const [adminNotes, setAdminNotes] = useState("");
-  const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [activeDetailTab, setActiveDetailTab] = useState("details");
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
-  const [showConfirmation, setShowConfirmation] = useState<ApplicationStatus | null>(null);
-  const [statusUpdateSuccess, setStatusUpdateSuccess] = useState(false);
-  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
-  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   // Handle mounting state to prevent SSR hydration issues
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Add the styles to the document
-  useEffect(() => {
-    if (!mounted) return;
-    
-    // Create style element
-    const style = document.createElement("style");
-    style.innerHTML = printStyles;
-    style.id = "print-styles";
-
-    // Add to head if it doesn't exist yet
-    if (!document.getElementById("print-styles")) {
-      document.head.appendChild(style);
-    }
-
-    // Cleanup on unmount
-    return () => {
-      const existingStyle = document.getElementById("print-styles");
-      if (existingStyle) {
-        existingStyle.remove();
-      }
-    };
-  }, [mounted]);
 
   // Fetch applications and levels whenever filters, sorting, or pagination change.
   useEffect(() => {
@@ -350,216 +213,15 @@ export default function ApplicationsClient() {
   };
   const currentApplications = getApplicationsByTab(activeTab);
 
-  // Fetch detailed application data for drawer
-  const fetchApplicationDetails = async (id: string) => {
-    if (!mounted) return;
-
-    setDrawerLoading(true);
-    setDrawerError(null);
-
-    try {
-      const response = await $fetch({
-        url: `/api/admin/crm/kyc/application/${id}`,
-        silentSuccess: true,
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
-
-      if (response.error) {
-        console.error(`[KYC-DRAWER-DEBUG] API Error:`, response.error);
-        setDrawerError(response.error);
-        setDrawerLoading(false);
-        return;
-      }
-
-      const applicationData = response.data;
-      
-      if (!applicationData) {
-        setDrawerError("No application data received");
-        setDrawerLoading(false);
-        return;
-      }
-
-      // Process the data similar to the detail page
-      const processedData = { ...applicationData };
-
-      try {
-        const parseJsonSafely = (jsonString: string, fallback: any = {}) => {
-          try {
-            if (typeof jsonString === 'string' && jsonString.trim()) {
-              return JSON.parse(jsonString);
-            }
-            return fallback;
-          } catch (e) {
-            console.warn("JSON parsing failed:", e);
-            return fallback;
-          }
-        };
-
-        // Process application data field
-        if (processedData.data && typeof processedData.data === "string") {
-          processedData.data = parseJsonSafely(processedData.data, {});
-        }
-
-        // Process level fields
-        if (processedData.level) {
-          if (processedData.level.fields && typeof processedData.level.fields === "string") {
-            processedData.level.fields = parseJsonSafely(processedData.level.fields, []);
-          }
-
-          if (processedData.level.features && typeof processedData.level.features === "string") {
-            processedData.level.features = parseJsonSafely(processedData.level.features, []);
-          }
-
-          if (processedData.level.verificationService && typeof processedData.level.verificationService === "string") {
-            processedData.level.verificationService = parseJsonSafely(processedData.level.verificationService, null);
-          }
-        }
-
-        // Process user profile
-        if (processedData.user && processedData.user.profile && typeof processedData.user.profile === "string") {
-          processedData.user.profile = parseJsonSafely(processedData.user.profile, {});
-        }
-
-        // Process application data fields more efficiently
-        if (processedData.data && typeof processedData.data === 'object') {
-          Object.keys(processedData.data).forEach((key) => {
-            const value = processedData.data[key];
-            if (typeof value === "string" && value.startsWith("{") && value.endsWith("}")) {
-              processedData.data[key] = parseJsonSafely(value, value);
-            }
-          });
-        }
-
-        // Update field types efficiently
-        if (processedData.level && Array.isArray(processedData.level.fields)) {
-          processedData.level.fields = processedData.level.fields.map((field: any) => {
-            if (
-              field.id === "identity" ||
-              field.id === "identityVerification" ||
-              (field.type === "CUSTOM" && field.label && field.label.toLowerCase().includes("identity"))
-            ) {
-              return { ...field, type: "IDENTITY" };
-            }
-            return field;
-          });
-        }
-
-        setSelectedApplication(processedData);
-        setAdminNotes(processedData.adminNotes || "");
-        setDrawerLoading(false);
-        
-      } catch (processingError: any) {
-        console.error(`[KYC-DRAWER-DEBUG] Data processing error:`, processingError);
-        setDrawerError("Failed to process application data");
-        setDrawerLoading(false);
-        return;
-      }
-      
-    } catch (error: any) {
-      console.error(`[KYC-DRAWER-DEBUG] Fetch error:`, error);
-      setDrawerError(error.message || "Failed to load application data");
-      setDrawerLoading(false);
-    }
-  };
-
-  // Handle view application - opens drawer instead of navigating
-  const handleViewApplication = async (id: string) => {
-    // Reset drawer state before opening
-    setSelectedApplication(null);
-    setDrawerError(null);
-    setDrawerLoading(true);
-    setAdminNotes("");
-    setActiveDetailTab("details");
-    setExpandedSections({});
-    setShowConfirmation(null);
-    setStatusUpdateSuccess(false);
-    setFullScreenImage(null);
-    setCopiedField(null);
-    
-    setIsDrawerOpen(true);
-    await fetchApplicationDetails(id);
-  };
-
-  // Handle close drawer
-  const handleCloseDrawer = () => {
-    setIsDrawerOpen(false);
-    setSelectedApplication(null);
-    setDrawerError(null);
-    setAdminNotes("");
-    setActiveDetailTab("details");
-    setExpandedSections({});
-    setShowConfirmation(null);
-    setStatusUpdateSuccess(false);
-    setFullScreenImage(null);
-    setCopiedField(null);
-  };
-
-  // Update application status in drawer
-  const updateApplicationStatus = async (status: ApplicationStatus) => {
-    if (!selectedApplication || updatingStatus) return; // Prevent multiple simultaneous updates
-    setShowConfirmation(null);
-
-    setUpdatingStatus(true);
-    setDrawerError(null);
-
-    try {
-      const applicationId = selectedApplication.id; // Store ID to prevent race conditions
-      const response = await $fetch({
-        url: `/api/admin/crm/kyc/application/${applicationId}`,
-        method: "PUT",
-        body: {
-          status,
-          adminNotes,
-        },
-      });
-
-      if (response.error) {
-        setDrawerError(response.error);
-        return;
-      }
-
-      // Update the selected application only if it's still the same one
-      setSelectedApplication(prev => 
-        prev?.id === applicationId 
-          ? { ...prev, status, adminNotes }
-          : prev
-      );
-
-      // Update the application in the main list
-      setApplications(prev => prev.map(app => 
-        app.id === applicationId 
-          ? { ...app, status, adminNotes }
-          : app
-      ));
-
-      setStatusUpdateSuccess(true);
-      setTimeout(() => setStatusUpdateSuccess(false), 3000);
-    } catch (error: any) {
-      console.error("Error updating application status:", error);
-      setDrawerError(error.message || "Failed to update application status");
-    } finally {
-      setUpdatingStatus(false);
-    }
-  };
-
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [sectionId]: !prev[sectionId],
-    }));
-  };
-
-  const copyToClipboard = (text: string, fieldId: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedField(fieldId);
-    setTimeout(() => setCopiedField(null), 2000);
+  // Handle view application - navigates to the detail page
+  const handleViewApplication = (id: string) => {
+    router.push(`/admin/crm/kyc/application/${id}`);
   };
 
   // Status badge component
   const StatusBadge = ({ status }: { status: string }) => {
+  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
     switch (status) {
       case "APPROVED":
         return (
@@ -585,7 +247,7 @@ export default function ApplicationsClient() {
             variant="outline"
             className="bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 flex items-center gap-1 px-2 py-1"
           >
-            <AlertCircle className="h-3 w-3 mr-1" /> Info Required
+            <AlertCircle className="h-3 w-3 mr-1" /> {tCommon("info_required")}
           </Badge>
         );
       case "PENDING":
@@ -632,18 +294,16 @@ export default function ApplicationsClient() {
     );
   }
 
-  const processedApplication = selectedApplication;
-
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="shrink-0 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
             KYC Applications
           </h1>
           <p className="text-muted-foreground">
-            Manage and review Know Your Customer (KYC) verification applications
+            {t("manage_and_review_verification_applications")}
           </p>
         </div>
         <Button
@@ -655,13 +315,13 @@ export default function ApplicationsClient() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="shrink-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="overflow-hidden border-l-4 border-l-primary">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Total Applications
+                  {tCommon("total_applications")}
                 </p>
                 <h3 className="text-3xl font-bold mt-1">{stats.total}</h3>
               </div>
@@ -680,7 +340,7 @@ export default function ApplicationsClient() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Pending Review
+                  {tCommon("pending_review")}
                 </p>
                 <h3 className="text-3xl font-bold mt-1">{stats.pending}</h3>
               </div>
@@ -700,7 +360,7 @@ export default function ApplicationsClient() {
                 {stats.total > 0
                   ? Math.round((stats.pending / stats.total) * 100)
                   : 0}
-                % of total applications
+                % {t("of_total_applications")}
               </p>
             </div>
           </CardContent>
@@ -731,7 +391,7 @@ export default function ApplicationsClient() {
                 {stats.total > 0
                   ? Math.round((stats.approved / stats.total) * 100)
                   : 0}
-                % approval rate
+                % {tCommon("approval_rate")}
               </p>
             </div>
           </CardContent>
@@ -742,7 +402,7 @@ export default function ApplicationsClient() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Processing Time
+                  {tCommon("processing_time")}
                 </p>
                 <h3 className="text-3xl font-bold mt-1">
                   {stats.averageProcessingTime.toFixed(1)}h
@@ -759,7 +419,7 @@ export default function ApplicationsClient() {
                 indicatorClassName="bg-blue-500 dark:bg-blue-400"
               />
               <p className="text-xs text-muted-foreground mt-2">
-                Average time to process applications
+                {tCommon("average_time_to_process_applications")}
               </p>
             </div>
           </CardContent>
@@ -767,41 +427,41 @@ export default function ApplicationsClient() {
       </div>
 
       {/* Filters and Search */}
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="shrink-0 flex flex-col gap-4">
         <Input
-          placeholder="Search applications, users, or levels..."
+          placeholder={t("search_applications_users_or_levels_ellipsis")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           icon="mdi:magnify"
         />
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-full">
               <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                <span>Status</span>
+                <Filter className="h-4 w-4 shrink-0" />
+                <span className="truncate">Status</span>
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="all">{tCommon("all_statuses")}</SelectItem>
               <SelectItem value="PENDING">Pending</SelectItem>
               <SelectItem value="APPROVED">Approved</SelectItem>
               <SelectItem value="REJECTED">Rejected</SelectItem>
               <SelectItem value="ADDITIONAL_INFO_REQUIRED">
-                Info Required
+                {tCommon("info_required")}
               </SelectItem>
             </SelectContent>
           </Select>
 
           <Select value={levelFilter} onValueChange={setLevelFilter}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-full">
               <div className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                <span>Level</span>
+                <Shield className="h-4 w-4 shrink-0" />
+                <span className="truncate">Level</span>
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Levels</SelectItem>
+              <SelectItem value="all">{tCommon("all_levels")}</SelectItem>
               {levels.map((level) => (
                 <SelectItem key={level.id} value={level.id}>
                   {level.name}
@@ -814,32 +474,32 @@ export default function ApplicationsClient() {
             value={verificationFilter}
             onValueChange={setVerificationFilter}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4" />
-                <span>Verification</span>
+                <ShieldCheck className="h-4 w-4 shrink-0" />
+                <span className="truncate">Verification</span>
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Verification Types</SelectItem>
-              <SelectItem value="service">Service Verification</SelectItem>
-              <SelectItem value="manual">Manual Verification</SelectItem>
+              <SelectItem value="all">{tCommon("all_verification_types")}</SelectItem>
+              <SelectItem value="service">{tCommon("service_verification")}</SelectItem>
+              <SelectItem value="manual">{tCommon("manual_verification")}</SelectItem>
             </SelectContent>
           </Select>
 
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-full">
               <div className="flex items-center gap-2">
-                <ArrowUpDown className="h-4 w-4" />
-                <span>Sort By</span>
+                <ArrowUpDown className="h-4 w-4 shrink-0" />
+                <span className="truncate">{tCommon("sort_by")}</span>
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="newest">Newest First</SelectItem>
-              <SelectItem value="oldest">Oldest First</SelectItem>
-              <SelectItem value="status">By Status</SelectItem>
+              <SelectItem value="newest">{tCommon("newest_first")}</SelectItem>
+              <SelectItem value="oldest">{tCommon("oldest_first")}</SelectItem>
+              <SelectItem value="status">{tCommon("by_status")}</SelectItem>
               <SelectItem value="verificationType">
-                By Verification Type
+                {tCommon("by_verification_type")}
               </SelectItem>
             </SelectContent>
           </Select>
@@ -848,9 +508,10 @@ export default function ApplicationsClient() {
 
       {/* Tabs and Applications List */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-4 mb-4">
+        <div className="sticky top-16 z-20 bg-background pb-4 -mx-4 px-4 md:-mx-6 md:px-6">
+          <TabsList className="grid grid-cols-4 w-full">
           <TabsTrigger value="all" className="flex items-center gap-2">
-            <span className="hidden md:inline">All Applications</span>
+            <span className="hidden md:inline">{tCommon("all_applications")}</span>
             <span className="md:hidden">All</span>
             <Badge variant="secondary">{filteredApplications.length}</Badge>
           </TabsTrigger>
@@ -884,19 +545,19 @@ export default function ApplicationsClient() {
               }
             </Badge>
           </TabsTrigger>
-        </TabsList>
+          </TabsList>
+        </div>
 
-        <TabsContent value={activeTab} className="space-y-4">
+        <TabsContent value={activeTab} className="space-y-4 min-h-[60vh]">
           {currentApplications.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-10">
                 <div className="rounded-full bg-muted p-3 mb-3">
                   <AlertCircle className="h-6 w-6 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-medium">No applications found</h3>
+                <h3 className="text-lg font-medium">{tCommon("no_applications_found")}</h3>
                 <p className="text-sm text-muted-foreground text-center max-w-md mt-1">
-                  No applications match your current filters. Try adjusting your
-                  search criteria or filters.
+                  {t("no_applications_match_your_current_filters_1")} {t("try_adjusting_your_search_criteria_or_filters_1")}
                 </p>
                 <Button
                   variant="outline"
@@ -908,13 +569,12 @@ export default function ApplicationsClient() {
                   }}
                 >
                   <RefreshCw className="mr-2 h-4 w-4" />
-                  Reset Filters
+                  {tCommon("reset_filters")}
                 </Button>
               </CardContent>
             </Card>
           ) : (
-            <ScrollArea className="h-[calc(100vh-400px)] pe-4">
-              <div className="space-y-4">
+            <div className="space-y-4">
                 {currentApplications.map((app) => {
                   return (
                     <Card
@@ -991,7 +651,7 @@ export default function ApplicationsClient() {
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                               <p className="text-sm font-medium text-muted-foreground">
-                                Application ID
+                                {tCommon("application_id")}
                               </p>
                               <p className="text-sm font-mono mt-1">{app.id}</p>
                             </div>
@@ -1017,7 +677,7 @@ export default function ApplicationsClient() {
                                 ) : (
                                   <>
                                     <Clock className="h-3 w-3 text-yellow-500" />
-                                    Not reviewed yet
+                                    {tCommon("not_reviewed_yet")}
                                   </>
                                 )}
                               </p>
@@ -1026,7 +686,7 @@ export default function ApplicationsClient() {
 
                           {app.adminNotes && (
                             <div className="mt-4 bg-muted/50 dark:bg-muted/20 p-3 rounded-md border border-muted dark:border-muted/40">
-                              <p className="text-sm font-medium text-foreground">Admin Notes</p>
+                              <p className="text-sm font-medium text-foreground">{tCommon("admin_notes")}</p>
                               <p className="text-sm mt-1 text-muted-foreground">{app.adminNotes}</p>
                             </div>
                           )}
@@ -1035,322 +695,10 @@ export default function ApplicationsClient() {
                     </Card>
                   );
                 })}
-              </div>
-            </ScrollArea>
+            </div>
           )}
         </TabsContent>
       </Tabs>
-
-      {/* Application Details Drawer */}
-      <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        <SheetContent 
-          side="right" 
-          className="kyc-drawer-content !w-[90vw] !max-w-[90vw] min-w-[90vw] p-0 overflow-hidden"
-          style={{ width: '90vw', maxWidth: '90vw', minWidth: '90vw' }}
-        >
-          <div className="flex flex-col h-full">
-            <SheetHeader className="px-6 py-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <SheetTitle className="text-xl font-semibold">
-                {drawerLoading ? "Loading..." : "KYC Application Details"}
-              </SheetTitle>
-            </SheetHeader>
-
-            <div className="flex-1 overflow-hidden">
-              {drawerLoading ? (
-                <div className="p-6 space-y-6">
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="h-8 w-64" />
-                  </div>
-                  <div className="space-y-4">
-                    <Skeleton className="h-32 w-full" />
-                    <Skeleton className="h-48 w-full" />
-                    <Skeleton className="h-32 w-full" />
-                  </div>
-                </div>
-              ) : drawerError || !processedApplication ? (
-                <div className="p-6">
-                  <div className="text-center py-10">
-                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-                      {drawerError || "Application not found"}
-                    </h2>
-                    <p className="text-zinc-600 dark:text-zinc-400 mt-2">
-                      {drawerError
-                        ? "There was an error loading the application. Please try again."
-                        : "The application you're looking for doesn't exist or you don't have permission to view it."}
-                    </p>
-                    <div className="flex gap-2 justify-center mt-4">
-                      <Button
-                        variant="outline"
-                        onClick={handleCloseDrawer}
-                      >
-                        Close
-                      </Button>
-                      {drawerError && (
-                        <Button
-                          variant="default"
-                          onClick={() => fetchApplicationDetails(selectedApplication?.id || "")}
-                          disabled={drawerLoading}
-                        >
-                          {drawerLoading ? "Retrying..." : "Retry"}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col h-full">
-                  {statusUpdateSuccess && (
-                    <div className="px-6 py-2">
-                      <StatusUpdateSuccess />
-                    </div>
-                  )}
-
-                  {/* Status Banner */}
-                  <div className="px-6 py-2">
-                    <StatusBanner status={processedApplication.status} />
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="px-6 py-2">
-                    <ProgressBar status={processedApplication.status} />
-                  </div>
-
-                  <div className="flex-1 overflow-hidden">
-                    {/* Mobile Layout - Tabs for everything */}
-                    <div className="block lg:hidden h-full flex flex-col">
-                      <div className="p-4 border-b flex-shrink-0">
-                        <div className="flex items-center justify-between mb-4">
-                          <div>
-                            <h3 className="text-lg font-semibold">
-                              Application #{processedApplication.id}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              Submitted on {new Date(processedApplication.createdAt ?? "").toLocaleDateString()}
-                            </p>
-                          </div>
-                          <Button variant="outline" size="sm" onClick={() => window.print()}>
-                            <FileText className="h-4 w-4 mr-1" />
-                            Print
-                          </Button>
-                        </div>
-                      </div>
-
-                      <Tabs
-                        value={activeDetailTab}
-                        onValueChange={setActiveDetailTab}
-                        className="flex flex-col flex-1 min-h-0"
-                      >
-                        <div className="px-4 py-2 border-b flex-shrink-0">
-                          <TabsList className="grid grid-cols-4 w-full">
-                            <TabsTrigger value="details" className="flex items-center gap-1">
-                              <FileCheck className="h-4 w-4" />
-                              <span className="text-xs">Details</span>
-                            </TabsTrigger>
-                            <TabsTrigger value="verification" className="flex items-center gap-1">
-                              <ShieldCheck className="h-4 w-4" />
-                              <span className="text-xs">Verify</span>
-                            </TabsTrigger>
-                            <TabsTrigger value="user" className="flex items-center gap-1">
-                              <User className="h-4 w-4" />
-                              <span className="text-xs">User</span>
-                            </TabsTrigger>
-                            <TabsTrigger value="review" className="flex items-center gap-1">
-                              <FileText className="h-4 w-4" />
-                              <span className="text-xs">Review</span>
-                            </TabsTrigger>
-                          </TabsList>
-                        </div>
-
-                        <div className="flex-1 min-h-0">
-                          <TabsContent value="details" className="h-full m-0 overflow-auto">
-                            <div className="p-4">
-                              <ApplicationDetailsTab
-                                level={processedApplication.level}
-                                applicationData={processedApplication.data}
-                                expandedSections={expandedSections}
-                                toggleSection={toggleSection}
-                                onCopy={copyToClipboard}
-                                copiedField={copiedField}
-                                onViewImage={setFullScreenImage}
-                              />
-                            </div>
-                          </TabsContent>
-
-                          <TabsContent value="verification" className="h-full m-0 overflow-auto">
-                            <div className="p-4">
-                              <VerificationTab 
-                                applicationId={processedApplication.id} 
-                                level={processedApplication.level} 
-                              />
-                            </div>
-                          </TabsContent>
-
-                          <TabsContent value="user" className="h-full m-0 overflow-auto">
-                            <div className="p-4">
-                              <UserProfileTab
-                                user={processedApplication.user}
-                                userName={`${processedApplication.user.firstName || ""} ${processedApplication.user.lastName || ""}`.trim() || "User"}
-                                userInitials={`${processedApplication.user.firstName || ""} ${processedApplication.user.lastName || ""}`.trim().split(" ").map((n) => n[0] || "").join("").toUpperCase()}
-                                copiedField={copiedField}
-                                onCopy={copyToClipboard}
-                              />
-                            </div>
-                          </TabsContent>
-
-                          <TabsContent value="review" className="h-full m-0 overflow-auto">
-                            <div className="p-4 space-y-4">
-                              <AnimatePresence>
-                                {showConfirmation && (
-                                  <StatusConfirmation
-                                    status={showConfirmation}
-                                    onConfirm={() => updateApplicationStatus(showConfirmation)}
-                                    onCancel={() => setShowConfirmation(null)}
-                                  />
-                                )}
-                              </AnimatePresence>
-
-                              <ReviewSidebar
-                                adminNotes={adminNotes}
-                                onAdminNotesChange={setAdminNotes}
-                                onStatusChange={setShowConfirmation}
-                                updatingStatus={updatingStatus}
-                                currentStatus={processedApplication.status}
-                              />
-
-                              <VerificationTips />
-                            </div>
-                          </TabsContent>
-                        </div>
-                      </Tabs>
-                    </div>
-
-                    {/* Desktop Layout - Side by side */}
-                    <div className="hidden lg:flex flex-col h-full">
-                      <div className="p-6 border-b">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="text-lg font-semibold">
-                              Application #{processedApplication.id}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              Submitted on {new Date(processedApplication.createdAt ?? "").toLocaleDateString()} at {new Date(processedApplication.createdAt ?? "").toLocaleTimeString()}
-                            </p>
-                          </div>
-                          <Button variant="outline" size="sm" onClick={() => window.print()}>
-                            <FileText className="h-4 w-4 mr-1" />
-                            Print
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="flex-1 flex overflow-hidden">
-                        {/* Main Content */}
-                        <div className="flex-1 overflow-auto">
-                          <div className="p-6">
-                            <Tabs
-                              value={activeDetailTab}
-                              onValueChange={setActiveDetailTab}
-                              className="w-full"
-                            >
-                              <TabsList className="grid grid-cols-3 w-full mb-6">
-                                <TabsTrigger
-                                  value="details"
-                                  className="flex items-center gap-2"
-                                >
-                                  <FileCheck className="h-4 w-4" />
-                                  <span>Application Details</span>
-                                </TabsTrigger>
-                                <TabsTrigger
-                                  value="verification"
-                                  className="flex items-center gap-2"
-                                >
-                                  <ShieldCheck className="h-4 w-4" />
-                                  <span>Verification</span>
-                                </TabsTrigger>
-                                <TabsTrigger
-                                  value="user"
-                                  className="flex items-center gap-2"
-                                >
-                                  <User className="h-4 w-4" />
-                                  <span>User Profile</span>
-                                </TabsTrigger>
-                              </TabsList>
-
-                              <TabsContent value="details" className="mt-0">
-                                <ApplicationDetailsTab
-                                  level={processedApplication.level}
-                                  applicationData={processedApplication.data}
-                                  expandedSections={expandedSections}
-                                  toggleSection={toggleSection}
-                                  onCopy={copyToClipboard}
-                                  copiedField={copiedField}
-                                  onViewImage={setFullScreenImage}
-                                />
-                              </TabsContent>
-
-                              <TabsContent value="verification" className="mt-0">
-                                <VerificationTab 
-                                  applicationId={processedApplication.id} 
-                                  level={processedApplication.level} 
-                                />
-                              </TabsContent>
-
-                              <TabsContent value="user" className="mt-0">
-                                <UserProfileTab
-                                  user={processedApplication.user}
-                                  userName={`${processedApplication.user.firstName || ""} ${processedApplication.user.lastName || ""}`.trim() || "User"}
-                                  userInitials={`${processedApplication.user.firstName || ""} ${processedApplication.user.lastName || ""}`.trim().split(" ").map((n) => n[0] || "").join("").toUpperCase()}
-                                  copiedField={copiedField}
-                                  onCopy={copyToClipboard}
-                                />
-                              </TabsContent>
-                            </Tabs>
-                          </div>
-                        </div>
-
-                        {/* Sidebar */}
-                        <div className="w-80 border-l bg-muted/20 overflow-auto">
-                          <div className="p-4 space-y-4">
-                            <AnimatePresence>
-                              {showConfirmation && (
-                                <StatusConfirmation
-                                  status={showConfirmation}
-                                  onConfirm={() => updateApplicationStatus(showConfirmation)}
-                                  onCancel={() => setShowConfirmation(null)}
-                                />
-                              )}
-                            </AnimatePresence>
-
-                            <ReviewSidebar
-                              adminNotes={adminNotes}
-                              onAdminNotesChange={setAdminNotes}
-                              onStatusChange={setShowConfirmation}
-                              updatingStatus={updatingStatus}
-                              currentStatus={processedApplication.status}
-                            />
-
-                            <VerificationTips />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Full Screen Image Viewer */}
-      <AnimatePresence>
-        {fullScreenImage && (
-          <FullScreenImageViewer
-            src={fullScreenImage}
-            onClose={() => setFullScreenImage(null)}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

@@ -27,7 +27,7 @@ export function PageActionsMenu({
   onEnableFaqs,
   onDisableFaqs,
 }: PageActionsMenuProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const [open, setOpen] = useState(false);
 
   return (

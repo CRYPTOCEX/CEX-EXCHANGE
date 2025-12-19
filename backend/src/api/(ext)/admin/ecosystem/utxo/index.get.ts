@@ -12,20 +12,24 @@ import {
 import { ecosystemUtxoSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary: "Lists all ecosystem UTXOs with pagination and optional filtering",
+  summary: "List ecosystem UTXOs",
   operationId: "listEcosystemUtxos",
-  tags: ["Admin", "Ecosystem", "UTXOs"],
+  tags: ["Admin", "Ecosystem", "UTXO"],
+  description:
+    "Retrieves a paginated list of ecosystem Unspent Transaction Outputs (UTXOs). Each UTXO represents an unspent output from a blockchain transaction that can be used as input for new transactions. The response includes associated wallet information.",
   parameters: crudParameters,
+  logModule: "ADMIN_ECO",
+  logTitle: "List UTXOs",
   responses: {
     200: {
       description:
-        "List of ecosystem UTXOs with details about the associated wallet",
+        "Successfully retrieved list of ecosystem UTXOs with associated wallet currency information",
       content: {
         "application/json": {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -44,12 +48,14 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.ecosystem.utxo",
+  demoMask: ["items.transactionId", "items.script"],
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching ecosystem UTXOs");
+  const result = await getFiltered({
     model: models.ecosystemUtxo,
     query,
     sortField: query.sortField || "createdAt",
@@ -61,4 +67,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success("UTXOs retrieved successfully");
+  return result;
 };

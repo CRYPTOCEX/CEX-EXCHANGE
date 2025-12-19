@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useBinaryStore } from "@/store/trade/use-binary-store";
 import type { CompletedOrder } from "@/store/trade/use-binary-store";
+import { useTranslations } from "next-intl";
 interface CompletedPositionsProps {
   className?: string;
   theme?: "dark" | "light";
@@ -23,6 +24,8 @@ export default function CompletedPositions({
   isMobile = false,
   onPanelStateChange,
 }: CompletedPositionsProps) {
+  const t = useTranslations("binary_components");
+  const tCommon = useTranslations("common");
   const [isOpen, setIsOpenInternal] = useState(false);
   
   const setIsOpen = (value: boolean) => {
@@ -325,7 +328,7 @@ export default function CompletedPositions({
             <div className="flex items-center">
               <BarChart2 size={16} className="mr-2 text-zinc-500" />
               <span className={`font-medium text-sm ${textClass}`}>
-                Trading History
+                {t("trading_history")}
               </span>
             </div>
             {stats.completedOrdersCount > 0 && (
@@ -337,7 +340,7 @@ export default function CompletedPositions({
                   {stats.totalProfit.toFixed(2)} {completedOrders[0] && getCurrency(completedOrders[0].symbol)}
                 </div>
                 <div className={`text-xs ${secondaryTextClass}`}>
-                  Win:{" "}
+                  {tCommon("win")}:{" "}
                   <span
                     className={
                       Number(stats.winRate) > 50
@@ -456,7 +459,7 @@ export default function CompletedPositions({
                     </div>
                     <div className="flex flex-col items-end">
                       <span className={`text-xs ${secondaryTextClass} uppercase tracking-wide`}>
-                        Entry Price
+                        {tCommon("entry_price")}
                       </span>
                       <span className={`text-xs ${tableValueClass} font-mono`}>
                         {order.entryPrice.toFixed(2)} {getCurrency(order.symbol)}
@@ -471,8 +474,8 @@ export default function CompletedPositions({
               className={`flex flex-col items-center justify-center py-8 ${secondaryTextClass}`}
             >
               <BarChart2 size={24} className="mb-2 opacity-50" />
-              <p>No completed trades found</p>
-              <p className="text-xs mt-1">Completed trades will appear here</p>
+              <p>{t("no_completed_trades_found")}</p>
+              <p className="text-xs mt-1">{t("completed_trades_will_appear_here")}</p>
             </div>
           )}
         </div>
@@ -521,7 +524,7 @@ export default function CompletedPositions({
             <span
               className={`font-medium ${theme === "dark" ? "text-white" : "text-black"}`}
             >
-              Trading History
+              {t("trading_history")}
             </span>
             {stats.completedOrdersCount > 0 && (
               <>
@@ -534,7 +537,7 @@ export default function CompletedPositions({
                 <div
                   className={`ml-3 text-xs ${theme === "dark" ? "text-zinc-400" : "text-zinc-500"}`}
                 >
-                  Win Rate:{" "}
+                  {tCommon("win_rate")}:{" "}
                   <span
                     className={
                       Number(stats.winRate) > 50
@@ -631,14 +634,14 @@ export default function CompletedPositions({
               )}
             </div>
             <div>Side</div>
-            <div>Entry Price</div>
+            <div>{tCommon("entry_price")}</div>
             <div>Amount</div>
             <div
               className="flex items-center cursor-pointer"
               onClick={() => toggleSort("profit")}
             >
               <DollarSign size={12} className="mr-1" />
-              Profit/Loss
+              {tCommon("profit_loss")}
               {sortBy === "profit" && (
                 <span className="ml-1">
                   {sortDirection === "asc" ? "↑" : "↓"}
@@ -704,9 +707,9 @@ export default function CompletedPositions({
                 className={`flex flex-col items-center justify-center py-8 ${secondaryTextClass}`}
               >
                 <BarChart2 size={24} className="mb-2 opacity-50" />
-                <p>No completed trades found</p>
+                <p>{t("no_completed_trades_found")}</p>
                 <p className="text-xs mt-1">
-                  Completed trades will appear here
+                  {t("completed_trades_will_appear_here")}
                 </p>
               </div>
             )}

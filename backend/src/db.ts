@@ -1,6 +1,7 @@
 import { Sequelize } from "sequelize";
 import { initModels } from "../models/init";
 import { isMainThread } from "worker_threads";
+import { logger } from "@b/utils/console";
 
 export class SequelizeSingleton {
   private static instance: SequelizeSingleton;
@@ -8,14 +9,6 @@ export class SequelizeSingleton {
   public models: any;
 
   private constructor() {
-    // Log database configuration for debugging
-    console.log(`\x1b[36mDatabase Configuration:\x1b[0m`);
-    console.log(`  DB_NAME: ${process.env.DB_NAME || '(not set)'}`);
-    console.log(`  DB_USER: ${process.env.DB_USER || '(not set)'}`);
-    console.log(`  DB_PASSWORD: ${process.env.DB_PASSWORD !== undefined ? (process.env.DB_PASSWORD === '' ? '(empty)' : '[HIDDEN]') : '(not set)'}`);
-    console.log(`  DB_HOST: ${process.env.DB_HOST || '(not set)'}`);
-    console.log(`  DB_PORT: ${process.env.DB_PORT || '(not set)'}`);
-    
     if (!process.env.DB_NAME || !process.env.DB_USER || !process.env.DB_HOST) {
       throw new Error('Missing required database environment variables. Please check your .env file.');
     }
@@ -56,9 +49,6 @@ export class SequelizeSingleton {
   public async initialize(): Promise<void> {
     if (isMainThread) {
       await this.syncDatabase();
-      console.log(
-        `\x1b[36mMain Thread: Database synced successfully...\x1b[0m`
-      );
     }
   }
 
@@ -73,9 +63,21 @@ export class SequelizeSingleton {
 
   private async syncDatabase() {
     try {
-      await this.sequelize.sync({ alter: true });
+      // DB_SYNC: "none" = authenticate only, "force" = DROP tables, unset/other = ALTER tables (default)
+      const syncMode = process.env.DB_SYNC?.toLowerCase();
+
+      if (syncMode === "none") {
+        // Only authenticate, no schema changes
+        await this.sequelize.authenticate();
+      } else if (syncMode === "force") {
+        // DROP and recreate tables (DANGEROUS - loses all data)
+        await this.sequelize.sync({ force: true });
+      } else {
+        // Default: ALTER tables to match models (safe for development)
+        await this.sequelize.sync({ alter: true });
+      }
     } catch (error) {
-      console.error("Database sync failed:", error);
+      logger.error("DB", "Connection failed");
       throw error;
     }
   }

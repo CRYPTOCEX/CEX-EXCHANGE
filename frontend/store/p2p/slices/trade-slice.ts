@@ -158,7 +158,7 @@ export const createTradeSlice = (
   fetchTradeById: async (id: string) => {
     try {
       set({ isLoadingTradeById: true, tradeByIdError: null });
-      const { data, error, message } = await $fetch({
+      const { data, error } = await $fetch({
         url: `/api/p2p/trade/${id}`,
         silentSuccess: true,
         silent: true, // Don't show toast on error
@@ -166,7 +166,7 @@ export const createTradeSlice = (
 
       if (error) {
         set({
-          tradeByIdError: message || error || "Failed to fetch trade details",
+          tradeByIdError: error || "Failed to fetch trade details",
           isLoadingTradeById: false,
         });
         return;

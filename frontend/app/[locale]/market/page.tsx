@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function MarketPage() {
-  const t = useTranslations("market");
+  const t = useTranslations("common");
   const [markets, setMarkets] = useState<any[]>([]);
   const [tickers, setTickers] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -311,7 +311,7 @@ export default function MarketPage() {
               </h1>
 
               <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-300 max-w-3xl mx-auto leading-relaxed mb-6 md:mb-8">
-                {t("real-time_prices_24h_cryptocurrency_pairs")}
+                {t("real_time_prices_24h_cryptocurrency_pairs")}
                 {". "}
                 {t("start_trading_with_deep_liquidity")}.
               </p>
@@ -407,7 +407,7 @@ export default function MarketPage() {
                 {/* Search Input */}
                 <div className="relative flex-1 max-w-md">
                   <Input
-                    placeholder="Search markets (e.g., BTC, ETH)..."
+                    placeholder={t("search_markets_e_g_btc_eth_ellipsis")}
                     value={searchTerm}
                     icon={"mdi:search"}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -446,7 +446,7 @@ export default function MarketPage() {
                         )}
                       >
                         <Target className="w-4 h-4 mr-2" />
-                        All Markets
+                        {t("all_markets")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setSelectedFilter("gainers")}
@@ -476,7 +476,7 @@ export default function MarketPage() {
                         )}
                       >
                         <Volume2 className="w-4 h-4 mr-2 text-purple-600" />
-                        High Volume
+                        {t("high_volume")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setSelectedFilter("new")}
@@ -521,7 +521,7 @@ export default function MarketPage() {
                         )}
                       >
                         <Volume2 className="w-4 h-4 mr-2" />
-                        {t("Volume")}
+                        {t("volume")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setSortBy("price")}
@@ -531,7 +531,7 @@ export default function MarketPage() {
                         )}
                       >
                         <DollarSign className="w-4 h-4 mr-2" />
-                        {t("Price")}
+                        {t("price")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setSortBy("change")}
@@ -541,7 +541,7 @@ export default function MarketPage() {
                         )}
                       >
                         <TrendingUp className="w-4 h-4 mr-2" />
-                        {t("24h_change")}
+                        {`24h ${t('change')}`}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setSortBy("marketCap")}
@@ -581,18 +581,18 @@ export default function MarketPage() {
             >
               {/* Table Header */}
               <div className="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-4 p-3 md:p-4 text-sm font-semibold text-zinc-600 dark:text-zinc-300 border-b border-zinc-200/50 dark:border-zinc-700/50 bg-zinc-50/50 dark:bg-zinc-800/50">
-                <div>{t("Asset")}</div>
-                <div className="text-right md:col-span-1">{t("Price")}</div>
+                <div>{t("asset")}</div>
+                <div className="text-right md:col-span-1">{t("price")}</div>
                 <div className="hidden md:block text-right">
-                  {t("24h_change")}
+                  {`24h ${t('change')}`}
                 </div>
                 <div className="hidden md:block text-right">
-                  {t("24h_volume")}
+                  {`24h ${t('volume')}`}
                 </div>
                 <div className="hidden md:block text-right">
                   {t("market_cap")}
                 </div>
-                <div className="hidden md:block text-right">{t("Action")}</div>
+                <div className="hidden md:block text-right">{t("action")}</div>
               </div>
 
               {/* Table Body */}
@@ -763,7 +763,7 @@ export default function MarketPage() {
                             className="group/btn relative px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-lg font-medium text-white transition-all duration-300 shadow-md hover:shadow-lg flex items-center gap-2"
                           >
                             <Zap className="w-4 h-4" />
-                            {t("Trade")}
+                            {t("trade")}
                             <ArrowUpRight className="w-3 h-3 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                           </button>
                         </div>

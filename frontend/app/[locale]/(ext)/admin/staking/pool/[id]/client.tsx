@@ -7,9 +7,12 @@ import {
   ArrowLeft,
   Edit,
   Trash2,
-  AlertTriangle,
   RefreshCw,
+  Percent,
+  Clock,
+  Target,
 } from "lucide-react";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,7 +23,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { PoolHeader } from "./components/pool-header";
 import { PoolDetailsTab } from "./components/pool-details-tab";
 import PoolPositionsTab from "./components/pool-positions-tab";
 import { PoolAnalyticsTab } from "./components/pool-analytics-tab";
@@ -30,9 +32,14 @@ import { useParams } from "next/navigation";
 import { ErrorDisplay } from "@/components/ui/error-display";
 import { useStakingAdminPoolsStore } from "@/store/staking/admin/pool";
 import { useTranslations } from "next-intl";
+import { HeroSection } from "@/components/ui/hero-section";
+import { StatsGroup } from "@/components/ui/stats-group";
+import { motion } from "framer-motion";
 
 export default function StakingPoolDetailClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const getPoolById = useStakingAdminPoolsStore((state) => state.getPoolById);
   const selectedPool = useStakingAdminPoolsStore((state) => state.selectedPool);
   const isLoading = useStakingAdminPoolsStore((state) => state.isLoading);
@@ -99,7 +106,7 @@ export default function StakingPoolDetailClient() {
 
   if (error) {
     return (
-      <div className="container py-8 max-w-7xl mx-auto">
+      <div className={`container ${PAGE_PADDING} max-w-7xl mx-auto`}>
         <ErrorDisplay error={error} onRetry={fetchData} />
         <Link href="/admin/staking" className="mt-4 inline-block">
           <Button>
@@ -113,84 +120,126 @@ export default function StakingPoolDetailClient() {
 
   if (!selectedPool) return null;
 
+  const activePositions = selectedPool.positions?.filter(p => p.status === "ACTIVE").length || 0;
+
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between bg-card/60 backdrop-blur-sm p-4 rounded-xl shadow-sm border">
-        <Link href="/admin/staking">
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-full h-10 w-10"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
+    <div className="min-h-screen bg-linear-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+      {/* Hero Section */}
+      <HeroSection
+        breadcrumb={{
+          icon: <ArrowLeft className="h-4 w-4" />,
+          text: tExt("back_to_pools"),
+          href: "/admin/staking/pool",
+          className: "text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300",
+        }}
+        title={[
+          { text: selectedPool.name + " " },
+          { text: selectedPool.symbol, gradient: "bg-gradient-to-r from-violet-600 via-indigo-500 to-violet-600 dark:from-violet-400 dark:via-indigo-400 dark:to-violet-400" },
+        ]}
+        description={selectedPool.description || t("view_and_manage_this_staking_pool")}
+        descriptionAsHtml={true}
+        paddingTop="pt-24"
+        paddingBottom="pb-12"
+        layout="split"
+        rightContent={
+          <div className="flex flex-wrap items-center gap-2">
+            {isRefreshing ? (
+              <Button variant="outline" disabled size="sm">
+                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                {t("refreshing")}
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={fetchData} size="sm">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                {tExt("refresh")}
+              </Button>
+            )}
 
-        <div className="flex items-center gap-2">
-          {isRefreshing ? (
-            <Button variant="outline" disabled className="bg-background/80">
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-              {t("Refreshing")}.
-            </Button>
-          ) : (
             <Button
-              variant="outline"
-              onClick={fetchData}
-              className="bg-background/80 hover:bg-background"
+              variant={selectedPool.status === "ACTIVE" ? "destructive" : "outline"}
+              onClick={handleToggleStatus}
+              size="sm"
+              className={
+                selectedPool.status === "ACTIVE"
+                  ? "bg-red-500/90 hover:bg-red-600"
+                  : "bg-green-500/90 hover:bg-green-600 text-white"
+              }
             >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              {t("Refresh")}
+              {selectedPool.status === "ACTIVE" ? t("deactivate") : tCommon("activate")}
             </Button>
-          )}
 
-          <Button
-            variant={
-              selectedPool.status === "ACTIVE" ? "destructive" : "outline"
-            }
-            onClick={handleToggleStatus}
-            className={
-              selectedPool.status === "ACTIVE"
-                ? "bg-red-500/90 hover:bg-red-600"
-                : "bg-green-500/90 hover:bg-green-600 text-white"
-            }
-          >
-            {selectedPool.status === "ACTIVE"
-              ? "Deactivate Pool"
-              : "Activate Pool"}
-          </Button>
+            <Link href={`/admin/staking/pool/${selectedPool.id}/edit`}>
+              <Button size="sm" className="bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white">
+                <Edit className="mr-2 h-4 w-4" />
+                {tCommon("edit")}
+              </Button>
+            </Link>
 
-          <Button
-            variant="outline"
-            onClick={handleTogglePromotion}
-            className={
-              selectedPool.isPromoted
-                ? "bg-amber-500/90 hover:bg-amber-600 text-white"
-                : "bg-blue-500/90 hover:bg-blue-600 text-white"
-            }
-          >
-            {selectedPool.isPromoted ? "Remove Promotion" : "Promote Pool"}
-          </Button>
-
-                          <Link href={`/admin/staking/pool/${selectedPool.id}/edit`}>
-            <Button className="bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-200 dark:hover:bg-zinc-300">
-              <Edit className="mr-2 h-4 w-4" />
-              {t("edit_pool")}
+            <Button
+              variant="destructive"
+              onClick={() => setIsDeleteDialogOpen(true)}
+              size="sm"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {tCommon("delete")}
             </Button>
-          </Link>
+          </div>
+        }
+        rightContentAlign="center"
+        background={{
+          orbs: [
+            {
+              color: "#8b5cf6",
+              position: { top: "-10rem", right: "-10rem" },
+              size: "20rem",
+            },
+            {
+              color: "#6366f1",
+              position: { bottom: "-5rem", left: "-5rem" },
+              size: "15rem",
+            },
+          ],
+        }}
+        particles={{
+          count: 6,
+          type: "floating",
+          colors: ["#8b5cf6", "#6366f1"],
+          size: 8,
+        }}
+      >
+        <StatsGroup
+          stats={[
+            {
+              icon: Percent,
+              label: tCommon("apr"),
+              value: `${selectedPool.apr}%`,
+              iconColor: "text-violet-500",
+              iconBgColor: "bg-violet-500/10",
+            },
+            {
+              icon: Clock,
+              label: tCommon("lock_period"),
+              value: `${selectedPool.lockPeriod} ${tCommon("days")}`,
+              iconColor: "text-indigo-500",
+              iconBgColor: "bg-indigo-500/10",
+            },
+            {
+              icon: Target,
+              label: tCommon("active_positions"),
+              value: activePositions,
+              iconColor: "text-violet-500",
+              iconBgColor: "bg-violet-500/10",
+            },
+          ]}
+        />
+      </HeroSection>
 
-          <Button
-            variant="destructive"
-            onClick={() => setIsDeleteDialogOpen(true)}
-            className="bg-red-500/90 hover:bg-red-600"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            {t("Delete")}
-          </Button>
-        </div>
-      </div>
-
-      <PoolHeader pool={selectedPool} />
-
+      <div className="container mx-auto py-8 space-y-6 max-w-7xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
@@ -207,13 +256,13 @@ export default function StakingPoolDetailClient() {
             value="positions"
             className="rounded-lg data-[state=active]:bg-background"
           >
-            {t("staking_positions")}
+            {tCommon("staking_positions")}
           </TabsTrigger>
           <TabsTrigger
             value="analytics"
             className="rounded-lg data-[state=active]:bg-background"
           >
-            {t("Analytics")}
+            {tCommon("analytics")}
           </TabsTrigger>
         </TabsList>
 
@@ -232,6 +281,8 @@ export default function StakingPoolDetailClient() {
           />
         </TabsContent>
       </Tabs>
+      </motion.div>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog
@@ -244,13 +295,13 @@ export default function StakingPoolDetailClient() {
               {t("are_you_sure_you_want_to_delete_this_pool")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("this_action_cannot_be_undone")}.{" "}
+              {tCommon("this_action_cannot_be_undone")}.{" "}
               {t("this_will_permanently_delete_the")} {selectedPool.name}
               {t("staking_pool_and_remove_all_associated_data")}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeletePool}
               className="bg-red-500 hover:bg-red-600"
@@ -259,7 +310,7 @@ export default function StakingPoolDetailClient() {
               {deleteInProgress ? (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  {t("Deleting")}.
+                  {tCommon('deleting_ellipsis')}.
                 </>
               ) : (
                 "Delete Pool"

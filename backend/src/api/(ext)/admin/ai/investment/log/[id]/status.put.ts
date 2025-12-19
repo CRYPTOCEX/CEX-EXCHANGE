@@ -34,11 +34,18 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("AI Investment"),
   requiresAuth: true,
   permission: "edit.ai.investment",
+  logModule: "ADMIN_AI",
+  logTitle: "Update AI investment status",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
-  return updateStatus("aiInvestment", id, status);
+
+  ctx?.step(`Updating investment ${id} status to ${status}`);
+  const result = await updateStatus("aiInvestment", id, status);
+
+  ctx?.success("Investment status updated");
+  return result;
 };

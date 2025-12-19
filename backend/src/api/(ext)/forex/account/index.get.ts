@@ -15,6 +15,8 @@ export const metadata: OperationObject = {
     "Fetches all Forex accounts associated with the currently authenticated user.",
   operationId: "getForexAccounts",
   tags: ["Forex", "Accounts"],
+  logModule: "FOREX",
+  logTitle: "Get Forex Accounts",
   requiresAuth: true,
   responses: {
     200: {
@@ -38,10 +40,13 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Fetching Forex Accounts");
 
   const types: ("DEMO" | "LIVE")[] = ["DEMO", "LIVE"];
   const accounts: { [key: string]: forexAccountAttributes } = {};
@@ -124,6 +129,9 @@ export default async (data: Handler) => {
     );
     throw error; // Re-throw to be handled elsewhere
   }
+
+  ctx?.success("Get Forex Accounts fetched successfully");
+
 
   return accounts;
 };

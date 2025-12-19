@@ -13,17 +13,19 @@ import { useTranslations } from "next-intl";
 
 export default function OfferingLoading() {
   const t = useTranslations("ext");
+  const tExtIco = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
   return (
     <>
       {/* Hero Section with Background */}
-      <div className="relative bg-gradient-to-b from-primary/10 to-background pt-8 pb-6">
+      <div className="relative bg-gradient-to-b from-primary/10 to-background pt-28 pb-6">
         <div className="container">
           <Link
             href="/ico/offer"
             className="text-sm text-muted-foreground hover:text-primary mb-4 flex items-center w-fit"
           >
             <ArrowLeft className="mr-1 h-4 w-4" />
-            {t("back_to_offerings")}
+            {tCommon("back_to_offerings")}
           </Link>
 
           <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -119,10 +121,10 @@ export default function OfferingLoading() {
                 <CardHeader className="pb-0">
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="details">
-                      {t("project_details")}
+                      {tExtIco("project_details")}
                     </TabsTrigger>
-                    <TabsTrigger value="team">{t("Team")}</TabsTrigger>
-                    <TabsTrigger value="roadmap">{t("Roadmap")}</TabsTrigger>
+                    <TabsTrigger value="team">{t("team")}</TabsTrigger>
+                    <TabsTrigger value="roadmap">{t("roadmap")}</TabsTrigger>
                   </TabsList>
                 </CardHeader>
                 <CardContent className="pt-6">
@@ -147,7 +149,7 @@ export default function OfferingLoading() {
             {/* FAQ Section */}
             <Card className="border-0 shadow-md mb-8">
               <CardHeader>
-                <CardTitle>{t("frequently_asked_questions")}</CardTitle>
+                <CardTitle>{tCommon('faq_question')}</CardTitle>
                 <Skeleton className="h-4 w-3/4" />
               </CardHeader>
               <CardContent className="space-y-4">
@@ -169,7 +171,7 @@ export default function OfferingLoading() {
             <div id="invest" className="sticky top-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>{t("invest_in_this_offering")}</CardTitle>
+                  <CardTitle>{tExtIco("invest_in_this_offering")}</CardTitle>
                   <Skeleton className="h-4 w-full" />
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -202,7 +204,7 @@ export default function OfferingLoading() {
               <Card className="mt-6 border-0 shadow-sm">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">
-                    {t("recent_activity")}
+                    {tCommon("recent_activity")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4">

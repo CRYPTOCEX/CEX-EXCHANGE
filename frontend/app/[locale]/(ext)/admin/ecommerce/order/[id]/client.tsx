@@ -36,6 +36,8 @@ import { toast } from "sonner";
 import { $fetch } from "@/lib/api";
 import { Link } from "@/i18n/routing";
 import DownloadOptionsManager from "./download-options";
+import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 interface OrderClientProps {
   orderId: string;
 }
@@ -59,6 +61,9 @@ function useDebounce<T extends (...args: any[]) => any>(
   return debouncedFn as T;
 }
 export default function OrderDetailClient({ orderId }: OrderClientProps) {
+  const t = useTranslations("ext");
+  const tExtAdmin = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const [order, setOrder] = useState<any>(null);
   const [shipments, setShipments] = useState<any[]>([]);
   const [shippingAddress, setShippingAddress] = useState<any>({});
@@ -369,7 +374,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
           </div>
           <div className="ml-3">
             <p className="text-sm text-red-700 dark:text-red-400">
-              Error: {error || "Order not found"}
+              {"Error"}: {error || "Order not found"}
             </p>
           </div>
         </div>
@@ -410,7 +415,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
       case "PENDING":
         return <Badge variant="secondary">Pending</Badge>;
       case "TRANSIT":
-        return <Badge variant="secondary">In Transit</Badge>;
+        return <Badge variant="secondary">{tExtAdmin("in_transit")}</Badge>;
       case "DELIVERED":
         return <Badge variant="secondary">Delivered</Badge>;
       case "CANCELLED":
@@ -420,7 +425,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
     }
   }
   return (
-    <div>
+    <div className={`container ${PAGE_PADDING}`}>
       {/* Back button and header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
         <div>
@@ -429,13 +434,13 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
             className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 mb-2"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Orders
+            {t("back_to_orders")}
           </Link>
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Order #{order.id?.slice(0, 8) || orderId}
+            {tCommon("order")} {order.id?.slice(0, 8) || orderId}
           </h1>
           <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-            Placed on{" "}
+            {t("placed_on")}{" "}
             {format(new Date(order.createdAt || Date.now()), "MMMM dd, yyyy")}{" "}
             at {format(new Date(order.createdAt || Date.now()), "h:mm a")}
           </p>
@@ -448,7 +453,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
               disabled={isUpdating || !canEditStatus}
             >
               <SelectTrigger className="w-full sm:w-auto">
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder={tCommon("select_status")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="PENDING">Pending</SelectItem>
@@ -460,7 +465,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
             {getStatusBadge(orderStatus)}
             {!canEditStatus && (
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                (Status can only be changed when order is pending)
+                {tExtAdmin("status_can_only_be_changed_when_order_is_pending")}
               </p>
             )}
           </div>
@@ -473,7 +478,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
             <TabsList className="mb-6">
               <TabsTrigger value="details" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
-                Order Details
+                {tCommon("order_details")}
               </TabsTrigger>
               {hasPhysicalProducts && (
                 <TabsTrigger
@@ -493,7 +498,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
             <TabsContent value="details">
               <Card>
                 <CardHeader>
-                  <CardTitle>Order Items</CardTitle>
+                  <CardTitle>{t("order_items")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
@@ -542,7 +547,8 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                             {product.type === "DOWNLOADABLE" &&
                               product.ecommerceOrderItem?.filePath && (
                                 <div className="text-xs text-muted-foreground mt-1">
-                                  File: {product.ecommerceOrderItem.filePath}
+                                  {tExtAdmin("file_1")}:{" "}
+                                  {product.ecommerceOrderItem.filePath}
                                 </div>
                               )}
                           </div>
@@ -580,7 +586,9 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
               ) && (
                 <Card className="mt-6">
                   <CardHeader>
-                    <CardTitle>Digital Product Management</CardTitle>
+                    <CardTitle>
+                      {tExtAdmin("digital_product_management")}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
@@ -610,7 +618,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                   {/* Shipping Address */}
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
-                      <CardTitle>Shipping Address</CardTitle>
+                      <CardTitle>{tExtAdmin("shipping_address")}</CardTitle>
                       <Button
                         variant="outline"
                         size="sm"
@@ -685,7 +693,9 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                               />
                             </div>
                             <div>
-                              <Label htmlFor="postalCode">Postal Code</Label>
+                              <Label htmlFor="postalCode">
+                                {t("postal_code")}
+                              </Label>
                               <Input
                                 id="postalCode"
                                 name="postalCode"
@@ -730,7 +740,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                   {/* Shipment Assignment */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Shipment Assignment</CardTitle>
+                      <CardTitle>{tExtAdmin("shipment_assignment")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
@@ -742,7 +752,9 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                               disabled={!canEditStatus}
                             >
                               <SelectTrigger className="flex-1">
-                                <SelectValue placeholder="Select a shipment" />
+                                <SelectValue
+                                  placeholder={tExtAdmin("select_a_shipment")}
+                                />
                               </SelectTrigger>
                               <SelectContent>
                                 {shipments.map((shipment) => {
@@ -774,11 +786,13 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                             <div className="flex items-center gap-2 mb-2">
                               <div className="h-2 w-2 bg-green-500 rounded-full"></div>
                               <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                                Shipment Assigned
+                                {tExtAdmin("shipment_assigned")}
                               </span>
                             </div>
                             <p className="text-sm text-green-600 dark:text-green-300">
-                              This order has been assigned to shipment{" "}
+                              {tExtAdmin(
+                                "this_order_has_been_assigned_to_shipment"
+                              )}{" "}
                               {order.shipping.loadId}
                             </p>
                           </div>
@@ -788,55 +802,59 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                         {order.shipping && (
                           <div className="bg-muted/30 dark:bg-zinc-800/50 p-4 rounded-lg">
                             <h4 className="font-medium mb-2">
-                              Current Shipment
+                              {tExtAdmin("current_shipment")}
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                               <div>
                                 <p>
-                                  <strong>Load ID:</strong>{" "}
+                                  <strong>{t("load_id_1")}:</strong>{" "}
                                   {order.shipping.loadId}
                                 </p>
                                 <p>
-                                  <strong>Status:</strong>{" "}
+                                  <strong>{tCommon("status")}:</strong>{" "}
                                   {getShipmentStatusBadge(
                                     order.shipping.loadStatus
                                   )}
                                 </p>
                                 <p>
-                                  <strong>Shipper:</strong>{" "}
+                                  <strong>{t("shipper_1")}:</strong>{" "}
                                   {order.shipping.shipper}
                                 </p>
                                 <p>
-                                  <strong>Transporter:</strong>{" "}
+                                  <strong>{t("transporter_1")}:</strong>{" "}
                                   {order.shipping.transporter}
                                 </p>
                                 <p>
-                                  <strong>Goods Type:</strong>{" "}
+                                  <strong>{t("goods_type_1")}:</strong>{" "}
                                   {order.shipping.goodsType}
                                 </p>
                               </div>
                               <div>
                                 <p>
-                                  <strong>Vehicle:</strong>{" "}
+                                  <strong>{t("vehicle_1")}:</strong>{" "}
                                   {order.shipping.vehicle}
                                 </p>
                                 <p>
-                                  <strong>Weight:</strong>{" "}
+                                  <strong>{t("weight_1")}:</strong>{" "}
                                   {order.shipping.weight} kg
                                 </p>
                                 <p>
-                                  <strong>Volume:</strong>{" "}
+                                  <strong>{tCommon("volume")}:</strong>{" "}
                                   {order.shipping.volume} m³
                                 </p>
                                 <p>
-                                  <strong>Cost:</strong> ${order.shipping.cost}
+                                  <strong>{tCommon("cost")}:</strong> $
+                                  {order.shipping.cost}
                                 </p>
                                 <p>
-                                  <strong>Tax:</strong> ${order.shipping.tax}
+                                  <strong>{t("tax")}:</strong> $
+                                  {order.shipping.tax}
                                 </p>
                                 {order.shipping.deliveryDate && (
                                   <p>
-                                    <strong>Delivery Date:</strong>{" "}
+                                    <strong>
+                                      {tExtAdmin("delivery_date_1")}:
+                                    </strong>{" "}
                                     {format(
                                       new Date(order.shipping.deliveryDate),
                                       "MMM dd, yyyy"
@@ -848,7 +866,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                             {order.shipping.description && (
                               <div className="mt-2">
                                 <p>
-                                  <strong>Description:</strong>{" "}
+                                  <strong>{tCommon("description")}:</strong>{" "}
                                   {order.shipping.description}
                                 </p>
                               </div>
@@ -909,21 +927,22 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                     <div className="flex justify-between">
                       <div>
                         <h3 className="font-bold text-lg">
-                          Invoice #{order.id}
+                          {`${tCommon("invoice")} #`}
+                          {order.id}
                         </h3>
                         <p className="text-muted-foreground">
-                          Date:{" "}
+                          {tCommon("date")}:{" "}
                           {format(new Date(order.createdAt), "MMMM d, yyyy")}
                         </p>
                       </div>
                       <div className="text-right">
                         <h3 className="font-bold text-lg">Shop</h3>
                         <p className="text-muted-foreground">
-                          123 Commerce St
+                          {`123 ${tCommon("commerce_st")}`}
                           <br />
-                          New York, NY 10001
+                          {t("new_york_ny")}
                           <br />
-                          support@shop.com
+                          {process.env.NEXT_PUBLIC_APP_EMAIL}
                         </p>
                       </div>
                     </div>
@@ -931,7 +950,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <h3 className="font-medium text-sm uppercase text-muted-foreground mb-2">
-                          Bill To
+                          {tExtAdmin("bill_to")}
                         </h3>
                         <p className="font-medium">
                           {order.user?.firstName} {order.user?.lastName}
@@ -941,7 +960,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
 
                       <div>
                         <h3 className="font-medium text-sm uppercase text-muted-foreground mb-2">
-                          Ship To
+                          {tExtAdmin("ship_to")}
                         </h3>
                         <p className="font-medium">
                           {shippingAddress?.name || "Customer"}
@@ -958,7 +977,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                     </div>
 
                     <div>
-                      <h3 className="font-medium mb-2">Order Items</h3>
+                      <h3 className="font-medium mb-2">{t("order_items")}</h3>
                       <div className="border rounded-md overflow-hidden">
                         <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                           <thead className="bg-muted/50 dark:bg-zinc-800/50">
@@ -1047,30 +1066,33 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                     </div>
 
                     <div>
-                      <h3 className="font-medium mb-2">Payment Information</h3>
+                      <h3 className="font-medium mb-2">
+                        {tExtAdmin("payment_information")}
+                      </h3>
                       <div className="bg-muted/30 dark:bg-zinc-800/50 p-4 rounded-lg">
                         <div className="flex items-center">
                           {order.paymentMethod === "CREDIT_CARD" ? (
-                            <Badge>Credit Card</Badge>
+                            <Badge>{t("credit_card")}</Badge>
                           ) : order.paymentMethod === "CRYPTO" ? (
                             <Badge>Cryptocurrency</Badge>
                           ) : (
-                            <Badge>Bank Transfer</Badge>
+                            <Badge>{t("bank_transfer")}</Badge>
                           )}
                         </div>
                         <p className="mt-2 text-sm text-muted-foreground">
-                          Payment processed on{" "}
+                          {tExtAdmin("payment_processed_on")}{" "}
                           {format(new Date(order.createdAt), "MMMM d, yyyy")}
                         </p>
                       </div>
                     </div>
 
                     <div>
-                      <h3 className="font-medium mb-2">Terms & Conditions</h3>
+                      <h3 className="font-medium mb-2">
+                        {t("terms_conditions")}
+                      </h3>
                       <p className="text-sm text-muted-foreground">
-                        Thank you for your business! If you have any questions
-                        about this invoice, please contact our customer support
-                        team at support@shop.com.
+                        {tExtAdmin("thank_you_for_your_business")}{" "}
+                        {tExtAdmin("if_you_have_any_questions_about")}
                       </p>
                     </div>
                   </div>
@@ -1083,12 +1105,14 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle>{t("order_summary")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Order Number</span>
+                  <span className="text-muted-foreground">
+                    {t("order_number")}
+                  </span>
                   <span className="font-medium">{order.id}</span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -1134,7 +1158,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
 
                 <Button className="w-full" onClick={shareInvoice}>
                   <Mail className="mr-2 h-4 w-4" />
-                  Email Invoice
+                  {tExtAdmin("email_invoice")}
                 </Button>
 
                 {orderStatus === "PENDING" && canEditStatus && (
@@ -1144,7 +1168,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                     onClick={() => handleStatusSelectChange("CANCELLED")}
                   >
                     <AlertCircle className="mr-2 h-4 w-4" />
-                    Cancel Order
+                    {tExtAdmin("cancel_order")}
                   </Button>
                 )}
               </div>
@@ -1156,7 +1180,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
             Object.keys(shippingAddress).length > 0 && (
               <Card className="mt-6">
                 <CardHeader>
-                  <CardTitle>Shipping Address</CardTitle>
+                  <CardTitle>{tExtAdmin("shipping_address")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-sm">
@@ -1168,7 +1192,9 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                     </p>
                     <p>{shippingAddress.country}</p>
                     {shippingAddress.phone && (
-                      <p className="mt-1">Phone: {shippingAddress.phone}</p>
+                      <p className="mt-1">
+                        {tExtAdmin("phone")}: {shippingAddress.phone}
+                      </p>
                     )}
                   </div>
                 </CardContent>

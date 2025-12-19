@@ -13,7 +13,8 @@ interface HeaderProps {
 }
 
 export function Header({ levelNumber, onClose, headerRef }: HeaderProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   return (
     <div
       ref={headerRef}
@@ -28,9 +29,9 @@ export function Header({ levelNumber, onClose, headerRef }: HeaderProps) {
             {t("field_properties")}
           </h3>
           <p className="text-xs text-gray-500 dark:text-zinc-400">
-            {t("Level")}
+            {tCommon("level")}
             {levelNumber}
-            {t("Configuration")}
+            {tCommon("configuration")}
           </p>
         </div>
       </div>

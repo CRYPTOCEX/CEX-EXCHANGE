@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAdminDisputesStore } from "@/store/p2p/admin-disputes-store";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 import { DisputeBreadcrumb } from "./components/dispute-breadcrumb";
 import { BackButton } from "./components/back-button";
@@ -149,7 +150,7 @@ export default function AdminDisputeDetailsClient() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className={`container ${PAGE_PADDING} space-y-6`}>
       {/* Breadcrumb and back button */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <DisputeBreadcrumb disputeId={disputeId} />

@@ -17,7 +17,7 @@ export function RowSkeleton({
   return (
     <>
       {/* "select" cell with required title */}
-      <TableCell className={getCellClasses("select", false, true)}>
+      <TableCell className={getCellClasses("select", false)}>
         <div className={getCellContentClasses(false)}>
           <CellSkeleton
             column={{ key: "select", type: "select", title: "Select" }}
@@ -30,7 +30,7 @@ export function RowSkeleton({
       {columns.map((column: ColumnDefinition) => (
         <TableCell
           key={column.key}
-          className={getCellClasses(column.key, false, true)}
+          className={getCellClasses(column.key, false)}
         >
           <div className={getCellContentClasses(column.key === "actions")}>
             <CellSkeleton
@@ -51,7 +51,7 @@ export function RowSkeleton({
       ))}
 
       {/* The actions cell */}
-      <TableCell className={getCellClasses("actions", false, true)}>
+      <TableCell className={getCellClasses("actions", false)}>
         <div className={getCellContentClasses(true)}>
           <CellSkeleton
             column={{ key: "actions", type: "actions", title: "Actions" }}

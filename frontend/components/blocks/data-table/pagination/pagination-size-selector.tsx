@@ -10,14 +10,16 @@ import { useTableStore } from "../store";
 import { useTranslations } from "next-intl";
 
 export function PaginationSizeSelector() {
-  const t = useTranslations("common");
+  const tExtAffiliate = useTranslations("ext_affiliate");
   const pageSize = useTableStore((state) => state.pageSize);
   const setPageSize = useTableStore((state) => state.setPageSize);
   const paginationLoading = useTableStore((state) => state.paginationLoading);
+  const getPageSizeOptions = useTableStore((state) => state.getPageSizeOptions);
+  const pageSizeOptions = getPageSizeOptions();
 
   return (
     <div className="flex items-center space-x-2">
-      <p className="text-sm font-medium whitespace-nowrap">{t("items_per_page")}</p>
+      <p className="text-sm font-medium whitespace-nowrap">{tExtAffiliate("items_per_page_1")}</p>
       <Select
         value={`${pageSize}`}
         onValueChange={(value) => setPageSize(Number(value), true)}
@@ -27,7 +29,7 @@ export function PaginationSizeSelector() {
           <SelectValue placeholder={pageSize} />
         </SelectTrigger>
         <SelectContent side="top">
-          {[10, 20, 30, 40, 50].map((size) => (
+          {pageSizeOptions.map((size) => (
             <SelectItem key={size} value={`${size}`}>
               {size}
             </SelectItem>

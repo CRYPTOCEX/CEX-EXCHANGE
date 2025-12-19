@@ -4,9 +4,10 @@ import { models } from "@b/db";
 import { isError } from "ethers";
 
 export const metadata: OperationObject = {
-  summary: "Stores a new Ecosystem Custodial Wallet",
-  operationId: "storeEcosystemCustodialWallet",
-  tags: ["Admin", "Ecosystem Custodial Wallets"],
+  summary: "Create a new ecosystem custodial wallet",
+  description: "Creates a new custodial wallet by deploying a smart contract on the blockchain. The wallet is associated with a master wallet and automatically configured with the appropriate chain and network settings.",
+  operationId: "createEcosystemCustodialWallet",
+  tags: ["Admin", "Ecosystem", "Wallet"],
   requestBody: {
     required: true,
     content: {
@@ -27,7 +28,7 @@ export const metadata: OperationObject = {
   },
   responses: {
     200: {
-      description: "Ecosystem custodial wallet created successfully",
+      description: "Custodial wallet created successfully",
       content: {
         "application/json": {
           schema: {
@@ -37,6 +38,17 @@ export const metadata: OperationObject = {
                 type: "string",
                 description: "Success message",
               },
+              data: {
+                type: "object",
+                properties: {
+                  id: { type: "string", description: "Custodial wallet ID" },
+                  masterWalletId: { type: "string", description: "Associated master wallet ID" },
+                  address: { type: "string", description: "Wallet contract address" },
+                  chain: { type: "string", description: "Blockchain chain" },
+                  network: { type: "string", description: "Network (mainnet/testnet)" },
+                  status: { type: "string", enum: ["ACTIVE", "INACTIVE", "SUSPENDED"] },
+                },
+              },
             },
           },
         },
@@ -45,30 +57,37 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "create.ecosystem.custodial.wallet",
+  logModule: "ADMIN_ECO",
+  logTitle: "Create Ecosystem Custodial Wallet",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { masterWalletId } = body;
 
   try {
+    ctx?.step("Validating Input");
     // Validate input
     if (!masterWalletId) {
       throw new Error("Master wallet ID is required");
     }
 
+    ctx?.step("Fetching Master Wallet");
     const wallet = await models.ecosystemMasterWallet.findByPk(masterWalletId);
     if (!wallet) {
       throw new Error(`Master wallet with ID ${masterWalletId} not found`);
     }
 
-    const contractAddress = await deployCustodialContract(wallet);
+    ctx?.step("Deploying Custodial Contract");
+    const contractAddress = await deployCustodialContract(wallet, ctx);
     if (!contractAddress) {
       throw new Error("Failed to deploy custodial wallet contract - no address returned");
     }
 
+    ctx?.step("Storing Custodial Wallet");
     const custodialWallet = await storeCustodialWallet(wallet.id, wallet.chain, contractAddress);
 
+    ctx?.success("Custodial wallet created successfully");
     return {
       message: "Ecosystem custodial wallet created successfully",
       data: custodialWallet,

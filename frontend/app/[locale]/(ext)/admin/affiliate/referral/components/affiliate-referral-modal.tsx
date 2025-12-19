@@ -30,7 +30,7 @@ export const AffiliateReferralModal: React.FC<AffiliateReferralModalProps> = ({
   onClose,
   onAffiliateUpdated,
 }) => {
-  const t = useTranslations("admin");
+  const t = useTranslations("ext_admin");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,7 +50,7 @@ export const AffiliateReferralModal: React.FC<AffiliateReferralModalProps> = ({
       >
         <SheetHeader className="px-6 py-4 border-b bg-muted/30">
           <SheetTitle className="text-xl font-semibold">
-            Affiliate Referral Details
+            {t("affiliate_referral_details")}
           </SheetTitle>
         </SheetHeader>
         
@@ -70,8 +70,8 @@ export const AffiliateReferralModal: React.FC<AffiliateReferralModalProps> = ({
                     <AlertCircle className="w-8 h-8 text-destructive" />
                   </div>
                   <div>
-                    <p className="text-lg font-medium">No affiliate selected</p>
-                    <p className="text-sm text-muted-foreground">Please select an affiliate to view details</p>
+                    <p className="text-lg font-medium">{t("no_affiliate_selected")}</p>
+                    <p className="text-sm text-muted-foreground">{t("please_select_an_affiliate_to_view_details")}</p>
                   </div>
                 </div>
               </div>

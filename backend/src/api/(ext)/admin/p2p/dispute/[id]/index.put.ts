@@ -1,17 +1,25 @@
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 import { p2pAdminDisputeRateLimit } from "@b/handler/Middleware";
 import { logP2PAdminAction } from "../../../../p2p/utils/ownership";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  notFoundResponse,
+  badRequestResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Update P2P Dispute (Admin)",
-  description:
-    "Updates dispute details such as status, resolution information, or appends a message. When resolving, also updates the associated trade.",
+  summary: "Update P2P dispute",
+  description: "Updates a P2P dispute including status changes, resolution details, and admin messages. Handles fund distribution when resolving disputes based on the outcome (BUYER_WINS, SELLER_WINS, SPLIT, CANCELLED).",
   operationId: "updateAdminP2PDispute",
-  tags: ["Admin", "Disputes", "P2P"],
+  tags: ["Admin", "P2P", "Dispute"],
   requiresAuth: true,
   middleware: [p2pAdminDisputeRateLimit],
+  logModule: "ADMIN_P2P",
+  logTitle: "Update P2P dispute",
   parameters: [
     {
       index: 0,
@@ -50,15 +58,15 @@ export const metadata = {
   },
   responses: {
     200: { description: "Dispute updated successfully." },
-    401: { description: "Unauthorized." },
-    404: { description: "Dispute not found." },
-    500: { description: "Internal Server Error." },
+    401: unauthorizedResponse,
+    404: notFoundResponse("P2P resource"),
+    500: serverErrorResponse,
   },
   permission: "edit.p2p.dispute",
 };
 
 export default async (data) => {
-  const { params, body, user } = data;
+  const { params, body, user, ctx } = data;
   const { id } = params;
   const { status, resolution, message } = body;
 
@@ -72,6 +80,7 @@ export default async (data) => {
   const transaction = await sequelize.transaction();
 
   try {
+    ctx?.step("Fetching dispute");
     const dispute = await models.p2pDispute.findByPk(id, {
       include: [{
         model: models.p2pTrade,
@@ -88,6 +97,7 @@ export default async (data) => {
 
     if (!dispute) {
       await transaction.rollback();
+      ctx?.fail("Dispute not found");
       throw createError({ statusCode: 404, message: "Dispute not found" });
     }
 
@@ -95,6 +105,7 @@ export default async (data) => {
     let tradeUpdated = false;
     let fundsHandled = false;
 
+    ctx?.step("Processing dispute update");
     // Validate status transition if changing status
     if (status) {
       const validStatuses = ["PENDING", "IN_PROGRESS", "RESOLVED"];
@@ -110,6 +121,7 @@ export default async (data) => {
 
     // Handle resolution with fund management
     if (resolution && resolution.outcome) {
+      ctx?.step(`Resolving dispute with outcome: ${resolution.outcome}`);
       const sanitizedNotes = resolution.notes ? sanitizeInput(resolution.notes) : "";
       const outcome = resolution.outcome;
 
@@ -156,14 +168,7 @@ export default async (data) => {
 
               // Log if amounts don't match (indicates potential issue)
               if (safeDeductAmount < trade.amount || safeUnlockAmount < trade.amount) {
-                console.warn('[Dispute Resolution] WARNING: Partial fund handling:', {
-                  tradeId: trade.id,
-                  tradeAmount: trade.amount,
-                  actualDeducted: safeDeductAmount,
-                  actualUnlocked: safeUnlockAmount,
-                  sellerBalance: sellerWallet.balance,
-                  sellerInOrder: sellerWallet.inOrder,
-                });
+                logger.warn("P2P_DISPUTE", `Partial fund handling for trade ${trade.id}: deducted=${safeDeductAmount}, unlocked=${safeUnlockAmount}, expected=${trade.amount}`);
               }
 
               // Calculate escrow fee - same as normal trade release
@@ -217,14 +222,9 @@ export default async (data) => {
                     tradeId: trade.id,
                   }, { transaction });
 
-                  console.log('[Dispute Resolution] Platform commission recorded:', {
-                    tradeId: trade.id,
-                    adminId: systemAdmin.id,
-                    platformFee,
-                    currency: trade.offer.currency,
-                  });
+                  logger.info("P2P_DISPUTE", `Platform commission recorded for trade ${trade.id}: ${platformFee} ${trade.offer.currency}`);
                 } else {
-                  console.warn('[Dispute Resolution] No super admin found to assign commission');
+                  logger.warn("P2P_DISPUTE", "No super admin found to assign commission");
                 }
               }
 
@@ -261,22 +261,9 @@ export default async (data) => {
 
               fundsHandled = true;
 
-              console.log('[Dispute Resolution] Funds transferred to buyer:', {
-                tradeId: trade.id,
-                buyerId: trade.buyerId,
-                sellerId: trade.sellerId,
-                tradeAmount: trade.amount,
-                actualDeducted: safeDeductAmount,
-                platformFee,
-                buyerReceives: buyerNetAmount,
-                currency: trade.offer.currency,
-              });
+              logger.success("P2P_DISPUTE", `Funds transferred to buyer for trade ${trade.id}: ${buyerNetAmount} ${trade.offer.currency} (fee: ${platformFee})`);
             } else {
-              console.warn('[Dispute Resolution] WARNING: No funds available to transfer:', {
-                tradeId: trade.id,
-                sellerBalance: sellerWallet.balance,
-                sellerInOrder: sellerWallet.inOrder,
-              });
+              logger.warn("P2P_DISPUTE", `No funds available to transfer for trade ${trade.id}`);
             }
           }
           finalTradeStatus = "COMPLETED";
@@ -305,17 +292,10 @@ export default async (data) => {
 
               // Log if amounts don't match
               if (safeUnlockAmount < trade.amount) {
-                console.warn('[Dispute Resolution] WARNING: Partial unlock:', {
-                  tradeId: trade.id,
-                  tradeAmount: trade.amount,
-                  actualUnlocked: safeUnlockAmount,
-                });
+                logger.warn("P2P_DISPUTE", `Partial unlock for trade ${trade.id}: ${safeUnlockAmount}/${trade.amount}`);
               }
             } else {
-              console.warn('[Dispute Resolution] WARNING: No funds to unlock:', {
-                tradeId: trade.id,
-                currentInOrder: sellerWallet.inOrder,
-              });
+              logger.warn("P2P_DISPUTE", `No funds to unlock for trade ${trade.id}`);
             }
           }
 
@@ -344,20 +324,9 @@ export default async (data) => {
                   },
                 }, { transaction });
 
-                console.log('[Dispute Resolution] Restored offer amount:', {
-                  offerId: offer.id,
-                  tradeAmount: trade.amount,
-                  previousTotal: amountConfig.total,
-                  newTotal: safeTotal,
-                  originalTotal,
-                });
+                logger.info("P2P_DISPUTE", `Restored offer ${offer.id} amount: ${amountConfig.total} -> ${safeTotal}`);
               } else {
-                console.log('[Dispute Resolution] Skipped restoration - at or above limit:', {
-                  offerId: offer.id,
-                  currentTotal: amountConfig.total,
-                  proposedTotal,
-                  maxAllowed: originalTotal,
-                });
+                logger.debug("P2P_DISPUTE", `Skipped offer ${offer.id} restoration - at or above limit`);
               }
             }
           }
@@ -487,12 +456,13 @@ export default async (data) => {
           amount: trade.amount,
           currency: trade.offer?.currency || trade.currency,
           message: sanitizedMessage,
-        }).catch(console.error);
+        }).catch((err) => logger.error("P2P_DISPUTE", `Notification error: ${err}`));
       }
     }
 
     await dispute.save({ transaction });
 
+    ctx?.step("Logging activity");
     // Log activity
     await models.p2pActivityLog.create({
       userId: user.id,
@@ -531,6 +501,7 @@ export default async (data) => {
 
     await transaction.commit();
 
+    ctx?.step("Broadcasting updates");
     // Broadcast WebSocket event if trade was updated
     if (tradeUpdated && trade) {
       const finalStatus = resolution?.outcome === "BUYER_WINS" || resolution?.outcome === "SPLIT"
@@ -555,7 +526,7 @@ export default async (data) => {
         currency: trade.offer?.currency || trade.currency,
         disputeResolved: true,
         resolution: resolution?.outcome,
-      }).catch(console.error);
+      }).catch((err) => logger.error("P2P_DISPUTE", `Trade notification error: ${err}`));
     }
 
     // Reload dispute with all associations for proper response
@@ -627,6 +598,7 @@ export default async (data) => {
       timestamp: e.createdAt || e.timestamp,
     })) : [];
 
+    ctx?.success("Dispute updated successfully");
     return {
       ...plainDispute,
       messages,
@@ -638,6 +610,7 @@ export default async (data) => {
     if (err.statusCode) {
       throw err;
     }
+    ctx?.fail("Failed to update dispute");
     throw createError({
       statusCode: 500,
       message: "Internal Server Error: " + err.message,

@@ -31,7 +31,7 @@ export default function StakingEarningsSettingsSection({
   validationErrors = {},
   hasSubmitted = false,
 }: StakingEarningsSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const safeSettings = {
     DefaultEarningFrequency: settings.DefaultEarningFrequency ?? "MONTHLY",
     MinimumWithdrawalAmount: settings.MinimumWithdrawalAmount ?? 0,
@@ -77,14 +77,14 @@ export default function StakingEarningsSettingsSection({
             }
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select APR Calculation" />
+              <SelectValue placeholder={t("select_apr_calculation")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="SIMPLE">
-                {t("simple_interest_(apr)")}
+                {t("simple_interest_apr")} (APR)
               </SelectItem>
               <SelectItem value="COMPOUND">
-                {t("compound_interest_(apy)")}
+                {t("compound_interest_apy")} (APY)
               </SelectItem>
             </SelectContent>
           </Select>
@@ -104,26 +104,26 @@ export default function StakingEarningsSettingsSection({
           <Input
             id="minimumWithdrawalAmount"
             type="number"
-            label="Minimum Withdrawal Amount"
+            label={t("minimum_withdrawal_amount")}
             value={safeSettings.MinimumWithdrawalAmount}
             onChange={(e) =>
               onUpdate("MinimumWithdrawalAmount", Number(e.target.value))
             }
-            placeholder="Enter minimum withdrawal amount"
+            placeholder={t("enter_minimum_withdrawal_amount")}
             min="0"
             step="0.0001"
             error={hasError("MinimumWithdrawalAmount")}
             errorMessage={getErrorMessage("MinimumWithdrawalAmount")}
           />
           <p className="text-xs text-muted-foreground mt-1">
-            {t("set_the_minimum_prevent_micro-withdrawals")}.
+            {t("set_the_minimum_prevent_micro_withdrawals")}.
           </p>
         </div>
         <div>
           <Input
             id="earningsDistributionTime"
             type="time"
-            label="Earnings Distribution Time"
+            label={t("earnings_distribution_time")}
             value={safeSettings.EarningsDistributionTime}
             onChange={(e) =>
               onUpdate("EarningsDistributionTime", e.target.value)

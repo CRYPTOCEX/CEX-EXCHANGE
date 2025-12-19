@@ -22,7 +22,8 @@ export const TransactionEdit: React.FC<TransactionEditProps> = ({
   backUrl,
   updateEndpoint,
 }) => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const { id } = useParams() as { id: string };
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -130,7 +131,7 @@ export const TransactionEdit: React.FC<TransactionEditProps> = ({
   if (isLoading) {
     return (
       <div className="p-5 text-center">
-        <p>{t("loading_transaction_details")}.</p>
+        <p>{tCommon("loading_transaction_details")}.</p>
       </div>
     );
   }
@@ -176,7 +177,7 @@ export const TransactionEdit: React.FC<TransactionEditProps> = ({
             disabled={isLoading}
             className="w-full sm:w-auto"
           >
-            {t("reject_transaction")}
+            {tCommon("reject_transaction")}
           </Button>
         </div>
       )}

@@ -17,7 +17,8 @@ import WalletProvider from "@/context/wallet";
 import { useTranslations } from "next-intl";
 
 export function WalletTab() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardUser = useTranslations("dashboard_user");
   const { user, connectWallet, disconnectWallet } = useUserStore();
   const { toast } = useToast();
 
@@ -100,9 +101,9 @@ export function WalletTab() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Globe className="h-5 w-5" />
-              External Wallet Connection
+              {tDashboardUser("external_wallet_connection")}
             </CardTitle>
-            <CardDescription>Connect your Web3 wallet for blockchain transactions</CardDescription>
+            <CardDescription>{tDashboardUser("connect_your_web3_wallet_for_blockchain")}</CardDescription>
           </CardHeader>
           <CardContent>
             {!account?.isConnected ? (
@@ -125,21 +126,21 @@ export function WalletTab() {
                           className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"
                         >
                           <Shield className="h-3 w-3 mr-1" />
-                          {t("Secure")}
+                          {t("secure")}
                         </Badge>
                         <Badge
                           variant="outline"
                           className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"
                         >
                           <Zap className="h-3 w-3 mr-1" />
-                          {t("Fast")}
+                          {t("fast")}
                         </Badge>
                         <Badge
                           variant="outline"
                           className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"
                         >
                           <Globe className="h-3 w-3 mr-1" />
-                          {t("Multi-chain")}
+                          {t("multi_chain")}
                         </Badge>
                       </div>
                     </div>
@@ -170,7 +171,7 @@ export function WalletTab() {
                         </p>
                         {network?.chainId && (
                           <p className="text-green-700 dark:text-green-300 text-sm mt-2">
-                            <span className="font-medium">Network:</span> Chain ID {network.chainId}
+                            <span className="font-medium">{t("network")}:</span> {tDashboardUser("chain_id")} {network.chainId}
                           </p>
                         )}
                       </div>
@@ -178,7 +179,7 @@ export function WalletTab() {
                   </div>
                 </div>
                 <Button variant="destructive" onClick={handleDisconnect} className="w-full">
-                  {t("disconnect_wallet")}
+                  {tDashboardUser("disconnect_wallet")}
                 </Button>
               </div>
             )}

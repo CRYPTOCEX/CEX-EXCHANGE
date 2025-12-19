@@ -32,7 +32,9 @@ export default function CollectionCard({
   showActions = true, 
   size = "md" 
 }: CollectionCardProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_nft");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { addToFavorites, removeFromFavorites } = useNftStore();
   const [isLiked, setIsLiked] = useState((collection as any).isFavorited || false);
 
@@ -159,7 +161,7 @@ export default function CollectionCard({
               <Package className="h-3 w-3" />
             </div>
             <p className="text-sm font-medium">{collection.totalSupply || 0}</p>
-            <p className="text-xs text-muted-foreground">{t("Items")}</p>
+            <p className="text-xs text-muted-foreground">{tExt("items")}</p>
           </div>
           
           <div className="text-center">
@@ -167,7 +169,7 @@ export default function CollectionCard({
               <Users className="h-3 w-3" />
             </div>
             <p className="text-sm font-medium">{(collection as any).owners || 0}</p>
-            <p className="text-xs text-muted-foreground">{t("Owners")}</p>
+            <p className="text-xs text-muted-foreground">{t("owners")}</p>
           </div>
           
           <div className="text-center">
@@ -177,7 +179,7 @@ export default function CollectionCard({
             <p className="text-sm font-medium">
               {(collection as any).floorPrice ? formatCurrency((collection as any).floorPrice, collection.currency || "ETH") : "—"}
             </p>
-            <p className="text-xs text-muted-foreground">{t("Floor")}</p>
+            <p className="text-xs text-muted-foreground">{t("floor")}</p>
           </div>
         </div>
 
@@ -191,14 +193,14 @@ export default function CollectionCard({
         {collection.mintPrice && (
           <div className="bg-muted/50 rounded-lg p-3 mb-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">{t("mint_price")}</span>
+              <span className="text-sm text-muted-foreground">{tCommon("mint_price")}</span>
               <span className="font-medium">
                 {collection.mintPrice} {collection.currency}
               </span>
             </div>
             {collection.maxSupply && (
               <div className="flex items-center justify-between mt-1">
-                <span className="text-sm text-muted-foreground">{t("max_supply")}</span>
+                <span className="text-sm text-muted-foreground">{tCommon("max_supply")}</span>
                 <span className="text-sm">{collection.maxSupply}</span>
               </div>
             )}

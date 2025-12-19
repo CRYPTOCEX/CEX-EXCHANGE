@@ -1,5 +1,5 @@
 import { models, sequelize } from "@b/db";
-import { Op } from "sequelize";
+import { literal, Op } from "sequelize";
 import { processRewards } from "@b/utils/affiliate";
 import { sendOrderConfirmationEmail } from "@b/utils/emails";
 import { createError } from "@b/utils/error";
@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
   operationId: "createEcommerceOrder",
   tags: ["Ecommerce", "Orders"],
   requiresAuth: true,
+  logModule: "ECOM",
+  logTitle: "Create order",
   requestBody: {
     required: true,
     content: {
@@ -66,14 +68,15 @@ export const metadata: OperationObject = {
 export default async (data: Handler) => {
   // Apply rate limiting
   await rateLimiters.orderCreation(data);
-  
-  const { user, body } = data;
+
+  const { user, body, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { productId, discountId, amount, shippingAddress } = body;
 
+  ctx?.step("Validating order request");
   // Validate amount
   if (!amount || amount <= 0 || !Number.isInteger(amount)) {
     throw createError({ statusCode: 400, message: "Invalid quantity" });
@@ -81,11 +84,13 @@ export default async (data: Handler) => {
 
   const transaction = await sequelize.transaction();
 
+  ctx?.step("Verifying user account");
   const userPk = await models.user.findByPk(user.id);
   if (!userPk) {
     throw createError({ statusCode: 404, message: "User not found" });
   }
 
+  ctx?.step("Checking product availability");
   const product = await models.ecommerceProduct.findByPk(productId, { transaction });
   if (!product) {
     await transaction.rollback();
@@ -98,12 +103,14 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 400, message: "Product is not available" });
   }
 
+  ctx?.step("Verifying inventory stock");
   // Check inventory for physical products
   if (product.type === "PHYSICAL" && product.inventoryQuantity < amount) {
     await transaction.rollback();
     throw createError({ statusCode: 400, message: "Insufficient inventory" });
   }
 
+  ctx?.step("Loading system settings for tax and shipping");
   // Get system settings for tax and shipping
   const systemSettings = await models.settings.findAll();
   const settings = systemSettings.reduce((acc, setting) => {
@@ -111,6 +118,7 @@ export default async (data: Handler) => {
     return acc;
   }, {} as Record<string, any>);
 
+  ctx?.step("Calculating order total");
   // Calculate base cost
   let subtotal = product.price * amount;
   let userDiscount: any = null;
@@ -118,6 +126,7 @@ export default async (data: Handler) => {
 
   // Apply discount if applicable
   if (discountId && discountId !== "null") {
+    ctx?.step("Applying discount code");
     userDiscount = await models.ecommerceUserDiscount.findOne({
       where: {
         userId: user.id,
@@ -160,6 +169,7 @@ export default async (data: Handler) => {
   // Calculate total cost
   const cost = subtotal + shippingCost + taxAmount;
 
+  ctx?.step("Checking wallet balance");
   // Check user wallet balance
   const wallet = await models.wallet.findOne({
     where: {
@@ -178,6 +188,7 @@ export default async (data: Handler) => {
 
   const newBalance = wallet.balance - cost;
 
+  ctx?.step("Creating order record");
   // Create order and order items
   const order = await models.ecommerceOrder.create(
     {
@@ -196,16 +207,17 @@ export default async (data: Handler) => {
     { transaction }
   );
 
+  ctx?.step("Updating inventory");
   // Update product inventory with optimistic locking
   if (product.type === "PHYSICAL") {
     const [updatedRows] = await models.ecommerceProduct.update(
-      { inventoryQuantity: sequelize.literal(`inventoryQuantity - ${amount}`) },
-      { 
-        where: { 
-          id: productId, 
+      { inventoryQuantity: literal(`inventoryQuantity - ${amount}`) },
+      {
+        where: {
+          id: productId,
           inventoryQuantity: { [Op.gte]: amount } // Ensure inventory is still available
         },
-        transaction 
+        transaction
       }
     );
 
@@ -215,11 +227,12 @@ export default async (data: Handler) => {
     }
   }
 
+  ctx?.step("Processing payment");
   await wallet.update({ balance: newBalance }, { transaction });
 
   // Create a transaction record
   const description = `Purchase of ${product.name} x${amount} (${(product.price * amount).toFixed(2)}${discountAmount > 0 ? ` - ${discountAmount.toFixed(2)} discount` : ''}${shippingCost > 0 ? ` + ${shippingCost.toFixed(2)} shipping` : ''}${taxAmount > 0 ? ` + ${taxAmount.toFixed(2)} tax` : ''}) = ${cost.toFixed(2)} ${product.currency}`;
-  
+
   await models.transaction.create(
     {
       userId: user.id,
@@ -238,6 +251,7 @@ export default async (data: Handler) => {
     await userDiscount.update({ status: true }, { transaction });
   }
 
+  ctx?.step("Creating shipping address");
   // Create shipping address if product is physical
   if (product.type !== "DOWNLOADABLE" && shippingAddress) {
     await models.ecommerceShippingAddress.create(
@@ -250,14 +264,16 @@ export default async (data: Handler) => {
     );
   }
 
+  ctx?.step("Finalizing order");
   // Update order status to completed
   await order.update({ status: "COMPLETED" }, { transaction });
 
   await transaction.commit();
 
+  ctx?.step("Sending confirmation email");
   // Send order confirmation email and create notification
   try {
-    await sendOrderConfirmationEmail(userPk, order, product);
+    await sendOrderConfirmationEmail(userPk, order, product, ctx);
     await createNotification({
       userId: user.id,
       relatedId: order.id,
@@ -272,7 +288,7 @@ export default async (data: Handler) => {
           primary: true,
         },
       ],
-    });
+    }, ctx);
   } catch (error) {
     console.error(
       "Error sending order confirmation email or creating notification:",
@@ -287,12 +303,15 @@ export default async (data: Handler) => {
         user.id,
         cost,
         "ECOMMERCE_PURCHASE",
-        wallet.currency
+        wallet.currency,
+        ctx
       );
     } catch (error) {
       console.error(`Error processing rewards: ${error.message}`);
     }
   }
+
+  ctx?.success(`Order #${order.id} created for ${cost.toFixed(2)} ${product.currency}`);
 
   return {
     id: order.id,

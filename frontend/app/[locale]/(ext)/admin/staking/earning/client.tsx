@@ -27,6 +27,7 @@ import {
   TrendingUp,
   History,
   AlertCircle,
+  Sparkles,
 } from "lucide-react";
 import {
   Dialog,
@@ -55,9 +56,14 @@ import { useRouter } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { HeroSection } from "@/components/ui/hero-section";
+import { StatsGroup } from "@/components/ui/stats-group";
+import { motion } from "framer-motion";
 
 export function StakingEarningsClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") || "overview";
@@ -134,7 +140,7 @@ export function StakingEarningsClient() {
       value: totals.totalAdminEarnings,
     },
   ];
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
+  const COLORS = ["#8b5cf6", "#6366f1", "#a78bfa", "#818cf8", "#c4b5fd"];
   const handleDistributeEarnings = async () => {
     if (!distributionPool) return;
     setIsDistributing(true);
@@ -188,25 +194,37 @@ export function StakingEarningsClient() {
   const hasDistributionError = (field: string) => {
     return hasSubmittedDistribution && !!distributionValidationErrors[field];
   };
+  // Calculate average APR for active pools
+  const avgApr = pools.filter((p) => p.status === "ACTIVE").length > 0
+    ? pools.reduce((sum, pool) => sum + pool.apr, 0) / pools.filter((p) => p.status === "ACTIVE").length
+    : 0;
+
   return (
-    <div className="space-y-6">
-      {/* Header and Pool Filter */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">
-            {t("earnings_management")}
-          </h2>
-          <p className="text-muted-foreground">
-            {t("track_and_distribute_staking_pools")}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-linear-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+      {/* Hero Section */}
+      <HeroSection
+        badge={{
+          icon: <Sparkles className="h-3.5 w-3.5" />,
+          text: t("earnings_management"),
+          gradient: "bg-gradient-to-r from-violet-500/10 to-indigo-500/10",
+          iconColor: "text-violet-500",
+          textColor: "text-violet-600 dark:text-violet-400",
+        }}
+        title={[
+          { text: tExt("earnings") + " " },
+          { text: tCommon("management"), gradient: "bg-gradient-to-r from-violet-600 via-indigo-500 to-violet-600 dark:from-violet-400 dark:via-indigo-400 dark:to-violet-400" },
+        ]}
+        description={t("track_and_distribute_staking_pools")}
+        paddingTop="pt-24"
+        paddingBottom="pb-12"
+        layout="split"
+        rightContent={
           <Select value={selectedPool} onValueChange={setSelectedPool}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select pool" />
+            <SelectTrigger className="w-[180px] bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm">
+              <SelectValue placeholder={t("select_pool")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("all_pools")}</SelectItem>
+              <SelectItem value="all">{tExt("all_pools")}</SelectItem>
               {pools.map((pool) => (
                 <SelectItem key={pool.id} value={pool.id}>
                   {pool.name}
@@ -214,18 +232,71 @@ export function StakingEarningsClient() {
               ))}
             </SelectContent>
           </Select>
-        </div>
-      </div>
+        }
+        rightContentAlign="center"
+        background={{
+          orbs: [
+            {
+              color: "#8b5cf6",
+              position: { top: "-10rem", right: "-10rem" },
+              size: "20rem",
+            },
+            {
+              color: "#6366f1",
+              position: { bottom: "-5rem", left: "-5rem" },
+              size: "15rem",
+            },
+          ],
+        }}
+        particles={{
+          count: 6,
+          type: "floating",
+          colors: ["#8b5cf6", "#6366f1"],
+          size: 8,
+        }}
+      >
+        <StatsGroup
+          stats={[
+            {
+              icon: Coins,
+              label: tCommon("total_earnings"),
+              value: totals.totalEarnings.toFixed(2),
+              iconColor: "text-violet-500",
+              iconBgColor: "bg-violet-500/10",
+            },
+            {
+              icon: Wallet,
+              label: t("user_earnings"),
+              value: totals.totalUserEarnings.toFixed(2),
+              iconColor: "text-indigo-500",
+              iconBgColor: "bg-indigo-500/10",
+            },
+            {
+              icon: Percent,
+              label: t("average_apr"),
+              value: `${avgApr.toFixed(2)}%`,
+              iconColor: "text-violet-500",
+              iconBgColor: "bg-violet-500/10",
+            },
+          ]}
+        />
+      </HeroSection>
 
+      <div className="container mx-auto py-8 space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
       <Tabs
         value={activeTab}
         onValueChange={handleTabChange}
         className="space-y-6"
       >
         <TabsList>
-          <TabsTrigger value="overview">{t("Overview")}</TabsTrigger>
-          <TabsTrigger value="distribution">{t("Distribution")}</TabsTrigger>
-          <TabsTrigger value="history">{t("History")}</TabsTrigger>
+          <TabsTrigger value="overview">{tCommon("overview")}</TabsTrigger>
+          <TabsTrigger value="distribution">{t("distribution")}</TabsTrigger>
+          <TabsTrigger value="history">{tCommon("history")}</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -235,7 +306,7 @@ export function StakingEarningsClient() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  {t("total_earnings")}
+                  {tCommon("total_earnings")}
                 </CardTitle>
                 <Coins className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -311,7 +382,7 @@ export function StakingEarningsClient() {
                   %
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {t("Avg")}. {t("admin_fee")}{" "}
+                  {tCommon("avg")}. {tExt("admin_fee")}{" "}
                   {(
                     pools.reduce(
                       (sum, pool) => sum + pool.adminFeePercentage,
@@ -345,12 +416,12 @@ export function StakingEarningsClient() {
                         <Bar
                           dataKey="totalUserEarnings"
                           name="User Earnings"
-                          fill="#0088FE"
+                          fill="#8b5cf6"
                         />
                         <Bar
                           dataKey="totalAdminEarnings"
                           name="Admin Earnings"
-                          fill="#00C49F"
+                          fill="#6366f1"
                         />
                       </BarChart>
                     </ResponsiveContainer>
@@ -385,7 +456,7 @@ export function StakingEarningsClient() {
                           cy="50%"
                           labelLine={false}
                           outerRadius={80}
-                          fill="#8884d8"
+                          fill="#8b5cf6"
                           dataKey="value"
                           nameKey="name"
                           label={({ name, percent }) =>
@@ -452,32 +523,32 @@ export function StakingEarningsClient() {
                         </div>
                         <CardDescription>
                           {activePositions?.length}
-                          {t("active_positions_•")} {pool.earningFrequency}
-                          {t("earnings")}
+                          {tCommon("active_positions")} {pool.earningFrequency}
+                          {tExt("earnings")}
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="space-y-2">
                           <div className="flex items-center justify-between text-sm">
-                            <span>{t("total_staked")}</span>
+                            <span>{tExt("total_staked")}</span>
                             <span className="font-medium">
                               {(pool.totalStaked ?? 0).toFixed(4)} {pool.symbol}
                             </span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
-                            <span>{t("APR")}</span>
+                            <span>{tCommon("apr")}</span>
                             <span className="font-medium">
                               {pool.apr.toFixed(2)}%
                             </span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
-                            <span>{t("admin_fee")}</span>
+                            <span>{tExt("admin_fee")}</span>
                             <span className="font-medium">
                               {pool.adminFeePercentage.toFixed(2)}%
                             </span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
-                            <span>{t("total_earned")}</span>
+                            <span>{tExt("total_earned")}</span>
                             <span className="font-medium text-green-500">
                               {poolData.totalEarnings.toFixed(4)} {pool.symbol}
                             </span>
@@ -493,7 +564,7 @@ export function StakingEarningsClient() {
                             </span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
-                            <span>{t("Auto-Compound")}</span>
+                            <span>{tCommon("auto_compound")}</span>
                             <span className="font-medium">
                               {pool.autoCompound ? "Yes" : "No"}
                             </span>
@@ -563,13 +634,13 @@ export function StakingEarningsClient() {
                               {new Date(earning.createdAt).toLocaleDateString()}{" "}
                               •
                               {earning.numberOfPositions || "N/A"}
-                              {t("positions")}
+                              {tCommon("positions")}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="font-medium">
-                            {t("total")}{" "}
+                            {tCommon("total")}{" "}
                             {(
                               earning.userEarnings + earning.adminEarnings
                             ).toFixed(4)}{" "}
@@ -577,12 +648,12 @@ export function StakingEarningsClient() {
                           </div>
                           <div className="text-sm">
                             <span className="text-green-500">
-                              {t("users")}
+                              {tCommon("users")}
                               {earning.userEarnings.toFixed(4)}
                             </span>{" "}
                             •
                             <span className="text-blue-500">
-                              {t("admin")}
+                              {tCommon("admin")}
                               {earning.adminEarnings.toFixed(4)}
                             </span>
                           </div>
@@ -615,6 +686,8 @@ export function StakingEarningsClient() {
           </Card>
         </TabsContent>
       </Tabs>
+      </motion.div>
+      </div>
 
       {/* Distribution Dialog */}
       <Dialog
@@ -640,7 +713,7 @@ export function StakingEarningsClient() {
               type="number"
               step="0.0001"
               min="0"
-              title="Distribution Amount"
+              title={t("distribution_amount")}
               value={distributionAmount}
               onChange={(e) =>
                 setDistributionAmount(Number.parseFloat(e.target.value) || 0)
@@ -656,8 +729,8 @@ export function StakingEarningsClient() {
                 setDistributionType(value)
               }
             >
-              <SelectTrigger title="Distribution type">
-                <SelectValue placeholder="Select type" />
+              <SelectTrigger title={t("distribution_type")}>
+                <SelectValue placeholder={tExt("select_type")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="regular">{t("regular_earnings")}</SelectItem>
@@ -665,10 +738,10 @@ export function StakingEarningsClient() {
               </SelectContent>
             </Select>
             <div className="space-y-2">
-              <label className="text-sm font-medium">{t("admin_fee")}</label>
+              <label className="text-sm font-medium">{tExt("admin_fee")}</label>
               <div className="flex items-center justify-between bg-muted p-3 rounded-md">
                 <span>
-                  {t("platform_fee_(")}
+                  {tCommon("platform_fee")}
                   {distributionPool?.adminFeePercentage}
                   %)
                 </span>
@@ -705,7 +778,7 @@ export function StakingEarningsClient() {
               variant="outline"
               onClick={() => setIsDistributionDialogOpen(false)}
             >
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
             <Button
               onClick={handleDistributeEarnings}
@@ -715,7 +788,7 @@ export function StakingEarningsClient() {
               {isDistributing ? (
                 <>
                   <RefreshCw className="h-4 w-4 animate-spin" />
-                  {t("Processing")}.
+                  {tCommon("processing")}.
                 </>
               ) : (
                 <>

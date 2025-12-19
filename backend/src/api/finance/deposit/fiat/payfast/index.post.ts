@@ -1,5 +1,6 @@
 import { models } from '@b/db'
 import { createError } from '@b/utils/error'
+import { logger } from '@b/utils/console'
 import {
   validatePayFastConfig,
   isCurrencySupported,
@@ -21,6 +22,8 @@ export const metadata = {
   operationId: 'createPayFastPayment',
   tags: ['Finance', 'Deposit', 'PayFast'],
   requiresAuth: true,
+  logModule: "PAYFAST_DEPOSIT",
+  logTitle: "Create PayFast payment session",
   requestBody: {
     required: true,
     content: {
@@ -253,8 +256,8 @@ export default async (data: Handler) => {
     }
 
   } catch (error) {
-    console.error('PayFast payment creation error:', error)
-    
+    logger.error('PAYFAST', 'Payment creation error', error)
+
     throw createError({
       statusCode: error.statusCode || 500,
       message: error.message || 'Failed to create PayFast payment',

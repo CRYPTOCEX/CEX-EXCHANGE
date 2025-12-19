@@ -30,9 +30,13 @@ import {
   useConditionStore,
 } from "@/store/affiliate/condition-store";
 import { useTranslations } from "next-intl";
+import AffiliateConditionsLoading from "./loading";
+import AffiliateConditionsErrorState from "./error-state";
+import { ConditionHero } from "./components/condition-hero";
 
 export default function AffiliateConditionsClient() {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { conditions, loading, error, fetchConditions } = useConditionStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredConditions, setFilteredConditions] = useState<
@@ -98,66 +102,37 @@ export default function AffiliateConditionsClient() {
   };
 
   if (loading && conditions.length === 0) {
-    return (
-      <div className="container mx-auto p-4">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            {t("affiliate_program_conditions")}
-          </h1>
-          <Skeleton className="h-10 w-32" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="overflow-hidden">
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4 mb-2" />
-                <Skeleton className="h-4 w-full" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-5/6" />
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Skeleton className="h-10 w-full" />
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
+    return <AffiliateConditionsLoading />;
   }
 
   if (error) {
-    return (
-      <div className="text-red-500 p-4">
-        {t("error")}
-        {error}
-      </div>
-    );
+    return <AffiliateConditionsErrorState error={error} />;
   }
 
-  return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            {t("affiliate_program_conditions")}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {t("discover_all_the_affiliate_program")}
-          </p>
-        </div>
+  // Calculate stats for hero
+  const totalPrograms = conditions.length;
+  const activePrograms = conditions.filter(c => c.status === true).length;
+  const highestCommission = conditions.length > 0
+    ? `${Math.max(...conditions.map(c => c.reward || 0))}%`
+    : '0%';
 
+  return (
+    <div className="w-full">
+      {/* Hero Section */}
+      <ConditionHero
+        totalPrograms={totalPrograms}
+        activePrograms={activePrograms}
+        highestCommission={highestCommission}
+      />
+
+      <div className="container mx-auto pb-6 pt-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div className="flex items-center gap-2">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search conditions..."
+              placeholder={tExt("search_conditions_ellipsis")}
               className="pl-8 w-[200px] md:w-[250px]"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -172,13 +147,13 @@ export default function AffiliateConditionsClient() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setSortBy("default")}>
-                {t("default_order")}
+                {tCommon("default_order")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setSortBy("reward")}>
-                {t("highest_reward_first")}
+                {tCommon("highest_reward_first")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setSortBy("name")}>
-                {t("Alphabetical")}
+                {tCommon("alphabetical")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -187,11 +162,11 @@ export default function AffiliateConditionsClient() {
 
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="mb-6">
-          <TabsTrigger value="all">{t("all_conditions")}</TabsTrigger>
+          <TabsTrigger value="all">{tCommon("all_conditions")}</TabsTrigger>
           <TabsTrigger value="percentage">
-            {t("percentage_rewards")}
+            {tCommon("percentage_rewards")}
           </TabsTrigger>
-          <TabsTrigger value="fixed">{t("fixed_rewards")}</TabsTrigger>
+          <TabsTrigger value="fixed">{tCommon("fixed_rewards")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
@@ -201,10 +176,10 @@ export default function AffiliateConditionsClient() {
                 <Filter className="h-8 w-8 text-muted-foreground" />
               </div>
               <h3 className="text-lg font-medium mb-2">
-                {t("no_conditions_found")}
+                {tCommon("no_conditions_found")}
               </h3>
               <p className="text-muted-foreground mb-4">
-                {t("try_adjusting_your_search_or_filter_criteria")}
+                {tCommon("try_adjusting_your_search_or_filter_criteria")}
               </p>
               <Button
                 variant="outline"
@@ -213,7 +188,7 @@ export default function AffiliateConditionsClient() {
                   setSortBy("default");
                 }}
               >
-                {t("reset_filters")}
+                {tCommon("reset_filters")}
               </Button>
             </div>
           ) : (
@@ -279,6 +254,7 @@ export default function AffiliateConditionsClient() {
           onClose={handleCloseDetails}
         />
       )}
+      </div>
     </div>
   );
 }
@@ -291,6 +267,7 @@ function ConditionCard({
   onSelect: () => void;
 }) {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const item = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 },
@@ -300,13 +277,13 @@ function ConditionCard({
   const getGradient = () => {
     switch (condition.name) {
       case "DEPOSIT":
-        return "from-blue-500/10 to-blue-600/10 border-blue-500/20";
+        return "from-blue-600/10 to-blue-600/10 border-blue-600/20";
       case "TRADE":
         return "from-purple-500/10 to-purple-600/10 border-purple-500/20";
       case "STAKING":
         return "from-green-500/10 to-green-600/10 border-green-500/20";
       case "P2P_TRADE":
-        return "from-amber-500/10 to-amber-600/10 border-amber-500/20";
+        return `from-yellow-500/10 to-yellow-500/10 border-yellow-500/20`;
       case "ICO_CONTRIBUTION":
         return "from-pink-500/10 to-pink-600/10 border-pink-500/20";
       default:
@@ -317,7 +294,7 @@ function ConditionCard({
   return (
     <motion.div variants={item}>
       <Card
-        className={`h-full transition-all duration-300 hover:shadow-lg hover:border-primary/50 bg-gradient-to-br ${getGradient()}`}
+        className={`h-full transition-all duration-300 hover:shadow-lg hover:border-amber-600/50 bg-linear-to-br ${getGradient()}`}
       >
         <CardHeader>
           <div className="flex justify-between items-start">
@@ -339,7 +316,7 @@ function ConditionCard({
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">
-                {t("reward")}
+                {tCommon("reward")}
               </span>
               <span className="font-medium text-lg">
                 {condition.rewardType === "PERCENTAGE"
@@ -350,7 +327,7 @@ function ConditionCard({
 
             <div className="space-y-1">
               <div className="flex justify-between text-sm">
-                <span>{t("earning_potential")}</span>
+                <span>{tCommon("earning_potential")}</span>
                 <span className="font-medium">
                   {condition.rewardType === "PERCENTAGE" ? "High" : "Medium"}
                 </span>
@@ -362,14 +339,14 @@ function ConditionCard({
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="bg-primary/5">
+              <Badge variant="outline" className="bg-amber-600/5 border-amber-600/20">
                 {condition.rewardWalletType}
               </Badge>
-              <Badge variant="outline" className="bg-primary/5">
+              <Badge variant="outline" className="bg-amber-600/5 border-amber-600/20">
                 {condition.rewardCurrency}
               </Badge>
               {condition.rewardChain && (
-                <Badge variant="outline" className="bg-primary/5">
+                <Badge variant="outline" className="bg-amber-600/5 border-amber-600/20">
                   {condition.rewardChain}
                 </Badge>
               )}
@@ -382,7 +359,7 @@ function ConditionCard({
             className="w-full gap-1 group"
             variant="outline"
           >
-            {t("view_details")}
+            {tCommon("view_details")}
             <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Button>
         </CardFooter>
@@ -399,6 +376,7 @@ function ConditionDetailsModal({
   onClose: () => void;
 }) {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   // Sample calculation data
   const sampleData = {
     depositAmount: 1000,
@@ -432,13 +410,13 @@ function ConditionDetailsModal({
   const getGradient = () => {
     switch (condition.name) {
       case "DEPOSIT":
-        return "from-blue-500/10 to-blue-600/5 border-blue-500/20";
+        return "from-blue-600/10 to-blue-600/5 border-blue-600/20";
       case "TRADE":
         return "from-purple-500/10 to-purple-600/5 border-purple-500/20";
       case "STAKING":
         return "from-green-500/10 to-green-600/5 border-green-500/20";
       case "P2P_TRADE":
-        return "from-amber-500/10 to-amber-600/5 border-amber-500/20";
+        return `from-yellow-500/10 to-yellow-500/5 border-yellow-500/20`;
       case "ICO_CONTRIBUTION":
         return "from-pink-500/10 to-pink-600/5 border-pink-500/20";
       default:
@@ -479,7 +457,7 @@ function ConditionDetailsModal({
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <Card className={`bg-gradient-to-br ${getGradient()} p-4 mb-4`}>
+              <Card className={`bg-linear-to-br ${getGradient()} p-4 mb-4`}>
                 <div className="text-center">
                   <h3 className="text-xl font-bold mb-2">{condition.title}</h3>
                   <Badge
@@ -493,7 +471,7 @@ function ConditionDetailsModal({
                     {condition.rewardType === "PERCENTAGE"
                       ? "Percentage"
                       : "Fixed"}{" "}
-                    {t("Reward")}
+                    {tCommon("reward")}
                   </Badge>
                 </div>
               </Card>
@@ -501,7 +479,7 @@ function ConditionDetailsModal({
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-medium mb-2">
-                    {t("Description")}
+                    {tCommon("description")}
                   </h3>
                   <p className="text-muted-foreground">
                     {condition.description}
@@ -511,13 +489,13 @@ function ConditionDetailsModal({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">
-                      {t("reward_type")}
+                      {tCommon("reward_type")}
                     </p>
                     <p className="font-medium">{condition.rewardType}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">
-                      {t("reward_amount")}
+                      {tCommon("reward_amount")}
                     </p>
                     <p className="font-medium">
                       {condition.rewardType === "PERCENTAGE"
@@ -527,20 +505,20 @@ function ConditionDetailsModal({
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">
-                      {t("wallet_type")}
+                      {tCommon("wallet_type")}
                     </p>
                     <p className="font-medium">{condition.rewardWalletType}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">
-                      {t("Currency")}
+                      {tCommon("currency")}
                     </p>
                     <p className="font-medium">{condition.rewardCurrency}</p>
                   </div>
                   {condition.rewardChain && (
                     <div className="space-y-1">
                       <p className="text-sm text-muted-foreground">
-                        {t("Chain")}
+                        {t("chain")}
                       </p>
                       <p className="font-medium">{condition.rewardChain}</p>
                     </div>
@@ -552,15 +530,15 @@ function ConditionDetailsModal({
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-medium mb-4">
-                  {t("earnings_calculator")}
+                  {tCommon("earnings_calculator")}
                 </h3>
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base">
-                      {t("potential_earnings")}
+                      {tCommon("potential_earnings")}
                     </CardTitle>
                     <CardDescription>
-                      {t("based_on_sample")}{" "}
+                      {tCommon("based_on_sample")}{" "}
                       {condition.name.toLowerCase().replace("_", " ")}
                       {t("activity")}
                     </CardDescription>
@@ -605,20 +583,20 @@ function ConditionDetailsModal({
                   {t("how_it_works")}
                 </h3>
                 <ol className="space-y-3 list-decimal list-inside text-muted-foreground">
-                  <li>{t("share_your_referral_and_followers")}</li>
+                  <li>{tCommon("share_your_referral_and_followers")}</li>
                   <li>
-                    {t("when_they_sign_up_and")}{" "}
+                    {tCommon("when_they_sign_up_and")}{" "}
                     {condition.name.toLowerCase().replace("_", " ")}
                     {t("you_earn_rewards")}
                   </li>
                   <li>{t("rewards_are_calculated_activity_volume")}</li>
                   <li>
-                    {t("earnings_are_credited_to_your")}{" "}
+                    {tCommon("earnings_are_credited_to_your")}{" "}
                     {condition.rewardWalletType.toLowerCase()}
-                    {t("wallet")}
+                    {tCommon("wallet")}
                   </li>
                   <li>
-                    {t("withdraw_or_use_your_earnings_within_the_platform")}
+                    {tCommon("withdraw_or_use_your_earnings_within_the_platform")}
                   </li>
                 </ol>
               </div>
@@ -629,10 +607,10 @@ function ConditionDetailsModal({
                     toast.success("Referral link copied to clipboard!");
                   }}
                 >
-                  {t("get_referral_link")}
+                  {tCommon("get_referral_link")}
                 </Button>
                 <Button variant="outline" onClick={onClose}>
-                  {t("close_details")}
+                  {tCommon("close_details")}
                 </Button>
               </div>
             </div>

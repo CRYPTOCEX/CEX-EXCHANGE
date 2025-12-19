@@ -2,9 +2,16 @@ import React from "react";
 import { KpiCard } from "./kpi";
 import StatusDistribution from "./charts/donut";
 import { ChartCard } from "./charts/line";
+import type { AnalyticsGroup, ChartItem, KpiItem } from "../types/analytics";
+
+interface ChartConfig extends ChartItem {
+  // Extended chart configuration
+}
+
+type KpiConfig = KpiItem;
 
 interface AnalyticsSectionProps {
-  item: AnalyticsItem;
+  item: AnalyticsGroup;
   analyticsData: Record<string, any> | null;
   loading?: boolean;
 }

@@ -36,9 +36,12 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { debounce } from "@/utils/debounce";
 import { useTranslations } from "next-intl";
+import { PageHero } from "../components/page-hero";
+import { FloatingShapes, InteractivePattern } from "@/components/sections/shared";
 
 export function AllArticlesClient() {
-  const t = useTranslations("blog");
+  const t = useTranslations("common");
+  const tBlogBlog = useTranslations("blog_blog");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -359,27 +362,101 @@ export function AllArticlesClient() {
     (categories.length === 0 && isLoading)
   ) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="flex items-center mb-8">
-          <Skeleton className="h-10 w-10 rounded-full mr-2" />
-          <Skeleton className="h-8 w-40" />
-        </div>
+      <div className="min-h-screen relative overflow-hidden bg-white dark:bg-zinc-950">
+        {/* Premium Background - matching actual render */}
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            background: `linear-gradient(180deg, transparent 0%, rgba(99, 102, 241, 0.03) 10%, rgba(139, 92, 246, 0.02) 30%, transparent 60%)`,
+          }}
+        />
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
+          }}
+        />
 
-        <div className="mb-8">
-          <Skeleton className="h-10 w-1/3 mb-4" />
-          <div className="flex gap-4 mb-6">
-            <Skeleton className="h-10 w-40" />
-            <Skeleton className="h-10 w-40" />
-            <Skeleton className="h-10 w-40" />
+        {/* PageHero Skeleton */}
+        <div className="relative z-10 pt-24 pb-12">
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto text-center space-y-6">
+              {/* Badge skeleton */}
+              <div className="flex justify-center">
+                <Skeleton className="h-7 w-32 rounded-full" />
+              </div>
+              {/* Title skeleton */}
+              <Skeleton className="h-14 w-3/4 mx-auto rounded-xl md:h-16 lg:h-20" />
+              {/* Description skeleton */}
+              <Skeleton className="h-7 w-2/3 mx-auto rounded-lg md:h-8" />
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({
-            length: 9,
-          }).map((_, i) => (
-            <Skeleton key={i} className="h-[350px] w-full rounded-xl" />
-          ))}
+        {/* Filter Bar Skeleton */}
+        <div className="relative z-10 container mx-auto px-4 pb-16">
+          <div className="mb-8 space-y-4">
+            {/* Search and filters row */}
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Search input skeleton */}
+              <Skeleton className="h-10 flex-1 rounded-lg" />
+
+              {/* Filter buttons row */}
+              <div className="flex flex-wrap gap-3">
+                {/* Mobile filter toggle (hidden on desktop) */}
+                <Skeleton className="h-10 w-32 rounded-lg lg:hidden" />
+
+                {/* Category filter */}
+                <Skeleton className="h-10 w-full sm:w-[180px] rounded-lg hidden lg:block" />
+
+                {/* Tag filter */}
+                <Skeleton className="h-10 w-full sm:w-[180px] rounded-lg hidden lg:block" />
+
+                {/* Sort filter */}
+                <Skeleton className="h-10 w-full sm:w-[180px] rounded-lg hidden lg:block" />
+
+                {/* View mode toggle */}
+                <Skeleton className="h-10 w-20 rounded-lg hidden lg:block" />
+              </div>
+            </div>
+          </div>
+
+          {/* Posts Grid Skeleton - BlogCard-like */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div
+                key={i}
+                className="group relative h-full overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50 shadow-lg"
+              >
+                {/* Image skeleton */}
+                <Skeleton className="h-52 w-full rounded-none" />
+
+                {/* Content skeleton */}
+                <div className="p-6 space-y-4">
+                  {/* Title skeleton */}
+                  <Skeleton className="h-6 w-full rounded-lg" />
+                  <Skeleton className="h-6 w-3/4 rounded-lg" />
+
+                  {/* Description skeleton */}
+                  <Skeleton className="h-4 w-full rounded-md" />
+                  <Skeleton className="h-4 w-5/6 rounded-md" />
+
+                  {/* Author & Date section skeleton */}
+                  <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                    <div className="flex items-center justify-between">
+                      {/* Author skeleton */}
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-9 w-9 rounded-full" />
+                        <Skeleton className="h-4 w-20 rounded-md" />
+                      </div>
+                      {/* Date skeleton */}
+                      <Skeleton className="h-4 w-16 rounded-md" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -401,65 +478,46 @@ export function AllArticlesClient() {
     return baseUrl;
   };
   return (
-    <div className="min-h-screen bg-white dark:bg-black">
-      <div className="container mx-auto px-4 py-12">
-        {/* Header with back button */}
-        <div className="mb-8">
-          <Link
-            href="/blog"
-            className="inline-flex items-center text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 mb-4 transition-colors duration-300"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {t("back_to_blog")}
-          </Link>
+    <div className="min-h-screen relative overflow-hidden bg-white dark:bg-zinc-950">
+      {/* Premium Background */}
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `linear-gradient(180deg, transparent 0%, rgba(99, 102, 241, 0.03) 10%, rgba(139, 92, 246, 0.02) 30%, transparent 60%)`,
+        }}
+      />
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
+        }}
+      />
+      <FloatingShapes
+        count={8}
+        interactive={true}
+        theme={{ primary: "indigo", secondary: "purple" }}
+      />
+      <InteractivePattern
+        config={{
+          enabled: true,
+          variant: "crosses",
+          opacity: 0.015,
+          size: 40,
+          interactive: true,
+        }}
+      />
 
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <motion.h1
-              initial={{
-                opacity: 0,
-                y: -20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                duration: 0.5,
-              }}
-              className="text-3xl font-bold text-zinc-900 dark:text-zinc-100"
-            >
-              {t("all_articles")}
-            </motion.h1>
+      {/* Hero Section */}
+      <PageHero
+        badge={{ icon: <FileText className="h-3.5 w-3.5" />, text: tBlogBlog("articles") }}
+        title={[
+          { text: "All " },
+          { text: "Articles", gradient: "from-indigo-600 to-purple-600" },
+        ]}
+        description={tBlogBlog("explore_our_collection_of_articles")}
+      />
 
-            {filteredPosts.length > 0 && (
-              <motion.div
-                initial={{
-                  opacity: 0,
-                  y: -20,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                transition={{
-                  duration: 0.5,
-                  delay: 0.1,
-                }}
-                className="flex items-center gap-2"
-              >
-                {isFiltering ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-indigo-600 dark:text-indigo-400" />
-                ) : (
-                  <FileText className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                )}
-                <p className="text-zinc-500 dark:text-zinc-400">
-                  {t("Showing")} {filteredPosts.length} {t("of")}{" "}
-                  {pagination.totalItems} {t("articles")}
-                </p>
-              </motion.div>
-            )}
-          </div>
-        </div>
+      <div className="relative z-10 container mx-auto px-4 pb-16">
 
         {/* Search and filters */}
         <motion.div
@@ -481,7 +539,7 @@ export function AllArticlesClient() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 dark:text-zinc-400" />
               <Input
-                placeholder="Search articles..."
+                placeholder={tBlogBlog("search_articles_ellipsis")}
                 value={searchQuery}
                 onChange={handleSearchChange}
                 className="pl-10 h-10 rounded-lg border-zinc-200 dark:border-zinc-800 focus:border-indigo-300 dark:focus:border-indigo-700 focus:ring focus:ring-indigo-200 dark:focus:ring-indigo-800 focus:ring-opacity-50 dark:bg-zinc-900 dark:text-zinc-100"
@@ -510,7 +568,7 @@ export function AllArticlesClient() {
                   <SelectTrigger className="h-10 min-w-[180px] rounded-lg border-zinc-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
                     <div className="flex items-center gap-2">
                       <Bookmark className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
-                      <SelectValue placeholder="All Categories" />
+                      <SelectValue placeholder={t("all_categories")} />
                     </div>
                   </SelectTrigger>
                   <SelectContent className="dark:bg-zinc-900 dark:border-zinc-700">
@@ -542,7 +600,7 @@ export function AllArticlesClient() {
                   <SelectTrigger className="h-10 min-w-[180px] rounded-lg border-zinc-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
                     <div className="flex items-center gap-2">
                       <TagIcon className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
-                      <SelectValue placeholder="All Tags" />
+                      <SelectValue placeholder={tBlogBlog("all_tags")} />
                     </div>
                   </SelectTrigger>
                   <SelectContent className="dark:bg-zinc-900 dark:border-zinc-700">
@@ -550,7 +608,7 @@ export function AllArticlesClient() {
                       value="all"
                       className="dark:text-zinc-100 dark:focus:bg-zinc-800"
                     >
-                      {t("all_tags")}
+                      {tBlogBlog("all_tags")}
                     </SelectItem>
                     {tags.map((tag) => (
                       <SelectItem
@@ -573,7 +631,7 @@ export function AllArticlesClient() {
                   <SelectTrigger className="h-10 min-w-[180px] rounded-lg border-zinc-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
                     <div className="flex items-center gap-2">
                       <ArrowUpDown className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
-                      <SelectValue placeholder="Sort by" />
+                      <SelectValue placeholder={t("sort_by")} />
                     </div>
                   </SelectTrigger>
                   <SelectContent className="dark:bg-zinc-900 dark:border-zinc-700">
@@ -593,13 +651,13 @@ export function AllArticlesClient() {
                       value="a-z"
                       className="dark:text-zinc-100 dark:focus:bg-zinc-800"
                     >
-                      {t("A-Z")}
+                      {tBlogBlog("a_z")}
                     </SelectItem>
                     <SelectItem
                       value="z-a"
                       className="dark:text-zinc-100 dark:focus:bg-zinc-800"
                     >
-                      {t("Z-A")}
+                      {tBlogBlog("z_a")}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -701,7 +759,7 @@ export function AllArticlesClient() {
               <FileText className="h-10 w-10 text-zinc-400 dark:text-zinc-500" />
             </div>
             <h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100 mb-2">
-              {t("no_articles_found")}
+              {tBlogBlog("no_articles_found")}
             </h3>
             <p className="text-zinc-500 dark:text-zinc-400 mb-6 max-w-md mx-auto">
               {searchQuery
@@ -867,7 +925,7 @@ export function AllArticlesClient() {
                                   size="sm"
                                   className="dark:border-zinc-700 dark:text-zinc-300"
                                 >
-                                  {t("read_article")}
+                                  {tBlogBlog("read_article")}
                                 </Button>
                               </Link>
                             </div>

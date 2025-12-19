@@ -1,264 +1,401 @@
+"use client";
+
 import {
   Shield,
   ClipboardList,
   DollarSign,
   Image as ImageIcon,
   CheckSquare,
+  Sparkles,
+  Settings,
 } from "lucide-react";
+import type { FormConfig } from "@/components/blocks/data-table/types/table";
 
-export const columns: ColumnDefinition[] = [
-  {
-    key: "id",
-    title: "ID",
-    type: "text",
-    icon: Shield,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "Unique identifier",
-    priority: 3,
-    expandedOnly: true,
-  },
-  {
-    key: "compoundTitle",
-    title: "Title & Image",
-    type: "compound",
-    disablePrefixSort: true,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: true,
-    usedInCreate: true,
-    description: "Public title and image of the condition",
-    priority: 1,
-    render: {
+import { useTranslations } from "next-intl";
+export function useColumns(): ColumnDefinition[] {
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
+  return [
+    {
+      key: "compoundTitle",
+      title: tExtAdmin("title_image"),
       type: "compound",
-      config: {
-        image: {
-          key: "image",
-          title: "Image",
-          type: "image",
-          fallback: "/img/placeholder.svg",
-          icon: ImageIcon,
-          sortable: false,
-          searchable: false,
-          filterable: false,
-          editable: true,
-          usedInCreate: true,
-          description: "Condition image URL",
-        },
-        primary: {
-          key: "title",
-          title: "Title",
-          type: "text",
-          sortable: true,
-          searchable: true,
-          filterable: true,
-          editable: true,
-          usedInCreate: true,
-          description: "Public title of the condition",
+      disablePrefixSort: true,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("the_visual_representation_and_public_title"),
+      priority: 1,
+      render: {
+        type: "compound",
+        config: {
+          image: {
+            key: "image",
+            title: tCommon("image"),
+            type: "image",
+            fallback: "/img/placeholder.svg",
+            icon: ImageIcon,
+            sortable: false,
+            searchable: false,
+            filterable: false,
+            description: tExtAdmin("visual_icon_or_image_representing_this"),
+          },
+          primary: {
+            key: "title",
+            title: tCommon("title"),
+            type: "text",
+            sortable: true,
+            searchable: true,
+            filterable: true,
+            description: tExtAdmin("public_facing_name_of_the_condition"),
+          },
         },
       },
     },
-  },
-  {
-    key: "type",
-    title: "Type",
-    type: "select",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: true,
-    usedInCreate: true,
-    description: "Condition type",
-    expandedOnly: true,
-    options: [
-      { value: "DEPOSIT", label: "Deposit" },
-      { value: "TRADE", label: "Trade" },
-      { value: "BINARY_WIN", label: "Binary Win" },
-      { value: "INVESTMENT", label: "Investment" },
-      { value: "AI_INVESTMENT", label: "AI Investment" },
-      { value: "FOREX_INVESTMENT", label: "Forex Investment" },
-      { value: "ICO_CONTRIBUTION", label: "ICO Contribution" },
-      { value: "STAKING", label: "Staking" },
-      { value: "ECOMMERCE_PURCHASE", label: "Ecommerce Purchase" },
-      { value: "P2P_TRADE", label: "P2P Trade" },
-    ],
-    priority: 1,
-    render: {
-      type: "badge",
-      config: {
-        variant: (value) => {
-          switch (value) {
-            case "DEPOSIT":
-              return "success";
-            case "TRADE":
-              return "danger";
-            case "INVESTMENT":
-              return "warning";
-            case "AI_INVESTMENT":
-              return "info";
-            case "FOREX_INVESTMENT":
-              return "primary";
-            case "ICO_CONTRIBUTION":
-              return "secondary";
-            case "STAKING":
-              return "success";
-            case "ECOMMERCE_PURCHASE":
-              return "danger";
-            case "P2P_TRADE":
-              return "warning";
-            default:
-              return "info";
-          }
-        },
-        withDot: false,
-      },
+    {
+      key: "status",
+      title: tCommon("status"),
+      type: "toggle",
+      icon: CheckSquare,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("whether_this_condition_is_currently_active"),
+      priority: 1,
     },
-  },
-  {
-    key: "description",
-    title: "Brief Description",
-    type: "textarea",
-    sortable: false,
-    searchable: true,
-    filterable: false,
-    editable: true,
-    usedInCreate: true,
-    description: "A short description for internal use",
-    priority: 3,
-    expandedOnly: true,
-  },
-  {
-    key: "rewardWalletType",
-    title: "Reward Wallet",
-    type: "select",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: true,
-    usedInCreate: true,
-    description: "Wallet type for reward",
-    // Instead of static options, use an API endpoint:
-    apiEndpoint: {
-      url: "/api/admin/finance/wallet/options",
-      method: "GET",
-    },
-    render: {
-      type: "badge",
-      config: {
-        variant: (value) => {
-          switch (value) {
-            case "FIAT":
-              return "success";
-            case "SPOT":
-              return "danger";
-            case "ECO":
-              return "warning";
-            default:
-              return "info";
-          }
-        },
-        withDot: false,
-      },
-    },
-    priority: 3,
-    expandedOnly: true,
-  },
-  {
-    key: "rewardCurrency",
-    title: "Reward Currency",
-    type: "select",
-    icon: DollarSign,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: true,
-    usedInCreate: true,
-    description: "Reward currency",
-    priority: 3,
-    expandedOnly: true,
-    dynamicSelect: {
-      refreshOn: "rewardWalletType",
-      endpointBuilder: (walletTypeValue: string | undefined) =>
-        walletTypeValue
-          ? {
-              url: `/api/admin/finance/currency/options?type=${walletTypeValue}`,
-              method: "GET",
+    {
+      key: "type",
+      title: tCommon("type"),
+      type: "select",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("the_action_or_event_that_must"),
+      options: [
+        { value: "DEPOSIT", label: tCommon("deposit") },
+        { value: "TRADE", label: tCommon("trade") },
+        { value: "BINARY_WIN", label: tExtAdmin("binary_win") },
+        { value: "INVESTMENT", label: tCommon("investment") },
+        { value: "AI_INVESTMENT", label: tCommon("ai_investment") },
+        { value: "FOREX_INVESTMENT", label: tCommon("forex_investment") },
+        { value: "ICO_CONTRIBUTION", label: tCommon("ico_contribution") },
+        { value: "STAKING", label: tCommon("staking") },
+        { value: "ECOMMERCE_PURCHASE", label: tExtAdmin("ecommerce_purchase") },
+        { value: "P2P_TRADE", label: tCommon("p2p_trade") },
+      ],
+      priority: 1,
+      render: {
+        type: "badge",
+        config: {
+          variant: (value) => {
+            switch (value) {
+              case "DEPOSIT":
+              case "STAKING":
+                return "success";
+              case "INVESTMENT":
+              case "AI_INVESTMENT":
+              case "FOREX_INVESTMENT":
+              case "P2P_TRADE":
+                return "primary";
+              case "TRADE":
+              case "BINARY_WIN":
+                return "warning";
+              case "ECOMMERCE_PURCHASE":
+                return "info";
+              case "ICO_CONTRIBUTION":
+                return "secondary";
+              default:
+                return "secondary";
             }
-          : null,
-      disableWhenEmpty: true,
-    },
-  },
-  {
-    key: "rewardChain",
-    title: "Reward Chain",
-    type: "text",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: true,
-    usedInCreate: true,
-    description: "Reward chain (if applicable)",
-    priority: 3,
-    expandedOnly: true,
-  },
-  {
-    key: "rewardType",
-    title: "Reward Type",
-    type: "select",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: true,
-    usedInCreate: true,
-    description: "Reward type",
-    options: [
-      { value: "PERCENTAGE", label: "Percentage" },
-      { value: "FIXED", label: "Fixed" },
-    ],
-    priority: 1,
-    render: {
-      type: "badge",
-      config: {
-        variant: (value) => {
-          switch (value) {
-            case "PERCENTAGE":
-              return "success";
-            case "FIXED":
-              return "danger";
-            default:
-              return "info";
-          }
+          },
+          withDot: true,
         },
-        withDot: false,
       },
     },
-  },
-  {
-    key: "reward",
-    title: "Reward",
-    type: "number",
-    icon: DollarSign,
-    sortable: true,
-    searchable: false,
-    filterable: true,
-    editable: true,
-    usedInCreate: true,
-    description: "Reward value",
-    priority: 1,
-  },
-  {
-    key: "status",
-    title: "Status",
-    type: "toggle",
-    icon: CheckSquare,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: true,
-    usedInCreate: true,
-    description: "Condition status",
-    priority: 1,
-  },
-];
+    {
+      key: "rewardType",
+      title: tCommon("reward_type"),
+      type: "select",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("how_the_reward_is_calculated_percentages"),
+      options: [
+        { value: "PERCENTAGE", label: tCommon("percentage") },
+        { value: "FIXED", label: tExtAdmin("fixed") },
+      ],
+      priority: 1,
+      render: {
+        type: "badge",
+        config: {
+          variant: (value) => {
+            switch (value) {
+              case "PERCENTAGE":
+                return "primary";
+              case "FIXED":
+                return "success";
+              default:
+                return "secondary";
+            }
+          },
+          withDot: true,
+        },
+      },
+    },
+    {
+      key: "reward",
+      title: tCommon("reward"),
+      type: "number",
+      icon: DollarSign,
+      sortable: true,
+      searchable: false,
+      filterable: true,
+      description: tExtAdmin("the_reward_amount_given_to_the"),
+      priority: 1,
+    },
+    {
+      key: "rewardWalletType",
+      title: tExtAdmin("reward_wallet"),
+      type: "select",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("the_wallet_type_where_rewards_will"),
+      apiEndpoint: {
+        url: "/api/admin/finance/wallet/options",
+        method: "GET",
+      },
+      render: {
+        type: "badge",
+        config: {
+          variant: (value) => {
+            switch (value) {
+              case "FIAT":
+                return "success";
+              case "SPOT":
+                return "primary";
+              case "ECO":
+                return "warning";
+              default:
+                return "secondary";
+            }
+          },
+          withDot: true,
+        },
+      },
+      priority: 2,
+      expandedOnly: true,
+    },
+    {
+      key: "rewardCurrency",
+      title: tExtAdmin("reward_currency"),
+      type: "select",
+      icon: DollarSign,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("the_specific_currency_or_token_in"),
+      priority: 2,
+      expandedOnly: true,
+      dynamicSelect: {
+        refreshOn: "rewardWalletType",
+        endpointBuilder: (walletTypeValue: string | undefined) =>
+          walletTypeValue
+            ? {
+                url: `/api/admin/finance/currency/options?type=${walletTypeValue}`,
+                method: "GET",
+              }
+            : null,
+        disableWhenEmpty: true,
+      },
+    },
+    {
+      key: "rewardChain",
+      title: tExtAdmin("reward_chain"),
+      type: "text",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("the_blockchain_network_for_crypto_rewards"),
+      priority: 3,
+      expandedOnly: true,
+    },
+    {
+      key: "description",
+      title: tExtAdmin("brief_description"),
+      type: "textarea",
+      sortable: false,
+      searchable: true,
+      filterable: false,
+      description: tExtAdmin("internal_notes_about_this_conditions_purpose"),
+      priority: 4,
+      expandedOnly: true,
+    },
+    {
+      key: "id",
+      title: tCommon("id"),
+      type: "text",
+      icon: Shield,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("unique_system_identifier_for_this_affiliate"),
+      priority: 4,
+      expandedOnly: true,
+    },
+  ];
+}
+
+export function useFormConfig(): FormConfig {
+  const tCommon = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
+  const tExtAdmin = useTranslations("ext_admin");
+  return {
+    create: {
+      title: tExtAdmin("create_new_affiliate_condition"),
+      description: tExtAdmin("set_up_a_new_affiliate_condition"),
+      groups: [
+        {
+          id: "basic-info",
+          title: tDashboardAdmin("basic_information"),
+          icon: Sparkles,
+          priority: 1,
+          fields: [
+            { key: "title", required: true, validation: (value) => {
+              if (!value || value.trim().length === 0) return "Title cannot be empty";
+              if (value.length > 191) return "Title must not exceed 191 characters";
+              return null;
+            }},
+            { key: "image", required: false, validation: (value) => {
+              if (value && value.length > 191) return "Image path must not exceed 191 characters";
+              return null;
+            }},
+            { key: "type", required: true, options: [
+              { value: "DEPOSIT", label: tCommon("deposit") },
+              { value: "TRADE", label: tCommon("trade") },
+              { value: "BINARY_WIN", label: tExtAdmin("binary_win") },
+              { value: "INVESTMENT", label: tCommon("investment") },
+              { value: "AI_INVESTMENT", label: tCommon("ai_investment") },
+              { value: "FOREX_INVESTMENT", label: tCommon("forex_investment") },
+              { value: "ICO_CONTRIBUTION", label: tCommon("ico_contribution") },
+              { value: "STAKING", label: tCommon("staking") },
+              { value: "ECOMMERCE_PURCHASE", label: tExtAdmin("ecommerce_purchase") },
+              { value: "P2P_TRADE", label: tCommon("p2p_trade") },
+            ]},
+            { key: "description", required: true, validation: (value) => {
+              if (!value || value.trim().length === 0) return "Description cannot be empty";
+              if (value.length > 191) return "Description must not exceed 191 characters";
+              return null;
+            }},
+          ],
+        },
+        {
+          id: "reward-details",
+          title: tExtAdmin("reward_configuration"),
+          icon: DollarSign,
+          priority: 2,
+          fields: [
+            { key: "rewardWalletType", required: true, apiEndpoint: {
+              url: "/api/admin/finance/wallet/options",
+              method: "GET",
+            }},
+            { key: "rewardCurrency", required: true, validation: (value) => {
+              if (!value || value.trim().length === 0) return "Reward currency cannot be empty";
+              if (value.length > 191) return "Reward currency must not exceed 191 characters";
+              return null;
+            }},
+            { key: "rewardChain", required: false, validation: (value) => {
+              if (value && value.length > 191) return "Reward chain must not exceed 191 characters";
+              return null;
+            }},
+            { key: "rewardType", required: true, options: [
+              { value: "PERCENTAGE", label: tCommon("percentage") },
+              { value: "FIXED", label: tExtAdmin("fixed") },
+            ]},
+            { key: "reward", required: true, min: 0 },
+          ],
+        },
+        {
+          id: "settings",
+          title: tCommon("settings"),
+          icon: Settings,
+          priority: 3,
+          fields: [{ key: "status" }],
+        },
+      ],
+    },
+    edit: {
+      title: tExtAdmin("edit_affiliate_condition"),
+      description: tExtAdmin("modify_the_affiliate_condition_settings_reward"),
+      groups: [
+        {
+          id: "basic-info",
+          title: tDashboardAdmin("basic_information"),
+          icon: Sparkles,
+          priority: 1,
+          fields: [
+            { key: "title", required: true, validation: (value) => {
+              if (!value || value.trim().length === 0) return "Title cannot be empty";
+              if (value.length > 191) return "Title must not exceed 191 characters";
+              return null;
+            }},
+            { key: "image", required: false, validation: (value) => {
+              if (value && value.length > 191) return "Image path must not exceed 191 characters";
+              return null;
+            }},
+            { key: "type", required: true, options: [
+              { value: "DEPOSIT", label: tCommon("deposit") },
+              { value: "TRADE", label: tCommon("trade") },
+              { value: "BINARY_WIN", label: tExtAdmin("binary_win") },
+              { value: "INVESTMENT", label: tCommon("investment") },
+              { value: "AI_INVESTMENT", label: tCommon("ai_investment") },
+              { value: "FOREX_INVESTMENT", label: tCommon("forex_investment") },
+              { value: "ICO_CONTRIBUTION", label: tCommon("ico_contribution") },
+              { value: "STAKING", label: tCommon("staking") },
+              { value: "ECOMMERCE_PURCHASE", label: tExtAdmin("ecommerce_purchase") },
+              { value: "P2P_TRADE", label: tCommon("p2p_trade") },
+            ]},
+            { key: "description", required: true, validation: (value) => {
+              if (!value || value.trim().length === 0) return "Description cannot be empty";
+              if (value.length > 191) return "Description must not exceed 191 characters";
+              return null;
+            }},
+          ],
+        },
+        {
+          id: "reward-details",
+          title: tExtAdmin("reward_configuration"),
+          icon: DollarSign,
+          priority: 2,
+          fields: [
+            { key: "rewardWalletType", required: true, apiEndpoint: {
+              url: "/api/admin/finance/wallet/options",
+              method: "GET",
+            }},
+            { key: "rewardCurrency", required: true, validation: (value) => {
+              if (!value || value.trim().length === 0) return "Reward currency cannot be empty";
+              if (value.length > 191) return "Reward currency must not exceed 191 characters";
+              return null;
+            }},
+            { key: "rewardChain", required: false, validation: (value) => {
+              if (value && value.length > 191) return "Reward chain must not exceed 191 characters";
+              return null;
+            }},
+            { key: "rewardType", required: true, options: [
+              { value: "PERCENTAGE", label: tCommon("percentage") },
+              { value: "FIXED", label: tExtAdmin("fixed") },
+            ]},
+            { key: "reward", required: true, min: 0 },
+          ],
+        },
+        {
+          id: "settings",
+          title: tCommon("settings"),
+          icon: Settings,
+          priority: 3,
+          fields: [{ key: "status" }],
+        },
+      ],
+    },
+  };
+}

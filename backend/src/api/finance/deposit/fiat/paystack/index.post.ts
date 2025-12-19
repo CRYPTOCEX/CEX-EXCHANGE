@@ -24,6 +24,8 @@ export const metadata = {
   operationId: 'createPaystackPayment',
   tags: ['Finance', 'Deposit', 'Paystack'],
   requiresAuth: true,
+  logModule: "PAYSTACK_DEPOSIT",
+  logTitle: "Create Paystack payment session",
   requestBody: {
     required: true,
     content: {

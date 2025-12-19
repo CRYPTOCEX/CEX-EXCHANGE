@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "deleteTokenOfferingUpdate",
   tags: ["ICO", "Creator", "Updates"],
   requiresAuth: true,
+  logModule: "ICO",
+  logTitle: "Delete ICO Token Offering Update",
   parameters: [
     {
       index: 0,
@@ -38,27 +40,37 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
+
+  ctx?.step?.("Validating user authentication");
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step?.("Validating update ID parameter");
   const { updateId } = params;
   if (!updateId) {
     throw createError({ statusCode: 400, message: "Missing update ID" });
   }
 
+  ctx?.step?.("Fetching update record from database");
   const updateRecord = await models.icoTokenOfferingUpdate.findByPk(updateId);
   if (!updateRecord) {
     throw createError({ statusCode: 404, message: "Update not found" });
   }
+
+  ctx?.step?.("Verifying user ownership");
   if (updateRecord.userId !== user.id) {
     throw createError({ statusCode: 403, message: "Forbidden" });
   }
 
   // Capture title for notification
   const deletedTitle = updateRecord.title;
+
+  ctx?.step?.("Deleting update record");
   await updateRecord.destroy();
 
+  ctx?.step?.("Creating deletion notification");
   try {
     await createNotification({
       userId: user.id,
@@ -88,5 +100,6 @@ export default async (data: Handler) => {
     );
   }
 
+  ctx?.success?.("Update deleted successfully");
   return { message: "Update deleted successfully." };
 };

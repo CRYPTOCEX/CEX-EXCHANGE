@@ -12,9 +12,10 @@ import {
 } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Transfer native tokens from Ecosystem Custodial Wallet",
+  summary: "Transfer native tokens from custodial wallet",
+  description: "Transfers native blockchain tokens (e.g., ETH, BNB, MATIC) from an ecosystem custodial wallet to a specified recipient address. Requires master wallet private key for signing.",
   operationId: "transferNativeEcosystemCustodialWallet",
-  tags: ["Admin", "Ecosystem Custodial Wallets"],
+  tags: ["Admin", "Ecosystem", "Wallet"],
   parameters: [
     {
       index: 0,
@@ -40,7 +41,7 @@ export const metadata: OperationObject = {
             },
             amount: {
               type: "string",
-              description: "Amount to transfer (in wei)",
+              description: "Amount to transfer in the smallest unit (e.g., wei for ETH)",
             },
           },
           required: ["id", "recipient", "amount"],
@@ -71,10 +72,12 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "access.ecosystem.custodial.wallet",
+  logModule: "ADMIN_ECO",
+  logTitle: "Transfer Native Tokens",
 };
 
 export default async (data: Handler) => {
-  const { user, body, params } = data;
+  const { user, body, params, ctx } = data;
   if (!user) {
     throw new Error("Authentication required to transfer native tokens");
   }
@@ -82,11 +85,13 @@ export default async (data: Handler) => {
   const { recipient, amount } = body;
 
   try {
+    ctx?.step("Fetching Custodial Wallet");
     const custodialWallet = await models.ecosystemCustodialWallet.findByPk(id);
     if (!custodialWallet) {
       throw new Error(`Custodial wallet not found`);
     }
 
+    ctx?.step("Fetching Master Wallet");
     const masterWallet = await models.ecosystemMasterWallet.findByPk(
       custodialWallet.masterWalletId
     );
@@ -98,9 +103,11 @@ export default async (data: Handler) => {
       throw new Error(`Master wallet data not found`);
     }
 
+    ctx?.step("Decrypting Master Wallet Data");
     const decryptedData = JSON.parse(decrypt(masterWallet.data));
     const { privateKey } = decryptedData;
 
+    ctx?.step("Initializing Provider and Contract");
     const provider = await getProvider(custodialWallet.chain);
     const signer = new ethers.Wallet(privateKey).connect(provider);
     const contract = await getCustodialWalletContract(
@@ -108,9 +115,11 @@ export default async (data: Handler) => {
       signer
     );
 
+    ctx?.step("Executing Native Token Transfer");
     const transaction = await contract.transferNative(recipient, amount);
     await transaction.wait();
 
+    ctx?.success(`Native tokens transferred successfully to ${recipient}`);
     return {
       message: "Native tokens transferred successfully",
     };

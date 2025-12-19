@@ -49,7 +49,8 @@ const LOGO_FILE_MAPPING: Record<string, string> = {
 };
 
 export function LogoField({ field, value, onChange }: LogoFieldProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const { updateLogoVersion, logoVersion } = useLogoCacheStore();
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -212,7 +213,7 @@ export function LogoField({ field, value, onChange }: LogoFieldProps) {
         {field.label}
         {field.fileSize && (
           <span className="text-xs text-muted-foreground ml-2">
-            ({field.fileSize.width}x{field.fileSize.height}px)
+            ({field.fileSize.width}x{field.fileSize.height}{tCommon('px')}
           </span>
         )}
       </Label>
@@ -297,6 +298,7 @@ export function LogoField({ field, value, onChange }: LogoFieldProps) {
                       width={96}
                       height={96}
                       className="h-full w-full object-contain"
+                      style={{ width: "auto", height: "auto" }}
                       unoptimized // Allow cache busting and blob URLs
                       onError={(e) => {
                         console.log(`Failed to load image: ${(e.target as HTMLImageElement).src}`);
@@ -308,7 +310,7 @@ export function LogoField({ field, value, onChange }: LogoFieldProps) {
                     />
                   ) : (
                     <div className="text-xs text-muted-foreground">
-                      No logo
+                      {t("no_logo")}
                     </div>
                   )}
                 </div>
@@ -324,7 +326,7 @@ export function LogoField({ field, value, onChange }: LogoFieldProps) {
                       }
                     }}
                     className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors shadow-lg z-10"
-                    title="Remove logo"
+                    title={t("remove_logo")}
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -352,7 +354,7 @@ export function LogoField({ field, value, onChange }: LogoFieldProps) {
                 )}
                 {!previewUrl && !displayLogoUrl && (
                   <div className="text-xs text-muted-foreground">
-                    Ready to upload
+                    {t("ready_to_upload")}
                   </div>
                 )}
               </div>

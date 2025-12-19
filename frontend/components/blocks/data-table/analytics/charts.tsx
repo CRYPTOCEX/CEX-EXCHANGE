@@ -21,7 +21,8 @@ interface AnalyticsChartsProps {
 }
 
 export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data }) => {
-  const t = useTranslations("common");
+  const t = useTranslations("components_blocks");
+  const tCommon = useTranslations("common");
   const {
     analyticsData,
     fetchAnalyticsData,
@@ -59,7 +60,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data }) => {
           onValueChange={(value) => setTimeframe(value as ChartTimeframe)}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select timeframe" />
+            <SelectValue placeholder={tCommon("select_timeframe")} />
           </SelectTrigger>
           <SelectContent>
             {TIMEFRAME_OPTIONS.map((option: any) => (

@@ -4,16 +4,14 @@ import { TableStore } from "../types/table";
 import { $fetch } from "@/lib/api";
 
 export interface ActionsSlice {
+  selectedRow: any | null;
   isCreateDrawerOpen: boolean;
   isEditDrawerOpen: boolean;
-  selectedRow: any | null;
 
-  setCreateDrawerOpen: (isOpen: boolean) => void;
-  setEditDrawerOpen: (isOpen: boolean) => void;
   setSelectedRow: (row: any | null) => void;
+  setCreateDrawerOpen: (open: boolean) => void;
+  setEditDrawerOpen: (open: boolean) => void;
 
-  handleCreate: () => void;
-  handleEdit: (row: any) => void;
   handleView: (row: any) => void;
 
   handleDelete: (row: any) => Promise<void>;
@@ -76,24 +74,13 @@ export const createActionsSlice: StateCreator<
   };
 
   return {
+    selectedRow: null,
     isCreateDrawerOpen: false,
     isEditDrawerOpen: false,
-    selectedRow: null,
 
-    setCreateDrawerOpen: (isOpen) => set({ isCreateDrawerOpen: isOpen }),
-    setEditDrawerOpen: (isOpen) => set({ isEditDrawerOpen: isOpen }),
     setSelectedRow: (row) => set({ selectedRow: row }),
-
-    handleCreate: () => {
-      set({ isCreateDrawerOpen: true });
-    },
-
-    handleEdit: (row) => {
-      set({
-        selectedRow: row,
-        isEditDrawerOpen: true,
-      });
-    },
+    setCreateDrawerOpen: (open) => set({ isCreateDrawerOpen: open }),
+    setEditDrawerOpen: (open) => set({ isEditDrawerOpen: open }),
 
     handleView: (row) => {
       const { tableConfig } = get();

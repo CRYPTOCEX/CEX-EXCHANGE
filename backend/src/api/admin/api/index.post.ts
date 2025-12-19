@@ -6,6 +6,8 @@ export const metadata: OperationObject = {
   summary: "Stores a new API Key",
   operationId: "storeApiKey",
   tags: ["Admin", "API Keys"],
+  logModule: "ADMIN_API",
+  logTitle: "Create API",
   requestBody: {
     required: true,
     content: {
@@ -20,14 +22,17 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { userId, name, type, permissions, ipRestriction, ipWhitelist } = body;
 
+  ctx?.step("Validating API key data");
   // Ensure permissions and IP whitelist have the correct format
   const formattedPermissions = Array.isArray(permissions) ? permissions : [];
   const formattedIPWhitelist = Array.isArray(ipWhitelist) ? ipWhitelist : [];
 
-  return await storeRecord({
+  ctx?.step("Generating API key");
+  ctx?.step("Creating API key record");
+  const result = await storeRecord({
     model: "apiKey",
     data: {
       userId,
@@ -39,4 +44,6 @@ export default async (data: Handler) => {
       ipWhitelist: formattedIPWhitelist,
     },
   });
+  ctx?.success();
+  return result;
 };

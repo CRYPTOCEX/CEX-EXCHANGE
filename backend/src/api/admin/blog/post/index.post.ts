@@ -18,10 +18,12 @@ export const metadata: OperationObject = {
   responses: storeRecordResponses(postStoreSchema, "Blog Post"),
   requiresAuth: true,
   permission: "create.blog.post",
+  logModule: "ADMIN_BLOG",
+  logTitle: "Create blog post",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const {
     title,
     content,
@@ -33,7 +35,10 @@ export default async (data: Handler) => {
     image,
   } = body;
 
-  return await storeRecord({
+  ctx?.step("Validating blog post data");
+
+  ctx?.step("Creating blog post");
+  const result = await storeRecord({
     model: "post",
     data: {
       title,
@@ -46,4 +51,7 @@ export default async (data: Handler) => {
       image,
     },
   });
+
+  ctx?.success("Blog post created successfully");
+  return result;
 };

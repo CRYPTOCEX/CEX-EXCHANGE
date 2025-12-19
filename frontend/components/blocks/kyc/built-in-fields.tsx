@@ -53,10 +53,10 @@ export function KycBuiltInFields({
           {/* Table Header */}
           <thead className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
             <tr>
-              <th className="px-4 py-2 text-left">{t("Field")}</th>
-              <th className="px-4 py-2 text-center">{t("Enabled")}</th>
-              <th className="px-4 py-2 text-center">{t("Required")}</th>
-              <th className="px-4 py-2 text-center">{t("Level")}</th>
+              <th className="px-4 py-2 text-left">{t("field")}</th>
+              <th className="px-4 py-2 text-center">{t("enabled")}</th>
+              <th className="px-4 py-2 text-center">{t("required")}</th>
+              <th className="px-4 py-2 text-center">{t("level")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">

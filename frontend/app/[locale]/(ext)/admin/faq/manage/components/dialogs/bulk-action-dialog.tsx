@@ -27,7 +27,7 @@ export function BulkActionDialog({
   onOpenChange,
   onConfirm,
 }: BulkActionDialogProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   if (!action) return null;
 
   const actionText = {
@@ -69,7 +69,7 @@ export function BulkActionDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} variant={actionButtonVariant}>
             {actionText.charAt(0).toUpperCase() + actionText.slice(1)}
           </AlertDialogAction>

@@ -7,6 +7,8 @@ export const metadata: OperationObject = {
   description: "Block a user account with reason and optional duration",
   operationId: "blockUser",
   tags: ["Admin", "CRM", "User"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Block user",
   parameters: [
     {
       index: 0,
@@ -68,10 +70,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, body, user } = data;
+  const { params, body, user, ctx } = data;
   const { id } = params;
   const { reason, isTemporary = false, duration } = body;
 
+  ctx?.step("Validating user authorization");
   if (!user?.id) {
     throw createError({
       statusCode: 401,
@@ -79,6 +82,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Validating block parameters");
   // Validate duration for temporary blocks
   if (isTemporary && (!duration || duration < 1 || duration > 8760)) {
     throw createError({
@@ -87,6 +91,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Fetching target user");
   // Find the target user
   const targetUser = await models.user.findOne({
     where: { id },
@@ -122,6 +127,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Checking existing blocks");
   // Check if user is already blocked
   const existingBlock = await models.userBlock.findOne({
     where: {
@@ -146,6 +152,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Creating block record");
   // Calculate blocked until date for temporary blocks
   let blockedUntil: Date | null = null;
   if (isTemporary && duration) {
@@ -163,6 +170,7 @@ export default async (data: Handler) => {
     isActive: true,
   });
 
+  ctx?.step("Updating user status");
   // Update user status
   const newStatus = isTemporary ? "SUSPENDED" : "BANNED";
   await models.user.update(
@@ -170,6 +178,7 @@ export default async (data: Handler) => {
     { where: { id } }
   );
 
+  ctx?.success();
   return {
     message: `User ${isTemporary ? "temporarily blocked" : "blocked"} successfully`,
     blockId: blockRecord.id,

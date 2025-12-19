@@ -54,7 +54,8 @@ export function BuilderHeader({
   onPreviewClick,
   isEdit = false,
 }: BuilderHeaderProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(levelName);
@@ -116,10 +117,10 @@ export function BuilderHeader({
           )}
           <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
             <span className="mx-1 text-gray-400 dark:text-gray-500">
-              {'•'}
+              •
             </span>
             <span>
-              {t("Level")}{" "}
+              {t("level")}{" "}
               {levelNumber}
             </span>
           </div>
@@ -140,12 +141,12 @@ export function BuilderHeader({
                 {showPreview ? (
                   <>
                     <EyeOff className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline">{t("Editor")}</span>
+                    <span className="hidden sm:inline">{tDashboardAdmin("editor")}</span>
                   </>
                 ) : (
                   <>
                     <Eye className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline">{t("Preview")}</span>
+                    <span className="hidden sm:inline">{t("preview")}</span>
                   </>
                 )}
               </Button>

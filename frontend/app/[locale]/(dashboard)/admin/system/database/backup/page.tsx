@@ -3,11 +3,12 @@ import { useEffect, useState, useCallback } from "react";
 import { $fetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { ObjectTable } from "@/components/ui/object-table";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import { BackupModal } from "./backup-modal";
 import { RestoreModal } from "./restore-modal";
 import { Save } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 interface Backup {
   filename: string;
@@ -15,7 +16,8 @@ interface Backup {
   createdAt: string;
 }
 export default function DatabaseBackupPage() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
   const [backups, setBackups] = useState<Backup[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
@@ -70,11 +72,11 @@ export default function DatabaseBackupPage() {
     </Button>
   );
   return (
-    <>
+    <div className={`container ${PAGE_PADDING}`}>
       <ObjectTable
-        columns={columns(setRestoreFile)}
+        columns={columns}
         data={backups}
-        title="Database Backups"
+        title={t("database_backups")}
         actionButtons={actionButtons}
         searchPlaceholder="Search backups..."
         emptyMessage="No database backups found. Create your first backup to get started."
@@ -94,6 +96,6 @@ export default function DatabaseBackupPage() {
           isLoading={isLoading}
         />
       )}
-    </>
+    </div>
   );
 }

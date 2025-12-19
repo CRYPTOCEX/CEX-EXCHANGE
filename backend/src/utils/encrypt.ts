@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { logger } from "@b/utils/console";
 
 let dynamicEncryptionKey: Buffer | null = null;
 const encryptedKey = process.env.ENCRYPTED_ENCRYPTION_KEY;
@@ -32,7 +33,7 @@ function decryptEncryptionKey(
 
     return decrypted;
   } catch (error) {
-    console.error("Decryption failed:", error);
+    logger.error("ENCRYPT", "Decryption failed", error);
     throw new Error("Decryption failed");
   }
 }
@@ -52,7 +53,7 @@ export async function setEncryptionKey(passphrase: string) {
 
     return true;
   } catch (error) {
-    console.error("Failed to set the encryption key:", error);
+    logger.error("ENCRYPT", "Failed to set the encryption key", error);
     return false;
   }
 }
@@ -80,14 +81,14 @@ export function encrypt(text: string): string {
 
 export function decrypt(text: string): string {
   if (!dynamicEncryptionKey) {
-    console.error("[DECRYPT] Encryption key is not set");
+    logger.error("ENCRYPT", "Encryption key is not set");
     throw new Error("Encryption key is not set");
   }
 
   try {
     const parts = text.split(":");
     if (parts.length !== 3) {
-      console.error(`[DECRYPT] Invalid encrypted text format, expected 3 parts, got ${parts.length}`);
+      logger.error("ENCRYPT", `Invalid encrypted text format, expected 3 parts, got ${parts.length}`);
       throw new Error("Invalid encrypted text format");
     }
 
@@ -105,8 +106,7 @@ export function decrypt(text: string): string {
     decrypted += decipher.final("utf8");
     return decrypted;
   } catch (error) {
-    console.error("[DECRYPT] Decryption failed:", error.message);
-    console.error("[DECRYPT] Error details:", error);
+    logger.error("ENCRYPT", "Decryption failed", error);
     if (error.message.includes("Unsupported state")) {
       throw new Error("Invalid encryption data or wrong encryption key");
     }

@@ -4,7 +4,9 @@ import { aiInvestmentPlanUpdateSchema } from "../utils";
 export const metadata: OperationObject = {
   summary: "Updates a specific AI Investment Plan",
   operationId: "updateAiInvestmentPlan",
-  tags: ["Admin", "AI Investment Plans"],
+  tags: ["Admin", "AI Investment", "Plan"],
+  description:
+    "Updates an existing AI Investment Plan with new parameters including profit ranges, investment limits, durations, and other configuration settings. Can modify trending status and default results.",
   parameters: [
     {
       index: 0,
@@ -18,7 +20,8 @@ export const metadata: OperationObject = {
     },
   ],
   requestBody: {
-    description: "New data for the AI Investment Plan",
+    description: "Updated data for the AI Investment Plan",
+    required: true,
     content: {
       "application/json": {
         schema: aiInvestmentPlanUpdateSchema,
@@ -28,10 +31,12 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("AI Investment Plan"),
   requiresAuth: true,
   permission: "edit.ai.investment.plan",
+  logModule: "ADMIN_AI",
+  logTitle: "Update investment plan",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     name,
@@ -51,6 +56,8 @@ export default async (data) => {
     durations,
   } = body;
 
+  ctx?.step(`Updating plan ${id}`);
+
   const relations = durations
     ? [
         {
@@ -65,7 +72,7 @@ export default async (data) => {
       ]
     : [];
 
-  return await updateRecord(
+  const result = await updateRecord(
     "aiInvestmentPlan",
     id,
     {
@@ -87,4 +94,7 @@ export default async (data) => {
     undefined,
     relations
   );
+
+  ctx?.success("Plan updated successfully");
+  return result;
 };

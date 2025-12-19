@@ -8,9 +8,9 @@ import { baseForexAccountSchema } from "../utils";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
-  summary: "Retrieves detailed information of a specific forex account by ID",
+  summary: "Retrieves a Forex account by ID",
   operationId: "getForexAccountById",
-  tags: ["Admin", "Forex Accounts"],
+  tags: ["Admin", "Forex", "Account"],
   parameters: [
     {
       index: 0,
@@ -39,16 +39,23 @@ export const metadata: OperationObject = {
   },
   permission: "view.forex.account",
   requiresAuth: true,
+  logModule: "ADMIN_FOREX",
+  logTitle: "Get Forex Account",
+  demoMask: ["user.email", "accountId", "password", "broker"],
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("forexAccount", params.id, [
+  ctx?.step("Fetching forex account record");
+  const result = await getRecord("forexAccount", params.id, [
     {
       model: models.user,
       as: "user",
       attributes: ["id", "firstName", "lastName", "email", "avatar"],
     },
   ]);
+
+  ctx?.success("Retrieved forex account");
+  return result;
 };

@@ -1,6 +1,6 @@
 import { models } from "@b/db"; // Adjust import path as needed
 import { RedisSingleton } from "./redis";
-import logger from "@b/utils/logger";
+import { logger } from "./console";
 
 const redis = RedisSingleton.getInstance();
 
@@ -36,12 +36,7 @@ export class CacheManager {
           await this.loadSettingsFromDB();
         }
       } catch (error) {
-        logger(
-          "error",
-          "CacheManager",
-          __filename,
-          `Failed to load settings: ${error.message}`
-        );
+        logger.error("CACHE", `Failed to load settings: ${error.message}`, error);
         throw error;
       }
     }
@@ -59,12 +54,7 @@ export class CacheManager {
           await this.loadExtensionsFromDB();
         }
       } catch (error) {
-        logger(
-          "error",
-          "CacheManager",
-          __filename,
-          `Failed to load extensions: ${error.message}`
-        );
+        logger.error("CACHE", `Failed to load extensions: ${error.message}`, error);
         throw error;
       }
     }
@@ -167,16 +157,8 @@ export class CacheManager {
       await this.loadSettingsFromDB();
       await this.loadExtensionsFromDB();
 
-      console.log(
-        "Settings & Extensions Cache cleared and reloaded successfully"
-      );
     } catch (error) {
-      logger(
-        "error",
-        "CacheManager",
-        __filename,
-        `Cache clear and reload failed: ${error.message}`
-      );
+      logger.error("CACHE", `Cache clear and reload failed: ${error.message}`, error);
       throw error;
     }
   }

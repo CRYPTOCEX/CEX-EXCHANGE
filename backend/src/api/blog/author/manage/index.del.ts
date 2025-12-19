@@ -12,6 +12,8 @@ export const metadata: OperationObject = {
   summary: "Bulk deletes posts by IDs",
   operationId: "bulkDeletePosts",
   tags: ["Content", "Author", "Post"],
+  logModule: "BLOG",
+  logTitle: "Bulk delete author posts",
   parameters: [...commonBulkDeleteParams("Posts")],
   requestBody: {
     required: true,
@@ -36,12 +38,13 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, query, user, params } = data;
+  const { body, query, user, params, ctx } = data;
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
   const { ids } = body;
 
+  ctx?.step("Verifying author credentials");
   const author = await models.author.findOne({
     where: { userId: user.id },
   });
@@ -49,10 +52,14 @@ export default async (data: Handler) => {
   if (!author)
     throw createError({ statusCode: 404, message: "Author not found" });
 
-  return handleBulkDelete({
+  ctx?.step(`Deleting ${ids.length} post(s)`);
+  const result = await handleBulkDelete({
     model: "post",
     ids,
     query,
     where: { authorId: author.id },
   });
+
+  ctx?.success(`Bulk deleted ${ids.length} post(s) for author ${author.id}`);
+  return result;
 };

@@ -8,7 +8,7 @@ class DocsLayout {
         this.isLoading = false;
         this.sidebarStates = this.loadSidebarStates();
         this.searchIndexBuilt = false;
-        this.cacheVersion = '1.0.682715'; // Update this when deploying changes
+        this.cacheVersion = '1.0.873346'; // Update this when deploying changes
     }
 
     // Initialize the layout with configuration
@@ -51,7 +51,7 @@ class DocsLayout {
                 items: [
                     { title: 'Overview', href: '#home', icon: '📖' },
                     { title: 'Patch Notes', href: '#patch-notes', icon: '🚀' },
-                    { title: 'Migration Guide', href: '#migration-guide', icon: '🔄' },
+                    { title: 'Migrations', href: '#migrations', icon: '🔄' },
                     { title: 'Server Requirements', href: '#server-requirements', icon: '🖥️' }
                 ]
             },
@@ -283,6 +283,18 @@ class DocsLayout {
                             { title: 'Admin Features', href: '#nft-admin-features', icon: '👨‍💼' },
                             { title: 'User Features', href: '#nft-user-features', icon: '👥' },
                             { title: 'Settings', href: '#nft-settings', icon: '⚙️' }
+                        ]
+                    },
+                    {
+                        title: 'Copy Trading',
+                        href: '',
+                        icon: '📈',
+                        isGroup: true,
+                        children: [
+                            { title: 'Installation', href: '#copy-trading-installation', icon: '🚀' },
+                            { title: 'Admin Features', href: '#copy-trading-admin-features', icon: '👨‍💼' },
+                            { title: 'User Features', href: '#copy-trading-user-features', icon: '👥' },
+                            { title: 'Settings', href: '#copy-trading-settings', icon: '⚙️' }
                         ]
                     },
                     {
@@ -1089,6 +1101,10 @@ class DocsLayout {
             isDynamic: true,
             handler: 'patchNotes'
         });
+        this.routes.set('migrations', {
+            title: 'Migrations',
+            contentFile: 'content/core/migrations.html'
+        });
         this.routes.set('migration-guide', {
             title: 'Migration Guide',
             contentFile: 'content/core/migration-guide.html'
@@ -1427,6 +1443,23 @@ class DocsLayout {
             contentFile: 'content/nft/settings.html'
         });
 
+        // Copy Trading Extension Routes
+        this.routes.set('copy-trading-installation', {
+            title: 'Copy Trading - Installation Guide',
+            contentFile: 'content/copy-trading/installation.html'
+        });
+        this.routes.set('copy-trading-admin-features', {
+            title: 'Copy Trading - Admin Features',
+            contentFile: 'content/copy-trading/admin-features.html'
+        });
+        this.routes.set('copy-trading-user-features', {
+            title: 'Copy Trading - User Features',
+            contentFile: 'content/copy-trading/user-features.html'
+        });
+        this.routes.set('copy-trading-settings', {
+            title: 'Copy Trading - Settings Configuration',
+            contentFile: 'content/copy-trading/settings.html'
+        });
 
         // Staking Extension Routes
         this.routes.set('staking-installation', {
@@ -1552,13 +1585,27 @@ class DocsLayout {
     // Handle route changes
     handleRouteChange() {
         const hash = window.location.hash.slice(1); // Remove #
-        const route = this.routes.get(hash);
-        
+
+        // Check for section parameter (e.g., #migration-guide&section=v4-to-v5)
+        const [routeKey, params] = hash.split('&');
+        const route = this.routes.get(routeKey);
+
         if (route) {
-            this.setCurrentPage(`#${hash}`);
-            this.loadRouteContent(route);
+            this.setCurrentPage(`#${routeKey}`);
+            this.loadRouteContent(route).then(() => {
+                // If there's a section parameter, scroll to it after content loads
+                if (params && params.startsWith('section=')) {
+                    const sectionId = params.replace('section=', '');
+                    setTimeout(() => {
+                        const section = document.getElementById(sectionId);
+                        if (section) {
+                            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 100);
+                }
+            });
             this.updateActiveNavigation();
-            
+
             // Close mobile menu if open
             const sidebarOpenElement = document.querySelector('[x-data]');
             if (sidebarOpenElement && sidebarOpenElement.__x && sidebarOpenElement.__x.$data.sidebarOpen) {

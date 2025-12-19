@@ -2,9 +2,11 @@ import { updateRecord, updateRecordResponses } from "@b/utils/query";
 import { aiInvestmentDurationUpdateSchema } from "../utils";
 
 export const metadata: OperationObject = {
-  summary: "Updates a specific AI Investment Duration",
+  summary: "Update an AI investment duration",
   operationId: "updateAiInvestmentDuration",
-  tags: ["Admin", "AI Investment Durations"],
+  tags: ["Admin", "AI Investment", "Duration"],
+  description:
+    "Updates a specific AI investment duration by ID. Allows modification of the duration value and timeframe type.",
   parameters: [
     {
       index: 0,
@@ -14,11 +16,13 @@ export const metadata: OperationObject = {
       required: true,
       schema: {
         type: "string",
+        format: "uuid",
       },
     },
   ],
   requestBody: {
-    description: "New data for the AI Investment Duration",
+    required: true,
+    description: "Updated duration data",
     content: {
       "application/json": {
         schema: aiInvestmentDurationUpdateSchema,
@@ -28,15 +32,21 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("AI Investment Duration"),
   requiresAuth: true,
   permission: "edit.ai.investment.duration",
+  logModule: "ADMIN_AI",
+  logTitle: "Update investment duration",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { duration, timeframe } = body;
 
-  return await updateRecord("aiInvestmentDuration", id, {
+  ctx?.step(`Updating duration ${id}`);
+  const result = await updateRecord("aiInvestmentDuration", id, {
     duration,
     timeframe,
   });
+
+  ctx?.success("Duration updated successfully");
+  return result;
 };

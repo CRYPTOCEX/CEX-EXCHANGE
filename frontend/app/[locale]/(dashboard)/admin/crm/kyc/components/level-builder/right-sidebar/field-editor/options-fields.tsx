@@ -10,11 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Plus, Trash2, AlertCircle, Info, Globe, Upload } from "lucide-react";
 import { COUNTRY_OPTIONS } from "@/utils/countries";
+import { useTranslations } from "next-intl";
 interface OptionsFieldsProps {
   field: KycField;
   onUpdate: (field: KycField) => void;
 }
 export function OptionsFields({ field, onUpdate }: OptionsFieldsProps) {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [newOptionLabel, setNewOptionLabel] = useState("");
   const [newOptionValue, setNewOptionValue] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -29,11 +32,10 @@ export function OptionsFields({ field, onUpdate }: OptionsFieldsProps) {
           <Info className="h-5 w-5 text-gray-400 dark:text-zinc-500" />
         </div>
         <h3 className="text-base font-medium text-gray-900 dark:text-white mb-2">
-          Options Not Available
+          {t("options_not_available")}
         </h3>
         <p className="text-sm text-gray-500 dark:text-zinc-400 max-w-[250px]">
-          Options are only available for Select, Radio, and Checkbox field
-          types.
+          {t("options_are_only_available_for_select")}
         </p>
       </div>
     );
@@ -126,7 +128,7 @@ export function OptionsFields({ field, onUpdate }: OptionsFieldsProps) {
       <div className="bg-gray-50 p-3 rounded-md border border-gray-200 dark:bg-zinc-900 dark:border-zinc-800">
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-sm font-medium text-gray-700 dark:text-zinc-300">
-            Field Options
+            {tCommon("field_options")}
           </h3>
           <Badge
             variant="outline"
@@ -144,13 +146,13 @@ export function OptionsFields({ field, onUpdate }: OptionsFieldsProps) {
                 htmlFor="new-option-label"
                 className="text-xs text-gray-500 dark:text-zinc-400 mb-1 block"
               >
-                Option Label
+                {t("option_label")}
               </Label>
               <Input
                 id="new-option-label"
                 value={newOptionLabel}
                 onChange={(e) => setNewOptionLabel(e.target.value)}
-                placeholder="Display text"
+                placeholder={t("display_text")}
                 className="h-8 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
               />
             </div>
@@ -159,13 +161,13 @@ export function OptionsFields({ field, onUpdate }: OptionsFieldsProps) {
                 htmlFor="new-option-value"
                 className="text-xs text-gray-500 dark:text-zinc-400 mb-1 block"
               >
-                Option Value
+                {t("option_value")}
               </Label>
               <Input
                 id="new-option-value"
                 value={newOptionValue}
                 onChange={(e) => setNewOptionValue(e.target.value)}
-                placeholder="Stored value"
+                placeholder={t("stored_value")}
                 className="h-8 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
               />
             </div>
@@ -179,7 +181,7 @@ export function OptionsFields({ field, onUpdate }: OptionsFieldsProps) {
             className="w-full bg-white border-gray-300 hover:bg-gray-50 text-gray-700 dark:bg-zinc-800 dark:border-zinc-700 dark:hover:bg-zinc-700 dark:text-zinc-300"
           >
             <Plus className="h-3.5 w-3.5 mr-1" />
-            Add Option
+            {t("add_option")}
           </Button>
 
           {validationError && (
@@ -198,7 +200,7 @@ export function OptionsFields({ field, onUpdate }: OptionsFieldsProps) {
         {/* Quick preset options */}
         <div className="mb-4">
           <Label className="text-xs text-gray-500 dark:text-zinc-400 mb-2 block">
-            Quick Presets
+            {t("quick_presets")}
           </Label>
           <div className="flex gap-2">
             <Button
@@ -214,7 +216,7 @@ export function OptionsFields({ field, onUpdate }: OptionsFieldsProps) {
               className="text-xs bg-white border-gray-300 hover:bg-gray-50 text-gray-700 dark:bg-zinc-800 dark:border-zinc-700 dark:hover:bg-zinc-700 dark:text-zinc-300"
             >
               <Globe className="h-3 w-3 mr-1" />
-              Load Countries
+              {t("load_countries")}
             </Button>
           </div>
         </div>
@@ -225,7 +227,7 @@ export function OptionsFields({ field, onUpdate }: OptionsFieldsProps) {
         <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
           {!field.options || field.options.length === 0 ? (
             <div className="text-center p-4 border rounded-md text-gray-500 border-gray-300 dark:text-zinc-400 dark:border-zinc-700">
-              No options added yet. Add at least one option.
+              {t("no_options_added_yet_add_at_least_one_option")}
             </div>
           ) : (
             field.options.map((option, index) => {
@@ -237,7 +239,7 @@ export function OptionsFields({ field, onUpdate }: OptionsFieldsProps) {
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center">
                       <span className="text-xs text-gray-500 dark:text-zinc-400 w-12">
-                        Label:
+                        {t("label")}:
                       </span>
                       <Input
                         value={option.label}
@@ -249,7 +251,7 @@ export function OptionsFields({ field, onUpdate }: OptionsFieldsProps) {
                     </div>
                     <div className="flex items-center">
                       <span className="text-xs text-gray-500 dark:text-zinc-400 w-12">
-                        Value:
+                        {tCommon("value")}:
                       </span>
                       <Input
                         value={option.value}
@@ -283,10 +285,10 @@ export function OptionsFields({ field, onUpdate }: OptionsFieldsProps) {
               htmlFor="field-multiple"
               className="text-gray-700 dark:text-zinc-300"
             >
-              Multiple Selection
+              {tCommon("multiple_selection")}
             </Label>
             <p className="text-xs text-gray-500 dark:text-zinc-500">
-              Allow selecting multiple options
+              {t("allow_selecting_multiple_options")}
             </p>
           </div>
           <Switch

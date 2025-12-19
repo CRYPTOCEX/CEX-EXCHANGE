@@ -1,6 +1,7 @@
 import { models, sequelize } from '@b/db'
 import { createError } from '@b/utils/error'
 import { sendFiatTransactionEmail } from '@b/utils/emails'
+import { logger } from '@b/utils/console'
 import {
   validateWebhookSignature,
   mapPaystackStatus,
@@ -15,6 +16,8 @@ export const metadata = {
   description: 'Processes real-time payment status updates from Paystack webhooks',
   operationId: 'handlePaystackWebhook',
   tags: ['Finance', 'Deposit', 'Paystack', 'Webhook'],
+  logModule: "WEBHOOK",
+  logTitle: "Paystack webhook",
   requiresAuth: false,
   requestBody: {
     required: true,
@@ -86,16 +89,11 @@ export default async (data: Handler) => {
     const { event, data: transactionData } = webhookData
 
     // Log webhook event for debugging
-    console.log(`Received Paystack webhook: ${event}`, {
-      reference: transactionData.reference,
-      status: transactionData.status,
-      amount: transactionData.amount,
-      currency: transactionData.currency,
-    })
+    logger.info("PAYSTACK", `Received webhook: ${event} - ref: ${transactionData.reference}, status: ${transactionData.status}`)
 
     // Only process charge success events for now
     if (event !== PAYSTACK_WEBHOOK_EVENTS.CHARGE_SUCCESS) {
-      console.log(`Ignoring webhook event: ${event}`)
+      logger.debug("PAYSTACK", `Ignoring webhook event: ${event}`)
       return {
         success: true,
         message: `Event ${event} acknowledged but not processed`,
@@ -117,7 +115,7 @@ export default async (data: Handler) => {
     })
 
     if (!transaction) {
-      console.warn(`Transaction not found for reference: ${transactionData.reference}`)
+      logger.warn("PAYSTACK", `Transaction not found for reference: ${transactionData.reference}`)
       throw createError({
         statusCode: 404,
         message: 'Transaction not found',
@@ -134,7 +132,7 @@ export default async (data: Handler) => {
 
     // Check if transaction is already in final state
     if (['COMPLETED', 'FAILED', 'CANCELLED', 'REFUNDED'].includes(transaction.status)) {
-      console.log(`Transaction ${transaction.id} already in final state: ${transaction.status}`)
+      logger.debug("PAYSTACK", `Transaction ${transaction.id} already in final state: ${transaction.status}`)
       return {
         success: true,
         message: 'Transaction already processed',
@@ -147,7 +145,7 @@ export default async (data: Handler) => {
 
     // Validate transaction details
     if (Math.abs(actualAmount - transaction.amount) > 0.01) {
-      console.error(`Amount mismatch for transaction ${transaction.id}: expected ${transaction.amount}, got ${actualAmount}`)
+      logger.error("PAYSTACK", `Amount mismatch for transaction ${transaction.id}: expected ${transaction.amount}, got ${actualAmount}`)
       throw createError({
         statusCode: 400,
         message: 'Transaction amount mismatch',
@@ -155,7 +153,7 @@ export default async (data: Handler) => {
     }
 
     if (transactionData.currency !== transaction.currency) {
-      console.error(`Currency mismatch for transaction ${transaction.id}: expected ${transaction.currency}, got ${transactionData.currency}`)
+      logger.error("PAYSTACK", `Currency mismatch for transaction ${transaction.id}: expected ${transaction.currency}, got ${transactionData.currency}`)
       throw createError({
         statusCode: 400,
         message: 'Transaction currency mismatch',
@@ -217,13 +215,13 @@ export default async (data: Handler) => {
           )
         }
 
-        console.log(`Wallet updated for user ${user.id}: +${transaction.amount} ${transaction.currency}`)
+        logger.success("PAYSTACK", `Wallet updated for user ${user.id}: +${transaction.amount} ${transaction.currency}`)
       }
 
       // Commit the database transaction
       await dbTransaction.commit()
 
-      console.log(`Transaction ${transaction.id} updated to status: ${newStatus}`)
+      logger.info("PAYSTACK", `Transaction ${transaction.id} updated to status: ${newStatus}`)
 
       // Send confirmation email for successful payments
       if (newStatus === 'COMPLETED') {
@@ -238,9 +236,9 @@ export default async (data: Handler) => {
           const newBalance = updatedWallet?.balance || transaction.amount
 
           await sendFiatTransactionEmail(user, transaction, transaction.currency, newBalance)
-          console.log(`Confirmation email sent for transaction ${transaction.id}`)
+          logger.success("PAYSTACK", `Confirmation email sent for transaction ${transaction.id}`)
         } catch (emailError) {
-          console.error('Failed to send confirmation email:', emailError)
+          logger.error("PAYSTACK", "Failed to send confirmation email", emailError)
           // Don't fail the webhook processing if email fails
         }
       }
@@ -252,12 +250,12 @@ export default async (data: Handler) => {
 
     } catch (dbError) {
       await dbTransaction.rollback()
-      console.error('Database error processing webhook:', dbError)
+      logger.error("PAYSTACK", "Database error processing webhook", dbError)
       throw dbError
     }
 
   } catch (error) {
-    console.error('Error processing Paystack webhook:', error)
+    logger.error("PAYSTACK", "Error processing webhook", error)
 
     if (error instanceof PaystackError) {
       throw createError({

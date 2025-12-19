@@ -8,9 +8,10 @@ import { baseForexPlanSchema } from "../utils";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
-  summary: "Retrieves detailed information of a specific forex plan by ID",
-  operationId: "getForexPlanById",
-  tags: ["Admin", "Forex Plans"],
+  summary: "Gets a specific Forex plan",
+  description: "Retrieves detailed information about a specific Forex plan by its ID, including all profit settings, limits, and available durations.",
+  operationId: "getForexPlan",
+  tags: ["Admin", "Forex", "Plan"],
   parameters: [
     {
       index: 0,
@@ -39,12 +40,15 @@ export const metadata: OperationObject = {
   },
   permission: "view.forex.plan",
   requiresAuth: true,
+  logModule: "ADMIN_FOREX",
+  logTitle: "Get Forex Plan",
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("forexPlan", params.id, [
+  ctx?.step("Fetching forex plan record");
+  const result = await getRecord("forexPlan", params.id, [
     {
       model: models.forexDuration,
       as: "durations",
@@ -52,4 +56,7 @@ export default async (data) => {
       attributes: ["id", "duration", "timeframe"],
     },
   ]);
+
+  ctx?.success("Retrieved forex plan");
+  return result;
 };

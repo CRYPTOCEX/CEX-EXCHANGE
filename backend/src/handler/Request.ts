@@ -10,7 +10,7 @@ import { HttpMethod } from "../types";
 import { handleArrayBuffer } from "../utils";
 import { validateSchema } from "../utils/validation";
 import { createError } from "@b/utils/error";
-import logger from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import ip from "ip";
 
 // Metadata type for operations
@@ -53,12 +53,7 @@ export class Request {
       try {
         this.validateParameters();
       } catch (error: any) {
-        logger(
-          "error",
-          "request",
-          __filename,
-          `Parameter validation failed: ${error.message}\n${error.stack}`
-        );
+        logger.error("REQUEST", "Parameter validation failed", error);
         throw error;
       }
     }
@@ -140,12 +135,7 @@ export class Request {
       const bodyContent: string = await this.readRequestBody();
       this.body = this.processBodyContent(contentType, bodyContent);
     } catch (error: any) {
-      logger(
-        "error",
-        "request",
-        __filename,
-        `Error reading body content: ${error.message}\n${error.stack}`
-      );
+      logger.error("REQUEST", "Error reading body content", error);
       throw createError({
         statusCode: 400,
         message: `Error reading request body: ${error.message}`,
@@ -167,13 +157,8 @@ export class Request {
           this.body = validateSchema(this.body, schema);
         }
       } catch (error: any) {
-        logger(
-          "error",
-          "validation",
-          __filename,
-          `Schema validation failed: ${error.message}\n${error.stack}`
-        );
-        
+        logger.error("VALIDATION", "Schema validation failed", error);
+
         // Check if this is our custom validation error with user-friendly messages
         if (error.isValidationError) {
           throw createError({

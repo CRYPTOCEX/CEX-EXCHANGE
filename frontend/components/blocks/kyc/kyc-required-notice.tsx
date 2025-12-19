@@ -160,13 +160,13 @@ const FEATURE_MESSAGES = {
 };
 
 export default function KycRequiredNotice({ feature }: { feature?: string }) {
-  const t = useTranslations("common");
+  const t = useTranslations("components_blocks");
   const featureInfo = feature
     ? FEATURE_MESSAGES[feature as keyof typeof FEATURE_MESSAGES]
     : null;
 
   return (
-    <div className="flex flex-col items-center justify-center h-full py-12 px-4">
+    <div className="flex flex-col items-center justify-center h-full pt-22 pb-6 px-4">
       <div className="relative">
         {/* Background gradient circle */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl w-64 h-64 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" />
@@ -235,7 +235,7 @@ export default function KycRequiredNotice({ feature }: { feature?: string }) {
               </Button>
             </Link>
             <p className="text-xs text-muted-foreground mt-3">
-              {t("usually_takes_2-3_minutes")}
+              {t("usually_takes_2_3_minutes")}
             </p>
           </div>
         </div>

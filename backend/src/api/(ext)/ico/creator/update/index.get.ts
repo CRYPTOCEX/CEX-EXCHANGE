@@ -7,6 +7,8 @@ export const metadata = {
   description: "Fetches updates for a specific token offering.",
   operationId: "getTokenOfferingUpdates",
   tags: ["ICO", "Creator", "Updates"],
+  logModule: "ICO",
+  logTitle: "Get Creator Updates",
   requiresAuth: true,
   responses: {
     200: {
@@ -37,10 +39,13 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Fetching creator updates");
   const { tokenId } = query;
   if (!tokenId) {
     throw createError({
@@ -52,5 +57,7 @@ export default async (data: Handler) => {
     where: { offeringId: tokenId },
     order: [["createdAt", "DESC"]],
   });
+
+  ctx?.success("Creator updates retrieved successfully");
   return updates;
 };

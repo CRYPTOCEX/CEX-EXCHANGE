@@ -54,11 +54,13 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+
   if (!user) throw createError({ statusCode: 401, message: "Unauthorized" });
 
   const { type, currency, pair } = query;
 
+  ctx?.step(`Fetching wallet balances for ${currency}/${pair}`);
   // Get wallet balances safely, defaulting to 0 if wallet doesn't exist
   const currencyWallet = await getWalletSafe(user.id, type, currency);
   const pairWallet = await getWalletSafe(user.id, type, pair);
@@ -79,5 +81,6 @@ export default async (data: Handler) => {
     total: (pairWallet?.balance || 0) + (pairWallet?.inOrder || 0),         // Total owned
   };
 
+  ctx?.success("Wallet balances retrieved successfully");
   return { CURRENCY, PAIR };
 };

@@ -1,6 +1,7 @@
 // /server/api/support/tickets/index.get.ts
 
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 import {
   getFiltered,
   notFoundMetadataResponse,
@@ -17,6 +18,8 @@ export const metadata: OperationObject = {
   tags: ["Support"],
   description:
     "Fetches all support tickets associated with the currently authenticated user.",
+  logModule: "USER",
+  logTitle: "List support tickets",
   parameters: crudParameters,
   responses: {
     200: {
@@ -47,10 +50,13 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
-  if (!user?.id)
+  const { user, query, ctx } = data;
+  if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
+  ctx?.step("Retrieving support tickets");
   const result = await getFiltered({
     model: models.supportTicket,
     query,
@@ -78,7 +84,7 @@ export default async (data: Handler) => {
         try {
           ticket.messages = JSON.parse(ticket.messages);
         } catch (e) {
-          console.warn('Failed to parse messages JSON:', e);
+          logger.warn("SUPPORT", "Failed to parse messages JSON");
           ticket.messages = [];
         }
       }
@@ -88,7 +94,7 @@ export default async (data: Handler) => {
         try {
           ticket.tags = JSON.parse(ticket.tags);
         } catch (e) {
-          console.warn('Failed to parse tags JSON:', e);
+          logger.warn("SUPPORT", "Failed to parse tags JSON");
           ticket.tags = [];
         }
       }
@@ -101,5 +107,6 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.success(`Retrieved ${result.items?.length || 0} support tickets`);
   return result;
 };

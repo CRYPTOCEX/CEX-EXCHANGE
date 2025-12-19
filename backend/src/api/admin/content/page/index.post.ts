@@ -23,10 +23,12 @@ export const metadata: OperationObject = {
   responses: storeRecordResponses(pageStoreSchema, "Page"),
   requiresAuth: true,
   permission: "create.page",
+  logModule: "ADMIN_CMS",
+  logTitle: "Create page",
 };
 
 export default async (data: Handler) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
   const {
     title,
     content,
@@ -51,14 +53,17 @@ export default async (data: Handler) => {
   } = body;
 
   // Optional: validate settings JSON if present
+  ctx?.step("Validating page data");
   if (settings) {
     try {
       JSON.parse(settings);
     } catch (err) {
+      ctx?.fail("Invalid settings JSON");
       throw new Error("settings: Must be valid JSON");
     }
   }
 
+  ctx?.step("Creating page");
   const page = await models.page.create({
     title,
     content,
@@ -83,5 +88,6 @@ export default async (data: Handler) => {
     lastModifiedBy: user?.id || null, // Track who created the page
   });
 
+  ctx?.success(`Page "${title}" created successfully`);
   return page;
 };

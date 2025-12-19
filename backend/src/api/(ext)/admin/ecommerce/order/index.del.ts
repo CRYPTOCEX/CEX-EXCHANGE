@@ -32,14 +32,23 @@ export const metadata: OperationObject = {
   responses: commonBulkDeleteResponses("E-commerce Orders"),
   requiresAuth: true,
   permission: "delete.ecommerce.order",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Bulk delete orders",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step(`Validating ${ids.length} order IDs`);
+  ctx?.step("Performing bulk delete operation");
+
+  const result = await handleBulkDelete({
     model: "ecommerceOrder",
     ids,
     query,
   });
+
+  ctx?.success(`Successfully deleted ${ids.length} orders`);
+  return result;
 };

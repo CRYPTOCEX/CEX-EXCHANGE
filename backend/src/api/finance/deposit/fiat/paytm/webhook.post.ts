@@ -1,6 +1,7 @@
 import { models, sequelize } from '@b/db'
 import { createError } from '@b/utils/error'
 import { sendFiatTransactionEmail } from '@b/utils/emails'
+import { logger } from '@b/utils/console'
 import {
   validatePaytmConfig,
   verifyChecksumHash,
@@ -16,6 +17,8 @@ export const metadata = {
   description: 'Processes real-time payment notifications from Paytm with checksum verification and status updates',
   operationId: 'paytmWebhook',
   tags: ['Finance', 'Deposit', 'Paytm', 'Webhook'],
+  logModule: "WEBHOOK",
+  logTitle: "Paytm webhook",
   requiresAuth: false,
   requestBody: {
     required: true,
@@ -211,7 +214,7 @@ export default async (data: Handler) => {
           try {
             await sendFiatTransactionEmail(user, transaction, webhookData.currency || 'INR', newBalance)
           } catch (emailError) {
-            console.error('Failed to send confirmation email:', emailError)
+            logger.error('PAYTM', 'Failed to send confirmation email', emailError)
             // Don't fail the webhook if email fails
           }
         } else {
@@ -228,7 +231,7 @@ export default async (data: Handler) => {
       }
 
       // Log webhook processing
-      console.log(`Paytm webhook processed: Order ${webhookData.orderId}, Status: ${newStatus}, Amount: ${txnAmount}`)
+      logger.success('PAYTM', `Webhook processed: Order ${webhookData.orderId}, Status: ${newStatus}, Amount: ${txnAmount}`)
 
       return {
         success: true,

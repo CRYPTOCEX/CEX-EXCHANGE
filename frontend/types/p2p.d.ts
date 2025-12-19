@@ -45,6 +45,7 @@ interface P2PTrade {
   total: number;
   status: string;
   createdAt: string;
+  updatedAt?: string;
   lastUpdated?: string;
   paymentMethod: string;
   paymentDetails?: P2PPaymentDetails;
@@ -56,6 +57,15 @@ interface P2PTrade {
   paymentConfirmedAt?: string;
   paymentReference?: string;
   paymentWindow?: number; // Payment window in minutes from offer settings
+  priceCurrency?: string;
+  currency?: string;
+  completedAt?: string;
+  cancelledAt?: string;
+  dispute?: any;
+  paymentMethodDetails?: {
+    name?: string;
+    [key: string]: any;
+  };
   offer?: {
     id?: string;
     priceCurrency?: string;
@@ -124,6 +134,11 @@ interface P2PAdminTradeDetails extends P2PAdminTrade {
     bankName?: string;
     reference?: string;
   };
+  paymentMethodDetails?: {
+    name?: string;
+    icon?: string;
+    details?: Record<string, any>;
+  };
   escrowDetails?: {
     amount: string;
     fee: string;
@@ -138,6 +153,13 @@ interface P2PAdminTradeDetails extends P2PAdminTrade {
     resolvedAt?: string;
     adminNotes?: string;
   }[];
+  disputeId?: string;
+  dispute?: {
+    id: string;
+    reason?: string;
+    status?: string;
+    createdAt?: string;
+  };
 }
 
 interface P2PAdminTradeStats {
@@ -165,6 +187,29 @@ interface P2POfferUser {
   accountStatus?: string;
   reputation?: number;
   email?: string;
+  // Additional properties for admin views
+  firstName?: string;
+  lastName?: string;
+  kycStatus?: string;
+  createdAt?: string;
+  stats?: P2PUserStats;
+}
+
+interface P2PUserStats {
+  completedTrades?: number;
+  totalVolume?: number;
+  avgRating?: number;
+  responseTime?: number;
+  totalOffers?: number;
+  rating?: number;
+  disputes?: number;
+}
+
+interface P2PPaymentMethodDetail {
+  id: string;
+  name: string;
+  icon?: string;
+  details?: Record<string, any>;
 }
 
 interface P2POffer {
@@ -174,7 +219,7 @@ interface P2POffer {
   price: string;
   marketDiff: string;
   user: P2POfferUser;
-  paymentMethods: string[];
+  paymentMethods: (string | P2PPaymentMethodDetail)[];
   limits: string;
   createdAt: string;
   status: string;
@@ -187,7 +232,22 @@ interface P2POffer {
     action: string;
     timestamp: string;
     details: string;
+    notes?: string;
+    createdAt?: string;
+    adminName?: string;
   }[];
+  // Additional properties for admin views
+  currency?: string;
+  fiatCurrency?: string;
+  availableAmount?: number;
+  minAmount?: number;
+  maxAmount?: number;
+  margin?: number;
+  paymentTimeLimit?: number;
+  autoReplyMessage?: string;
+  terms?: string;
+  adminNotes?: string;
+  stats?: P2POfferStats;
 }
 
 interface P2POfferStats {
@@ -198,6 +258,10 @@ interface P2POfferStats {
   disabled: number;
   weeklyChange: number;
   avgCompletionRate: string;
+  totalTrades?: number;
+  completedTrades?: number;
+  avgCompletionTime?: string;
+  successRate?: number;
 }
 
 interface P2POfferFilters {

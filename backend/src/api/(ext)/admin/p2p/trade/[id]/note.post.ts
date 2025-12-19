@@ -1,5 +1,6 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Add Admin Note or Message to Trade",
@@ -7,6 +8,8 @@ export const metadata = {
   operationId: "adminAddNoteToP2PTrade",
   tags: ["Admin", "Trades", "P2P"],
   requiresAuth: true,
+  logModule: "ADMIN_P2P",
+  logTitle: "Add note to trade",
   parameters: [
     {
       index: 0,
@@ -43,11 +46,12 @@ export const metadata = {
 };
 
 export default async (data) => {
-  const { params, body } = data;
+  const { params, body, ctx } = data;
   const { id } = params;
   const { note, isMessage = false } = body;
 
   try {
+    ctx?.step("Fetching trade");
     const trade = await models.p2pTrade.findByPk(id, {
       include: [
         {
@@ -62,22 +66,26 @@ export default async (data) => {
         },
       ],
     });
-    if (!trade)
+    if (!trade) {
+      ctx?.fail("Trade not found");
       throw createError({ statusCode: 404, message: "Trade not found" });
+    }
 
+    ctx?.step("Getting admin information");
     // Get admin's name for display
     const admin = await models.user.findByPk(data.user.id, {
       attributes: ["firstName", "lastName"],
     });
     const adminName = admin ? `${admin.firstName} ${admin.lastName}`.trim() : "Admin";
 
+    ctx?.step("Processing timeline");
     // Parse timeline if it's a string
     let currentTimeline = trade.timeline || [];
     if (typeof currentTimeline === 'string') {
       try {
         currentTimeline = JSON.parse(currentTimeline);
       } catch (e) {
-        console.error('Failed to parse timeline JSON:', e);
+        logger.error("P2P", "Failed to parse timeline JSON", e);
         currentTimeline = [];
       }
     }
@@ -87,6 +95,7 @@ export default async (data) => {
       currentTimeline = [];
     }
 
+    ctx?.step(`Adding ${isMessage ? "message" : "note"} to timeline`);
     // Add to timeline with proper formatting
     const timelineEntry = isMessage
       ? {
@@ -107,12 +116,14 @@ export default async (data) => {
 
     currentTimeline.push(timelineEntry);
 
+    ctx?.step("Updating trade");
     await trade.update({
       timeline: currentTimeline,
     });
 
     // If it's a message, send notifications to both participants
     if (isMessage) {
+      ctx?.step("Sending notifications to participants");
       const { notifyTradeEvent } = await import("../../../../p2p/utils/notifications");
       notifyTradeEvent(trade.id, "ADMIN_MESSAGE", {
         buyerId: trade.buyerId,
@@ -121,15 +132,17 @@ export default async (data) => {
         currency: trade.currency,
         adminName: adminName,
         message: note,
-      }).catch(console.error);
+      }).catch((error) => logger.error("P2P", "Failed to send admin message notification", error));
     }
 
+    ctx?.success(isMessage ? "Admin message sent successfully" : "Admin note added successfully");
     return {
       message: isMessage
         ? "Admin message sent successfully."
         : "Admin note added successfully."
     };
   } catch (err) {
+    ctx?.fail(`Failed to add ${isMessage ? "message" : "note"}`);
     throw createError({
       statusCode: 500,
       message: "Internal Server Error: " + err.message,

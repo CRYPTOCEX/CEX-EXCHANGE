@@ -1,6 +1,7 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { Op } from "sequelize";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Update P2P Payment Method (Admin)",
@@ -10,6 +11,8 @@ export const metadata = {
   tags: ["Admin", "P2P", "Payment Method"],
   requiresAuth: true,
   permission: "edit.p2p.payment_method",
+  logModule: "ADMIN_P2P",
+  logTitle: "Update payment method",
   parameters: [
     {
       name: "id",
@@ -51,28 +54,31 @@ export const metadata = {
   },
 };
 
-export default async (data: { params: { id: string }; body: any; user?: any }) => {
-  const { params, body, user } = data;
-  
+export default async (data: { params: { id: string }; body: any; user?: any; ctx?: any }) => {
+  const { params, body, user, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   try {
+    ctx?.step("Fetching payment method");
     // Find the payment method
     const paymentMethod = await models.p2pPaymentMethod.findByPk(params.id);
-    
+
     if (!paymentMethod) {
+      ctx?.fail("Payment method not found");
       throw createError({
         statusCode: 404,
         message: "Payment method not found",
       });
     }
 
+    ctx?.step("Checking for duplicate names");
     // Check for duplicate names if name is being changed
     if (body.name && body.name !== paymentMethod.name) {
       const duplicate = await models.p2pPaymentMethod.findOne({
-        where: { 
+        where: {
           name: body.name,
           isGlobal: body.isGlobal !== undefined ? body.isGlobal : paymentMethod.isGlobal,
           id: { [Op.ne]: params.id },
@@ -81,6 +87,7 @@ export default async (data: { params: { id: string }; body: any; user?: any }) =
       });
 
       if (duplicate) {
+        ctx?.fail("Duplicate payment method name");
         throw createError({
           statusCode: 400,
           message: "A payment method with this name already exists",
@@ -88,6 +95,7 @@ export default async (data: { params: { id: string }; body: any; user?: any }) =
       }
     }
 
+    ctx?.step("Preparing update data");
     // Prepare update data
     const updateData: any = {};
     if (body.name !== undefined) updateData.name = body.name;
@@ -115,11 +123,13 @@ export default async (data: { params: { id: string }; body: any; user?: any }) =
       }
     }
 
+    ctx?.step("Updating payment method");
     // Update the payment method
     await paymentMethod.update(updateData);
-    
-    console.log(`[P2P Admin] Updated payment method: ${paymentMethod.id} by admin ${user.id}`);
 
+    logger.info("P2P", `Updated payment method: ${paymentMethod.id} by admin ${user.id}`);
+
+    ctx?.step("Logging admin activity");
     // Log admin activity
     await models.p2pActivityLog.create({
       userId: user.id,
@@ -136,6 +146,7 @@ export default async (data: { params: { id: string }; body: any; user?: any }) =
       }),
     });
 
+    ctx?.success("Payment method updated successfully");
     return {
       message: "Payment method updated successfully.",
       paymentMethod: {
@@ -158,7 +169,8 @@ export default async (data: { params: { id: string }; body: any; user?: any }) =
     if (err.statusCode) {
       throw err;
     }
-    
+
+    ctx?.fail("Failed to update payment method");
     throw createError({
       statusCode: 500,
       message: "Failed to update payment method: " + err.message,

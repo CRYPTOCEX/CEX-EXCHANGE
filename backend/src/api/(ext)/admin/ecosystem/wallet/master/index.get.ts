@@ -10,21 +10,20 @@ import {
 import { ecosystemMasterWalletSchema, getEcosystemMasterWalletBalance } from "./utils";
 
 export const metadata: OperationObject = {
-  summary:
-    "Lists all ecosystem master wallets with pagination, optional filtering, and real-time balances",
+  summary: "List all ecosystem master wallets",
+  description: "Retrieves a paginated list of ecosystem master wallets with optional filtering and sorting. Includes real-time balance updates fetched from the blockchain, associated custodial wallets, and full wallet configuration details.",
   operationId: "listEcosystemMasterWallets",
-  tags: ["Admin", "Ecosystem", "Master Wallets"],
+  tags: ["Admin", "Ecosystem", "Wallet"],
   parameters: crudParameters,
   responses: {
     200: {
-      description:
-        "List of ecosystem master wallets with optional details on custodial wallets and updated balances",
+      description: "Master wallets retrieved successfully",
       content: {
         "application/json": {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -43,10 +42,13 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.ecosystem.master.wallet",
+  demoMask: ["items.address", "items.ecosystemCustodialWallets.address"],
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
+
+  ctx?.step("Fetching master wallets list with balances");
 
   // Fetch wallets with pagination and filtering
   const result = await getFiltered({
@@ -120,6 +122,8 @@ export default async (data: Handler) => {
       globalTimeout
     ]);
   }
+
+  ctx?.success("Retrieved master wallets successfully");
 
   return result;
 };

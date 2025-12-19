@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
   description: "Toggles the OTP feature for the user account",
   tags: ["Profile"],
   requiresAuth: true,
+  logModule: "USER",
+  logTitle: "Toggle OTP status",
   requestBody: {
     required: true,
     content: {
@@ -70,13 +72,18 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  if (!data.user?.id)
+  const { user, body, ctx } = data;
+  if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
-  const { status } = data.body;
+  const { status } = body;
 
-  await toggleOTPQuery(data.user.id, status);
+  ctx?.step(`${status ? "Enabling" : "Disabling"} OTP feature`);
+  await toggleOTPQuery(user.id, status);
 
+  ctx?.success(`OTP feature ${status ? "enabled" : "disabled"}`);
   return { message: `OTP feature has been ${status ? "enabled" : "disabled"}` };
 };
 

@@ -6,6 +6,8 @@ export const metadata: OperationObject = {
   summary: "Bulk updates the status of Posts",
   operationId: "bulkUpdatePostStatus",
   tags: ["Content", "Author", "Post"],
+  logModule: "BLOG",
+  logTitle: "Bulk update post status",
   requestBody: {
     required: true,
     content: {
@@ -34,19 +36,25 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, user, params } = data;
+  const { body, user, params, ctx } = data;
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
   const { ids, status } = body;
 
+  ctx?.step("Verifying author credentials");
   const author = await models.author.findOne({
     where: { userId: user.id },
   });
 
   if (!author)
     throw createError({ statusCode: 404, message: "Author not found" });
-  return updateStatus("post", ids, status, undefined, undefined, undefined, {
+
+  ctx?.step(`Updating ${ids.length} post(s) to ${status}`);
+  const result = await updateStatus("post", ids, status, undefined, undefined, undefined, {
     authorId: author.id,
   });
+
+  ctx?.success(`Updated ${ids.length} post(s) to ${status} for author ${author.id}`);
+  return result;
 };

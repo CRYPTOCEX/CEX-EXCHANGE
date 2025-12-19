@@ -16,6 +16,8 @@ export const metadata: OperationObject = {
   description: "Allows a user to transfer funds to another user's wallet.",
   operationId: "transferFunds",
   tags: ["Wallet", "Transfer"],
+  logModule: "ECO_TRANSFER",
+  logTitle: "Transfer funds between wallets",
   parameters: [
     {
       name: "id",
@@ -67,10 +69,11 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("Wallet"),
     500: serverErrorResponse,
   },
+  requiresAuth: true,
 };
 
 export default async (data: Handler) => {
-  const { params, body, user } = data;
+  const { params, body, user, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -79,21 +82,34 @@ export default async (data: Handler) => {
     const { id } = params;
     const { currency, amount } = body;
 
+    ctx?.step("Validating transfer request");
+    if (!id || !currency || !amount) {
+      throw createError({
+        statusCode: 400,
+        message: "Missing required parameters",
+      });
+    }
+
+    ctx?.step("Retrieving sender wallet");
     const senderWallet = await getWalletByUserIdAndCurrency(user.id, currency);
     if (!senderWallet) {
+      ctx?.fail(`Sender wallet not found for currency ${currency}`);
       throw createError({ statusCode: 404, message: "User wallet not found" });
     }
 
+    ctx?.step("Verifying recipient user");
     const recipientAccount = await models.user.findOne({
       where: { id },
     });
     if (!recipientAccount) {
+      ctx?.fail("Recipient user not found");
       throw createError({
         statusCode: 404,
         message: "Recipient user not found",
       });
     }
 
+    ctx?.step("Retrieving or creating recipient wallet");
     let recipientWallet = (await getWalletByUserIdAndCurrency(
       recipientAccount.id,
       currency
@@ -103,10 +119,13 @@ export default async (data: Handler) => {
       recipientWallet = await storeWallet(recipientAccount, currency);
     }
 
+    ctx?.step("Verifying sender balance");
     if (senderWallet.balance < amount) {
+      ctx?.fail(`Insufficient funds: ${senderWallet.balance} < ${amount}`);
       throw createError({ statusCode: 400, message: "Insufficient funds" });
     }
 
+    ctx?.step("Processing transfer transaction");
     await sequelize.transaction(async (transaction) => {
       await models.wallet.update(
         {
@@ -155,9 +174,11 @@ export default async (data: Handler) => {
       );
     });
 
+    ctx?.success(`Transferred ${amount} ${currency} to user ${id}`);
     return { message: "Transfer successful" };
   } catch (error) {
     console.log(`Failed to transfer: ${error.message}`);
+    ctx?.fail(`Transfer failed: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: `Failed to transfer: ${error.message}`,

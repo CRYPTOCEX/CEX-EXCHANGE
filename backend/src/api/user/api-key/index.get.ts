@@ -7,6 +7,8 @@ export const metadata: OperationObject = {
   description: "Retrieves all API keys associated with the authenticated user.",
   operationId: "listApiKeys",
   tags: ["API Key Management"],
+  logModule: "USER",
+  logTitle: "List API keys",
   responses: {
     200: {
       description: "API keys retrieved successfully",
@@ -35,12 +37,17 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { user } = data;
-  if (!user) throw createError({ statusCode: 401, message: "Unauthorized" });
+  const { user, ctx } = data;
+  if (!user) {
+    ctx?.fail("User not authenticated");
+    throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
+  ctx?.step("Retrieving API keys");
   const apiKeys = await models.apiKey.findAll({
     where: { userId: user.id },
   });
 
+  ctx?.success(`Retrieved ${apiKeys.length} API keys`);
   return apiKeys;
 };

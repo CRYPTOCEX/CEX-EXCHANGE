@@ -37,18 +37,22 @@ export const metadata = {
   responses: updateRecordResponses("Exchange"),
   requiresAuth: true,
   permission: "edit.exchange",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Exchange Provider Status",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
 
+  ctx?.step("Starting transaction");
   const transaction = await sequelize.transaction();
 
   try {
     // Deactivate all other exchanges if status is true
     if (status) {
+      ctx?.step("Deactivating other exchanges");
       await models.exchange.update(
         { status: false },
         { where: { id: { [Op.ne]: id } }, transaction }
@@ -56,10 +60,13 @@ export default async (data: Handler) => {
     }
 
     // Update the status of the selected exchange
+    ctx?.step("Updating exchange status");
     await models.exchange.update({ status }, { where: { id }, transaction });
 
+    ctx?.step("Committing transaction");
     await transaction.commit();
 
+    ctx?.success();
     return {
       statusCode: 200,
       body: {

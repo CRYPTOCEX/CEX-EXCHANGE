@@ -18,12 +18,13 @@ import { useUserStore } from "@/store/user";
 import { useConfigStore } from "@/store/config";
 import KycRequiredNotice from "@/components/blocks/kyc/kyc-required-notice";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { walletAnalytics } from "./analytics";
+import { useColumns } from "./columns";
 import { useTranslations } from "next-intl";
 
 export function WalletDashboard() {
-  const t = useTranslations("common");
+  const t = useTranslations("finance");
+  const tCommon = useTranslations("common");
+  const columns = useColumns();
   const { hasKyc, canAccessFeature, user } = useUserStore();
   const { settings } = useConfigStore();
   const router = useRouter();
@@ -104,7 +105,7 @@ export function WalletDashboard() {
                   className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
                   size={isMobile ? "sm" : "default"}
                 >
-                  {t("add_funds")}
+                  {tCommon("add_funds")}
                 </Button>
               </div>
 
@@ -119,11 +120,11 @@ export function WalletDashboard() {
           modelConfig={{
             userId: user?.id,
           }}
-          pageSize={10}
+          pageSize={12}
           canView={true}
           viewLink="/finance/wallet/[type]/[currency]"
           isParanoid={false}
-          title="Wallets Overview"
+          title={t("wallets_overview")}
           itemTitle="Wallet"
           columns={columns}
         />

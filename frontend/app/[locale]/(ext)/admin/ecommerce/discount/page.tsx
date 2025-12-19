@@ -1,8 +1,15 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { ecommerceDiscountAnalytics } from "./analytics";
+import { useColumns, useFormConfig } from "./columns";
+import { useAnalytics } from "./analytics";
+import { Percent } from "lucide-react";
+import { useTranslations } from "next-intl";
+
 export default function EcommerceDiscountPage() {
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+  const analytics = useAnalytics();
   return (
     <DataTable
       apiEndpoint="/api/admin/ecommerce/discount"
@@ -14,15 +21,23 @@ export default function EcommerceDiscountPage() {
         edit: "edit.ecommerce.discount",
         delete: "delete.ecommerce.discount",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate
       canEdit
       canDelete
       canView
-      title="Ecommerce Discounts"
+      title={t("product_discounts")}
+      description={t("configure_promotional_discounts")}
       itemTitle="Discount"
       columns={columns}
-      analytics={ecommerceDiscountAnalytics}
+      formConfig={formConfig}
+      analytics={analytics}
+      design={{
+        animation: "orbs",
+        primaryColor: "amber",
+        secondaryColor: "emerald",
+        icon: Percent,
+      }}
     />
   );
 }

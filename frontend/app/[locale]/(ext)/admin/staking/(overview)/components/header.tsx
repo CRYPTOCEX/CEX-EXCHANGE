@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export default function HeaderSection() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>

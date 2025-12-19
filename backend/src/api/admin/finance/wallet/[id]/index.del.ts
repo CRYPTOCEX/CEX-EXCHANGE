@@ -12,13 +12,18 @@ export const metadata = {
   responses: deleteRecordResponses("Wallet"),
   requiresAuth: true,
   permission: "delete.wallet",
+  logModule: "ADMIN_FIN",
+  logTitle: "Delete Wallet",
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
-  return handleSingleDelete({
+  const { params, query, ctx } = data;
+  ctx?.step("Deleting wallet");
+  const result = await handleSingleDelete({
     model: "wallet",
     id: params.id,
     query,
   });
+  ctx?.success("Wallet deleted successfully");
+  return result;
 };

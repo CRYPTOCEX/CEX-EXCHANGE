@@ -11,6 +11,8 @@ export const metadata: OperationObject = {
   summary: "List Futures Orders",
   operationId: "listFuturesOrders",
   tags: ["Futures", "Orders"],
+  logModule: "FUTURES",
+  logTitle: "List futures orders",
   description: "Retrieves a list of futures orders for the authenticated user.",
   parameters: [
     {
@@ -55,16 +57,23 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, query, ctx } = data;
+
+  ctx?.step?.("Validating user authentication");
   if (!user?.id) {
+    ctx?.fail?.("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
-  const { currency, pair, type } = data.query;
+  const { currency, pair, type } = query;
 
   // Build symbol only if both currency and pair are provided
   const symbol = currency && pair ? `${currency}/${pair}` : undefined;
   const isOpen = type === "OPEN";
 
-  return await getOrders(user.id, symbol, isOpen);
+  ctx?.step?.(`Fetching futures orders${symbol ? ` for ${symbol}` : ""}${type ? ` (${type})` : ""}`);
+  const orders = await getOrders(user.id, symbol, isOpen);
+
+  ctx?.success?.(`Retrieved ${orders.length} futures orders`);
+  return orders;
 };

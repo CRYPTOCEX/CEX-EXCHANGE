@@ -2,10 +2,10 @@ import ExchangeManager from "@b/utils/exchange";
 import {
   fetchFiatCurrencyPrices,
   processCurrenciesPrices,
-} from "@b/utils/cron";
+} from "@b/cron";
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
-import { logInfo, logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import { ForexFraudDetector } from "@b/api/(ext)/forex/utils/forex-fraud-detector";
 
 import {
@@ -34,6 +34,8 @@ export const metadata: OperationObject = {
     },
   ],
   requiresAuth: true,
+  logModule: "FOREX",
+  logTitle: "Withdraw from forex account",
   requestBody: {
     required: true,
     content: {
@@ -112,7 +114,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params, body, req } = data;
+  const { user, params, body, req, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -121,30 +123,35 @@ export default async (data: Handler) => {
   const { amount, type, currency, chain } = body;
 
   try {
+    ctx?.step("Validating withdrawal amount");
     if (!amount || amount <= 0)
       throw new Error("Amount is required and must be greater than zero");
 
     if (amount <= 0) throw new Error("Amount must be greater than zero");
 
     let updatedBalance;
+    let taxAmount: number = 0;
     const transaction = await sequelize.transaction(async (t) => {
+    ctx?.step("Verifying forex account");
     const account = await models.forexAccount.findByPk(id, {
       transaction: t,
     });
     if (!account) throw new Error("Account not found");
-    
+
     // Validate user ownership
     if (account.userId !== user.id) {
       throw createError({ statusCode: 403, message: "Access denied: You can only withdraw from your own forex accounts" });
     }
-    
+
+    ctx?.step("Checking account balance");
     if (account.balance < amount) throw new Error("Insufficient balance");
-    
+
+    ctx?.step("Checking withdrawal limits");
     // Check withdrawal limits
     const now = new Date();
     const lastReset = account.lastWithdrawReset ? new Date(account.lastWithdrawReset) : new Date();
     const daysSinceReset = (now.getTime() - lastReset.getTime()) / (1000 * 60 * 60 * 24);
-    
+
     // Reset daily counter if it's a new day
     if (daysSinceReset >= 1) {
       account.dailyWithdrawn = 0;
@@ -154,14 +161,14 @@ export default async (data: Handler) => {
       }
       account.lastWithdrawReset = now;
     }
-    
+
     // Check daily limit
     const dailyLimit = account.dailyWithdrawLimit || 5000;
     const dailyWithdrawn = account.dailyWithdrawn || 0;
     if (dailyWithdrawn + amount > dailyLimit) {
       throw new Error(`Daily withdrawal limit exceeded. You can withdraw up to ${dailyLimit - dailyWithdrawn} more today.`);
     }
-    
+
     // Check monthly limit
     const monthlyLimit = account.monthlyWithdrawLimit || 50000;
     const monthlyWithdrawn = account.monthlyWithdrawn || 0;
@@ -169,14 +176,16 @@ export default async (data: Handler) => {
       throw new Error(`Monthly withdrawal limit exceeded. You can withdraw up to ${monthlyLimit - monthlyWithdrawn} more this month.`);
     }
 
+    ctx?.step(`Fetching ${type} wallet for ${currency}`);
+
     const wallet = await models.wallet.findOne({
       where: { userId: user.id, type, currency },
       transaction: t,
     });
     if (!wallet) throw new Error("Wallet not found");
 
+    ctx?.step("Calculating transaction fees");
     let currencyData;
-    let taxAmount: number = 0;
     switch (type) {
       case "FIAT":
         currencyData = await models.currency.findOne({
@@ -209,7 +218,7 @@ export default async (data: Handler) => {
         }
 
         {
-          const exchange = await ExchangeManager.startExchange();
+          const exchange = await ExchangeManager.startExchange(ctx);
           const provider = await ExchangeManager.getProvider();
           if (!exchange) throw createError(500, "Exchange not found");
 
@@ -261,38 +270,42 @@ export default async (data: Handler) => {
     if (account.balance < Total) {
       throw new Error("Insufficient funds");
     }
-    
+
+    ctx?.step("Running fraud detection checks");
     // Fraud detection check
     const fraudCheck = await ForexFraudDetector.checkWithdrawal(
       user.id,
       amount,
-      currency
+      currency,
+      ctx
     );
-    
+
     if (!fraudCheck.isValid) {
-      throw createError({ 
-        statusCode: 400, 
-        message: fraudCheck.reason || "Transaction flagged for security review" 
+      throw createError({
+        statusCode: 400,
+        message: fraudCheck.reason || "Transaction flagged for security review"
       });
     }
-    
+
     // For high risk scores, require additional verification
     if (fraudCheck.riskScore >= 0.75) {
-      throw createError({ 
-        statusCode: 403, 
-        message: "This withdrawal requires additional verification. Please contact support." 
+      throw createError({
+        statusCode: 403,
+        message: "This withdrawal requires additional verification. Please contact support."
       });
     }
 
+    ctx?.step(`Deducting ${Total} from forex account`);
     updatedBalance = parseFloat((account.balance - Total).toFixed(2));
 
-    await account.update({ 
+    await account.update({
       balance: updatedBalance,
       dailyWithdrawn: (account.dailyWithdrawn || 0) + amount,
       monthlyWithdrawn: (account.monthlyWithdrawn || 0) + amount,
       lastWithdrawReset: account.lastWithdrawReset
     }, { transaction: t });
 
+    ctx?.step("Creating withdrawal transaction record");
     const transaction = await models.transaction.create(
       {
         userId: user.id,
@@ -315,14 +328,15 @@ export default async (data: Handler) => {
     );
 
     // Log the withdrawal operation
-    logInfo(
-      "forex-withdrawal",
-      `User ${user.id} withdrew ${amount} ${currency} from forex account ${account.id}. Transaction ID: ${transaction.id}, Wallet Type: ${type}, Chain: ${chain || 'N/A'}`,
-      __filename
+    logger.info(
+      "FOREX_WITHDRAWAL",
+      `User ${user.id} withdrew ${amount} ${currency} from forex account ${account.id}. Transaction ID: ${transaction.id}, Wallet Type: ${type}, Chain: ${chain || 'N/A'}`
     );
 
     return transaction;
   });
+
+    ctx?.success(`Withdrew ${amount} ${currency} from forex account ${id}${taxAmount > 0 ? ` (fee: ${taxAmount})` : ''}`);
 
     return {
       message: "Withdraw successful",
@@ -333,11 +347,13 @@ export default async (data: Handler) => {
       type,
     };
   } catch (error: any) {
+    ctx?.fail(error.message || "Failed to withdraw from forex account");
+
     // Log the error
-    logError(
-      "forex-withdrawal-error",
-      new Error(`Forex withdrawal failed for user ${user.id}, account ${id}: ${error.message}. Details: amount=${amount}, currency=${currency}, type=${type}, chain=${chain || 'N/A'}`),
-      __filename
+    logger.error(
+      "FOREX_WITHDRAWAL_ERROR",
+      `Forex withdrawal failed for user ${user.id}, account ${id}: ${error.message}. Details: amount=${amount}, currency=${currency}, type=${type}, chain=${chain || 'N/A'}`,
+      error
     );
     throw error;
   }

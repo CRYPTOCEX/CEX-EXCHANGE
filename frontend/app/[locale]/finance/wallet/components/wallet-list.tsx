@@ -31,6 +31,7 @@ const safeString = (value: any): string => {
 };
 export function WalletList() {
   const t = useTranslations("common");
+  const tFinance = useTranslations("finance");
   const router = useRouter();
   const { fiatWallets, spotWallets, ecoWallets, futuresWallets } =
     useWalletStore();
@@ -160,7 +161,7 @@ export function WalletList() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search wallets..."
+          placeholder={tFinance("search_wallets_ellipsis")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10 bg-white/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-800 transition-colors"
@@ -178,7 +179,7 @@ export function WalletList() {
             value="all"
             className="text-xs sm:text-sm py-1.5 sm:py-2"
           >
-            {t("All")}
+            {t("all")}
           </TabsTrigger>
           <TabsTrigger
             value="fiat"
@@ -186,7 +187,7 @@ export function WalletList() {
           >
             <CreditCard className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             <span className={isMobile ? "hidden sm:inline" : ""}>
-              {t("Fiat")}
+              {t("fiat")}
             </span>
           </TabsTrigger>
           {isSpotEnabled && (
@@ -196,7 +197,7 @@ export function WalletList() {
             >
               <Coins className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               <span className={isMobile ? "hidden sm:inline" : ""}>
-                {t("Spot")}
+                {t("spot")}
               </span>
             </TabsTrigger>
           )}
@@ -206,7 +207,7 @@ export function WalletList() {
           >
             <Leaf className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             <span className={isMobile ? "hidden sm:inline" : ""}>
-              {t("Eco")}
+              {t("eco")}
             </span>
           </TabsTrigger>
           <TabsTrigger
@@ -215,7 +216,7 @@ export function WalletList() {
           >
             <TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             <span className={isMobile ? "hidden sm:inline" : ""}>
-              {t("Futures")}
+              {t("futures")}
             </span>
           </TabsTrigger>
         </TabsList>
@@ -224,7 +225,7 @@ export function WalletList() {
           {filteredWallets.length === 0 ? (
             <div className="text-center py-6 sm:py-8">
               <p className="text-sm text-muted-foreground">
-                {t("no_wallets_found_matching_your_criteria")}.
+                {tFinance("no_wallets_found_matching_your_criteria")}.
               </p>
             </div>
           ) : (

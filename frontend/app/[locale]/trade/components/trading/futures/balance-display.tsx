@@ -24,7 +24,8 @@ export default function BalanceDisplay({
   fundingRate,
   fundingTime,
 }: BalanceDisplayProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tTradeComponents = useTranslations("trade_components");
 
   const formatBalance = (balance: number) => {
     return balance.toLocaleString(undefined, {
@@ -61,7 +62,7 @@ export default function BalanceDisplay({
             ) : (
               <TrendingDown className="h-3 w-3 mr-1 text-red-500" />
             )}
-            {t("funding_rate")}
+            {tTradeComponents("funding_rate")}
           </span>
           <div className="text-xs">
             <span
@@ -85,11 +86,11 @@ export default function BalanceDisplay({
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground flex items-center">
           <Wallet className="h-3 w-3 mr-1" />
-          {t("Available")}:
+          {t("available")}:
         </span>
         <div className="text-right">
           {isLoadingWallet ? (
-            <div className="text-xs text-muted-foreground">{t("Loading")}...</div>
+            <div className="text-xs text-muted-foreground">{t("loading")}...</div>
           ) : walletData ? (
             <div className="space-y-0.5">
               <div className="text-sm font-medium text-foreground">
@@ -97,7 +98,7 @@ export default function BalanceDisplay({
               </div>
               {walletData.margin && walletData.margin > 0 && (
                 <div className="text-xs text-muted-foreground">
-                  {t("Margin")}: {formatBalance(walletData.margin)} {walletData.currency}
+                  {t("margin")}: {formatBalance(walletData.margin)} {walletData.currency}
                 </div>
               )}
               {walletData.unrealizedPnl !== undefined && walletData.unrealizedPnl !== 0 && (

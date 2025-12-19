@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function DashboardLoading() {
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="container mx-auto pt-20 p-4 space-y-6">
       {/* Header section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>

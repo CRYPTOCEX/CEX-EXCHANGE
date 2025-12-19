@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
     "Fetches historical price data based on the specified interval and date range.",
   operationId: "getFuturesHistoricalData",
   tags: ["Futures", "Historical"],
+  logModule: "FUTURES",
+  logTitle: "Get futures historical data",
   parameters: [
     {
       name: "symbol",
@@ -70,18 +72,24 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
   const { symbol, from, to, interval } = query;
+
+  ctx?.step?.("Validating request parameters");
   if (!from || !to || !interval) {
+    ctx?.fail?.("Missing required parameters");
     throw new Error("Both `from`, `to`, and `interval` must be provided.");
   }
 
+  ctx?.step?.(`Fetching historical candles for ${symbol}`);
   const bars = await getHistoricalCandles(
     symbol,
     interval,
     Number(from),
     Number(to)
   );
+
+  ctx?.success?.(`Retrieved ${bars?.length || 0} candles`);
   return bars;
 };

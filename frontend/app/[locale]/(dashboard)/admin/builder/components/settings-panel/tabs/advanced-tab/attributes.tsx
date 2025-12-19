@@ -38,7 +38,8 @@ const AttributeRow = ({
 );
 
 export function Attributes({ settings, onSettingChange }: ComponentProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [attributes, setAttributes] = useState<Attribute[]>(
     settings.htmlAttributes || []
   );
@@ -88,10 +89,10 @@ export function Attributes({ settings, onSettingChange }: ComponentProps) {
           className="mt-2 h-7 text-xs w-full"
         >
           <Plus className="h-3 w-3 mr-1" />
-          {t("add_attribute")}
+          {tCommon("add_attribute")}
         </Button>
         <p className="text-xs text-muted-foreground mt-1">
-          {t("add_custom_html_attributes_like_data-*_attributes")}
+          {t("add_custom_html_attributes_like_data_attributes")}
         </p>
       </div>
     </div>

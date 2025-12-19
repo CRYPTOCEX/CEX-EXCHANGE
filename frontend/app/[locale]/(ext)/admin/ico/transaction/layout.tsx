@@ -5,5 +5,5 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="pt-8 pb-20 container">{children}</div>;
+  return <div className="">{children}</div>;
 }

@@ -11,7 +11,8 @@ import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
 export default function BuilderHeader() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const { toast } = useToast();
   const router = useRouter();
   const [isPageSelectionOpen, setIsPageSelectionOpen] = useState(false);
@@ -54,7 +55,7 @@ export default function BuilderHeader() {
             className="h-8 text-xs flex items-center"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
-            {t("Back")}
+            {t("back")}
           </Button>
           <Button
             variant="ghost"
@@ -72,7 +73,7 @@ export default function BuilderHeader() {
             size="icon"
             onClick={undoAction}
             disabled={!canUndo}
-            title="Undo (Ctrl+Z)"
+            title={`${tDashboardAdmin("undo_ctrl_z")} (Ctrl+Z)`}
             className="h-8 w-8"
           >
             <Undo className="h-4 w-4" />
@@ -83,7 +84,7 @@ export default function BuilderHeader() {
             size="icon"
             onClick={redoAction}
             disabled={!canRedo}
-            title="Redo (Ctrl+Y)"
+            title={`${tDashboardAdmin("redo_ctrl_y")} (Ctrl+Y)`}
             className="h-8 w-8"
           >
             <Redo className="h-4 w-4" />
@@ -111,7 +112,7 @@ export default function BuilderHeader() {
             className="bg-purple-600 hover:bg-purple-700 h-8 text-xs px-3 py-1 flex items-center text-white dark:text-white"
           >
             <Save className="h-4 w-4 mr-1" />
-            {t("Save")}
+            {t("save")}
           </Button>
         </div>
       </header>

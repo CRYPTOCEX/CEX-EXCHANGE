@@ -17,6 +17,8 @@ export const metadata = {
   operationId: "updateKycApplication",
   tags: ["KYC", "Application"],
   requiresAuth: true,
+  logModule: "KYC",
+  logTitle: "Update KYC application",
   parameters: [
     {
       index: 0,
@@ -67,13 +69,15 @@ export const metadata = {
 };
 
 export default async (data): Promise<any> => {
-  const { user, body, params } = data;
+  const { user, body, params, ctx } = data;
   if (!user) {
     throw createError({ statusCode: 401, message: "Authentication required" });
   }
 
+  ctx?.step("Validating request parameters");
   const { id } = params; // Application ID to update
   if (!id) {
+    ctx?.fail("Missing application ID in path");
     throw createError({
       statusCode: 400,
       message: "Missing application id in path",
@@ -82,13 +86,14 @@ export default async (data): Promise<any> => {
 
   const { fields } = body;
   if (!fields || typeof fields !== "object") {
+    ctx?.fail("Missing or invalid fields in request body");
     throw createError({
       statusCode: 400,
       message: "Missing or invalid required field: fields",
     });
   }
 
-  // Retrieve the existing KYC application record for the authenticated user.
+  ctx?.step("Retrieving existing KYC application");
   const existingApplication = await models.kycApplication.findOne({
     where: {
       id,
@@ -96,42 +101,44 @@ export default async (data): Promise<any> => {
     },
   });
   if (!existingApplication) {
+    ctx?.fail("KYC application not found");
     throw createError({
       statusCode: 404,
       message: "KYC application not found",
     });
   }
 
-  // Check if the application can be updated based on its current status
+  ctx?.step("Validating application update eligibility");
   const updatableStatuses = ["ADDITIONAL_INFO_REQUIRED", "REJECTED"];
   if (!updatableStatuses.includes(existingApplication.status)) {
     const statusMessages = {
       PENDING: "Your application is currently under review and cannot be modified.",
       APPROVED: "Your application has already been approved and cannot be modified.",
     };
-    
+
+    ctx?.fail(`Application status ${existingApplication.status} cannot be updated`);
     throw createError({
       statusCode: 400,
-      message: statusMessages[existingApplication.status] || 
+      message: statusMessages[existingApplication.status] ||
                `Applications with status "${existingApplication.status}" cannot be updated.`,
     });
   }
 
-  // Get the associated levelId from the application record.
+  ctx?.step("Retrieving KYC level configuration");
   const levelId = existingApplication.levelId;
-
-  // Retrieve the KYC level configuration using the levelId.
   const levelRecord = await models.kycLevel.findByPk(levelId);
   if (!levelRecord) {
+    ctx?.fail("KYC level not found");
     throw createError({ statusCode: 404, message: "KYC level not found" });
   }
 
-  // Parse the level configuration if it's stored as a string.
+  ctx?.step("Parsing KYC level field configuration");
   let levelFields = levelRecord.fields;
   if (typeof levelFields === "string") {
     try {
       levelFields = JSON.parse(levelFields);
     } catch (err) {
+      ctx?.fail("Failed to parse KYC level configuration");
       throw createError({
         statusCode: 500,
         message: "Invalid KYC level configuration: unable to parse fields",
@@ -139,17 +146,19 @@ export default async (data): Promise<any> => {
     }
   }
   if (!Array.isArray(levelFields)) {
+    ctx?.fail("Invalid KYC level configuration format");
     throw createError({
       statusCode: 500,
       message: "Invalid KYC level configuration",
     });
   }
 
-  // Validate each field from the level configuration against the submitted data.
+  ctx?.step(`Validating ${levelFields.length} updated fields`);
   for (const fieldDef of levelFields) {
     const submittedValue = fields[fieldDef.id];
     const error = validateKycField(fieldDef, submittedValue);
     if (error) {
+      ctx?.fail(`Field validation failed for: ${fieldDef.id}`);
       throw createError({
         statusCode: 400,
         message: `Validation error for field "${fieldDef.id}": ${error}`,
@@ -158,18 +167,20 @@ export default async (data): Promise<any> => {
   }
 
   try {
-    // Update the application record with the new fields.
+    ctx?.step("Updating KYC application record");
     await existingApplication.update({
       data: fields,
       updatedAt: new Date(),
       status: "PENDING",
     });
 
+    ctx?.success("KYC application updated and resubmitted for review");
     return {
       message: "KYC application updated successfully.",
       application: existingApplication,
     };
   } catch (error: any) {
+    ctx?.fail(`Failed to update application: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: error.message || "Internal Server Error.",

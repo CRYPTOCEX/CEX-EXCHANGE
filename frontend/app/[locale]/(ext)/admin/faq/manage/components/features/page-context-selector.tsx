@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 interface PageContextSelectorProps {
   pages: PageLink[];
   currentPageId: string | null;
@@ -20,6 +21,7 @@ export function PageContextSelector({
   currentPageId,
   onPageChange,
 }: PageContextSelectorProps) {
+  const t = useTranslations("ext_admin");
   const currentPage = currentPageId
     ? pages.find((page) => page.id === currentPageId)
     : null;
@@ -27,7 +29,7 @@ export function PageContextSelector({
     <div className="flex items-center gap-2">
       {currentPage && (
         <Badge variant="secondary" className="flex items-center gap-1">
-          Ordering for: {currentPage.name}
+          {t("ordering_for_1")}: {currentPage.name}
           <Button
             variant="ghost"
             size="icon"
@@ -46,10 +48,10 @@ export function PageContextSelector({
         }
       >
         <SelectTrigger className="w-[220px]">
-          <SelectValue placeholder="Select page for ordering" />
+          <SelectValue placeholder={t("select_page_for_ordering")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="global">Global Ordering</SelectItem>
+          <SelectItem value="global">{t("global_ordering")}</SelectItem>
           {pages.map((page) => {
             return (
               <SelectItem key={page.id} value={page.id}>

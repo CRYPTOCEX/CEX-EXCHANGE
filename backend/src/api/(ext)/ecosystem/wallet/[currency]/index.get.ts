@@ -21,6 +21,8 @@ export const metadata: OperationObject = {
   operationId: "getWallet",
   tags: ["Wallet", "User"],
   requiresAuth: true,
+  logModule: "ECOSYSTEM",
+  logTitle: "Get wallet by currency",
   parameters: [
     {
       index: 0,
@@ -59,7 +61,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, user, query } = data;
+  const { params, user, query, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -68,6 +70,7 @@ export default async (data: Handler) => {
 
   let wallet;
   try {
+    ctx?.step(`Fetching wallet for ${currency}`);
     wallet = await getWalletByUserIdAndCurrency(user.id, currency);
   } catch (error) {
     console.error(`[WALLET_ERROR] Failed to get/create wallet for user ${user.id}, currency ${currency}:`, error);
@@ -78,6 +81,7 @@ export default async (data: Handler) => {
       sql: error.sql
     });
 
+    ctx?.fail(`Failed to get wallet: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: `Failed to get wallet: ${error.message}`,
@@ -85,19 +89,22 @@ export default async (data: Handler) => {
   }
 
   if (contractType === "NO_PERMIT") {
-    await unlockExpiredAddresses();
+    ctx?.step("Processing NO_PERMIT wallet request");
+    await unlockExpiredAddresses(ctx);
 
     try {
-      const wallets = await getActiveCustodialWallets(chain);
+      const wallets = await getActiveCustodialWallets(chain, ctx);
       const availableWallets: ecosystemCustodialWalletAttributes[] = [];
 
+      ctx?.step("Checking wallet availability");
       for (const wallet of wallets) {
-        if (!(await isAddressLocked(wallet.address))) {
+        if (!(await isAddressLocked(wallet.address, ctx))) {
           availableWallets.push(wallet);
         }
       }
 
       if (availableWallets.length === 0) {
+        ctx?.fail("No available custodial wallets");
         throw createError({
           statusCode: 404,
           message:
@@ -107,15 +114,19 @@ export default async (data: Handler) => {
 
       const randomIndex = Math.floor(Math.random() * availableWallets.length);
       const selectedWallet = availableWallets[randomIndex];
-      lockAddress(selectedWallet.address);
+      lockAddress(selectedWallet.address, ctx);
+
+      ctx?.success(`Assigned custodial wallet ${selectedWallet.address.substring(0, 10)}... for ${chain}`);
       return selectedWallet;
     } catch (error) {
       // If it's already a createError with statusCode, preserve it
       if (error.statusCode) {
+        ctx?.fail(error.message);
         throw error;
       }
 
       // Otherwise, wrap it as a 500 error
+      ctx?.fail(error.message);
       throw createError({
         statusCode: 500,
         message: error.message,
@@ -123,17 +134,22 @@ export default async (data: Handler) => {
     }
   }
 
+  ctx?.success(`Retrieved wallet for ${currency}`);
   return wallet;
 };
 
 export async function getActiveCustodialWallets(
-  chain
+  chain,
+  ctx?: any
 ): Promise<ecosystemCustodialWalletAttributes[]> {
-  return await models.ecosystemCustodialWallet.findAll({
+  ctx?.step?.(`Fetching active custodial wallets for ${chain}`);
+  const wallets = await models.ecosystemCustodialWallet.findAll({
     where: {
       chain: chain,
       status: "ACTIVE",
     },
     attributes: ["id", "address", "chain", "network"],
   });
+  ctx?.success?.(`Found ${wallets.length} active custodial wallet(s) for ${chain}`);
+  return wallets;
 }

@@ -19,7 +19,8 @@ export function UnauthorizedAccess({
   description, 
   returnPath 
 }: UnauthorizedAccessProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components_auth");
+  const tCommon = useTranslations("common");
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const handleLoginSuccess = () => {
@@ -60,7 +61,7 @@ export function UnauthorizedAccess({
                 <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-foreground">
-                    {t("authentication_required")}
+                    {tCommon("authentication_required")}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {t("this_area_requires_proper")}
@@ -77,7 +78,7 @@ export function UnauthorizedAccess({
                 size="lg"
               >
                 <Lock className="w-4 h-4 mr-2" />
-                {t("sign_in_to_continue")}
+                {tCommon("sign_in_to_continue")}
               </Button>
 
               <Link href="/">
@@ -87,7 +88,7 @@ export function UnauthorizedAccess({
                   size="lg"
                 >
                   <Home className="w-4 h-4 mr-2" />
-                  {t("go_to_homepage")}
+                  {tCommon("go_to_homepage")}
                 </Button>
               </Link>
             </div>

@@ -34,7 +34,10 @@ interface PublicCreatorClientProps {
 }
 
 export default function PublicCreatorClient({ creatorId }: PublicCreatorClientProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_nft");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   const { user } = useUserStore();
   
   const [creator, setCreator] = useState<any>(null);
@@ -168,7 +171,7 @@ export default function PublicCreatorClient({ creatorId }: PublicCreatorClientPr
           {t("the_creator_profile_youre_looking_for")}
         </p>
         <Link href="/nft">
-          <Button>Browse NFTs</Button>
+          <Button>{t("browse_nfts_1")}</Button>
         </Link>
       </div>
     );
@@ -215,11 +218,11 @@ export default function PublicCreatorClient({ creatorId }: PublicCreatorClientPr
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Users className="h-4 w-4" />
-                    {formatNumber(creator.followerCount || 0)} {t("followers")}
+                    {formatNumber(creator.followerCount || 0)} {tExt("followers")}
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    {t("Joined")} {formatRelativeTime(creator.createdAt || creator.user?.createdAt)}
+                    {tCommon("joined")} {formatRelativeTime(creator.createdAt || creator.user?.createdAt)}
                   </span>
                 </div>
 
@@ -245,22 +248,22 @@ export default function PublicCreatorClient({ creatorId }: PublicCreatorClientPr
                 <Link href="/nft/creator/profile">
                   <Button variant="outline" size="sm">
                     <ExternalLink className="h-4 w-4 mr-2" />
-                    {t("edit_profile")}
+                    {tExt("edit_profile")}
                   </Button>
                 </Link>
               ) : (
                 <Button>
                   <Heart className="h-4 w-4 mr-2" />
-                  {t("Follow")}
+                  {t("follow")}
                 </Button>
               )}
               <Button variant="outline" size="sm" onClick={copyProfileUrl}>
                 <Copy className="h-4 w-4 mr-2" />
-                {t("copy_link")}
+                {tExt("copy_link")}
               </Button>
               <Button variant="outline" size="sm">
                 <Share2 className="h-4 w-4 mr-2" />
-                {t("Share")}
+                {tExt("share")}
               </Button>
             </div>
           </div>
@@ -271,19 +274,19 @@ export default function PublicCreatorClient({ creatorId }: PublicCreatorClientPr
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold">{formatNumber(creator.stats?.totalSales || creator.totalSales || 0)}</p>
-              <p className="text-sm text-muted-foreground">{t("total_sales")}</p>
+              <p className="text-sm text-muted-foreground">{tExt("total_sales")}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold">{formatCrypto(creator.stats?.totalVolume || creator.totalVolume || 0)}</p>
-              <p className="text-sm text-muted-foreground">{t("total_volume")}</p>
+              <p className="text-sm text-muted-foreground">{tExt("total_volume")}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold">{formatNumber(creator.stats?.collectionsCount || collections.length)}</p>
-              <p className="text-sm text-muted-foreground">{t("Collections")}</p>
+              <p className="text-sm text-muted-foreground">{t("collections")}</p>
             </CardContent>
           </Card>
           <Card>
@@ -297,8 +300,8 @@ export default function PublicCreatorClient({ creatorId }: PublicCreatorClientPr
         {/* Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="collections">{t("Collections")} ({collections.length})</TabsTrigger>
-            <TabsTrigger value="created">{t("Created")} ({tokens.length})</TabsTrigger>
+            <TabsTrigger value="collections">{t("collections")} ({collections.length})</TabsTrigger>
+            <TabsTrigger value="created">{tCommon("created")} ({tokens.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="collections" className="space-y-6">
@@ -331,15 +334,15 @@ export default function PublicCreatorClient({ creatorId }: PublicCreatorClientPr
                       </p>
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div>
-                          <p className="text-muted-foreground">{t("Items")}</p>
+                          <p className="text-muted-foreground">{tExt("items")}</p>
                           <p className="font-medium">{formatNumber(collection.totalItems || 0)}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">{t("Floor")}</p>
+                          <p className="text-muted-foreground">{t("floor")}</p>
                           <p className="font-medium">{collection.floorPrice || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">{t("Volume")}</p>
+                          <p className="text-muted-foreground">{tCommon("volume")}</p>
                           <p className="font-medium">{formatCrypto(collection.volumeTraded || 0)}</p>
                         </div>
                       </div>
@@ -384,14 +387,14 @@ export default function PublicCreatorClient({ creatorId }: PublicCreatorClientPr
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-xs text-muted-foreground">
-                              {token.currentListing.type === "AUCTION" ? t("current_bid") : t("Price")}
+                              {token.currentListing.type === "AUCTION" ? tCommon("current_bid") : tCommon("price")}
                             </p>
                             <p className="font-bold text-sm">
                               {token.currentListing.price} {token.currentListing.currency}
                             </p>
                           </div>
                           <Badge variant={token.currentListing.type === "AUCTION" ? "secondary" : "default"} className="text-xs">
-                            {token.currentListing.type === "AUCTION" ? t("Auction") : t("Fixed")}
+                            {token.currentListing.type === "AUCTION" ? tCommon("auction") : tExtAdmin("fixed")}
                           </Badge>
                         </div>
                       )}

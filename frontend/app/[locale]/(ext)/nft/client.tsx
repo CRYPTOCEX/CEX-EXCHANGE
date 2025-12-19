@@ -11,7 +11,6 @@ import MultiChainSection from "@/app/[locale]/(ext)/nft/components/landing/Multi
 import FinalCTA from "@/app/[locale]/(ext)/nft/components/landing/FinalCTA";
 import PageTransition from "@/app/[locale]/(ext)/nft/components/effects/PageTransition";
 import StructuredData from "@/app/[locale]/(ext)/nft/components/seo/StructuredData";
-import PerformanceMonitor from "@/app/[locale]/(ext)/nft/components/analytics/PerformanceMonitor";
 import { useEffect } from "react";
 import { useNftStore } from "@/store/nft/nft-store";
 
@@ -29,9 +28,6 @@ export default function NFTClient() {
     <>
       {/* SEO Structured Data */}
       <StructuredData />
-
-      {/* Performance Monitoring */}
-      {process.env.NODE_ENV === "development" && <PerformanceMonitor />}
 
       <PageTransition>
         <div className="relative">

@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
   summary: "Lists user's Forex Investments with pagination and optional filtering",
   operationId: "listUserForexInvestments",
   tags: ["Forex", "Investments"],
+  logModule: "FOREX",
+  logTitle: "Get Forex Investments",
   parameters: crudParameters,
   responses: {
     200: {
@@ -43,11 +45,16 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { query, user } = data;
+  const {  query, user , ctx } = data;
+
+    ctx?.step("Fetching Forex Investments");
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.success("Get Forex Investments fetched successfully");
+
 
   return getFiltered({
     model: models.forexInvestment,

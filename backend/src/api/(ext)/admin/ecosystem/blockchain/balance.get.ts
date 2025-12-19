@@ -2,10 +2,11 @@ import { formatEther, JsonRpcProvider } from "ethers";
 import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { createError } from "@b/utils/error";
 import {
-  notFoundMetadataResponse,
+  notFoundResponse,
   serverErrorResponse,
   unauthorizedResponse,
-} from "@b/utils/query";
+  badRequestResponse,
+} from "@b/utils/schema/errors";
 import { models } from "@b/db";
 
 // Mapping for EVM providers using endpoints from environment variables.
@@ -86,27 +87,32 @@ async function getTokenDeploymentCostForSolana(): Promise<string> {
 
 // OpenAPI metadata definition for this endpoint.
 export const metadata: OperationObject = {
-  summary: "Retrieves wallet balance and token deployment cost",
+  summary: "Get master wallet balance and token deployment cost",
   description:
-    "This endpoint retrieves the master wallet balance from the ecosystemMasterWallet model for the specified chain and calculates an estimated token deployment cost. For EVM chains, it uses ethers with a dedicated provider configured via environment variables, and for Solana, it uses Solana's web3.js.",
-  operationId: "getWalletBalanceAndTokenCost",
-  tags: ["Ecosystem", "Wallet", "Token Deployment"],
+    "Retrieves the master wallet balance for a specified blockchain and calculates the estimated token deployment cost. For EVM-compatible chains (ETH, ARBITRUM, BASE, BSC, CELO, FTM, OPTIMISM, POLYGON, RSK), it uses ethers.js to estimate gas costs. For Solana, it calculates the rent-exempt minimum for token account creation.",
+  operationId: "getEcosystemBlockchainBalance",
+  tags: ["Admin", "Ecosystem", "Blockchain"],
   requiresAuth: true,
+  logModule: "ADMIN_ECO",
+  logTitle: "Get wallet balance and token deployment cost",
   parameters: [
     {
       index: 0,
       name: "chain",
       in: "query",
       required: true,
-      schema: { type: "string" },
+      schema: {
+        type: "string",
+        enum: ["ETH", "ARBITRUM", "BASE", "BSC", "CELO", "FTM", "OPTIMISM", "POLYGON", "RSK", "SOL"]
+      },
       description:
-        "The blockchain chain identifier (e.g. ETH, ARBITRUM, BASE, BSC, CELO, FTM, OPTIMISM, POLYGON, RSK, SOL) for which to check the wallet balance and token deployment cost.",
+        "The blockchain chain identifier for which to retrieve the wallet balance and token deployment cost.",
     },
   ],
   responses: {
     200: {
       description:
-        "Wallet balance and token deployment cost retrieved successfully",
+        "Master wallet balance and token deployment cost retrieved successfully",
       content: {
         "application/json": {
           schema: {
@@ -115,28 +121,50 @@ export const metadata: OperationObject = {
               wallet: {
                 type: "object",
                 properties: {
-                  id: { type: "string" },
-                  chain: { type: "string" },
-                  currency: { type: "string" },
-                  address: { type: "string" },
-                  balance: { type: "number" },
+                  id: {
+                    type: "string",
+                    format: "uuid",
+                    description: "Master wallet unique identifier"
+                  },
+                  chain: {
+                    type: "string",
+                    description: "Blockchain chain identifier"
+                  },
+                  currency: {
+                    type: "string",
+                    description: "Native currency symbol"
+                  },
+                  address: {
+                    type: "string",
+                    description: "Wallet address"
+                  },
+                  balance: {
+                    type: "number",
+                    description: "Current wallet balance"
+                  },
                 },
+                required: ["id", "chain", "currency", "address", "balance"]
               },
-              tokenDeploymentCost: { type: "string" },
+              tokenDeploymentCost: {
+                type: "string",
+                description: "Estimated cost to deploy a token in native currency"
+              },
             },
+            required: ["wallet", "tokenDeploymentCost"]
           },
         },
       },
     },
+    400: badRequestResponse,
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("MasterWallet"),
+    404: notFoundResponse("Master wallet"),
     500: serverErrorResponse,
   },
   permission: "view.ecosystem.blockchain",
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
   if (!user?.id) throw createError(401, "Unauthorized");
 
   // Normalize chain parameter to uppercase to match our mapping keys.
@@ -144,6 +172,7 @@ export default async (data: Handler) => {
   if (!chain) throw createError(400, "Chain parameter is required");
 
   try {
+    ctx?.step(`Retrieving master wallet for chain ${chain}`);
     // Find the master wallet for the given chain (assuming only active wallets with status=true)
     const masterWallet = await models.ecosystemMasterWallet.findOne({
       where: { chain, status: true },
@@ -151,6 +180,7 @@ export default async (data: Handler) => {
     if (!masterWallet)
       throw createError(404, "Master wallet not found for the specified chain");
 
+    ctx?.step("Calculating token deployment cost");
     let tokenDeploymentCost: string;
     if (chain === "SOL") {
       tokenDeploymentCost = await getTokenDeploymentCostForSolana();
@@ -161,6 +191,7 @@ export default async (data: Handler) => {
         "Token deployment cost not available for this chain";
     }
 
+    ctx?.success("Balance and cost retrieved successfully");
     return {
       wallet: {
         id: masterWallet.id,
@@ -172,7 +203,7 @@ export default async (data: Handler) => {
       tokenDeploymentCost,
     };
   } catch (error) {
-    // Optionally log the error for debugging purposes.
+    ctx?.fail(error.message);
     throw createError(500, error.message);
   }
 };

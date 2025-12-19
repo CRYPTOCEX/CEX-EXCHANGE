@@ -8,9 +8,11 @@ import {
 import { createError } from "@b/utils/error";
 
 export const metadata: OperationObject = {
-  summary: "Get detailed information about a specific bot",
-  operationId: "getAiMarketMakerBotById",
+  summary: "Get detailed information for a specific AI Market Maker bot",
+  operationId: "getMarketMakerBotById",
   tags: ["Admin", "AI Market Maker", "Bot"],
+  description:
+    "Retrieves comprehensive details for a specific AI bot, including its configuration, current status, performance metrics, and recent trading activity. Returns calculated performance statistics such as win rate, total volume, trades remaining today, and associated market maker context.",
   parameters: [
     {
       index: 0,
@@ -25,26 +27,81 @@ export const metadata: OperationObject = {
       name: "botId",
       in: "path",
       required: true,
-      description: "ID of the bot",
+      description: "ID of the bot to retrieve",
       schema: { type: "string" },
     },
   ],
   responses: {
     200: {
-      description: "Bot details with performance metrics",
+      description: "Detailed bot information with performance metrics and context",
       content: {
         "application/json": {
           schema: {
             type: "object",
             properties: {
               ...aiBotSchema,
+              marketMaker: {
+                type: "object",
+                description: "Associated market maker information",
+                properties: {
+                  id: {
+                    type: "string",
+                    description: "Market maker ID",
+                  },
+                  status: {
+                    type: "string",
+                    description: "Market maker status",
+                  },
+                  market: {
+                    type: "object",
+                    description: "Associated ecosystem market details",
+                  },
+                },
+              },
               performance: {
                 type: "object",
-                description: "Bot performance metrics",
+                description: "Detailed performance metrics for the bot",
+                properties: {
+                  totalTrades: {
+                    type: "number",
+                    description: "Total number of trades executed",
+                  },
+                  successfulTrades: {
+                    type: "number",
+                    description: "Number of successful trades",
+                  },
+                  failedTrades: {
+                    type: "number",
+                    description: "Number of failed trades",
+                  },
+                  winRate: {
+                    type: "number",
+                    description: "Win rate percentage",
+                  },
+                  avgTradeSize: {
+                    type: "number",
+                    description: "Average trade size",
+                  },
+                  totalVolume: {
+                    type: "number",
+                    description: "Total trading volume",
+                  },
+                  profitLoss: {
+                    type: "number",
+                    description: "Total profit/loss",
+                  },
+                  tradesRemainingToday: {
+                    type: "number",
+                    description: "Number of trades remaining for today based on daily limit",
+                  },
+                },
               },
               recentTrades: {
                 type: "array",
-                description: "Recent trades by this bot",
+                description: "List of recent trades executed by this bot",
+                items: {
+                  type: "object",
+                },
               },
             },
           },
@@ -56,11 +113,15 @@ export const metadata: OperationObject = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "ADMIN_AI",
+  logTitle: "Get Market Maker Bot",
   permission: "view.ai.market-maker.bot",
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
+
+  ctx?.step("Get Market Maker Bot");
 
   const bot = await models.aiBot.findOne({
     where: {
@@ -93,6 +154,7 @@ export default async (data: Handler) => {
   // Recent trades would come from Scylla in production
   const recentTrades: any[] = [];
 
+  ctx?.success("Get Market Maker Bot retrieved successfully");
   return {
     ...bot.toJSON(),
     marketMaker: {

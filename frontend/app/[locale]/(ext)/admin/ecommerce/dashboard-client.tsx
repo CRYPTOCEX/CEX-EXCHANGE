@@ -27,6 +27,7 @@ import Image from "next/image";
 import { $fetch } from "@/lib/api";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 interface DashboardData {
   totalRevenue: number;
@@ -63,7 +64,9 @@ interface DashboardData {
   completedOrders: number;
 }
 export default function DashboardClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
     null
   );
@@ -120,7 +123,7 @@ export default function DashboardClient() {
         <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-zinc-900/50 rounded-lg border border-gray-200 dark:border-zinc-800">
           <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
           <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            {t("failed_to_load_dashboard")}
+            {tExt("failed_to_load_dashboard")}
           </h2>
           <p className="text-gray-500 dark:text-gray-400 text-center mb-4">
             {error}
@@ -134,12 +137,12 @@ export default function DashboardClient() {
   const topSellingProducts = dashboardData?.topProducts || [];
   const recentOrders = dashboardData?.recentOrders || [];
   return (
-    <div className="space-y-6">
+    <div className={`container ${PAGE_PADDING} space-y-6`}>
       {/* Header with refresh button and date range selector */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-zinc-900/50 p-4 rounded-lg border border-gray-200 dark:border-zinc-800">
         <div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-            {t("Dashboard")}
+            {tCommon("dashboard")}
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 flex items-center">
             <Calendar className="h-4 w-4 mr-1" />
@@ -163,8 +166,8 @@ export default function DashboardClient() {
             onChange={(e) => setTimeRange(e.target.value)}
             className="block pl-3 pr-10 py-1.5 text-sm border-gray-300 dark:border-zinc-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md bg-white dark:bg-zinc-700 text-gray-900 dark:text-white"
           >
-            <option value="week">{t("last_7_days")}</option>
-            <option value="month">{t("last_30_days")}</option>
+            <option value="week">{tCommon("last_7_days")}</option>
+            <option value="month">{tCommon("last_30_days")}</option>
             <option value="year">{t("last_12_months")}</option>
           </select>
         </div>
@@ -173,7 +176,7 @@ export default function DashboardClient() {
       {/* Key metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          title="Total Revenue"
+          title={t("total_revenue")}
           value={`$${
             stats?.totalRevenue?.toLocaleString("en-US", {
               minimumFractionDigits: 2,
@@ -189,7 +192,7 @@ export default function DashboardClient() {
           chartData={stats?.revenueChartData || null}
         />
         <MetricCard
-          title="Average Order"
+          title={t("average_order")}
           value={`$${
             stats?.averageOrderValue?.toLocaleString("en-US", {
               minimumFractionDigits: 2,
@@ -202,23 +205,23 @@ export default function DashboardClient() {
           }
           icon={<ShoppingBag className="h-5 w-5 text-white" />}
           iconBg="from-blue-500 to-blue-600"
-          description="Per order"
+          description={t("per_order")}
           isLoading={isLoading}
           chartData={stats?.orderValueChartData || null}
         />
         <MetricCard
-          title="Products Sold"
+          title={t("products_sold")}
           value={stats?.totalUnitsSold?.toLocaleString() || "0"}
           change={stats?.unitsSoldChange || null}
           isPositive={stats?.unitsSoldChange ? stats.unitsSoldChange > 0 : null}
           icon={<Package className="h-5 w-5 text-white" />}
           iconBg="from-purple-500 to-purple-600"
-          description="Total units"
+          description={t("total_units")}
           isLoading={isLoading}
           chartData={stats?.unitsSoldChartData || null}
         />
         <MetricCard
-          title="New Customers"
+          title={t("new_customers")}
           value={stats?.newCustomers?.toLocaleString() || "0"}
           change={stats?.newCustomersChange || null}
           isPositive={
@@ -226,7 +229,7 @@ export default function DashboardClient() {
           }
           icon={<Users className="h-5 w-5 text-white" />}
           iconBg="from-amber-500 to-amber-600"
-          description="First-time buyers"
+          description={t("first_time_buyers")}
           isLoading={isLoading}
           chartData={stats?.customersChartData || null}
         />
@@ -246,19 +249,19 @@ export default function DashboardClient() {
                   onClick={() => setActiveChartType("revenue")}
                   className={`px-3 py-1 text-xs font-medium rounded-md ${activeChartType === "revenue" ? "bg-white dark:bg-zinc-600 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400"}`}
                 >
-                  {t("Revenue")}
+                  {t("revenue")}
                 </button>
                 <button
                   onClick={() => setActiveChartType("orders")}
                   className={`px-3 py-1 text-xs font-medium rounded-md ${activeChartType === "orders" ? "bg-white dark:bg-zinc-600 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400"}`}
                 >
-                  {t("Orders")}
+                  {tCommon("orders")}
                 </button>
                 <button
                   onClick={() => setActiveChartType("customers")}
                   className={`px-3 py-1 text-xs font-medium rounded-md ${activeChartType === "customers" ? "bg-white dark:bg-zinc-600 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400"}`}
                 >
-                  {t("Customers")}
+                  {t("customers")}
                 </button>
               </div>
               <button className="p-1.5 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-zinc-700">
@@ -327,7 +330,7 @@ export default function DashboardClient() {
                   <div className="text-center">
                     <AlertCircle className="h-8 w-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
                     <p className="text-gray-500 dark:text-gray-400">
-                      {t("no_chart_data_available")}
+                      {tCommon("no_chart_data_available")}
                     </p>
                   </div>
                 </div>
@@ -343,7 +346,7 @@ export default function DashboardClient() {
               </div>
               <div className="ml-3">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  {t("total_sales")}
+                  {tExt("total_sales")}
                 </p>
                 <p className="text-base font-semibold text-gray-900 dark:text-white">
                   ${stats?.totalRevenue?.toLocaleString("en-US", {
@@ -369,7 +372,7 @@ export default function DashboardClient() {
               </div>
               <div className="ml-3">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  {t("Orders")}
+                  {tCommon("orders")}
                 </p>
                 <p className="text-base font-semibold text-gray-900 dark:text-white">
                   {stats?.totalOrders || 0}
@@ -393,7 +396,7 @@ export default function DashboardClient() {
               </div>
               <div className="ml-3">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  {t("Customers")}
+                  {t("customers")}
                 </p>
                 <p className="text-base font-semibold text-gray-900 dark:text-white">
                   {stats?.newCustomers || 0}
@@ -429,7 +432,7 @@ export default function DashboardClient() {
               href="/admin/ecommerce/orders"
               className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center"
             >
-              {t("view_all")}
+              {tCommon("view_all")}
               <ChevronRight className="h-4 w-4 ml-1" />
             </Link>
           </div>
@@ -513,7 +516,7 @@ export default function DashboardClient() {
           {/* Status cards */}
           <div className="grid grid-cols-2 gap-4">
             <StatusCard
-              title="Pending Orders"
+              title={tCommon("pending_orders")}
               value={stats?.pendingOrders || 0}
               icon={
                 <Clock className="h-5 w-5 text-amber-500 dark:text-amber-400" />
@@ -524,7 +527,7 @@ export default function DashboardClient() {
               href="/admin/ecommerce/order?status=PENDING"
             />
             <StatusCard
-              title="Out of Stock"
+              title={tExt("out_of_stock")}
               value={stats?.outOfStockCount || 0}
               icon={
                 <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
@@ -535,7 +538,7 @@ export default function DashboardClient() {
               href="/admin/ecommerce/product?stock=out"
             />
             <StatusCard
-              title="Rejected Orders"
+              title={tCommon("rejected_orders")}
               value={stats?.rejectedOrders || 0}
               icon={
                 <XCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
@@ -546,7 +549,7 @@ export default function DashboardClient() {
               href="/admin/ecommerce/order?status=REJECTED"
             />
             <StatusCard
-              title="Completed Orders"
+              title={tExt("completed_orders")}
               value={stats?.completedOrders || 0}
               icon={
                 <CheckCircle2 className="h-5 w-5 text-green-500 dark:text-green-400" />
@@ -569,7 +572,7 @@ export default function DashboardClient() {
                 href="/admin/ecommerce/product"
                 className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center"
               >
-                {t("view_all")}
+                {tCommon("view_all")}
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Link>
             </div>
@@ -622,7 +625,7 @@ export default function DashboardClient() {
                             ${product.price?.toFixed(2)}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {product.soldCount || 0} {t("sold")}
+                            {product.soldCount || 0} {tExt("sold")}
                           </p>
                         </div>
                       </div>
@@ -635,13 +638,13 @@ export default function DashboardClient() {
                     <Package className="h-6 w-6 text-gray-500 dark:text-gray-400" />
                   </div>
                   <p className="text-gray-500 dark:text-gray-400 mb-2">
-                    {t("no_products_found")}
+                    {tExt("no_products_found")}
                   </p>
                   <Link
                     href="/admin/ecommerce/product"
                     className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
                   >
-                    {t("view_all_products")}
+                    {tExt("view_all_products")}
                   </Link>
                 </div>
               )}
@@ -653,22 +656,22 @@ export default function DashboardClient() {
       {/* Quick actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <QuickActionCard
-          title="Add New Product"
-          description="Create and publish a new product to your store"
+          title={t("add_new_product")}
+          description={t("create_and_publish_a_new_product_to_your_store")}
           icon={<Package className="h-5 w-5 text-white" />}
           iconBg="from-indigo-600 to-indigo-700"
           href="/admin/ecommerce/product"
         />
         <QuickActionCard
-          title="Manage Categories"
-          description="Organize your products with categories"
+          title={t("manage_categories")}
+          description={t("organize_your_products_with_categories")}
           icon={<Tag className="h-5 w-5 text-white" />}
           iconBg="from-purple-600 to-purple-700"
           href="/admin/ecommerce/category"
         />
         <QuickActionCard
-          title="View Orders"
-          description="See all customer orders and their statuses"
+          title={t("view_orders")}
+          description={t("see_all_customer_orders_and_their_statuses")}
           icon={<ShoppingBag className="h-5 w-5 text-white" />}
           iconBg="from-green-600 to-green-700"
           href="/admin/ecommerce/order"

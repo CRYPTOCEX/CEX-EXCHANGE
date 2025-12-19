@@ -20,9 +20,10 @@ import {
 } from "@/components/ui/card";
 import { useCreatorStore } from "@/store/ico/creator/creator-store";
 import { useTranslations } from "next-intl";
-
 export function CreatorPerformanceChart() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "all">(
     "30d"
   );
@@ -37,7 +38,7 @@ export function CreatorPerformanceChart() {
     <Card className="lg:col-span-2">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
-          <CardTitle>{t("Performance")}</CardTitle>
+          <CardTitle>{tExt("performance")}</CardTitle>
           <CardDescription>{t("total_funds_raised_over_time")}</CardDescription>
         </div>
         <div className="flex items-center gap-2">
@@ -60,14 +61,14 @@ export function CreatorPerformanceChart() {
             size="sm"
             onClick={() => setTimeRange("90d")}
           >
-            {t("90D")}
+            {t("n_90d")}
           </Button>
           <Button
             variant={timeRange === "all" ? "default" : "outline"}
             size="sm"
             onClick={() => setTimeRange("all")}
           >
-            {t("All")}
+            {tCommon("all")}
           </Button>
         </div>
       </CardHeader>
@@ -82,8 +83,8 @@ export function CreatorPerformanceChart() {
             >
               <defs>
                 <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis
@@ -115,7 +116,7 @@ export function CreatorPerformanceChart() {
               <Area
                 type="monotone"
                 dataKey="amount"
-                stroke="#3b82f6"
+                stroke="#14b8a6"
                 fillOpacity={1}
                 fill="url(#colorAmount)"
               />

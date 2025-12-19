@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "reorderStakingPools",
   tags: ["Staking", "Admin", "Pools"],
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Reorder Staking Pools",
   requestBody: {
     description: "Pool IDs in the desired order",
     required: true,
@@ -48,8 +50,8 @@ export const metadata = {
   permission: "edit.staking.pool",
 };
 
-export default async (data: { user?: any; body?: any }) => {
-  const { user, body } = data;
+export default async (data: { user?: any; body?: any; ctx?: any }) => {
+  const { user, body, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -69,6 +71,7 @@ export default async (data: { user?: any; body?: any }) => {
   const { poolIds } = body;
 
   try {
+    ctx?.step("Reorder pools");
     // Use a transaction to ensure all updates succeed or fail together
     await sequelize.transaction(async (t) => {
       // Update each pool's order based on its position in the array
@@ -99,7 +102,7 @@ export default async (data: { user?: any; body?: any }) => {
             primary: true,
           },
         ],
-      });
+      }, ctx);
     } catch (notifErr) {
       console.error(
         "Failed to create notification for pool reordering",
@@ -108,6 +111,7 @@ export default async (data: { user?: any; body?: any }) => {
       // Continue execution even if notification fails
     }
 
+    ctx?.success("Pools reordered successfully");
     return { message: "Pools reordered successfully" };
   } catch (error) {
     console.error("Error reordering staking pools:", error);

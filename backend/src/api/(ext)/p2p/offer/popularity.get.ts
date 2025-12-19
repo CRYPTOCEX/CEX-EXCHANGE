@@ -8,6 +8,8 @@ export const metadata = {
     "Retrieves popular offers ordered by a calculated popularity score based on the number of completed trades (via offerId) and average review ratings from those trades.",
   operationId: "getPopularOffers",
   tags: ["P2P", "Offer"],
+  logModule: "P2P",
+  logTitle: "Get popular offers",
   parameters: [
     {
       name: "limit",
@@ -23,10 +25,12 @@ export const metadata = {
   },
 };
 
-export default async (data: { query?: any } = {}) => {
+export default async (data: { query?: any; ctx?: any } = {}) => {
   const { limit } = data.query || {};
+  const { ctx } = data || {};
   const parsedLimit = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 10;
 
+  ctx?.step(`Calculating popularity for top ${parsedLimit} offers`);
   try {
     const query = `
       SELECT
@@ -47,8 +51,10 @@ export default async (data: { query?: any } = {}) => {
       type: QueryTypes.SELECT,
     });
 
+    ctx?.success(`Retrieved ${results.length} popular offers`);
     return results;
   } catch (err: any) {
+    ctx?.fail(err.message || "Failed to retrieve popular offers");
     throw new Error("Internal Server Error: " + err.message);
   }
 };

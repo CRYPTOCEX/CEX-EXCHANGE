@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
   summary: "Get All Market Tickers",
   operationId: "getAllMarketTickers",
   tags: ["Exchange", "Markets"],
+  logModule: "FUTURES",
+  logTitle: "Get all futures market tickers",
   description: "Retrieves ticker information for all available market pairs.",
   responses: {
     200: {
@@ -32,9 +34,15 @@ export const metadata: OperationObject = {
   },
 };
 
-export default async () => {
+export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step?.("Initializing futures matching engine");
   const engine = await FuturesMatchingEngine.getInstance();
+
+  ctx?.step?.("Fetching all futures market tickers");
   const tickers = await engine.getTickers();
 
+  ctx?.success?.(`Retrieved ${Object.keys(tickers || {}).length} tickers`);
   return tickers;
 };

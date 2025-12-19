@@ -6,13 +6,17 @@ import {
 import {
   unauthorizedResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+} from "@b/utils/schema/errors";
 import { createError } from "@b/utils/error";
 
 export const metadata: OperationObject = {
-  summary: "Create/Enable AI Market Maker for an ecosystem market",
-  operationId: "createAiMarketMaker",
-  tags: ["Admin", "AI Market Maker", "Market Maker"],
+  summary: "Create AI Market Maker market",
+  operationId: "createAiMarketMakerMarket",
+  tags: ["Admin", "AI Market Maker", "Market"],
+  description:
+    "Creates a new AI Market Maker for an ecosystem market with specified configuration parameters. Automatically generates a liquidity pool, default bots based on aggression level, and initializes all necessary tracking structures. The market maker starts in STOPPED status and requires manual activation after initial funding.",
+  logModule: "ADMIN_MM",
+  logTitle: "Create AI Market Maker",
   requestBody: {
     required: true,
     content: {
@@ -31,7 +35,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const {
     marketId,
     targetPrice,
@@ -44,6 +48,7 @@ export default async (data: Handler) => {
     realLiquidityPercent = 20,
   } = body;
 
+  ctx?.step("Validate ecosystem market exists");
   // Validate ecosystem market exists
   const ecosystemMarket = await models.ecosystemMarket.findByPk(marketId);
   if (!ecosystemMarket) {
@@ -58,6 +63,7 @@ export default async (data: Handler) => {
     throw createError(400, "AI Market Maker already exists for this market");
   }
 
+  ctx?.step("Validate price parameters");
   // Validate price values are positive
   if (targetPrice <= 0) {
     throw createError(400, "Target price must be greater than 0");
@@ -102,9 +108,11 @@ export default async (data: Handler) => {
     throw createError(400, "Real liquidity percent must be between 0 and 100");
   }
 
+  ctx?.step("Initialize database transaction");
   const transaction = await sequelize.transaction();
 
   try {
+    ctx?.step("Create AI Market Maker");
     // Create AI Market Maker
     const marketMaker = await models.aiMarketMaker.create(
       {
@@ -123,6 +131,7 @@ export default async (data: Handler) => {
       { transaction }
     );
 
+    ctx?.step("Create market maker pool");
     // Create associated pool with zero balances
     await models.aiMarketMakerPool.create(
       {
@@ -138,6 +147,7 @@ export default async (data: Handler) => {
       { transaction }
     );
 
+    ctx?.step("Create default bots");
     // Create default bots based on aggression level
     const botConfigs = getDefaultBotConfigs(aggressionLevel);
     for (const config of botConfigs) {
@@ -152,6 +162,7 @@ export default async (data: Handler) => {
       );
     }
 
+    ctx?.step("Create history record");
     // Log creation
     await models.aiMarketMakerHistory.create(
       {
@@ -170,8 +181,10 @@ export default async (data: Handler) => {
       { transaction }
     );
 
+    ctx?.step("Commit transaction");
     await transaction.commit();
 
+    ctx?.success("AI Market Maker created successfully");
     // Return with pool and market
     return models.aiMarketMaker.findByPk(marketMaker.id, {
       include: [

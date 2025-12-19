@@ -20,13 +20,12 @@ import { useIcoTransactionStore } from "@/store/ico/offer/transaction-store";
 import { formatCurrency } from "@/lib/ico/utils";
 import { useConfigStore } from "@/store/config";
 import { useTranslations } from "next-intl";
-
 interface InvestmentFormProps {
   offering: {
     id: string;
     name: string;
-    tokenPrice: number;
-    targetAmount: number;
+    tokenPrice?: number;
+    targetAmount?: number;
     symbol: string;
     currentPhase?: {
       tokenPrice: number;
@@ -56,7 +55,9 @@ const InvestmentFormSchema = (minInvestment: number) =>
   });
 
 export function InvestmentForm({ offering }: InvestmentFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { purchase } = useIcoTransactionStore();
   const { settings } = useConfigStore();
   const minInvestment = settings["icoMinInvestmentAmount"];
@@ -67,7 +68,8 @@ export function InvestmentForm({ offering }: InvestmentFormProps) {
     watch,
     formState: { errors, isSubmitting },
     reset,
-  } = useForm<z.infer<ReturnType<typeof InvestmentFormSchema>>>({
+  } = useForm({
+    // @ts-ignore - Complex type inference causing build issues
     resolver: zodResolver(InvestmentFormSchema(minInvestment)),
     defaultValues: {
       amount: minInvestment,
@@ -77,8 +79,8 @@ export function InvestmentForm({ offering }: InvestmentFormProps) {
 
   const watchedAmount = watch("amount");
   // Use current phase token price if available, fallback to offering token price
-  const currentTokenPrice = offering.currentPhase?.tokenPrice || offering.tokenPrice;
-  const tokenAmount = watchedAmount / currentTokenPrice;
+  const currentTokenPrice = offering.currentPhase?.tokenPrice || offering.tokenPrice || 0;
+  const tokenAmount = currentTokenPrice > 0 ? watchedAmount / currentTokenPrice : 0;
   const platformFee = watchedAmount * 0.02;
   const totalAmount = watchedAmount * 1.02;
 
@@ -97,7 +99,7 @@ export function InvestmentForm({ offering }: InvestmentFormProps) {
   };
 
   return (
-    <Card>
+    <Card className={"bg-white dark:bg-zinc-900 border-teal-200 dark:border-teal-700 border"}>
       <CardHeader>
         <CardTitle>
           {t("invest_in")}
@@ -111,7 +113,7 @@ export function InvestmentForm({ offering }: InvestmentFormProps) {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Investment Amount Field */}
           <div className="space-y-2">
-            <Label htmlFor="amount">{t("investment_amount_(usd)")}</Label>
+            <Label htmlFor="amount">{t("investment_amount_usd")}</Label>
             <div className="flex items-center space-x-2">
               <span className="text-sm">$</span>
               <Input
@@ -123,7 +125,7 @@ export function InvestmentForm({ offering }: InvestmentFormProps) {
             </div>
             {errors.amount && (
               <p className="text-xs text-destructive">
-                {errors.amount.message}
+                {errors.amount.message as string}
               </p>
             )}
             <Controller
@@ -133,7 +135,7 @@ export function InvestmentForm({ offering }: InvestmentFormProps) {
                 <Slider
                   defaultValue={[minInvestment]}
                   min={minInvestment}
-                  max={offering.targetAmount * 0.1}
+                  max={(offering.targetAmount || 0) * 0.1}
                   step={10}
                   value={[Number(value)]}
                   onValueChange={(val) => onChange(val[0])}
@@ -147,8 +149,8 @@ export function InvestmentForm({ offering }: InvestmentFormProps) {
                 {formatCurrency(minInvestment)}
               </span>
               <span>
-                {t("max")}
-                {formatCurrency(offering.targetAmount * 0.1)}
+                {tCommon("max")}
+                {formatCurrency((offering.targetAmount || 0) * 0.1)}
               </span>
             </div>
           </div>
@@ -156,7 +158,7 @@ export function InvestmentForm({ offering }: InvestmentFormProps) {
           {/* Computed Values */}
           <div className="space-y-2 pt-2">
             <div className="flex justify-between text-sm">
-              <span>{t("token_price")}</span>
+              <span>{tExt("token_price")}</span>
               <span>{formatCurrency(currentTokenPrice)}</span>
             </div>
             <div className="flex justify-between text-sm">
@@ -169,22 +171,22 @@ export function InvestmentForm({ offering }: InvestmentFormProps) {
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span>{t("platform_fee")}</span>
+              <span>{tCommon("platform_fee")}</span>
               <span>{formatCurrency(platformFee)}</span>
             </div>
             <div className="flex justify-between font-medium pt-2 border-t">
-              <span>{t("total")}</span>
+              <span>{tCommon("total")}</span>
               <span>{formatCurrency(totalAmount)}</span>
             </div>
           </div>
 
           {/* Wallet Address Field */}
           <div className="space-y-2">
-            <Label htmlFor="walletAddress">{t("wallet_address")}</Label>
+            <Label htmlFor="walletAddress">{tCommon("wallet_address")}</Label>
             <Input
               id="walletAddress"
               type="text"
-              placeholder="Enter your wallet address"
+              placeholder={tExt("enter_your_wallet_address")}
               {...register("walletAddress")}
             />
             {errors.walletAddress && (

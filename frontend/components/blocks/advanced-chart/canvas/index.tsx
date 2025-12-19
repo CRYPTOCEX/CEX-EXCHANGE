@@ -62,6 +62,7 @@ interface ChartCanvasProps {
 // Create a component that doesn't rerender when theme changes
 const ChartCanvasInner: React.FC<ChartCanvasProps> = ({ positions }) => {
   const t = useTranslations("common");
+  const tComponentsBlocks = useTranslations("components_blocks");
   const context = useChart();
   const {
     candleData,
@@ -760,7 +761,7 @@ const ChartCanvasInner: React.FC<ChartCanvasProps> = ({ positions }) => {
                  {t("no_chart_data_available")}
                </div>
                <div className="text-zinc-400 text-sm">
-                 {t("no_trading_data_available")}
+                 {tComponentsBlocks("no_trading_data_available")}
                </div>
              </div>
           </div>

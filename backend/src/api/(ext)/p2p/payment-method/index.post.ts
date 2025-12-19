@@ -1,5 +1,6 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Create Payment Method",
@@ -9,6 +10,8 @@ export const metadata = {
   tags: ["P2P", "Payment Method"],
   requiresAuth: true,
   middleware: ["p2pPaymentMethodCreateRateLimit"],
+  logModule: "P2P_PAYMENT",
+  logTitle: "Create payment method",
   requestBody: {
     description: "Payment method data",
     required: true,
@@ -41,12 +44,13 @@ export const metadata = {
   },
 };
 
-export default async (data: { body: any; user?: any }) => {
-  const { body, user } = data;
+export default async (data: { body: any; user?: any; ctx?: any }) => {
+  const { body, user, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Validating payment method data");
   // Import validation
   const { validatePaymentMethod } = await import("../utils/validation");
 
@@ -54,6 +58,7 @@ export default async (data: { body: any; user?: any }) => {
     // Validate and sanitize payment method data
     const validatedData = validatePaymentMethod(body);
 
+    ctx?.step("Checking user payment method limits");
     // Check if user already has too many payment methods
     const existingCount = await models.p2pPaymentMethod.count({
       where: { 
@@ -111,6 +116,7 @@ export default async (data: { body: any; user?: any }) => {
       }
     }
 
+    ctx?.step("Creating payment method");
     // Create the payment method
     const paymentMethod = await models.p2pPaymentMethod.create({
       userId: user.id,
@@ -120,8 +126,8 @@ export default async (data: { body: any; user?: any }) => {
       isGlobal: false, // User-created methods are never global
       popularityRank: 999, // Set high rank for custom methods so they appear after system methods
     });
-    
-    console.log(`[P2P Payment Method] Created custom payment method: ${paymentMethod.id} - ${paymentMethod.name} for user ${user.id}`);
+
+    logger.info("P2P_PAYMENT_METHOD", `Created custom payment method: ${paymentMethod.id} - ${paymentMethod.name} for user ${user.id}`);
 
     // Log activity
     await models.p2pActivityLog.create({
@@ -135,6 +141,8 @@ export default async (data: { body: any; user?: any }) => {
         icon: validatedData.icon,
       }),
     });
+
+    ctx?.success(`Created payment method: ${validatedData.name}`);
 
     return {
       message: "Payment method created successfully.",

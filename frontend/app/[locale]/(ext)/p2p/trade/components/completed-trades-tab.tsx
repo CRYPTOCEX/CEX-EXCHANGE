@@ -23,11 +23,12 @@ interface CompletedTradesTabProps {
 export function CompletedTradesTab({
   completedTrades,
 }: CompletedTradesTabProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("completed_trades")}</CardTitle>
+        <CardTitle>{tExt("completed_trades")}</CardTitle>
         <CardDescription>
           {t("your_successfully_completed_trades_history")}
         </CardDescription>
@@ -40,7 +41,7 @@ export function CompletedTradesTab({
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="h-10 px-4 text-left text-xs font-medium">
-                      {t("trade_id")}
+                      {tExt("trade_id")}
                     </th>
                     <th className="h-10 px-4 text-left text-xs font-medium">
                       Type
@@ -72,8 +73,8 @@ export function CompletedTradesTab({
                             variant="outline"
                             className={
                               trade.type === TRADE_TYPE.BUY
-                                ? "bg-green-100 text-green-800"
-                                : "bg-blue-100 text-blue-800"
+                                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                                : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
                             }
                           >
                             {trade.type === TRADE_TYPE.BUY ? "Buy" : "Sell"}

@@ -1,5 +1,6 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Create Global P2P Payment Method",
@@ -9,6 +10,8 @@ export const metadata = {
   tags: ["Admin", "P2P", "Payment Method"],
   requiresAuth: true,
   permission: "create.p2p.payment_method",
+  logModule: "ADMIN_P2P",
+  logTitle: "Create global payment method",
   requestBody: {
     description: "Global payment method data",
     required: true,
@@ -68,25 +71,28 @@ export const metadata = {
   },
 };
 
-export default async (data: { body: any; user?: any }) => {
-  const { body, user } = data;
-  
+export default async (data: { body: any; user?: any; ctx?: any }) => {
+  const { body, user, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   try {
+    ctx?.step("Validating required fields");
     // Validate required fields
     if (!body.name || !body.icon) {
+      ctx?.fail("Missing required fields");
       throw createError({
         statusCode: 400,
         message: "Name and icon are required fields",
       });
     }
 
+    ctx?.step("Checking for duplicate payment method");
     // Check for duplicate names among global methods
     const duplicate = await models.p2pPaymentMethod.findOne({
-      where: { 
+      where: {
         name: body.name,
         isGlobal: true,
         deletedAt: null,
@@ -94,12 +100,14 @@ export default async (data: { body: any; user?: any }) => {
     });
 
     if (duplicate) {
+      ctx?.fail("Duplicate payment method name");
       throw createError({
         statusCode: 400,
         message: "A global payment method with this name already exists",
       });
     }
 
+    ctx?.step("Sanitizing metadata");
     // Handle metadata - sanitize and store only string key-value pairs
     let sanitizedMetadata: Record<string, string> | null = null;
     if (body.metadata && typeof body.metadata === "object") {
@@ -114,6 +122,7 @@ export default async (data: { body: any; user?: any }) => {
       }
     }
 
+    ctx?.step("Creating global payment method");
     // Create the global payment method
     const paymentMethod = await models.p2pPaymentMethod.create({
       userId: null, // null for admin-created methods
@@ -128,9 +137,10 @@ export default async (data: { body: any; user?: any }) => {
       isGlobal: true, // Mark as global
       popularityRank: body.popularityRank || 0,
     });
-    
-    console.log(`[P2P Admin] Created global payment method: ${paymentMethod.id} - ${paymentMethod.name} by admin ${user.id}`);
 
+    logger.info("P2P", `Created global payment method: ${paymentMethod.id} - ${paymentMethod.name} by admin ${user.id}`);
+
+    ctx?.step("Logging admin activity");
     // Log admin activity
     await models.p2pActivityLog.create({
       userId: user.id,
@@ -148,6 +158,7 @@ export default async (data: { body: any; user?: any }) => {
       }),
     });
 
+    ctx?.success("Global payment method created successfully");
     return {
       message: "Global payment method created successfully.",
       paymentMethod: {
@@ -170,7 +181,8 @@ export default async (data: { body: any; user?: any }) => {
     if (err.statusCode) {
       throw err;
     }
-    
+
+    ctx?.fail("Failed to create global payment method");
     throw createError({
       statusCode: 500,
       message: "Failed to create global payment method: " + err.message,

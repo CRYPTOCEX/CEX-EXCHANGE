@@ -18,6 +18,7 @@ export default function TokenResourcesStep({
   errors,
 }: TokenResourcesStepProps) {
   const t = useTranslations("ext");
+  const tExtIco = useTranslations("ext_ico");
   const updateTokenDetail = (
     field: keyof FormData["tokenDetails"],
     value: string | string[]
@@ -69,7 +70,7 @@ export default function TokenResourcesStep({
             onClick={addUseOfFunds}
           >
             <Plus className="h-4 w-4 mr-1" />
-            {t("add_category")}
+            {tExtIco("add_category")}
           </Button>
         </div>
         {formData.tokenDetails.useOfFunds.map((item, index) => (

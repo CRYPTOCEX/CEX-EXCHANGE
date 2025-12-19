@@ -1,5 +1,6 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Get P2P Trade Details (Admin)",
@@ -7,6 +8,9 @@ export const metadata = {
   operationId: "getAdminP2PTradeById",
   tags: ["Admin", "Trades", "P2P"],
   requiresAuth: true,
+  logModule: "ADMIN_P2P",
+  logTitle: "Get P2P Trade",
+  demoMask: ["buyer.email", "seller.email"],
   parameters: [
     {
       index: 0,
@@ -27,10 +31,11 @@ export const metadata = {
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
   const { id } = params;
 
   try {
+    ctx?.step("Fetching data");
     const trade = await models.p2pTrade.findByPk(id, {
       include: [
         {
@@ -82,7 +87,7 @@ export default async (data) => {
       try {
         timelineData = JSON.parse(timelineData);
       } catch (e) {
-        console.error('Failed to parse timeline JSON:', e);
+        logger.error("P2P", "Failed to parse timeline JSON", e);
         timelineData = [];
       }
     }
@@ -150,6 +155,7 @@ export default async (data) => {
     // Extract dispute info if present
     const disputeData = tradeData.dispute || null;
 
+    ctx?.success("Trade details retrieved successfully");
     return {
       ...tradeData,
       crypto: tradeData.currency,

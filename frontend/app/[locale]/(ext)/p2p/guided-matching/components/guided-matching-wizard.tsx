@@ -125,7 +125,9 @@ const DEFAULT_FORM_DATA: FormData = {
 export function GuidedMatchingWizard({
   onComplete,
 }: GuidedMatchingWizardProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { hasKyc, canAccessFeature } = useUserStore();
   const { settings } = useConfigStore();
   const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
@@ -552,7 +554,7 @@ export function GuidedMatchingWizard({
             Step {step} of {totalSteps}
           </span>
           <span className="text-muted-foreground">
-            {Math.round(progress)}{t("complete")}
+            {Math.round(progress)}{tCommon("complete")}
           </span>
         </div>
         <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
@@ -587,7 +589,7 @@ export function GuidedMatchingWizard({
           >
             <div className="space-y-4">
               <h3 className="text-lg font-medium">
-                {t("what_would_you_like_to_do")}
+                {tExt("what_would_you_like_to_do")}
               </h3>
 
               <RadioGroup
@@ -837,7 +839,7 @@ export function GuidedMatchingWizard({
                       <div className="flex items-center gap-2 text-sm">
                         <Info className="h-4 w-4 text-primary" />
                         <span className="text-muted-foreground">
-                          {t("available")}{" "}
+                          {tCommon("available")}{" "}
                           <span className="font-medium text-foreground">
                             {getMaxSellAmount()?.toFixed(8)} {getCryptoSymbol()}
                           </span>
@@ -915,7 +917,7 @@ export function GuidedMatchingWizard({
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>
                           No {getCryptoSymbol()} {t("wallet_found_please_deposit")}{" "}
-                          {getCryptoSymbol()} {t("first")}
+                          {getCryptoSymbol()} {tExt("first")}
                         </AlertDescription>
                       </Alert>
                     )}
@@ -1040,12 +1042,12 @@ export function GuidedMatchingWizard({
                             </p>
                             {method.processingTime && (
                               <p className="text-xs text-muted-foreground">
-                                {t("processing")} {method.processingTime}
+                                {tCommon("processing")} {method.processingTime}
                               </p>
                             )}
                             {method.fees && (
                               <p className="text-xs text-muted-foreground">
-                                {t("fees")} {method.fees}
+                                {tCommon("fees")} {method.fees}
                               </p>
                             )}
                           </div>
@@ -1160,7 +1162,7 @@ export function GuidedMatchingWizard({
                             <TrendingUp className="h-5 w-5 text-primary" />
                           </div>
                           <div className="text-center">
-                            <p className="font-medium">{t("market_price")}</p>
+                            <p className="font-medium">{tCommon("market_price")}</p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {t("current_market_average")}
                             </p>
@@ -1274,7 +1276,7 @@ export function GuidedMatchingWizard({
                           <div className="text-center">
                             <p className="font-medium">{t("top_rated")}</p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              {t("_95_completion_rate")}
+                              {t("n_95_completion_rate")}
                             </p>
                           </div>
                         </div>
@@ -1324,14 +1326,14 @@ export function GuidedMatchingWizard({
                   <h4 className="font-medium mb-2">Summary</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t("trade_type")}</span>
+                      <span className="text-muted-foreground">{tCommon("trade_type")}</span>
                       <span className="font-medium capitalize">
                         {formData.tradeType}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        {t("wallet_type")}
+                        {tCommon("wallet_type")}
                       </span>
                       {loading.walletOptions ? (
                         <Skeleton className="h-4 w-20" />
@@ -1358,7 +1360,7 @@ export function GuidedMatchingWizard({
                       )}
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t("amount")}</span>
+                      <span className="text-muted-foreground">{tCommon("amount")}</span>
                       <span className="font-medium">
                         {formData.amount} {getCryptoSymbol()}
                       </span>
@@ -1366,7 +1368,7 @@ export function GuidedMatchingWizard({
                     {formData.tradeType === "sell" && walletData && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">
-                          {t("available_balance")}
+                          {tCommon("available_balance")}
                         </span>
                         <span className="font-medium">
                           {getMaxSellAmount()?.toFixed(8)} {getCryptoSymbol()}
@@ -1375,7 +1377,7 @@ export function GuidedMatchingWizard({
                     )}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        {t("payment_methods")}
+                        {tExt("payment_methods")}
                       </span>
                       {loading.paymentMethods ? (
                         <Skeleton className="h-4 w-20" />
@@ -1411,7 +1413,7 @@ export function GuidedMatchingWizard({
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t("location")}</span>
+                      <span className="text-muted-foreground">{tCommon("location")}</span>
                       {loading.locations ? (
                         <Skeleton className="h-4 w-20" />
                       ) : (

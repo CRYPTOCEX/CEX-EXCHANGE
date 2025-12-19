@@ -10,6 +10,8 @@ export const metadata: OperationObject = {
   operationId: "closeTicket",
   tags: ["Support"],
   requiresAuth: true,
+  logModule: "USER",
+  logTitle: "Close support ticket",
   parameters: [
     {
       index: 0,
@@ -24,7 +26,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { id } = data.params;
+  const { params, ctx } = data;
+  const { id } = params;
+
+  ctx?.step("Closing support ticket");
   await models.supportTicket.update(
     {
       status: "CLOSED",
@@ -34,11 +39,13 @@ export default async (data: Handler) => {
     }
   );
 
+  ctx?.step("Retrieving updated ticket");
   const ticket = await models.supportTicket.findOne({
     where: { id },
   });
 
   if (!ticket) {
+    ctx?.fail("Ticket not found");
     throw new Error("Ticket not found");
   }
 
@@ -46,6 +53,7 @@ export default async (data: Handler) => {
     id: ticket.id,
   };
 
+  ctx?.step("Broadcasting ticket closure via WebSocket");
   messageBroker.broadcastToSubscribedClients(`/api/user/support/ticket/${id}`, payload, {
     method: "update",
     data: {
@@ -54,6 +62,7 @@ export default async (data: Handler) => {
     },
   });
 
+  ctx?.success("Ticket closed successfully");
   return {
     message: "Ticket closed successfully",
   };

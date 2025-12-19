@@ -3,11 +3,14 @@ import { models } from "@b/db";
 import { parse } from "csv-parse/sync";
 import { hashPassword } from "@b/utils/passwords";
 import { v4 as uuidv4 } from "uuid";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Import users from CSV file",
   operationId: "importUsersFromCSV",
   tags: ["Admin", "CRM", "User"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Import users",
   requestBody: {
     required: true,
     content: {
@@ -97,12 +100,14 @@ interface CSVRecord {
 }
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
 
+  ctx?.step("Validating user authorization");
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized access" });
   }
 
+  ctx?.step("Validating CSV file upload");
   // Get data from body
   if (!body?.file) {
     throw createError({ statusCode: 400, message: "No CSV file uploaded" });
@@ -113,6 +118,7 @@ export default async (data: Handler) => {
   const sendWelcomeEmail = body?.sendWelcomeEmail === "true";
 
   try {
+    ctx?.step("Processing CSV file");
     // Handle different file data types
     let csvContent: string;
     
@@ -298,11 +304,12 @@ export default async (data: Handler) => {
       };
       } catch (mappingError: any) {
         // If there's an error mapping this record, skip it
-        console.error(`Error mapping record at index ${index}:`, mappingError.message);
+        logger.error("USER_IMPORT", `Error mapping record at index ${index}: ${mappingError.message}`);
         return null;
       }
     }).filter(record => record !== null); // Filter out null (invalid) records
 
+    ctx?.step("Fetching default role");
     // Get default role
     const defaultRole = await models.role.findOne({
       where: { name: "User" },
@@ -312,6 +319,7 @@ export default async (data: Handler) => {
       throw createError({ statusCode: 500, message: "Default role not found" });
     }
 
+    ctx?.step(`Importing ${records.length} users`);
     const imported: any[] = [];
     const errors: any[] = [];
     let importedCount = 0;
@@ -442,9 +450,9 @@ export default async (data: Handler) => {
             });
 
             // TODO: Email service integration - when email service is configured, send welcome email here
-            console.log(`Welcome notification queued for imported user: ${newUser.email}`);
+            logger.debug("USER_IMPORT", `Welcome notification queued for imported user: ${newUser.email}`);
           } catch (notifError) {
-            console.error(`Failed to send welcome notification to ${newUser.email}:`, notifError);
+            logger.error("USER_IMPORT", `Failed to send welcome notification to ${newUser.email}`, notifError);
           }
         }
 
@@ -484,6 +492,7 @@ export default async (data: Handler) => {
       summaryMessage = `Import completed with partial success. ${importedCount} user(s) imported, ${failedCount} failed.`;
     }
 
+    ctx?.success();
     return {
       message: summaryMessage,
       imported: importedCount,

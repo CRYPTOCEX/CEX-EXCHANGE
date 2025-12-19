@@ -1,6 +1,6 @@
 // /server/api/cron/index.get.ts
 
-import CronJobManager from "@b/utils/cron";
+import CronJobManager from "@b/cron";
 
 export const metadata: OperationObject = {
   summary: "Run the cron job",
@@ -42,10 +42,17 @@ export const metadata: OperationObject = {
     },
   },
   permission: "view.cron",
+  logModule: "ADMIN_SYSTEM",
+  logTitle: "Get Cron Jobs",
 };
 
-export default async () => {
+export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step("Fetching cron jobs");
   const cronJobManager = await CronJobManager.getInstance();
   const cronJobs = await cronJobManager.getCronJobs();
+
+  ctx?.success("Cron jobs retrieved successfully");
   return cronJobs;
 };

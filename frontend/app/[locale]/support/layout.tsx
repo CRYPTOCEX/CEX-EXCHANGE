@@ -25,7 +25,7 @@ export default function SupportLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen">
       <SiteHeader menu={supportMenu} />
-      <main className="mx-auto pt-14 md:pt-18">{children}</main>
+      <main className="mx-auto pt-16">{children}</main>
       <LiveChat />
       <Footer />
     </div>

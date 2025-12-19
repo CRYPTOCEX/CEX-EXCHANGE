@@ -35,6 +35,8 @@ export const metadata: OperationObject = {
     "Cancels an open futures trading order and refunds the unfulfilled amount.",
   operationId: "cancelFuturesOrder",
   tags: ["Futures", "Orders"],
+  logModule: "FUTURES",
+  logTitle: "Cancel futures order",
   parameters: [
     {
       index: 0,
@@ -72,15 +74,20 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, query, user } = data;
+  const { params, query, user, ctx } = data;
+
+  ctx?.step?.("Validating user authentication");
   if (!user?.id) {
+    ctx?.fail?.("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { id } = params;
   const { timestamp } = query;
 
+  ctx?.step?.("Validating request parameters");
   if (!id || !timestamp) {
+    ctx?.fail?.("Missing order ID or timestamp");
     throw createError({
       statusCode: 400,
       message: "Invalid request parameters",
@@ -88,20 +95,24 @@ export default async (data: Handler) => {
   }
 
   try {
+    ctx?.step?.(`Fetching order ${id}`);
     const order = await getOrderByUuid(user.id, id, timestamp);
     if (!order) {
+      ctx?.fail?.("Order not found");
       throw createError({
         statusCode: 404,
         message: "Order not found",
       });
     }
     if (order.status !== "OPEN") {
+      ctx?.fail?.("Order is not open");
       throw createError({
         statusCode: 400,
         message: "Order is not open",
       });
     }
 
+    ctx?.step?.(`Cancelling order for ${order.symbol}`);
     await cancelOrderByUuid(
       user.id,
       id,
@@ -116,21 +127,27 @@ export default async (data: Handler) => {
     const refundAmount = fromBigInt(order.cost) + fromBigInt(order.fee); // Refund the cost and fee
     const walletCurrency = order.side === "BUY" ? pair : currency;
 
-    const wallet = await getWallet(user.id, "FUTURES", walletCurrency);
+    ctx?.step?.(`Fetching ${walletCurrency} wallet for refund`);
+    const wallet = await getWallet(user.id, "FUTURES", walletCurrency, false, ctx);
     if (!wallet) {
+      ctx?.fail?.(`${walletCurrency} wallet not found`);
       throw createError({
         statusCode: 404,
         message: `${walletCurrency} wallet not found`,
       });
     }
 
+    ctx?.step?.(`Refunding ${refundAmount} ${walletCurrency}`);
     await updateWalletBalance(wallet, refundAmount, "add");
 
+    ctx?.step?.("Notifying matching engine of cancellation");
     const matchingEngine = await FuturesMatchingEngine.getInstance();
     await matchingEngine.handleOrderCancellation(id, order.symbol);
 
+    ctx?.success?.(`Order ${id} cancelled and refunded successfully`);
     return { message: "Order cancelled and balance refunded successfully" };
   } catch (error) {
+    ctx?.fail?.(`Failed to cancel order: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: `Failed to cancel order: ${error.message}`,

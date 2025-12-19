@@ -1,12 +1,16 @@
 "use client";
 
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { transactionAnalytics } from "./analytics";
+import { useColumns } from "./columns";
+import { useAnalytics } from "./analytics";
 import { useUserStore } from "@/store/user";
+import { useTranslations } from "next-intl";
 
 export default function TransactionPage() {
+  const t = useTranslations("common");
   const { user } = useUserStore();
+  const columns = useColumns();
+  const analytics = useAnalytics();
   return (
     <DataTable
       apiEndpoint="/api/finance/transaction"
@@ -15,13 +19,13 @@ export default function TransactionPage() {
         userId: user?.id,
       }}
       userAnalytics={true}
-      pageSize={10}
+      pageSize={12}
       canView={true}
       isParanoid={false}
-      title="Transactions History"
+      title={t("transactions_history")}
       itemTitle="Transaction"
       columns={columns}
-      analytics={transactionAnalytics}
+      analytics={analytics}
     />
   );
 }

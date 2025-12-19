@@ -4,7 +4,8 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 
-import { 
+import { logger } from "@b/utils/console";
+import {
   makeKlarnaRequest,
   convertFromKlarnaAmount,
   KLARNA_STATUS_MAPPING,
@@ -21,6 +22,8 @@ export const metadata: OperationObject = {
     "Handles the return URL from Klarna checkout, verifies the authorization token, and creates an order to complete the payment process.",
   operationId: "verifyKlarnaPayment",
   tags: ["Finance", "Deposit"],
+  logModule: "KLARNA_DEPOSIT",
+  logTitle: "Verify Klarna payment",
   requestBody: {
     description: "Authorization token from Klarna checkout",
     content: {
@@ -111,7 +114,8 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user) throw new Error("User not authenticated");
 
   const { authorization_token, session_id } = body;
@@ -202,24 +206,28 @@ export default async (data: Handler) => {
     if (orderStatus === "COMPLETED" || orderResponse.status === "AUTHORIZED") {
       // Find or create wallet
       const currency = transactionMetadata.purchase_currency;
-      let wallet = await models.wallet.findOne({
+      ctx?.step("Finding or creating wallet");
+  let wallet = await models.wallet.findOne({
         where: { userId: user.id, currency, type: "FIAT" },
       });
 
       if (!wallet) {
-        wallet = await models.wallet.create({
+      ctx?.step("Creating new wallet");
+      wallet = await models.wallet.create({
           userId: user.id,
           currency,
           type: "FIAT",
         });
       }
 
-      const currencyData = await models.currency.findOne({
+      ctx?.step("Validating currency");
+  const currencyData = await models.currency.findOne({
         where: { id: wallet.currency },
       });
 
       if (!currencyData) {
-        throw new Error("Currency not found");
+    ctx?.fail("Currency not found");
+    throw new Error("Currency not found");
       }
 
       const depositAmount = transaction.amount - transaction.fee;
@@ -227,7 +235,8 @@ export default async (data: Handler) => {
       newBalance = parseFloat(newBalance.toFixed(currencyData.precision || 2));
 
       // Use database transaction for consistency
-      const result = await sequelize.transaction(async (t) => {
+      ctx?.step("Starting database transaction");
+    const result = await sequelize.transaction(async (t) => {
         // Update transaction status
         await models.transaction.update(
           {
@@ -249,7 +258,8 @@ export default async (data: Handler) => {
         );
 
         // Update wallet balance
-        await models.wallet.update(
+        ctx?.step("Updating wallet balance");
+      await models.wallet.update(
           { balance: newBalance },
           {
             where: { id: wallet.id },
@@ -270,7 +280,9 @@ export default async (data: Handler) => {
           );
         }
 
-        return {
+        ctx?.success("Klarna deposit completed successfully");
+
+  return {
           transactionId: transaction.id,
           newBalance,
         };
@@ -278,7 +290,8 @@ export default async (data: Handler) => {
 
              // Send confirmation email
        try {
-         await sendFiatTransactionEmail(
+         ctx?.step("Sending notification email");
+    await sendFiatTransactionEmail(
            user,
            {
              ...transaction.dataValues,
@@ -291,7 +304,7 @@ export default async (data: Handler) => {
            newBalance
          );
       } catch (emailError) {
-        console.error("Failed to send confirmation email:", emailError);
+        logger.error("KLARNA", "Failed to send confirmation email", emailError);
         // Don't throw error for email failure
       }
 

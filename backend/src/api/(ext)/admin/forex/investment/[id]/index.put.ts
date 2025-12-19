@@ -2,9 +2,10 @@ import { updateRecord, updateRecordResponses } from "@b/utils/query";
 import { forexInvestmentUpdateSchema } from "../utils";
 
 export const metadata: OperationObject = {
-  summary: "Updates a specific Forex Investment",
+  summary: "Updates a Forex investment",
+  description: "Updates an existing Forex investment record by its ID. Can modify user, plan, duration, amount, profit, result, status, and end date.",
   operationId: "updateForexInvestment",
-  tags: ["Admin", "Forex Investments"],
+  tags: ["Admin", "Forex", "Investment"],
   parameters: [
     {
       index: 0,
@@ -28,10 +29,12 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Forex Investment"),
   requiresAuth: true,
   permission: "edit.forex.investment",
+  logModule: "ADMIN_FOREX",
+  logTitle: "Update forex investment",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     userId,
@@ -44,7 +47,10 @@ export default async (data) => {
     endDate,
   } = body;
 
-  return await updateRecord("forexInvestment", id, {
+  ctx?.step("Validating forex investment data");
+
+  ctx?.step(`Updating forex investment ${id}`);
+  const investmentResult = await updateRecord("forexInvestment", id, {
     userId,
     planId,
     durationId,
@@ -54,4 +60,7 @@ export default async (data) => {
     status,
     endDate,
   });
+
+  ctx?.success("Forex investment updated successfully");
+  return investmentResult;
 };

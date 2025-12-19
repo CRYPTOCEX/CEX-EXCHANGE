@@ -1,4 +1,14 @@
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
+
+/**
+ * LogContext interface for operation logging
+ */
+export interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
 
 /**
  * Audit event types for P2P operations
@@ -75,11 +85,15 @@ export interface P2PAuditLog {
 /**
  * Create a comprehensive audit log entry
  */
-export async function createP2PAuditLog(log: P2PAuditLog): Promise<void> {
+export async function createP2PAuditLog(log: P2PAuditLog, ctx?: LogContext): Promise<void> {
   try {
+    ctx?.step?.("Creating P2P audit log entry");
+
     // Determine risk level if not provided
     const riskLevel = log.riskLevel || determineRiskLevel(log.eventType, log.metadata);
-    
+
+    ctx?.step?.(`Determined risk level: ${riskLevel}`);
+
     // Create the audit log entry with correct field names
     await models.p2pActivityLog.create({
       userId: log.userId,
@@ -95,13 +109,19 @@ export async function createP2PAuditLog(log: P2PAuditLog): Promise<void> {
         adminId: log.adminId,
       }),
     });
-    
+
+    ctx?.step?.("Audit log entry created");
+
     // For high-risk events, create additional alert
     if (riskLevel === P2PRiskLevel.HIGH || riskLevel === P2PRiskLevel.CRITICAL) {
-      await createSecurityAlert(log, riskLevel);
+      ctx?.step?.("Creating security alert for high-risk event");
+      await createSecurityAlert(log, riskLevel, ctx);
     }
+
+    ctx?.success?.("P2P audit log created successfully");
   } catch (error) {
-    console.error("Failed to create P2P audit log:", error);
+    ctx?.fail?.((error as Error).message || "Failed to create audit log");
+    logger.error("P2P_AUDIT", "Failed to create audit log", error);
     // Audit logging should not break the main flow
   }
 }
@@ -109,8 +129,10 @@ export async function createP2PAuditLog(log: P2PAuditLog): Promise<void> {
 /**
  * Create a batch of audit logs (for complex operations)
  */
-export async function createP2PAuditLogBatch(logs: P2PAuditLog[]): Promise<void> {
+export async function createP2PAuditLogBatch(logs: P2PAuditLog[], ctx?: LogContext): Promise<void> {
   try {
+    ctx?.step?.(`Creating batch of ${logs.length} audit log entries`);
+
     const auditEntries = logs.map(log => ({
       userId: log.userId,
       type: log.eventType,
@@ -125,10 +147,13 @@ export async function createP2PAuditLogBatch(logs: P2PAuditLog[]): Promise<void>
         adminId: log.adminId,
       }),
     }));
-    
+
     await models.p2pActivityLog.bulkCreate(auditEntries);
+
+    ctx?.success?.(`Batch of ${logs.length} audit log entries created successfully`);
   } catch (error) {
-    console.error("Failed to create P2P audit log batch:", error);
+    ctx?.fail?.((error as Error).message || "Failed to create audit log batch");
+    logger.error("P2P_AUDIT", "Failed to create audit log batch", error);
   }
 }
 
@@ -175,8 +200,10 @@ function determineRiskLevel(eventType: P2PAuditEventType, metadata: any): P2PRis
 /**
  * Create security alert for high-risk events
  */
-async function createSecurityAlert(log: P2PAuditLog, riskLevel: P2PRiskLevel): Promise<void> {
+async function createSecurityAlert(log: P2PAuditLog, riskLevel: P2PRiskLevel, ctx?: LogContext): Promise<void> {
   try {
+    ctx?.step?.("Sending security alert to admins");
+
     // Create notification for admins
     const { notifyAdmins } = await import("./notifications");
 
@@ -193,7 +220,9 @@ async function createSecurityAlert(log: P2PAuditLog, riskLevel: P2PRiskLevel): P
     });
 
     // Log to console for additional monitoring
-    console.log(`[P2P SECURITY] ${riskLevel} risk event: ${log.eventType} for ${log.entityType} ${log.entityId}`);
+    logger.warn("P2P_SECURITY", `${riskLevel} risk event: ${log.eventType} for ${log.entityType} ${log.entityId}`);
+
+    ctx?.step?.("Security alert sent successfully");
 
     // TODO: Send to external security monitoring system (e.g., Sentry, DataDog)
     // if (process.env.SECURITY_MONITORING_ENABLED === "true") {
@@ -204,7 +233,8 @@ async function createSecurityAlert(log: P2PAuditLog, riskLevel: P2PRiskLevel): P
     //   });
     // }
   } catch (error) {
-    console.error("Failed to create security alert:", error);
+    ctx?.fail?.((error as Error).message || "Failed to create security alert");
+    logger.error("P2P_SECURITY", "Failed to create security alert", error);
   }
 }
 
@@ -283,34 +313,45 @@ export async function getP2PAuditLogs(
     endDate?: Date;
     eventTypes?: P2PAuditEventType[];
     riskLevels?: P2PRiskLevel[];
-  }
+  },
+  ctx?: LogContext
 ) {
-  const where: any = {
-    relatedEntity: entityType,
-    relatedEntityId: entityId,
-  };
-  
-  if (options?.startDate || options?.endDate) {
-    where.createdAt = {};
-    if (options.startDate) where.createdAt.$gte = options.startDate;
-    if (options.endDate) where.createdAt.$lte = options.endDate;
+  try {
+    ctx?.step?.(`Fetching audit logs for ${entityType} ${entityId}`);
+
+    const where: any = {
+      relatedEntity: entityType,
+      relatedEntityId: entityId,
+    };
+
+    if (options?.startDate || options?.endDate) {
+      where.createdAt = {};
+      if (options.startDate) where.createdAt.$gte = options.startDate;
+      if (options.endDate) where.createdAt.$lte = options.endDate;
+    }
+
+    if (options?.eventTypes?.length) {
+      where.type = { $in: options.eventTypes };
+    }
+
+    const logs = await models.p2pActivityLog.findAll({
+      where,
+      limit: options?.limit || 100,
+      offset: options?.offset || 0,
+      order: [["createdAt", "DESC"]],
+      include: [{
+        model: models.user,
+        as: "user",
+        attributes: ["id", "firstName", "lastName", "email"],
+      }],
+    });
+
+    ctx?.success?.(`Retrieved ${logs.length} audit log entries`);
+    return logs;
+  } catch (error) {
+    ctx?.fail?.((error as Error).message || "Failed to fetch audit logs");
+    throw error;
   }
-  
-  if (options?.eventTypes?.length) {
-    where.type = { $in: options.eventTypes };
-  }
-  
-  return models.p2pActivityLog.findAll({
-    where,
-    limit: options?.limit || 100,
-    offset: options?.offset || 0,
-    order: [["createdAt", "DESC"]],
-    include: [{
-      model: models.user,
-      as: "user",
-      attributes: ["id", "firstName", "lastName", "email"],
-    }],
-  });
 }
 
 /**
@@ -323,49 +364,64 @@ export async function exportP2PAuditLogs(
     entityTypes?: string[];
     eventTypes?: P2PAuditEventType[];
     userIds?: string[];
-  }
+  },
+  ctx?: LogContext
 ): Promise<any[]> {
-  const where: any = {
-    createdAt: {
-      $gte: startDate,
-      $lte: endDate,
-    },
-  };
-  
-  if (options?.entityTypes?.length) {
-    where.relatedEntity = { $in: options.entityTypes };
+  try {
+    ctx?.step?.("Exporting audit logs for compliance");
+
+    const where: any = {
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    };
+
+    if (options?.entityTypes?.length) {
+      where.relatedEntity = { $in: options.entityTypes };
+    }
+
+    if (options?.eventTypes?.length) {
+      where.type = { $in: options.eventTypes };
+    }
+
+    if (options?.userIds?.length) {
+      where.userId = { $in: options.userIds };
+    }
+
+    ctx?.step?.("Fetching audit logs from database");
+
+    const logs = await models.p2pActivityLog.findAll({
+      where,
+      order: [["createdAt", "ASC"]],
+      include: [{
+        model: models.user,
+        as: "user",
+        attributes: ["id", "firstName", "lastName", "email"],
+      }],
+    });
+
+    ctx?.step?.(`Processing ${logs.length} audit log entries`);
+
+    const exportData = logs.map(log => ({
+      id: log.id,
+      timestamp: log.createdAt,
+      userId: log.userId,
+      userName: log.user ? `${log.user.firstName} ${log.user.lastName}` : "Unknown",
+      userEmail: log.user?.email,
+      eventType: log.type,
+      entityType: log.relatedEntity,
+      entityId: log.relatedEntityId,
+      metadata: log.details ? JSON.parse(log.details) : {},
+      riskLevel: log.details ? JSON.parse(log.details).riskLevel : undefined,
+      isAdminAction: log.details ? JSON.parse(log.details).isAdminAction : false,
+      adminId: log.details ? JSON.parse(log.details).adminId : undefined,
+    }));
+
+    ctx?.success?.(`Exported ${exportData.length} audit log entries`);
+    return exportData;
+  } catch (error) {
+    ctx?.fail?.((error as Error).message || "Failed to export audit logs");
+    throw error;
   }
-  
-  if (options?.eventTypes?.length) {
-    where.type = { $in: options.eventTypes };
-  }
-  
-  if (options?.userIds?.length) {
-    where.userId = { $in: options.userIds };
-  }
-  
-  const logs = await models.p2pActivityLog.findAll({
-    where,
-    order: [["createdAt", "ASC"]],
-    include: [{
-      model: models.user,
-      as: "user",
-      attributes: ["id", "firstName", "lastName", "email"],
-    }],
-  });
-  
-  return logs.map(log => ({
-    id: log.id,
-    timestamp: log.createdAt,
-    userId: log.userId,
-    userName: log.user ? `${log.user.firstName} ${log.user.lastName}` : "Unknown",
-    userEmail: log.user?.email,
-    eventType: log.type,
-    entityType: log.relatedEntity,
-    entityId: log.relatedEntityId,
-    metadata: log.details ? JSON.parse(log.details) : {},
-    riskLevel: log.details ? JSON.parse(log.details).riskLevel : undefined,
-    isAdminAction: log.details ? JSON.parse(log.details).isAdminAction : false,
-    adminId: log.details ? JSON.parse(log.details).adminId : undefined,
-  }));
 }

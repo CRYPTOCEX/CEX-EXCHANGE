@@ -7,48 +7,37 @@ class Router {
     }
 
     init() {
-        // Handle browser navigation
-        window.addEventListener('popstate', () => {
-            this.handleRoute();
-        });
-
         // Setup navigation listeners
         this.setupNavigationListeners();
-        
+
         // Delay initial route handling until after app initialization
         setTimeout(() => {
-            this.handleRoute();
+            this.handleInitialRoute();
         }, 500);
     }
 
     setupNavigationListeners() {
         // Handle navigation links
         document.addEventListener('click', (e) => {
-            if (e.target.matches('[data-route]') || e.target.matches('[data-tab]') || e.target.matches('.sidebar-item')) {
-                e.preventDefault();
-                const route = e.target.getAttribute('data-route') || 
-                             e.target.getAttribute('data-tab') ||
-                             e.target.getAttribute('href')?.replace('#', '');
-                if (route) {
-                    this.navigateTo(route);
-                }
-            }
-        });
+            const target = e.target.closest('[data-route]') ||
+                          e.target.closest('[data-tab]') ||
+                          e.target.closest('[data-page]') ||
+                          e.target.closest('.sidebar-item');
 
-        // Handle tab switching
-        document.addEventListener('click', (e) => {
-            if (e.target.matches('.nav-tab')) {
+            if (target) {
                 e.preventDefault();
-                // Remove active class from all tabs
-                document.querySelectorAll('.nav-tab').forEach(tab => 
-                    tab.classList.remove('active')
-                );
-                // Add active class to clicked tab
-                e.target.classList.add('active');
-                
-                // Get route from tab
-                const route = e.target.getAttribute('data-route') || 
-                            e.target.getAttribute('href')?.replace('#', '');
+
+                // Check for page navigation first
+                const pageId = target.getAttribute('data-page');
+                if (pageId && window.PageRouter) {
+                    window.PageRouter.navigateTo(pageId);
+                    return;
+                }
+
+                // Regular tab/route navigation
+                const route = target.getAttribute('data-route') ||
+                             target.getAttribute('data-tab') ||
+                             target.getAttribute('href')?.replace('#', '');
                 if (route) {
                     this.navigateTo(route);
                 }
@@ -60,31 +49,62 @@ class Router {
         this.routes.set(path, handler);
     }
 
-    navigateTo(path) {
+    navigateTo(path, pushState = true) {
         if (path !== this.currentRoute) {
             this.currentRoute = path;
-            
-            // Update URL without page reload
-            const url = path === this.defaultRoute ? '/' : `#${path}`;
-            history.pushState({ route: path }, '', url);
-            
+
+            // Clear any active page when switching to a tab
+            if (window.PageRouter) {
+                window.PageRouter.clearCurrentPage();
+            }
+
             // Execute route handler
             this.executeRoute(path);
-            
+
             // Update active navigation
             this.updateNavigation(path);
+
+            // Update browser URL without page refresh
+            if (pushState) {
+                const url = path === this.defaultRoute ? '/' : `/${path}`;
+                history.pushState({ type: 'tab', tabId: path }, `${path} - Translation Manager`, url);
+            }
+
+            // Update document title
+            document.title = `${this.formatTitle(path)} - Translation Manager`;
         }
     }
 
-    handleRoute() {
-        let path = window.location.hash.replace('#', '');
-        if (!path || path === '/') {
-            path = this.defaultRoute;
+    formatTitle(path) {
+        return path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, ' ');
+    }
+
+    handleInitialRoute() {
+        const path = window.location.pathname.replace(/^\//, '');
+
+        // First check if PageRouter can handle it (for pages)
+        if (path && window.PageRouter && window.PageRouter.hasPage(path)) {
+            window.PageRouter.navigateTo(path, false);
+            return;
         }
-        
-        this.currentRoute = path;
-        this.executeRoute(path);
-        this.updateNavigation(path);
+
+        // Check if it's a registered tab route
+        if (path && this.routes.has(path)) {
+            this.currentRoute = path;
+            this.executeRoute(path);
+            this.updateNavigation(path);
+            return;
+        }
+
+        // Default to dashboard
+        this.currentRoute = this.defaultRoute;
+        this.executeRoute(this.defaultRoute);
+        this.updateNavigation(this.defaultRoute);
+
+        // Set initial state for root URL
+        if (!path) {
+            history.replaceState({ type: 'tab', tabId: this.defaultRoute }, 'Dashboard - Translation Manager', '/');
+        }
     }
 
     executeRoute(path) {
@@ -106,20 +126,17 @@ class Router {
     }
 
     updateNavigation(activePath) {
-        // Update tab states
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            const tabRoute = tab.getAttribute('data-route') || 
-                           tab.getAttribute('href')?.replace('#', '');
-            
-            if (tabRoute === activePath) {
-                tab.classList.add('active');
+        // Update sidebar item states
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            const itemRoute = item.getAttribute('data-tab') ||
+                             item.getAttribute('data-route');
+
+            if (itemRoute === activePath) {
+                item.classList.add('active');
             } else {
-                tab.classList.remove('active');
+                item.classList.remove('active');
             }
         });
-
-        // Don't manipulate tab content here - let app.js showTab() handle it
-        // The route handler will call showTab() which properly manages visibility
     }
 
     getCurrentRoute() {

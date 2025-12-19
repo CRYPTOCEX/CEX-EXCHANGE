@@ -1,6 +1,7 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { authenticator } from "otplib";
+import { logger } from "@b/utils/console";
 
 import * as crypto from "crypto";
 
@@ -35,7 +36,7 @@ try {
   }
 } catch (error) {
   // If any error occurs, use a hash-based fallback
-  console.warn("Failed to process APP_VERIFY_TOKEN_SECRET, using fallback key generation");
+  logger.warn("AUTH", "Failed to process APP_VERIFY_TOKEN_SECRET, using fallback key generation");
   ENC_KEY = crypto.createHash("sha256").update(APP_VERIFY_TOKEN_SECRET || "fallback-secret").digest();
 }
 

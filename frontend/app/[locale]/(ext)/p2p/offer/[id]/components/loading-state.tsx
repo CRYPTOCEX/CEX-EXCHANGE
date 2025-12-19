@@ -5,14 +5,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
 export function LoadingState() {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
     <div className="container max-w-7xl mx-auto py-12">
       <div className="flex items-center mb-8">
         <Link href="/p2p/offer" className="mr-4">
           <Button variant="outline" size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t("back_to_offers")}
+            {tCommon('back_to_offerings')}
           </Button>
         </Link>
         <Skeleton className="h-10 w-64" />

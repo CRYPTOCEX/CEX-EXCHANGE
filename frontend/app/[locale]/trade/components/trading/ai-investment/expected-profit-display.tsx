@@ -10,7 +10,7 @@ export default function ExpectedProfitDisplay({
   profitPercentage,
   currency,
 }: ExpectedProfitDisplayProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   // Calculate expected profit
   const profit = (investmentAmount * profitPercentage) / 100;
 

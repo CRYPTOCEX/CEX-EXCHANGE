@@ -18,6 +18,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 // Types for our components
 interface GuideProps {
@@ -261,6 +262,8 @@ const TabFooter = ({
   onClose: () => void;
   isLastTab: boolean;
 }) => {
+  const tCommon = useTranslations("common");
+  const tDashboard = useTranslations("dashboard");
   return (
     <div className="flex justify-between">
       <Button variant="outline" onClick={() => setActiveTab(activeTab - 1)}>
@@ -271,14 +274,14 @@ const TabFooter = ({
           onClick={onClose}
           className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
         >
-          Get Started
+          {tCommon("get_started")}
         </Button>
       ) : (
         <Button
           onClick={() => setActiveTab(activeTab + 1)}
           className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
         >
-          Next:{" "}
+          {tCommon("next")}:{" "}
           {activeTab === 0
             ? "Adding Fields"
             : activeTab === 1
@@ -299,6 +302,8 @@ const OverviewTab = ({
 }: {
   setActiveTab: (id: number) => void;
 }) => {
+  const tDashboard = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   return (
     <motion.div
       key="overview"
@@ -351,40 +356,39 @@ const OverviewTab = ({
           </motion.div>
         </div>
         <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-          Welcome to the Level Builder
+          {tCommon("welcome_to_the_level_builder")}
         </h2>
         <p className="text-muted-foreground mt-2 max-w-md">
-          Create powerful, customized verification levels for your KYC process
-          with our intuitive drag-and-drop builder.
+          {tDashboard("create_powerful_customized_verification_levels_for")}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FeatureCard
           icon={<DragDropIcon className="h-5 w-5" />}
-          title="Drag & Drop Interface"
-          description="Easily build forms by dragging fields from the library onto your canvas. Arrange them in any order with simple drag and drop."
+          title={tDashboard("drag_drop_interface")}
+          description={`${tDashboard("easily_build_forms_by_dragging_fields")} ${tDashboard("arrange_them_in_any_order_with")}`}
           color="blue"
           delay={0.2}
         />
         <FeatureCard
           icon={<Settings className="h-5 w-5" />}
-          title="Advanced Customization"
-          description="Configure field properties, validation rules, and conditional logic to create sophisticated verification flows."
+          title={tDashboard("advanced_customization")}
+          description={tDashboard("configure_field_properties_validation_rules_and")}
           color="purple"
           delay={0.3}
         />
         <FeatureCard
           icon={<Eye className="h-5 w-5" />}
-          title="Live Preview"
-          description="See exactly how your form will appear to users with our real-time preview. Test functionality before publishing."
+          title={tCommon("live_preview")}
+          description={`${tDashboard("see_exactly_how_your_form_will")} ${tDashboard("test_functionality_before_publishing")}`}
           color="indigo"
           delay={0.4}
         />
         <FeatureCard
           icon={<ListRestart className="h-5 w-5" />}
-          title="Ready-to-Use Templates"
-          description="Start quickly with pre-built templates for common verification scenarios, then customize to your needs."
+          title={tDashboard("ready_to_use_templates")}
+          description={tDashboard("start_quickly_with_pre_built_templates")}
           color="cyan"
           delay={0.5}
         />
@@ -395,13 +399,15 @@ const OverviewTab = ({
           onClick={() => setActiveTab(1)}
           className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
         >
-          Get Started <ChevronRight className="ml-2 h-4 w-4" />
+          {tCommon("get_started")} <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </motion.div>
   );
 };
 const AddingFieldsTab = () => {
+  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   return (
     <motion.div
       key="adding-fields"
@@ -417,50 +423,51 @@ const AddingFieldsTab = () => {
       className="space-y-6"
     >
       <h3 className="text-xl font-semibold text-blue-800 dark:text-blue-300">
-        Adding Fields to Your Form
+        {tCommon("adding_fields_to_your_form")}
       </h3>
 
-      <SectionCard title="Drag & Drop Method" color="blue">
+      <SectionCard title={t("drag_drop_method")} color="blue">
         <ol className="space-y-4">
           <StepItem
             number={1}
-            title="Select a field type"
-            description="Browse the field library in the left sidebar to find the type of field you need."
+            title={t("select_a_field_type")}
+            description={t("browse_the_field_library_in_the")}
             color="blue"
           />
           <StepItem
             number={2}
-            title="Drag to canvas"
-            description="Click and drag the field from the sidebar onto the main canvas area."
+            title={t("drag_to_canvas")}
+            description={t("click_and_drag_the_field_from")}
             color="blue"
           />
           <StepItem
             number={3}
-            title="Position your field"
-            description="Drop the field where you want it to appear in the form. You can reorder fields by dragging them up or down."
+            title={t("position_your_field")}
+            description={`${t("drop_the_field_where_you_want")} ${t("you_can_reorder_fields_by_dragging_them_up_or_down")}`}
             color="blue"
           />
         </ol>
       </SectionCard>
 
-      <SectionCard title="Available Field Types" color="indigo">
+      <SectionCard title={t("available_field_types")} color="indigo">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <FieldType title="Text" description="Single line text input" />
-          <FieldType title="Textarea" description="Multi-line text input" />
-          <FieldType title="Select" description="Dropdown selection" />
-          <FieldType title="Checkbox" description="Multiple selection" />
-          <FieldType title="Radio" description="Single selection" />
-          <FieldType title="File" description="Document upload" />
+          <FieldType title="Text" description={t("single_line_text_input")} />
+          <FieldType title="Textarea" description={t("multi_line_text_input")} />
+          <FieldType title="Select" description={t("dropdown_selection")} />
+          <FieldType title="Checkbox" description={tCommon("multiple_selection")} />
+          <FieldType title="Radio" description={t("single_selection")} />
+          <FieldType title="File" description={t("document_upload")} />
         </div>
         <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-3">
-          And more: Date, Number, Email, Phone, Address fields are also
-          available.
+          {t("and_more_date_number_email_phone")}
         </p>
       </SectionCard>
     </motion.div>
   );
 };
 const EditingTab = () => {
+  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   return (
     <motion.div
       key="editing"
@@ -476,67 +483,62 @@ const EditingTab = () => {
       className="space-y-6"
     >
       <h3 className="text-xl font-semibold text-purple-800 dark:text-purple-300">
-        Editing Field Properties
+        {tCommon("editing_field_properties")}
       </h3>
 
-      <SectionCard title="Basic Properties" color="purple">
+      <SectionCard title={t("basic_properties")} color="purple">
         <ul className="space-y-3">
           <BulletItem color="purple">
             <p className="text-purple-800 dark:text-purple-200 font-medium">
-              Label & Description
+              {tCommon("label_description")}
             </p>
             <p className="text-sm text-purple-700 dark:text-purple-400 mt-0.5">
-              Set the field label that users will see and add an optional
-              description for clarity.
+              {t("set_the_field_label_that_users")}
             </p>
           </BulletItem>
           <BulletItem color="purple">
             <p className="text-purple-800 dark:text-purple-200 font-medium">
-              Required Field
+              {tCommon("required_field")}
             </p>
             <p className="text-sm text-purple-700 dark:text-purple-400 mt-0.5">
-              Toggle whether the field is mandatory for form submission.
+              {t("toggle_whether_the_field_is_mandatory")}
             </p>
           </BulletItem>
           <BulletItem color="purple">
             <p className="text-purple-800 dark:text-purple-200 font-medium">
-              Placeholder Text
+              {tCommon("placeholder_text")}
             </p>
             <p className="text-sm text-purple-700 dark:text-purple-400 mt-0.5">
-              Add example text that appears in the field before the user enters
-              information.
+              {t("add_example_text_that_appears_in")}
             </p>
           </BulletItem>
         </ul>
       </SectionCard>
 
-      <SectionCard title="Advanced Settings" color="indigo">
+      <SectionCard title={t("advanced_settings")} color="indigo">
         <ul className="space-y-3">
           <BulletItem color="indigo">
             <p className="text-indigo-800 dark:text-indigo-200 font-medium">
-              Validation Rules
+              {tCommon("validation_rules")}
             </p>
             <p className="text-sm text-indigo-700 dark:text-indigo-400 mt-0.5">
-              Set rules for data format, minimum/maximum values, or character
-              limits.
+              {t("set_rules_for_data_format_minimum")}
             </p>
           </BulletItem>
           <BulletItem color="indigo">
             <p className="text-indigo-800 dark:text-indigo-200 font-medium">
-              Conditional Logic
+              {tCommon("conditional_logic")}
             </p>
             <p className="text-sm text-indigo-700 dark:text-indigo-400 mt-0.5">
-              Make fields appear or hide based on values entered in other
-              fields.
+              {t("make_fields_appear_or_hide_based")}
             </p>
           </BulletItem>
           <BulletItem color="indigo">
             <p className="text-indigo-800 dark:text-indigo-200 font-medium">
-              Field Options
+              {tCommon("field_options")}
             </p>
             <p className="text-sm text-indigo-700 dark:text-indigo-400 mt-0.5">
-              For select, checkbox, and radio fields, define the available
-              options.
+              {t("for_select_checkbox_and_radio_fields")}
             </p>
           </BulletItem>
         </ul>
@@ -545,6 +547,8 @@ const EditingTab = () => {
   );
 };
 const PreviewTab = () => {
+  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   return (
     <motion.div
       key="preview"
@@ -560,13 +564,12 @@ const PreviewTab = () => {
       className="space-y-6"
     >
       <h3 className="text-xl font-semibold text-cyan-800 dark:text-cyan-300">
-        Preview & Testing
+        {tCommon("preview_testing")}
       </h3>
 
-      <SectionCard title="Live Preview Mode" color="cyan">
+      <SectionCard title={t("live_preview_mode")} color="cyan">
         <p className="text-sm text-cyan-700 dark:text-cyan-400 mb-4">
-          The preview mode lets you see and interact with your form exactly as
-          users will experience it.
+          {t("the_preview_mode_lets_you_see")}
         </p>
 
         <div className="bg-white dark:bg-cyan-900/20 rounded-lg p-4 border border-cyan-200 dark:border-cyan-800 mb-4">
@@ -574,21 +577,21 @@ const PreviewTab = () => {
             <div className="flex items-center gap-2">
               <Eye className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
               <span className="text-sm font-medium text-cyan-800 dark:text-cyan-300">
-                Preview Features
+                {tCommon("preview_features")}
               </span>
             </div>
           </div>
           <ul className="space-y-2">
             <BulletItem color="cyan">
-              Test form validation and error messages
+              {tCommon("test_form_validation_and_error_messages")}
             </BulletItem>
             <BulletItem color="cyan">
-              See conditional logic in action
+              {tCommon("see_conditional_logic_in_action")}
             </BulletItem>
             <BulletItem color="cyan">
-              Preview on different device sizes
+              {tCommon("preview_on_different_device_sizes")}
             </BulletItem>
-            <BulletItem color="cyan">Test the complete user flow</BulletItem>
+            <BulletItem color="cyan">{tCommon("test_the_complete_user_flow")}</BulletItem>
           </ul>
         </div>
 
@@ -597,16 +600,14 @@ const PreviewTab = () => {
             <Zap className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
           </div>
           <p className="text-sm text-cyan-800 dark:text-cyan-300">
-            <span className="font-medium">Pro Tip:</span> Always test your form
-            thoroughly in preview mode before publishing.
+            <span className="font-medium">{t("pro_tip_1")}:</span> {t("always_test_your_form_thoroughly_in")}
           </p>
         </div>
       </SectionCard>
 
-      <SectionCard title="Responsive Testing" color="blue">
+      <SectionCard title={t("responsive_testing")} color="blue">
         <p className="text-sm text-blue-700 dark:text-blue-400 mb-4">
-          Ensure your form looks great on all devices by testing different
-          screen sizes.
+          {t("ensure_your_form_looks_great_on")}
         </p>
 
         <div className="flex flex-wrap gap-4 justify-center">
@@ -642,6 +643,8 @@ const PreviewTab = () => {
   );
 };
 const PublishingTab = () => {
+  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   return (
     <motion.div
       key="publishing"
@@ -657,53 +660,53 @@ const PublishingTab = () => {
       className="space-y-6"
     >
       <h3 className="text-xl font-semibold text-green-800 dark:text-green-300">
-        Saving & Publishing
+        {tCommon("saving_publishing")}
       </h3>
 
-      <SectionCard title="Publishing Workflow" color="green">
+      <SectionCard title={t("publishing_workflow")} color="green">
         <ol className="space-y-4">
           <StepItem
             number={1}
-            title="Save Your Level"
-            description="Click the 'Save Changes' button to store your level configuration. This will save your work but won't make it available to users yet."
+            title={t("save_your_level")}
+            description={`${t("click_the_save_changes_button_to")} ${t("this_will_save_your_work_but")}`}
             color="green"
           />
           <StepItem
             number={2}
-            title="Set Status to Published"
-            description="Change the level status from 'Draft' to 'Published' when you're ready to make it available to users."
+            title={t("set_status_to_published")}
+            description={t("change_the_level_status_from_draft")}
             color="green"
           />
           <StepItem
             number={3}
-            title="Monitor & Update"
-            description="Track user submissions and make updates to your level as needed. You can archive levels that are no longer in use."
+            title={t("monitor_update")}
+            description={`${t("track_user_submissions_and_make_updates")} ${t("you_can_archive_levels_that_are_no_longer_in_use")}`}
             color="green"
           />
         </ol>
       </SectionCard>
 
-      <SectionCard title="Status Options" color="blue">
+      <SectionCard title={t("status_options")} color="blue">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <StatusOption
             color="amber"
             title="Draft"
-            description="In development, not visible to users"
+            description={t("in_development_not_visible_to_users")}
           />
           <StatusOption
             color="green"
             title="Published"
-            description="Live and available to users"
+            description={t("live_and_available_to_users")}
           />
           <StatusOption
             color="gray"
             title="Archived"
-            description="No longer in use, but preserved"
+            description={tCommon("no_longer_in_use_but_preserved")}
           />
         </div>
       </SectionCard>
 
-      <SectionCard title="Best Practices" color="indigo">
+      <SectionCard title={t("best_practices")} color="indigo">
         <div className="flex items-center gap-3 mb-3">
           <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-full">
             <Save className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
@@ -711,16 +714,16 @@ const PublishingTab = () => {
         </div>
         <ul className="space-y-2">
           <BulletItem color="green">
-            Test thoroughly in preview mode before publishing
+            {tCommon("test_thoroughly_in_preview_mode_before_publishing")}
           </BulletItem>
           <BulletItem color="green">
-            Create clear, descriptive field labels and instructions
+            {t("create_clear_descriptive_and_instructions")}
           </BulletItem>
           <BulletItem color="green">
-            Use validation rules to ensure data quality
+            {tCommon("use_validation_rules_to_ensure_data_quality")}
           </BulletItem>
           <BulletItem color="green">
-            Keep forms concise and focused on essential information
+            {t("keep_forms_concise_essential_information")}
           </BulletItem>
         </ul>
       </SectionCard>

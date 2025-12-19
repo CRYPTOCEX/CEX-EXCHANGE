@@ -24,7 +24,7 @@ export default function DeleteConfirmationDialog({
   onDelete,
   isSubmitting,
 }: DeleteConfirmationDialogProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -34,7 +34,7 @@ export default function DeleteConfirmationDialog({
         </DialogHeader>
         <div className="flex justify-end space-x-2 mt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("Cancel")}
+            {t("cancel")}
           </Button>
           <Button
             variant="destructive"
@@ -42,7 +42,7 @@ export default function DeleteConfirmationDialog({
             disabled={isSubmitting}
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {t("Delete")}
+            {t("delete")}
           </Button>
         </div>
       </DialogContent>

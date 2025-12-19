@@ -332,23 +332,17 @@ export const useTransferStore = create<TransferState>((set, get) => ({
 
       if (error || !data?.rate) {
         console.error("Error fetching exchange rate:", error);
-        // Fallback to 1:1 on error
-        const feeRate = transferType === "client" ? 0.01 : 0;
-        const fee = Math.round(amount * feeRate * 100) / 100;
-        const amountAfterFee = amount - fee;
-
+        // Fallback to 1:1 on error (no fee for wallet transfers)
         set({
-          estimatedReceiveAmount: Math.round(amountAfterFee * 100) / 100,
-          transferFee: fee,
+          estimatedReceiveAmount: Math.round(amount * 100) / 100,
+          transferFee: 0,
           exchangeRate: null,
         });
         return;
       }
 
-      // Calculate with real exchange rate
-      const feeRate = transferType === "client" ? 0.01 : 0;
-      const fee = Math.round(amount * feeRate * 100) / 100;
-      const amountAfterFee = amount - fee;
+      // Calculate with real exchange rate (no fee for wallet transfers)
+      const amountAfterFee = amount;
       const exchangeRate = data.rate;
 
       // Calculate estimated receive amount using exchange rate
@@ -356,19 +350,15 @@ export const useTransferStore = create<TransferState>((set, get) => ({
 
       set({
         estimatedReceiveAmount: Math.round(estimatedReceive * 100000000) / 100000000, // 8 decimal places for crypto
-        transferFee: fee,
+        transferFee: 0,
         exchangeRate: exchangeRate,
       });
     } catch (err) {
       console.error("Error fetching exchange rate:", err);
-      // Fallback to 1:1 on error
-      const feeRate = transferType === "client" ? 0.01 : 0;
-      const fee = Math.round(amount * feeRate * 100) / 100;
-      const amountAfterFee = amount - fee;
-
+      // Fallback to 1:1 on error (no fee for wallet transfers)
       set({
-        estimatedReceiveAmount: Math.round(amountAfterFee * 100) / 100,
-        transferFee: fee,
+        estimatedReceiveAmount: Math.round(amount * 100) / 100,
+        transferFee: 0,
         exchangeRate: null,
       });
     }

@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "addRoadmapItem",
   tags: ["ICO", "Creator", "Roadmap"],
   requiresAuth: true,
+  logModule: "ICO_ROADMAP",
+  logTitle: "Add roadmap item",
   parameters: [
     {
       index: 0,
@@ -45,8 +47,8 @@ export const metadata = {
   },
 };
 
-export default async (data: { user?: any; params?: any; body?: any }) => {
-  const { user, params, body } = data;
+export default async (data: { user?: any; params?: any; body?: any; ctx?: any }) => {
+  const { user, params, body, ctx } = data;
   const offeringId = params.id;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -54,6 +56,8 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
   if (!offeringId) {
     throw createError({ statusCode: 400, message: "Offering ID is required" });
   }
+
+  ctx?.step("Validating roadmap item request");
 
   // Fetch offering with plan and existing roadmap items for limit check.
   const offering = await models.icoTokenOffering.findOne({
@@ -67,6 +71,7 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     throw createError({ statusCode: 404, message: "Offering not found" });
   }
 
+  ctx?.step("Checking roadmap item limit");
   // Check roadmap item limit based on the launch plan's features.
   if (
     offering.plan &&
@@ -79,6 +84,7 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     });
   }
 
+  ctx?.step("Creating roadmap item");
   const { title, description, date, completed } = body;
   await models.icoRoadmapItem.create({
     offeringId,
@@ -88,6 +94,7 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     completed,
   });
 
+  ctx?.step("Sending notification");
   // Create a notification about the new roadmap item.
   try {
     await createNotification({
@@ -113,5 +120,6 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     );
   }
 
+  ctx?.success(`Added roadmap item "${title}"`);
   return { message: "Roadmap item added successfully" };
 };

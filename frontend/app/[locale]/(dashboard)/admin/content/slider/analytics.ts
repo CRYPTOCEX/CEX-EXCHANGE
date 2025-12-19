@@ -1,22 +1,41 @@
+"use client";
 import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
 
-export const sliderAnalytics: AnalyticsConfig = [
+import { useTranslations } from "next-intl";
+export function useAnalytics() {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
+  return [
   // Group 1: Slider Overview – KPI Grid on Left, Pie Chart on Right
   [
     {
-      type: "kpi",
+      type: "kpi" as const,
       layout: { cols: 3, rows: 1 },
+      responsive: {
+        mobile: {
+          cols: 1,
+          rows: 3
+        },
+        tablet: {
+          cols: 3,
+          rows: 1
+        },
+        desktop: {
+          cols: 3,
+          rows: 1
+        }
+      },
       items: [
         {
           id: "total_sliders",
-          title: "Total Sliders",
+          title: t("total_sliders"),
           metric: "total", // COUNT(*) of all slider records
           model: "slider",
           icon: "mdi:image-multiple",
         },
         {
           id: "active_sliders",
-          title: "Status",
+          title: t("active_sliders"),
           metric: "active",
           model: "slider",
           aggregation: { field: "status", value: "true" },
@@ -24,7 +43,7 @@ export const sliderAnalytics: AnalyticsConfig = [
         },
         {
           id: "inactive_sliders",
-          title: "Inactive",
+          title: t("inactive_sliders"),
           metric: "inactive",
           model: "slider",
           aggregation: { field: "status", value: "false" },
@@ -33,12 +52,17 @@ export const sliderAnalytics: AnalyticsConfig = [
       ],
     },
     {
-      type: "chart",
+      type: "chart" as const,
+      responsive: {
+        mobile: { cols: 1 },
+        tablet: { cols: 1 },
+        desktop: { cols: 1 }
+      },
       items: [
         {
           id: "sliderStatusDistribution",
-          title: "Status Distribution",
-          type: "pie",
+          title: tCommon("status_distribution"),
+          type: "pie" as const,
           model: "slider",
           metrics: ["active", "inactive"],
           config: {
@@ -46,13 +70,13 @@ export const sliderAnalytics: AnalyticsConfig = [
             status: [
               {
                 value: "true",
-                label: "Active",
+                label: tCommon("active"),
                 color: "green",
                 icon: "mdi:check-circle",
               },
               {
                 value: "false",
-                label: "Inactive",
+                label: tCommon("inactive"),
                 color: "red",
                 icon: "mdi:close-circle",
               },
@@ -65,12 +89,17 @@ export const sliderAnalytics: AnalyticsConfig = [
 
   // Group 2: Sliders Over Time – Full-Width Line Chart
   {
-    type: "chart",
+    type: "chart" as const,
+    responsive: {
+      mobile: { cols: 1 },
+      tablet: { cols: 1 },
+      desktop: { cols: 1 }
+    },
     items: [
       {
         id: "slidersOverTime",
-        title: "Sliders Over Time",
-        type: "line",
+        title: t("sliders_over_time"),
+        type: "line" as const,
         model: "slider",
         metrics: ["total"],
         timeframes: ["24h", "7d", "30d", "3m", "6m", "y"],
@@ -80,4 +109,5 @@ export const sliderAnalytics: AnalyticsConfig = [
       },
     ],
   },
-];
+] as AnalyticsConfig;
+}

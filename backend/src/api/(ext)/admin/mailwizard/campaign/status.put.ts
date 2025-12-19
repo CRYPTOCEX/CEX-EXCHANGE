@@ -1,9 +1,12 @@
-import { updateRecordResponses, updateStatus } from "@b/utils/query";
+import { updateStatus } from "@b/utils/query";
+import { statusUpdateResponses } from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Bulk updates the status of Mailwizard Campaigns",
+  summary: "Bulk update campaign status",
   operationId: "bulkUpdateMailwizardCampaignStatus",
-  tags: ["Admin", "Mailwizard Campaigns"],
+  tags: ["Admin", "Mailwizard", "Campaigns"],
+  description:
+    "Updates the status of multiple Mailwizard campaigns simultaneously. Valid statuses: PENDING, PAUSED, ACTIVE, STOPPED, COMPLETED, CANCELLED. This allows for efficient batch status changes across multiple campaigns.",
   requestBody: {
     required: true,
     content: {
@@ -34,13 +37,20 @@ export const metadata = {
       },
     },
   },
-  responses: updateRecordResponses("Mailwizard Campaign"),
+  responses: statusUpdateResponses("Mailwizard Campaign"),
   requiresAuth: true,
   permission: "edit.mailwizard.campaign",
+  logModule: "ADMIN_MAIL",
+  logTitle: "Bulk update campaign status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("mailwizardCampaign", ids, status);
+
+  ctx?.step(`Updating status of ${ids.length} campaigns to ${status}`);
+  const result = await updateStatus("mailwizardCampaign", ids, status);
+
+  ctx?.success(`${ids.length} campaigns status updated successfully`);
+  return result;
 };

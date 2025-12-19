@@ -15,7 +15,7 @@ import { Request } from "./Request";
 import { Response } from "./Response";
 import { makeUuid } from "@b/utils/passwords";
 import { getRecord, getRecords } from "@b/utils/query";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import { routeCache } from "./Routes";
 import { startHeartbeat } from "./ws/heartbeat";
 import { MessageBroker, ClientsMap } from "./ws/messageBroker";
@@ -87,7 +87,7 @@ export async function setupWebSocketEndpoint(
         }
         req.setMetadata(metadata);
       } catch (error) {
-        logError("websocket", error, entryPath);
+        logger.error("WS", `Error setting metadata for ${entryPath}`, error);
         res.cork(async () => {
           res.handleError(500, "Internal Server Error");
         });
@@ -140,7 +140,7 @@ export async function setupWebSocketEndpoint(
           });
         }
       } catch (error) {
-        logError("websocket", error, entryPath);
+        logger.error("WS", `Error upgrading connection for ${entryPath}`, error);
         res.cork(async () => {
           res.close();
         });
@@ -151,7 +151,7 @@ export async function setupWebSocketEndpoint(
       ws.isClosed = false;
 
       if (!ws.user || typeof ws.user.id === "undefined") {
-        console.error("User or user ID is undefined", ws.user);
+        logger.error("WS", "User or user ID is undefined");
         return;
       }
       const clientId = ws.user.id;
@@ -173,12 +173,11 @@ export async function setupWebSocketEndpoint(
           try {
             ws.send(JSON.stringify(result));
           } catch (sendError) {
-            console.error(`Failed to send WebSocket response:`, sendError);
+            logger.error("WS", "Failed to send response", sendError);
           }
         }
       } catch (error) {
-        logError("websocket", error, entryPath);
-        console.error(`Failed to parse or handle message: ${error}`);
+        logger.error("WS", `Failed to parse/handle message for ${entryPath}`, error);
       }
     },
     close: async (ws) => {

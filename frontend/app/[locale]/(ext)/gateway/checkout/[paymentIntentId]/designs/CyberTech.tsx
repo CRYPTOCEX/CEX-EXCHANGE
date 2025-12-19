@@ -34,7 +34,8 @@ const LoadingDots = () => (
 );
 
 export default function DesignV5({ state, actions, paymentIntentId }: CheckoutDesignProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_gateway");
+  const tCommon = useTranslations("common");
   const { session, customerWallet, walletLoading, loading, error, processing, success, redirectUrl, timeLeft, isAuthenticated, multiWallet } = state;
   const { handleConfirmPayment, handleCancel, formatTime, formatCurrency, addWalletAllocation, removeWalletAllocation, updateWalletAllocation, autoAllocateWallets, clearAllocations } = actions;
 
@@ -120,7 +121,7 @@ export default function DesignV5({ state, actions, paymentIntentId }: CheckoutDe
       <AnimatePresence>
         {session?.testMode && (
           <motion.div initial={{ y: -40 }} animate={{ y: 0 }} className="relative z-20 bg-cyan-500/10 border-b border-cyan-500/20 py-2 text-center">
-            <span className="text-cyan-400 text-xs font-mono tracking-widest">{t("test_mode")}</span>
+            <span className="text-cyan-400 text-xs font-mono tracking-widest">{tCommon("test_mode")}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -184,7 +185,7 @@ export default function DesignV5({ state, actions, paymentIntentId }: CheckoutDe
                     <div className="w-16 h-16 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mx-auto mb-4">
                       <User className="w-8 h-8 text-cyan-400" />
                     </div>
-                    <p className="text-slate-400 text-sm">{t("authentication_required")}</p>
+                    <p className="text-slate-400 text-sm">{tCommon("authentication_required")}</p>
                   </div>
                   <Link href={`/login?redirect=/gateway/checkout/${paymentIntentId}`} className="block cursor-pointer">
                     <button className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-medium rounded-xl transition-all shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer">

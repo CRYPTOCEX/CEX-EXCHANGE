@@ -6,7 +6,8 @@ import { Loader2, AlertTriangle, CheckCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function PendingTransactions() {
-  const t = useTranslations("common");
+  const t = useTranslations("finance");
+  const tCommon = useTranslations("common");
   const {
     pendingTransactions,
     syncing,
@@ -25,7 +26,7 @@ export function PendingTransactions() {
         <div className="flex items-center">
           <AlertTriangle className="h-5 w-5 text-yellow-500 mr-2" />
           <h3 className="font-medium text-yellow-800">
-            {pendingTransactions.length} {t("pending_transaction")}
+            {pendingTransactions.length} {tCommon("pending_transaction")}
             {pendingTransactions.length !== 1 ? "s" : ""}
           </h3>
         </div>
@@ -40,7 +41,7 @@ export function PendingTransactions() {
             {syncing ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {t("Syncing")}.
+                {t("syncing")}.
               </>
             ) : (
               <>

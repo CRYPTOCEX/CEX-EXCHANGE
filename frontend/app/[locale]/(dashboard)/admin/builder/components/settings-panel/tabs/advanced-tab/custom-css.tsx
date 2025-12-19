@@ -6,7 +6,7 @@ import type { ComponentProps } from "./types";
 import { useTranslations } from "next-intl";
 
 export function CustomCss({ settings, onSettingChange }: ComponentProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   return (
     <div className="space-y-3">
       <div className="space-y-1">

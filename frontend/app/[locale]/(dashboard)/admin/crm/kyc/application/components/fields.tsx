@@ -26,7 +26,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, Layers, Shield, User } from "lucide-react";
 import { useTranslations } from "next-intl";
-const t = useTranslations("dashboard");
+const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
 interface FieldValueProps {
   field: KycField;
   value: any;
@@ -42,11 +43,12 @@ export const FieldValue = ({
   onViewImage,
 }: FieldValueProps) => {
   const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   if (!value && value !== 0 && value !== false) {
     return (
       <div className="flex items-center gap-2 text-muted-foreground italic">
         <AlertCircle className="h-4 w-4" />
-        <span>{t("not_provided")}</span>
+        <span>{tCommon("not_provided")}</span>
       </div>
     );
   }
@@ -91,7 +93,7 @@ export const FieldValue = ({
           {value ? (
             <Badge className="bg-green-100 text-green-700 border-green-200 flex items-center gap-1">
               <CheckCircle className="h-3 w-3" />
-              {t("Yes")}
+              {tCommon("yes")}
             </Badge>
           ) : (
             <Badge
@@ -99,7 +101,7 @@ export const FieldValue = ({
               className="bg-red-50 text-red-700 border-red-200 flex items-center gap-1"
             >
               <XCircle className="h-3 w-3" />
-              {t("No")}
+              {tCommon("no")}
             </Badge>
           )}
         </div>
@@ -134,7 +136,7 @@ export const FieldValue = ({
               onClick={() => onViewImage(value)}
             >
               <Maximize className="h-3.5 w-3.5 mr-1.5" />
-              {t("view_full_size")}
+              {tCommon("view_full_size")}
             </Button>
             <Button
               size="sm"
@@ -150,7 +152,7 @@ export const FieldValue = ({
               }}
             >
               <Download className="h-3.5 w-3.5 mr-1.5" />
-              {t("Download")}
+              {tCommon("download")}
             </Button>
           </div>
         </div>
@@ -168,7 +170,7 @@ export const FieldValue = ({
                 {field.label.toLowerCase().replace(/\s+/g, "-")}
                 {t("pdf")}
               </p>
-              <p className="text-xs text-blue-600">{t("Document")}</p>
+              <p className="text-xs text-blue-600">{tCommon("document")}</p>
             </div>
             <div className="flex items-center gap-1 no-print">
               <Button
@@ -213,7 +215,7 @@ export const FieldValue = ({
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Badge className="bg-blue-100 text-blue-700 border-blue-200">
-              {t("id_type")}
+              {tCommon("id_type")}
               {identityData.type || "passport"}
             </Badge>
           </div>
@@ -240,7 +242,7 @@ export const FieldValue = ({
                     onClick={() => onViewImage(identityData["passport-scan"])}
                   >
                     <Maximize className="h-3.5 w-3.5 mr-1.5" />
-                    {t("view_full_size")}
+                    {tCommon("view_full_size")}
                   </Button>
                   <Button
                     size="sm"
@@ -256,7 +258,7 @@ export const FieldValue = ({
                     }}
                   >
                     <Download className="h-3.5 w-3.5 mr-1.5" />
-                    {t("Download")}
+                    {tCommon("download")}
                   </Button>
                 </div>
               </div>
@@ -285,7 +287,7 @@ export const FieldValue = ({
                     onClick={() => onViewImage(identityData["passport-selfie"])}
                   >
                     <Maximize className="h-3.5 w-3.5 mr-1.5" />
-                    {t("view_full_size")}
+                    {tCommon("view_full_size")}
                   </Button>
                   <Button
                     size="sm"
@@ -301,7 +303,7 @@ export const FieldValue = ({
                     }}
                   >
                     <Download className="h-3.5 w-3.5 mr-1.5" />
-                    {t("Download")}
+                    {tCommon("download")}
                   </Button>
                 </div>
               </div>
@@ -338,7 +340,7 @@ export const SectionField = ({
   copiedField,
   onViewImage,
 }: SectionFieldProps) => {
-  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   return (
     <div
       key={section.id}
@@ -372,7 +374,7 @@ export const SectionField = ({
         <div className="flex items-center gap-3">
           {section.required && (
             <Badge className="bg-red-100 text-red-700 border-red-200">
-              {t("Required")}
+              {tCommon("required")}
             </Badge>
           )}
           <Button
@@ -489,7 +491,7 @@ export const SectionField = ({
                                 {field.label}
                                 {field.required && (
                                   <span className="ml-2 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">
-                                    {t("Required")}
+                                    {tCommon("required")}
                                   </span>
                                 )}
                               </h4>
@@ -542,7 +544,7 @@ export const StandardField = ({
   copiedField,
   onViewImage,
 }: StandardFieldProps) => {
-  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   const getFieldTypeColor = () => {
     switch (field.type) {
       case "TEXT":
@@ -576,7 +578,7 @@ export const StandardField = ({
           {field.label}
           {field.required && (
             <span className="ml-2 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">
-              {t("Required")}
+              {tCommon("required")}
             </span>
           )}
         </h4>
@@ -605,7 +607,7 @@ export const StandardField = ({
               </TooltipTrigger>
               <TooltipContent>
                 <p className="text-xs">
-                  {t("field_id")}
+                  {tCommon("field_id")}
                   {field.id}
                 </p>
               </TooltipContent>

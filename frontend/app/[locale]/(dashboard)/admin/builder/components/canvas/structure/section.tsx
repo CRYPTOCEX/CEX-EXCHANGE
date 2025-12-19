@@ -16,6 +16,7 @@ import ReorderControls from "./reorder-controls";
 import { Save, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 
 interface SectionProps {
   section: SectionType;
@@ -34,6 +35,7 @@ export default function Section({
   totalSections,
   isEditMode,
 }: SectionProps) {
+  const t = useTranslations("dashboard_admin");
   const [showAddContentModal, setShowAddContentModal] = useState(false);
   const [insertPosition, setInsertPosition] = useState<number | null>(null);
   const { updateSection, deleteSection, toggleAddSectionModal } =
@@ -323,7 +325,7 @@ export default function Section({
                     });
                   }}
                   className={`p-1 text-white hover:bg-orange-600`}
-                  title="Save to library"
+                  title={t("save_to_library")}
                 >
                   <Save className="w-3 h-3" />
                 </button>
@@ -333,7 +335,7 @@ export default function Section({
                     exportSection(section);
                   }}
                   className={`p-1 text-white hover:bg-orange-600`}
-                  title="Export section"
+                  title={t("export_section")}
                 >
                   <Download className="w-3 h-3" />
                 </button>
@@ -372,7 +374,7 @@ export default function Section({
                   }}
                   isVisible={true}
                   size="sm"
-                  label="Add Layout"
+                  label={t("add_layout")}
                 />
               </div>
             )}

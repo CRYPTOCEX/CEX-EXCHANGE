@@ -20,6 +20,8 @@ export const metadata: OperationObject = {
     "Cancels an open trading order and refunds the unfulfilled amount, including fee adjustments for partial fills.",
   operationId: "cancelOrder",
   tags: ["Trading", "Orders"],
+  logModule: "ECOSYSTEM",
+  logTitle: "Cancel trading order",
   parameters: [
     {
       index: 0,
@@ -57,7 +59,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, query, user } = data;
+  const { params, query, user, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -65,7 +67,9 @@ export default async (data: Handler) => {
   const { id } = params;
   const { timestamp } = query;
 
+  ctx?.step("Validating request parameters");
   if (!id || !timestamp) {
+    ctx?.fail("Missing order ID or timestamp");
     throw createError({
       statusCode: 400,
       message: "Invalid request parameters",
@@ -73,6 +77,7 @@ export default async (data: Handler) => {
   }
 
   try {
+    ctx?.step("Retrieving order details");
     // Convert timestamp to Date object if it's a millisecond timestamp string
     const timestampValue = !isNaN(Number(timestamp))
       ? new Date(Number(timestamp)).toISOString()
@@ -80,9 +85,11 @@ export default async (data: Handler) => {
 
     const order = await getOrderByUuid(user.id, id, timestampValue);
     if (!order) {
+      ctx?.fail(`Order ${id} not found`);
       throw new Error("Order not found");
     }
     if (order.status !== "OPEN") {
+      ctx?.fail(`Order ${id} is not open (status: ${order.status})`);
       throw new Error("Order is not open");
     }
 
@@ -101,6 +108,7 @@ export default async (data: Handler) => {
 
     const [currency, pair] = symbol.split("/");
 
+    ctx?.step("Calculating refund amount");
     let refundAmount = 0;
 
     if (side === "BUY") {
@@ -123,11 +131,15 @@ export default async (data: Handler) => {
     }
 
     const refundCurrency = side === "BUY" ? pair : currency;
-    const wallet = await getWallet(user.id, "ECO", refundCurrency);
+
+    ctx?.step(`Retrieving ${refundCurrency} wallet`);
+    const wallet = await getWallet(user.id, "ECO", refundCurrency, false, ctx);
     if (!wallet) {
+      ctx?.fail(`${refundCurrency} wallet not found`);
       throw new Error(`${refundCurrency} wallet not found`);
     }
 
+    ctx?.step("Cancelling order in database");
     // Update order status to CANCELED and remaining to 0, as we are cancelling the leftover portion.
     // After cancellation, the order no longer has any active portion on the orderbook.
     await cancelOrderByUuid(
@@ -140,18 +152,31 @@ export default async (data: Handler) => {
       totalAmount
     );
 
+    ctx?.step(`Refunding ${refundAmount} ${refundCurrency} to wallet`);
     // Unlock and refund the leftover funds
     // Funds are locked in inOrder when order is created, need to unlock them and add back to balance
     await updateWalletBalance(wallet, refundAmount, "add");
 
+    ctx?.step("Removing order from matching engine");
     // Remove from orderbook and internal queues
     const matchingEngine = await MatchingEngine.getInstance();
     await matchingEngine.handleOrderCancellation(id, symbol);
 
+    // Trigger copy trading cancellation if user is a leader (async, non-blocking)
+    ctx?.step("Checking for copy trading cancellation");
+    try {
+      const { triggerCopyTradingCancellation } = await import("@b/utils/safe-imports");
+      triggerCopyTradingCancellation(id, user.id, symbol).catch(() => {});
+    } catch (importError) {
+      // Safe import failed, copy trading not available
+    }
+
+    ctx?.success(`Order ${id} cancelled, refunded ${refundAmount} ${refundCurrency}`);
     return {
       message: "Order cancelled and leftover balance refunded successfully",
     };
   } catch (error) {
+    ctx?.fail(`Order cancellation failed: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: `Failed to cancel order: ${error.message}`,

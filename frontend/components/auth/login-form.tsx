@@ -36,7 +36,8 @@ export default function LoginForm({
   onForgotPasswordClick,
   onWalletLoginClick,
 }: LoginFormProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components_auth");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -446,7 +447,7 @@ export default function LoginForm({
   return (
     <div className="space-y-6">
       <div className="space-y-2 text-center">
-        <h2 className="text-3xl font-bold">{t("welcome_back")}</h2>
+        <h2 className="text-3xl font-bold">{tCommon("welcome_back")}</h2>
         <p className="text-muted-foreground">
           {t("enter_your_credentials_to_sign_in_to_your_account")}
         </p>
@@ -619,7 +620,7 @@ export default function LoginForm({
 
       {/* Social proof */}
       <div className="text-center text-xs text-muted-foreground">
-        <p>{t("trusted_by_over_10000+_users_worldwide")}</p>
+        <p>{t("trusted_by_over_10000_users_worldwide")}</p>
         <div className="flex justify-center mt-2 space-x-1">
           {[...Array(5)].map((_, i) => (
             <CheckCircle2 key={i} className="h-3 w-3 text-primary" />

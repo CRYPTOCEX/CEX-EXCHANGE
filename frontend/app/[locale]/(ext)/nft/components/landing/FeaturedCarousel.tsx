@@ -20,7 +20,7 @@ interface FeaturedNFT {
 }
 
 export default function FeaturedCarousel() {
-  const t = useTranslations("nft");
+  const t = useTranslations("ext_nft");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { ref, inView } = useInView({
     triggerOnce: true,
@@ -40,7 +40,7 @@ export default function FeaturedCarousel() {
     name: token.name,
     collection: token.collection?.name || "Unknown",
     price: token.currentListing?.price
-      ? formatCurrency(parseFloat(token.currentListing.price), token.currentListing.currency)
+      ? formatCurrency(Number(token.currentListing.price), token.currentListing.currency)
       : "Not listed",
   }));
 
@@ -97,11 +97,11 @@ export default function FeaturedCarousel() {
   }, [inView]);
 
   return (
-    <section ref={ref} className="py-16 bg-background relative overflow-hidden">
+    <section ref={ref} className="py-16 relative overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="container relative z-10">
         {/* Section Header */}
         <div className="flex items-center justify-between mb-8">
           <motion.div
@@ -168,7 +168,7 @@ export default function FeaturedCarousel() {
                   className="group w-64 bg-card border border-border rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-primary/50 transition-all cursor-pointer"
                 >
                   {/* NFT Image */}
-                  <div className="relative aspect-square bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20 flex items-center justify-center overflow-hidden">
+                  <div className={`relative aspect-square bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20 flex items-center justify-center overflow-hidden`}>
                     <Image
                       src={getNftImageUrl(nft.id)}
                       alt={nft.name}
@@ -223,7 +223,7 @@ export default function FeaturedCarousel() {
                   className="group w-64 bg-card border border-border rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-primary/50 transition-all cursor-pointer"
                 >
                   {/* NFT Image */}
-                  <div className="relative aspect-square bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20 flex items-center justify-center overflow-hidden">
+                  <div className={`relative aspect-square bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20 flex items-center justify-center overflow-hidden`}>
                     <Image
                       src={getNftImageUrl(nft.id)}
                       alt={nft.name}

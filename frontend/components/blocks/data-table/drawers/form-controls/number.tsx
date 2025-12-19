@@ -6,6 +6,8 @@ interface NumberFormControlProps {
   error?: string;
   placeholder: string;
   icon?: any;
+  title?: string;
+  description?: string;
 }
 
 export function NumberFormControl({
@@ -13,6 +15,8 @@ export function NumberFormControl({
   error,
   placeholder,
   icon,
+  title,
+  description,
 }: NumberFormControlProps) {
   // Provide a fallback empty string if field.value is null or undefined.
   const safeValue = field.value != null ? field.value : "";
@@ -30,6 +34,8 @@ export function NumberFormControl({
       error={!!error}
       errorMessage={error}
       icon={icon}
+      title={title}
+      description={description}
     />
   );
 }

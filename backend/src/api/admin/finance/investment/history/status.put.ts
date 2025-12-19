@@ -30,10 +30,19 @@ export const metadata = {
   responses: updateRecordResponses("Investment"),
   requiresAuth: true,
   permission: "edit.investment",
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk Update Investment Status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("investment", ids, status);
+
+  ctx?.step("Validating investment IDs and status");
+
+  ctx?.step("Bulk updating investment status");
+  const result = await updateStatus("investment", ids, status);
+
+  ctx?.success();
+  return result
 };

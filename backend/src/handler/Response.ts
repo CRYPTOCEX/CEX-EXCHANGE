@@ -8,7 +8,7 @@ import {
 import zlib from "zlib";
 import { getCommonExpiration, getStatusMessage } from "../utils";
 import { Request } from "./Request";
-import logger from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 const isProd: boolean = process.env.NODE_ENV === "production";
 
@@ -343,12 +343,7 @@ export class Response {
         this.res.end(response);
       });
     } catch (error: any) {
-      logger(
-        "error",
-        "response",
-        __filename,
-        `Error sending response: ${error.message}`
-      );
+      logger.error("RESPONSE", "Error sending response", error);
       if (!this.aborted) {
         this.res.cork((): void => {
           this.res.writeStatus("500").end(error.message);
@@ -414,12 +409,7 @@ export class Response {
         contentEncoding = "deflate";
       }
     } catch (compressionError: any) {
-      logger(
-        "warn",
-        "response",
-        __filename,
-        `Compression error: ${compressionError.message}`
-      );
+      logger.warn("RESPONSE", "Compression error", compressionError);
       rawData = Buffer.from(JSON.stringify(responseData ?? {}));
       contentEncoding = "identity";
     }

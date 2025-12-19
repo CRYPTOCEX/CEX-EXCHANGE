@@ -23,7 +23,8 @@ const MeshGradient = () => (
 );
 
 export default function DesignV4({ state, actions, paymentIntentId }: CheckoutDesignProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_gateway");
+  const tCommon = useTranslations("common");
   const { session, customerWallet, walletLoading, loading, error, processing, success, redirectUrl, timeLeft, isAuthenticated, multiWallet } = state;
   const { handleConfirmPayment, handleCancel, formatTime, formatCurrency, addWalletAllocation, removeWalletAllocation, updateWalletAllocation, autoAllocateWallets, clearAllocations } = actions;
 
@@ -90,7 +91,7 @@ export default function DesignV4({ state, actions, paymentIntentId }: CheckoutDe
             <p className="text-white/40 text-sm sm:text-base">{t("paid_to")} <span className="text-white/60">{session?.merchant.name}</span></p>
           </motion.div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="space-y-4 sm:space-y-6">
-            <div className="flex items-center justify-center gap-2 text-white/30 text-xs sm:text-sm"><Loader2 className="w-4 h-4 animate-spin" /><span>{t("redirecting_ellipsis")}</span></div>
+            <div className="flex items-center justify-center gap-2 text-white/30 text-xs sm:text-sm"><Loader2 className="w-4 h-4 animate-spin" /><span>{tCommon("redirecting_ellipsis")}</span></div>
             {redirectUrl && <a href={redirectUrl} className="inline-flex items-center gap-2 text-amber-400/80 hover:text-amber-400 text-xs sm:text-sm tracking-wider transition-colors cursor-pointer">CONTINUE TO STORE <ArrowUpRight className="w-4 h-4" /></a>}
           </motion.div>
         </motion.div>
@@ -103,7 +104,7 @@ export default function DesignV4({ state, actions, paymentIntentId }: CheckoutDe
       <MeshGradient />
       <AnimatePresence>
         {session?.testMode && (
-          <motion.div initial={{ y: -40 }} animate={{ y: 0 }} className="relative z-20 bg-amber-500/10 border-b border-amber-500/20 text-amber-400 py-1.5 sm:py-2 text-center text-[10px] sm:text-xs tracking-[0.15em] uppercase">{t("test_mode_1")}</motion.div>
+          <motion.div initial={{ y: -40 }} animate={{ y: 0 }} className="relative z-20 bg-amber-500/10 border-b border-amber-500/20 text-amber-400 py-1.5 sm:py-2 text-center text-[10px] sm:text-xs tracking-[0.15em] uppercase">{tCommon('test_mode')}</motion.div>
         )}
       </AnimatePresence>
 
@@ -214,11 +215,11 @@ export default function DesignV4({ state, actions, paymentIntentId }: CheckoutDe
                       <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-3 sm:mb-4">
                         <User className="w-6 h-6 sm:w-7 sm:h-7 text-amber-400/60" />
                       </div>
-                      <p className="text-white/60 text-xs sm:text-sm">{t("sign_in_to_continue")}</p>
+                      <p className="text-white/60 text-xs sm:text-sm">{tCommon("sign_in_to_continue")}</p>
                     </div>
                     <Link href={`/login?redirect=/gateway/checkout/${paymentIntentId}`} className="block cursor-pointer">
                       <button className="w-full py-3.5 sm:py-4 bg-gradient-to-r from-amber-400 to-amber-500 text-black text-sm sm:text-base font-medium rounded-lg sm:rounded-xl hover:from-amber-300 hover:to-amber-400 transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer">
-                        {t("sign_in")} <ArrowRight className="w-4 h-4" />
+                        {tCommon("sign_in")} <ArrowRight className="w-4 h-4" />
                       </button>
                     </Link>
                     <div className="relative">
@@ -227,7 +228,7 @@ export default function DesignV4({ state, actions, paymentIntentId }: CheckoutDe
                     </div>
                     <Link href={`/register?redirect=/gateway/checkout/${paymentIntentId}`} className="block cursor-pointer">
                       <button className="w-full py-3.5 sm:py-4 bg-white/[0.03] border border-white/10 text-white/70 text-sm sm:text-base font-medium rounded-lg sm:rounded-xl hover:bg-white/[0.06] transition-all flex items-center justify-center gap-2 cursor-pointer">
-                        <Sparkles className="w-4 h-4 text-amber-400/60" /> {t("create_account")}
+                        <Sparkles className="w-4 h-4 text-amber-400/60" /> {tCommon("create_account")}
                       </button>
                     </Link>
                   </div>
@@ -252,7 +253,7 @@ export default function DesignV4({ state, actions, paymentIntentId }: CheckoutDe
                       className={`w-full py-4 sm:py-5 text-sm sm:text-base font-medium rounded-lg sm:rounded-xl transition-all flex items-center justify-center gap-2 sm:gap-3 ${isPaymentReady
                         ? "bg-gradient-to-r from-amber-400 to-amber-500 text-black hover:from-amber-300 hover:to-amber-400 shadow-lg shadow-amber-500/20 cursor-pointer"
                         : "bg-white/5 text-white/20 cursor-not-allowed"}`}>
-                      {processing ? <><Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> {t("processing_ellipsis")}</>
+                      {processing ? <><Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> {tCommon('processing')}</>
                         : <><Lock className="w-4 h-4" /> Pay {formatCurrency(session?.amount || 0, session?.currency || "USD")}</>}
                     </button>
                   </div>
@@ -283,7 +284,7 @@ export default function DesignV4({ state, actions, paymentIntentId }: CheckoutDe
                         <p className="text-white/40 text-xs sm:text-sm text-center">Need <span className="text-amber-400">{formatCurrency(session!.amount - customerWallet.balance, session!.currency)}</span> more</p>
                         <Link href={`/finance/deposit?type=${session?.walletType?.toLowerCase()}&currency=${session?.currency}`} className="block cursor-pointer">
                           <button className="w-full py-3 sm:py-3.5 bg-white/[0.03] border border-amber-500/20 text-amber-400/80 text-sm sm:text-base font-medium rounded-lg sm:rounded-xl hover:bg-amber-500/5 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                            <Zap className="w-4 h-4" /> {t("add_funds")}
+                            <Zap className="w-4 h-4" /> {tCommon("add_funds")}
                           </button>
                         </Link>
                       </div>
@@ -294,7 +295,7 @@ export default function DesignV4({ state, actions, paymentIntentId }: CheckoutDe
                       className={`w-full py-4 sm:py-5 text-sm sm:text-base font-medium rounded-lg sm:rounded-xl transition-all flex items-center justify-center gap-2 sm:gap-3 ${customerWallet.sufficient
                         ? "bg-gradient-to-r from-amber-400 to-amber-500 text-black hover:from-amber-300 hover:to-amber-400 shadow-lg shadow-amber-500/20 cursor-pointer"
                         : "bg-white/5 text-white/20 cursor-not-allowed"}`}>
-                      {processing ? <><Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> {t("processing_ellipsis")}</>
+                      {processing ? <><Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> {tCommon('processing')}</>
                         : <><Lock className="w-4 h-4" /> Pay {formatCurrency(session?.amount || 0, session?.currency || "USD")}</>}
                     </button>
                   </div>

@@ -42,6 +42,7 @@ import { $fetch } from "@/lib/api";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 interface ExchangeProvider {
   id: string;
@@ -59,7 +60,8 @@ interface ConnectionResult {
 }
 
 const ExchangeProviderPage = () => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const params = useParams();
   const productId = params.id as string;
@@ -190,7 +192,7 @@ const ExchangeProviderPage = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
+    <div className={`container ${PAGE_PADDING} space-y-8`}>
       {/* Header with Gradient Background */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -236,7 +238,7 @@ const ExchangeProviderPage = () => {
                     className="shadow-sm bg-primary hover:bg-primary/90"
                   >
                     <Shield className="h-4 w-4 mr-2" />
-                    {t("activate_license")}
+                    {tCommon("activate_license")}
                   </Button>
                 </Link>
               )}
@@ -308,21 +310,21 @@ const ExchangeProviderPage = () => {
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Globe className="h-4 w-4 mr-2" />
-              {t("Overview")}
+              {tCommon("overview")}
             </TabsTrigger>
             <TabsTrigger
               value="regions"
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Users className="h-4 w-4 mr-2" />
-              {t("Regions")}
+              {t("regions")}
             </TabsTrigger>
             <TabsTrigger
               value="settings"
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Settings className="h-4 w-4 mr-2" />
-              {t("Settings")}
+              {tCommon("settings")}
             </TabsTrigger>
           </TabsList>
 
@@ -338,7 +340,7 @@ const ExchangeProviderPage = () => {
                 {details?.description && (
                   <div>
                     <h4 className="font-medium text-sm mb-2 text-muted-foreground">
-                      {t("DESCRIPTION")}
+                      {tCommon("description")}
                     </h4>
                     <p className="text-foreground leading-relaxed">
                       {details.description}
@@ -412,7 +414,7 @@ const ExchangeProviderPage = () => {
                   <div className="p-4 bg-muted/30 rounded-lg border border-border/40">
                     <div className="flex items-center gap-3 mb-2">
                       <Activity className="h-4 w-4 text-primary" />
-                      <span className="font-medium text-sm">{t("Status")}</span>
+                      <span className="font-medium text-sm">{tCommon("status")}</span>
                     </div>
                     <Badge
                       variant={exchange.status ? "default" : "destructive"}
@@ -425,7 +427,7 @@ const ExchangeProviderPage = () => {
                     <div className="flex items-center gap-3 mb-2">
                       <Shield className="h-4 w-4 text-primary" />
                       <span className="font-medium text-sm">
-                        {t("License")}
+                        {t("license")}
                       </span>
                     </div>
                     <Badge
@@ -439,7 +441,7 @@ const ExchangeProviderPage = () => {
                     <div className="flex items-center gap-3 mb-2">
                       <Clock className="h-4 w-4 text-primary" />
                       <span className="font-medium text-sm">
-                        {t("Version")}
+                        {tCommon("version")}
                       </span>
                     </div>
                     <Badge variant="outline">{exchange.version}</Badge>
@@ -506,7 +508,7 @@ const ExchangeProviderPage = () => {
                             {t("api_credentials_required")}
                           </p>
                           <p className="text-sm text-muted-foreground mb-3">
-                            {t("if_you_dont_(if_required)")}.
+                            {t("if_you_dont_if_required")}.
                           </p>
                           <div className="bg-zinc-900 dark:bg-zinc-800 p-4 rounded-lg border border-zinc-700">
                             <p className="text-xs text-zinc-400 mb-2">
@@ -516,18 +518,18 @@ const ExchangeProviderPage = () => {
                               <div className="text-green-400">
                                 APP_
                                 {exchange.name?.toUpperCase()}
-                                _API_KEY=
+                                {t("api_key")}
                               </div>
                               <div className="text-green-400">
                                 APP_
                                 {exchange.name?.toUpperCase()}
-                                _API_SECRET=
+                                {t("api_secret")}
                               </div>
                               {exchange.name?.toLowerCase() === "kucoin" && (
                                 <div className="text-green-400">
                                   APP_
                                   {exchange.name?.toUpperCase()}
-                                  _API_PASSPHRASE=
+                                  {t("api_passphrase")}
                                 </div>
                               )}
                             </div>
@@ -583,7 +585,7 @@ const ExchangeProviderPage = () => {
       >
         <div className="flex items-center gap-2">
           <LineChart className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold">{t("quick_actions")}</h2>
+          <h2 className="text-xl font-semibold">{tCommon("quick_actions")}</h2>
           <div className="flex-1 h-px bg-border" />
         </div>
 
@@ -592,21 +594,21 @@ const ExchangeProviderPage = () => {
             icon={TrendingUp}
             label="Markets"
             href={`/admin/finance/exchange/${productId}/market`}
-            description="Manage trading pairs and market data"
+            description={t("manage_trading_pairs_and_market_data")}
             color="from-blue-500 to-indigo-600"
           />
           <QuickActionCard
             icon={DollarSign}
             label="Currencies"
             href="/admin/finance/currency/spot"
-            description="Configure supported currencies"
+            description={t("configure_supported_currencies")}
             color="from-green-500 to-emerald-600"
           />
           <QuickActionCard
             icon={Wallet}
             label="Balances"
             href={`/admin/finance/exchange/${productId}/balance`}
-            description="View exchange wallet balances"
+            description={t("view_exchange_wallet_balances")}
             disabled={result?.status === false}
             disabledMessage="Please verify credentials first"
             color="from-purple-500 to-violet-600"
@@ -615,7 +617,7 @@ const ExchangeProviderPage = () => {
             icon={CreditCard}
             label="Fees"
             href={`/admin/finance/exchange/${productId}/fee`}
-            description="Configure trading fees"
+            description={t("configure_trading_fees")}
             disabled={result?.status === false}
             disabledMessage="Please verify credentials first"
             color="from-orange-500 to-red-600"

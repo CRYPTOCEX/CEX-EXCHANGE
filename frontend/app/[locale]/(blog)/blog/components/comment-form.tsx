@@ -16,7 +16,8 @@ interface CommentFormProps {
 }
 
 export function CommentForm({ postId, userId }: CommentFormProps) {
-  const t = useTranslations("blog");
+  const t = useTranslations("blog_blog");
+  const tCommon = useTranslations("common");
   const [content, setContent] = useState("");
   const { addComment, isLoading } = useBlogStore();
   const { hasKyc, canAccessFeature } = useUserStore();
@@ -48,7 +49,7 @@ export function CommentForm({ postId, userId }: CommentFormProps) {
       {moderateComments && (
         <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
           <p className="text-sm text-amber-700 dark:text-amber-300">
-            <strong>{t("note")}</strong>
+            <strong>{tCommon("note")}</strong>
             {t("comments_are_moderated_being_published")}
           </p>
         </div>
@@ -57,7 +58,7 @@ export function CommentForm({ postId, userId }: CommentFormProps) {
         <Textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Write a comment..."
+          placeholder={t("write_a_comment_ellipsis")}
           required
           rows={3}
           className="dark:bg-zinc-800 dark:border-zinc-700"

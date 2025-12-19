@@ -46,6 +46,7 @@ import { motion } from "framer-motion";
 import { Link } from "@/i18n/routing";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 interface Balance {
   asset: string;
@@ -58,7 +59,8 @@ type SortField = keyof Balance;
 type SortDirection = "asc" | "desc";
 
 const ExchangeBalancePage = () => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const params = useParams();
   const [balances, setBalances] = useState<Balance[]>([]);
   const [filteredBalances, setFilteredBalances] = useState<Balance[]>([]);
@@ -178,7 +180,7 @@ const ExchangeBalancePage = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <div className={`container ${PAGE_PADDING} space-y-6`}>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -212,7 +214,7 @@ const ExchangeBalancePage = () => {
         <div className="flex flex-1 items-center space-x-2 max-w-sm">
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search assets..."
+            placeholder={t("search_assets_ellipsis")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm"
@@ -231,10 +233,10 @@ const ExchangeBalancePage = () => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="10">{t("10_per_page")}</SelectItem>
-              <SelectItem value="20">{t("20_per_page")}</SelectItem>
-              <SelectItem value="50">{t("50_per_page")}</SelectItem>
-              <SelectItem value="100">{t("100_per_page")}</SelectItem>
+              <SelectItem value="10">{`10 ${tCommon('per_page')}`}</SelectItem>
+              <SelectItem value="20">{`20 ${tCommon('per_page')}`}</SelectItem>
+              <SelectItem value="50">{`50 ${tCommon('per_page')}`}</SelectItem>
+              <SelectItem value="100">{`100 ${tCommon('per_page')}`}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -264,7 +266,7 @@ const ExchangeBalancePage = () => {
               {t("exchange_wallet_balances")}
             </CardTitle>
             <CardDescription>
-              {t("real-time_balance_information_connected_exchange")}
+              {t("real_time_balance_information_connected_exchange")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -292,7 +294,7 @@ const ExchangeBalancePage = () => {
                             onClick={() => handleSort("asset")}
                             className="h-auto p-0 font-medium"
                           >
-                            {t("Asset")}
+                            {tCommon("asset")}
                             {getSortIcon("asset")}
                           </Button>
                         </TableHead>
@@ -302,7 +304,7 @@ const ExchangeBalancePage = () => {
                             onClick={() => handleSort("available")}
                             className="h-auto p-0 font-medium"
                           >
-                            {t("Available")}
+                            {tCommon("available")}
                             {getSortIcon("available")}
                           </Button>
                         </TableHead>
@@ -312,7 +314,7 @@ const ExchangeBalancePage = () => {
                             onClick={() => handleSort("inOrder")}
                             className="h-auto p-0 font-medium"
                           >
-                            {t("in_orders")}
+                            {tCommon("in_orders")}
                             {getSortIcon("inOrder")}
                           </Button>
                         </TableHead>
@@ -322,11 +324,11 @@ const ExchangeBalancePage = () => {
                             onClick={() => handleSort("total")}
                             className="h-auto p-0 font-medium"
                           >
-                            {t("total_balance")}
+                            {tCommon("total_balance")}
                             {getSortIcon("total")}
                           </Button>
                         </TableHead>
-                        <TableHead>{t("Status")}</TableHead>
+                        <TableHead>{tCommon("status")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -372,11 +374,11 @@ const ExchangeBalancePage = () => {
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between mt-4">
                     <div className="text-sm text-muted-foreground">
-                      {t("Showing")}
+                      {tCommon("showing")}
                       {startIndex + 1}
-                      {t("to")}
+                      {tCommon("to")}
                       {Math.min(endIndex, totalItems)}
-                      {t("of")}
+                      {tCommon("of")}
                       {totalItems}
                       {t("assets")}
                     </div>
@@ -402,9 +404,9 @@ const ExchangeBalancePage = () => {
                       </Button>
 
                       <span className="text-sm font-medium px-2">
-                        {t("Page")}
+                        {tCommon("page")}
                         {currentPage}
-                        {t("of")}
+                        {tCommon("of")}
                         {totalPages}
                       </span>
 

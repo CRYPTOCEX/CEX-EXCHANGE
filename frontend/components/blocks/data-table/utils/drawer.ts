@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { ColumnType, TableState } from "../types/table";
+import { ColumnType, TableState, FormConfig, FormFieldConfig } from "../types/table";
 
 /** Checks if a given string is an absolute or relative image URL. */
 function isValidImageUrl(val: string): boolean {
@@ -253,8 +253,44 @@ function processCompoundColumn(
   return fields;
 }
 
-/** Builds a Zod schema object for all columns. */
-export const generateSchema = (columns: ColumnDefinition[]) => {
+/** Helper to get all field keys from formConfig */
+function getFormConfigFieldKeys(formConfig: FormConfig, isEdit: boolean): Set<string> {
+  const config = isEdit ? formConfig.edit : formConfig.create;
+  if (!config?.groups) return new Set();
+
+  const keys = new Set<string>();
+  config.groups.forEach(group => {
+    group.fields.forEach(field => {
+      const key = typeof field === "string" ? field : field.key;
+      keys.add(key);
+    });
+  });
+  return keys;
+}
+
+/** Helper to get field config from formConfig */
+function getFieldConfig(formConfig: FormConfig, key: string, isEdit: boolean): FormFieldConfig | undefined {
+  const config = isEdit ? formConfig.edit : formConfig.create;
+  if (!config?.groups) return undefined;
+
+  for (const group of config.groups) {
+    for (const field of group.fields) {
+      if (typeof field === "string") {
+        if (field === key) return undefined;
+      } else if (field.key === key) {
+        return field;
+      }
+    }
+  }
+  return undefined;
+}
+
+/** Builds a Zod schema object for all columns based on formConfig. */
+export const generateSchema = (
+  columns: ColumnDefinition[],
+  formConfig?: FormConfig,
+  isEdit: boolean = false
+) => {
   const schemaFields: Record<string, z.ZodTypeAny> = {};
 
   if (!Array.isArray(columns)) {
@@ -262,30 +298,53 @@ export const generateSchema = (columns: ColumnDefinition[]) => {
     return z.object({});
   }
 
+  // Get allowed field keys from formConfig
+  const allowedKeys = formConfig
+    ? getFormConfigFieldKeys(formConfig, isEdit)
+    : null;
+
   columns.forEach((column) => {
+    // If we have formConfig, only include fields that are in formConfig
+    if (allowedKeys && !allowedKeys.has(column.key)) {
+      return;
+    }
+
+    // Get field config overrides from formConfig
+    const fieldConfig = formConfig
+      ? getFieldConfig(formConfig, column.key, isEdit)
+      : undefined;
+
+    // Merge field config with column
+    const mergedColumn = fieldConfig ? {
+      ...column,
+      required: fieldConfig.required ?? column.required,
+      validation: fieldConfig.validation || column.validation,
+      options: fieldConfig.options || column.options,
+      min: fieldConfig.min ?? column.min,
+      max: fieldConfig.max ?? column.max,
+    } : column;
+
     // Handle compound columns.
-    if (column.type === "compound" && column.render?.config) {
-      Object.assign(schemaFields, processCompoundColumn(column));
+    if (mergedColumn.type === "compound" && mergedColumn.render?.config) {
+      Object.assign(schemaFields, processCompoundColumn(mergedColumn));
       return;
     }
 
     // Handle custom fields.
-    if (column.type === "customFields") {
-      schemaFields[column.key] = z.array(customFieldSchema);
+    if (mergedColumn.type === "customFields") {
+      schemaFields[mergedColumn.key] = z.array(customFieldSchema);
       return;
     }
 
-    // For normal columns.
-    if (column.usedInCreate || column.editable) {
-      const isOptional = !!column.optional;
-      const base = createBaseSchemaForType(
-        column.type,
-        !!column.required,
-        isOptional,
-        column.title
-      );
-      schemaFields[column.key] = applyCustomValidation(base, column);
-    }
+    // For normal columns - include if in formConfig or has legacy flags
+    const isOptional = !!mergedColumn.optional;
+    const base = createBaseSchemaForType(
+      mergedColumn.type,
+      !!mergedColumn.required,
+      isOptional,
+      mergedColumn.title
+    );
+    schemaFields[mergedColumn.key] = applyCustomValidation(base, mergedColumn);
   });
 
   return z.object(schemaFields);
@@ -511,47 +570,68 @@ export const processFormValues = (values: any, columns: ColumnDefinition[]) => {
 };
 
 /**
- * Returns an object with default values for each column.
+ * Returns an object with default values for each column based on formConfig.
  * For customFields, defaults to an empty array.
  */
-export const getDefaultValues = (columns: ColumnDefinition[]) =>
-  columns.reduce(
+export const getDefaultValues = (
+  columns: ColumnDefinition[],
+  formConfig?: FormConfig,
+  isEdit: boolean = false
+) => {
+  // Get allowed field keys from formConfig
+  const allowedKeys = formConfig
+    ? getFormConfigFieldKeys(formConfig, isEdit)
+    : null;
+
+  return columns.reduce(
     (acc, column) => {
-      if (column.usedInCreate || column.editable) {
-        switch (column.type) {
-          case "number":
-            acc[column.key] = undefined;
-            break;
-          case "boolean":
-          case "toggle":
-            acc[column.key] = false;
-            break;
-          case "date":
-            acc[column.key] = "";
-            break;
-          case "tags":
-            acc[column.key] = [];
-            break;
-          case "select":
-            acc[column.key] = column.options?.[0]?.value || "";
-            break;
-          case "image":
-            acc[column.key] = "";
-            break;
-          case "multiselect":
-            acc[column.key] = [];
-            break;
-          case "customFields":
-            acc[column.key] = [];
-            break;
-          case "rating":
-            acc[column.key] = undefined;
-            break;
-          default:
-            acc[column.key] = "";
-        }
+      // If we have formConfig, only include fields that are in formConfig
+      if (allowedKeys && !allowedKeys.has(column.key)) {
+        return acc;
+      }
+
+      // Get field config overrides from formConfig
+      const fieldConfig = formConfig
+        ? getFieldConfig(formConfig, column.key, isEdit)
+        : undefined;
+
+      // Merge options from fieldConfig if present
+      const options = fieldConfig?.options || column.options;
+
+      switch (column.type) {
+        case "number":
+          acc[column.key] = undefined;
+          break;
+        case "boolean":
+        case "toggle":
+          acc[column.key] = false;
+          break;
+        case "date":
+          acc[column.key] = "";
+          break;
+        case "tags":
+          acc[column.key] = [];
+          break;
+        case "select":
+          acc[column.key] = options?.[0]?.value || "";
+          break;
+        case "image":
+          acc[column.key] = "";
+          break;
+        case "multiselect":
+          acc[column.key] = [];
+          break;
+        case "customFields":
+          acc[column.key] = [];
+          break;
+        case "rating":
+          acc[column.key] = undefined;
+          break;
+        default:
+          acc[column.key] = "";
       }
       return acc;
     },
     {} as Record<string, any>
   );
+};

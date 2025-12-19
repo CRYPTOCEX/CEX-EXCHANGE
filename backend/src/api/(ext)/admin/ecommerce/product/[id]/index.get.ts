@@ -8,10 +8,10 @@ import { baseEcommerceProductSchema } from "../utils";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
-  summary:
-    "Retrieves detailed information of a specific ecommerce product by ID",
+  summary: "Retrieves a specific ecommerce product by ID",
   operationId: "getEcommerceProductById",
-  tags: ["Admin", "Ecommerce Products"],
+  tags: ["Admin", "Ecommerce", "Product"],
+  description: "Fetches detailed information for a single ecommerce product including associated category details and customer reviews.",
   parameters: [
     {
       index: 0,
@@ -24,12 +24,12 @@ export const metadata: OperationObject = {
   ],
   responses: {
     200: {
-      description: "Ecommerce product details",
+      description: "Ecommerce product retrieved successfully",
       content: {
         "application/json": {
           schema: {
             type: "object",
-            properties: baseEcommerceProductSchema, // Define this schema in your utils if it's not already defined
+            properties: baseEcommerceProductSchema,
           },
         },
       },
@@ -43,9 +43,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("ecommerceProduct", params.id, [
+  ctx?.step("Fetching product by ID");
+
+  const result = await getRecord("ecommerceProduct", params.id, [
     {
       model: models.ecommerceCategory,
       as: "category",
@@ -58,4 +60,7 @@ export default async (data) => {
       required: false,
     },
   ]);
+
+  ctx?.success("Product retrieved successfully");
+  return result;
 };

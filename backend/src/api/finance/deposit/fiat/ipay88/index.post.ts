@@ -4,9 +4,10 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 
-import { 
+import { logger } from "@b/utils/console";
+import {
   getIpay88Config,
-  validateCurrency, 
+  validateCurrency,
   generateIpay88Signature,
   convertToIpay88Amount,
   IPAY88_PAYMENT_METHODS,
@@ -23,6 +24,8 @@ export const metadata: OperationObject = {
     "Initiates an iPay88 payment process for Southeast Asian markets. Supports multiple payment methods including credit cards, e-wallets, and online banking across Malaysia, Singapore, Thailand, Philippines, Indonesia, and Vietnam.",
   operationId: "createIpay88Payment",
   tags: ["Finance", "Payment"],
+  logModule: "IPAY88_DEPOSIT",
+  logTitle: "Create iPay88 payment",
   requestBody: {
     description: "Payment information for iPay88 payment creation",
     content: {
@@ -121,12 +124,14 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("Payment gateway not found"),
     500: serverErrorResponse,
   },
+  requiresAuth: true,
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
 
   if (!user) {
+    ctx?.fail("User not authenticated");
     throw new Error("User not found");
   }
 
@@ -160,7 +165,8 @@ export default async (data: Handler) => {
     const config = getIpay88Config();
 
     // Create transaction record
-    const transaction = await models.transaction.create({
+    ctx?.step("Creating transaction record");
+      const transaction = await models.transaction.create({
       uuid: require("crypto").randomUUID(),
       userId: user.id,
       type: "DEPOSIT",
@@ -265,8 +271,8 @@ export default async (data: Handler) => {
     };
 
   } catch (error) {
-    console.error("iPay88 payment creation error:", error);
-    
+    logger.error("IPAY88", "Payment creation error", error);
+
     if (error instanceof Ipay88Error) {
       throw new Error(`iPay88 Error: ${error.message}`);
     }

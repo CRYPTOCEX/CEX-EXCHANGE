@@ -10,9 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 export default function ExtensionDetailsPage() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const { id } = useParams();
   const updateCheckedRef = useRef<string | null>(null);
   const {
@@ -60,7 +62,7 @@ export default function ExtensionDetailsPage() {
   }, [currentExtension, licenseVerified, checkForUpdates]);
   if (isLoading || !currentExtension) {
     return (
-      <div>
+      <div className={`container ${PAGE_PADDING}`}>
         <Skeleton className="h-12 w-64 mb-8" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
@@ -76,7 +78,7 @@ export default function ExtensionDetailsPage() {
     );
   }
   return (
-    <div>
+    <div className={`container ${PAGE_PADDING}`}>
       <TopBar extension={currentExtension} />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
@@ -98,7 +100,7 @@ export default function ExtensionDetailsPage() {
                     {currentExtension.title}
                   </h2>
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    {t("version")}: {currentExtension.version}
+                    {tCommon("version")}: {currentExtension.version}
                   </p>
                 </div>
               </div>

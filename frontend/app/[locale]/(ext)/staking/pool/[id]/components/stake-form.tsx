@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Calculator } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Calculator, AlertCircle, Wallet, Loader2 } from "lucide-react";
+import { $fetch } from "@/lib/api";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,21 +27,58 @@ interface StakeFormProps {
 }
 
 export default function StakeForm({ pool }: StakeFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_staking");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { hasKyc, canAccessFeature } = useUserStore();
   const { settings } = useConfigStore();
   const router = useRouter();
   const [amount, setAmount] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [isLoadingBalance, setIsLoadingBalance] = useState(true);
 
   // Get the stake action from the store
   const stake = userStakingStore((state) => state.stake);
 
+  // Fetch wallet balance
+  useEffect(() => {
+    const fetchWalletBalance = async () => {
+      setIsLoadingBalance(true);
+      const { data, error } = await $fetch<{ balance: number }>({
+        url: `/api/finance/wallet/${pool.walletType}/${pool.token}`,
+        silentSuccess: true,
+        silent: true,
+      });
+      if (!error && data) {
+        setWalletBalance(data.balance ?? 0);
+      } else {
+        setWalletBalance(0);
+      }
+      setIsLoadingBalance(false);
+    };
+    fetchWalletBalance();
+  }, [pool.walletType, pool.token]);
+
   const numericAmount = Number.parseFloat(amount || "0");
+  const hasEnoughBalance = walletBalance !== null && numericAmount <= walletBalance;
   const isValidAmount =
     !isNaN(numericAmount) &&
     numericAmount >= pool.minStake &&
-    (pool.maxStake === null || numericAmount <= pool.maxStake);
+    (pool.maxStake === null || numericAmount <= pool.maxStake) &&
+    hasEnoughBalance;
+
+  // Calculate max stakeable amount (considering balance and pool max)
+  const maxStakeable = walletBalance !== null
+    ? (pool.maxStake !== null ? Math.min(walletBalance, pool.maxStake) : walletBalance)
+    : 0;
+
+  const handleSetMax = () => {
+    if (maxStakeable > 0) {
+      setAmount(maxStakeable.toString());
+    }
+  };
 
   // Calculate estimated rewards
   const dailyReward = numericAmount * (pool.apr / 100 / 365);
@@ -53,15 +92,17 @@ export default function StakeForm({ pool }: StakeFormProps) {
     }
 
     setIsSubmitting(true);
+    setError(null);
 
-    try {
-      await stake({ poolId: pool.id, amount: numericAmount });
+    const result = await stake({ poolId: pool.id, amount: numericAmount });
+
+    if (result.success) {
       router.push("/staking/position");
-    } catch (error) {
-      console.error("Error during staking:", error);
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setError(result.error || "Failed to stake. Please try again.");
     }
+
+    setIsSubmitting(false);
   };
 
   const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
@@ -75,8 +116,7 @@ export default function StakeForm({ pool }: StakeFormProps) {
     <Card>
       <CardHeader>
         <CardTitle>
-          {t("Stake")}
-          {pool.symbol}
+          {tExt("stake")} {pool.symbol}
         </CardTitle>
         <CardDescription>
           {t("enter_the_amount_you_want_to_stake")}
@@ -84,13 +124,46 @@ export default function StakeForm({ pool }: StakeFormProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit}>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <div className="space-y-4">
+            {/* Wallet Balance Display */}
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">{tCommon("available_balance")}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {isLoadingBalance ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                ) : (
+                  <span className="font-medium">
+                    {walletBalance?.toLocaleString(undefined, { maximumFractionDigits: 8 }) ?? "0"} {pool.symbol}
+                  </span>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="amount">
-                {t("amount_(")}
-                {pool.symbol}
-                )
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="amount">
+                  {tCommon("amount")} ({pool.symbol})
+                </Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs text-violet-600 hover:text-violet-700 hover:bg-violet-50 dark:text-violet-400 dark:hover:bg-violet-950"
+                  onClick={handleSetMax}
+                  disabled={isLoadingBalance || maxStakeable <= 0}
+                >
+                  {tCommon("max")}
+                </Button>
+              </div>
               <div className="relative">
                 <Input
                   id="amount"
@@ -109,9 +182,11 @@ export default function StakeForm({ pool }: StakeFormProps) {
               </div>
               {numericAmount > 0 && !isValidAmount && (
                 <p className="text-sm text-red-500">
-                  {numericAmount < pool.minStake
-                    ? `Minimum stake is ${pool.minStake} ${pool.symbol}`
-                    : `Maximum stake is ${pool.maxStake} ${pool.symbol}`}
+                  {!hasEnoughBalance && walletBalance !== null
+                    ? `${t("insufficient_balance")}. ${tCommon("available")}: ${walletBalance} ${pool.symbol}`
+                    : numericAmount < pool.minStake
+                      ? `${t("minimum_stake_is")} ${pool.minStake} ${pool.symbol}`
+                      : `${t("maximum_stake_is")} ${pool.maxStake} ${pool.symbol}`}
                 </p>
               )}
             </div>
@@ -132,14 +207,14 @@ export default function StakeForm({ pool }: StakeFormProps) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
-                    {t("total_reward")} ({pool.lockPeriod} {t("days")})
+                    {t("total_reward")} ({pool.lockPeriod} {tCommon("days")})
                   </span>
                   <span>
                     {totalReward.toFixed(6)} {pool.symbol}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("APR")}</span>
+                  <span className="text-muted-foreground">{tCommon("apr")}</span>
                   <span className="text-green-500">{pool.apr}%</span>
                 </div>
               </div>
@@ -148,16 +223,15 @@ export default function StakeForm({ pool }: StakeFormProps) {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
-                  {t("lock_period")}
+                  {tCommon("lock_period")}
                 </span>
                 <span>
-                  {pool.lockPeriod}
-                  {t("days")}
+                  {pool.lockPeriod} {tCommon("days")}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
-                  {t("early_withdrawal_fee")}
+                  {tExt("early_withdrawal_fee")}
                 </span>
                 <span>{pool.earlyWithdrawalFee}%</span>
               </div>
@@ -173,9 +247,9 @@ export default function StakeForm({ pool }: StakeFormProps) {
           <Button
             type="submit"
             className="w-full mt-6"
-            disabled={!isValidAmount || isSubmitting}
+            disabled={!isValidAmount || isSubmitting || isLoadingBalance}
           >
-            {isSubmitting ? "Processing..." : `Stake ${pool.symbol}`}
+            {isSubmitting ? tCommon("processing") + "..." : `${tExt("stake")} ${pool.symbol}`}
           </Button>
         </form>
       </CardContent>

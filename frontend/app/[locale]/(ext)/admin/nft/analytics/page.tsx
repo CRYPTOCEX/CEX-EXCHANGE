@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import NFTAnalyticsDashboard from "./client";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 export const metadata: Metadata = {
   title: "NFT Analytics Dashboard",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function NFTAnalyticsPage() {
-  return <NFTAnalyticsDashboard />;
+  return (
+    <div className={`container ${PAGE_PADDING}`}>
+      <NFTAnalyticsDashboard />
+    </div>
+  );
 } 

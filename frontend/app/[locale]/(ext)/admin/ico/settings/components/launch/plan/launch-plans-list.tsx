@@ -23,6 +23,22 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { useTranslations } from "next-intl";
+
+// Helper to parse features which can be IcoLaunchPlanFeatures | string[] | string
+const parseFeatures = (features: IcoLaunchPlanFeatures | string[] | string | undefined): IcoLaunchPlanFeatures => {
+  if (!features) return {};
+  if (typeof features === "string") {
+    try {
+      return JSON.parse(features);
+    } catch {
+      return {};
+    }
+  }
+  if (Array.isArray(features)) return {};
+  return features;
+};
+
 interface LaunchPlansListProps {
   plans: icoLaunchPlanAttributes[];
   onToggleStatus: (id: string) => void;
@@ -39,10 +55,13 @@ export default function LaunchPlansList({
   onDelete,
   onReorder,
 }: LaunchPlansListProps) {
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   if (plans.length === 0) {
     return (
       <div className="text-center py-6 text-muted-foreground">
-        No launch plans configured. Add a plan to get started.
+        {t("no_launch_plans_configured_add_a")}
       </div>
     );
   }
@@ -124,13 +143,17 @@ export default function LaunchPlansList({
                 </div>
               </TableCell>
               <TableCell>
-                <div className="text-sm">
-                  <div>Team: {plan.features.maxTeamMembers}</div>
-                  <div>Roadmap: {plan.features.maxRoadmapItems}</div>
-                  <div>Phases: {plan.features.maxOfferingPhases}</div>
-                  <div>Posts: {plan.features.maxUpdatePosts}</div>{" "}
-                  {/* Added posts support */}
-                </div>
+                {(() => {
+                  const features = parseFeatures(plan.features);
+                  return (
+                    <div className="text-sm">
+                      <div>{tExt("team")}: {features.maxTeamMembers ?? 0}</div>
+                      <div>{tExt("roadmap")}: {features.maxRoadmapItems ?? 0}</div>
+                      <div>{tExt("phases")}: {features.maxOfferingPhases ?? 0}</div>
+                      <div>{tCommon("posts")}: {features.maxUpdatePosts ?? 0}</div>
+                    </div>
+                  );
+                })()}
               </TableCell>
               <TableCell>
                 <div className="flex items-center space-x-2">
@@ -174,10 +197,9 @@ export default function LaunchPlansList({
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Launch Plan</AlertDialogTitle>
+                        <AlertDialogTitle>{t("delete_launch_plan")}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to delete the {plan.name} plan?
-                          This action cannot be undone.
+                          {t("are_you_sure_you_want_to_delete_the")} {plan.name} {t("plan_this_action_cannot_be_undone_1")}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

@@ -60,7 +60,7 @@ function WalletStateSync() {
     }
 
     // Extract chainId from CAIP address (format: eip155:1:0x...)
-    let chainId = null;
+    let chainId: string | null = null;
     if (caipAddress) {
       const parts = caipAddress.split(':');
       if (parts.length >= 2) {

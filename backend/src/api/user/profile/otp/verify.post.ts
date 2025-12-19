@@ -18,6 +18,8 @@ export const metadata: OperationObject = {
     "Verifies an OTP with the provided secret and type, and saves it if valid",
   tags: ["Profile"],
   requiresAuth: true,
+  logModule: "USER",
+  logTitle: "Verify OTP",
   requestBody: {
     required: true,
     content: {
@@ -83,18 +85,25 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  if (!data.user?.id)
+  const { user, body, ctx } = data;
+  if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
-  const { otp, secret, type } = data.body;
+  const { otp, secret, type } = body;
 
+  ctx?.step("Verifying OTP");
   const isValid = authenticator.verify({ token: otp, secret });
 
   if (!isValid) {
+    ctx?.fail("Invalid OTP provided");
     throw createError({ statusCode: 401, message: "Invalid OTP" });
   }
 
-  await saveOTPQuery(data.user.id, secret, type);
+  ctx?.step("Saving OTP configuration");
+  await saveOTPQuery(user.id, secret, type);
 
+  ctx?.success("OTP verified and saved successfully");
   return { message: "OTP verified and saved successfully" };
 };

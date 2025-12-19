@@ -1,25 +1,19 @@
 import React from "react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ChartData } from "./types";
 import { getColor } from "./utils";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface LegendProps {
   data: ChartData[];
   total: number;
   activeSegment: string | null;
   setActiveSegment: React.Dispatch<React.SetStateAction<string | null>>;
-  loading: boolean;
-  isFirstLoad: boolean;
 }
 function LegendImpl({
   data,
   total,
   activeSegment,
   setActiveSegment,
-  loading,
-  isFirstLoad,
 }: LegendProps) {
   return (
     <div className="grid grid-cols-2 w-full mt-auto">
@@ -45,21 +39,12 @@ function LegendImpl({
             <div className="flex flex-1 items-center justify-between gap-2 min-w-0">
               <span className="tracking-tight truncate">{entry.name}</span>
               <div className="flex items-center gap-1 whitespace-nowrap">
-                {loading && !isFirstLoad ? (
-                  <>
-                    <Skeleton className="h-4 w-12" />
-                    <Skeleton className="h-4 w-12" />
-                  </>
-                ) : (
-                  <>
-                    <span className="font-mono">
-                      {entry.value.toLocaleString()}
-                    </span>
-                    <span className="hidden sm:inline text-muted-foreground">
-                      ({percentage}%)
-                    </span>
-                  </>
-                )}
+                <span className="font-mono">
+                  {entry.value.toLocaleString()}
+                </span>
+                <span className="hidden sm:inline text-muted-foreground">
+                  ({percentage}%)
+                </span>
               </div>
             </div>
           </div>

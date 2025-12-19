@@ -33,7 +33,9 @@ interface FAQWizardProps {
 }
 
 export function FAQWizard({ isOpen, onClose, categories }: FAQWizardProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_faq");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { faqs } = useFAQStore();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -257,7 +259,7 @@ export function FAQWizard({ isOpen, onClose, categories }: FAQWizardProps) {
             <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
           </div>
           <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-            {t("Found")}
+            {tExt("found")}
             {filteredFAQs.length}
             {t("suggested_solution")}
             {filteredFAQs.length !== 1 ? "s" : ""}
@@ -305,13 +307,13 @@ export function FAQWizard({ isOpen, onClose, categories }: FAQWizardProps) {
             <div className="space-y-2">
               <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
                 <span>
-                  {t("Step")}
+                  {tCommon("step")}
                   {step + 1}
-                  {t("of")}
+                  {tCommon("of")}
                   {steps.length}
                 </span>
                 <span>
-                  {Math.round(progress)}% {t("complete")}
+                  {Math.round(progress)}% {tCommon("complete")}
                 </span>
               </div>
               <Progress value={progress} className="h-2" />
@@ -426,7 +428,7 @@ export function FAQWizard({ isOpen, onClose, categories }: FAQWizardProps) {
             >
               {step < steps.length - 1 ? (
                 <>
-                  {t("Next")}
+                  {tCommon("next")}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               ) : (
@@ -439,9 +441,9 @@ export function FAQWizard({ isOpen, onClose, categories }: FAQWizardProps) {
         {step === steps.length && (
           <div className="flex justify-between pt-6 border-t border-slate-200 dark:border-zinc-700">
             <Button variant="outline" onClick={() => setStep(0)}>
-              {t("start_over")}
+              {tCommon("start_over")}
             </Button>
-            <Button onClick={onClose}>{t("Close")}</Button>
+            <Button onClick={onClose}>{tCommon("close")}</Button>
           </div>
         )}
       </DialogContent>

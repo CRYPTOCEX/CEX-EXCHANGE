@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
   operationId: "listOrders",
   tags: ["Exchange", "Orders"],
   description: "Retrieves a list of orders for the authenticated user.",
+  logModule: "ECOSYSTEM",
+  logTitle: "List user orders",
   parameters: [
     {
       name: "type",
@@ -52,9 +54,9 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx, query } = data;
   if (!user?.id) throw new Error("Unauthorized");
-  const { currency, pair, type } = data.query;
+  const { currency, pair, type } = query;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -62,16 +64,19 @@ export default async (data: Handler) => {
 
   // If currency and pair are not provided, get all orders for the user
   if (!currency || !pair) {
+    ctx?.step("Fetching all user orders");
     const { getOrdersByUserId } = await import("@b/api/(ext)/ecosystem/utils/scylla/queries");
 
     try {
       const orders = await getOrdersByUserId(user.id);
 
+      ctx?.step(`Filtering orders by status: ${type || 'all'}`);
       // Filter by status (OPEN or not OPEN)
       const filteredOrders = orders.filter((order) =>
         type === "OPEN" ? order.status === "OPEN" : order.status !== "OPEN"
       );
 
+      ctx?.step("Converting bigint fields to numbers");
       // Convert bigint fields to numbers
       const result = filteredOrders.map((order) => {
         const { fromBigInt } = require("@b/api/(ext)/ecosystem/utils/blockchain");
@@ -86,13 +91,17 @@ export default async (data: Handler) => {
         };
       });
 
+      ctx?.success(`Retrieved ${result.length} orders`);
       return result;
     } catch (error) {
+      ctx?.fail(`Failed to fetch orders: ${error.message}`);
       console.error(`[Ecosystem Orders] Error fetching orders:`, error);
       throw error;
     }
   }
 
+  ctx?.step(`Fetching orders for ${currency}/${pair}`);
   const result = await getOrders(user.id, `${currency}/${pair}`, type === "OPEN");
+  ctx?.success(`Retrieved ${result?.length || 0} orders for ${currency}/${pair}`);
   return result;
 };

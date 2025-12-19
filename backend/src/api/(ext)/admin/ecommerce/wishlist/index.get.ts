@@ -25,7 +25,7 @@ export const metadata: OperationObject = {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -44,12 +44,15 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.ecommerce.wishlist",
+  demoMask: ["items.user.email"],
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching wishlists list");
+
+  const result = await getFiltered({
     model: models.ecommerceWishlist,
     query,
     sortField: query.sortField || "createdAt",
@@ -70,4 +73,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} wishlists`);
+  return result;
 };

@@ -33,6 +33,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 
 // Define identity document types with enhanced SVG icons
 export const IDENTITY_TYPES = [
@@ -386,6 +387,8 @@ export function IdentityField({
   error,
   touched,
 }: IdentityFieldProps) {
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
   const [selectedType, setSelectedType] = useState(value.type || defaultType);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>(
     {}
@@ -557,7 +560,7 @@ export function IdentityField({
       scale: 1,
       transition: {
         duration: 0.4,
-        ease: "easeOut",
+        ease: "easeOut" as const,
       },
     },
     exit: {
@@ -566,7 +569,7 @@ export function IdentityField({
       scale: 0.98,
       transition: {
         duration: 0.3,
-        ease: "easeIn",
+        ease: "easeIn" as const,
       },
     },
   };
@@ -624,7 +627,7 @@ export function IdentityField({
               variant="outline"
               className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800"
             >
-              {completionPercentage}% Complete
+              {completionPercentage}% {tCommon("complete")}
             </Badge>
           )}
         </div>
@@ -954,7 +957,7 @@ export function IdentityField({
                                 uploadProgress[field.id] < 100 ? (
                                   <div className="space-y-1">
                                     <div className="flex justify-between text-xs">
-                                      <span>Uploading...</span>
+                                      <span>{tCommon("uploading_ellipsis")}</span>
                                       <span>{uploadProgress[field.id]}%</span>
                                     </div>
                                     <Progress
@@ -965,7 +968,7 @@ export function IdentityField({
                                 ) : (
                                   <div className="flex items-center text-xs text-green-600 dark:text-green-400 gap-1 mb-2">
                                     <Check className="h-3 w-3" />
-                                    <span>Uploaded successfully</span>
+                                    <span>{t("uploaded_successfully")}</span>
                                   </div>
                                 )}
                                 <div className="flex gap-2 mt-2">
@@ -1027,16 +1030,14 @@ export function IdentityField({
                           <Shield className="h-4 w-4 text-green-600 dark:text-green-400" />
                         </div>
                         <span>
-                          Your documents are encrypted and securely stored
+                          {tCommon("your_documents_are_encrypted_and_securely_stored")}
                         </span>
                         <Lock className="h-3.5 w-3.5 text-muted-foreground/70 dark:text-zinc-500" />
                       </div>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       <p className="text-xs">
-                        All your documents are encrypted using industry-standard
-                        encryption and stored securely. Your privacy is our
-                        priority.
+                        {t("all_your_documents_are_encrypted_using")} {t("your_privacy_is_our_priority_1")}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -1048,24 +1049,24 @@ export function IdentityField({
                 {isComplete ? (
                   <span className="flex items-center gap-1 text-green-600">
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    All required documents uploaded
+                    {t("all_required_documents_uploaded")}
                   </span>
                 ) : (
                   <span>
-                    Please upload{" "}
+                    {t("please_upload")}{" "}
                     {
                       selectedTypeConfig.fields.filter(
                         (f) => f.required && !value[f.id]
                       ).length
                     }{" "}
-                    more required document(s)
+                    {t("more_required_document_s")}(s)
                   </span>
                 )}
               </div>
               <div className="text-xs text-muted-foreground dark:text-zinc-400">
-                Verification powered by{" "}
+                {t("verification_powered_by")}{" "}
                 <span className="font-medium text-primary dark:text-primary-400">
-                  Secure ID Verification
+                  {t("secure_id_verification")}
                 </span>
               </div>
             </CardFooter>

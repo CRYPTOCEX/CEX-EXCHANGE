@@ -7,6 +7,7 @@ import {
 } from "@b/api/(ext)/ecosystem/utils/scylla/queries";
 import { updateWalletBalance } from "@b/api/(ext)/ecosystem/utils/wallet";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 import {
   serverErrorResponse,
@@ -19,6 +20,8 @@ export const metadata: OperationObject = {
     "Cancels all open trading orders for the user and refunds the unfulfilled amounts.",
   operationId: "cancelAllOrders",
   tags: ["Trading", "Orders"],
+  logModule: "ECOSYSTEM",
+  logTitle: "Cancel all trading orders",
   responses: {
     200: {
       description: "All orders cancelled successfully",
@@ -41,25 +44,29 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   try {
+    ctx?.step("Fetching all user orders");
     // Get all orders for the user
     const allOrders = await getOrdersByUserId(user.id);
 
+    ctx?.step("Filtering open orders");
     // Filter only OPEN orders
     const openOrders = allOrders.filter(order => order.status === "OPEN");
 
     if (openOrders.length === 0) {
+      ctx?.success("No open orders to cancel");
       return {
         message: "No open orders to cancel",
         cancelledCount: 0,
       };
     }
 
+    ctx?.step(`Processing ${openOrders.length} open orders`);
     const matchingEngine = await MatchingEngine.getInstance();
     let cancelledCount = 0;
 
@@ -101,10 +108,10 @@ export default async (data: Handler) => {
         }
 
         const refundCurrency = side === "BUY" ? pair : currency;
-        const wallet = await getWallet(user.id, "ECO", refundCurrency);
+        const wallet = await getWallet(user.id, "ECO", refundCurrency, false, ctx);
 
         if (!wallet) {
-          console.error(`Wallet not found for ${refundCurrency}, skipping order ${order.id}`);
+          logger.warn("ORDERS", `Wallet not found for ${refundCurrency}, skipping order ${order.id}`);
           continue;
         }
 
@@ -128,16 +135,18 @@ export default async (data: Handler) => {
 
         cancelledCount++;
       } catch (error) {
-        console.error(`Failed to cancel order ${order.id}:`, error.message);
+        logger.error("ORDERS", `Failed to cancel order ${order.id}`, error);
         // Continue with other orders even if one fails
       }
     }
 
+    ctx?.success(`Successfully cancelled ${cancelledCount} of ${openOrders.length} orders`);
     return {
       message: `Successfully cancelled ${cancelledCount} order(s)`,
       cancelledCount,
     };
   } catch (error) {
+    ctx?.fail(`Failed to cancel orders: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: `Failed to cancel orders: ${error.message}`,

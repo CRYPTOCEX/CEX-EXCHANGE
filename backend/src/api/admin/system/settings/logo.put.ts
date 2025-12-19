@@ -1,6 +1,7 @@
 import { models } from "@b/db";
 import { CacheManager } from "@b/utils/cache";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 import fs from "fs/promises";
 import fsSync from "fs";
 import path from "path";
@@ -52,6 +53,8 @@ export const metadata = {
   },
   permission: "edit.settings",
   requiresAuth: true,
+  logModule: "ADMIN_SYS",
+  logTitle: "Update logo",
 };
 
 // STRICT mapping - each logo type only updates its own specific files
@@ -206,9 +209,11 @@ interface ProcessResult {
   error?: string;
 }
 
-export default async (data: { body: { logoType: string; file: string } }) => {
-  const { body } = data;
+export default async (data: { body: { logoType: string; file: string }; ctx?: any }) => {
+  const { body, ctx } = data;
   const { logoType, file } = body;
+
+  ctx?.step("Validating logo upload request");
 
   if (!logoType || !file) {
     throw createError({
@@ -234,8 +239,9 @@ export default async (data: { body: { logoType: string; file: string } }) => {
   }
 
   try {
-    console.log(`[LOGO-API-DEBUG] Processing logo upload for type: ${logoType}`);
-    console.log(`[LOGO-API-DEBUG] File size: ${file.length} characters`);
+    ctx?.step(`Processing logo upload for type: ${logoType}`);
+    logger.debug("LOGO", `Processing logo upload for type: ${logoType}`);
+    logger.debug("LOGO", `File size: ${file.length} characters`);
     
     // Determine the correct path based on environment with better detection
     const isProduction = process.env.NODE_ENV === 'production';
@@ -264,11 +270,11 @@ export default async (data: { body: { logoType: string; file: string } }) => {
       }
       
       // Debug logging for production troubleshooting
-      console.log(`[LOGO-DEBUG] Production mode detected`);
-      console.log(`[LOGO-DEBUG] Current working directory: ${process.cwd()}`);
-      console.log(`[LOGO-DEBUG] Selected logo directory: ${logoDir}`);
-      console.log(`[LOGO-DEBUG] Logo directory exists: ${fsSync.existsSync(logoDir)}`);
-      console.log(`[LOGO-DEBUG] Parent directory exists: ${fsSync.existsSync(path.dirname(logoDir))}`);
+      logger.debug("LOGO", "Production mode detected");
+      logger.debug("LOGO", `Current working directory: ${process.cwd()}`);
+      logger.debug("LOGO", `Selected logo directory: ${logoDir}`);
+      logger.debug("LOGO", `Logo directory exists: ${fsSync.existsSync(logoDir)}`);
+      logger.debug("LOGO", `Parent directory exists: ${fsSync.existsSync(path.dirname(logoDir))}`);
     } else {
       // Development path
       logoDir = path.join(process.cwd(), "..", "frontend", "public", "img", "logo");
@@ -284,7 +290,7 @@ export default async (data: { body: { logoType: string; file: string } }) => {
     }
 
     const buffer = Buffer.from(base64Data, "base64");
-    console.log(`[LOGO-API-DEBUG] Buffer created, size: ${buffer.length} bytes`);
+    logger.debug("LOGO", `Buffer created, size: ${buffer.length} bytes`);
     
     // Try to ensure the directory exists, with fallback to alternative paths
     let finalLogoDir = logoDir;
@@ -303,13 +309,13 @@ export default async (data: { body: { logoType: string; file: string } }) => {
         try {
           if (!fsSync.existsSync(testPath)) {
             await fs.mkdir(testPath, { recursive: true });
-            console.log(`[LOGO-DEBUG] Successfully created directory: ${testPath}`);
+            logger.debug("LOGO", `Successfully created directory: ${testPath}`);
           }
           finalLogoDir = testPath;
           directoryCreated = true;
           break;
         } catch (error) {
-          console.error(`[LOGO-DEBUG] Failed to create directory ${testPath}:`, error.message);
+          logger.error("LOGO", `Failed to create directory ${testPath}: ${error.message}`);
           continue;
         }
       }
@@ -325,9 +331,9 @@ export default async (data: { body: { logoType: string; file: string } }) => {
       if (!fsSync.existsSync(finalLogoDir)) {
         try {
           await fs.mkdir(finalLogoDir, { recursive: true });
-          console.log(`[LOGO-DEBUG] Created logo directory: ${finalLogoDir}`);
+          logger.debug("LOGO", `Created logo directory: ${finalLogoDir}`);
         } catch (mkdirError) {
-          console.error(`[LOGO-DEBUG] Failed to create logo directory: ${finalLogoDir}`, mkdirError);
+          logger.error("LOGO", `Failed to create logo directory: ${finalLogoDir}`, mkdirError);
           throw createError({
             statusCode: 500,
             message: `Failed to create logo directory: ${mkdirError.message}`,
@@ -336,14 +342,16 @@ export default async (data: { body: { logoType: string; file: string } }) => {
       }
     }
     
-    console.log(`[LOGO-DEBUG] Using final logo directory: ${finalLogoDir}`);
+    logger.debug("LOGO", `Using final logo directory: ${finalLogoDir}`);
     
     // Get all files to process for this logo type
     const allFilesToProcess = [...logoConfig.primaryFiles, ...logoConfig.additionalFiles];
-    
+
+    ctx?.step(`Processing ${allFilesToProcess.length} logo variants`);
+
     // Process the uploaded file and create all required formats
     const results: ProcessResult[] = [];
-    
+
     for (const filename of allFilesToProcess) {
       const targetPath = path.join(finalLogoDir, filename);
       const isWebP = filename.endsWith('.webp');
@@ -374,7 +382,7 @@ export default async (data: { body: { logoType: string; file: string } }) => {
         
         results.push({ filename, success: true });
       } catch (error) {
-        console.error(`[LOGO-DEBUG] Failed to process file ${filename}:`, error.message);
+        logger.error("LOGO", `Failed to process file ${filename}: ${error.message}`);
         results.push({ filename, success: false, error: error.message });
       }
     }
@@ -385,18 +393,26 @@ export default async (data: { body: { logoType: string; file: string } }) => {
     // Check processing results
     const successCount = results.filter(r => r.success).length;
     const failedCount = results.filter(r => !r.success).length;
-    
+
+    if (failedCount > 0) {
+      ctx?.warn(`${failedCount} logo variants failed to process`);
+    }
+
+    ctx?.success(`Logo ${logoType} updated: ${successCount}/${results.length} files processed`);
+
     return {
       message: `Logo ${logoType} updated successfully. Processed ${successCount}/${results.length} files.`,
       logoUrl,
       results,
     };
-    
+
   } catch (error: any) {
-    console.error(`[LOGO-API-ERROR] Failed to update logo ${logoType}:`, error);
-    console.error(`[LOGO-API-ERROR] Error message:`, error?.message);
-    console.error(`[LOGO-API-ERROR] Error stack:`, error?.stack);
-    
+    logger.error("LOGO", `Failed to update logo ${logoType}`, error);
+    logger.error("LOGO", `Error message: ${error?.message}`);
+    logger.debug("LOGO", `Error stack: ${error?.stack}`);
+
+    ctx?.fail(`Failed to update logo ${logoType}: ${error?.message || error}`);
+
     throw createError({
       statusCode: 500,
       message: `Failed to update logo ${logoType}: ${error?.message || error}`,

@@ -1,24 +1,128 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { Op, fn, col, literal } from "sequelize";
+import { unauthorizedResponse, serverErrorResponse } from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Get Affiliate Dashboard Data",
+  summary: "Get affiliate dashboard analytics and metrics",
   description:
-    "Retrieves aggregated metrics for the affiliate admin dashboard.",
+    "Retrieves comprehensive affiliate dashboard data including total affiliates, referrals, earnings metrics with month-over-month comparisons, conversion rates, monthly earnings chart data for the last 12 months, affiliate status distribution, and top-performing affiliates ranked by earnings.",
   operationId: "getAffiliateDashboard",
-  tags: ["Affiliate", "Admin", "Stats"],
+  tags: ["Admin", "Affiliate", "Dashboard"],
   requiresAuth: true,
   permission: "access.affiliate",
   responses: {
-    200: { description: "Affiliate dashboard data retrieved successfully." },
-    401: { description: "Unauthorized – Admin privileges required." },
-    500: { description: "Internal Server Error" },
+    200: {
+      description: "Affiliate dashboard data retrieved successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              metrics: {
+                type: "object",
+                description: "Key performance metrics with month-over-month changes",
+                properties: {
+                  totalAffiliates: {
+                    type: "object",
+                    properties: {
+                      value: { type: "integer", description: "Total number of unique affiliates (referrers)" },
+                      change: { type: "string", description: "Percentage change compared to previous month" },
+                      trend: { type: "string", enum: ["up", "down"], description: "Trend direction" },
+                    },
+                    required: ["value", "change", "trend"],
+                  },
+                  totalReferrals: {
+                    type: "object",
+                    properties: {
+                      value: { type: "integer", description: "Total number of referrals" },
+                      change: { type: "string", description: "Percentage change compared to previous month" },
+                      trend: { type: "string", enum: ["up", "down"], description: "Trend direction" },
+                    },
+                    required: ["value", "change", "trend"],
+                  },
+                  totalEarnings: {
+                    type: "object",
+                    properties: {
+                      value: { type: "number", format: "float", description: "Total earnings across all affiliates" },
+                      change: { type: "string", description: "Percentage change compared to previous month" },
+                      trend: { type: "string", enum: ["up", "down"], description: "Trend direction" },
+                    },
+                    required: ["value", "change", "trend"],
+                  },
+                  conversionRate: {
+                    type: "object",
+                    properties: {
+                      value: { type: "integer", description: "Current month conversion rate percentage" },
+                      change: { type: "string", description: "Percentage point change compared to previous month" },
+                      trend: { type: "string", enum: ["up", "down"], description: "Trend direction" },
+                    },
+                    required: ["value", "change", "trend"],
+                  },
+                },
+                required: ["totalAffiliates", "totalReferrals", "totalEarnings", "conversionRate"],
+              },
+              charts: {
+                type: "object",
+                description: "Chart data for visualizations",
+                properties: {
+                  monthlyEarnings: {
+                    type: "array",
+                    description: "Monthly earnings data for the last 12 months",
+                    items: {
+                      type: "object",
+                      properties: {
+                        month: { type: "string", description: "Month in YYYY-MM format" },
+                        amount: { type: "number", format: "float", description: "Total earnings for the month" },
+                      },
+                      required: ["month", "amount"],
+                    },
+                  },
+                  affiliateStatus: {
+                    type: "array",
+                    description: "Distribution of affiliates by status",
+                    items: {
+                      type: "object",
+                      properties: {
+                        status: { type: "string", description: "Affiliate status" },
+                        count: { type: "integer", description: "Number of affiliates with this status" },
+                      },
+                      required: ["status", "count"],
+                    },
+                  },
+                  topAffiliates: {
+                    type: "array",
+                    description: "Top performing affiliates ranked by earnings",
+                    items: {
+                      type: "object",
+                      properties: {
+                        id: { type: "string", description: "Affiliate user ID" },
+                        name: { type: "string", description: "Affiliate full name" },
+                        referrals: { type: "integer", description: "Total number of referrals" },
+                        earnings: { type: "number", format: "float", description: "Total earnings" },
+                        conversionRate: { type: "integer", description: "Conversion rate percentage" },
+                      },
+                      required: ["id", "name", "referrals", "earnings", "conversionRate"],
+                    },
+                  },
+                },
+                required: ["monthlyEarnings", "affiliateStatus", "topAffiliates"],
+              },
+            },
+            required: ["metrics", "charts"],
+          },
+        },
+      },
+    },
+    401: unauthorizedResponse,
+    500: serverErrorResponse,
   },
+  logModule: "ADMIN_AFFILIATE",
+  logTitle: "Get affiliate dashboard data",
 };
 
-export default async (data: { user?: { id: string } }) => {
-  const { user } = data;
+export default async (data: { user?: { id: string }; ctx?: any }) => {
+  const { user, ctx } = data;
   if (!user?.id) {
     throw createError({
       statusCode: 401,
@@ -26,11 +130,13 @@ export default async (data: { user?: { id: string } }) => {
     });
   }
 
+  ctx?.step("Initializing dashboard metrics");
   const now = new Date();
   const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
+  ctx?.step("Calculating total affiliates");
   // 1. Total Affiliates (distinct referrers)
   const totalAffiliatesRow = await models.mlmReferral.findOne({
     attributes: [
@@ -80,6 +186,7 @@ export default async (data: { user?: { id: string } }) => {
       : 0;
   const referralsTrend = currentReferrals >= previousReferrals ? "up" : "down";
 
+  ctx?.step("Calculating total earnings");
   // 4. Total Earnings
   const totalEarningsRow = await models.mlmReferralReward.findOne({
     attributes: [[fn("SUM", col("reward")), "totalEarnings"]],
@@ -166,6 +273,7 @@ export default async (data: { user?: { id: string } }) => {
   const conversionTrend =
     thisMonthConversion >= lastMonthConversion ? "up" : "down";
 
+  ctx?.step("Aggregating dashboard metrics");
   const metrics = {
     totalAffiliates: {
       value: totalAffiliates,
@@ -189,6 +297,7 @@ export default async (data: { user?: { id: string } }) => {
     },
   };
 
+  ctx?.step("Generating monthly earnings chart data");
   // 7. Monthly Earnings Chart Data (last 12 months)
   const months: string[] = [];
   for (let i = 11; i >= 0; i--) {
@@ -222,6 +331,7 @@ export default async (data: { user?: { id: string } }) => {
     amount: earningsMap[month] || 0,
   }));
 
+  ctx?.step("Calculating affiliate status distribution");
   // 8. Affiliate Status Distribution
   const statusRows = await models.mlmReferral.findAll({
     attributes: ["status", [fn("COUNT", literal("*")), "count"]],
@@ -233,6 +343,7 @@ export default async (data: { user?: { id: string } }) => {
     count: parseInt(row.count, 10),
   }));
 
+  ctx?.step("Identifying top affiliates");
   // 9. Top Affiliates
   const referralCounts = await models.mlmReferral.findAll({
     attributes: ["referrerId", [fn("COUNT", literal("*")), "referrals"]],
@@ -287,6 +398,7 @@ export default async (data: { user?: { id: string } }) => {
     })
     .sort((a, b) => b.earnings - a.earnings);
 
+  ctx?.success("Dashboard data retrieved successfully");
   return {
     metrics,
     charts: { monthlyEarnings, affiliateStatus, topAffiliates },

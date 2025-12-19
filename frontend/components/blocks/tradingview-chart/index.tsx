@@ -8,6 +8,7 @@ import { extractBaseCurrency, extractQuoteCurrency } from "@/store/trade/use-bin
 import { useTradingViewLoader } from "./script-loader";
 import { marketDataWs } from "@/services/market-data-ws";
 import { getTradingViewPricescale, type MarketMetadata } from "@/lib/precision-utils";
+import { useTranslations } from "next-intl";
 
 // TradingView types (assuming they're available globally)
 declare global {
@@ -127,6 +128,7 @@ const TradingViewChartBase = ({
   onPriceUpdate,
   metadata,
 }: TradingViewChartProps) => {
+  const t = useTranslations("components_blocks");
   // Derive market type from URL if not provided explicitly
   const [derivedMarketType, setDerivedMarketType] = useState<"spot" | "eco" | "futures">(() => {
     if (typeof window !== 'undefined') {
@@ -790,7 +792,7 @@ const TradingViewChartBase = ({
       <div className="w-full h-full bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-white text-sm">Loading TradingView...</p>
+          <p className="text-white text-sm">{t("loading_tradingview_ellipsis")}</p>
         </div>
       </div>
     );
@@ -801,8 +803,8 @@ const TradingViewChartBase = ({
     return (
       <div className="w-full h-full bg-black flex items-center justify-center">
         <div className="text-center text-red-400">
-          <p className="text-sm mb-2">Failed to load TradingView</p>
-          <p className="text-xs text-gray-500">Falling back to native chart...</p>
+          <p className="text-sm mb-2">{t("failed_to_load_tradingview")}</p>
+          <p className="text-xs text-gray-500">{t("falling_back_to_native_chart_ellipsis")}</p>
         </div>
       </div>
     );

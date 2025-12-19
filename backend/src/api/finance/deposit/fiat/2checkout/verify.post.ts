@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
     "Verifies a 2Checkout payment using the order reference and updates the transaction status accordingly",
   operationId: "verify2CheckoutPayment",
   tags: ["Finance", "Deposit"],
+  logModule: "2CHECKOUT_DEPOSIT",
+  logTitle: "Verify 2Checkout payment",
   requestBody: {
     required: true,
     content: {
@@ -67,8 +69,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 

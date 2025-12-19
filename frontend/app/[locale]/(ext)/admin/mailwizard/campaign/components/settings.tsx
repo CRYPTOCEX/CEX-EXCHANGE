@@ -20,7 +20,7 @@ import { useCampaignStore } from "./store";
 import { useTranslations } from "next-intl";
 
 export function CampaignSettings() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const {
     campaign,
     setCampaign,
@@ -47,7 +47,7 @@ export function CampaignSettings() {
       <CardHeader>
         <CardTitle>{t("campaign_settings")}</CardTitle>
         <CardDescription>
-          {t("configure_your_campaign’s_email_template")}.
+          {t("configure_your_campaign_s_email_template")}.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -55,10 +55,10 @@ export function CampaignSettings() {
           {/* Campaign Name */}
           <Input
             id="name"
-            title="Campaign Name"
+            title={t("campaign_name")}
             value={campaign.name}
             onChange={(e) => setCampaign({ ...campaign, name: e.target.value })}
-            placeholder="Enter campaign name"
+            placeholder={t("enter_campaign_name")}
           />
 
           {/* Subject */}
@@ -69,14 +69,14 @@ export function CampaignSettings() {
             onChange={(e) =>
               setCampaign({ ...campaign, subject: e.target.value })
             }
-            placeholder="Enter email subject"
+            placeholder={t("enter_email_subject")}
           />
 
           {/* Speed */}
           <Input
             id="speed"
             type="number"
-            title="Emails per hour"
+            title={t("emails_per_hour")}
             value={campaign.speed}
             onChange={(e) =>
               setCampaign({
@@ -96,7 +96,7 @@ export function CampaignSettings() {
               }
             >
               <SelectTrigger id="template" title="Template">
-                <SelectValue placeholder="Select a template" />
+                <SelectValue placeholder={t("select_a_template")} />
               </SelectTrigger>
               <SelectContent>
                 {templates.map((template) => (

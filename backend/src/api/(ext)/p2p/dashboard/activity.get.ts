@@ -8,6 +8,8 @@ export const metadata = {
     "Retrieves recent trading activity for the authenticated user.",
   operationId: "getP2PTradingActivity",
   tags: ["P2P", "Dashboard"],
+  logModule: "P2P",
+  logTitle: "Get trading activity",
   responses: {
     200: { description: "Trading activity retrieved successfully." },
     401: unauthorizedResponse,
@@ -16,9 +18,11 @@ export const metadata = {
   requiresAuth: true,
 };
 
-export default async (data: { user?: any }) => {
-  const { user } = data;
+export default async (data: { user?: any; ctx?: any }) => {
+  const { user, ctx } = data;
   if (!user?.id) throw new Error("Unauthorized");
+
+  ctx?.step("Fetching recent trades");
   try {
     // Fetch trades directly instead of activity logs (which may be empty)
     const trades = await models.p2pTrade.findAll({
@@ -42,7 +46,7 @@ export default async (data: { user?: any }) => {
     });
 
     // Transform trades into activity format
-    return trades.map((trade: any) => {
+    const activities = trades.map((trade: any) => {
       const tradeData = trade.get({ plain: true });
       const isBuyer = tradeData.buyerId === user.id;
       const actionType = isBuyer ? "BUY" : "SELL";
@@ -60,7 +64,11 @@ export default async (data: { user?: any }) => {
         createdAt: tradeData.createdAt,
       };
     });
+
+    ctx?.success(`Retrieved ${activities.length} activity records`);
+    return activities;
   } catch (err: any) {
+    ctx?.fail(err.message || "Failed to retrieve trading activity");
     throw new Error("Internal Server Error: " + err.message);
   }
 };

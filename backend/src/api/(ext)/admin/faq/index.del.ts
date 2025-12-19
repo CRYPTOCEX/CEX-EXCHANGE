@@ -1,11 +1,17 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  badRequestResponse,
+  successMessageResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
   summary: "Bulk Delete FAQs",
-  description: "Deletes multiple FAQs in bulk.",
-  operationId: "bulkDeleteFAQs",
-  tags: ["FAQ", "Admin"],
+  description: "Deletes multiple FAQ entries in a single operation. Accepts an array of FAQ IDs to delete.",
+  operationId: "bulkDeleteFaqs",
+  tags: ["Admin", "FAQ", "BulkOperations"],
   requiresAuth: true,
   requestBody: {
     required: true,
@@ -14,7 +20,11 @@ export const metadata = {
         schema: {
           type: "object",
           properties: {
-            ids: { type: "array", items: { type: "string" } },
+            ids: {
+              type: "array",
+              items: { type: "string", format: "uuid" },
+              description: "Array of FAQ IDs to delete",
+            },
           },
           required: ["ids"],
         },
@@ -22,23 +32,30 @@ export const metadata = {
     },
   },
   responses: {
-    200: { description: "FAQs deleted successfully" },
-    400: { description: "Bad Request" },
-    401: { description: "Unauthorized" },
-    500: { description: "Internal Server Error" },
+    200: successMessageResponse("FAQs deleted successfully"),
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    500: serverErrorResponse,
   },
   permission: "delete.faq",
+  logModule: "ADMIN_FAQ",
+  logTitle: "Bulk delete FAQs",
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
   const { ids } = body;
   if (!Array.isArray(ids) || ids.length === 0) {
+    ctx?.fail("No FAQ IDs provided");
     throw createError({ statusCode: 400, message: "No FAQ IDs provided" });
   }
+
+  ctx?.step("Deleting FAQs");
   await models.faq.destroy({ where: { id: ids } });
+
+  ctx?.success("FAQs deleted successfully");
   return { message: "FAQs deleted successfully" };
 };

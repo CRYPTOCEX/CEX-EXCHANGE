@@ -30,9 +30,6 @@ export default class p2pActivityLog
         userId: {
           type: DataTypes.UUID,
           allowNull: true,
-          validate: {
-            isUUID: { args: 4, msg: "Invalid UUID" },
-          },
         },
         type: {
           type: DataTypes.STRING(50),
@@ -55,9 +52,6 @@ export default class p2pActivityLog
         relatedEntityId: {
           type: DataTypes.UUID,
           allowNull: true,
-          validate: {
-            isUUID: { args: 4, msg: "Invalid UUID for relatedEntityId" },
-          },
         },
       },
       {

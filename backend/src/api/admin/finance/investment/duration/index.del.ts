@@ -32,14 +32,23 @@ export const metadata = {
   responses: commonBulkDeleteResponses("Investment Durations"),
   requiresAuth: true,
   permission: "delete.investment.duration",
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk Delete Investment Durations",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step("Validating investment duration IDs");
+
+  ctx?.step("Deleting investment duration records");
+  const result = await handleBulkDelete({
     model: "investmentDuration",
     ids,
     query,
   });
+
+  ctx?.success("Investment durations deleted successfully");
+  return result;
 };

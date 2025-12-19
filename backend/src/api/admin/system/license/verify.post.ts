@@ -56,12 +56,22 @@ export const metadata = {
     },
   },
   // requiresAuth: true,
+  logModule: "ADMIN_SYS",
+  logTitle: "Verify license",
 };
 
 export default async (data) => {
-  return verifyLicense(
+  const { ctx } = data;
+
+  ctx?.step("Validating license details");
+  ctx?.step("Verifying license with Envato");
+
+  const result = await verifyLicense(
     data.body.productId,
     data.body.purchaseCode,
     data.body.envatoUsername
   );
+
+  ctx?.success("License verified successfully");
+  return result;
 };

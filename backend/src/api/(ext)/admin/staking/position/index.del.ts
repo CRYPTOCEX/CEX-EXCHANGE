@@ -8,6 +8,8 @@ export const metadata: OperationObject = {
   summary: "Bulk deletes Staking Positions by IDs",
   operationId: "bulkDeleteStakingPositions",
   tags: ["Staking", "Admin", "Positions"],
+  logModule: "ADMIN_STAKE",
+  logTitle: "Bulk Delete Positions",
   parameters: commonBulkDeleteParams("Staking Positions"),
   requestBody: {
     required: true,

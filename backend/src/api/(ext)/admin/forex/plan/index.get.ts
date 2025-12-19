@@ -12,10 +12,13 @@ import {
 import { forexPlanSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary: "Lists all Forex Plans with pagination and optional filtering",
+  summary: "Lists all Forex plans",
+  description: "Retrieves a paginated list of all Forex trading plans with filtering and sorting options. Includes associated duration options for each plan.",
   operationId: "listForexPlans",
-  tags: ["Admin", "Forex", "Plans"],
+  tags: ["Admin", "Forex", "Plan"],
   parameters: crudParameters,
+  logModule: "ADMIN_FOREX",
+  logTitle: "Get Forex Plans",
   responses: {
     200: {
       description: "List of Forex Plans with pagination information",
@@ -46,7 +49,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
   // Using the getFiltered function which processes all CRUD parameters, including sorting and filtering
   return getFiltered({

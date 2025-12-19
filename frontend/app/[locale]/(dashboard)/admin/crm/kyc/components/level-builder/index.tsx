@@ -29,7 +29,7 @@ export default function LevelBuilderComponent({
   levelId,
   isEdit = false,
 }: LevelBuilderProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const router = useRouter();
   const previewRef = useRef<HTMLDivElement>(null);
   const fieldContainerRef = useRef<HTMLDivElement>(null);

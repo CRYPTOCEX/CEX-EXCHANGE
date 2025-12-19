@@ -37,6 +37,8 @@ export const metadata = {
     },
   },
   permission: "access.database",
+  logModule: "ADMIN_SYS",
+  logTitle: "Database backup",
 };
 
 const checkEnvVariables = () => {
@@ -63,7 +65,10 @@ const getDbConnection = () => {
 };
 
 export default async (data: Handler) => {
+  const { ctx } = data;
+
   try {
+    ctx?.step("Validating database configuration");
     checkEnvVariables();
     const connection = getDbConnection();
 
@@ -71,18 +76,21 @@ export default async (data: Handler) => {
     const backupFileName = `${format(new Date(), "yyyy_MM_dd_HH_mm_ss")}.sql`;
     const backupPath = path.resolve(backupDir, backupFileName);
 
-    // Ensure the backup directory exists
+    ctx?.step("Creating backup directory");
     await fs.mkdir(backupDir, { recursive: true });
 
+    ctx?.step("Dumping database to file");
     await mysqldump({
       connection,
       dumpToFile: backupPath,
     });
 
+    ctx?.success(`Database backup created: ${backupFileName}`);
     return {
       message: "Database backup created successfully",
     };
   } catch (error) {
+    ctx?.fail(`Database backup failed: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: error.message,

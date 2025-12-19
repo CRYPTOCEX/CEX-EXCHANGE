@@ -33,7 +33,8 @@ export default function TeamMemberListItem({
   onEdit,
   onDelete,
 }: TeamMemberListItemProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExt = useTranslations("ext");
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -104,7 +105,7 @@ export default function TeamMemberListItem({
                             </Button>
                           </a>
                         </TooltipTrigger>
-                        <TooltipContent>{t("LinkedIn")}</TooltipContent>
+                        <TooltipContent>{tExt("linkedin")}</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   )}
@@ -126,7 +127,7 @@ export default function TeamMemberListItem({
                             </Button>
                           </a>
                         </TooltipTrigger>
-                        <TooltipContent>{t("Website")}</TooltipContent>
+                        <TooltipContent>{t("website")}</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   )}
@@ -148,7 +149,7 @@ export default function TeamMemberListItem({
                             </Button>
                           </a>
                         </TooltipTrigger>
-                        <TooltipContent>{t("GitHub")}</TooltipContent>
+                        <TooltipContent>{t("github")}</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   )}
@@ -180,7 +181,7 @@ export default function TeamMemberListItem({
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={onEdit}>
                       <Edit className="h-4 w-4 mr-2" />
-                      {t("Edit")}
+                      {t("edit")}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -188,7 +189,7 @@ export default function TeamMemberListItem({
                       onSelect={onDelete}
                     >
                       <Trash2 className="h-4 w-4 mr-2 text-destructive" />{" "}
-                      {t("Delete")}
+                      {t("delete")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

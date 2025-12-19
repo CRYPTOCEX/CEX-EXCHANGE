@@ -1,8 +1,9 @@
 import type React from "react";
 import type { Metadata } from "next";
-import Footer from "@/components/partials/footer";
-import IcoNavbar from "./navbar";
+import SiteHeader from "@/components/partials/header/site-header";
+import { ExtensionLayoutWrapper } from "@/components/layout/extension-layout-wrapper";
 import { PlatformAnnouncement } from "./components/platform-announcement";
+import { menu, colorSchema, adminPath } from "./menu";
 
 export const metadata: Metadata = {
   title: {
@@ -19,12 +20,15 @@ export default function RootLayout({
 }) {
   return (
     <div className="flex flex-col min-h-screen">
-      <IcoNavbar />
-      <main className="flex-1 pt-14 md:pt-18">
+      <SiteHeader
+        menu={menu}
+        colorSchema={colorSchema}
+        adminPath={adminPath}
+      />
+      <ExtensionLayoutWrapper landingPath="/ico">
         <PlatformAnnouncement />
         {children}
-      </main>
-      <Footer />
+      </ExtensionLayoutWrapper>
     </div>
   );
 }

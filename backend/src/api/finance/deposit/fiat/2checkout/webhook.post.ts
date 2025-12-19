@@ -1,6 +1,7 @@
 import { models, sequelize } from "@b/db";
 import { Op } from "sequelize";
 import { use2Checkout, verify2CheckoutSignature } from "./utils";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "2Checkout IPN webhook handler",
@@ -8,6 +9,8 @@ export const metadata: OperationObject = {
     "Handles Instant Payment Notifications (IPN) from 2Checkout to automatically process payment status updates",
   operationId: "handle2CheckoutWebhook",
   tags: ["Finance", "Webhook"],
+  logModule: "WEBHOOK",
+  logTitle: "2Checkout webhook",
   requestBody: {
     required: true,
     content: {
@@ -48,7 +51,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
 
   try {
     const config = use2Checkout();
@@ -70,7 +73,7 @@ export default async (data: Handler) => {
     } = ipnData;
 
     if (!REFNO && !ORDERNO) {
-      console.error("2Checkout IPN: Missing required reference number");
+      logger.error("2CHECKOUT", "Missing required reference number");
       return { statusCode: 400, body: "Missing reference number" };
     }
 
@@ -94,7 +97,7 @@ export default async (data: Handler) => {
       );
 
       if (!isValidSignature) {
-        console.error("2Checkout IPN: Invalid signature");
+        logger.error("2CHECKOUT", "Invalid signature");
         return { statusCode: 400, body: "Invalid signature" };
       }
     }
@@ -127,7 +130,7 @@ export default async (data: Handler) => {
     });
 
     if (!transaction) {
-      console.log(`2Checkout IPN: Transaction not found for reference ${EXTERNAL_REFERENCE || REFNO || ORDERNO}`);
+      logger.warn("2CHECKOUT", `Transaction not found for reference ${EXTERNAL_REFERENCE || REFNO || ORDERNO}`);
       return { statusCode: 200, body: "OK" }; // Return OK to prevent retries
     }
 
@@ -174,10 +177,10 @@ export default async (data: Handler) => {
             { transaction: t }
           );
 
-          console.log(`2Checkout IPN: Wallet ${wallet.id} balance updated by ${netAmount} ${wallet.currency}`);
+          logger.info("2CHECKOUT", `Wallet ${wallet.id} balance updated by ${netAmount} ${wallet.currency}`);
         }
 
-        console.log(`2Checkout IPN: Transaction ${transaction.id} completed successfully`);
+        logger.success("2CHECKOUT", `Transaction ${transaction.id} completed successfully`);
       } else {
         // Update transaction status to failed
         await transaction.update(
@@ -200,7 +203,7 @@ export default async (data: Handler) => {
           { transaction: t }
         );
 
-        console.log(`2Checkout IPN: Transaction ${transaction.id} marked as failed`);
+        logger.warn("2CHECKOUT", `Transaction ${transaction.id} marked as failed`);
       }
     });
 
@@ -208,7 +211,7 @@ export default async (data: Handler) => {
     return { statusCode: 200, body: "OK" };
 
   } catch (error) {
-    console.error("2Checkout IPN Error:", error);
+    logger.error("2CHECKOUT", "IPN Error", error);
     return { statusCode: 500, body: "Internal Server Error" };
   }
 }; 

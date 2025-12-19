@@ -1,29 +1,32 @@
+"use client";
+
 import {
   Shield,
   User,
   DollarSign,
   ClipboardList,
   CalendarIcon,
+  Wallet,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-function renderEcoAddresses(value: any, row?: any) {
-  const t = useTranslations("dashboard");
+// Component for rendering ECO wallet addresses
+const EcoAddresses = ({ value, row }: { value: any; row?: any }) => {
+  const t = useTranslations("common");
+
   // 1) Check if we have a row
   if (!row) {
-    // row is undefined, so we can't check row.type
-    // Return a fallback or debug info:
-    return "No row data";
+    return <>No row data</>;
   }
 
   // 2) If the wallet type isn't ECO
   if (row.type !== "ECO") {
-    return "N/A";
+    return <>N/A</>;
   }
 
   // 3) If the address field is null/undefined
   if (!value) {
-    return "No addresses";
+    return <>No addresses</>;
   }
 
   // 4) Try to parse the address JSON
@@ -35,7 +38,7 @@ function renderEcoAddresses(value: any, row?: any) {
   }
   const chains = Object.keys(parsed);
   if (!chains.length) {
-    return "No addresses";
+    return <>No addresses</>;
   }
 
   // 5) Render chain info
@@ -73,168 +76,188 @@ function renderEcoAddresses(value: any, row?: any) {
       })}
     </div>
   );
+};
+
+function renderEcoAddresses(value: any, row?: any) {
+  return <EcoAddresses value={value} row={row} />;
 }
-export const columns: ColumnDefinition[] = [
-  {
-    key: "id",
-    title: "ID",
-    type: "text",
-    icon: Shield,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "Unique wallet identifier",
-    priority: 3,
-    expandedOnly: true,
-  },
-  {
-    key: "user",
-    title: "User",
-    type: "compound",
-    icon: User,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "User associated with this wallet",
-    render: {
+
+export function useColumns(): ColumnDefinition[] {
+  const tCommon = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
+  return [
+    {
+      key: "id",
+      title: tCommon("id"),
+      type: "text",
+      icon: Shield,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tCommon("unique_wallet_identifier"),
+      priority: 3,
+      expandedOnly: true,
+    },
+    {
+      key: "user",
+      title: tCommon("user"),
       type: "compound",
-      config: {
-        image: {
-          key: "avatar",
-          fallback: "/img/placeholder.svg",
-          type: "image",
-          title: "Avatar",
-          description: "User avatar",
-          editable: false,
-        },
-        primary: {
-          key: ["firstName", "lastName"],
-          title: ["First Name", "Last Name"],
-          description: ["User first name", "User last name"],
-          editable: false,
-          icon: User,
-        },
-        secondary: {
-          key: "email",
-          title: "Email",
-          icon: ClipboardList,
-          editable: false,
+      icon: User,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tDashboardAdmin("user_associated_with_this_wallet"),
+      render: {
+        type: "compound",
+        config: {
+          image: {
+            key: "avatar",
+            fallback: "/img/placeholder.svg",
+            type: "image",
+            title: tCommon("avatar"),
+            description: tCommon("user_avatar"),
+          },
+          primary: {
+            key: ["firstName", "lastName"],
+            title: [tCommon("first_name"), tCommon("last_name")],
+            description: [tDashboardAdmin("user_first_name"), tDashboardAdmin("user_last_name")],
+            icon: User,
+          },
+          secondary: {
+            key: "email",
+            title: tCommon("email"),
+            icon: ClipboardList,
+          },
         },
       },
+      priority: 1,
     },
-    priority: 1,
-  },
-  {
-    key: "type",
-    title: "Type",
-    type: "select",
-    icon: ClipboardList,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: false,
-    description: "Wallet type",
-    options: [
-      {
-        value: "FIAT",
-        label: "Fiat",
+    {
+      key: "type",
+      title: tCommon("type"),
+      type: "select",
+      icon: Wallet,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tDashboardAdmin("type_of_wallet_fiat_for_fiat"),
+      render: {
+        type: "badge",
+        config: {
+          withDot: true,
+          variant: (value: string) => {
+            switch (value.toUpperCase()) {
+              case "FIAT":
+                return "success";
+              case "SPOT":
+                return "primary";
+              case "ECO":
+                return "info";
+              case "FUTURES":
+                return "warning";
+              default:
+                return "default";
+            }
+          },
+        },
       },
-      {
-        value: "SPOT",
-        label: "Spot",
-      },
-      {
-        value: "ECO",
-        label: "Eco",
-      },
-      {
-        value: "FUTURES",
-        label: "Futures",
-      },
-    ],
-    priority: 1,
-  },
-  {
-    key: "currency",
-    title: "Currency",
-    type: "text",
-    icon: DollarSign,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: false,
-    description: "Currency code",
-    priority: 1,
-  },
-  {
-    key: "balance",
-    title: "Balance",
-    type: "number",
-    icon: DollarSign,
-    sortable: true,
-    searchable: false,
-    filterable: true,
-    editable: true,
-    condition: (values) => !["ECO", "FUTURES"].includes(values.type),
-    description: "Current balance",
-    priority: 1,
-  },
-  {
-    key: "inOrder",
-    title: "In Order",
-    type: "number",
-    icon: DollarSign,
-    sortable: true,
-    searchable: false,
-    filterable: true,
-    editable: true,
-    condition: (values) => !["ECO", "FUTURES"].includes(values.type),
-    description: "Funds locked in orders",
-    priority: 2,
-  },
-  {
-    key: "address",
-    title: "Address",
-    type: "custom",
-    icon: ClipboardList,
-    sortable: false,
-    searchable: false,
-    filterable: false,
-    editable: false,
-    description: "Wallet address details",
-    render: {
+      options: [
+        {
+          value: "FIAT",
+          label: tCommon("fiat"),
+        },
+        {
+          value: "SPOT",
+          label: tCommon("spot"),
+        },
+        {
+          value: "ECO",
+          label: tCommon("eco"),
+        },
+        {
+          value: "FUTURES",
+          label: tCommon("futures"),
+        },
+      ],
+      priority: 1,
+    },
+    {
+      key: "currency",
+      title: tCommon("currency"),
+      type: "text",
+      icon: DollarSign,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tDashboardAdmin("currency_symbol_for_this_wallet_e_g_btc_usd_eth"),
+      priority: 1,
+    },
+    {
+      key: "balance",
+      title: tCommon("balance"),
+      type: "number",
+      icon: DollarSign,
+      sortable: true,
+      searchable: false,
+      filterable: true,
+      condition: (values) => !["ECO", "FUTURES"].includes(values.type),
+      description: tDashboardAdmin("available_balance_in_this_wallet"),
+      priority: 1,
+    },
+    {
+      key: "inOrder",
+      title: tCommon("in_order"),
+      type: "number",
+      icon: DollarSign,
+      sortable: true,
+      searchable: false,
+      filterable: true,
+      condition: (values) => !["ECO", "FUTURES"].includes(values.type),
+      description: tDashboardAdmin("amount_currently_locked_in_open_orders"),
+      priority: 2,
+    },
+    {
+      key: "address",
+      title: tCommon("address"),
       type: "custom",
-      render: (value: any, row: any) => renderEcoAddresses(value, row),
+      icon: ClipboardList,
+      sortable: false,
+      searchable: false,
+      filterable: false,
+      description: tDashboardAdmin("blockchain_addresses_associated_with_this_wallet"),
+      render: {
+        type: "custom",
+        render: (value: any, row: any) => renderEcoAddresses(value, row),
+      },
+      priority: 2,
+      expandedOnly: true,
     },
-    priority: 2,
-    expandedOnly: true,
-  },
-  // {
-  //   key: "status",
-  //   title: "Status",
-  //   type: "boolean",
-  //   icon: ClipboardList,
-  //   sortable: true,
-  //   searchable: true,
-  //   filterable: true,
-  //   editable: false,
-  //   description: "Wallet status",
-  //   priority: 1,
-  // },
-  {
-    key: "createdAt",
-    title: "Created At",
-    type: "date",
-    icon: CalendarIcon,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "Creation date",
-    render: {
+    {
+      key: "status",
+      title: tCommon("status"),
+      type: "boolean",
+      icon: Shield,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tDashboardAdmin("whether_this_wallet_is_active_and_usable"),
+      priority: 1,
+    },
+    {
+      key: "createdAt",
+      title: tCommon("created_at"),
       type: "date",
-      format: "PPP",
+      icon: CalendarIcon,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tDashboardAdmin("date_when_the_wallet_was_created"),
+      render: {
+        type: "date",
+        format: "PPP",
+      },
+      priority: 3,
+      expandedOnly: true,
     },
-    priority: 3,
-    expandedOnly: true,
-  },
-];
+  ];
+}

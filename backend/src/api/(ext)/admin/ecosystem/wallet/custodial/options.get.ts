@@ -8,11 +8,10 @@ import { createError } from "@b/utils/error";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
-  summary: "Retrieves ecosystem custodial wallet options",
-  description:
-    "This endpoint retrieves a list of ecosystem custodial wallet options by excluding certain chains from the master wallets.",
+  summary: "Get available master wallets for custodial wallet creation",
+  description: "Retrieves a list of master wallets that support custodial wallet creation. Excludes chains that do not support smart contract deployment (SOL, TRON, BTC, LTC, DOGE, DASH, XMR, TON, MO).",
   operationId: "getEcosystemCustodialWalletOptions",
-  tags: ["Ecosystem", "Wallet", "Custodial"],
+  tags: ["Admin", "Ecosystem", "Wallet"],
   requiresAuth: true,
   responses: {
     200: {
@@ -39,8 +38,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) throw createError(401, "Unauthorized");
+
+  ctx?.step("Fetching custodial wallet options");
 
   try {
     const masterWallets = await models.ecosystemMasterWallet.findAll({
@@ -66,6 +67,8 @@ export default async (data: Handler) => {
       value: wallet.id,
       label: `${wallet.chain} - ${wallet.address.substring(0, 10)}...`,
     }));
+
+    ctx?.success(`Retrieved ${options.length} custodial wallet options`);
 
     return options;
   } catch (error) {

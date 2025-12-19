@@ -11,6 +11,7 @@ import { Plus, Trash2, Sparkles, Shield, Zap, BarChart3, Users, Target, DollarSi
          TrendingUp, CheckCircle, Settings, CreditCard, Gift, Headphones,
          Eye, Layers, Rocket, Lightbulb, Database, Cloud } from "lucide-react";
 import { EditorProps } from "./types";
+import { useTranslations } from "next-intl";
 
 // Create icon options - only using icons that are definitely available
 const ICON_OPTIONS = [
@@ -69,6 +70,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
   getValue, 
   updateVariable 
 }: EditorProps) {
+  const t = useTranslations("dashboard_admin");
   const features = getValue('features') || [];
 
   const addFeature = useCallback(() => {
@@ -137,25 +139,25 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
     <div className="space-y-6">
       {/* Section Settings */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
-        <h3 className="text-lg font-semibold mb-4 col-span-full">Section Settings</h3>
+        <h3 className="text-lg font-semibold mb-4 col-span-full">{t("section_settings")}</h3>
         
         <div>
-          <Label htmlFor="features-badge">Badge Text</Label>
+          <Label htmlFor="features-badge">{t("badge_text")}</Label>
           <Input
             id="features-badge"
             value={getValue('featuresSection.badge')}
             onChange={handleBadgeChange}
-            placeholder="e.g., Why Choose Us"
+            placeholder={t("e_g_why_choose_us")}
           />
         </div>
 
         <div>
-          <Label htmlFor="features-title">Main Title</Label>
+          <Label htmlFor="features-title">{t("main_title")}</Label>
           <Input
             id="features-title"
             value={getValue('featuresSection.title')}
             onChange={handleTitleChange}
-            placeholder="e.g., Built for"
+            placeholder={t("e_g_built_for")}
           />
         </div>
 
@@ -165,7 +167,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
             id="features-subtitle"
             value={getValue('featuresSection.subtitle')}
             onChange={handleSubtitleChange}
-            placeholder="e.g., Professional Traders"
+            placeholder={t("e_g_professional_traders")}
           />
         </div>
 
@@ -176,7 +178,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
             value={getValue('featuresSection.description')}
             onChange={handleDescriptionChange}
             rows={3}
-            placeholder="Section description"
+            placeholder={t("section_description")}
           />
         </div>
       </div>
@@ -187,7 +189,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
           <h3 className="text-lg font-semibold">Features</h3>
           <Button onClick={addFeature} size="sm">
             <Plus className="w-4 h-4 mr-2" />
-            Add Feature
+            {t("add_feature")}
           </Button>
         </div>
 
@@ -217,7 +219,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
                     <Input
                       value={feature.title || ""}
                       onChange={(e) => updateFeature(index, 'title', e.target.value)}
-                      placeholder="Feature title"
+                      placeholder={t("feature_title")}
                     />
                   </div>
 
@@ -228,7 +230,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
                       onValueChange={(value) => updateFeature(index, 'icon', value)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select icon" />
+                        <SelectValue placeholder={t("select_icon")} />
                       </SelectTrigger>
                       <SelectContent>
                         {ICON_OPTIONS.map((icon) => {
@@ -251,7 +253,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
                     <Textarea
                       value={feature.description || ""}
                       onChange={(e) => updateFeature(index, 'description', e.target.value)}
-                      placeholder="Feature description"
+                      placeholder={t("feature_description")}
                       rows={2}
                     />
                   </div>
@@ -263,7 +265,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
                       onValueChange={(value) => updateFeature(index, 'gradient', value)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select gradient" />
+                        <SelectValue placeholder={t("select_gradient")} />
                       </SelectTrigger>
                       <SelectContent>
                         {GRADIENT_OPTIONS.map((gradient) => (

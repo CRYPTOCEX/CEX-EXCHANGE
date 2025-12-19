@@ -32,14 +32,23 @@ export const metadata: OperationObject = {
   responses: commonBulkDeleteResponses("Categories"),
   requiresAuth: true,
   permission: "delete.blog.tag",
+  logModule: "ADMIN_BLOG",
+  logTitle: "Bulk delete tags",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step("Validating tag IDs");
+
+  ctx?.step(`Deleting ${ids.length} tags`);
+  const result = await handleBulkDelete({
     model: "tag",
     ids,
     query,
   });
+
+  ctx?.success(`${ids.length} tags deleted successfully`);
+  return result;
 };

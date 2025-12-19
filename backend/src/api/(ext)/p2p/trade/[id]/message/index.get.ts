@@ -1,6 +1,7 @@
 import { models } from "@b/db";
 import { Op } from "sequelize";
 import { unauthorizedResponse, serverErrorResponse } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Get Trade Messages",
@@ -8,6 +9,8 @@ export const metadata = {
     "Retrieves messages (stored in timeline) for the specified trade.",
   operationId: "getP2PTradeMessages",
   tags: ["P2P", "Trade"],
+  logModule: "P2P",
+  logTitle: "Get trade messages",
   parameters: [
     {
       index: 0,
@@ -27,10 +30,12 @@ export const metadata = {
   requiresAuth: true,
 };
 
-export default async (data: { params?: any; user?: any }) => {
+export default async (data: { params?: any; user?: any; ctx?: any }) => {
   const { id } = data.params || {};
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) throw new Error("Unauthorized");
+
+  ctx?.step("Fetching trade messages");
   try {
     const trade = await models.p2pTrade.findOne({
       where: {
@@ -47,7 +52,7 @@ export default async (data: { params?: any; user?: any }) => {
       try {
         timeline = JSON.parse(timeline);
       } catch (e) {
-        console.error('Failed to parse timeline JSON:', e);
+        logger.error("P2P_TRADE", "Failed to parse timeline JSON", e);
         timeline = [];
       }
     }
@@ -66,8 +71,10 @@ export default async (data: { params?: any; user?: any }) => {
           }))
       : [];
 
+    ctx?.success(`Retrieved ${messages.length} messages for trade ${id.slice(0, 8)}...`);
     return messages;
   } catch (err: any) {
+    ctx?.fail(err.message || "Failed to retrieve trade messages");
     throw new Error("Internal Server Error: " + err.message);
   }
 };

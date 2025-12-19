@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "getAdminActivities",
   tags: ["Staking", "Admin", "Activities"],
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Get Staking Activities",
   parameters: [
     {
       index: 0,
@@ -63,15 +65,17 @@ export const metadata = {
     500: { description: "Internal Server Error" },
   },
   permission: "view.staking.activity",
+  demoMask: ["user.email"],
 };
 
-export default async (data: { user?: any; query?: any }) => {
-  const { user, query } = data;
+export default async (data: { user?: any; query?: any, ctx }) => {
+  const { user, query, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   try {
+    ctx?.step("Fetching data");
     // Build filter conditions for the admin activity
     const where: any = {};
     if (query?.action) {
@@ -114,6 +118,7 @@ export default async (data: { user?: any; query?: any }) => {
       order: [["createdAt", "DESC"]],
     });
 
+    ctx?.success("Operation completed successfully");
     return activities;
   } catch (error) {
     console.error("Error fetching admin activities:", error);

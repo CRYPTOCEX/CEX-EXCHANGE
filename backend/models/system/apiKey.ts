@@ -9,7 +9,6 @@ export default class apiKey
   userId?: string;
   name!: string;
   key!: string;
-  type!: string; // Added type
   permissions!: string[];
   ipRestriction!: boolean;
   ipWhitelist!: string[];
@@ -45,17 +44,6 @@ export default class apiKey
           allowNull: false,
           validate: {
             notEmpty: { msg: "key: API key must not be empty" },
-          },
-        },
-        type: {
-          type: DataTypes.ENUM("plugin", "user"),
-          allowNull: false,
-          defaultValue: "user",
-          validate: {
-            isIn: {
-              args: [["plugin", "user"]],
-              msg: "type: Must be either 'plugin' or 'user'",
-            },
           },
         },
         permissions: {

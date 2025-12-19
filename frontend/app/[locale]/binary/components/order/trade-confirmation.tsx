@@ -47,6 +47,7 @@ export default function TradeConfirmation({
   priceMovement,
 }: TradeConfirmationProps) {
   const t = useTranslations("common");
+  const tBinaryComponents = useTranslations("binary_components");
   const [countdown, setCountdown] = useState(10); // 10 seconds countdown
   const [isAnimating, setIsAnimating] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -146,7 +147,7 @@ export default function TradeConfirmation({
           <DialogTitle
             className={`font-medium text-lg ${styles.headerText} text-center`}
           >
-            {t("confirm_trade")}
+            {tBinaryComponents("confirm_trade")}
           </DialogTitle>
           <DialogDescription className="sr-only">
             Review and confirm your trading order details before execution.
@@ -178,7 +179,7 @@ export default function TradeConfirmation({
               </div>
             </div>
             <div className="text-right">
-              <div className={styles.labelText}>{t("Amount")}</div>
+              <div className={styles.labelText}>{t("amount")}</div>
               <div className={`font-bold ${styles.valueText} text-xl`}>
                 {amount.toLocaleString()} {getCurrency(symbol)}
               </div>
@@ -197,7 +198,7 @@ export default function TradeConfirmation({
             </div>
 
             <div className="flex justify-between items-center">
-              <div className={styles.labelText}>{t("expiry_time")}</div>
+              <div className={styles.labelText}>{tBinaryComponents("expiry_time")}</div>
               <div
                 className={`${styles.valueText} font-medium flex items-center`}
               >
@@ -207,7 +208,7 @@ export default function TradeConfirmation({
             </div>
 
             <div className="flex justify-between items-center">
-              <div className={styles.labelText}>{t("potential_profit")}</div>
+              <div className={styles.labelText}>{tBinaryComponents("potential_profit")}</div>
               <div className="text-[#00C896] font-medium">
                 {potentialProfit.toFixed(2)} {getCurrency(symbol)}{" "}
                 <span className="text-[#00C896]">
@@ -217,7 +218,7 @@ export default function TradeConfirmation({
             </div>
 
             <div className="flex justify-between items-center">
-              <div className={styles.labelText}>{t("potential_loss")}</div>
+              <div className={styles.labelText}>{tBinaryComponents("potential_loss")}</div>
               <div className="text-[#FF4D4F] font-medium">
                 {potentialLoss.toFixed(2)} {getCurrency(symbol)}{" "}
                 <span className="text-[#FF4D4F]">
@@ -258,11 +259,11 @@ export default function TradeConfirmation({
               <div className="grid gap-2">
                 <div className="flex justify-between">
                   <div className={styles.labelText}>{t("trade_type")}</div>
-                  <div className={styles.valueText}>{t("binary_option")}</div>
+                  <div className={styles.valueText}>{tBinaryComponents("binary_option")}</div>
                 </div>
                 <div className="flex justify-between">
                   <div className={styles.labelText}>
-                    {t("risk_reward_ratio")}
+                    {tBinaryComponents("risk_reward_ratio")}
                   </div>
                   <div className={styles.valueText}>
                     1:
@@ -270,12 +271,12 @@ export default function TradeConfirmation({
                   </div>
                 </div>
                 <div className="flex justify-between">
-                  <div className={styles.labelText}>{t("execution")}</div>
-                  <div className={styles.valueText}>{t("Market")}</div>
+                  <div className={styles.labelText}>{tBinaryComponents("execution")}</div>
+                  <div className={styles.valueText}>{t("market")}</div>
                 </div>
                 <div className="flex justify-between">
                   <div className={styles.labelText}>{t("fees")}</div>
-                  <div className={styles.valueText}>{t("Included")}</div>
+                  <div className={styles.valueText}>{tBinaryComponents("included")}</div>
                 </div>
               </div>
             </motion.div>
@@ -291,7 +292,7 @@ export default function TradeConfirmation({
               isProcessing ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
-            {t("Cancel")}
+            {t("cancel")}
           </button>
           <button
             onClick={handleConfirm}
@@ -312,7 +313,7 @@ export default function TradeConfirmation({
                 </>
               ) : (
                 <span>
-                  {t("confirm_(")}
+                  {t("confirm")}
                   {countdown} s)
                 </span>
               )}

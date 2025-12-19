@@ -5,6 +5,7 @@ import {
 } from "@b/utils/query";
 import { models } from "@b/db";
 import { unlink } from "fs/promises";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Updates the profile of the current user",
@@ -12,6 +13,8 @@ export const metadata: OperationObject = {
   operationId: "updateProfile",
   tags: ["Auth"],
   requiresAuth: true,
+  logModule: "USER",
+  logTitle: "Update profile",
   requestBody: {
     required: true,
     content: {
@@ -164,8 +167,9 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
   if (!user) {
+    ctx?.fail("User not authenticated");
     throw new Error("Authentication required to update profile");
   }
 
@@ -180,7 +184,8 @@ export default async (data: Handler) => {
     settings,
   } = body;
 
-  return await updateUserQuery(
+  ctx?.step("Updating user profile");
+  const result = await updateUserQuery(
     user.id,
     firstName,
     lastName,
@@ -192,6 +197,8 @@ export default async (data: Handler) => {
     settings,
     user.avatar ?? undefined // Passing the original avatar path to check for unlinking
   );
+  ctx?.success("Profile updated successfully");
+  return result;
 };
 
 export const updateUserQuery = async (
@@ -239,7 +246,7 @@ export const updateUserQuery = async (
     try {
       await unlink(originalAvatar);
     } catch (error) {
-      console.error(`Failed to unlink avatar: ${error}`);
+      logger.error("USER", "Failed to unlink avatar", error);
       throw new Error("Failed to unlink avatar from server");
     }
   }

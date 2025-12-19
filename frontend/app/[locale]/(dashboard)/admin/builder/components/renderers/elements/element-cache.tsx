@@ -386,7 +386,8 @@ export function CachePerformanceMonitor({
 }: {
   enabled?: boolean;
 }) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const { stats, efficiency, totalMemoryUsage, totalEntries } =
     useCacheMonitor();
 
@@ -400,7 +401,7 @@ export function CachePerformanceMonitor({
       <div>
         {t("memory")}
         {(totalMemoryUsage / 1024 / 1024).toFixed(1)}
-        {'MB'}
+        MB
       </div>
       <div>
         {t("entries")}
@@ -410,16 +411,16 @@ export function CachePerformanceMonitor({
         <div>
           {t("render")}
           {(efficiency.render * 100).toFixed(1)}
-          {'% ('}
+          % (
           {stats.render.hits}
           {'h/'}
           {stats.render.misses}
           {'m)'}
         </div>
         <div>
-          {t("style")}
+          {tCommon("style")}
           {(efficiency.style * 100).toFixed(1)}
-          {'% ('}
+          % (
           {stats.style.hits}
           {'h/'}
           {stats.style.misses}
@@ -428,7 +429,7 @@ export function CachePerformanceMonitor({
         <div>
           {t("compute")}
           {(efficiency.computation * 100).toFixed(1)}
-          {'% ('}
+          % (
           {stats.computation.hits}
           {'h/'}
           {stats.computation.misses}

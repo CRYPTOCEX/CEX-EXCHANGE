@@ -23,7 +23,7 @@ export function ListSettings({
   onSettingChange,
   onElementUpdate,
 }: SettingsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const listType = settings.listType || "unordered";
   const [items, setItems] = useState(() =>
     parseListItems(element.content || "")

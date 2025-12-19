@@ -33,22 +33,28 @@ export const metadata = {
   responses: commonBulkDeleteResponses("Announcements"),
   requiresAuth: true,
   permission: "delete.announcement",
+  logModule: "ADMIN_SYS",
+  logTitle: "Bulk delete announcements",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
+
+  ctx?.step(`Deleting ${ids.length} announcements`);
   const message = handleBulkDelete({
     model: "announcement",
     ids,
     query,
   });
 
+  ctx?.step("Broadcasting bulk deletion");
   handleBroadcastMessage({
     type: "announcements",
     method: "delete",
     id: ids,
   });
 
+  ctx?.success(`${ids.length} announcements deleted successfully`);
   return message;
 };

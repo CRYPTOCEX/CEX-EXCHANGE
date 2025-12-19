@@ -66,11 +66,13 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Building query filters");
   // Build filter conditions for staking pools
   const whereClause: any = { status: "ACTIVE" };
 
@@ -184,5 +186,6 @@ export default async (data: Handler) => {
     };
   });
 
+  ctx?.success(`Retrieved ${enhancedPools.length} staking pools`);
   return enhancedPools;
 };

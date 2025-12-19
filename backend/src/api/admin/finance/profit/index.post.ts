@@ -30,10 +30,12 @@ export const metadata = {
   },
   requiresAuth: true,
   permission: "create.admin.profit",
+  logModule: "ADMIN_FIN",
+  logTitle: "Create Admin Profit",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   return await storeRecord({
     model: "adminProfit",
     data: body,

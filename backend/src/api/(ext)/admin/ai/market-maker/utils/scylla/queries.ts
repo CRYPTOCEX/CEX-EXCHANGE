@@ -1,6 +1,7 @@
 import client, { aiMarketMakerKeyspace, scyllaKeyspace } from "./client";
 import { makeUuid } from "@b/utils/passwords";
 import { types } from "cassandra-driver";
+import { logger } from "@b/utils/console";
 import {
   createOrder as ecosystemCreateOrder,
   cancelOrderByUuid as ecosystemCancelOrder,
@@ -313,7 +314,7 @@ export async function insertBotTrade(
     await client.execute(query, params, { prepare: true });
     // Trade inserted successfully - log only in verbose mode
   } catch (error) {
-    console.error(`[AI Market Maker] Failed to insert trade for market ${trade.marketId}:`, error);
+    logger.error("AI_MM", `Failed to insert trade for market ${trade.marketId}: ${error}`);
     throw error;
   }
   return tradeId;
@@ -567,8 +568,11 @@ export async function placeRealOrder(
   // This ensures Scylla gets a valid UUID while we can still track the bot
   const userId = botId;
 
-  // Calculate cost (for BUY orders: price * amount)
-  const cost = side === "BUY" ? (price * amount) / BigInt(10 ** 18) : BigInt(0);
+  // Calculate cost for both BUY and SELL orders
+  // BUY: cost in quote currency = price * amount
+  // SELL: cost in base currency = amount (since we're selling base currency)
+  // Both need proper cost calculation for the ecosystem order
+  const cost = (price * amount) / BigInt(10 ** 18);
 
   // Fee is 0 for AI orders (internal system orders)
   const fee = BigInt(0);
@@ -783,10 +787,10 @@ export async function clearCandlesForSymbol(symbol: string): Promise<void> {
       }
 
       if (result.rows.length > 0) {
-        console.info(`[AI Market Maker] Cleared ${result.rows.length} ${interval} candles for ${symbol}`);
+        logger.info("AI_MM", `Cleared ${result.rows.length} ${interval} candles for ${symbol}`);
       }
     } catch (error) {
-      console.error(`[AI Market Maker] Failed to clear ${interval} candles for ${symbol}:`, error);
+      logger.error("AI_MM", `Failed to clear ${interval} candles for ${symbol}: ${error}`);
     }
   }
 }
@@ -821,15 +825,15 @@ export async function clearOrderbookForSymbol(symbol: string): Promise<void> {
         totalCleared++;
       }
 
-      console.info(`[AI Market Maker] Cleared ${result.rows.length} ${side} orderbook entries for ${symbol}`);
+      logger.info("AI_MM", `Cleared ${result.rows.length} ${side} orderbook entries for ${symbol}`);
     } catch (error) {
-      console.error(`[AI Market Maker] Failed to clear orderbook for ${symbol} ${side}:`, error);
+      logger.error("AI_MM", `Failed to clear orderbook for ${symbol} ${side}: ${error}`);
     }
   }
 
   // Also clear from orderbook_by_symbol materialized view's base table if exists
   // The view should update automatically when base table entries are deleted
-  console.info(`[AI Market Maker] Total cleared: ${totalCleared} orderbook entries for ${symbol}`);
+  logger.info("AI_MM", `Total cleared: ${totalCleared} orderbook entries for ${symbol}`);
 }
 
 /**
@@ -847,7 +851,7 @@ export async function forceCleanOrderbook(symbol: string): Promise<number> {
     `;
 
     const result = await client.execute(query, [symbol], { prepare: true });
-    console.info(`[AI Market Maker] Found ${result.rows.length} total orderbook entries to clear for ${symbol}`);
+    logger.info("AI_MM", `Found ${result.rows.length} total orderbook entries to clear for ${symbol}`);
 
     for (const row of result.rows) {
       try {
@@ -858,14 +862,14 @@ export async function forceCleanOrderbook(symbol: string): Promise<number> {
         await client.execute(deleteQuery, [row.symbol, row.side, row.price], { prepare: true });
         totalCleared++;
       } catch (deleteErr) {
-        console.error(`[AI Market Maker] Failed to delete entry:`, deleteErr);
+        logger.error("AI_MM", `Failed to delete entry: ${deleteErr}`);
       }
     }
 
-    console.info(`[AI Market Maker] Force cleared ${totalCleared} orderbook entries for ${symbol}`);
+    logger.info("AI_MM", `Force cleared ${totalCleared} orderbook entries for ${symbol}`);
     return totalCleared;
   } catch (error) {
-    console.error(`[AI Market Maker] Force clean orderbook failed for ${symbol}:`, error);
+    logger.error("AI_MM", `Force clean orderbook failed for ${symbol}: ${error}`);
 
     // Fallback to regular clear
     await clearOrderbookForSymbol(symbol);
@@ -898,7 +902,7 @@ export async function getLastCandleClosePrice(symbol: string): Promise<number | 
 
     return null;
   } catch (error) {
-    console.error(`[AI Market Maker] Failed to get last candle price for ${symbol}:`, error);
+    logger.error("AI_MM", `Failed to get last candle price for ${symbol}: ${error}`);
     return null;
   }
 }
@@ -996,7 +1000,7 @@ export async function syncCandlesFromAiTrade(
         );
       }
     } catch (error) {
-      console.error(`[AI Market Maker] Failed to sync candle for ${symbol} ${interval}:`, error);
+      logger.error("AI_MM", `Failed to sync candle for ${symbol} ${interval}: ${error}`);
     }
   }
 }
@@ -1186,7 +1190,7 @@ export async function getBotTradeStats(
       }
     }
   } catch (error) {
-    console.error(`[AI Market Maker] Failed to get bot trade stats for market ${marketId}:`, error);
+    logger.error("AI_MM", `Failed to get bot trade stats for market ${marketId}: ${error}`);
   }
 
   return statsMap;
@@ -1221,7 +1225,7 @@ export async function debugGetAllTrades(limit: number = 50): Promise<any[]> {
       amount: row.amount?.toString(),
     }));
   } catch (error) {
-    console.error(`[DEBUG] Failed to get all trades:`, error);
+    logger.error("AI_MM", `DEBUG: Failed to get all trades: ${error}`);
     return [];
   }
 }
@@ -1296,7 +1300,7 @@ export async function getRecentBotTrades(
 
     return trades.slice(0, limit);
   } catch (error) {
-    console.error(`[AI Market Maker] Failed to get recent bot trades for market ${marketId}:`, error);
+    logger.error("AI_MM", `Failed to get recent bot trades for market ${marketId}: ${error}`);
     return [];
   }
 }
@@ -1338,7 +1342,7 @@ export async function getMarketTradeStats(
       }
     }
   } catch (error) {
-    console.error(`[AI Market Maker] Failed to get market trade stats for ${marketId}:`, error);
+    logger.error("AI_MM", `Failed to get market trade stats for ${marketId}: ${error}`);
   }
 
   return { tradeCount, totalVolume };
@@ -1383,9 +1387,9 @@ export async function deleteAiBotOrdersByMarket(marketId: string): Promise<numbe
       deletedCount++;
     }
 
-    console.info(`[AI Market Maker Cleanup] Deleted ${deletedCount} bot orders for market ${marketId}`);
+    logger.info("AI_MM", `Cleanup: Deleted ${deletedCount} bot orders for market ${marketId}`);
   } catch (error) {
-    console.error(`[AI Market Maker Cleanup] Failed to delete bot orders for market ${marketId}:`, error);
+    logger.error("AI_MM", `Cleanup: Failed to delete bot orders for market ${marketId}: ${error}`);
   }
 
   return deletedCount;
@@ -1436,9 +1440,9 @@ export async function deleteAiBotTradesByMarket(marketId: string): Promise<numbe
       }
     }
 
-    console.info(`[AI Market Maker Cleanup] Deleted ${deletedCount} bot trades for market ${marketId}`);
+    logger.info("AI_MM", `Cleanup: Deleted ${deletedCount} bot trades for market ${marketId}`);
   } catch (error) {
-    console.error(`[AI Market Maker Cleanup] Failed to delete bot trades for market ${marketId}:`, error);
+    logger.error("AI_MM", `Cleanup: Failed to delete bot trades for market ${marketId}: ${error}`);
   }
 
   return deletedCount;
@@ -1479,9 +1483,9 @@ export async function deleteAiPriceHistoryByMarket(marketId: string): Promise<nu
       deletedCount++;
     }
 
-    console.info(`[AI Market Maker Cleanup] Deleted ${deletedCount} price history entries for market ${marketId}`);
+    logger.info("AI_MM", `Cleanup: Deleted ${deletedCount} price history entries for market ${marketId}`);
   } catch (error) {
-    console.error(`[AI Market Maker Cleanup] Failed to delete price history for market ${marketId}:`, error);
+    logger.error("AI_MM", `Cleanup: Failed to delete price history for market ${marketId}: ${error}`);
   }
 
   return deletedCount;
@@ -1519,9 +1523,9 @@ export async function deleteRealLiquidityOrdersBySymbol(symbol: string): Promise
       deletedCount++;
     }
 
-    console.info(`[AI Market Maker Cleanup] Deleted ${deletedCount} real liquidity order records for ${symbol}`);
+    logger.info("AI_MM", `Cleanup: Deleted ${deletedCount} real liquidity order records for ${symbol}`);
   } catch (error) {
-    console.error(`[AI Market Maker Cleanup] Failed to delete real liquidity orders for ${symbol}:`, error);
+    logger.error("AI_MM", `Cleanup: Failed to delete real liquidity orders for ${symbol}: ${error}`);
   }
 
   return deletedCount;
@@ -1550,9 +1554,9 @@ export async function getOpenBotEcosystemOrderIds(symbol: string): Promise<strin
       }
     }
 
-    console.info(`[AI Market Maker Cleanup] Found ${orderIds.length} open bot orders for ${symbol}`);
+    logger.info("AI_MM", `Cleanup: Found ${orderIds.length} open bot orders for ${symbol}`);
   } catch (error) {
-    console.error(`[AI Market Maker Cleanup] Failed to get open bot orders for ${symbol}:`, error);
+    logger.error("AI_MM", `Cleanup: Failed to get open bot orders for ${symbol}: ${error}`);
   }
 
   return orderIds;
@@ -1576,7 +1580,7 @@ export async function cleanupMarketMakerData(
   realLiquidityOrdersDeleted: number;
   orderbookEntriesCleared: number;
 }> {
-  console.info(`[AI Market Maker Cleanup] Starting cleanup for market ${marketId} (${symbol})`);
+  logger.info("AI_MM", `Cleanup: Starting cleanup for market ${marketId} (${symbol})`);
 
   // Delete AI bot orders
   const ordersDeleted = await deleteAiBotOrdersByMarket(marketId);
@@ -1593,13 +1597,7 @@ export async function cleanupMarketMakerData(
   // Clear orderbook entries for this symbol
   const orderbookEntriesCleared = await forceCleanOrderbook(symbol);
 
-  console.info(`[AI Market Maker Cleanup] Completed cleanup for ${symbol}:`, {
-    ordersDeleted,
-    tradesDeleted,
-    priceHistoryDeleted,
-    realLiquidityOrdersDeleted,
-    orderbookEntriesCleared,
-  });
+  logger.info("AI_MM", `Cleanup: Completed cleanup for ${symbol}: orders=${ordersDeleted}, trades=${tradesDeleted}, priceHistory=${priceHistoryDeleted}, realLiquidityOrders=${realLiquidityOrdersDeleted}, orderbookEntries=${orderbookEntriesCleared}`);
 
   return {
     ordersDeleted,

@@ -57,10 +57,13 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.user",
+  demoMask: ["data.admin.email"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Get User Blocks",
 };
 
 export default async (data: Handler) => {
-  const { params, user } = data;
+  const { params, user, ctx } = data;
   const { id } = params;
 
   if (!user?.id) {
@@ -70,6 +73,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Checking user existence");
   // Check if target user exists
   const targetUser = await models.user.findByPk(id);
   if (!targetUser) {
@@ -79,6 +83,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Fetching user block history");
   // Get all blocks for this user
   const blocks = await models.userBlock.findAll({
     where: { userId: id },
@@ -92,6 +97,7 @@ export default async (data: Handler) => {
     order: [["createdAt", "DESC"]],
   });
 
+  ctx?.success("User block history retrieved successfully");
   return {
     data: blocks,
   };

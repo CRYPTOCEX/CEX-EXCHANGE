@@ -1,8 +1,13 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { Clock } from "lucide-react";
+import { useColumns, useFormConfig } from "./columns";
+import { useTranslations } from "next-intl";
 
 export default function BinaryDurationPage() {
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
   return (
     <DataTable
       apiEndpoint="/api/admin/finance/binary/duration"
@@ -14,15 +19,21 @@ export default function BinaryDurationPage() {
         edit: "edit.binary.duration",
         delete: "delete.binary.duration",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate
       canEdit
       canDelete
       canView
       isParanoid={false}
-      title="Binary Durations"
+      title={t("binary_durations")}
+      description={t("manage_binary_trading_time_durations_and_intervals")}
       itemTitle="Duration"
       columns={columns}
+      formConfig={formConfig}
+      design={{
+        animation: "orbs",
+        icon: Clock,
+      }}
     />
   );
 }

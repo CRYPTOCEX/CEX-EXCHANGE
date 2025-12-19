@@ -8,6 +8,8 @@ export const metadata = {
     "Returns the most popular ICO token offerings (by total raised).",
   operationId: "getPopularIcoOfferings",
   tags: ["ICO", "Offerings"],
+  logModule: "ICO",
+  logTitle: "Get Featured ICO Offers",
   responses: {
     200: {
       description: "Popular ICO offerings retrieved successfully.",
@@ -40,8 +42,10 @@ export const metadata = {
   },
 };
 
-export default async function getPopularIcoOfferings() {
+export default async function getPopularIcoOfferings(data?: { ctx?: any }) {
   try {
+    const { ctx } = data || {};
+    ctx?.step("Fetching get featured ico offers");
     // Only request fields that exist
     const offerings = await models.icoTokenOffering.findAll({
       attributes: [
@@ -63,7 +67,9 @@ export default async function getPopularIcoOfferings() {
     });
 
     if (!offerings || offerings.length === 0) {
-      return { projects: [] };
+      ctx?.success("Get Featured ICO Offers retrieved successfully");
+
+  return { projects: [] };
     }
 
     const ids = offerings.map((o) => o.id);
@@ -91,7 +97,8 @@ export default async function getPopularIcoOfferings() {
         const raised = raisedMap[o.id] || 0;
         const target = Number(o.targetAmount) || 1;
         const currency = o.purchaseWalletCurrency || "$";
-        return {
+
+  return {
           id: o.id,
           name: o.name,
           image: o.icon || "/img/placeholder.svg",
@@ -108,7 +115,9 @@ export default async function getPopularIcoOfferings() {
       )
       .slice(0, 6);
 
-    return { projects };
+    ctx?.success("Get Featured ICO Offers retrieved successfully");
+
+  return { projects };
   } catch (error) {
     console.error("Error in getPopularIcoOfferings:", error);
     throw createError({ statusCode: 500, message: "Internal Server Error" });

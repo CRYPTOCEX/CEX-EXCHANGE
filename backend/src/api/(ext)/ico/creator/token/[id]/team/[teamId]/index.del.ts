@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "deleteTeamMember",
   tags: ["ICO", "Creator", "Team"],
   requiresAuth: true,
+  logModule: "ICO",
+  logTitle: "Delete ICO Team Member",
   parameters: [
     {
       index: 0,
@@ -35,12 +37,16 @@ export const metadata = {
   },
 };
 
-export default async (data: { user?: any; params?: any }) => {
-  const { user, params } = data;
+export default async (data: { user?: any; params?: any; ctx?: any }) => {
+  const { user, params, ctx } = data;
   const { id, teamId } = params;
+
+  ctx?.step?.("Validating user authentication");
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step?.("Validating request parameters");
   if (!id || !teamId) {
     throw createError({
       statusCode: 400,
@@ -48,6 +54,7 @@ export default async (data: { user?: any; params?: any }) => {
     });
   }
 
+  ctx?.step?.("Fetching team member from database");
   const teamMember = await models.icoTeamMember.findOne({
     where: { id: teamId, offeringId: id },
   });
@@ -58,9 +65,11 @@ export default async (data: { user?: any; params?: any }) => {
   // Store the team member name for the notification
   const deletedName = teamMember.name;
 
+  ctx?.step?.("Deleting team member");
   await teamMember.destroy();
 
   // Create a notification for team member deletion.
+  ctx?.step?.("Creating deletion notification");
   try {
     await createNotification({
       userId: user.id,
@@ -85,5 +94,6 @@ export default async (data: { user?: any; params?: any }) => {
     );
   }
 
+  ctx?.success?.("Team member deleted successfully");
   return { message: "Team member deleted successfully" };
 };

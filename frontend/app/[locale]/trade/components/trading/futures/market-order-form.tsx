@@ -57,7 +57,9 @@ export default function MarketOrderForm({
   fundingTime,
   formatPrice,
 }: MarketOrderFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("trade_components");
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   
   const [amount, setAmount] = useState("");
   const [leverage, setLeverage] = useState(10);
@@ -249,7 +251,7 @@ export default function MarketOrderForm({
     <div className="space-y-3">
       {/* Current Price Display */}
       <div className="flex items-center justify-between p-2 bg-zinc-50 dark:bg-zinc-900/50 rounded-md">
-        <span className="text-xs text-muted-foreground">{t("current_price")}</span>
+        <span className="text-xs text-muted-foreground">{tCommon("current_price")}</span>
         <div className="flex items-center gap-1">
           {priceDirection === "up" && <TrendingUp className="h-3 w-3 text-green-500" />}
           {priceDirection === "down" && <TrendingDown className="h-3 w-3 text-red-500" />}
@@ -261,7 +263,7 @@ export default function MarketOrderForm({
 
       {/* Amount Input */}
       <div className="space-y-1.5">
-        <Label className="text-xs">{t("amount")} ({currency})</Label>
+        <Label className="text-xs">{tCommon("amount")} ({currency})</Label>
         <Input
           type="number"
           value={amount}
@@ -290,7 +292,7 @@ export default function MarketOrderForm({
       {/* Leverage Slider */}
       <div className="space-y-1.5">
         <div className="flex justify-between items-center">
-          <Label className="text-xs">{t("leverage")}</Label>
+          <Label className="text-xs">{tCommon("leverage")}</Label>
           <Badge variant="outline" className="text-xs">
             {leverage}x
           </Badge>
@@ -314,14 +316,14 @@ export default function MarketOrderForm({
         <div className="flex items-center gap-2">
           <Shield className="h-4 w-4 text-red-500" />
           <Label className="text-xs font-medium text-red-600 dark:text-red-400">
-            {t("stop_loss")} (Optional)
+            {tCommon("stop_loss")} {`(${tCommon('optional')})`}
           </Label>
         </div>
         
         {/* SL Percentage Input */}
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">{t("percentage")}</Label>
+            <Label className="text-xs text-muted-foreground">{tCommon("percentage")}</Label>
             <div className="relative">
               <Input
                 type="number"
@@ -340,7 +342,7 @@ export default function MarketOrderForm({
           </div>
           
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">{t("price")}</Label>
+            <Label className="text-xs text-muted-foreground">{tCommon("price")}</Label>
             <Input
               type="number"
               value={stopLoss}
@@ -386,14 +388,14 @@ export default function MarketOrderForm({
         <div className="flex items-center gap-2">
           <Target className="h-4 w-4 text-green-500" />
           <Label className="text-xs font-medium text-green-600 dark:text-green-400">
-            {t("take_profit")} (Optional)
+            {tCommon("take_profit")} {`(${tCommon('optional')})`}
           </Label>
         </div>
         
         {/* TP Percentage Input */}
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">{t("percentage")}</Label>
+            <Label className="text-xs text-muted-foreground">{tCommon("percentage")}</Label>
             <div className="relative">
               <Input
                 type="number"
@@ -412,7 +414,7 @@ export default function MarketOrderForm({
           </div>
           
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">{t("price")}</Label>
+            <Label className="text-xs text-muted-foreground">{tCommon("price")}</Label>
             <Input
               type="number"
               value={takeProfit}
@@ -444,7 +446,7 @@ export default function MarketOrderForm({
           <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-md">
             <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
               <Target className="h-3 w-3" />
-              {t("estimated_profit")}
+              {tCommon("estimated_profit")}
             </span>
             <span className="text-xs font-medium text-green-600 dark:text-green-400">
               +${estimatedProfit.toFixed(2)}
@@ -493,11 +495,11 @@ export default function MarketOrderForm({
             <span className="font-medium">${positionValue.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">{t("margin")}:</span>
+            <span className="text-muted-foreground">{tCommon("margin")}:</span>
             <span className="font-medium">${margin.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">{t("fees")}:</span>
+            <span className="text-muted-foreground">{tCommon("fees")}:</span>
             <span className="font-medium">${fee.toFixed(2)}</span>
           </div>
         </div>
@@ -518,7 +520,7 @@ export default function MarketOrderForm({
             {isSubmitting && orderType === "long" ? (
               <Zap className="h-3 w-3 animate-spin" />
             ) : (
-              t("long")
+              tExtAdmin("long")
             )}
           </div>
         </Button>
@@ -536,7 +538,7 @@ export default function MarketOrderForm({
             {isSubmitting && orderType === "short" ? (
               <Zap className="h-3 w-3 animate-spin" />
             ) : (
-              t("short")
+              tExtAdmin("short")
             )}
           </div>
         </Button>
@@ -562,7 +564,7 @@ export default function MarketOrderForm({
       <div className="p-2 bg-yellow-500/10 border border-yellow-500/30 rounded-md text-yellow-600 dark:text-yellow-400 text-xs flex items-start gap-2">
         <AlertTriangle className="h-3 w-3 mt-0.5 flex-shrink-0" />
         <span>
-          {t("futures_trading_involves_substantial_risk_leverage_can_work_against_you_as_well_as_for_you")}
+          {t("futures_trading_involves_substantial_risk_leverage")}
         </span>
       </div>
     </div>

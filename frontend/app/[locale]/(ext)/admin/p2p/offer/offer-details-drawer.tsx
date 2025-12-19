@@ -82,7 +82,9 @@ const getOfferTypeColor = (type: string) => {
 };
 
 export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDetailsDrawerProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { toast } = useToast();
   const { 
     offer, 
@@ -211,7 +213,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                 <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
                 <p className="text-red-600 dark:text-red-400 mb-4">{offerError}</p>
                 <Button onClick={() => offerId && getOfferById(offerId)}>
-                  {t("try_again")}
+                  {tCommon("try_again")}
                 </Button>
               </div>
             </div>
@@ -349,7 +351,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                         <CardHeader>
                           <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                             <DollarSign className="h-5 w-5 text-blue-500" />
-                            {t("offer_information")}
+                            {tExt("offer_information")}
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -367,14 +369,14 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                               <p className="font-semibold">{offer.price} {offer.fiatCurrency}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("market_diff")}</p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{tExt("market_diff")}</p>
                               <p className="font-semibold flex items-center gap-1">
-                                {offer.margin > 0 ? (
+                                {(offer.margin ?? 0) > 0 ? (
                                   <TrendingUp className="h-4 w-4 text-green-500" />
                                 ) : (
                                   <TrendingUp className="h-4 w-4 text-red-500 rotate-180" />
                                 )}
-                                {Math.abs(offer.margin)}%
+                                {Math.abs(offer.margin ?? 0)}%
                               </p>
                             </div>
                           </div>
@@ -387,10 +389,10 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("available_amount")}</p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{tExt("available_amount")}</p>
                               <div className="flex items-center gap-2">
-                                <Progress 
-                                  value={(offer.availableAmount / offer.maxAmount) * 100} 
+                                <Progress
+                                  value={((offer.availableAmount ?? 0) / (offer.maxAmount ?? 1)) * 100}
                                   className="flex-1"
                                 />
                                 <span className="text-sm font-medium">
@@ -407,31 +409,40 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                         <CardHeader>
                           <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                             <CreditCard className="h-5 w-5 text-blue-500" />
-                            {t("payment_methods")}
+                            {tExt("payment_methods")}
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                          {offer.paymentMethods?.map((method) => (
-                            <div key={method.id} className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
-                              <div className="w-10 h-10 bg-white dark:bg-zinc-700 rounded-lg flex items-center justify-center">
-                                {method.icon ? (
-                                  <img src={method.icon} alt={method.name} className="w-6 h-6" />
-                                ) : (
-                                  <CreditCard className="h-5 w-5 text-zinc-400" />
-                                )}
+                          {offer.paymentMethods?.map((method, idx) => {
+                            // Handle both string and P2PPaymentMethodDetail
+                            const isString = typeof method === 'string';
+                            const methodName = isString ? method : method.name;
+                            const methodId = isString ? `method-${idx}` : method.id;
+                            const methodIcon = isString ? null : method.icon;
+                            const methodDetails = isString ? null : method.details;
+
+                            return (
+                              <div key={methodId} className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                                <div className="w-10 h-10 bg-white dark:bg-zinc-700 rounded-lg flex items-center justify-center">
+                                  {methodIcon ? (
+                                    <img src={methodIcon} alt={methodName} className="w-6 h-6" />
+                                  ) : (
+                                    <CreditCard className="h-5 w-5 text-zinc-400" />
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <p className="font-medium">{methodName}</p>
+                                  {methodDetails && (
+                                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                      {Object.entries(methodDetails).map(([key, value]) => (
+                                        <span key={key}>{key}: {String(value)} </span>
+                                      ))}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                              <div className="flex-1">
-                                <p className="font-medium">{method.name}</p>
-                                {method.details && (
-                                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                    {Object.entries(method.details).map(([key, value]) => (
-                                      <span key={key}>{key}: {value} </span>
-                                    ))}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </CardContent>
                       </Card>
 
@@ -440,7 +451,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                         <CardHeader>
                           <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                             <FileText className="h-5 w-5 text-blue-500" />
-                            {t("trading_terms")}
+                            {tCommon('trade_terms')}
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -455,7 +466,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("terms_conditions")}</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{tExt("terms_conditions")}</p>
                             <p className="text-sm p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                               {offer.terms || "Standard platform terms apply"}
                             </p>
@@ -477,7 +488,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                                 {offer.stats?.totalTrades || 0}
                               </p>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("total_trades")}</p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{tExt("total_trades")}</p>
                             </div>
                             <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                               <p className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -492,10 +503,10 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                               <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("avg_time")}</p>
                             </div>
                             <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
-                              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                                 {offer.stats?.successRate || 0}%
                               </p>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("success_rate")}</p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{tCommon("success_rate")}</p>
                             </div>
                           </div>
                         </CardContent>
@@ -508,7 +519,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                       <CardHeader>
                         <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                           <User className="h-5 w-5 text-blue-500" />
-                          {t("user_information")}
+                          {tCommon("user_information")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-6">
@@ -529,7 +540,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                                 KYC {offer.user?.kycStatus || "PENDING"}
                               </Badge>
                               <Badge variant="outline" className="text-xs">
-                                {t("member_since")} {new Date(offer.user?.createdAt || Date.now()).getFullYear()}
+                                {tCommon("member_since")} {new Date(offer.user?.createdAt || Date.now()).getFullYear()}
                               </Badge>
                             </div>
                           </div>
@@ -546,7 +557,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                             <p className="text-xl font-bold text-green-600 dark:text-green-400">
                               {offer.user?.stats?.completedTrades || 0}
                             </p>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("completed_trades")}</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{tExt("completed_trades")}</p>
                           </div>
                           <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                             <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
@@ -555,7 +566,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                             <p className="text-xs text-zinc-500 dark:text-zinc-400">Rating</p>
                           </div>
                           <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
-                            <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                            <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
                               {offer.user?.stats?.disputes || 0}
                             </p>
                             <p className="text-xs text-zinc-500 dark:text-zinc-400">Disputes</p>
@@ -583,7 +594,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                                 {activity.notes || "No description"}
                               </p>
                               <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
-                                {new Date(activity.createdAt).toLocaleString()}
+                                {activity.createdAt && new Date(activity.createdAt).toLocaleString()}
                                 {activity.adminName && ` by ${activity.adminName}`}
                               </p>
                             </div>
@@ -603,7 +614,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                       <CardHeader>
                         <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                           <MessageSquare className="h-5 w-5 text-blue-500" />
-                          {t("admin_notes")}
+                          {tCommon("admin_notes")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">

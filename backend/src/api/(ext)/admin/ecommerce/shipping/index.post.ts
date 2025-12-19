@@ -22,13 +22,19 @@ export const metadata: OperationObject = {
   ),
   requiresAuth: true,
   permission: "create.ecommerce.shipping",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Create E-commerce Shipping",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
 
-  return await storeRecord({
+  ctx?.step("Creating E-commerce shipping record");
+  const result = await storeRecord({
     model: "ecommerceShipping",
     data: body,
   });
+
+  ctx?.success("Successfully created E-commerce shipping record");
+  return result;
 }; 

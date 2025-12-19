@@ -20,6 +20,8 @@ interface DateFormControlProps {
   placeholder: string;
   /** If true, show hour/minute/AM-PM pickers */
   dateTime?: boolean;
+  title?: string;
+  description?: string;
 }
 
 export function DateFormControl({
@@ -27,6 +29,8 @@ export function DateFormControl({
   error,
   placeholder,
   dateTime = true,
+  title,
+  description,
 }: DateFormControlProps) {
   const t = useTranslations("common");
   // Initialize local state from field.value (ISO string)
@@ -157,89 +161,98 @@ export function DateFormControl({
     : placeholder;
 
   return (
-    <div className="relative">
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "w-full justify-start text-left",
-              !selectedDate && "text-muted-foreground"
-            )}
+    <div className="flex flex-col w-full">
+      {title && (
+        <label className="mb-1 text-sm font-medium">{title}</label>
+      )}
+      <div className="relative">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left h-9",
+                !selectedDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {formattedDate}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            className="w-auto p-4 border bg-popover text-popover-foreground rounded-md z-[75]"
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {formattedDate}
+            {/* 1) Single-date selection calendar */}
+            <Calendar
+              selectedRange={selectedRange}
+              onRangeChange={handleRangeChange}
+              numberOfMonths={1}
+            />
+
+            {/* 2) Hour/Minute/AM-PM pickers (plain HTML selects) */}
+            {dateTime && selectedDate && (
+              <div className="flex items-center justify-center gap-3 mt-4">
+                {/* Hour Select */}
+                <select
+                  className="h-8 px-2 rounded bg-input"
+                  value={displayHour}
+                  onChange={handleHourSelect}
+                >
+                  {hoursArray.map((h) => (
+                    <option key={h} value={h}>
+                      {String(h).padStart(2, "0")}
+                    </option>
+                  ))}
+                </select>
+
+                <span className="font-semibold">:</span>
+
+                {/* Minute Select */}
+                <select
+                  className="h-8 px-2 rounded bg-input"
+                  value={minutes}
+                  onChange={handleMinuteSelect}
+                >
+                  {minutesArray.map((m) => (
+                    <option key={m} value={m}>
+                      {String(m).padStart(2, "0")}
+                    </option>
+                  ))}
+                </select>
+
+                {/* AM/PM Select */}
+                <select
+                  className="h-8 px-2 rounded bg-input"
+                  value={ampm}
+                  onChange={handleAmpmSelect}
+                >
+                  <option value="AM">AM</option>
+                  <option value="PM">PM</option>
+                </select>
+              </div>
+            )}
+          </PopoverContent>
+        </Popover>
+
+        {selectedDate && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6"
+            onClick={resetDate}
+          >
+            <X className="h-4 w-4" />
           </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          align="start"
-          className="w-auto p-4 border bg-popover text-popover-foreground rounded-md z-[75]"
-        >
-          {/* 1) Single-date selection calendar */}
-          <Calendar
-            selectedRange={selectedRange}
-            onRangeChange={handleRangeChange}
-            numberOfMonths={1}
-          />
+        )}
+      </div>
 
-          {/* 2) Hour/Minute/AM-PM pickers (plain HTML selects) */}
-          {dateTime && selectedDate && (
-            <div className="flex items-center justify-center gap-3 mt-4">
-              {/* Hour Select */}
-              <select
-                className="h-8 px-2 rounded bg-input"
-                value={displayHour}
-                onChange={handleHourSelect}
-              >
-                {hoursArray.map((h) => (
-                  <option key={h} value={h}>
-                    {String(h).padStart(2, "0")}
-                  </option>
-                ))}
-              </select>
-
-              <span className="font-semibold">:</span>
-
-              {/* Minute Select */}
-              <select
-                className="h-8 px-2 rounded bg-input"
-                value={minutes}
-                onChange={handleMinuteSelect}
-              >
-                {minutesArray.map((m) => (
-                  <option key={m} value={m}>
-                    {String(m).padStart(2, "0")}
-                  </option>
-                ))}
-              </select>
-
-              {/* AM/PM Select */}
-              <select
-                className="h-8 px-2 rounded bg-input"
-                value={ampm}
-                onChange={handleAmpmSelect}
-              >
-                <option value="AM">AM</option>
-                <option value="PM">PM</option>
-              </select>
-            </div>
-          )}
-        </PopoverContent>
-      </Popover>
-
-      {selectedDate && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-2 top-2 h-6 w-6"
-          onClick={resetDate}
-        >
-          <X className="h-4 w-4" />
-        </Button>
+      {description && (
+        <p className="mt-1 text-xs text-muted-foreground">{description}</p>
       )}
 
       {error && (
-        <p className="text-red-500 text-sm mt-1 leading-tight">{error}</p>
+        <p className="text-destructive text-xs mt-1 leading-tight">{error}</p>
       )}
     </div>
   );

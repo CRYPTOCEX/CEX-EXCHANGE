@@ -1,6 +1,12 @@
+"use client";
+
 import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
 
-export const ecommerceOrderAnalytics: AnalyticsConfig = [
+import { useTranslations } from "next-intl";
+export function useAnalytics() {
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
+  return [
   // ─────────────────────────────────────────────────────────────
   // Row 1: KPI Grid (3×2) for Order Statuses on the left + Status Pie Chart on the right
   // ─────────────────────────────────────────────────────────────
@@ -8,17 +14,22 @@ export const ecommerceOrderAnalytics: AnalyticsConfig = [
     {
       type: "kpi",
       layout: { cols: 3, rows: 2 },
+      responsive: {
+        mobile: { cols: 1, rows: 6, span: 1 },
+          tablet: { cols: 2, rows: 3, span: 2 },
+          desktop: { cols: 3, rows: 2, span: 2 },
+      },
       items: [
         {
           id: "total_orders",
-          title: "Total Orders",
+          title: tCommon("total_orders"),
           metric: "total", // COUNT(*)
           model: "ecommerceOrder",
           icon: "mdi:shopping",
         },
         {
           id: "pending_orders",
-          title: "Pending Orders",
+          title: tCommon("pending_orders"),
           metric: "PENDING",
           model: "ecommerceOrder",
           aggregation: { field: "status", value: "PENDING" },
@@ -26,7 +37,7 @@ export const ecommerceOrderAnalytics: AnalyticsConfig = [
         },
         {
           id: "completed_orders",
-          title: "Completed Orders",
+          title: tExt("completed_orders"),
           metric: "COMPLETED",
           model: "ecommerceOrder",
           aggregation: { field: "status", value: "COMPLETED" },
@@ -34,7 +45,7 @@ export const ecommerceOrderAnalytics: AnalyticsConfig = [
         },
         {
           id: "cancelled_orders",
-          title: "Cancelled Orders",
+          title: tCommon("cancelled_orders"),
           metric: "CANCELLED",
           model: "ecommerceOrder",
           aggregation: { field: "status", value: "CANCELLED" },
@@ -42,7 +53,7 @@ export const ecommerceOrderAnalytics: AnalyticsConfig = [
         },
         {
           id: "rejected_orders",
-          title: "Rejected Orders",
+          title: tCommon("rejected_orders"),
           metric: "REJECTED",
           model: "ecommerceOrder",
           aggregation: { field: "status", value: "REJECTED" },
@@ -52,10 +63,15 @@ export const ecommerceOrderAnalytics: AnalyticsConfig = [
     },
     {
       type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
       items: [
         {
           id: "orderStatusDistribution",
-          title: "Order Status Distribution",
+          title: tCommon("order_status_distribution"),
           type: "pie",
           model: "ecommerceOrder",
           metrics: ["PENDING", "COMPLETED", "CANCELLED", "REJECTED"],
@@ -64,25 +80,25 @@ export const ecommerceOrderAnalytics: AnalyticsConfig = [
             status: [
               {
                 value: "PENDING",
-                label: "Pending",
+                label: tCommon("pending"),
                 color: "orange",
                 icon: "mdi:progress-clock",
               },
               {
                 value: "COMPLETED",
-                label: "Completed",
+                label: tCommon("completed"),
                 color: "green",
                 icon: "mdi:check-circle",
               },
               {
                 value: "CANCELLED",
-                label: "Cancelled",
+                label: tCommon("cancelled"),
                 color: "red",
                 icon: "mdi:cancel",
               },
               {
                 value: "REJECTED",
-                label: "Rejected",
+                label: tCommon("rejected"),
                 color: "purple",
                 icon: "mdi:thumb-down",
               },
@@ -98,10 +114,15 @@ export const ecommerceOrderAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   {
     type: "chart",
-    items: [
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
+      items: [
       {
         id: "ordersOverTime",
-        title: "Orders Over Time",
+        title: tCommon("orders_over_time"),
         type: "line",
         model: "ecommerceOrder",
         metrics: ["total", "PENDING", "COMPLETED", "CANCELLED", "REJECTED"],
@@ -116,4 +137,5 @@ export const ecommerceOrderAnalytics: AnalyticsConfig = [
       },
     ],
   },
-];
+] as AnalyticsConfig;
+}

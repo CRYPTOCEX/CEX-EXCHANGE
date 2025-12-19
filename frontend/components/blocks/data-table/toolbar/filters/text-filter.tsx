@@ -11,16 +11,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
-// Full list of operators (MySQL version)
-const mysqlOperators = [
-  { value: "equal", label: "Equals" },
-  { value: "notEqual", label: "Not Equal" },
-  { value: "startsWith", label: "Starts With" },
-  { value: "endsWith", label: "Ends With" },
-  { value: "substring", label: "Contains" },
-  { value: "regexp", label: "Matches Regex" },
-];
+// Operator values for filtering
+const OPERATOR_VALUES = {
+  equal: "equal",
+  notEqual: "notEqual",
+  startsWith: "startsWith",
+  endsWith: "endsWith",
+  substring: "substring",
+  regexp: "regexp",
+} as const;
 
 // For Scylla, unsupported operators on non-string columns are removed.
 // In our case, if db is "scylla", we remove "notEqual", "endsWith", "substring", "regexp".
@@ -43,14 +44,30 @@ export function TextFilter({
   columnFilters,
   db = "mysql",
 }: TextFilterProps) {
+  const t = useTranslations("components_blocks");
+  const tCommon = useTranslations("common");
+
+  // Build operators with translated labels - explicit t() calls for orphan detection
+  const allOperators = [
+    { value: OPERATOR_VALUES.equal, label: tCommon("equals") },
+    { value: OPERATOR_VALUES.notEqual, label: t("not_equal") },
+    { value: OPERATOR_VALUES.startsWith, label: t("starts_with") },
+    { value: OPERATOR_VALUES.endsWith, label: t("ends_with") },
+    { value: OPERATOR_VALUES.substring, label: tCommon("contains") },
+    { value: OPERATOR_VALUES.regexp, label: t("matches_regex") },
+  ];
+
   // Choose operator list based on db.
+  const scyllaExcluded: string[] = [
+    OPERATOR_VALUES.notEqual,
+    OPERATOR_VALUES.endsWith,
+    OPERATOR_VALUES.substring,
+    OPERATOR_VALUES.regexp,
+  ];
   const operators =
     db === "scylla"
-      ? mysqlOperators.filter(
-          (op) =>
-            !["notEqual", "endsWith", "substring", "regexp"].includes(op.value)
-        )
-      : mysqlOperators;
+      ? allOperators.filter((op) => !scyllaExcluded.includes(op.value))
+      : allOperators;
 
   const existingFilter = columnFilters.find((f) => f.id === columnKey);
   const [value, setValue] = React.useState<string>(
@@ -85,7 +102,7 @@ export function TextFilter({
             onValueChange={(newOp) => handleChange(value, newOp)}
           >
             <SelectTrigger className="w-full md:w-auto">
-              <SelectValue placeholder="Select operator" />
+              <SelectValue placeholder={tCommon("select_operator")} />
             </SelectTrigger>
             <SelectContent>
               {operators.map((op) => (
@@ -106,7 +123,7 @@ export function TextFilter({
           )}
           <Input
             id={columnKey}
-            placeholder={`Filter by ${label.toLowerCase()}`}
+            placeholder={`${t("filter_by")} ${label.toLowerCase()}`}
             value={value}
             onChange={(e) => handleChange(e.target.value, operator)}
             className={cn(Icon ? "pl-8" : "", "w-full")}

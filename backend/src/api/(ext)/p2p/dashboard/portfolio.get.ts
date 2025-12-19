@@ -1,5 +1,5 @@
-import { models, sequelize } from "@b/db";
-import { Op } from "sequelize";
+import { models } from "@b/db";
+import { fn, col, Op } from "sequelize";
 import { unauthorizedResponse, serverErrorResponse } from "@b/utils/query";
 import {
   getFiatPriceInUSD,
@@ -12,6 +12,8 @@ export const metadata = {
   description: "Retrieves the portfolio summary for the authenticated user.",
   operationId: "getP2PPortfolioData",
   tags: ["P2P", "Dashboard"],
+  logModule: "P2P",
+  logTitle: "Get portfolio data",
   responses: {
     200: { description: "Portfolio data retrieved successfully." },
     401: unauthorizedResponse,
@@ -20,14 +22,16 @@ export const metadata = {
   requiresAuth: true,
 };
 
-export default async (data: { user?: any }) => {
-  const { user } = data;
+export default async (data: { user?: any; ctx?: any }) => {
+  const { user, ctx } = data;
   if (!user?.id) throw new Error("Unauthorized");
+
+  ctx?.step("Fetching completed trade volume");
   try {
     // Get completed trade volume
     const completedTradesResult = await models.p2pTrade.findOne({
       attributes: [
-        [sequelize.fn("SUM", sequelize.col("total")), "completedVolume"],
+        [fn("SUM", col("total")), "completedVolume"],
       ],
       where: {
         status: "COMPLETED",
@@ -36,10 +40,11 @@ export default async (data: { user?: any }) => {
       raw: true,
     });
 
+    ctx?.step("Fetching active trades value");
     // Get active trades value (in-progress trades)
     const activeTradesResult = await models.p2pTrade.findOne({
       attributes: [
-        [sequelize.fn("SUM", sequelize.col("total")), "activeVolume"],
+        [fn("SUM", col("total")), "activeVolume"],
       ],
       where: {
         status: { [Op.notIn]: ["COMPLETED", "CANCELLED", "REFUNDED"] },
@@ -48,6 +53,7 @@ export default async (data: { user?: any }) => {
       raw: true,
     });
 
+    ctx?.step("Calculating wallet values");
     // Get user's wallet balances for P2P trading
     const wallets = await models.wallet.findAll({
       where: {
@@ -88,6 +94,7 @@ export default async (data: { user?: any }) => {
     // Total value = wallet holdings + value in active trades
     const totalValue = totalWalletValue + activeVolume;
 
+    ctx?.success(`Portfolio data retrieved (total value: $${totalValue.toFixed(2)})`);
     return {
       totalValue,
       completedVolume,
@@ -107,6 +114,7 @@ export default async (data: { user?: any }) => {
       ] : [],
     };
   } catch (err: any) {
+    ctx?.fail(err.message || "Failed to retrieve portfolio data");
     throw new Error("Internal Server Error: " + err.message);
   }
 };

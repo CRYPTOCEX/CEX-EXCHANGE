@@ -1,8 +1,15 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { ecosystemUtxoAnalytics } from "./analytics";
+import { useColumns} from "./columns";
+import { useAnalytics } from "./analytics";
+import { Coins } from "lucide-react";
+import { useTranslations } from "next-intl";
+
 export default function EcosystemUtxoPage() {
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const analytics = useAnalytics();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/ecosystem/utxo"
@@ -12,15 +19,20 @@ export default function EcosystemUtxoPage() {
         view: "view.ecosystem.utxo",
         create: "create.ecosystem.utxo",
         edit: "edit.ecosystem.utxo",
-        delete: "delete.ecosystem.utxo",
-      }}
-      pageSize={10}
+        delete: "delete.ecosystem.utxo"}}
+      pageSize={12}
       canView
       isParanoid={false}
-      title="Ecosystem UTXOs"
+      title="UTXO Management"
+      description={t("manage_unspent_transaction_outputs")}
       itemTitle="UTXO"
       columns={columns}
-      analytics={ecosystemUtxoAnalytics}
+      analytics={analytics}
+      design={{
+        animation: "orbs",
+        primaryColor: "blue",
+        secondaryColor: "cyan",
+        icon: Coins}}
     />
   );
 }

@@ -28,15 +28,21 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Ecommerce Wishlist"),
   requiresAuth: true,
   permission: "edit.ecommerce.wishlist",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Update E-commerce Wishlist Entry",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { userId, productId } = body;
 
-  return await updateRecord("ecommerceWishlist", id, {
+  ctx?.step("Updating E-commerce wishlist entry");
+  const result = await updateRecord("ecommerceWishlist", id, {
     userId,
     productId,
   });
+
+  ctx?.success("Successfully updated E-commerce wishlist entry");
+  return result;
 };

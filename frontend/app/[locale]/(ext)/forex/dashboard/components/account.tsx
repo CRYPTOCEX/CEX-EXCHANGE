@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 // Format currency with proper symbol and decimal places
 const formatCurrency = (amount: number | null) => {
@@ -78,6 +79,8 @@ const MiniChart = ({
   );
 };
 export default function ForexAccounts({ accounts }) {
+  const t = useTranslations("ext_forex");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [visiblePasswords, setVisiblePasswords] = useState<
     Record<string, boolean>
@@ -105,7 +108,9 @@ export default function ForexAccounts({ accounts }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold tracking-tight">Your Accounts</h2>
+        <h2 className="text-2xl font-bold tracking-tight">
+          {t("your_accounts")}
+        </h2>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
@@ -146,7 +151,7 @@ export default function ForexAccounts({ accounts }) {
                               account.type === "LIVE"
                                 ? "bg-green-500 hover:bg-green-600 text-white"
                                 : account.status
-                                  ? "bg-blue-500 hover:bg-blue-600 text-white"
+                                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
                                   : "bg-yellow-500 hover:bg-yellow-600 text-black"
                             )}
                           >
@@ -167,7 +172,7 @@ export default function ForexAccounts({ accounts }) {
                         {account.status ? (
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-slate-600 dark:text-slate-300">
                             <p>
-                              Account:{" "}
+                              {tCommon("account")}:{" "}
                               <span className="font-medium">
                                 {account.accountId}
                               </span>
@@ -176,7 +181,7 @@ export default function ForexAccounts({ accounts }) {
                             {/* Password with toggle */}
                             <div className="flex items-center gap-1">
                               <p>
-                                Password:{" "}
+                                {t("password")}:{" "}
                                 <span className="font-medium">
                                   {visiblePasswords[account.id]
                                     ? account.password
@@ -215,7 +220,7 @@ export default function ForexAccounts({ accounts }) {
                         ) : (
                           <p className="text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
                             <RefreshCw className="h-3 w-3 animate-spin" />
-                            Waiting for admin approval
+                            {t("waiting_for_admin_approval")}
                           </p>
                         )}
                       </div>
@@ -277,7 +282,7 @@ export default function ForexAccounts({ accounts }) {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-500 dark:hover:bg-blue-950/30"
+                                className="border-teal-500 text-teal-500 hover:bg-teal-500/10 dark:border-teal-500 dark:text-teal-500 dark:hover:bg-teal-500/20"
                                 onClick={() =>
                                   router.push(
                                     `/forex/account/${account.id}/deposit`
@@ -291,7 +296,7 @@ export default function ForexAccounts({ accounts }) {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="border-orange-600 text-orange-600 hover:bg-orange-50 dark:border-orange-500 dark:text-orange-500 dark:hover:bg-orange-950/30"
+                                className="border-emerald-600 text-emerald-600 hover:bg-emerald-600/10 dark:border-emerald-600 dark:text-emerald-600 dark:hover:bg-emerald-600/20"
                                 onClick={() =>
                                   router.push(
                                     `/forex/account/${account.id}/withdraw`
@@ -310,11 +315,11 @@ export default function ForexAccounts({ accounts }) {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-500 dark:hover:bg-blue-950/30"
+                          className="border-emerald-600 text-emerald-600 hover:bg-emerald-600/10 dark:border-emerald-500 dark:text-emerald-500 dark:hover:bg-emerald-600/30"
                           onClick={() => router.push("/forex/dashboard")}
                         >
                           <RefreshCw className="mr-1 h-4 w-4" />
-                          Check Status
+                          {t("check_status")}
                         </Button>
                       </div>
                     )}
@@ -353,24 +358,25 @@ export default function ForexAccounts({ accounts }) {
                         {/* Account details */}
                         <div>
                           <h4 className="text-sm font-medium mb-3">
-                            Account Details
+                            {t("account_details")}
                           </h4>
                           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                             <dt className="text-slate-500 dark:text-slate-400">
                               Server
                             </dt>
                             <dd>
-                              {account.broker}-Real
+                              {account.broker}
+                              {t("real")}
                               {account.type === "DEMO" ? "-Demo" : ""}
                             </dd>
 
                             <dt className="text-slate-500 dark:text-slate-400">
-                              Last Updated
+                              {tCommon("last_updated")}
                             </dt>
                             <dd>{account.lastUpdated || "—"}</dd>
 
                             <dt className="text-slate-500 dark:text-slate-400">
-                              Account Type
+                              {t("account_type")}
                             </dt>
                             <dd>{account.type}</dd>
 

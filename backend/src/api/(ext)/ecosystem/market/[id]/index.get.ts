@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
   description: "Fetches details of a specific market in the ecosystem.",
   operationId: "getEcosystemMarket",
   tags: ["Ecosystem", "Markets"],
+  logModule: "ECOSYSTEM",
+  logTitle: "Get ecosystem market details",
   parameters: [
     {
       name: "id",
@@ -40,16 +42,20 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
   const { id } = params;
 
+  ctx?.step(`Fetching market with ID ${id}`);
   const market = await models.ecosystemMarket.findOne({
     where: { id },
     attributes: ["id", "name", "status"],
   });
 
-  if (!market)
+  if (!market) {
+    ctx?.fail(`Market ${id} not found`);
     throw createError({ statusCode: 404, message: "Market not found" });
+  }
 
+  ctx?.success(`Retrieved market ${id}`);
   return market;
 };

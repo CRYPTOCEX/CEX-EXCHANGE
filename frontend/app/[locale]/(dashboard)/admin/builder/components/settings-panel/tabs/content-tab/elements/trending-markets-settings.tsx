@@ -7,15 +7,17 @@ import {
 } from "../../structure-tab/ui-components";
 import type { SettingsProps } from "../settings-map";
 import { CollapsibleSection } from "../../../ui/collapsible-section";
+import { useTranslations } from "next-intl";
 
 export function TrendingMarketsSettings({
   element,
   settings,
   onSettingChange,
 }: SettingsProps) {
+  const t = useTranslations("dashboard_admin");
   return (
     <div className="space-y-4">
-      <CollapsibleSection title="Data Source" isOpen={true}>
+      <CollapsibleSection title={t("data_source")} isOpen={true}>
         <div className="space-y-2">
           <LabeledInput
             id="apiEndpoint"
@@ -35,7 +37,7 @@ export function TrendingMarketsSettings({
 
           <LabeledInput
             id="linkBaseUrl"
-            label="Link Base URL"
+            label={t("link_base_url")}
             value={settings.linkBaseUrl || "/trade"}
             onChange={(e) => onSettingChange("linkBaseUrl", e.target.value)}
             placeholder="/trade"
@@ -43,7 +45,7 @@ export function TrendingMarketsSettings({
 
           <LabeledSlider
             id="maxItems"
-            label="Maximum Items"
+            label={t("maximum_items")}
             min={1}
             max={20}
             step={1}
@@ -57,7 +59,7 @@ export function TrendingMarketsSettings({
         <div className="space-y-2">
           <LabeledSwitch
             id="autoScroll"
-            label="Auto Scroll"
+            label={t("auto_scroll")}
             checked={settings.autoScroll !== false}
             onCheckedChange={(checked) =>
               onSettingChange("autoScroll", checked)
@@ -68,7 +70,7 @@ export function TrendingMarketsSettings({
             <>
               <LabeledSlider
                 id="scrollSpeed"
-                label="Scroll Speed"
+                label={t("scroll_speed")}
                 min={10}
                 max={100}
                 step={1}
@@ -78,7 +80,7 @@ export function TrendingMarketsSettings({
 
               <LabeledSelect
                 id="scrollDirection"
-                label="Scroll Direction"
+                label={t("scroll_direction")}
                 value={settings.scrollDirection || "rtl"}
                 onValueChange={(value) =>
                   onSettingChange("scrollDirection", value)
@@ -91,7 +93,7 @@ export function TrendingMarketsSettings({
 
               <LabeledSwitch
                 id="showGradients"
-                label="Show Gradients"
+                label={t("show_gradients")}
                 checked={settings.showGradients !== false}
                 onCheckedChange={(checked) =>
                   onSettingChange("showGradients", checked)

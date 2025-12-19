@@ -7,9 +7,10 @@ import {
 } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Bulk deletes Forex plans by IDs",
+  summary: "Bulk deletes Forex plans",
+  description: "Deletes multiple Forex plan configurations by their IDs. This will cascade delete to associated plan durations and investments.",
   operationId: "bulkDeleteForexPlans",
-  tags: ["Admin", "Forex", "Plans"],
+  tags: ["Admin", "Forex", "Plan"],
   parameters: commonBulkDeleteParams("Forex Plans"),
   requestBody: {
     required: true,
@@ -32,14 +33,23 @@ export const metadata: OperationObject = {
   responses: commonBulkDeleteResponses("Forex Plans"),
   requiresAuth: true,
   permission: "delete.forex.plan",
+  logModule: "ADMIN_FOREX",
+  logTitle: "Bulk delete forex plans",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step(`Validating ${ids.length} forex plan IDs`);
+
+  ctx?.step(`Deleting ${ids.length} forex plans`);
+  const result = await handleBulkDelete({
     model: "forexPlan",
     ids,
     query,
   });
+
+  ctx?.success(`Successfully deleted ${ids.length} forex plans`);
+  return result;
 };

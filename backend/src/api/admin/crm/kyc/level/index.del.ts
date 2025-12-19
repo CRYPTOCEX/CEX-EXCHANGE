@@ -6,6 +6,8 @@ export const metadata = {
   description: "Deletes multiple KYC levels by their IDs.",
   operationId: "bulkDeleteKycLevels",
   tags: ["KYC", "Levels"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Bulk delete KYC levels",
   requestBody: {
     description: "Array of KYC level IDs to delete",
     required: true,
@@ -49,21 +51,26 @@ export const metadata = {
 };
 
 export default async (data: Handler): Promise<any> => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids } = body;
+
   if (!ids || !Array.isArray(ids) || ids.length === 0) {
     throw createError({ statusCode: 400, message: "Missing or invalid ids" });
   }
 
+  ctx?.step(`Bulk deleting ${ids.length} KYC levels`);
   // Bulk deletion: destroy all levels with matching IDs.
   const deletedCount = await models.kycLevel.destroy({
     where: { id: ids },
   });
+
   if (deletedCount === 0) {
     throw createError({
       statusCode: 404,
       message: "No KYC levels found for the provided IDs",
     });
   }
+
+  ctx?.success(`${deletedCount} KYC levels deleted successfully`);
   return { message: "KYC levels deleted successfully.", count: deletedCount };
 };

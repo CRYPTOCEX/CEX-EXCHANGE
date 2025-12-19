@@ -11,10 +11,12 @@ import { crudParameters, paginationSchema } from "@b/utils/constants";
 import { baseTransactionSchema } from "@b/api/finance/transaction/utils";
 
 export const metadata = {
-  summary: "Lists forex_deposit transactions only",
-  operationId: "listFOREX_DEPOSITTransactions",
-  tags: ["Admin", "Wallets"],
+  summary: "Lists Forex deposits",
+  operationId: "listForexDeposits",
+  tags: ["Admin", "Forex", "Deposit"],
   parameters: crudParameters,
+  logModule: "ADMIN_FOREX",
+  logTitle: "Get Forex Deposits",
   responses: {
     200: {
       description:
@@ -24,7 +26,7 @@ export const metadata = {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -43,12 +45,14 @@ export const metadata = {
   },
   requiresAuth: true,
   permission: "view.forex.deposit",
+  demoMask: ["items.user.email"],
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching forex deposit transactions");
+  const result = await getFiltered({
     model: models.transaction,
     where: {
       type: "FOREX_DEPOSIT",
@@ -68,4 +72,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} forex deposits`);
+  return result;
 };

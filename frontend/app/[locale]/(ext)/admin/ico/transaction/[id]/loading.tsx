@@ -12,9 +12,10 @@ import { ArrowLeft, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export default function TransactionLoading() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
   return (
-    <div className="container mx-auto pb-20 space-y-6 max-w-7xl">
+    <div className="container mx-auto pt-20 pb-20 space-y-6 max-w-7xl">
       {/* Header Section */}
       <div className="flex flex-col space-y-4">
         {/* Breadcrumb */}
@@ -35,7 +36,7 @@ export default function TransactionLoading() {
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" disabled>
               <RefreshCw className="w-4 h-4 mr-2" />
-              {t("Refresh")}
+              {tExt("refresh")}
             </Button>
           </div>
         </div>
@@ -161,7 +162,7 @@ export default function TransactionLoading() {
             {t("related_transactions")}
           </TabsTrigger>
           <TabsTrigger value="notes" disabled>
-            {t("Notes")}
+            {tExt("notes")}
           </TabsTrigger>
         </TabsList>
 

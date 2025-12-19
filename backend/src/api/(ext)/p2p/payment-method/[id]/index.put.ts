@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "updatePaymentMethod",
   tags: ["P2P", "Payment Method"],
   requiresAuth: true,
+  logModule: "P2P_PAYMENT",
+  logTitle: "Update payment method",
   parameters: [
     {
       index: 0,
@@ -51,14 +53,15 @@ export const metadata = {
   },
 };
 
-export default async (data: { params?: any; body: any; user?: any }) => {
-  const { params, body, user } = data;
+export default async (data: { params?: any; body: any; user?: any; ctx?: any }) => {
+  const { params, body, user, ctx } = data;
   const id = params?.id;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Finding and validating payment method ownership");
   try {
     const paymentMethod = await models.p2pPaymentMethod.findByPk(id);
     if (!paymentMethod) {
@@ -115,6 +118,7 @@ export default async (data: { params?: any; body: any; user?: any }) => {
       }
     }
 
+    ctx?.step("Updating payment method");
     // Update allowed fields (no icon for custom methods)
     await paymentMethod.update({
       name: body.name ?? paymentMethod.name,
@@ -127,6 +131,8 @@ export default async (data: { params?: any; body: any; user?: any }) => {
           ? body.available
           : paymentMethod.available,
     });
+
+    ctx?.success(`Updated payment method: ${paymentMethod.name}`);
 
     return {
       message: "Payment method updated successfully.",

@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
   description: "Provides download access to purchased digital products for authenticated users.",
   operationId: "downloadDigitalProduct",
   tags: ["Ecommerce", "Downloads"],
+  logModule: "ECOM",
+  logTitle: "Get Download",
   requiresAuth: true,
   parameters: [
     {
@@ -49,13 +51,16 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
+  const { user, params, ctx } = data;
+
   // Apply rate limiting
   await rateLimiters.download(data);
-  
-  const { user, params } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Fetching Download");
 
   const { orderItemId } = params;
 

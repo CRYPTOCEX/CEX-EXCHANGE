@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import DataTable from "@/components/blocks/data-table";
-import { CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { CheckCircle2, XCircle, RefreshCw, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
 import {
   Dialog,
   DialogContent,
@@ -12,7 +13,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { columns } from "../../../position/columns";
+import { useColumns } from "../../../position/columns";
 import { analytics } from "../../../position/analytics";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import StakingPositionDetails from "../../../position/components/details";
@@ -20,7 +21,9 @@ import { useStakingAdminPositionsStore } from "@/store/staking/admin/position";
 import { useTranslations } from "next-intl";
 
 export default function PoolPositionsTab({ poolId }: { poolId: string }) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const columns = useColumns();
   const updatePosition = useStakingAdminPositionsStore(
     (state) => state.updatePosition
   );
@@ -92,27 +95,27 @@ export default function PoolPositionsTab({ poolId }: { poolId: string }) {
   };
 
   return (
-    <div className="space-y-4">
+    <>
       <DataTable
         apiEndpoint="/api/admin/staking/position"
         model="stakingPosition"
         modelConfig={{ poolId }}
         permissions={{
-        access: "view.staking.position",
-        view: "view.staking.position",
-        create: "create.staking.position",
-        edit: "edit.staking.position",
-        delete: "delete.staking.position",
+          access: "view.staking.position",
+          view: "view.staking.position",
+          create: "create.staking.position",
+          edit: "edit.staking.position",
+          delete: "delete.staking.position",
         }}
-        pageSize={10}
+        pageSize={12}
         canCreate={false}
         canEdit={false}
         canDelete={true}
         canView={true}
         isParanoid={true}
-        title="Manage Staking Positions"
+        title={t("pool_positions")}
         itemTitle="Staking Position"
-        description="Review and manage staking positions"
+        description={t("view_and_manage_positions_for_this_specific_pool")}
         columns={columns}
         analytics={analytics}
         extraRowActions={extraRowActions}
@@ -129,7 +132,7 @@ export default function PoolPositionsTab({ poolId }: { poolId: string }) {
                 : "Reject Withdrawal"}
             </DialogTitle>
             <DialogDescription>
-              {t("are_you_sure_you_want_to")}{" "}
+              {tCommon("are_you_sure_you_want_to")}{" "}
               {confirmAction === "approve" ? "approve" : "reject"}
               {t("the_withdrawal_request_for_this_position")}
             </DialogDescription>
@@ -139,7 +142,7 @@ export default function PoolPositionsTab({ poolId }: { poolId: string }) {
               variant="outline"
               onClick={() => setConfirmDialogOpen(false)}
             >
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
             <Button onClick={handleConfirm} disabled={isProcessing}>
               {isProcessing ? (
@@ -149,11 +152,11 @@ export default function PoolPositionsTab({ poolId }: { poolId: string }) {
               ) : (
                 <XCircle className="mr-2 h-4 w-4" />
               )}
-              {t("Confirm")}
+              {tCommon("confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

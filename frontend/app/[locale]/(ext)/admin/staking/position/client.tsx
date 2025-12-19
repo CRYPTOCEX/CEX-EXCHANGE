@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import { analytics } from "./analytics";
-import { CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { CheckCircle2, XCircle, RefreshCw, Target } from "lucide-react";
+
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import StakingPositionDetails from "./components/details";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,10 @@ import { useStakingAdminPositionsStore } from "@/store/staking/admin/position";
 import { useTranslations } from "next-intl";
 
 export default function PositionsManagement() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
   const updatePosition = useStakingAdminPositionsStore(
     (state) => state.updatePosition
   );
@@ -101,19 +105,26 @@ export default function PositionsManagement() {
           edit: "edit.staking.position",
           delete: "delete.staking.position",
         }}
-        pageSize={10}
+        pageSize={12}
         canCreate={false}
         canEdit={false}
         canDelete={true}
         canView={true}
         isParanoid={true}
-        title="Manage Staking Positions"
+        title={t("staking_position_management")}
         itemTitle="Staking Position"
-        description="Review and manage staking positions"
+        description={t("monitor_user_staking_positions_process_withdrawal")}
         columns={columns}
+        formConfig={formConfig}
         analytics={analytics}
         extraRowActions={extraRowActions}
         viewContent={(row) => <StakingPositionDetails row={row} />}
+        design={{
+          animation: "orbs",
+          primaryColor: 'violet',
+          secondaryColor: 'indigo',
+          icon: Target,
+        }}
       />
 
       {/* Shared Confirmation Dialog for extra row actions */}
@@ -126,7 +137,7 @@ export default function PositionsManagement() {
                 : "Reject Withdrawal"}
             </DialogTitle>
             <DialogDescription>
-              {t("are_you_sure_you_want_to")}{" "}
+              {tCommon("are_you_sure_you_want_to")}{" "}
               {confirmAction === "approve" ? "approve" : "reject"}
               {t("this_withdrawal_request")}
             </DialogDescription>
@@ -136,7 +147,7 @@ export default function PositionsManagement() {
               variant="outline"
               onClick={() => setConfirmDialogOpen(false)}
             >
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
             <Button onClick={handleConfirm} disabled={isProcessing}>
               {isProcessing ? (
@@ -146,7 +157,7 @@ export default function PositionsManagement() {
               ) : (
                 <XCircle className="mr-2 h-4 w-4" />
               )}
-              {t("Confirm")}
+              {tCommon("confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

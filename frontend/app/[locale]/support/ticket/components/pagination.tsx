@@ -81,7 +81,7 @@ export function Pagination({
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border-0 shadow-lg">
       {/* Results info */}
       <div className="text-sm text-gray-600 dark:text-zinc-400">
-        {t("Showing")}{" "}
+        {t("showing")}{" "}
         <span className="font-medium text-gray-900 dark:text-zinc-100">
           {startItem}{" "}
         </span>
@@ -133,7 +133,7 @@ export function Pagination({
           className="h-9 px-3 border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
-          {t("Previous")}
+          {t('prev')}
         </Button>
 
         {/* Page numbers */}
@@ -170,7 +170,7 @@ export function Pagination({
           disabled={currentPage === totalPages}
           className="h-9 px-3 border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {t("Next")}
+          {t("next")}
           <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
       </div>

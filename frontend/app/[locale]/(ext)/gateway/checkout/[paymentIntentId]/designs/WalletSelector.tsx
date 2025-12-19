@@ -2,17 +2,25 @@
 
 import { useState } from "react";
 import { Wallet, Plus, X, Check, AlertTriangle, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
-import type { WalletOption, PaymentAllocation, MultiWalletState } from "./types";
+import type { WalletOption, PaymentAllocation, MultiWalletState, CheckoutSession } from "./types";
 
 interface WalletSelectorProps {
   multiWallet: MultiWalletState | null;
-  paymentAmount: number;
-  paymentCurrency: string;
-  onAddWallet: (wallet: WalletOption, amount?: number) => void;
-  onRemoveWallet: (walletId: string) => void;
-  onUpdateAmount: (walletId: string, amount: number) => void;
-  onAutoAllocate: () => void;
-  onClear: () => void;
+  // Support both explicit amount/currency and session object
+  paymentAmount?: number;
+  paymentCurrency?: string;
+  session?: CheckoutSession;
+  // Support both naming conventions for callbacks
+  onAddWallet?: (wallet: WalletOption, amount?: number) => void;
+  addWalletAllocation?: (wallet: WalletOption, amount?: number) => void;
+  onRemoveWallet?: (walletId: string) => void;
+  removeWalletAllocation?: (walletId: string) => void;
+  onUpdateAmount?: (walletId: string, amount: number) => void;
+  updateWalletAllocation?: (walletId: string, amount: number) => void;
+  onAutoAllocate?: () => void;
+  autoAllocateWallets?: () => void;
+  onClear?: () => void;
+  clearAllocations?: () => void;
   formatCurrency: (amount: number, currency: string) => string;
   disabled?: boolean;
   theme?: "light" | "dark" | "glass";
@@ -20,18 +28,35 @@ interface WalletSelectorProps {
 
 export function WalletSelector({
   multiWallet,
-  paymentAmount,
-  paymentCurrency,
+  paymentAmount: explicitAmount,
+  paymentCurrency: explicitCurrency,
+  session,
   onAddWallet,
+  addWalletAllocation,
   onRemoveWallet,
+  removeWalletAllocation,
   onUpdateAmount,
+  updateWalletAllocation,
   onAutoAllocate,
+  autoAllocateWallets,
   onClear,
+  clearAllocations,
   formatCurrency,
   disabled = false,
   theme = "dark",
 }: WalletSelectorProps) {
   const [expanded, setExpanded] = useState(false);
+
+  // Support both explicit amount/currency and session-based values
+  const paymentAmount = explicitAmount ?? session?.amount ?? 0;
+  const paymentCurrency = explicitCurrency ?? session?.currency ?? "USD";
+
+  // Support both naming conventions for callbacks
+  const handleAddWallet = onAddWallet ?? addWalletAllocation ?? (() => {});
+  const handleRemoveWallet = onRemoveWallet ?? removeWalletAllocation ?? (() => {});
+  const handleUpdateAmount = onUpdateAmount ?? updateWalletAllocation ?? (() => {});
+  const handleAutoAllocate = onAutoAllocate ?? autoAllocateWallets ?? (() => {});
+  const handleClear = onClear ?? clearAllocations ?? (() => {});
 
   if (!multiWallet || multiWallet.availableWallets.length === 0) {
     return null;
@@ -95,7 +120,7 @@ export function WalletSelector({
         <div className="flex items-center gap-2">
           {hasAllocations && (
             <button
-              onClick={onClear}
+              onClick={handleClear}
               disabled={disabled}
               className={`px-2 py-1 text-xs rounded-lg transition-colors ${styles.buttonSecondary} disabled:opacity-50`}
             >
@@ -104,7 +129,7 @@ export function WalletSelector({
           )}
           {!isFullyAllocated && multiWallet.canPayFull && (
             <button
-              onClick={onAutoAllocate}
+              onClick={handleAutoAllocate}
               disabled={disabled}
               className={`px-2 py-1 text-xs rounded-lg transition-colors flex items-center gap-1 ${styles.button} disabled:opacity-50`}
             >
@@ -170,7 +195,7 @@ export function WalletSelector({
                       <input
                         type="number"
                         value={allocation.amount}
-                        onChange={(e) => onUpdateAmount(allocation.walletId, parseFloat(e.target.value) || 0)}
+                        onChange={(e) => handleUpdateAmount(allocation.walletId, parseFloat(e.target.value) || 0)}
                         disabled={disabled}
                         className={`w-24 px-2 py-1 text-right text-sm rounded border ${theme === "light" ? "bg-white border-gray-300" : "bg-zinc-900 border-zinc-600"} ${styles.header} disabled:opacity-50`}
                         step={wallet.type === "SPOT" ? 0.00000001 : 0.01}
@@ -182,7 +207,7 @@ export function WalletSelector({
                       </div>
                     </div>
                     <button
-                      onClick={() => onRemoveWallet(allocation.walletId)}
+                      onClick={() => handleRemoveWallet(allocation.walletId)}
                       disabled={disabled}
                       className={`p-1 rounded-full transition-colors ${styles.buttonSecondary} disabled:opacity-50`}
                     >
@@ -215,7 +240,7 @@ export function WalletSelector({
                 <div
                   key={wallet.id}
                   className={`${styles.card} ${styles.cardHover} rounded-lg p-3 cursor-pointer transition-colors`}
-                  onClick={() => !disabled && onAddWallet(wallet)}
+                  onClick={() => !disabled && handleAddWallet(wallet)}
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -268,17 +293,30 @@ export function WalletSelector({
 // Compact version for smaller layouts
 export function WalletSelectorCompact({
   multiWallet,
-  paymentAmount,
-  paymentCurrency,
+  paymentAmount: explicitAmount,
+  paymentCurrency: explicitCurrency,
+  session,
   onAddWallet,
+  addWalletAllocation,
   onRemoveWallet,
+  removeWalletAllocation,
   onAutoAllocate,
+  autoAllocateWallets,
   formatCurrency,
   disabled = false,
-}: Omit<WalletSelectorProps, "onUpdateAmount" | "onClear" | "theme">) {
+}: Omit<WalletSelectorProps, "onUpdateAmount" | "onClear" | "theme" | "updateWalletAllocation" | "clearAllocations">) {
   if (!multiWallet || multiWallet.availableWallets.length === 0) {
     return null;
   }
+
+  // Support both explicit amount/currency and session-based values
+  const paymentAmount = explicitAmount ?? session?.amount ?? 0;
+  const paymentCurrency = explicitCurrency ?? session?.currency ?? "USD";
+
+  // Support both naming conventions for callbacks
+  const handleAddWallet = onAddWallet ?? addWalletAllocation;
+  const handleRemoveWallet = onRemoveWallet ?? removeWalletAllocation;
+  const handleAutoAllocate = onAutoAllocate ?? autoAllocateWallets;
 
   const hasAllocations = multiWallet.selectedAllocations.length > 0;
   const isFullyAllocated = multiWallet.remainingAmount <= 0.01;
@@ -292,7 +330,7 @@ export function WalletSelectorCompact({
           return (
             <button
               key={wallet.id}
-              onClick={() => isSelected ? onRemoveWallet(wallet.id) : onAddWallet(wallet)}
+              onClick={() => isSelected ? handleRemoveWallet?.(wallet.id) : handleAddWallet?.(wallet)}
               disabled={disabled}
               className={`px-3 py-1.5 text-sm rounded-lg border transition-all ${
                 isSelected
@@ -309,7 +347,7 @@ export function WalletSelectorCompact({
       </div>
 
       {/* Progress indicator */}
-      {hasAllocations && (
+      {hasAllocations && paymentAmount > 0 && (
         <div className="flex items-center gap-2 text-xs">
           <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
             <div
@@ -326,7 +364,7 @@ export function WalletSelectorCompact({
       {/* Auto-allocate button */}
       {!isFullyAllocated && multiWallet.canPayFull && (
         <button
-          onClick={onAutoAllocate}
+          onClick={handleAutoAllocate}
           disabled={disabled}
           className="w-full py-2 text-sm rounded-lg bg-white/10 hover:bg-white/20 text-white/80 transition-colors disabled:opacity-50"
         >

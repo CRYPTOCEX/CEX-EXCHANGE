@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { Link, useRouter } from "@/i18n/routing";
 import { useParams } from "next/navigation";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 import {
   ArrowLeft,
   XCircle,
@@ -49,7 +50,8 @@ function getP2PTradeWsUrl(tradeId: string): string {
 }
 
 export default function AdminTradeDetailsClient() {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const router = useRouter();
   const params = useParams();
   const tradeId = params.id as string;
@@ -350,7 +352,7 @@ export default function AdminTradeDetailsClient() {
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" disabled>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t("back_to_trades")}
+            {tExt("back_to_trades")}
           </Button>
         </div>
         <div className="flex items-center gap-2">
@@ -389,7 +391,7 @@ export default function AdminTradeDetailsClient() {
           onClick={() => router.push("/admin/p2p/trade")}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {t("back_to_trades")}
+          {tExt("back_to_trades")}
         </Button>
         <Alert variant="destructive">
           <AlertTitle>Error</AlertTitle>
@@ -404,16 +406,16 @@ export default function AdminTradeDetailsClient() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className={`container ${PAGE_PADDING} space-y-6`}>
       {/* Breadcrumb and back button */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-1 text-sm text-muted-foreground">
           <Link href="/admin" className="hover:text-foreground">
-            {t("Admin")}
+            {tCommon("admin")}
           </Link>
           <ChevronRight className="h-4 w-4" />
           <Link href="/admin/p2p/trade" className="hover:text-foreground">
-            {t("P2P Trades")}
+            {tCommon("p2p_trades")}
           </Link>
           <ChevronRight className="h-4 w-4" />
           <span className="font-medium text-foreground">{trade.id}</span>
@@ -424,7 +426,7 @@ export default function AdminTradeDetailsClient() {
           onClick={() => router.push("/admin/p2p/trade")}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {t("back_to_trades")}
+          {tExt("back_to_trades")}
         </Button>
       </div>
 
@@ -444,14 +446,14 @@ export default function AdminTradeDetailsClient() {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("Buyer")}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">{tExt("buyer")}</p>
                 <p className="font-semibold">{buyer.name}</p>
                 {buyer.id && (
                   <Link
                     href={`/admin/crm/user/${buyer.id}`}
                     className="text-xs text-primary hover:underline"
                   >
-                    {t("view_profile")}
+                    {tExt("view_profile")}
                   </Link>
                 )}
               </div>
@@ -484,14 +486,14 @@ export default function AdminTradeDetailsClient() {
             {/* Seller */}
             <div className="flex items-center gap-3 flex-1 justify-end">
               <div className="text-right">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("Seller")}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">{tCommon("seller")}</p>
                 <p className="font-semibold">{seller.name}</p>
                 {seller.id && (
                   <Link
                     href={`/admin/crm/user/${seller.id}`}
                     className="text-xs text-primary hover:underline"
                   >
-                    {t("view_profile")}
+                    {tExt("view_profile")}
                   </Link>
                 )}
               </div>
@@ -530,15 +532,15 @@ export default function AdminTradeDetailsClient() {
             className="space-y-4"
           >
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="overview">{t("Overview")}</TabsTrigger>
-              <TabsTrigger value="timeline">{t("Timeline")}</TabsTrigger>
-              <TabsTrigger value="chat">{t("Chat")}</TabsTrigger>
+              <TabsTrigger value="overview">{tCommon("overview")}</TabsTrigger>
+              <TabsTrigger value="timeline">{tCommon("timeline")}</TabsTrigger>
+              <TabsTrigger value="chat">{tCommon("chat")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>{t("trade_information")}</CardTitle>
+                  <CardTitle>{tCommon("trade_information")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -548,7 +550,7 @@ export default function AdminTradeDetailsClient() {
                         <span className="text-primary font-bold text-sm">{trade.crypto?.slice(0, 2) || "?"}</span>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs text-muted-foreground">{t("Cryptocurrency")}</p>
+                        <p className="text-xs text-muted-foreground">{tExt("cryptocurrency")}</p>
                         <p className="font-semibold truncate">{trade.crypto || "N/A"}</p>
                       </div>
                     </div>
@@ -559,7 +561,7 @@ export default function AdminTradeDetailsClient() {
                         <span className="text-green-600 dark:text-green-400 font-bold text-lg">#</span>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs text-muted-foreground">{t("Amount")}</p>
+                        <p className="text-xs text-muted-foreground">{tCommon("amount")}</p>
                         <p className="font-semibold truncate">{trade.amount || "N/A"}</p>
                       </div>
                     </div>
@@ -570,20 +572,20 @@ export default function AdminTradeDetailsClient() {
                         <span className="text-blue-600 dark:text-blue-400 font-bold text-lg">$</span>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs text-muted-foreground">{t("fiat_value")}</p>
+                        <p className="text-xs text-muted-foreground">{tCommon("fiat_value")}</p>
                         <p className="font-semibold truncate">{trade.fiatValue || "N/A"}</p>
                       </div>
                     </div>
 
                     {/* Payment Method */}
                     <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
-                      <div className="h-10 w-10 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0">
-                        <svg className="h-5 w-5 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                        <svg className="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs text-muted-foreground">{t("payment_method")}</p>
+                        <p className="text-xs text-muted-foreground">{tCommon("payment_method")}</p>
                         <p className="font-semibold truncate text-sm">{trade.paymentMethodDetails?.name || "N/A"}</p>
                       </div>
                     </div>
@@ -594,7 +596,7 @@ export default function AdminTradeDetailsClient() {
                         <span className="text-orange-600 dark:text-orange-400 font-bold text-lg">%</span>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs text-muted-foreground">{t("escrow_fee")}</p>
+                        <p className="text-xs text-muted-foreground">{tExt("escrow_fee")}</p>
                         <p className="font-semibold truncate">{trade.escrowFee || "0"} {trade.crypto}</p>
                       </div>
                     </div>
@@ -606,7 +608,7 @@ export default function AdminTradeDetailsClient() {
                           <Clock className="h-5 w-5 text-red-600 dark:text-red-400" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs text-muted-foreground">{t("time_remaining")}</p>
+                          <p className="text-xs text-muted-foreground">{tExt("time_remaining")}</p>
                           <p className="font-semibold text-red-600 dark:text-red-400">{trade.timeRemaining}</p>
                         </div>
                       </div>
@@ -619,9 +621,9 @@ export default function AdminTradeDetailsClient() {
             <TabsContent value="timeline" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>{t("trade_timeline")}</CardTitle>
+                  <CardTitle>{tExt("trade_timeline")}</CardTitle>
                   <CardDescription>
-                    {t("chronological_events_for_this_trade")}
+                    {tCommon("chronological_events_for_this_trade")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -649,8 +651,8 @@ export default function AdminTradeDetailsClient() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>{t("admin_actions")}</CardTitle>
-              <CardDescription>{t("manage_this_trade")}</CardDescription>
+              <CardTitle>{tCommon("admin_actions")}</CardTitle>
+              <CardDescription>{tCommon("manage_this_trade")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -661,7 +663,7 @@ export default function AdminTradeDetailsClient() {
                       className="w-full justify-start bg-red-600 hover:bg-red-700"
                     >
                       <ExternalLink className="mr-2 h-4 w-4" />
-                      {t("view_dispute_details")}
+                      {tCommon("view_dispute_details")}
                     </Button>
                   </Link>
                 )}
@@ -672,7 +674,7 @@ export default function AdminTradeDetailsClient() {
                     className="w-full justify-start"
                   >
                     <AlertTriangle className="mr-2 h-4 w-4 text-orange-500" />
-                    {t("flag_for_review")}
+                    {tCommon("flag_for_review")}
                   </Button>
                 )}
                 {trade.status !== "COMPLETED" &&
@@ -683,7 +685,7 @@ export default function AdminTradeDetailsClient() {
                       className="w-full justify-start"
                     >
                       <XCircle className="mr-2 h-4 w-4" />
-                      {t("cancel_trade")}
+                      {tExt("cancel_trade")}
                     </Button>
                   )}
               </div>
@@ -694,9 +696,9 @@ export default function AdminTradeDetailsClient() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
-                {t("trade_notes")}
+                {tCommon("trade_notes")}
               </CardTitle>
-              <CardDescription>{t("internal_admin_notes")}</CardDescription>
+              <CardDescription>{tCommon("internal_admin_notes")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -719,7 +721,7 @@ export default function AdminTradeDetailsClient() {
                           <p className="text-sm whitespace-pre-wrap">{note.details || note.message}</p>
                           <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                             <Shield className="h-3 w-3" />
-                            <span>{note.adminName || t("Admin")}</span>
+                            <span>{note.adminName || tCommon("admin")}</span>
                             <span>-</span>
                             <span>{new Date(note.timestamp).toLocaleString()}</span>
                           </div>
@@ -728,7 +730,7 @@ export default function AdminTradeDetailsClient() {
                   </div>
                 ) : (
                   <div className="text-center py-4 text-sm text-muted-foreground border rounded-md bg-muted/30">
-                    {t("no_notes_yet")}
+                    {tCommon("no_notes_yet")}
                   </div>
                 )}
 
@@ -737,7 +739,7 @@ export default function AdminTradeDetailsClient() {
                   <textarea
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
                     rows={3}
-                    placeholder={t("add_a_note_about_this_trade_ellipsis")}
+                    placeholder={tCommon("add_a_note_about_this_trade_ellipsis")}
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
                     disabled={actionInProgress}
@@ -748,7 +750,7 @@ export default function AdminTradeDetailsClient() {
                     onClick={handleAddNote}
                     disabled={actionInProgress || !newNote.trim()}
                   >
-                    {actionInProgress ? t("adding") : t("add_note")}
+                    {actionInProgress ? tCommon("adding") : tCommon("add_note")}
                   </Button>
                 </div>
               </div>
@@ -764,13 +766,13 @@ export default function AdminTradeDetailsClient() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-orange-500" />
-              {t("confirm_action")}
+              {tCommon("confirm_action")}
             </DialogTitle>
             <DialogDescription>
               {actionType === "flag" &&
-                t("are_you_sure_you_want_to_flag_this_trade")}
+                tCommon("are_you_sure_you_want_to_flag_this_trade")}
               {actionType === "cancel" &&
-                t("are_you_sure_you_want_to_cancel_this_trade")}
+                tCommon("are_you_sure_you_want_to_cancel_this_trade")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -779,14 +781,14 @@ export default function AdminTradeDetailsClient() {
               onClick={cancelAction}
               disabled={actionInProgress}
             >
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
             <Button
               variant={actionType === "cancel" ? "destructive" : "default"}
               onClick={confirmAction}
               disabled={actionInProgress}
             >
-              {actionInProgress ? t("Processing") : t("Confirm")}
+              {actionInProgress ? tCommon("processing") : tCommon("confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -797,6 +799,7 @@ export default function AdminTradeDetailsClient() {
 
 function TradeStatusBadge({ status }: { status: string }) {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   switch (status) {
     case "COMPLETED":
       return (
@@ -804,7 +807,7 @@ function TradeStatusBadge({ status }: { status: string }) {
           variant="outline"
           className="border-green-200 bg-green-100 text-green-800"
         >
-          {t("Completed")}
+          {tCommon("completed")}
         </Badge>
       );
     case "PENDING":
@@ -813,7 +816,7 @@ function TradeStatusBadge({ status }: { status: string }) {
           variant="outline"
           className="border-blue-200 bg-blue-100 text-blue-800"
         >
-          {t("Pending")}
+          {tCommon("pending")}
         </Badge>
       );
     case "PAYMENT_SENT":
@@ -822,18 +825,18 @@ function TradeStatusBadge({ status }: { status: string }) {
           variant="outline"
           className="border-orange-200 bg-orange-100 text-orange-800"
         >
-          {t("payment_sent")}
+          {tCommon("payment_sent")}
         </Badge>
       );
     case "DISPUTED":
-      return <Badge variant="destructive">{t("Disputed")}</Badge>;
+      return <Badge variant="destructive">{t("disputed")}</Badge>;
     case "CANCELLED":
       return (
         <Badge
           variant="outline"
           className="border-gray-200 bg-gray-100 text-gray-800"
         >
-          {t("Cancelled")}
+          {tCommon("cancelled")}
         </Badge>
       );
     default:

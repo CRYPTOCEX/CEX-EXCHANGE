@@ -3,11 +3,13 @@
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { DollarSign } from "lucide-react";
+import { useTranslations } from "next-intl";
 interface AmountInputProps {
   amount: number;
   setAmount: (amount: number) => void;
 }
 export default function AmountInput({ amount, setAmount }: AmountInputProps) {
+  const t = useTranslations("trade_components");
   // Handle amount change
   const handleAmountChange = (value: string) => {
     const numValue = Number.parseFloat(value);
@@ -20,7 +22,7 @@ export default function AmountInput({ amount, setAmount }: AmountInputProps) {
   return (
     <div className="mb-4">
       <label className="block text-xs text-muted-foreground mb-1">
-        Amount (USD)
+        {t("amount_usd")}
       </label>
       <div className="relative">
         <Input

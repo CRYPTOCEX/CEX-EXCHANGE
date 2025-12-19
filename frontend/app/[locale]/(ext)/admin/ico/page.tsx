@@ -26,9 +26,12 @@ import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 export default function AdminDashboard() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { stats, isLoading, error, fetchStats } = useAdminStore();
   useEffect(() => {
     fetchStats();
@@ -65,11 +68,11 @@ export default function AdminDashboard() {
     return `$${amount.toFixed(2)}`;
   }, [stats?.totalRaised]);
   return (
-    <div className="container pb-40 pt-8">
+    <div className={`container ${PAGE_PADDING}`}>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight">
-            {t("admin_dashboard")}
+            {tCommon("admin_dashboard")}
           </h1>
           <p className="text-muted-foreground">
             {t("welcome_to_the_admin_dashboard")}.{" "}
@@ -82,7 +85,7 @@ export default function AdminDashboard() {
           <Card className="relative overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t("total_offerings")}
+                {tExt("total_offerings")}
               </CardTitle>
               <ListChecks className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -102,7 +105,7 @@ export default function AdminDashboard() {
                     <TrendingUp className="h-3 w-3 text-green-500" />
                     <span>
                       +{numOrZero(stats?.offeringGrowth)}
-                      % {t("from_last_month")}
+                      % {tExt("from_last_month")}
                     </span>
                   </span>
                 )}
@@ -114,7 +117,7 @@ export default function AdminDashboard() {
           <Card className="relative overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t("pending_approval")}
+                {tExt("pending_approval")}
               </CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -140,7 +143,7 @@ export default function AdminDashboard() {
           <Card className="relative overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t("total_raised")}
+                {tExt("total_raised")}
               </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -158,7 +161,7 @@ export default function AdminDashboard() {
                     <TrendingUp className="h-3 w-3 text-green-500" />
                     <span>
                       +{numOrZero(stats?.raiseGrowth)}
-                      % {t("from_last_month")}
+                      % {tExt("from_last_month")}
                     </span>
                   </span>
                 )}
@@ -170,7 +173,7 @@ export default function AdminDashboard() {
           <Card className="relative overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t("success_rate")}
+                {tCommon("success_rate")}
               </CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -190,7 +193,7 @@ export default function AdminDashboard() {
                     <TrendingUp className="h-3 w-3 text-green-500" />
                     <span>
                       +{numOrZero(stats?.successRateGrowth)}
-                      % {t("from_last_month")}
+                      % {tExt("from_last_month")}
                     </span>
                   </span>
                 )}
@@ -220,7 +223,7 @@ export default function AdminDashboard() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>{t("create_offering")}</CardTitle>
+              <CardTitle>{tCommon('create_offer')}</CardTitle>
               <CardDescription>
                 {t("launch_a_new_token_offering")}
               </CardDescription>
@@ -228,7 +231,7 @@ export default function AdminDashboard() {
             <CardFooter>
               <Link href="/admin/ico/offer/create" className="w-full">
                 <Button variant="outline" className="w-full">
-                  {t("Create")}
+                  {tCommon("create")}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
@@ -257,7 +260,7 @@ export default function AdminDashboard() {
                   {/* Active */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="text-sm">{t("Active")}</div>
+                      <div className="text-sm">{tCommon("active")}</div>
                       <div className="text-sm font-medium">
                         {numOrZero(stats?.activeOfferings)}
                       </div>
@@ -280,7 +283,7 @@ export default function AdminDashboard() {
                   {/* Pending */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="text-sm">{t("Pending")}</div>
+                      <div className="text-sm">{tCommon("pending")}</div>
                       <div className="text-sm font-medium">
                         {numOrZero(stats?.pendingOfferings)}
                       </div>
@@ -303,7 +306,7 @@ export default function AdminDashboard() {
                   {/* Completed */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="text-sm">{t("Completed")}</div>
+                      <div className="text-sm">{tCommon("completed")}</div>
                       <div className="text-sm font-medium">
                         {numOrZero(stats?.completedOfferings)}
                       </div>
@@ -326,7 +329,7 @@ export default function AdminDashboard() {
                   {/* Rejected */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="text-sm">{t("Rejected")}</div>
+                      <div className="text-sm">{tCommon("rejected")}</div>
                       <div className="text-sm font-medium">
                         {numOrZero(stats?.rejectedOfferings)}
                       </div>

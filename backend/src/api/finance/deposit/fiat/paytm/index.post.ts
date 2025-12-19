@@ -25,6 +25,8 @@ export const metadata = {
   operationId: 'createPaytmPayment',
   tags: ['Finance', 'Deposit', 'Paytm'],
   requiresAuth: true,
+  logModule: "PAYTM_DEPOSIT",
+  logTitle: "Create Paytm payment session",
   requestBody: {
     required: true,
     content: {

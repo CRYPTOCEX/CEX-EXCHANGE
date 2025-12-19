@@ -1,9 +1,10 @@
 import { updateRecordResponses, updateStatus } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Bulk updates the status of ecosystem master wallets",
+  summary: "Bulk update master wallet status",
+  description: "Updates the status of multiple ecosystem master wallets simultaneously. Active wallets can process transactions and manage custodial wallets, while inactive wallets are disabled.",
   operationId: "bulkUpdateEcosystemMasterWalletStatus",
-  tags: ["Admin", "Ecosystem Master Wallets"],
+  tags: ["Admin", "Ecosystem", "Wallet"],
   requestBody: {
     required: true,
     content: {
@@ -19,8 +20,7 @@ export const metadata: OperationObject = {
             status: {
               type: "string",
               enum: ["ACTIVE", "INACTIVE"],
-              description:
-                "New status to apply to the ecosystem master wallets",
+              description: "New status to apply (true for active, false for inactive)",
             },
           },
           required: ["ids", "status"],
@@ -31,10 +31,17 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Ecosystem Master Wallet"),
   requiresAuth: true,
   permission: "edit.ecosystem.master.wallet",
+  logModule: "ADMIN_ECO",
+  logTitle: "Bulk Update Master Wallet Status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("ecosystemMasterWallet", ids, status);
+
+  ctx?.step("Updating Master Wallet Status");
+  const result = await updateStatus("ecosystemMasterWallet", ids, status);
+
+  ctx?.success(`Updated status for ${Array.isArray(ids) ? ids.length : 1} master wallet(s)`);
+  return result;
 };

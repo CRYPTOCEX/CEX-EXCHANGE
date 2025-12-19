@@ -1,6 +1,7 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { fn, col, literal, Op } from "sequelize";
+import { logger } from "@b/utils/console";
 
 // You can adjust status names as per your schema
 const ACTIVE_INVESTMENT_STATUS = ["ACTIVE", "RUNNING", "OPEN"];
@@ -105,7 +106,7 @@ export default async function getInvestmentStats() {
       maxProfitPercentage,
     };
   } catch (err) {
-    console.error("Error in getInvestmentStats:", err);
+    logger.error("INVESTMENT", "Error in getInvestmentStats", err);
     throw createError({ statusCode: 500, message: "Internal Server Error" });
   }
 } 

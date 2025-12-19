@@ -33,13 +33,14 @@ import RoadmapCard from "./card";
 import DeleteConfirmationDialog from "./delete-dialog";
 import LoadingRoadmap from "./loading";
 import { useTranslations } from "next-intl";
-
 type TokenRoadmapProps = {
   tokenId: string;
 };
 
 export default function TokenRoadmap({ tokenId }: TokenRoadmapProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { currentToken, isLoadingToken, tokenError, fetchToken } =
     useCreatorStore();
   const {
@@ -125,7 +126,7 @@ export default function TokenRoadmap({ tokenId }: TokenRoadmapProps) {
             className="ml-2"
             onClick={refreshData}
           >
-            {t("Retry")}
+            {tCommon("retry")}
           </Button>
         </AlertDescription>
       </Alert>
@@ -225,7 +226,7 @@ export default function TokenRoadmap({ tokenId }: TokenRoadmapProps) {
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
             <TrendingUp className="h-6 w-6 text-primary" />
-            {t("project_roadmap")}
+            {tExt("project_roadmap")}
           </h2>
           <p className="text-muted-foreground">
             {t("track_your_tokens_and_progress")}
@@ -237,7 +238,7 @@ export default function TokenRoadmap({ tokenId }: TokenRoadmapProps) {
               <div className="flex items-center gap-1">
                 <BarChart className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">
-                  {completionPercentage}% {t("complete")}
+                  {completionPercentage}% {tCommon("complete")}
                 </span>
               </div>
               <Progress value={completionPercentage} className="w-24 h-2" />
@@ -313,7 +314,7 @@ export default function TokenRoadmap({ tokenId }: TokenRoadmapProps) {
               <Search className="h-4 w-4" />
               <AlertTitle>{t("no_matching_roadmap_items")}</AlertTitle>
               <AlertDescription>
-                {t("try_adjusting_your_looking_for")}.
+                {tCommon("try_adjusting_your_looking_for")}.
               </AlertDescription>
             </Alert>
           ) : viewMode === "cards" ? (

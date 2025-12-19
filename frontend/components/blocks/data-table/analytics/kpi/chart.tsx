@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useEffect, useRef } from "react";
-import { Line, LineChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Line, LineChart, ResponsiveContainer, Tooltip, YAxis } from "recharts";
 import { useTheme } from "next-themes";
 import { format } from "date-fns";
 import PropTypes from "prop-types";
@@ -46,6 +46,26 @@ function ChartImpl({
     [trend]
   );
 
+  // Calculate Y-axis domain to ensure proper scaling
+  const yAxisDomain = useMemo(() => {
+    if (data.length === 0) return [0, 100];
+
+    const values = data.map(d => d.value);
+    const maxValue = Math.max(...values);
+    const minValue = Math.min(...values);
+
+    // If all values are 0, show 0-1 range
+    if (maxValue === 0) return [0, 1];
+
+    // If single data point or all same value, add some padding
+    if (data.length === 1 || minValue === maxValue) {
+      return [0, maxValue * 1.2];
+    }
+
+    // Normal case: add 10% padding
+    return [0, maxValue * 1.1];
+  }, [data]);
+
   const handleMouseMove = useCallback(
     (mouseData: any) => {
       if (mouseData && mouseData.activePayload && mouseData.activePayload[0]) {
@@ -83,12 +103,12 @@ function ChartImpl({
 
   if (loading) {
     return (
-      <div className="absolute bottom-0 left-0 right-0 h-[50px] bg-muted/10 animate-pulse" />
+      <div className="absolute bottom-0 left-0 right-0 h-[80px] bg-muted/10 animate-pulse" />
     );
   }
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-[50px]">
+    <div className="absolute bottom-0 left-0 right-0 h-[80px]">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}
@@ -102,6 +122,7 @@ function ChartImpl({
               <stop offset="100%" stopColor={color} stopOpacity={0} />
             </linearGradient>
           </defs>
+          <YAxis domain={yAxisDomain} hide />
           <Tooltip
             content={({ active, payload }: any) => {
               if (active && payload && payload.length) {
@@ -129,8 +150,8 @@ function ChartImpl({
             type="monotone"
             dataKey="value"
             stroke={color}
-            strokeWidth={1.5}
-            dot={false}
+            strokeWidth={2}
+            dot={data.length === 1 ? { r: 4, fill: color, strokeWidth: 0 } : false}
             activeDot={{
               r: 4,
               fill: "hsl(var(--background))",
@@ -138,6 +159,7 @@ function ChartImpl({
               strokeWidth: 2,
             }}
             fill={`url(#gradient-${id})`}
+            connectNulls={false}
           />
         </LineChart>
       </ResponsiveContainer>

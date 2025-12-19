@@ -75,26 +75,27 @@ import { $fetch } from "@/lib/api";
 import { toast } from "sonner";
 import { useExtensionChecker } from "@/lib/extensions";
 import DataTable from "@/components/blocks/data-table";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 // Import existing table columns
-import { columns as transactionColumns } from "@/app/[locale]/(dashboard)/admin/finance/transaction/columns";
-import { transactionAnalytics } from "@/app/[locale]/(dashboard)/admin/finance/transaction/analytics";
-import { columns as walletColumns } from "@/app/[locale]/(dashboard)/admin/finance/wallet/columns";
-import { columns as supportColumns } from "@/app/[locale]/(dashboard)/admin/crm/support/columns";
+import { useColumns as useTransactionColumns } from "@/app/[locale]/(dashboard)/admin/finance/transaction/columns";
+import { useAnalytics as useTransactionAnalytics } from "@/app/[locale]/(dashboard)/admin/finance/transaction/analytics";
+import { useColumns as useWalletColumns } from "@/app/[locale]/(dashboard)/admin/finance/wallet/columns";
+import { useColumns as useSupportColumns } from "@/app/[locale]/(dashboard)/admin/crm/support/columns";
 
 // Import extension table columns
-import { columns as binaryOrderColumns } from "@/app/[locale]/(dashboard)/admin/finance/order/binary/columns";
-import { columns as exchangeOrderColumns } from "@/app/[locale]/(dashboard)/admin/finance/order/exchange/columns";
-import { futuresOrderColumns } from "@/app/[locale]/(dashboard)/admin/finance/order/futures/columns";
-import { ecosystemOrderColumns } from "@/app/[locale]/(dashboard)/admin/finance/order/ecosystem/columns";
-import { columns as forexTransactionColumns } from "@/app/[locale]/(dashboard)/admin/finance/transaction/columns";
-import { columns as investmentColumns } from "@/app/[locale]/(dashboard)/admin/finance/investment/history/columns";
-import { columns as icoTransactionColumns } from "@/app/[locale]/(ext)/admin/ico/transaction/columns";
-import { columns as p2pOfferColumns } from "@/app/[locale]/(ext)/admin/p2p/offer/columns";
-import { tradeColumns as p2pTradeColumns } from "@/app/[locale]/(ext)/admin/p2p/trade/columns";
-import { columns as stakingPositionColumns } from "@/app/[locale]/(ext)/admin/staking/position/columns";
-import { columns as affiliateReferralColumns } from "@/app/[locale]/(ext)/admin/affiliate/referral/columns";
-import { columns as ecommerceOrderColumns } from "@/app/[locale]/(ext)/admin/ecommerce/order/columns";
+import { useColumns as useBinaryOrderColumns } from "@/app/[locale]/(dashboard)/admin/finance/order/binary/columns";
+import { useColumns as useExchangeOrderColumns } from "@/app/[locale]/(dashboard)/admin/finance/order/exchange/columns";
+import { useColumns as useFuturesOrderColumns } from "@/app/[locale]/(dashboard)/admin/finance/order/futures/columns";
+import { useColumns as useEcosystemOrderColumns } from "@/app/[locale]/(dashboard)/admin/finance/order/ecosystem/columns";
+import { useColumns as useInvestmentColumns } from "@/app/[locale]/(dashboard)/admin/finance/investment/history/columns";
+import { useColumns as useIcoTransactionColumns } from "@/app/[locale]/(ext)/admin/ico/transaction/columns";
+import { useColumns as useP2pOfferColumns } from "@/app/[locale]/(ext)/admin/p2p/offer/columns";
+import { useColumns as useP2pTradeColumns } from "@/app/[locale]/(ext)/admin/p2p/trade/columns";
+import { useColumns as useStakingPositionColumns } from "@/app/[locale]/(ext)/admin/staking/position/columns";
+import { useColumns as useAffiliateReferralColumns } from "@/app/[locale]/(ext)/admin/affiliate/referral/columns";
+import { useColumns as useEcommerceOrderColumns } from "@/app/[locale]/(ext)/admin/ecommerce/order/columns";
+import { useColumns as useForexTransactionColumns } from "@/app/[locale]/(ext)/forex/transaction/columns";
 
 interface UserData {
   id: string;
@@ -166,35 +167,55 @@ const BLOCK_REASONS = [
   "Other",
 ];
 
-  // Create custom columns that exclude user column for this specific user view
-  const createUserSpecificColumns = (originalColumns: any[]) => {
-    return originalColumns.filter(column => column.key !== 'user');
-  };
-
-  // Custom column definitions for user-specific tables
-  const userTransactionColumns = createUserSpecificColumns(transactionColumns);
-  const userWalletColumns = createUserSpecificColumns(walletColumns);
-  const userSupportColumns = createUserSpecificColumns(supportColumns);
-  const userBinaryOrderColumns = createUserSpecificColumns(binaryOrderColumns);
-  const userExchangeOrderColumns = createUserSpecificColumns(exchangeOrderColumns);
-  const userFuturesOrderColumns = createUserSpecificColumns(futuresOrderColumns);
-  const userEcosystemOrderColumns = createUserSpecificColumns(ecosystemOrderColumns);
-  const userForexTransactionColumns = createUserSpecificColumns(forexTransactionColumns);
-  const userInvestmentColumns = createUserSpecificColumns(investmentColumns);
-  const userIcoTransactionColumns = createUserSpecificColumns(icoTransactionColumns);
-  const userP2pOfferColumns = createUserSpecificColumns(p2pOfferColumns);
-  const userP2pTradeColumns = createUserSpecificColumns(p2pTradeColumns);
-  const userStakingPositionColumns = createUserSpecificColumns(stakingPositionColumns);
-  const userAffiliateReferralColumns = createUserSpecificColumns(affiliateReferralColumns);
-  const userEcommerceOrderColumns = createUserSpecificColumns(ecommerceOrderColumns);
+// Helper function to filter out user column
+const createUserSpecificColumns = (originalColumns: any[]) => {
+  return originalColumns.filter(column => column.key !== 'user');
+};
 
 export default function UserDetailPage() {
   const params = useParams();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const t = useTranslations();
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
+  const tDashboard = useTranslations("dashboard");
   const { isExtensionAvailable } = useExtensionChecker();
+  const transactionAnalytics = useTransactionAnalytics();
+
+  // Get columns from hooks
+  const transactionColumns = useTransactionColumns();
+  const walletColumns = useWalletColumns();
+  const supportColumns = useSupportColumns();
+  const binaryOrderColumns = useBinaryOrderColumns();
+  const exchangeOrderColumns = useExchangeOrderColumns();
+  const futuresOrderColumns = useFuturesOrderColumns();
+  const ecosystemOrderColumns = useEcosystemOrderColumns();
+  const investmentColumns = useInvestmentColumns();
+  const icoTransactionColumns = useIcoTransactionColumns();
+  const p2pOfferColumns = useP2pOfferColumns();
+  const p2pTradeColumns = useP2pTradeColumns();
+  const stakingPositionColumns = useStakingPositionColumns();
+  const affiliateReferralColumns = useAffiliateReferralColumns();
+  const ecommerceOrderColumns = useEcommerceOrderColumns();
+  const forexTransactionColumns = useForexTransactionColumns();
+
+  // Create user-specific columns (filtered to exclude user column)
+  const userTransactionColumns = useMemo(() => createUserSpecificColumns(transactionColumns), [transactionColumns]);
+  const userWalletColumns = useMemo(() => createUserSpecificColumns(walletColumns), [walletColumns]);
+  const userSupportColumns = useMemo(() => createUserSpecificColumns(supportColumns), [supportColumns]);
+  const userBinaryOrderColumns = useMemo(() => createUserSpecificColumns(binaryOrderColumns), [binaryOrderColumns]);
+  const userExchangeOrderColumns = useMemo(() => createUserSpecificColumns(exchangeOrderColumns), [exchangeOrderColumns]);
+  const userFuturesOrderColumns = useMemo(() => createUserSpecificColumns(futuresOrderColumns), [futuresOrderColumns]);
+  const userEcosystemOrderColumns = useMemo(() => createUserSpecificColumns(ecosystemOrderColumns), [ecosystemOrderColumns]);
+  const userInvestmentColumns = useMemo(() => createUserSpecificColumns(investmentColumns), [investmentColumns]);
+  const userIcoTransactionColumns = useMemo(() => createUserSpecificColumns(icoTransactionColumns), [icoTransactionColumns]);
+  const userP2pOfferColumns = useMemo(() => createUserSpecificColumns(p2pOfferColumns), [p2pOfferColumns]);
+  const userP2pTradeColumns = useMemo(() => createUserSpecificColumns(p2pTradeColumns), [p2pTradeColumns]);
+  const userStakingPositionColumns = useMemo(() => createUserSpecificColumns(stakingPositionColumns), [stakingPositionColumns]);
+  const userAffiliateReferralColumns = useMemo(() => createUserSpecificColumns(affiliateReferralColumns), [affiliateReferralColumns]);
+  const userEcommerceOrderColumns = useMemo(() => createUserSpecificColumns(ecommerceOrderColumns), [ecommerceOrderColumns]);
+  const userForexTransactionColumns = useMemo(() => createUserSpecificColumns(forexTransactionColumns), [forexTransactionColumns]);
 
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -796,7 +817,7 @@ export default function UserDetailPage() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading user profile...</p>
+          <p className="text-muted-foreground">{t("loading_user_profile_ellipsis")}</p>
         </div>
       </div>
     );
@@ -807,11 +828,11 @@ export default function UserDetailPage() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2">User Not Found</h2>
-          <p className="text-muted-foreground mb-4">The requested user could not be found.</p>
+          <h2 className="text-2xl font-bold mb-2">{t("user_not_found")}</h2>
+          <p className="text-muted-foreground mb-4">{t("the_requested_user_could_not_be_found")}</p>
           <Button onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Go Back
+            {tCommon("go_back")}
           </Button>
         </div>
       </div>
@@ -821,7 +842,7 @@ export default function UserDetailPage() {
   const isBlocked = user.status === "SUSPENDED" || user.status === "BANNED";
 
   return (
-    <div className="mx-auto py-6 space-y-6">
+    <div className={`container ${PAGE_PADDING} space-y-6`}>
       {/* Enhanced Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -870,7 +891,7 @@ export default function UserDetailPage() {
                   {user.role.name}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
-                  Score: {userStats?.activityScore}%
+                  {t("score")}: {userStats?.activityScore}%
                 </Badge>
               </div>
             </div>
@@ -893,12 +914,12 @@ export default function UserDetailPage() {
           {isBlocked ? (
             <Button variant="outline" size="sm" onClick={handleUnblockUser} disabled={isLoading}>
               <ShieldOff className="h-4 w-4 mr-2" />
-              Unblock User
+              {t("unblock_user")}
             </Button>
           ) : (
             <Button variant="destructive" size="sm" onClick={() => setIsBlockDialogOpen(true)} disabled={isLoading}>
                   <Shield className="h-4 w-4 mr-2" />
-                  Block User
+                  {t("block_user")}
                 </Button>
           )}
                     </div>
@@ -908,7 +929,7 @@ export default function UserDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="relative overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Last Login</CardTitle>
+            <CardTitle className="text-sm font-medium">{tCommon("last_login")}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -924,14 +945,14 @@ export default function UserDetailPage() {
 
         <Card className="relative overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Activity Score</CardTitle>
+            <CardTitle className="text-sm font-medium">{tCommon("activity_score")}</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{userStats?.activityScore}%</div>
             <Progress value={userStats?.activityScore} className="mt-2" />
             <p className="text-xs text-muted-foreground mt-1">
-              User engagement level
+              {t("user_engagement_level")}
             </p>
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-transparent rounded-full -mr-10 -mt-10" />
           </CardContent>
@@ -939,13 +960,13 @@ export default function UserDetailPage() {
 
         <Card className="relative overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Account Age</CardTitle>
+            <CardTitle className="text-sm font-medium">{tCommon("account_age")}</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{userStats?.accountAge}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Since registration
+              {t("since_registration")}
             </p>
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-transparent rounded-full -mr-10 -mt-10" />
           </CardContent>
@@ -953,7 +974,7 @@ export default function UserDetailPage() {
 
         <Card className="relative overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Risk Level</CardTitle>
+            <CardTitle className="text-sm font-medium">{tCommon("risk_level")}</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -963,7 +984,7 @@ export default function UserDetailPage() {
               </Badge>
                     </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Score: {userStats?.riskScore}/100 ({userStats?.riskConfidence}% confidence)
+              {t("score")}: {userStats?.riskScore}/100 ({userStats?.riskConfidence}% {t("confidence")}
             </p>
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-red-500/10 to-transparent rounded-full -mr-10 -mt-10" />
           </CardContent>
@@ -981,7 +1002,7 @@ export default function UserDetailPage() {
             className="flex items-center gap-2"
           >
             <User className="w-4 h-4" />
-            Account ({tabsByCategory.account.length})
+            {tCommon("account")} ({tabsByCategory.account.length})
                     </Button>
           
           {tabsByCategory.trading.length > 0 && (
@@ -992,7 +1013,7 @@ export default function UserDetailPage() {
               className="flex items-center gap-2"
             >
               <TrendingUp className="w-4 h-4" />
-              Trading ({tabsByCategory.trading.length})
+              {tCommon("trading")} ({tabsByCategory.trading.length})
                     </Button>
           )}
           
@@ -1004,7 +1025,7 @@ export default function UserDetailPage() {
               className="flex items-center gap-2"
             >
               <Briefcase className="w-4 h-4" />
-              Extensions ({tabsByCategory.extensions.length})
+              {t("extensions")} ({tabsByCategory.extensions.length})
             </Button>
           )}
               </div>
@@ -1034,7 +1055,7 @@ export default function UserDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <User className="h-5 w-5 mr-2" />
-              Personal Information
+              {tCommon('personal_info')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -1082,7 +1103,7 @@ export default function UserDetailPage() {
                     <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">Last Login</span>
+                        <span className="text-sm">{tCommon("last_login")}</span>
               </div>
                       <span className="text-sm font-medium">
                         {user.lastLogin ? formatRelativeTime(user.lastLogin) : "Never"}
@@ -1097,23 +1118,23 @@ export default function UserDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
                     <Activity className="h-5 w-5 mr-2" />
-                    Account Summary
+                    {t("account_summary")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-4 border rounded-lg bg-blue-50 dark:bg-blue-950/20">
                       <div className="text-2xl font-bold text-blue-600">{userStats?.activityScore}%</div>
-                      <div className="text-sm text-muted-foreground">Activity Score</div>
+                      <div className="text-sm text-muted-foreground">{tCommon("activity_score")}</div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        User engagement level
+                        {t("user_engagement_level")}
                       </div>
                     </div>
                     <div className="text-center p-4 border rounded-lg bg-purple-50 dark:bg-purple-950/20">
                       <div className="text-2xl font-bold text-purple-600">{userStats?.riskLevel}</div>
-                      <div className="text-sm text-muted-foreground">Risk Level</div>
+                      <div className="text-sm text-muted-foreground">{tCommon("risk_level")}</div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        Security assessment
+                        {t("security_assessment")}
                       </div>
                     </div>
                   </div>
@@ -1122,14 +1143,14 @@ export default function UserDetailPage() {
 
                   <div className="space-y-3">
             <div className="flex justify-between items-center">
-                      <span className="text-sm">Account Status</span>
+                      <span className="text-sm">{tDashboard("account_status")}</span>
                       <Badge variant={getStatusColor(user.status)}>
                         {user.status}
               </Badge>
             </div>
 
             <div className="flex justify-between items-center">
-                      <span className="text-sm">Two-Factor Auth</span>
+                      <span className="text-sm">{tCommon("two_factor_auth")}</span>
                       <Badge variant={user.twoFactor?.enabled ? "success" : "secondary"}>
                         {user.twoFactor?.enabled ? "Enabled" : "Disabled"}
               </Badge>
@@ -1150,30 +1171,30 @@ export default function UserDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
                     <PieChart className="h-5 w-5 mr-2" />
-                    Quick Stats
+                    {t("quick_stats")}
             </CardTitle>
           </CardHeader>
                 <CardContent className="space-y-4">
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                      <span className="text-sm">Account Age</span>
+                      <span className="text-sm">{tCommon("account_age")}</span>
                       <span className="text-sm font-medium">{userStats?.accountAge}</span>
               </div>
               
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">Last Active</span>
+                      <span className="text-sm">{t("last_active")}</span>
                       <span className="text-sm font-medium">{userStats?.lastActiveTime}</span>
                 </div>
                     
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">Email Verified</span>
+                      <span className="text-sm">{tCommon("email_verified")}</span>
                       <Badge variant={user.emailVerified ? "success" : "destructive"}>
                         {user.emailVerified ? "Yes" : "No"}
                       </Badge>
                     </div>
                     
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">Failed Logins</span>
+                      <span className="text-sm">{t("failed_logins")}</span>
                       <Badge variant={user.failedLoginAttempts > 3 ? "destructive" : "outline"}>
                         {user.failedLoginAttempts}
                       </Badge>
@@ -1184,7 +1205,7 @@ export default function UserDetailPage() {
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>Activity Score</span>
+                      <span>{tCommon("activity_score")}</span>
                       <span>{userStats?.activityScore}%</span>
                     </div>
                     <Progress value={userStats?.activityScore} className="h-2" />
@@ -1198,9 +1219,9 @@ export default function UserDetailPage() {
           <TabsContent value="transactions" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Transaction History</CardTitle>
+                <CardTitle>{t("transaction_history")}</CardTitle>
                 <CardDescription>
-                  Complete transaction history for this user using advanced filtering and analytics
+                  {t("complete_transaction_history_for_this_user")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1211,7 +1232,7 @@ export default function UserDetailPage() {
                   modelConfig={{
                     userId: user.id,
                   }}
-                  pageSize={10}
+                  pageSize={12}
                   canView={true}
                   canEdit={true}
                   canDelete={true}
@@ -1236,9 +1257,9 @@ export default function UserDetailPage() {
           <TabsContent value="wallets" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>User Wallets</CardTitle>
+                <CardTitle>{t("user_wallets")}</CardTitle>
                 <CardDescription>
-                  All user wallets with advanced management capabilities
+                  {t("all_user_wallets_with_advanced_management")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1249,7 +1270,7 @@ export default function UserDetailPage() {
                   modelConfig={{
                     userId: user.id,
                   }}
-                  pageSize={10}
+                  pageSize={12}
                   canView={true}
                   canEdit={true}
                   canDelete={true}
@@ -1277,21 +1298,21 @@ export default function UserDetailPage() {
                 <CardHeader>
                   <CardTitle>KYC Status</CardTitle>
                   <CardDescription>
-                    Know Your Customer verification information
+                    {t("know_your_customer_verification_information")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {user.kyc ? (
                     <div className="space-y-4">
                       <div className="flex justify-between items-center p-4 border rounded-lg">
-                        <span className="font-medium">Verification Status</span>
+                        <span className="font-medium">{tCommon("verification_status")}</span>
                         <Badge variant={getKycStatusColor(user.kyc.status)} className="text-sm">
                           {user.kyc.status}
                         </Badge>
                       </div>
                       
                       <div className="flex justify-between items-center p-4 border rounded-lg">
-                        <span className="font-medium">Submitted Date</span>
+                        <span className="font-medium">{t("submitted_date")}</span>
                         <div className="text-right">
                           <div className="text-sm font-medium">{formatDate(user.kyc.createdAt)}</div>
                           <div className="text-xs text-muted-foreground">{formatRelativeTime(user.kyc.createdAt)}</div>
@@ -1300,7 +1321,7 @@ export default function UserDetailPage() {
                       
                       {user.kyc.reviewedAt && (
                         <div className="flex justify-between items-center p-4 border rounded-lg">
-                          <span className="font-medium">Reviewed Date</span>
+                          <span className="font-medium">{t("reviewed_date")}</span>
                           <div className="text-right">
                             <div className="text-sm font-medium">{formatDate(user.kyc.reviewedAt)}</div>
                             <div className="text-xs text-muted-foreground">{formatRelativeTime(user.kyc.reviewedAt)}</div>
@@ -1310,7 +1331,7 @@ export default function UserDetailPage() {
                       
                       {user.kyc.adminNotes && (
                         <div className="space-y-2">
-                          <Label>Admin Notes</Label>
+                          <Label>{tCommon("admin_notes")}</Label>
                           <div className="p-4 bg-muted rounded-lg">
                             <p className="text-sm">{user.kyc.adminNotes}</p>
                           </div>
@@ -1320,9 +1341,9 @@ export default function UserDetailPage() {
                   ) : (
                     <div className="text-center py-12">
                       <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">No KYC Application</h3>
+                      <h3 className="text-lg font-semibold mb-2">{t("no_kyc_application")}</h3>
                       <p className="text-muted-foreground">
-                        This user has not submitted KYC documents yet.
+                        {t("this_user_has_not_submitted_kyc_documents_yet")}
                       </p>
                     </div>
                   )}
@@ -1331,9 +1352,9 @@ export default function UserDetailPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Verification Progress</CardTitle>
+                  <CardTitle>{tCommon("verification_progress")}</CardTitle>
                   <CardDescription>
-                    Account verification completion status
+                    {t("account_verification_completion_status")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1341,7 +1362,7 @@ export default function UserDetailPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Mail className="h-4 w-4" />
-                        <span className="text-sm">Email Verification</span>
+                        <span className="text-sm">{t("email_verification")}</span>
                       </div>
                       {user.emailVerified ? (
                         <CheckCircle className="h-4 w-4 text-green-600" />
@@ -1353,7 +1374,7 @@ export default function UserDetailPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Phone className="h-4 w-4" />
-                        <span className="text-sm">Phone Verification</span>
+                        <span className="text-sm">{tCommon("phone_verification")}</span>
                       </div>
                       {user.phoneVerified ? (
                         <CheckCircle className="h-4 w-4 text-green-600" />
@@ -1383,7 +1404,7 @@ export default function UserDetailPage() {
                   
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>Completion Progress</span>
+                      <span>{t("completion_progress")}</span>
                       <span>{Math.round(((user.emailVerified ? 1 : 0) + (user.phoneVerified ? 1 : 0) + (user.kyc?.status === 'APPROVED' ? 1 : 0)) / 3 * 100)}%</span>
                     </div>
                     <Progress value={((user.emailVerified ? 1 : 0) + (user.phoneVerified ? 1 : 0) + (user.kyc?.status === 'APPROVED' ? 1 : 0)) / 3 * 100} />
@@ -1397,9 +1418,9 @@ export default function UserDetailPage() {
           <TabsContent value="support" className="space-y-6">
         <Card>
           <CardHeader>
-                <CardTitle>Support Tickets</CardTitle>
+                <CardTitle>{tCommon("support_tickets")}</CardTitle>
                 <CardDescription>
-                  All support requests and communication history with advanced management
+                  {t("all_support_requests_and_communication_history")}
                 </CardDescription>
           </CardHeader>
           <CardContent>
@@ -1410,7 +1431,7 @@ export default function UserDetailPage() {
                   modelConfig={{
                     userId: user.id,
                   }}
-                  pageSize={10}
+                  pageSize={12}
                   canView={true}
                   canEdit={false}
                   canDelete={true}
@@ -1435,15 +1456,15 @@ export default function UserDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Security Overview</CardTitle>
+                  <CardTitle>{tCommon("security_overview")}</CardTitle>
                   <CardDescription>
-                    Account security status and settings
+                    {t("account_security_status_and_settings")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center p-4 border rounded-lg">
                   <div>
-                      <h4 className="font-medium">Two-Factor Authentication</h4>
+                      <h4 className="font-medium">{tCommon("two_factor_authentication")}</h4>
                       <p className="text-sm text-muted-foreground">
                         {user.twoFactor?.enabled ? `Enabled via ${user.twoFactor.type}` : 'Not configured'}
                     </p>
@@ -1455,8 +1476,8 @@ export default function UserDetailPage() {
                   
                   <div className="flex justify-between items-center p-4 border rounded-lg">
                     <div>
-                      <h4 className="font-medium">Email Verification</h4>
-                      <p className="text-sm text-muted-foreground">Email address verification status</p>
+                      <h4 className="font-medium">{t("email_verification")}</h4>
+                      <p className="text-sm text-muted-foreground">{t("email_address_verification_status")}</p>
                 </div>
                     <Badge variant={user.emailVerified ? "success" : "destructive"}>
                       {user.emailVerified ? "Verified" : "Unverified"}
@@ -1465,8 +1486,8 @@ export default function UserDetailPage() {
                   
                   <div className="flex justify-between items-center p-4 border rounded-lg">
                     <div>
-                      <h4 className="font-medium">Phone Verification</h4>
-                      <p className="text-sm text-muted-foreground">Phone number verification status</p>
+                      <h4 className="font-medium">{tCommon("phone_verification")}</h4>
+                      <p className="text-sm text-muted-foreground">{t("phone_number_verification_status")}</p>
                     </div>
                     <Badge variant={user.phoneVerified ? "success" : "destructive"}>
                       {user.phoneVerified ? "Verified" : "Unverified"}
@@ -1477,15 +1498,15 @@ export default function UserDetailPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Risk Assessment Details</CardTitle>
+                  <CardTitle>{t("risk_assessment_details")}</CardTitle>
                   <CardDescription>
-                    Comprehensive risk analysis breakdown
+                    {t("comprehensive_risk_analysis_breakdown")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Overall Risk Level</span>
+                      <span className="text-sm font-medium">{t("overall_risk_level")}</span>
                       <Badge variant={userStats?.riskColor as any} className="text-sm">
                         {userStats?.riskLevel} ({userStats?.riskScore}/100)
                       </Badge>
@@ -1493,7 +1514,7 @@ export default function UserDetailPage() {
                     
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>Assessment Confidence</span>
+                        <span>{t("assessment_confidence")}</span>
                         <span>{userStats?.riskConfidence}%</span>
                       </div>
                       <Progress value={userStats?.riskConfidence} className="h-2" />
@@ -1502,31 +1523,31 @@ export default function UserDetailPage() {
                     <Separator />
                     
                     <div className="space-y-2">
-                      <h5 className="font-medium text-sm">Risk Factors Breakdown:</h5>
+                      <h5 className="font-medium text-sm">{t("risk_factors_breakdown")}:</h5>
                       
                       <div className="flex justify-between items-center text-sm">
-                        <span>Security Risk</span>
+                        <span>{t("security_risk")}</span>
                         <Badge variant={(userStats?.riskFactors?.security || 0) > 20 ? "destructive" : (userStats?.riskFactors?.security || 0) > 10 ? "secondary" : "success"}>
                           {userStats?.riskFactors?.security || 0}/45
                         </Badge>
                       </div>
                       
                       <div className="flex justify-between items-center text-sm">
-                        <span>Account Status Risk</span>
+                        <span>{t("account_status_risk")}</span>
                         <Badge variant={(userStats?.riskFactors?.account || 0) > 20 ? "destructive" : (userStats?.riskFactors?.account || 0) > 10 ? "secondary" : "success"}>
                           {userStats?.riskFactors?.account || 0}/80
                         </Badge>
                       </div>
                       
                       <div className="flex justify-between items-center text-sm">
-                        <span>Behavioral Risk</span>
+                        <span>{t("behavioral_risk")}</span>
                         <Badge variant={(userStats?.riskFactors?.behavioral || 0) > 15 ? "destructive" : (userStats?.riskFactors?.behavioral || 0) > 8 ? "secondary" : "success"}>
                           {userStats?.riskFactors?.behavioral || 0}/38
                         </Badge>
                       </div>
                       
                       <div className="flex justify-between items-center text-sm">
-                        <span>Compliance Risk</span>
+                        <span>{t("compliance_risk")}</span>
                         <Badge variant={(userStats?.riskFactors?.compliance || 0) > 10 ? "destructive" : (userStats?.riskFactors?.compliance || 0) > 5 ? "secondary" : "success"}>
                           {userStats?.riskFactors?.compliance || 0}/13
                         </Badge>
@@ -1540,54 +1561,54 @@ export default function UserDetailPage() {
             {/* Activity Score Breakdown */}
             <Card>
               <CardHeader>
-                <CardTitle>Activity Score Analysis</CardTitle>
+                <CardTitle>{t("activity_score_analysis")}</CardTitle>
                 <CardDescription>
-                  Detailed breakdown of user engagement and activity metrics
+                  {t("detailed_breakdown_of_user_engagement_and")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="text-center p-4 border rounded-lg bg-blue-50 dark:bg-blue-950/20">
                     <div className="text-2xl font-bold text-blue-600">{userStats?.securityScore}/40</div>
-                    <div className="text-sm text-muted-foreground">Security Score</div>
+                    <div className="text-sm text-muted-foreground">{tCommon("security_score")}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Verification & 2FA
+                      {t("verification_2fa")}
                     </div>
                   </div>
                   
                   <div className="text-center p-4 border rounded-lg bg-green-50 dark:bg-green-950/20">
                     <div className="text-2xl font-bold text-green-600">{userStats?.engagementScore}/30</div>
-                    <div className="text-sm text-muted-foreground">Engagement Score</div>
+                    <div className="text-sm text-muted-foreground">{t("engagement_score")}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Activity & Usage
+                      {t("activity_usage")}
                     </div>
                   </div>
                   
                   <div className="text-center p-4 border rounded-lg bg-purple-50 dark:bg-purple-950/20">
                     <div className="text-2xl font-bold text-purple-600">{userStats?.complianceScore}/20</div>
-                    <div className="text-sm text-muted-foreground">Compliance Score</div>
+                    <div className="text-sm text-muted-foreground">{t("compliance_score")}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Status & Security
+                      {t("status_security")}
                     </div>
                   </div>
                   
                   <div className="text-center p-4 border rounded-lg bg-orange-50 dark:bg-orange-950/20">
                     <div className="text-2xl font-bold text-orange-600">{userStats?.integrationScore}/10</div>
-                    <div className="text-sm text-muted-foreground">Integration Score</div>
+                    <div className="text-sm text-muted-foreground">{t("integration_score")}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Platform Usage
+                      {t("platform_usage")}
                     </div>
                   </div>
                 </div>
                 
                 <div className="mt-6 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="font-medium">Total Activity Score</span>
+                    <span className="font-medium">{t("total_activity_score")}</span>
                     <span className="font-bold">{userStats?.activityScore}/100</span>
                   </div>
                   <Progress value={userStats?.activityScore} className="h-3" />
                   <p className="text-xs text-muted-foreground">
-                    Based on security verification, account activity, compliance status, and platform integration
+                    {t("based_on_security_verification_account_activity")}
                   </p>
             </div>
               </CardContent>
@@ -1598,9 +1619,9 @@ export default function UserDetailPage() {
           <TabsContent value="binary" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Binary Options Orders</CardTitle>
+                <CardTitle>{t("binary_options_orders")}</CardTitle>
                 <CardDescription>
-                  All binary options trading orders with advanced management capabilities
+                  {t("all_binary_options_trading_orders_with")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1622,7 +1643,7 @@ export default function UserDetailPage() {
                   canView={true}
                   canEdit={true}
                   canDelete={true}
-                  pageSize={10}
+                  pageSize={12}
                   isParanoid={false}
                 />
               </CardContent>
@@ -1633,9 +1654,9 @@ export default function UserDetailPage() {
           <TabsContent value="spot" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Spot Trading Orders</CardTitle>
+                <CardTitle>{t("spot_trading_orders")}</CardTitle>
                 <CardDescription>
-                  All spot market trading orders with advanced management capabilities
+                  {t("all_spot_market_trading_orders_with")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1657,7 +1678,7 @@ export default function UserDetailPage() {
                   canView={true}
                   canEdit={true}
                   canDelete={true}
-                  pageSize={10}
+                  pageSize={12}
                   isParanoid={false}
                 />
               </CardContent>
@@ -1668,9 +1689,9 @@ export default function UserDetailPage() {
           <TabsContent value="futures" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Futures Trading Orders</CardTitle>
+                <CardTitle>{t("futures_trading_orders")}</CardTitle>
                 <CardDescription>
-                  All futures trading orders with advanced management capabilities
+                  {t("all_futures_trading_orders_with_advanced")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1692,7 +1713,7 @@ export default function UserDetailPage() {
                   canView={true}
                   canEdit={true}
                   canDelete={true}
-                  pageSize={10}
+                  pageSize={12}
                   isParanoid={false}
                 />
               </CardContent>
@@ -1703,9 +1724,9 @@ export default function UserDetailPage() {
           <TabsContent value="ecosystem" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Ecosystem Trading Orders</CardTitle>
+                <CardTitle>{t("ecosystem_trading_orders")}</CardTitle>
                 <CardDescription>
-                  All ecosystem token trading orders with advanced management capabilities
+                  {t("all_ecosystem_token_trading_orders_with")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1727,7 +1748,7 @@ export default function UserDetailPage() {
                   canView={true}
                   canEdit={true}
                   canDelete={true}
-                  pageSize={10}
+                  pageSize={12}
                   isParanoid={false}
                 />
               </CardContent>
@@ -1740,9 +1761,9 @@ export default function UserDetailPage() {
               {/* Forex Transactions (Combined Deposits & Withdrawals) */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Forex Transactions</CardTitle>
+                  <CardTitle>{tCommon("forex_transactions")}</CardTitle>
                   <CardDescription>
-                    All forex account deposits and withdrawals with management capabilities
+                    {t("all_forex_account_deposits_and_withdrawals")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1765,7 +1786,7 @@ export default function UserDetailPage() {
                     canView={true}
                     canEdit={true}
                     canDelete={true}
-                    pageSize={10}
+                    pageSize={12}
                     isParanoid={false}
                   />
                 </CardContent>
@@ -1774,9 +1795,9 @@ export default function UserDetailPage() {
               {/* Forex Investments */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Forex Investments</CardTitle>
+                  <CardTitle>{tCommon("forex_investments")}</CardTitle>
                   <CardDescription>
-                    All forex investment plans and performance tracking
+                    {t("all_forex_investment_plans_and_performance")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1798,7 +1819,7 @@ export default function UserDetailPage() {
                     canView={true}
                     canEdit={true}
                     canDelete={true}
-                    pageSize={10}
+                    pageSize={12}
                     isParanoid={false}
                   />
           </CardContent>
@@ -1812,7 +1833,7 @@ export default function UserDetailPage() {
           <CardHeader>
                 <CardTitle>AI Investment Portfolio</CardTitle>
                 <CardDescription>
-                  All AI-powered investment plans and performance tracking
+                  {t("all_ai_powered_investment_plans_and")}
                 </CardDescription>
           </CardHeader>
           <CardContent>
@@ -1834,7 +1855,7 @@ export default function UserDetailPage() {
                   canView={true}
                   canEdit={true}
                   canDelete={true}
-                  pageSize={10}
+                  pageSize={12}
                   isParanoid={false}
                 />
               </CardContent>
@@ -1847,7 +1868,7 @@ export default function UserDetailPage() {
               <CardHeader>
                 <CardTitle>ICO Transactions</CardTitle>
                 <CardDescription>
-                  All ICO transactions and token purchases with management capabilities
+                  {t("all_ico_transactions_and_token_purchases")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1869,7 +1890,7 @@ export default function UserDetailPage() {
                   canView={true}
                   canEdit={true}
                   canDelete={true}
-                  pageSize={10}
+                  pageSize={12}
                   isParanoid={false}
                 />
               </CardContent>
@@ -1881,9 +1902,9 @@ export default function UserDetailPage() {
             {/* P2P Offers */}
             <Card>
               <CardHeader>
-                <CardTitle>P2P Offers</CardTitle>
+                <CardTitle>{t("p2p_offers")}</CardTitle>
                 <CardDescription>
-                  All P2P offers created by this user with management capabilities
+                  {t("all_p2p_offers_created_by_this")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1905,7 +1926,7 @@ export default function UserDetailPage() {
                   canView={true}
                   canEdit={true}
                   canDelete={true}
-                  pageSize={10}
+                  pageSize={12}
                   isParanoid={false}
                 />
               </CardContent>
@@ -1914,9 +1935,9 @@ export default function UserDetailPage() {
             {/* P2P Trades */}
             <Card>
               <CardHeader>
-                <CardTitle>P2P Trades</CardTitle>
+                <CardTitle>{tCommon("p2p_trades")}</CardTitle>
                 <CardDescription>
-                  All P2P trades completed by this user with management capabilities
+                  {t("all_p2p_trades_completed_by_this")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1938,7 +1959,7 @@ export default function UserDetailPage() {
                   canView={true}
                   canEdit={true}
                   canDelete={true}
-                  pageSize={10}
+                  pageSize={12}
                   isParanoid={false}
                 />
               </CardContent>
@@ -1950,9 +1971,9 @@ export default function UserDetailPage() {
             {/* Staking Positions */}
             <Card>
               <CardHeader>
-                <CardTitle>Staking Positions</CardTitle>
+                <CardTitle>{tCommon("staking_positions")}</CardTitle>
                 <CardDescription>
-                  All staking positions held by this user with management capabilities
+                  {t("all_staking_positions_held_by_this")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1974,7 +1995,7 @@ export default function UserDetailPage() {
                   canView={true}
                   canEdit={true}
                   canDelete={true}
-                  pageSize={10}
+                  pageSize={12}
                   isParanoid={false}
                 />
               </CardContent>
@@ -1985,9 +2006,9 @@ export default function UserDetailPage() {
           <TabsContent value="affiliate" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Affiliate Referrals</CardTitle>
+                <CardTitle>{tCommon("affiliate_referrals")}</CardTitle>
                 <CardDescription>
-                  All affiliate referrals and commissions managed by this user
+                  {t("all_affiliate_referrals_and_commissions_managed")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -2009,7 +2030,7 @@ export default function UserDetailPage() {
                   canView={true}
                   canEdit={true}
                   canDelete={true}
-                  pageSize={10}
+                  pageSize={12}
                   isParanoid={false}
                 />
               </CardContent>
@@ -2020,9 +2041,9 @@ export default function UserDetailPage() {
           <TabsContent value="ecommerce" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Ecommerce Orders</CardTitle>
+                <CardTitle>{t("ecommerce_orders")}</CardTitle>
                 <CardDescription>
-                  All e-commerce orders placed by this user with management capabilities
+                  {t("all_e_commerce_orders_placed_by")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -2044,7 +2065,7 @@ export default function UserDetailPage() {
                   canView={true}
                   canEdit={true}
                   canDelete={true}
-                  pageSize={10}
+                  pageSize={12}
                   isParanoid={false}
                 />
               </CardContent>
@@ -2056,16 +2077,16 @@ export default function UserDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Account Activity</CardTitle>
+                  <CardTitle>{t("account_activity")}</CardTitle>
                   <CardDescription>
-                    User account activity and session information
+                    {t("user_account_activity_and_session_information")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center p-4 border rounded-lg">
                   <div>
-                      <h4 className="font-medium">Account Status</h4>
-                      <p className="text-sm text-muted-foreground">Current account state</p>
+                      <h4 className="font-medium">{tDashboard("account_status")}</h4>
+                      <p className="text-sm text-muted-foreground">{t("current_account_state")}</p>
                     </div>
                     <Badge variant={getStatusColor(user.status)} className="text-sm">
                       {user.status}
@@ -2074,7 +2095,7 @@ export default function UserDetailPage() {
                   
                   <div className="flex justify-between items-center p-4 border rounded-lg">
                     <div>
-                      <h4 className="font-medium">Last Login</h4>
+                      <h4 className="font-medium">{tCommon("last_login")}</h4>
                     <p className="text-sm text-muted-foreground">
                         {user.lastLogin ? formatDateTime(user.lastLogin) : 'Never logged in'}
                     </p>
@@ -2086,7 +2107,7 @@ export default function UserDetailPage() {
                   
                   <div className="flex justify-between items-center p-4 border rounded-lg">
                     <div>
-                      <h4 className="font-medium">Account Created</h4>
+                      <h4 className="font-medium">{t("account_created")}</h4>
                       <p className="text-sm text-muted-foreground">{formatDateTime(user.createdAt)}</p>
                     </div>
                     <Badge variant="outline">
@@ -2098,16 +2119,16 @@ export default function UserDetailPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Administrative Actions</CardTitle>
+                  <CardTitle>{t("administrative_actions")}</CardTitle>
                   <CardDescription>
-                    Available admin controls for this user account
+                    {t("available_admin_controls_for_this_user_account")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center p-4 border rounded-lg">
                     <div>
-                      <h4 className="font-medium">Account Control</h4>
-                      <p className="text-sm text-muted-foreground">Block or unblock user account access</p>
+                      <h4 className="font-medium">{t("account_control")}</h4>
+                      <p className="text-sm text-muted-foreground">{t("block_or_unblock_user_account_access")}</p>
                     </div>
                     <div className="space-x-2">
                       {isBlocked ? (
@@ -2126,8 +2147,8 @@ export default function UserDetailPage() {
                   
                   <div className="flex justify-between items-center p-4 border rounded-lg">
                     <div>
-                      <h4 className="font-medium">Data Export</h4>
-                      <p className="text-sm text-muted-foreground">Export user data and transaction history</p>
+                      <h4 className="font-medium">{t("data_export")}</h4>
+                      <p className="text-sm text-muted-foreground">{t("export_user_data_and_transaction_history")}</p>
                     </div>
                     <Button variant="outline" size="sm">
                       <Download className="h-4 w-4 mr-2" />
@@ -2137,12 +2158,12 @@ export default function UserDetailPage() {
                   
                   <div className="flex justify-between items-center p-4 border rounded-lg">
                     <div>
-                      <h4 className="font-medium">Account Notes</h4>
-                      <p className="text-sm text-muted-foreground">Add administrative notes</p>
+                      <h4 className="font-medium">{t("account_notes")}</h4>
+                      <p className="text-sm text-muted-foreground">{t("add_administrative_notes")}</p>
                     </div>
                     <Button variant="outline" size="sm">
                       <Edit className="h-4 w-4 mr-2" />
-                      Add Note
+                      {tCommon("add_note")}
                     </Button>
                   </div>
                 </CardContent>
@@ -2158,7 +2179,7 @@ export default function UserDetailPage() {
           <DialogHeader>
             <DialogTitle className="text-red-600 flex items-center">
               <Shield className="h-5 w-5 mr-2" />
-              Block User Account
+              {t("block_user_account")}
             </DialogTitle>
           </DialogHeader>
           
@@ -2167,20 +2188,20 @@ export default function UserDetailPage() {
               <div className="flex items-center space-x-2">
                 <AlertTriangle className="h-4 w-4 text-red-600" />
                 <p className="text-sm text-red-800 dark:text-red-200">
-                  This action will prevent the user from accessing their account and performing any transactions.
+                  {t("this_action_will_prevent_the_user")}
                 </p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Block Type</Label>
+                <Label>{t("block_type")}</Label>
                 <div className="flex items-center space-x-2 p-3 border rounded-lg">
                   <Switch
                     checked={isTemporaryBlock}
                     onCheckedChange={setIsTemporaryBlock}
                   />
-                  <Label>Temporary Block (Auto-unblock after duration)</Label>
+                  <Label>{t("temporary_block_auto_unblock_after_duration")} ({t("auto_unblock_after_duration")})</Label>
                 </div>
               </div>
 
@@ -2206,10 +2227,10 @@ export default function UserDetailPage() {
               )}
 
               <div className="space-y-2">
-                <Label>Reason for Block</Label>
+                <Label>{t("reason_for_block")}</Label>
                 <Select value={blockReason} onValueChange={setBlockReason}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a reason" />
+                    <SelectValue placeholder={tCommon("select_a_reason")} />
                   </SelectTrigger>
                   <SelectContent>
                     {BLOCK_REASONS.map((reason) => (
@@ -2223,11 +2244,11 @@ export default function UserDetailPage() {
 
               {blockReason === "Other" && (
                 <div className="space-y-2">
-                  <Label>Custom Reason</Label>
+                  <Label>{t("custom_reason")}</Label>
                   <Textarea
                     value={customReason}
                     onChange={(e) => setCustomReason(e.target.value)}
-                    placeholder="Enter detailed reason for blocking this user..."
+                    placeholder={t("enter_detailed_reason_for_blocking_this")}
                     rows={3}
                   />
                 </div>
@@ -2246,12 +2267,12 @@ export default function UserDetailPage() {
                 {isLoading ? (
                   <>
                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Blocking...
+                    {t("blocking_ellipsis")}
                   </>
                 ) : (
                   <>
                     <Ban className="h-4 w-4 mr-2" />
-                    Block User
+                    {t("block_user")}
                   </>
                 )}
               </Button>

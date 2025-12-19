@@ -22,7 +22,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Memoize the sidebar component to prevent unnecessary re-renders
 export const ProfileSidebar = memo(function ProfileSidebar() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("tab") || "dashboard";
   const { user, profileCompletion } = useUserStore();
@@ -115,7 +116,7 @@ export const ProfileSidebar = memo(function ProfileSidebar() {
           className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-muted/50 group w-fit"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          <span>{t("Home")}</span>
+          <span>{t("home")}</span>
         </Link>
       </div>
 
@@ -153,9 +154,9 @@ export const ProfileSidebar = memo(function ProfileSidebar() {
         <div className="mt-4 flex items-center">
           <span className="bg-primary/15 text-primary text-xs font-medium px-3 py-1.5 rounded-full flex items-center shadow-sm">
             <span className="w-2 h-2 bg-primary rounded-full mr-1.5"></span>
-            {t("Level")}{" "}
+            {tCommon("level")}{" "}
             {user?.kycLevel}{" "}
-            {t("Verified")}
+            {tCommon("verified")}
           </span>
         </div>
 
@@ -177,7 +178,7 @@ export const ProfileSidebar = memo(function ProfileSidebar() {
 
           <div className="mt-4 flex flex-col lg:flex-row lg:justify-between lg:items-center gap-2">
             <span className="text-xs text-muted-foreground">
-              {t("member_since")}{" "}
+              {tCommon("member_since")}{" "}
               {new Date(user?.createdAt || "").toLocaleDateString()}
             </span>
             <Link
@@ -248,7 +249,7 @@ export const ProfileSidebar = memo(function ProfileSidebar() {
                 href="/user/profile?tab=security"
                 className="text-xs text-primary hover:underline mt-2 inline-block"
               >
-                {t("security_settings")}
+                {tCommon("security_settings")}
               </Link>
             </div>
           </div>

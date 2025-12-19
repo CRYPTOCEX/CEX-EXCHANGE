@@ -1,4 +1,4 @@
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import type { OrderManager, OrderPurpose } from "../engine/OrderManager";
 
 // Bot personality types
@@ -225,7 +225,7 @@ export abstract class BaseBot {
 
       return orderId;
     } catch (error) {
-      logError("bot-execute-trade", error, __filename);
+      logger.error("AI_BOT", "Failed to execute trade", error);
       return null;
     }
   }

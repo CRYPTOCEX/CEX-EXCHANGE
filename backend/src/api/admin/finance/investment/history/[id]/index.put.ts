@@ -28,10 +28,12 @@ export const metadata = {
   responses: updateRecordResponses("Investment"),
   requiresAuth: true,
   permission: "edit.investment",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Investment History",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     userId,
@@ -44,7 +46,10 @@ export default async (data) => {
     endDate,
   } = body;
 
-  return await updateRecord("investment", id, {
+  ctx?.step("Validating investment data");
+
+  ctx?.step("Updating investment record");
+  const record = await updateRecord("investment", id, {
     userId,
     planId,
     durationId,
@@ -54,4 +59,7 @@ export default async (data) => {
     status,
     endDate,
   });
+
+  ctx?.success();
+  return record
 };

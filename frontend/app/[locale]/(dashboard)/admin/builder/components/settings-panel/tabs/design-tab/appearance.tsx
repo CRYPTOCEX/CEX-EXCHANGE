@@ -15,7 +15,7 @@ export function Appearance({
   activeGradientProperty,
   setActiveGradientProperty,
 }: AppearanceProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const { theme } = useTheme();
   const { toast } = useToast();
 
@@ -470,7 +470,7 @@ export function Appearance({
 
       <div>
         <ColorPicker
-          label="Background Color"
+          label={t("background_color")}
           colorVariable="background-color"
           value={settings.backgroundColor}
           onChange={handleBackgroundColorChange}
@@ -480,7 +480,7 @@ export function Appearance({
 
       <div>
         <ColorPicker
-          label="Background Color"
+          label={t("background_color")}
           colorVariable="hover-background-color"
           value={settings.hoverBackgroundColor}
           onChange={handleHoverBackgroundColorChange}
@@ -497,7 +497,7 @@ export function Appearance({
         <>
           <div>
             <ColorPicker
-              label="Text Color"
+              label={t("text_color")}
               colorVariable="text-color"
               value={settings.color}
               onChange={handleTextColorChange}
@@ -507,7 +507,7 @@ export function Appearance({
 
           <div>
             <ColorPicker
-              label="Text Color"
+              label={t("text_color")}
               colorVariable="hover-text-color"
               value={settings.hoverColor}
               onChange={handleHoverTextColorChange}

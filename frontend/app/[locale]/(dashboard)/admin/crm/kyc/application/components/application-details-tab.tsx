@@ -56,7 +56,9 @@ export const ApplicationDetailsTab = ({
   copiedField,
   onViewImage,
 }: ApplicationDetailsTabProps) => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
+  const tDashboard = useTranslations("dashboard");
   const [activeTab, setActiveTab] = useState("all");
 
   // Find identity fields
@@ -121,7 +123,9 @@ export const ApplicationDetailsTab = ({
   const renderFieldValue = (field: KycField, value: any) => {
     if (!value && value !== 0 && value !== false) {
       return (
-        <div className="text-muted-foreground italic">{t("not_provided")}</div>
+        <div className="text-muted-foreground italic">
+          {tCommon("not_provided")}
+        </div>
       );
     }
 
@@ -176,14 +180,14 @@ export const ApplicationDetailsTab = ({
         return value ? (
           <Badge className="bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 flex items-center gap-1">
             <CheckCircle className="h-3 w-3" />
-            {t("Yes")}
+            {tCommon("yes")}
           </Badge>
         ) : (
           <Badge
             variant="outline"
             className="bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800"
           >
-            {t("No")}
+            {tCommon("no")}
           </Badge>
         );
       }
@@ -216,9 +220,11 @@ export const ApplicationDetailsTab = ({
             <div className="flex-1 min-w-0">
               <p className="font-medium text-blue-700 dark:text-blue-300 truncate">
                 {field.label.toLowerCase().replace(/\s+/g, "-")}
-                {t("pdf")}
+                {tDashboard("pdf")}
               </p>
-              <p className="text-xs text-blue-600 dark:text-blue-400">{t("Document")}</p>
+              <p className="text-xs text-blue-600 dark:text-blue-400">
+                {tCommon("document")}
+              </p>
             </div>
             <div className="flex items-center gap-1 no-print">
               <Button
@@ -290,7 +296,7 @@ export const ApplicationDetailsTab = ({
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Badge className="bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800">
-                {t("id_type")}
+                {tCommon("id_type")}
                 {identityData.type || "passport"}
               </Badge>
             </div>
@@ -298,7 +304,7 @@ export const ApplicationDetailsTab = ({
             {identityData["passport-scan"] && (
               <div className="mt-2">
                 <p className="text-sm font-medium mb-2">
-                  {t("id_document_scan")}
+                  {tDashboard("id_document_scan")}
                 </p>
                 <div className="max-w-md mx-auto">
                   <Lightbox
@@ -314,7 +320,7 @@ export const ApplicationDetailsTab = ({
             {identityData["passport-selfie"] && (
               <div className="mt-4">
                 <p className="text-sm font-medium mb-2">
-                  {t("id_selfie_verification")}
+                  {tDashboard("id_selfie_verification")}
                 </p>
                 <div className="max-w-md mx-auto">
                   <Lightbox
@@ -343,7 +349,10 @@ export const ApplicationDetailsTab = ({
     // Special case for IDENTITY type to avoid hover effect on the entire container
     if (field.type === "IDENTITY") {
       return (
-        <div key={field.id} className="border border-zinc-100 dark:border-zinc-700 rounded-lg p-4 bg-white dark:bg-zinc-800">
+        <div
+          key={field.id}
+          className="border border-white/60 dark:border-zinc-600/50 rounded-lg p-4 bg-white/70 dark:bg-zinc-800/70 backdrop-blur-sm"
+        >
           <div className="flex flex-col gap-3">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
               <div className="flex items-start gap-3 flex-1">
@@ -355,7 +364,7 @@ export const ApplicationDetailsTab = ({
                     <span>{field.label}</span>
                     {field.required && (
                       <span className="text-xs bg-red-100 dark:bg-red-950/20 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded-full">
-                        {t("Required")}
+                        {tCommon("required")}
                       </span>
                     )}
                   </h4>
@@ -374,7 +383,7 @@ export const ApplicationDetailsTab = ({
               </Badge>
             </div>
 
-            <div className="mt-2 rounded-md bg-white dark:bg-zinc-900 p-3 border border-zinc-100 dark:border-zinc-700">
+            <div className="mt-2 rounded-md bg-white/80 dark:bg-zinc-900/80 p-3 border border-white/50 dark:border-zinc-700/50">
               {renderFieldValue(field, fieldValue)}
             </div>
           </div>
@@ -386,7 +395,7 @@ export const ApplicationDetailsTab = ({
     return (
       <div
         key={field.id}
-        className="group border border-zinc-100 dark:border-zinc-700 rounded-lg p-4 hover:border-zinc-200 dark:hover:border-zinc-600 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50 transition-all duration-200 bg-white dark:bg-zinc-800"
+        className="group border border-white/60 dark:border-zinc-600/50 rounded-lg p-4 hover:border-white/80 dark:hover:border-zinc-500/50 hover:bg-white/90 dark:hover:bg-zinc-800/90 transition-all duration-200 bg-white/70 dark:bg-zinc-800/70 backdrop-blur-sm"
       >
         <div className="flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
@@ -415,7 +424,7 @@ export const ApplicationDetailsTab = ({
                   <span>{field.label}</span>
                   {field.required && (
                     <span className="text-xs bg-red-100 dark:bg-red-950/20 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded-full">
-                      {t("Required")}
+                      {tCommon("required")}
                     </span>
                   )}
                 </h4>
@@ -448,7 +457,7 @@ export const ApplicationDetailsTab = ({
             </Badge>
           </div>
 
-          <div className="mt-2 rounded-md bg-white dark:bg-zinc-900 p-3 border border-zinc-100 dark:border-zinc-700 transition-all duration-150 group-hover:border-zinc-200 dark:group-hover:border-zinc-600 group-hover:shadow-sm">
+          <div className="mt-2 rounded-md bg-white/80 dark:bg-zinc-900/80 p-3 border border-white/50 dark:border-zinc-700/50 transition-all duration-150 group-hover:border-white/70 dark:group-hover:border-zinc-600/50 group-hover:shadow-sm">
             {renderFieldValue(field, fieldValue)}
           </div>
         </div>
@@ -463,7 +472,7 @@ export const ApplicationDetailsTab = ({
     return (
       <div
         key={section.id}
-        className="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm transition-all duration-200 hover:shadow-md"
+        className="overflow-hidden rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-white/90 dark:bg-zinc-800/90 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md"
       >
         <div
           className="flex items-center justify-between bg-gradient-to-r from-zinc-50 to-zinc-100 dark:from-zinc-800 dark:to-zinc-700 p-4 cursor-pointer"
@@ -486,14 +495,16 @@ export const ApplicationDetailsTab = ({
                 {section.label}
               </h3>
               {section.description && (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">{section.description}</p>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  {section.description}
+                </p>
               )}
             </div>
           </div>
           <div className="flex items-center gap-3">
             {section.required && (
               <Badge className="bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800">
-                {t("Required")}
+                {tCommon("required")}
               </Badge>
             )}
             <Button
@@ -556,7 +567,7 @@ export const ApplicationDetailsTab = ({
                 onClick={() => setActiveTab("identity")}
                 className="text-xs h-8"
               >
-                {t("Identity")}
+                {t("identity")}
               </Button>
               <Button
                 variant={activeTab === "documents" ? "default" : "outline"}
@@ -564,7 +575,7 @@ export const ApplicationDetailsTab = ({
                 onClick={() => setActiveTab("documents")}
                 className="text-xs h-8"
               >
-                {t("Documents")}
+                {tCommon("documents")}
               </Button>
               <Button
                 variant={activeTab === "personal" ? "default" : "outline"}
@@ -572,7 +583,7 @@ export const ApplicationDetailsTab = ({
                 onClick={() => setActiveTab("personal")}
                 className="text-xs h-8"
               >
-                {t("personal_info")}
+                {tCommon("personal_info")}
               </Button>
             </div>
           </div>
@@ -594,7 +605,7 @@ export const ApplicationDetailsTab = ({
                 onClick={() => setActiveTab("identity")}
                 className="text-xs h-8 flex-1 min-w-0"
               >
-                {t("Identity")}
+                {t("identity")}
               </Button>
               <Button
                 variant={activeTab === "documents" ? "default" : "outline"}
@@ -602,7 +613,7 @@ export const ApplicationDetailsTab = ({
                 onClick={() => setActiveTab("documents")}
                 className="text-xs h-8 flex-1 min-w-0"
               >
-                {t("Documents")}
+                {tCommon("documents")}
               </Button>
               <Button
                 variant={activeTab === "personal" ? "default" : "outline"}
@@ -610,7 +621,7 @@ export const ApplicationDetailsTab = ({
                 onClick={() => setActiveTab("personal")}
                 className="text-xs h-8 flex-1 min-w-0"
               >
-                {t("personal_info")}
+                {tCommon("personal_info")}
               </Button>
             </div>
           </div>
@@ -628,10 +639,10 @@ export const ApplicationDetailsTab = ({
                         </div>
                         <div>
                           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                            {t("identity_verification")}
+                            {tCommon("identity_verification")}
                           </h3>
                           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                            {t("government-issued_identification_documents")}
+                            {t("government_issued_identification_documents")}
                           </p>
                         </div>
                       </div>
@@ -653,11 +664,11 @@ export const ApplicationDetailsTab = ({
 
                 {/* Other Fields */}
                 {otherFields.length > 0 && (
-                  <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-                    <div className="p-4 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800">
+                  <div className="bg-white/90 dark:bg-zinc-800/90 backdrop-blur-sm rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 overflow-hidden">
+                    <div className="p-4 border-b border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-50/80 dark:bg-zinc-800/80">
                       <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                         <FileText className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
-                        {t("additional_information")}
+                        {tCommon("additional_information")}
                       </h3>
                     </div>
                     <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -679,10 +690,10 @@ export const ApplicationDetailsTab = ({
                         </div>
                         <div>
                           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                            {t("identity_verification")}
+                            {tCommon("identity_verification")}
                           </h3>
                           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                            {t("government-issued_identification_documents")}
+                            {t("government_issued_identification_documents")}
                           </p>
                         </div>
                       </div>
@@ -692,7 +703,7 @@ export const ApplicationDetailsTab = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-12 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700">
+                  <div className="text-center py-12 bg-zinc-50/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-xl border border-dashed border-zinc-200/60 dark:border-zinc-700/60">
                     <UserCheck className="h-12 w-12 text-zinc-400 dark:text-zinc-500 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                       {t("no_identity_documents")}
@@ -719,9 +730,7 @@ export const ApplicationDetailsTab = ({
                             {t("document_uploads")}
                           </h3>
                           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                            {t(
-                              "Files and images submitted with the application"
-                            )}
+                            {t("files_and_images_submitted_with_application")}
                           </p>
                         </div>
                       </div>
@@ -731,7 +740,7 @@ export const ApplicationDetailsTab = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-12 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700">
+                  <div className="text-center py-12 bg-zinc-50/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-xl border border-dashed border-zinc-200/60 dark:border-zinc-700/60">
                     <FileText className="h-12 w-12 text-zinc-400 dark:text-zinc-500 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                       {t("no_documents")}
@@ -755,12 +764,10 @@ export const ApplicationDetailsTab = ({
                         </div>
                         <div>
                           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                            {t("personal_information")}
+                            {tCommon("personal_info")}
                           </h3>
                           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                            {t(
-                              "Basic personal details provided by the applicant"
-                            )}
+                            {t("basic_personal_details_provided_by_applicant")}
                           </p>
                         </div>
                       </div>
@@ -770,7 +777,7 @@ export const ApplicationDetailsTab = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-12 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700">
+                  <div className="text-center py-12 bg-zinc-50/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-xl border border-dashed border-zinc-200/60 dark:border-zinc-700/60">
                     <User className="h-12 w-12 text-zinc-400 dark:text-zinc-500 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                       {t("no_personal_information")}
@@ -785,29 +792,37 @@ export const ApplicationDetailsTab = ({
           </div>
 
           {/* Application Metadata */}
-          <div className="mt-8 bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
+          <div className="mt-8 bg-zinc-50/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-xl p-4 border border-zinc-200/60 dark:border-zinc-700/60">
             <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
               <Info className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
               {t("application_metadata")}
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white dark:bg-zinc-900 p-3 rounded-md border border-zinc-200 dark:border-zinc-700">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("Level")}</p>
+              <div className="bg-white/80 dark:bg-zinc-900/80 p-3 rounded-lg border border-zinc-200/50 dark:border-zinc-700/50">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {tCommon("level")}
+                </p>
                 <p className="font-medium">{level.name}</p>
               </div>
-              <div className="bg-white dark:bg-zinc-900 p-3 rounded-md border border-zinc-200 dark:border-zinc-700">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("field_count")}</p>
+              <div className="bg-white/80 dark:bg-zinc-900/80 p-3 rounded-lg border border-zinc-200/50 dark:border-zinc-700/50">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {t("field_count")}
+                </p>
                 <p className="font-medium">{level.fields?.length || 0}</p>
               </div>
-              <div className="bg-white dark:bg-zinc-900 p-3 rounded-md border border-zinc-200 dark:border-zinc-700">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("required_fields")}</p>
+              <div className="bg-white/80 dark:bg-zinc-900/80 p-3 rounded-lg border border-zinc-200/50 dark:border-zinc-700/50">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {t("required_fields")}
+                </p>
                 <p className="font-medium">
                   {level.fields?.filter((f: KycField) => f.required).length ||
                     0}
                 </p>
               </div>
-              <div className="bg-white dark:bg-zinc-900 p-3 rounded-md border border-zinc-200 dark:border-zinc-700">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("document_fields")}</p>
+              <div className="bg-white/80 dark:bg-zinc-900/80 p-3 rounded-lg border border-zinc-200/50 dark:border-zinc-700/50">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {t("document_fields")}
+                </p>
                 <p className="font-medium">{documentFields.length}</p>
               </div>
             </div>

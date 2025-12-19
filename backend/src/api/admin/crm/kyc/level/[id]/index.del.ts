@@ -33,18 +33,27 @@ export const metadata = {
   },
   permission: "delete.kyc.level",
   requiresAuth: true,
+  logModule: "ADMIN_CRM",
+  logTitle: "Delete KYC level",
 };
 
 export default async (data: Handler): Promise<any> => {
-  const { params } = data;
+  const { params, ctx } = data;
   const { id } = params;
+
   if (!id) {
     throw createError({ statusCode: 400, message: "Missing level ID" });
   }
+
+  ctx?.step(`Fetching KYC level ${id}`);
   const levelRecord = await models.kycLevel.findByPk(id);
   if (!levelRecord) {
     throw createError({ statusCode: 404, message: "KYC level not found" });
   }
+
+  ctx?.step("Deleting KYC level");
   await levelRecord.destroy();
+
+  ctx?.success("KYC level deleted successfully");
   return { message: "KYC level deleted successfully." };
 };

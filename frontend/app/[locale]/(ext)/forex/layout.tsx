@@ -1,7 +1,8 @@
 import type React from "react";
 import type { Metadata } from "next";
-import Footer from "@/components/partials/footer";
-import ForexNavbar from "./navbar";
+import SiteHeader from "@/components/partials/header/site-header";
+import { ExtensionLayoutWrapper } from "@/components/layout/extension-layout-wrapper";
+import { menu, colorSchema, adminPath } from "./menu";
 
 export const metadata: Metadata = {
   title: {
@@ -18,9 +19,14 @@ export default function RootLayout({
 }) {
   return (
     <div className="min-h-screen">
-      <ForexNavbar />
-      <main className="flex-1 mx-auto pt-14 md:pt-18">{children}</main>
-      <Footer />
+      <SiteHeader
+        menu={menu}
+        colorSchema={colorSchema}
+        adminPath={adminPath}
+      />
+      <ExtensionLayoutWrapper landingPath="/forex" mainClassName="flex-1 mx-auto">
+        {children}
+      </ExtensionLayoutWrapper>
     </div>
   );
 }

@@ -10,10 +10,12 @@ import { useTheme } from "next-themes";
 import { $fetch } from "@/lib/api";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 const EmailEditor = dynamic(() => import("react-email-editor"), { ssr: false });
 export default function TemplateCreate() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { theme } = useTheme();
   const emailEditorRef = useRef<any>(null);
@@ -73,11 +75,11 @@ export default function TemplateCreate() {
     });
   };
   return (
-    <div className="flex flex-col space-y-5">
+    <div className={`container ${PAGE_PADDING} flex flex-col space-y-5`}>
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold text-zinc-500 dark:text-zinc-400">
-          {t("create_new_template")}
+          {tCommon("create_new_template")}
         </h2>
         <div className="flex gap-2">
           <Button
@@ -85,13 +87,13 @@ export default function TemplateCreate() {
             onClick={() => router.push("/admin/mailwizard/template")}
           >
             <Icon icon="lucide:arrow-left" className="mr-2 h-4 w-4" />
-            {t("Back")}
+            {tCommon("back")}
           </Button>
           <Button
             onClick={handleCreate}
             disabled={isLoading || !editorReady || !templateName.trim()}
           >
-            {t("Save")}
+            {tCommon("save")}
           </Button>
         </div>
       </div>
@@ -100,11 +102,11 @@ export default function TemplateCreate() {
         {/* Template Name Input */}
         <div>
           <Label htmlFor="templateName" className="mb-1">
-            {t("template_name")}
+            {tCommon("template_name")}
           </Label>
           <Input
             id="templateName"
-            placeholder="Enter template name"
+            placeholder={t("enter_template_name")}
             value={templateName}
             onChange={(e) => setTemplateName(e.target.value)}
           />

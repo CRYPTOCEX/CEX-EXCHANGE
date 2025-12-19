@@ -7,6 +7,8 @@ export const metadata = {
     "Retrieves a list of recent activity logs for the admin dashboard.",
   operationId: "getRecentAdminP2PActivity",
   tags: ["Admin", "Dashboard", "Activity", "P2P"],
+  logModule: "ADMIN_P2P",
+  logTitle: "Get Recent P2P Activities",
   requiresAuth: true,
   responses: {
     200: { description: "Recent activity logs retrieved successfully." },
@@ -14,6 +16,7 @@ export const metadata = {
     500: { description: "Internal Server Error." },
   },
   permission: "view.p2p.activity",
+  demoMask: ["user.email"],
 };
 
 // Helper function to format action types into readable titles

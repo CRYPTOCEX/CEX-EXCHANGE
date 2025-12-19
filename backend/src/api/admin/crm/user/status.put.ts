@@ -6,6 +6,8 @@ export const metadata: OperationObject = {
   summary: "Bulk updates the status of users",
   operationId: "bulkUpdateUserStatus",
   tags: ["Admin", "CRM", "User"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Bulk update user status",
   requestBody: {
     required: true,
     content: {
@@ -35,8 +37,12 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { ids } = params;
   const { status } = body;
-  return updateStatus("user", ids, status);
+
+  ctx?.step(`Updating status for ${ids.length} users to ${status}`);
+  const result = await updateStatus("user", ids, status);
+  ctx?.success();
+  return result;
 };

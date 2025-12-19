@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useEcommerceStore } from "@/store/ecommerce/ecommerce";
-import ProductCard from "../../components/product-card";
+import { ProductGrid } from "../../components/product-card";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import {
@@ -15,13 +15,19 @@ import {
   X,
   Grid3X3,
   List,
+  Sparkles,
+  Package,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams } from "next/navigation";
+import CategoryDetailLoading from "./loading";
+import CategoryDetailErrorState from "./error-state";
 import { useTranslations } from "next-intl";
 
 export default function CategoryDetailClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ecommerce");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { slug } = useParams() as { slug: string };
   const { selectedCategory, fetchCategoryBySlug, isLoadingCategory, error } =
     useEcommerceStore();
@@ -99,99 +105,44 @@ export default function CategoryDetailClient() {
   }, [selectedCategory, searchQuery, sortOption, priceRange, selectedFilters]);
 
   if (isLoadingCategory) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          <p className="mt-4 text-gray-500 dark:text-zinc-400">
-            {t("loading_category_and_products")}.
-          </p>
-        </div>
-      </div>
-    );
+    return <CategoryDetailLoading />;
   }
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
-        <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-400 dark:border-red-500 p-6 rounded-lg">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-6 w-6 text-red-400 dark:text-red-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-lg font-medium text-red-800 dark:text-red-300">
-                {t("error_loading_category")}
-              </h3>
-              <p className="mt-2 text-sm text-red-700 dark:text-red-300">
-                {error}
-              </p>
-              <div className="mt-4">
-                <button
-                  onClick={() => fetchCategoryBySlug(slug)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:bg-red-700 dark:hover:bg-red-600"
-                >
-                  {t("try_again")}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CategoryDetailErrorState
+        onRetry={() => fetchCategoryBySlug(slug)}
+        error={error}
+      />
     );
   }
 
   if (!selectedCategory) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
-        <div className="text-center py-16 bg-white dark:bg-zinc-800 rounded-xl shadow-xl">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 dark:bg-zinc-700 mb-6">
-            <svg
-              className="h-10 w-10 text-gray-500 dark:text-zinc-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-              />
-            </svg>
+      <div className="container">
+        <div className={`text-center py-16 bg-white/50 dark:bg-zinc-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-amber-200 dark:border-amber-700`}>
+          <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full bg-linear-to-br from-amber-600/10 to-emerald-600/10 dark:from-amber-600/30 dark:to-emerald-600/30 mb-6`}>
+            <Tag className={`h-10 w-10 text-amber-600 dark:text-amber-400`} />
           </div>
           <h2 className="mt-4 text-3xl font-bold text-gray-900 dark:text-zinc-100">
-            {t("category_not_found")}
+            {tCommon("category_not_found")}
           </h2>
-          <p className="mt-4 text-xl text-gray-500 dark:text-zinc-400 max-w-md mx-auto">
-            {t("we_couldnt_find_the_category_youre_looking_for")}.{" "}
-            {t("it_may_have_be_incorrect")}.
+          <p className="mt-4 text-xl text-gray-600 dark:text-zinc-400 max-w-md mx-auto">
+            {t("we_couldnt_find_the_category_youre_looking_for_1")} {t("it_may_have_been_removed_or")}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
               href="/ecommerce/category"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+              className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl shadow-sm text-white bg-linear-to-r from-amber-600 to-emerald-600 hover:from-amber-700 hover:to-emerald-700 transition-all duration-200`}
             >
-              {t("browse_all_categories")}
+              {tCommon("browse_all_categories")}
             </Link>
             <Link
               href="/ecommerce"
-              className="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm text-base font-medium text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+              className="inline-flex items-center px-6 py-3 border-2 border-gray-300 dark:border-zinc-600 rounded-xl shadow-sm text-base font-medium text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all duration-200"
             >
               <ArrowLeft className="mr-2 h-5 w-5" />
-              {t("back_to_home")}
+              {tCommon("back_to_home")}
             </Link>
           </div>
         </div>
@@ -206,18 +157,18 @@ export default function CategoryDetailClient() {
         <li>
           <Link
             href="/ecommerce"
-            className="text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-300 transition-colors"
+            className={`text-gray-500 hover:text-amber-600 dark:text-zinc-400 dark:hover:text-amber-400 transition-colors`}
           >
-            {t("Home")}
+            Home
           </Link>
         </li>
         <li className="flex items-center">
           <ChevronRight className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
           <Link
             href="/ecommerce/category"
-            className="ml-2 text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-300 transition-colors"
+            className={`ml-2 text-gray-500 hover:text-amber-600 dark:text-zinc-400 dark:hover:text-amber-400 transition-colors`}
           >
-            {t("Categories")}
+            Categories
           </Link>
         </li>
         <li className="flex items-center">
@@ -231,50 +182,68 @@ export default function CategoryDetailClient() {
   );
 
   return (
-    <div className="bg-white dark:bg-zinc-900 dark:text-zinc-100 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className={`bg-linear-to-b from-amber-50/30 via-white to-emerald-50/30 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 min-h-screen pt-24`}>
+      <div className="container">
         {breadcrumbs}
 
-        <div className="relative mb-12">
-          <div className="aspect-w-5 aspect-h-2 w-full overflow-hidden rounded-2xl">
-            <div className="relative h-80 w-full">
-              <Image
-                src={selectedCategory.image || "/placeholder.svg"}
-                alt={selectedCategory.name}
-                fill
-                className="object-cover"
-                sizes="100vw"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 to-gray-900/40"></div>
+        {/* Premium Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="relative mb-12 overflow-hidden rounded-3xl shadow-2xl"
+        >
+          <div className="relative h-[400px] w-full">
+            <Image
+              src={selectedCategory.image || "/placeholder.svg"}
+              alt={selectedCategory.name}
+              fill
+              className="object-cover"
+              sizes="100vw"
+              priority
+            />
+            {/* Darker gradient overlay for better text contrast */}
+            <div className="absolute inset-0 bg-linear-to-r from-zinc-900/90 via-zinc-900/70 to-zinc-900/50"></div>
+
+            {/* Decorative elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className={`absolute -top-24 -right-24 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl`} />
+              <div className={`absolute -bottom-24 -left-24 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl`} />
             </div>
           </div>
-          <div className="absolute inset-0 flex items-center px-8 md:px-12">
-            <div className="max-w-2xl">
+
+          <div className="absolute inset-0 flex items-center px-8 md:px-16">
+            <div className="max-w-3xl">
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.7, delay: 0.2 }}
               >
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/20 text-white backdrop-blur-sm mb-4">
-                  {selectedCategory.products?.length || 0}
-                  {t("Products")}
-                </span>
-                <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl drop-shadow-sm">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-semibold mb-6">
+                  <Sparkles className="w-4 h-4" />
+                  {selectedCategory.products?.length || 0} Products
+                </div>
+                <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl drop-shadow-lg mb-6">
                   {selectedCategory.name}
                 </h1>
-                <p className="mt-4 text-xl text-white max-w-3xl drop-shadow-sm">
+                <p className="text-xl text-white/90 max-w-2xl drop-shadow-md leading-relaxed">
                   {selectedCategory.description}
                 </p>
               </motion.div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="mb-12">
-          <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-lg p-6">
+        {/* Search and Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mb-12"
+        >
+          <div className={`bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-amber-200 dark:border-amber-700`}>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="relative flex-grow max-w-lg">
+              <div className="relative grow max-w-lg">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Search className="h-5 w-5 text-gray-400 dark:text-zinc-500" />
                 </div>
@@ -282,8 +251,8 @@ export default function CategoryDetailClient() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search products..."
-                  className="block w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+                  placeholder={t("search_in_this_category_ellipsis")}
+                  className={`block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-amber-600/50 focus:border-amber-600 transition-all duration-200`}
                 />
                 {searchQuery && (
                   <button
@@ -299,9 +268,9 @@ export default function CategoryDetailClient() {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => setViewMode("grid")}
-                    className={`p-2 rounded-md ${
+                    className={`p-2 rounded-lg transition-all duration-200 ${
                       viewMode === "grid"
-                        ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400"
+                        ? `bg-amber-600/10 text-amber-600 dark:bg-amber-600/20 dark:text-amber-400 shadow-sm`
                         : "text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-700"
                     }`}
                   >
@@ -309,9 +278,9 @@ export default function CategoryDetailClient() {
                   </button>
                   <button
                     onClick={() => setViewMode("list")}
-                    className={`p-2 rounded-md ${
+                    className={`p-2 rounded-lg transition-all duration-200 ${
                       viewMode === "list"
-                        ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400"
+                        ? `bg-emerald-600/10 text-emerald-600 dark:bg-emerald-600/20 dark:text-emerald-400 shadow-sm`
                         : "text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-700"
                     }`}
                   >
@@ -322,23 +291,21 @@ export default function CategoryDetailClient() {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-zinc-700 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className={`inline-flex items-center px-4 py-2 border border-gray-300 dark:border-zinc-700 shadow-sm text-sm leading-4 font-medium rounded-xl text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-600`}
                   >
                     <Filter className="h-4 w-4 mr-2" />
-                    {t("Filters")}
+                    Filters
                   </button>
 
                   <select
                     value={sortOption}
                     onChange={(e) => setSortOption(e.target.value)}
-                    className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-zinc-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
+                    className={`block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-amber-600/50 focus:border-amber-600 sm:text-sm rounded-xl bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100`}
                   >
-                    <option value="featured">{t("Featured")}</option>
-                    <option value="price-low">{t("price_low_to_high")}</option>
-                    <option value="price-high">
-                      {t("price_high_to_low")}
-                    </option>
-                    <option value="newest">{t("Newest")}</option>
+                    <option value="featured">Featured</option>
+                    <option value="price-low">{tExt("price_low_to_high")}</option>
+                    <option value="price-high">{tExt("price_high_to_low")}</option>
+                    <option value="newest">Newest</option>
                   </select>
                 </div>
               </div>
@@ -355,53 +322,55 @@ export default function CategoryDetailClient() {
                 >
                   <div className="pt-4 mt-4 border-t border-gray-200 dark:border-zinc-700 grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                      <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-100">
-                        {t("price_range")}
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-100 mb-3">
+                        {t("price_range_1")}
                       </h3>
-                      <div className="mt-2 flex items-center gap-2">
-                        <input
-                          type="range"
-                          min="0"
-                          max="1000"
-                          value={priceRange[0]}
-                          onChange={(e) =>
-                            setPriceRange([
-                              Number.parseInt(e.target.value),
-                              priceRange[1],
-                            ])
-                          }
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                        />
-                        <span className="text-sm text-gray-500 dark:text-zinc-400 min-w-[60px]">
-                          ${priceRange[0]}
-                        </span>
-                      </div>
-                      <div className="mt-2 flex items-center gap-2">
-                        <input
-                          type="range"
-                          min="0"
-                          max="1000"
-                          value={priceRange[1]}
-                          onChange={(e) =>
-                            setPriceRange([
-                              priceRange[0],
-                              Number.parseInt(e.target.value),
-                            ])
-                          }
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
-                        />
-                        <span className="text-sm text-gray-500 dark:text-zinc-400 min-w-[60px]">
-                          ${priceRange[1]}
-                        </span>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="range"
+                            min="0"
+                            max="1000"
+                            value={priceRange[0]}
+                            onChange={(e) =>
+                              setPriceRange([
+                                Number.parseInt(e.target.value),
+                                priceRange[1],
+                              ])
+                            }
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
+                          />
+                          <span className="text-sm text-gray-500 dark:text-zinc-400 min-w-[60px] font-medium">
+                            ${priceRange[0]}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="range"
+                            min="0"
+                            max="1000"
+                            value={priceRange[1]}
+                            onChange={(e) =>
+                              setPriceRange([
+                                priceRange[0],
+                                Number.parseInt(e.target.value),
+                              ])
+                            }
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
+                          />
+                          <span className="text-sm text-gray-500 dark:text-zinc-400 min-w-[60px] font-medium">
+                            ${priceRange[1]}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
                     <div>
-                      <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-100">
-                        {t("Availability")}
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-100 mb-3">
+                        Availability
                       </h3>
-                      <div className="mt-2 space-y-2">
-                        <label className="inline-flex items-center">
+                      <div className="space-y-2">
+                        <label className="inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
                             checked={selectedFilters.inStock}
@@ -411,7 +380,7 @@ export default function CategoryDetailClient() {
                                 inStock: !selectedFilters.inStock,
                               })
                             }
-                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                            className={`rounded border-gray-300 text-amber-600 shadow-sm focus:border-amber-600 focus:ring focus:ring-amber-600/30 focus:ring-opacity-50`}
                           />
                           <span className="ml-2 text-sm text-gray-700 dark:text-zinc-300">
                             {t("in_stock")}
@@ -427,9 +396,9 @@ export default function CategoryDetailClient() {
                           setSelectedFilters({ inStock: false, onSale: false });
                           setSearchQuery("");
                         }}
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700"
+                        className="inline-flex items-center px-4 py-2 border-2 border-gray-300 dark:border-zinc-600 rounded-xl shadow-sm text-sm font-medium text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all duration-200"
                       >
-                        {t("reset_filters")}
+                        {tCommon("reset_filters")}
                       </button>
                     </div>
                   </div>
@@ -437,97 +406,77 @@ export default function CategoryDetailClient() {
               )}
             </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
 
+        {/* Products Grid */}
         <div className="pb-24">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-zinc-100">
-              {t("products_in")}
-              {selectedCategory.name}
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold tracking-tight bg-linear-to-r from-gray-900 to-gray-700 dark:from-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent">
+              {t("products_in")} {selectedCategory.name}
             </h2>
-            <p className="text-sm text-gray-500 dark:text-zinc-400">
+            <p className="text-sm text-gray-600 dark:text-zinc-400 bg-white/50 dark:bg-zinc-800/50 px-4 py-2 rounded-full border border-gray-200 dark:border-zinc-700">
               {filteredProducts.length}{" "}
               {filteredProducts.length === 1 ? "product" : "products"}
-              {t("found")}
             </p>
           </div>
 
           {filteredProducts.length === 0 ? (
-            <div className="mt-6 mb-24 bg-white dark:bg-zinc-800 rounded-xl shadow-lg p-8 text-center">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 dark:bg-zinc-700 mb-6">
-                <svg
-                  className="h-10 w-10 text-gray-400 dark:text-zinc-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                  />
-                </svg>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className={`mt-6 mb-24 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-12 text-center border border-amber-200 dark:border-amber-700`}
+            >
+              <div className={`inline-flex items-center justify-center w-24 h-24 rounded-full bg-linear-to-br from-amber-600/10 to-emerald-600/10 dark:from-amber-600/30 dark:to-emerald-600/30 mb-6`}>
+                <Package className={`h-12 w-12 text-amber-600 dark:text-amber-400`} />
               </div>
-              <h3 className="text-xl font-medium text-gray-900 dark:text-zinc-100">
-                {t("no_products_found")}
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-zinc-100 mb-3">
+                {tExt("no_products_found")}
               </h3>
-              <p className="mt-2 text-gray-500 dark:text-zinc-400 max-w-md mx-auto">
+              <p className="text-gray-600 dark:text-zinc-400 max-w-md mx-auto mb-8 text-lg">
                 {searchQuery
                   ? "We couldn't find any products matching your search criteria. Try different keywords or filters."
                   : "We don't have any products in this category yet. Please check back later or browse our other categories."}
               </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-4">
+              <div className="flex flex-wrap justify-center gap-4">
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-zinc-600 text-sm font-medium rounded-md text-gray-700 dark:text-zinc-200 bg-white dark:bg-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-600"
+                    className="inline-flex items-center px-6 py-3 border-2 border-gray-300 dark:border-zinc-600 text-base font-medium rounded-xl text-gray-700 dark:text-zinc-200 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all duration-200"
                   >
-                    <X className="mr-2 h-4 w-4" />
-                    {t("clear_search")}
+                    <X className="mr-2 h-5 w-5" />
+                    {tCommon("clear_search")}
                   </button>
                 )}
                 <Link
                   href="/ecommerce/product"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                  className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl shadow-sm text-white bg-linear-to-r from-amber-600 to-emerald-600 hover:from-amber-700 hover:to-emerald-700 transition-all duration-200`}
                 >
-                  <ShoppingBag className="mr-2 h-4 w-4" />
-                  {t("browse_all_products")}
+                  <ShoppingBag className="mr-2 h-5 w-5" />
+                  {tCommon("browse_all_products")}
                 </Link>
                 <Link
                   href="/ecommerce/category"
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-zinc-600 text-sm font-medium rounded-md text-gray-700 dark:text-zinc-200 bg-white dark:bg-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-600"
+                  className="inline-flex items-center px-6 py-3 border-2 border-gray-300 dark:border-zinc-600 text-base font-medium rounded-xl text-gray-700 dark:text-zinc-200 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all duration-200"
                 >
-                  <Tag className="mr-2 h-4 w-4" />
+                  <Tag className="mr-2 h-5 w-5" />
                   {t("view_other_categories")}
                 </Link>
               </div>
-            </div>
+            </motion.div>
           ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
+            <ProductGrid
+              products={filteredProducts}
               className={
                 viewMode === "grid"
-                  ? "grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8"
+                  ? "grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                   : "space-y-6"
               }
-            >
-              <AnimatePresence>
-                {filteredProducts.map((product) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ProductCard product={product} viewMode={viewMode} />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </motion.div>
+              showTypeBadge={true}
+              showCategory={false}
+              showRating={true}
+              showStock={true}
+            />
           )}
         </div>
       </div>

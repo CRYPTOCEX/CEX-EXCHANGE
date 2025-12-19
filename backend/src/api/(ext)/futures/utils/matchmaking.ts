@@ -15,7 +15,7 @@ try {
   // Ecosystem extension not available
 }
 import { handleTradesBroadcast } from "./ws";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import { FuturesOrder } from "./queries/order";
 import { updatePositions } from "./position";
 
@@ -24,7 +24,7 @@ export const matchAndCalculateOrders = async (
   currentOrderBook: any
 ) => {
   if (!fromBigInt || !fromBigIntMultiply) {
-    console.warn("Ecosystem extension not available for order matching");
+    logger.warn("FUTURES", "Ecosystem extension not available for order matching");
     return { matchedOrders: [], bookUpdates: { bids: {}, asks: {} } };
   }
 
@@ -78,8 +78,7 @@ export const matchAndCalculateOrders = async (
           matchedPrice
         );
       } catch (error) {
-        logError("match_calculate_orders", error, __filename);
-        console.error(`Failed to process matched orders: ${error}`);
+        logger.error("FUTURES", "Failed to process matched orders", error);
       }
 
       matchedOrders.push(buyOrder, sellOrder);
@@ -140,8 +139,7 @@ export const processMatchedOrders = async (
   try {
     await updatePositions(buyOrder, sellOrder, amountToFill, matchedPrice);
   } catch (error) {
-    logError("process_matched_orders", error, __filename);
-    console.error(`Failed to update wallet balances: ${error}`);
+    logger.error("FUTURES", "Failed to update wallet balances", error);
   }
 
   const buyTradeDetail: TradeDetail = {
@@ -230,17 +228,11 @@ export function addTradeToOrder(order: FuturesOrder, trade: TradeDetail) {
       } else if (Array.isArray(order.trades)) {
         trades = order.trades;
       } else {
-        logError(
-          "add_trade_to_order",
-          new Error("Invalid trades format"),
-          __filename
-        );
-        console.error("Invalid trades format, resetting trades:", order.trades);
+        logger.error("FUTURES", "Invalid trades format in order", new Error("Invalid trades format"));
         trades = [];
       }
     } catch (e) {
-      logError("add_trade_to_order", e, __filename);
-      console.error("Error parsing trades", e);
+      logger.error("FUTURES", "Error parsing trades", e);
       trades = [];
     }
   }
@@ -311,12 +303,7 @@ export function validateOrder(order: FuturesOrder): boolean {
     !(order.createdAt instanceof Date) ||
     !(order.updatedAt instanceof Date)
   ) {
-    logError(
-      "validate_order",
-      new Error("Order validation failed"),
-      __filename
-    );
-    console.error("Order validation failed: ", order);
+    logger.error("FUTURES", "Order validation failed", new Error("Order validation failed"));
     return false;
   }
   return true;

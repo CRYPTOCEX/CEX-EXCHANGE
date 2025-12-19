@@ -34,6 +34,7 @@ import { Loader2 } from "lucide-react";
 import { $fetch } from "@/lib/api";
 import { useConfigStore } from "@/store/config";
 import { getBooleanSetting } from "@/utils/formatters";
+import { useTranslations } from "next-intl";
 
 // Define wallet types for selection
 interface WalletOption {
@@ -61,6 +62,9 @@ interface WalletResponse {
   status: boolean;
 }
 export default function CheckoutClient() {
+  const t = useTranslations("ext_ecommerce");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { cart, clearCart, isProcessingOrder } = useEcommerceStore();
   const { user } = useUserStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -394,20 +398,20 @@ export default function CheckoutClient() {
   };
   if (cart.length === 0 && !orderComplete) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
+      <div className="container px-4 py-16 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-            Your cart is empty
+            {t("your_cart_is_empty")}
           </h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
-            Add items to your cart before checking out.
+            {t("add_items_to_your_cart_before_checking_out_1")}
           </p>
           <div className="mt-6">
             <Link
                                   href="/ecommerce/product"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
             >
-              Browse Products
+              {tCommon("browse_products")}
             </Link>
           </div>
         </div>
@@ -416,52 +420,51 @@ export default function CheckoutClient() {
   }
   if (orderComplete) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
+      <div className="container px-4 py-16 sm:px-6 lg:px-8">
         <div className="bg-white dark:bg-zinc-800 p-8 rounded-lg shadow-md max-w-3xl mx-auto">
           <div className="text-center">
             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100">
               <Check className="h-8 w-8 text-green-600" aria-hidden="true" />
             </div>
             <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-              Order Complete!
+              {t("order_complete")}
             </h2>
             <p className="mt-2 text-lg text-gray-500 dark:text-zinc-400">
-              Thank you for your order. We've received your payment and will
-              process your order shortly.
+              {t("thank_you_for_your_order_1")} {t("weve_received_your_payment_and_will")}
             </p>
 
             <div className="mt-6 bg-gray-50 dark:bg-zinc-800 p-4 rounded-lg inline-block">
               <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">
-                Order Number:
+                {tExt("order_number")}:
               </p>
-              <p className="text-xl font-bold text-indigo-600">{orderNumber}</p>
+              <p className="text-xl font-bold text-amber-600">{orderNumber}</p>
             </div>
 
             <div className="mt-6 border-t border-b border-gray-200 dark:border-zinc-700 py-6">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                Order Summary
+                {tExt("order_summary")}
               </h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-zinc-400">
-                    Subtotal:
+                    {t("subtotal")}:
                   </span>
                   <span className="font-medium">${subtotal.toFixed(2)}</span>
                 </div>
                 {hasPhysicalProducts() && (
                   <div className="flex justify-between">
                     <span className="text-gray-500 dark:text-zinc-400">
-                      Shipping:
+                      {t("shipping")}:
                     </span>
                     <span className="font-medium">${shipping.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-zinc-400">Tax:</span>
+                  <span className="text-gray-500 dark:text-zinc-400">{tExt("tax")}:</span>
                   <span className="font-medium">${tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-zinc-700 mt-2">
-                  <span className="font-medium">Total:</span>
+                  <span className="font-medium">{tCommon("total")}:</span>
                   <span className="font-bold">${total.toFixed(2)}</span>
                 </div>
               </div>
@@ -474,17 +477,16 @@ export default function CheckoutClient() {
                     <Download className="h-5 w-5 text-blue-600 mt-0.5 mr-2" />
                     <div>
                       <h4 className="font-medium text-blue-800">
-                        Digital Products
+                        {t("digital_products")}
                       </h4>
                       <p className="text-sm text-blue-600">
-                        Your digital products are available for download in your
-                        account.
+                        {t("your_digital_products_are_available_for")}
                       </p>
                       <Button
                         variant="outline"
                         className="mt-2 bg-white dark:bg-zinc-800"
                       >
-                        <Link href="/ecommerce/order">Go to My Account</Link>
+                        <Link href="/ecommerce/order">{t("go_to_my_account")}</Link>
                       </Button>
                     </div>
                   </div>
@@ -497,11 +499,10 @@ export default function CheckoutClient() {
                     <Truck className="h-5 w-5 text-amber-600 mt-0.5 mr-2" />
                     <div>
                       <h4 className="font-medium text-amber-800">
-                        Shipping Information
+                        {t("shipping_information")}
                       </h4>
                       <p className="text-sm text-amber-600">
-                        Your items will be shipped to the address you provided.
-                        You can track your order in your account.
+                        {t("your_items_will_be_shipped_to")} {t("you_can_track_your_order_in_your_account_1")}
                       </p>
                     </div>
                   </div>
@@ -511,20 +512,20 @@ export default function CheckoutClient() {
 
             <div className="mt-8">
               <p className="text-sm font-medium text-gray-500 dark:text-zinc-400 mb-4">
-                A confirmation email has been sent to {formData.email}.
+                {t("a_confirmation_email_has_been_sent_to")} {formData.email}.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Link
                   href="/ecommerce"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
                 >
-                  Continue Shopping
+                  {tExt("continue_shopping")}
                 </Link>
                 <Link
                   href="/ecommerce/order"
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-zinc-700 text-sm font-medium rounded-md shadow-sm text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-zinc-700 text-sm font-medium rounded-md shadow-sm text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
                 >
-                  View Order History
+                  {t("view_order_history")}
                 </Link>
               </div>
             </div>
@@ -534,15 +535,15 @@ export default function CheckoutClient() {
     );
   }
   return (
-    <div className="bg-white dark:bg-zinc-900 dark:text-zinc-100">
-      <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
+    <div className="bg-white dark:bg-zinc-900 dark:text-zinc-100 pt-20">
+      <div className="container px-4 py-16 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           <Link
             href="/ecommerce/cart"
-            className="inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md transition-colors duration-200"
+            className="inline-flex items-center px-3 py-2 text-sm font-medium text-amber-600 hover:text-amber-500 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-md transition-colors duration-200"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to cart
+            {t("back_to_cart")}
           </Link>
           <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
             Checkout
@@ -579,10 +580,10 @@ export default function CheckoutClient() {
                   <div className="space-y-8">
                     <div>
                       <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                        Shipping information
+                        {t("shipping_information")}
                       </h2>
                       <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
-                        Enter your shipping details to complete your order.
+                        {t("enter_your_shipping_details_to_complete_your_order_1")}
                       </p>
 
                       <div className="mt-6 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
@@ -591,7 +592,7 @@ export default function CheckoutClient() {
                             htmlFor="firstName"
                             className="block text-sm font-medium text-gray-700 dark:text-zinc-100"
                           >
-                            First name
+                            {tCommon("first_name")}
                           </Label>
                           <div className="mt-1">
                             <Input
@@ -600,7 +601,7 @@ export default function CheckoutClient() {
                               name="firstName"
                               value={formData.firstName}
                               onChange={handleInputChange}
-                              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
+                              className="shadow-sm focus:ring-amber-500 focus:border-amber-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
                             />
                           </div>
                         </div>
@@ -610,7 +611,7 @@ export default function CheckoutClient() {
                             htmlFor="lastName"
                             className="block text-sm font-medium text-gray-700 dark:text-zinc-100"
                           >
-                            Last name
+                            {tCommon("last_name")}
                           </Label>
                           <div className="mt-1">
                             <Input
@@ -619,7 +620,7 @@ export default function CheckoutClient() {
                               name="lastName"
                               value={formData.lastName}
                               onChange={handleInputChange}
-                              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
+                              className="shadow-sm focus:ring-amber-500 focus:border-amber-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
                             />
                           </div>
                         </div>
@@ -629,7 +630,7 @@ export default function CheckoutClient() {
                             htmlFor="email"
                             className="block text-sm font-medium text-gray-700 dark:text-zinc-100"
                           >
-                            Email address
+                            {tCommon("email_address")}
                           </Label>
                           <div className="mt-1">
                             <Input
@@ -638,7 +639,7 @@ export default function CheckoutClient() {
                               type="email"
                               value={formData.email}
                               onChange={handleInputChange}
-                              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
+                              className="shadow-sm focus:ring-amber-500 focus:border-amber-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
                             />
                           </div>
                         </div>
@@ -657,7 +658,7 @@ export default function CheckoutClient() {
                               name="phone"
                               value={formData.phone}
                               onChange={handleInputChange}
-                              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
+                              className="shadow-sm focus:ring-amber-500 focus:border-amber-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
                             />
                           </div>
                         </div>
@@ -676,7 +677,7 @@ export default function CheckoutClient() {
                               name="address"
                               value={formData.address}
                               onChange={handleInputChange}
-                              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
+                              className="shadow-sm focus:ring-amber-500 focus:border-amber-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
                             />
                           </div>
                         </div>
@@ -686,7 +687,7 @@ export default function CheckoutClient() {
                             htmlFor="apartment"
                             className="block text-sm font-medium text-gray-700 dark:text-zinc-100"
                           >
-                            Apartment, suite, etc. (Optional)
+                            {t("apartment_suite_etc_optional")}
                           </Label>
                           <div className="mt-1">
                             <Input
@@ -695,7 +696,7 @@ export default function CheckoutClient() {
                               name="apartment"
                               value={formData.apartment}
                               onChange={handleInputChange}
-                              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
+                              className="shadow-sm focus:ring-amber-500 focus:border-amber-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
                             />
                           </div>
                         </div>
@@ -714,7 +715,7 @@ export default function CheckoutClient() {
                               name="city"
                               value={formData.city}
                               onChange={handleInputChange}
-                              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
+                              className="shadow-sm focus:ring-amber-500 focus:border-amber-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
                             />
                           </div>
                         </div>
@@ -724,7 +725,7 @@ export default function CheckoutClient() {
                             htmlFor="state"
                             className="block text-sm font-medium text-gray-700 dark:text-zinc-100"
                           >
-                            State / Province
+                            {tExt("state_province")}
                           </Label>
                           <div className="mt-1">
                             <Input
@@ -733,7 +734,7 @@ export default function CheckoutClient() {
                               name="state"
                               value={formData.state}
                               onChange={handleInputChange}
-                              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
+                              className="shadow-sm focus:ring-amber-500 focus:border-amber-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
                             />
                           </div>
                         </div>
@@ -743,7 +744,7 @@ export default function CheckoutClient() {
                             htmlFor="postalCode"
                             className="block text-sm font-medium text-gray-700 dark:text-zinc-100"
                           >
-                            Postal code
+                            {tExt("postal_code")}
                           </Label>
                           <div className="mt-1">
                             <Input
@@ -752,7 +753,7 @@ export default function CheckoutClient() {
                               name="postalCode"
                               value={formData.postalCode}
                               onChange={handleInputChange}
-                              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
+                              className="shadow-sm focus:ring-amber-500 focus:border-amber-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
                             />
                           </div>
                         </div>
@@ -771,7 +772,7 @@ export default function CheckoutClient() {
                               name="country"
                               value={formData.country}
                               onChange={handleInputChange}
-                              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
+                              className="shadow-sm focus:ring-amber-500 focus:border-amber-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
                             />
                           </div>
                         </div>
@@ -781,7 +782,7 @@ export default function CheckoutClient() {
                             htmlFor="specialInstructions"
                             className="block text-sm font-medium text-gray-700 dark:text-zinc-100"
                           >
-                            Special Instructions (Optional)
+                            {t("special_instructions_optional")}
                           </Label>
                           <div className="mt-1">
                             <textarea
@@ -792,7 +793,7 @@ export default function CheckoutClient() {
                               onChange={(e) =>
                                 setSpecialInstructions(e.target.value)
                               }
-                              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
+                              className="shadow-sm focus:ring-amber-500 focus:border-amber-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
                             />
                           </div>
                         </div>
@@ -807,7 +808,7 @@ export default function CheckoutClient() {
                         className="dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100"
                       >
                         <ArrowLeft className="mr-2 h-4 w-4" />
-                        Continue to Payment
+                        {t("continue_to_payment")}
                       </Button>
                     </div>
                   </div>
@@ -819,10 +820,10 @@ export default function CheckoutClient() {
                   <div className="space-y-8">
                     <div>
                       <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                        Payment method
+                        {tCommon("payment_method")}
                       </h2>
                       <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
-                        Select which wallet to use for each group of products
+                        {t("select_which_wallet_of_products")}
                       </p>
 
                       <div className="mt-6 space-y-6">
@@ -838,20 +839,20 @@ export default function CheckoutClient() {
                                     {group.walletType} - {group.currency}
                                   </h3>
                                   <p className="text-sm text-gray-500 dark:text-zinc-400">
-                                    {group.items.length} item(s) - Total:{" "}
+                                    {group.items.length} {t("item_s_total_1")}:{" "}
                                     {group.total.toFixed(2)} {group.currency}
                                   </p>
                                 </div>
                                 <div className="flex items-center">
-                                  <Wallet className="h-5 w-5 text-indigo-600 mr-2" />
+                                  <Wallet className="h-5 w-5 text-amber-600 mr-2" />
                                   {isLoadingWallets[key] ? (
                                     <div
                                       key={`loading-${key}`}
                                       className="flex items-center space-x-2"
                                     >
-                                      <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+                                      <Loader2 className="h-4 w-4 animate-spin text-amber-600" />
                                       <span className="text-sm text-gray-500 dark:text-zinc-400">
-                                        Loading wallet...
+                                        {t("loading_wallet_ellipsis")}
                                       </span>
                                     </div>
                                   ) : walletErrors[key] ? (
@@ -859,8 +860,8 @@ export default function CheckoutClient() {
                                       key={`error-${key}`}
                                       className="text-sm text-red-500 dark:text-zinc-400"
                                     >
-                                      {walletErrors[key]} - You need a{" "}
-                                      {group.walletType} wallet with{" "}
+                                      {walletErrors[key]} {t("you_need_a")}{" "}
+                                      {group.walletType} {t("wallet_with")}{" "}
                                       {group.currency}
                                     </div>
                                   ) : wallets[key]?.length === 0 ? (
@@ -868,7 +869,7 @@ export default function CheckoutClient() {
                                       key={`empty-${key}`}
                                       className="text-sm text-red-500 dark:text-zinc-400"
                                     >
-                                      No {group.walletType} wallet with{" "}
+                                      No {group.walletType} {t("wallet_with")}{" "}
                                       {group.currency} available
                                     </div>
                                   ) : (
@@ -880,7 +881,7 @@ export default function CheckoutClient() {
                                       }
                                     >
                                       <SelectTrigger className="w-[250px] dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100">
-                                        <SelectValue placeholder="Select a wallet" />
+                                        <SelectValue placeholder={t("select_a_wallet")} />
                                       </SelectTrigger>
                                       <SelectContent className="dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100">
                                         {wallets[key]?.map((wallet) => {
@@ -949,7 +950,7 @@ export default function CheckoutClient() {
                         htmlFor="couponCode"
                         className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
                       >
-                        Coupon Code (optional)
+                        {t("coupon_code_optional")}
                       </Label>
                       <div className="flex gap-3 mt-3">
                         <Input
@@ -958,14 +959,14 @@ export default function CheckoutClient() {
                           name="couponCode"
                           value={couponCode}
                           onChange={(e) => setCouponCode(e.target.value)}
-                          placeholder="Enter coupon code"
-                          className="flex-1 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder={t("enter_coupon_code")}
+                          className="flex-1 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                         />
                         <Button
                           type="button"
                           onClick={handleApplyCoupon}
                           disabled={isApplyingCoupon || !couponCode.trim()}
-                          className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 whitespace-nowrap"
+                          className="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 whitespace-nowrap"
                         >
                           {isApplyingCoupon ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -979,7 +980,7 @@ export default function CheckoutClient() {
                           <div className="flex items-center">
                             <Check className="h-4 w-4 text-green-600 dark:text-green-400 mr-2" />
                             <span className="text-sm text-green-800 dark:text-green-400 font-medium">
-                              Coupon "{discount.code}" applied! You save{" "}
+                              {t("coupon")}{discount.code}{t("applied_you_save")}{" "}
                               {discount.type === "PERCENTAGE"
                                 ? `${discount.value}%`
                                 : `$${discount.value.toFixed(2)}`}
@@ -998,7 +999,7 @@ export default function CheckoutClient() {
             <div className="bg-gray-50 dark:bg-zinc-800 rounded-lg px-4 py-6 sm:p-6 lg:p-8 dark:border-zinc-700 dark:text-zinc-100">
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                  Order summary
+                  {tExt("order_summary")}
                 </h2>
               </div>
               <div className="mt-6 space-y-4">
@@ -1070,7 +1071,7 @@ export default function CheckoutClient() {
                 </div>
                 <div className="border-t border-gray-200 dark:border-zinc-700 pt-4 flex items-center justify-between">
                   <p className="text-base font-medium text-gray-900 dark:text-white">
-                    Order total
+                    {t("order_total")}
                   </p>
                   <p className="text-base font-medium text-gray-900 dark:text-white">
                     ${total.toFixed(2)}
@@ -1082,7 +1083,7 @@ export default function CheckoutClient() {
                 <button
                   type="submit"
                   disabled={isSubmitting || isProcessingOrder}
-                  className="w-full flex items-center justify-center bg-indigo-600 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                  className="w-full flex items-center justify-center bg-amber-600 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50"
                 >
                   {isSubmitting || isProcessingOrder ? (
                     <span className="flex items-center">
@@ -1106,11 +1107,11 @@ export default function CheckoutClient() {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         ></path>
                       </svg>
-                      Processing...
+                      {tCommon('processing')}
                     </span>
                   ) : (
                     <span className="flex items-center">
-                      Complete order <ArrowRight className="ml-2 h-5 w-5" />
+                      {t("complete_order")} <ArrowRight className="ml-2 h-5 w-5" />
                     </span>
                   )}
                 </button>
@@ -1120,7 +1121,7 @@ export default function CheckoutClient() {
               <div className="mt-6 flex items-center justify-center">
                 <ShieldCheck className="h-5 w-5 text-gray-400" />
                 <p className="ml-2 text-xs text-gray-500 dark:text-zinc-400">
-                  Secure checkout with encryption
+                  {t("secure_checkout_with_encryption")}
                 </p>
               </div>
             </div>

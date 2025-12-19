@@ -9,12 +9,13 @@ import { models } from "@b/db";
 import { chainConfigs } from "@b/api/(ext)/ecosystem/utils/chains";
 
 export const metadata: OperationObject = {
-  summary: "Retrieves ecosystem master wallet options",
-  description:
-    "This endpoint retrieves a list of chain options for ecosystem master wallets by combining a predefined list with dynamically enabled chains.",
+  summary: "Get available blockchain options for master wallet creation",
+  description: "Retrieves a list of supported blockchain chains that can be used to create new master wallets. Includes both static chains (ETH, BSC, POLYGON, etc.) and dynamically enabled chains from the ecosystem blockchain configuration.",
   operationId: "getEcosystemMasterWalletOptions",
-  tags: ["Ecosystem", "Wallet"],
+  tags: ["Admin", "Ecosystem", "Wallet"],
   requiresAuth: true,
+  logModule: "ADMIN_ECO",
+  logTitle: "Get Master Wallet Options",
   responses: {
     200: {
       description: "Ecosystem master wallet options retrieved successfully",
@@ -40,7 +41,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) throw createError(401, "Unauthorized");
 
   try {
@@ -82,6 +83,7 @@ export default async (data: Handler) => {
       }
     });
 
+    ctx?.success("Retrieved master wallet options");
     return chainOptions;
   } catch (error) {
     throw createError(

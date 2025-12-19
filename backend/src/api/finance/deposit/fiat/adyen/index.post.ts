@@ -4,6 +4,7 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 
+import { logger } from "@b/utils/console";
 import {
   getAdyenConfig,
   makeAdyenApiRequest,
@@ -22,6 +23,8 @@ export const metadata: OperationObject = {
     "Initiates an Adyen payment process by creating a payment session using Adyen's Sessions flow. This endpoint supports web checkout with multiple payment methods including cards, digital wallets, and local payment methods.",
   operationId: "createAdyenPayment",
   tags: ["Finance", "Deposit"],
+  logModule: "ADYEN_DEPOSIT",
+  logTitle: "Create Adyen payment session",
   requestBody: {
     description: "Payment information for Adyen session creation",
     content: {
@@ -99,12 +102,14 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body, query } = data;
+  const { user, body, query, ctx } = data;
+
   if (!user) throw new Error("User not authenticated");
 
   const { amount, currency, countryCode = "US" } = body;
 
   // Validate gateway
+  ctx?.step("Fetching payment gateway configuration");
   const gateway = await models.depositGateway.findOne({
     where: { alias: "adyen", status: true },
   });
@@ -155,7 +160,8 @@ export default async (data: Handler) => {
     );
 
     // Create transaction record
-    const transaction = await models.transaction.create({
+    ctx?.step("Creating transaction record");
+      const transaction = await models.transaction.create({
       uuid: reference,
       userId: user.id,
       type: "DEPOSIT",
@@ -174,7 +180,9 @@ export default async (data: Handler) => {
       }),
     });
 
-    return {
+    ctx?.success("Adyen deposit completed successfully");
+
+  return {
       sessionId: sessionResponse.id,
       sessionData: sessionResponse.sessionData,
       amount: sessionResponse.amount,
@@ -183,7 +191,7 @@ export default async (data: Handler) => {
       transactionId: transaction.uuid,
     };
   } catch (error) {
-    console.error("Adyen payment session creation error:", error);
+    logger.error("ADYEN", "Payment session creation error", error);
     throw new Error(
       `Failed to create Adyen payment session: ${error.message}`
     );

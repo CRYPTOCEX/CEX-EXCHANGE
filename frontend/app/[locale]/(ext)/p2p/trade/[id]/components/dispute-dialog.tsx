@@ -82,7 +82,9 @@ const DISPUTE_REASONS = [
 ];
 
 export function DisputeDialog({ children, onSubmit, loading, userRole }: DisputeDialogProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [description, setDescription] = useState("");
@@ -132,10 +134,10 @@ export function DisputeDialog({ children, onSubmit, loading, userRole }: Dispute
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="reason">{t("dispute_reason")} *</Label>
+            <Label htmlFor="reason">{tExt("dispute_reason")} *</Label>
             <Select value={reason} onValueChange={setReason}>
               <SelectTrigger id="reason" className="text-left">
-                <SelectValue placeholder={t("select_a_reason")} />
+                <SelectValue placeholder={tCommon("select_a_reason")} />
               </SelectTrigger>
               <SelectContent>
                 {filteredReasons.map((r) => (
@@ -154,7 +156,7 @@ export function DisputeDialog({ children, onSubmit, loading, userRole }: Dispute
 
           <div className="space-y-2">
             <Label htmlFor="description">
-              {t("description")}{" "}
+              {tCommon("description")}{" "}
               <span className="text-xs text-muted-foreground">
                 ({description.length}/1000)
               </span>
@@ -181,7 +183,7 @@ export function DisputeDialog({ children, onSubmit, loading, userRole }: Dispute
           )}
 
           <div className="rounded-md bg-yellow-50 dark:bg-yellow-950/30 p-3 text-sm text-yellow-800 dark:text-yellow-300">
-            <p className="font-medium mb-1">{t("important")}</p>
+            <p className="font-medium mb-1">{tExt("important")}</p>
             <ul className="list-disc list-inside space-y-1 text-xs">
               <li>{t("opening_a_dispute_will_freeze_the_trade")}</li>
               <li>{t("admin_will_review_both_parties_evidence")}</li>

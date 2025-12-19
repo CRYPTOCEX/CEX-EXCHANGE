@@ -8,6 +8,8 @@ export const metadata = {
     "Retrieves detailed ICO offering data (including phases, token detail, team members, roadmap items, launch plan, computed stats, investor count, and rejected funds) for the authenticated creator.",
   operationId: "getCreatorIcoOfferingById",
   tags: ["ICO", "Creator", "Offerings"],
+  logModule: "ICO",
+  logTitle: "Get Creator Token",
   requiresAuth: true,
   parameters: [
     {
@@ -53,11 +55,14 @@ function computeTimeline(offering: any) {
   return timeline;
 }
 
-export default async (data: { user?: any; params?: any }) => {
-  const { user, params } = data;
+export default async (data: { user?: any; params?: any; ctx?: any }) => {
+  const { user, params, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Fetching creator token");
   const { id } = params;
   if (!id) {
     throw createError({ statusCode: 400, message: "No offering ID provided" });
@@ -190,5 +195,6 @@ export default async (data: { user?: any; params?: any }) => {
     investorsCount,
   };
 
+  ctx?.success("Creator token retrieved successfully");
   return transformedOffering;
 };

@@ -43,7 +43,8 @@ export default function RegisterForm({
   onRegistrationSuccess,
   onLoginClick,
 }: RegisterFormProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components_auth");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -751,7 +752,7 @@ export default function RegisterForm({
           >
             <Input
               type="text"
-              placeholder="First Name"
+              placeholder={tCommon("first_name")}
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               required
@@ -778,7 +779,7 @@ export default function RegisterForm({
           >
             <Input
               type="text"
-              placeholder="Last Name"
+              placeholder={tCommon("last_name")}
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               required
@@ -830,7 +831,7 @@ export default function RegisterForm({
             <div className="relative transition-all duration-300 form-field-animate rounded-lg ring-1 ring-input bg-muted/30">
               <Input
                 type="text"
-                placeholder={t("referrer")}
+                placeholder={tCommon("referrer")}
                 value={loadingReferrer ? "Loading..." : (referrerInfo?.name || refCode)}
                 readOnly
                 className="border-0 pl-10 py-6 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base text-muted-foreground cursor-not-allowed"
@@ -901,14 +902,14 @@ export default function RegisterForm({
               <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg">
                 <div className="flex items-center mb-1">
                   <Info className="h-3 w-3 mr-1" />
-                  <span className="font-medium">Password must contain:</span>
+                  <span className="font-medium">{t("password_must_contain")}:</span>
                 </div>
                 <ul className="list-disc list-inside space-y-0.5 ml-4 text-xs">
-                  <li>At least 8 characters</li>
-                  <li>One uppercase letter</li>
-                  <li>One lowercase letter</li>
-                  <li>One number</li>
-                  <li>One special character</li>
+                  <li>{t("at_least_8_characters")}</li>
+                  <li>{t("one_uppercase_letter")}</li>
+                  <li>{t("one_lowercase_letter")}</li>
+                  <li>{t("one_number")}</li>
+                  <li>{t("one_special_character")}</li>
                 </ul>
               </div>
             )}
@@ -953,7 +954,7 @@ export default function RegisterForm({
           >
             <Input
               type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm Password"
+              placeholder={t("confirm_password")}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
@@ -1037,7 +1038,7 @@ export default function RegisterForm({
             </span>
           ) : (
             <span className="flex items-center justify-center">
-              {t("create_account")}
+              {tCommon("create_account")}
               <ArrowRight className="ml-2 h-4 w-4" />
             </span>
           )}
@@ -1096,7 +1097,7 @@ export default function RegisterForm({
 
       {/* Social proof */}
       <div className="text-center text-xs text-muted-foreground">
-        <p>{t("join_over_10000+_users_worldwide")}</p>
+        <p>{t("join_over_10000_users_worldwide")}</p>
         <div className="flex justify-center mt-2 space-x-1">
           {[...Array(5)].map((_, i) => (
             <CheckCircle2 key={i} className="h-3 w-3 text-primary" />
@@ -1112,7 +1113,7 @@ export default function RegisterForm({
             className="p-0 h-auto font-semibold"
             onClick={onLoginClick}
           >
-            {t("sign_in")}
+            {tCommon("sign_in")}
           </Button>
         </p>
       </div>

@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 
 export const MeasurementLabel = memo<MeasurementLabelProps>(
   ({ direction, value, isActive, isLinked, variant, toggleLink }) => {
-    const t = useTranslations("dashboard");
+    const t = useTranslations("common");
     const labelPosition = useMemo((): React.CSSProperties => {
       switch (direction) {
         case "top":

@@ -20,6 +20,8 @@ export const metadata: OperationObject = {
   tags: ["Auth"],
   description: "Logs in a user using Google and returns a session token",
   requiresAuth: false,
+  logModule: "LOGIN",
+  logTitle: "Google login",
   requestBody: {
     required: true,
     content: {
@@ -79,82 +81,105 @@ async function verifyGoogleIdToken(idToken: string) {
 }
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { token } = body;
 
-  if (!token) {
-    throw new Error("Missing Google token");
-  }
-
-  let payload;
   try {
-    payload = await verifyGoogleIdToken(token);
+    ctx?.step("Validating Google token");
+    if (!token) {
+      ctx?.fail("Missing Google token");
+      throw new Error("Missing Google token");
+    }
+
+    ctx?.step("Verifying Google ID token");
+    let payload;
+    try {
+      payload = await verifyGoogleIdToken(token);
+    } catch (error) {
+      ctx?.fail("Invalid Google token");
+      throw createError({
+        statusCode: 401,
+        message: error.message || "Invalid Google token",
+      });
+    }
+
+    const {
+      sub: googleId,
+      email,
+      given_name: firstName,
+      family_name: lastName,
+    } = payload;
+
+    ctx?.step("Validating Google user data");
+    if (!googleId || !email || !firstName || !lastName) {
+      ctx?.fail("Incomplete user information from Google");
+      throw createError({
+        statusCode: 400,
+        message: "Incomplete user information from Google",
+      });
+    }
+
+    ctx?.step(`Looking up user: ${email}`);
+    // Find user by email
+    const user = await models.user.findOne({ where: { email } });
+    if (!user) {
+      ctx?.fail("User not found");
+      throw createError({
+        statusCode: 404,
+        message: "User not found. Please register first.",
+      });
+    }
+
+    ctx?.step("Validating user status");
+    // Validate user status
+    if (user.status === "BANNED") {
+      ctx?.fail("Account banned");
+      throw createError({
+        statusCode: 403,
+        message: "Your account has been banned. Please contact support.",
+      });
+    }
+    if (user.status === "SUSPENDED") {
+      ctx?.fail("Account suspended");
+      throw createError({
+        statusCode: 403,
+        message: "Your account is suspended. Please contact support.",
+      });
+    }
+    if (user.status === "INACTIVE") {
+      ctx?.fail("Account inactive");
+      throw createError({
+        statusCode: 403,
+        message:
+          "Your account is inactive. Please verify your email or contact support.",
+      });
+    }
+
+    ctx?.step("Checking Google provider link");
+    // Check or create provider user link
+    const providerUser = await models.providerUser.findOne({
+      where: { providerUserId: googleId, provider: "GOOGLE" },
+    });
+
+    if (!providerUser) {
+      ctx?.step("Creating Google provider link");
+      await models.providerUser.create({
+        provider: "GOOGLE",
+        providerUserId: googleId,
+        userId: user.id,
+      });
+    }
+
+    ctx?.step("Generating session tokens");
+    const result = await returnUserWithTokens({
+      user,
+      message: "You have been logged in successfully",
+    });
+
+    ctx?.success(`User ${email} logged in with Google`);
+    return result;
   } catch (error) {
-    throw createError({
-      statusCode: 401,
-      message: error.message || "Invalid Google token",
-    });
+    ctx?.fail(error.message || "Google login failed");
+    throw error;
   }
-
-  const {
-    sub: googleId,
-    email,
-    given_name: firstName,
-    family_name: lastName,
-  } = payload;
-
-  if (!googleId || !email || !firstName || !lastName) {
-    throw createError({
-      statusCode: 400,
-      message: "Incomplete user information from Google",
-    });
-  }
-
-  // Find user by email
-  const user = await models.user.findOne({ where: { email } });
-  if (!user) {
-    throw createError({
-      statusCode: 404,
-      message: "User not found. Please register first.",
-    });
-  }
-
-  // Validate user status
-  if (user.status === "BANNED") {
-    throw createError({
-      statusCode: 403,
-      message: "Your account has been banned. Please contact support.",
-    });
-  }
-  if (user.status === "SUSPENDED") {
-    throw createError({
-      statusCode: 403,
-      message: "Your account is suspended. Please contact support.",
-    });
-  }
-  if (user.status === "INACTIVE") {
-    throw createError({
-      statusCode: 403,
-      message:
-        "Your account is inactive. Please verify your email or contact support.",
-    });
-  }
-
-  // Check or create provider user link
-  const providerUser = await models.providerUser.findOne({
-    where: { providerUserId: googleId, provider: "GOOGLE" },
-  });
-
-  if (!providerUser) {
-    await models.providerUser.create({
-      provider: "GOOGLE",
-      providerUserId: googleId,
-      userId: user.id,
-    });
-  }
-
-  return await returnUserWithTokens({
-    user,
-    message: "You have been logged in successfully",
-  });
 };

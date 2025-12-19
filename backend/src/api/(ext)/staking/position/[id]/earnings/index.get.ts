@@ -61,13 +61,15 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, params, query } = data;
+  const { user, params, query, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { id } = params;
 
+  ctx?.step(`Fetching earnings for position ${id}`);
   // Get the position
   const position = await models.stakingPosition.findOne({
     where: { id },
@@ -113,6 +115,7 @@ export default async (data: Handler) => {
     .reduce((sum, record) => sum + record.amount, 0);
   const unclaimed = total - claimed;
 
+  ctx?.success(`Retrieved ${earnings.length} earnings for position ${id}`);
   return {
     earnings,
     summary: {

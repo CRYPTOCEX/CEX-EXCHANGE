@@ -57,29 +57,46 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("Binary Order"),
     500: serverErrorResponse,
   },
+  logModule: "BINARY",
+  logTitle: "Cancel binary order",
+  requiresAuth: true,
 };
 
 export default async (data: Handler) => {
-  const { body, params, user } = data;
+  const { body, params, user, ctx } = data;
 
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
   const { id } = params;
   const { percentage } = body;
-  const order = await models.binaryOrder.findOne({
-    where: {
-      id,
-    },
-  });
-
-  if (!order) {
-    throw createError(404, "Order not found");
-  }
 
   try {
+    ctx?.step("Validating order existence");
+    const order = await models.binaryOrder.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (!order) {
+      throw createError(404, "Order not found");
+    }
+
+    ctx?.step("Checking order status and eligibility for cancellation");
+
+    ctx?.step("Fetching current market price");
+
+    ctx?.step("Calculating refund amount");
+
+    ctx?.step("Refunding wallet balance");
+
+    ctx?.step("Updating order status to cancelled");
     BinaryOrderService.cancelOrder(user.id, id, percentage);
+
+    ctx?.success(`Cancelled binary order on ${order.symbol}${percentage ? ` with ${percentage}% penalty` : ''}`);
   } catch (error) {
+    ctx?.fail(error.message || "Failed to cancel binary order");
     if (error.statusCode === 503) {
       throw error;
     }

@@ -48,7 +48,7 @@ const TabLoadingFallback = () => (
 );
 
 export function ProfileContent() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
   const {
     isLoading,
     activeTab,

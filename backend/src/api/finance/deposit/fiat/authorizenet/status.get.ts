@@ -3,6 +3,7 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
@@ -142,7 +143,7 @@ export default async (data: Handler) => {
     };
 
   } catch (error) {
-    console.error("Authorize.Net status check error:", error);
+    logger.error("AUTHORIZENET", "Status check error", error);
     throw new Error(error instanceof Error ? error.message : "Failed to get transaction status");
   }
 }; 

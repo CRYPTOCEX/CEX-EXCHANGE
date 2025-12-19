@@ -49,6 +49,7 @@ import { motion } from "framer-motion";
 import { Link } from "@/i18n/routing";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 interface FeeComparison {
   currency: string;
@@ -62,7 +63,8 @@ type SortField = keyof FeeComparison;
 type SortDirection = "asc" | "desc";
 
 const ExchangeFeePage = () => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const params = useParams();
   const [fees, setFees] = useState<FeeComparison[]>([]);
   const [filteredFees, setFilteredFees] = useState<FeeComparison[]>([]);
@@ -202,7 +204,7 @@ const ExchangeFeePage = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <div className={`container ${PAGE_PADDING} space-y-6`}>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -237,7 +239,7 @@ const ExchangeFeePage = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
-              {t("total_amount")}
+              {tCommon("total_amount")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -300,7 +302,7 @@ const ExchangeFeePage = () => {
         <div className="flex flex-1 items-center space-x-2 max-w-sm">
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search currencies..."
+            placeholder={tCommon('search_currencies')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm"
@@ -319,10 +321,10 @@ const ExchangeFeePage = () => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="10">{t("10_per_page")}</SelectItem>
-              <SelectItem value="20">{t("20_per_page")}</SelectItem>
-              <SelectItem value="50">{t("50_per_page")}</SelectItem>
-              <SelectItem value="100">{t("100_per_page")}</SelectItem>
+              <SelectItem value="10">{`10 ${tCommon('per_page')}`}</SelectItem>
+              <SelectItem value="20">{`20 ${tCommon('per_page')}`}</SelectItem>
+              <SelectItem value="50">{`50 ${tCommon('per_page')}`}</SelectItem>
+              <SelectItem value="100">{`100 ${tCommon('per_page')}`}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -380,7 +382,7 @@ const ExchangeFeePage = () => {
                             onClick={() => handleSort("currency")}
                             className="h-auto p-0 font-medium"
                           >
-                            {t("Currency")}
+                            {tCommon("currency")}
                             {getSortIcon("currency")}
                           </Button>
                         </TableHead>
@@ -390,7 +392,7 @@ const ExchangeFeePage = () => {
                             onClick={() => handleSort("totalAmount")}
                             className="h-auto p-0 font-medium"
                           >
-                            {t("total_amount")}
+                            {tCommon("total_amount")}
                             {getSortIcon("totalAmount")}
                           </Button>
                         </TableHead>
@@ -424,7 +426,7 @@ const ExchangeFeePage = () => {
                             {getSortIcon("totalExtraFee")}
                           </Button>
                         </TableHead>
-                        <TableHead>{t("Status")}</TableHead>
+                        <TableHead>{tCommon("status")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -475,13 +477,13 @@ const ExchangeFeePage = () => {
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between mt-4">
                     <div className="text-sm text-muted-foreground">
-                      {t("Showing")}
+                      {tCommon("showing")}
                       {startIndex + 1}
-                      {t("to")}
+                      {tCommon("to")}
                       {Math.min(endIndex, totalItems)}
-                      {t("of")}
+                      {tCommon("of")}
                       {totalItems}
-                      {t("currencies")}
+                      {tCommon("currencies")}
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -505,9 +507,9 @@ const ExchangeFeePage = () => {
                       </Button>
 
                       <span className="text-sm font-medium px-2">
-                        {t("Page")}
+                        {tCommon("page")}
                         {currentPage}
-                        {t("of")}
+                        {tCommon("of")}
                         {totalPages}
                       </span>
 

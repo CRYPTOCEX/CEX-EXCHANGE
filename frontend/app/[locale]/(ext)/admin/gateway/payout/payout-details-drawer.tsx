@@ -63,6 +63,8 @@ export default function PayoutDetailsDrawer({
   payoutId,
 }: PayoutDetailsDrawerProps) {
   const t = useTranslations("ext");
+  const tExtAdmin = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const [loading, setLoading] = useState(false);
   const [payout, setPayout] = useState<PayoutDetails | null>(null);
 
@@ -107,7 +109,7 @@ export default function PayoutDetailsDrawer({
         <SheetHeader>
           <SheetTitle>{t("payout_details")}</SheetTitle>
           <SheetDescription>
-            {t("complete_information_about_this_payout")}
+            {tExtAdmin("complete_information_about_this_payout")}
           </SheetDescription>
         </SheetHeader>
 
@@ -175,14 +177,14 @@ export default function PayoutDetailsDrawer({
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground flex items-center gap-2">
                     <Wallet className="h-4 w-4" />
-                    {t("wallet_type")}
+                    {tCommon("wallet_type")}
                   </span>
                   <span>{payout.walletType}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground flex items-center gap-2">
                     <FileText className="h-4 w-4" />
-                    {t("payments_included")}
+                    {tExtAdmin("payments_included")}
                   </span>
                   <span>{payout.paymentCount}</span>
                 </div>
@@ -242,7 +244,7 @@ export default function PayoutDetailsDrawer({
           </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
-            <p>{t("payout_not_found")}</p>
+            <p>{tExtAdmin("payout_not_found")}</p>
           </div>
         )}
       </SheetContent>

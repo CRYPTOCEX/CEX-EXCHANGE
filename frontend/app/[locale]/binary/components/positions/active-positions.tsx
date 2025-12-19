@@ -40,6 +40,7 @@ export default function ActivePositions({
   theme = "dark",
 }: ActivePositionsProps) {
   const t = useTranslations("common");
+  const tBinaryComponents = useTranslations("binary_components");
   
   // State management with proper initialization
   const [timeLeft, setTimeLeft] = useState<Record<string, string>>({});
@@ -403,7 +404,7 @@ export default function ActivePositions({
           <div className="flex items-center space-x-2">
             <BarChart3 className="w-4 h-4" />
             <h3 className={`font-medium ${themeClasses.textClass}`}>
-              Active Positions ({activeOrders.length})
+              {`${t("active_positions")} •`} ({activeOrders.length})
             </h3>
           </div>
         )}
@@ -478,19 +479,19 @@ export default function ActivePositions({
                   {/* Order Details */}
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
-                      <span className={themeClasses.secondaryTextClass}>Entry:</span>
+                      <span className={themeClasses.secondaryTextClass}>{tBinaryComponents("entry")}:</span>
                       <span className={`ml-1 ${themeClasses.textClass}`}>
                         {order.entryPrice.toFixed(2)} {getCurrency(order.symbol)}
                       </span>
                     </div>
                     <div>
-                      <span className={themeClasses.secondaryTextClass}>Current:</span>
+                      <span className={themeClasses.secondaryTextClass}>{t("current")}:</span>
                       <span className={`ml-1 ${themeClasses.textClass}`}>
                         {symbolPrice.toFixed(2)} {getCurrency(order.symbol)}
                       </span>
                     </div>
                     <div>
-                      <span className={themeClasses.secondaryTextClass}>Amount:</span>
+                      <span className={themeClasses.secondaryTextClass}>{t("amount")}:</span>
                       <span className={`ml-1 ${themeClasses.textClass}`}>
                         {order.amount.toFixed(2)} {getCurrency(order.symbol)}
                       </span>

@@ -21,7 +21,7 @@ export const createPaginationSlice: StateCreator<
   PaginationSlice
 > = (set, get, store) => ({
   page: 1,
-  pageSize: 10,
+  pageSize: 12,
   totalItems: 0,
   totalPages: 0,
 

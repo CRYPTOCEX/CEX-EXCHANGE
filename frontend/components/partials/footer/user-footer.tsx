@@ -1,222 +1,304 @@
+"use client";
+
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
-import { motion } from "framer-motion";
-import { 
-  TrendingUp, 
-  BarChart3, 
-  HelpCircle, 
-  Globe, 
-  ChevronRight
+import {
+  TrendingUp,
+  BarChart3,
+  Globe,
+  Coins,
+  BookOpen,
+  ArrowRight,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useTheme } from "next-themes";
 import { useSettings } from "@/hooks/use-settings";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "Bicrypto";
 const siteDescription =
   process.env.NEXT_PUBLIC_SITE_DESCRIPTION ||
   "The most trusted cryptocurrency platform with advanced trading tools and secure storage.";
+const binaryEnabled = process.env.NEXT_PUBLIC_BINARY_STATUS === "true";
+
+// Social link interface matching the settings configuration
+interface SocialLink {
+  id: string;
+  name: string;
+  url: string;
+  icon: string;
+}
+
+interface FooterLink {
+  name: string;
+  href: string;
+  icon?: React.ElementType;
+}
+
+interface FooterSection {
+  title: string;
+  icon: React.ElementType;
+  iconColor: string;
+  links: FooterLink[];
+}
 
 export function SiteFooter() {
   const t = useTranslations("common");
-  const { resolvedTheme } = useTheme();
-  const { extensions, settingsFetched } = useSettings();
-  const isDark = resolvedTheme === "dark";
+  const tComponents = useTranslations("components");
+  const { extensions, settings, settingsFetched } = useSettings();
 
-  // Helper function to check if extension is enabled
-  const hasExtension = (name: string) => {
-    if (!extensions) return false;
-    return extensions.includes(name);
+  const hasExtension = (name: string) => extensions?.includes(name) ?? false;
+  const getSetting = (key: string) => {
+    if (!settings) return false;
+    const value = settings[key];
+    return value === true || value === "true";
   };
 
-  // Filter trading links based on enabled extensions
-  const tradingLinks = [
-    { name: "Spot Trading", href: "/trade" }, // Always available
-    { name: "Binary Options", href: "/binary" }, // Always available  
-    { name: "Markets", href: "/market" }, // Always available
-    { name: "Investment", href: "/investment", extension: "investment" },
-    { name: "Staking", href: "/staking", extension: "staking" }
-  ].filter(link => !link.extension || hasExtension(link.extension));
+  const isSpotEnabled = getSetting("spotWallets");
+  const isEcosystemEnabled = hasExtension("ecosystem");
+  const showSpotTrading = isSpotEnabled || isEcosystemEnabled;
 
-  // Filter company links based on enabled extensions
-  const companyLinks = [
-    { name: "About", href: "/about" }, // Always available
-    { name: "Blog", href: "/blog" }, // Always available  
-    { name: "Affiliate", href: "/affiliate", extension: "mlm" },
-    { name: "P2P Trading", href: "/p2p", extension: "p2p" },
-    { name: "Ecommerce", href: "/ecommerce", extension: "ecommerce" }
-  ].filter(link => !link.extension || hasExtension(link.extension));
+  // Get social links from customSocialLinks setting
+  const socialLinks = useMemo(() => {
+    if (!settings) return [];
+    const customLinks = settings.customSocialLinks;
+    if (!customLinks) return [];
 
-  // Don't render footer until settings are fetched to avoid layout shift
+    try {
+      const parsed: SocialLink[] = typeof customLinks === 'string'
+        ? JSON.parse(customLinks)
+        : customLinks;
+
+      if (!Array.isArray(parsed)) return [];
+
+      return parsed
+        .filter((link) => link.url && link.url.trim() !== "")
+        .map((link) => ({
+          id: link.id,
+          label: link.name,
+          href: link.url,
+          icon: link.icon || "/img/social/globe.svg",
+        }));
+    } catch {
+      return [];
+    }
+  }, [settings]);
+
+  const footerSections = useMemo<FooterSection[]>(() => {
+    const sections: FooterSection[] = [];
+
+    // Trading Section
+    const tradingLinks: FooterLink[] = [];
+    if (showSpotTrading) {
+      tradingLinks.push({ name: "Spot Trading", href: "/trade" });
+    }
+    if (binaryEnabled) {
+      tradingLinks.push({ name: "Binary Options", href: "/binary" });
+    }
+    if (hasExtension("futures")) {
+      tradingLinks.push({ name: "Futures", href: "/futures" });
+    }
+    if (hasExtension("p2p")) {
+      tradingLinks.push({ name: "P2P Trading", href: "/p2p" });
+    }
+    if (hasExtension("forex")) {
+      tradingLinks.push({ name: "Forex", href: "/forex" });
+    }
+    tradingLinks.push({ name: "Markets", href: "/market" });
+
+    if (tradingLinks.length > 0) {
+      sections.push({
+        title: "Trading",
+        icon: BarChart3,
+        iconColor: "text-blue-500 dark:text-blue-400",
+        links: tradingLinks,
+      });
+    }
+
+    // Products Section
+    const productLinks: FooterLink[] = [];
+    if (getSetting("investment")) {
+      productLinks.push({ name: "Investment", href: "/investment" });
+    }
+    if (hasExtension("staking")) {
+      productLinks.push({ name: "Staking", href: "/staking" });
+    }
+    if (hasExtension("ico")) {
+      productLinks.push({ name: "Token Sales", href: "/ico" });
+    }
+    if (hasExtension("ai_investment")) {
+      productLinks.push({ name: "AI Investment", href: "/ai/investment" });
+    }
+    if (hasExtension("nft")) {
+      productLinks.push({ name: "NFT Marketplace", href: "/nft" });
+    }
+    if (hasExtension("ecommerce")) {
+      productLinks.push({ name: "Store", href: "/ecommerce" });
+    }
+
+    if (productLinks.length > 0) {
+      sections.push({
+        title: "Products",
+        icon: Coins,
+        iconColor: "text-emerald-500 dark:text-emerald-400",
+        links: productLinks,
+      });
+    }
+
+    // Resources Section
+    const resourceLinks: FooterLink[] = [
+      { name: "API Documentation", href: "/api-docs" },
+      { name: "Help Center", href: "/support" },
+    ];
+    if (hasExtension("knowledge_base")) {
+      resourceLinks.push({ name: "FAQ", href: "/faq" });
+    }
+    resourceLinks.push({ name: "Blog", href: "/blog" });
+
+    sections.push({
+      title: "Resources",
+      icon: BookOpen,
+      iconColor: "text-amber-500 dark:text-amber-400",
+      links: resourceLinks,
+    });
+
+    // Company Section
+    sections.push({
+      title: "Company",
+      icon: Globe,
+      iconColor: "text-purple-500 dark:text-purple-400",
+      links: [
+        { name: "About", href: "/about" },
+        { name: "Contact", href: "/contact" },
+        { name: "KYC Verification", href: "/user/kyc" },
+        ...(hasExtension("mlm") ? [{ name: "Affiliate", href: "/affiliate" }] : []),
+      ],
+    });
+
+    return sections;
+  }, [extensions, settings, showSpotTrading]);
+
   if (!settingsFetched) {
-    return null;
+    return (
+      <footer className="bg-muted/30 py-12 border-t">
+        <div className="container mx-auto px-4">
+          <div className="animate-pulse space-y-4">
+            <div className="h-6 w-32 bg-muted rounded" />
+            <div className="h-4 w-48 bg-muted rounded" />
+          </div>
+        </div>
+      </footer>
+    );
   }
 
   return (
-    <footer className="relative overflow-hidden">
-      {/* Background with gradient and animated elements */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 dark:from-zinc-950 dark:via-blue-950/30 dark:to-purple-950/30" />
-      <div className="absolute inset-0">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 dark:from-blue-500/10 dark:to-cyan-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-purple-500/5 to-pink-500/5 dark:from-purple-500/10 dark:to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
-      </div>
+    <footer className="relative bg-muted/30 border-t">
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-linear-to-t from-background/50 to-transparent pointer-events-none" />
 
-      <div className="relative z-10">
-        {/* Main Footer Content */}
-        <div className="container mx-auto px-4 md:px-6 py-16 md:py-20">
-          <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 md:gap-12">
-            {/* Brand Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="lg:col-span-4"
-            >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-white" />
+      <div className="relative">
+        {/* Main Content */}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+          {/* Top Section - Logo and Social */}
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 lg:gap-12 pb-10 lg:pb-12 border-b border-border/50">
+            {/* Brand */}
+            <div className="max-w-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-linear-to-br from-primary to-primary/60 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+                  <TrendingUp className="w-5 h-5 text-primary-foreground" />
                 </div>
-                <span className="text-2xl font-bold text-slate-900 dark:text-white">{siteName}</span>
+                <span className="text-xl font-bold text-foreground">{siteName}</span>
               </div>
-              
-              <p className="text-slate-600 dark:text-gray-300 mb-6 leading-relaxed max-w-md">
+              <p className="text-muted-foreground text-sm leading-relaxed mb-6">
                 {siteDescription}
               </p>
-            </motion.div>
+              {/* CTA Button */}
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/register"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium rounded-lg transition-colors"
+                >
+                  Get Started
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
 
-            {/* Trading Links */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="lg:col-span-2"
-            >
-              <h3 className="text-slate-900 dark:text-white font-semibold text-lg mb-6 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-blue-500 dark:text-blue-400" />
-                {t("Trading")}
-              </h3>
-              <ul className="space-y-3">
-                {tradingLinks.map((link, index) => (
-                  <motion.li
-                    key={link.name}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-                  >
-                    <Link
-                      href={link.href}
-                      className="text-slate-600 hover:text-slate-900 dark:text-gray-300 dark:hover:text-white transition-colors duration-300 flex items-center gap-2 group"
+            {/* Social Links from Settings */}
+            {socialLinks.length > 0 && (
+              <div className="flex flex-col items-start lg:items-end gap-4">
+                <span className="text-sm text-muted-foreground">Follow Us</span>
+                <div className="flex items-center gap-3 flex-wrap">
+                  {socialLinks.map((social) => (
+                    <a
+                      key={social.id}
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={social.label}
+                      title={social.label}
+                      className="w-10 h-10 flex items-center justify-center rounded-lg bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
-                      {link.name}
-                    </Link>
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
+                      <Image
+                        src={social.icon}
+                        alt={social.label}
+                        width={20}
+                        height={20}
+                        className="dark:invert opacity-70 hover:opacity-100 transition-opacity"
+                      />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
-            {/* Support & Learn */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="lg:col-span-2"
-            >
-              <h3 className="text-slate-900 dark:text-white font-semibold text-lg mb-6 flex items-center gap-2">
-                <HelpCircle className="w-5 h-5 text-purple-500 dark:text-purple-400" />
-                {t("Support")}
-              </h3>
-              <ul className="space-y-3">
-                {[
-                  { name: "Support Center", href: "/support" },
-                  { name: "Contact Us", href: "/contact" },
-                  { name: "FAQ", href: "/faq" },
-                  { name: "User Profile", href: "/user/profile" },
-                  { name: "KYC", href: "/user/kyc" }
-                ].map((link, index) => (
-                  <motion.li
-                    key={link.name}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.4, delay: 0.4 + index * 0.1 }}
-                  >
-                    <Link
-                      href={link.href}
-                      className="text-slate-600 hover:text-slate-900 dark:text-gray-300 dark:hover:text-white transition-colors duration-300 flex items-center gap-2 group"
-                    >
-                      <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
-                      {link.name}
-                    </Link>
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
-
-            {/* Company */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="lg:col-span-2"
-            >
-              <h3 className="text-slate-900 dark:text-white font-semibold text-lg mb-6 flex items-center gap-2">
-                <Globe className="w-5 h-5 text-green-500 dark:text-green-400" />
-                {t("Company")}
-              </h3>
-              <ul className="space-y-3">
-                {companyLinks.map((link, index) => (
-                  <motion.li
-                    key={link.name}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
-                  >
-                    <Link
-                      href={link.href}
-                      className="text-slate-600 hover:text-slate-900 dark:text-gray-300 dark:hover:text-white transition-colors duration-300 flex items-center gap-2 group"
-                    >
-                      <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
-                      {link.name}
-                    </Link>
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
+          {/* Links Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8 lg:gap-12 py-10 lg:py-12">
+            {footerSections.map((section) => (
+              <div key={section.title}>
+                <h3 className="text-foreground font-semibold text-sm mb-4 flex items-center gap-2">
+                  <section.icon className={cn("w-4 h-4", section.iconColor)} />
+                  {section.title}
+                </h3>
+                <ul className="space-y-3">
+                  {section.links.map((link) => (
+                    <li key={link.name}>
+                      <Link
+                        href={link.href}
+                        className="text-muted-foreground hover:text-foreground text-sm transition-colors inline-block"
+                      >
+                        {link.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-slate-200/50 dark:border-white/10 bg-slate-100/50 dark:bg-black/20 backdrop-blur-sm">
-          <div className="container mx-auto px-4 md:px-6 py-6">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
-                className="text-slate-500 dark:text-gray-400 text-sm text-center md:text-left"
-              >
-                © 2025 {siteName}. {t("all_rights_reserved")}.
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.7 }}
-                className="flex flex-wrap justify-center gap-6 text-sm"
-              >
+        <div className="border-t border-border/50 bg-muted/20">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-5">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-muted-foreground text-sm text-center sm:text-left">
+                © {new Date().getFullYear()} {siteName}. {tComponents("all_rights_reserved")}.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
                 {[
-                  { name: "Privacy Policy", href: "/privacy" },
-                  { name: "Terms of Service", href: "/terms" }
-                ].map((link, index) => (
+                  { name: "Privacy", href: "/privacy" },
+                  { name: "Terms", href: "/terms" },
+                ].map((link) => (
                   <Link
                     key={link.name}
                     href={link.href}
-                    className="text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white transition-colors duration-300"
+                    className="text-muted-foreground hover:text-foreground text-sm transition-colors"
                   >
                     {link.name}
                   </Link>
                 ))}
-              </motion.div>
+              </div>
             </div>
           </div>
         </div>

@@ -9,7 +9,7 @@ import { RefreshCw } from "lucide-react";
 import { useState } from "react";
 
 export function TopBar() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const { setFilter, fetchExtensions } = useExtensionStore();
   const { retryFetch } = useSettings();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -75,7 +75,7 @@ export function TopBar() {
   return (
     <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center md:justify-between">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t("Extensions")}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("extensions")}</h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
           {t("enhance_your_system_with_powerful_extensions")}
         </p>
@@ -83,7 +83,7 @@ export function TopBar() {
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative">
           <Input
-            placeholder="Search extensions"
+            placeholder={t("search_extensions")}
             className="w-full sm:w-[300px]"
             onChange={(e) => setFilter(e.target.value)}
             icon="mdi:search"

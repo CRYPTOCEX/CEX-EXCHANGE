@@ -25,7 +25,7 @@ export const metadata: OperationObject = {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -44,12 +44,15 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.ecommerce.review",
+  demoMask: ["items.user.email"],
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching reviews list");
+
+  const result = await getFiltered({
     model: models.ecommerceReview,
     query,
     sortField: query.sortField || "createdAt",
@@ -74,4 +77,7 @@ export default async (data: Handler) => {
     ],
     numericFields: ["rating"],
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} reviews`);
+  return result;
 };

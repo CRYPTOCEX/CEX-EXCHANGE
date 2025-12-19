@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "editTokenOfferingUpdate",
   tags: ["ICO", "Creator", "Updates"],
   requiresAuth: true,
+  logModule: "ICO_UPDATE",
+  logTitle: "Edit offering update",
   parameters: [
     {
       index: 0,
@@ -69,10 +71,12 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, params, body } = data;
+  const { user, params, body, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Validating update edit request");
   const { updateId } = params;
   if (!updateId) {
     throw createError({ statusCode: 400, message: "Missing update ID" });
@@ -91,12 +95,15 @@ export default async (data: Handler) => {
   }
 
   const oldTitle = updateRecord.title;
+
+  ctx?.step("Updating offering update record");
   await updateRecord.update({
     title,
     content,
     attachments: attachments || [],
   });
 
+  ctx?.step("Sending notification");
   try {
     await createNotification({
       userId: user.id,
@@ -122,5 +129,6 @@ export default async (data: Handler) => {
     console.error("Failed to create notification for update edit", notifErr);
   }
 
+  ctx?.success(`Edited update "${title}"`);
   return { message: "Update updated successfully.", update: updateRecord };
 };

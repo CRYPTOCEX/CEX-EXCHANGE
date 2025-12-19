@@ -3,11 +3,16 @@
 import { useEffect, useState, useRef } from "react";
 import { useEcommerceStore } from "@/store/ecommerce/ecommerce";
 import CategoryCard from "../components/category-card";
-import { Loader2, Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, Grid3X3 } from "lucide-react";
+import CategoryLoading from "./loading";
+import CategoryErrorState from "./error-state";
+import { motion } from "framer-motion";
+import { ecommerceCategoryAttributes } from "@/types/ecommerce/category";
 import { useTranslations } from "next-intl";
 
 export default function CategoriesClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ecommerce");
+  const tCommon = useTranslations("common");
   const { categories, isLoadingCategories, error, fetchCategories } =
     useEcommerceStore();
   const [isInitialized, setIsInitialized] = useState(false);
@@ -46,110 +51,153 @@ export default function CategoriesClient() {
   };
 
   if (!isInitialized || isLoadingCategories) {
-    return (
-      <div className="flex flex-col justify-center items-center min-h-[400px] bg-white dark:bg-zinc-800/50 rounded-2xl shadow-xl p-8">
-        <Loader2 className="h-12 w-12 animate-spin text-indigo-600 dark:text-indigo-400 mb-4" />
-        <p className="text-gray-500 dark:text-zinc-400 text-lg">
-          {t("loading_categories")}.
-        </p>
-      </div>
-    );
+    return <CategoryLoading />;
   }
 
   if (error) {
     return (
-      <div className="text-center py-12 bg-white dark:bg-zinc-800/50 rounded-2xl shadow-xl p-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
-          <X className="h-8 w-8 text-red-600 dark:text-red-400" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
-          {t("error_loading_categories")}
-        </h2>
-        <p className="mt-2 text-gray-600 dark:text-zinc-400 max-w-md mx-auto">
-          {t("there_was_an_error_loading_the_categories")}.{" "}
-          {t("please_try_again_later")}.
-        </p>
-        <button
-          onClick={() => fetchCategories()}
-          className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-indigo-700 dark:hover:bg-indigo-600"
-        >
-          {t("try_again")}
-        </button>
-      </div>
+      <CategoryErrorState
+        onRetry={() => fetchCategories()}
+        message="There was an error loading the categories. Please try again later."
+      />
     );
   }
 
   return (
-    <div className="space-y-8">
-      <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-4 md:p-6">
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400 dark:text-zinc-500" />
-          </div>
-          <input
-            ref={searchRef}
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search categories..."
-            className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
-          />
-          {searchQuery && (
-            <button
-              onClick={clearSearch}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+      className={`bg-linear-to-b from-amber-50/30 via-white to-emerald-50/30 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 min-h-screen`}
+    >
+      <div className="relative pt-20 pb-12">
+        {/* Subtle decorative background glows */}
+        <div className={`absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none`} />
+        <div className={`absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none`} />
+
+        <div className="relative container mx-auto space-y-8">
+          {/* Premium Hero Section */}
+          <div className="text-center mb-12">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 mb-6`}
             >
-              <X className="h-5 w-5 text-gray-400 dark:text-zinc-500 hover:text-gray-500 dark:hover:text-zinc-400" />
-            </button>
+              <Grid3X3 className={`h-4 w-4 text-amber-600 dark:text-amber-400`} />
+              <span className={`text-sm font-medium text-amber-700 dark:text-amber-400`}>
+                {t("explore_categories")}
+              </span>
+            </motion.div>
+            <motion.h1
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-5xl md:text-6xl font-bold mb-4"
+            >
+              <span className={`bg-clip-text text-transparent bg-linear-to-r from-amber-600 to-emerald-600`}>
+                {t("browse_categories")}
+              </span>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="text-lg md:text-xl text-gray-600 dark:text-zinc-400 max-w-2xl mx-auto"
+            >
+              {t("discover_our_premium_collection_organized_by")}
+            </motion.p>
+          </div>
+
+          {/* Premium Search & Filter Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className={`bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-3xl shadow-2xl p-6 md:p-8 border border-amber-200 dark:border-amber-700`}
+          >
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="h-6 w-6 text-gray-400 dark:text-zinc-500" />
+              </div>
+              <input
+                ref={searchRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={tCommon("search_categories_ellipsis")}
+                className={`block w-full pl-14 pr-12 py-4 border border-gray-200 dark:border-zinc-700 rounded-2xl bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition-all duration-200 text-lg`}
+              />
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center hover:scale-110 transition-transform"
+                >
+                  <X className="h-5 w-5 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300" />
+                </button>
+              )}
+            </div>
+            <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <p className="text-sm text-gray-600 dark:text-zinc-400">
+                <span className="font-semibold text-gray-900 dark:text-zinc-100">
+                  {filteredCategories.length}
+                </span>{" "}
+                {filteredCategories.length === 1 ? "category" : "categories"} found
+              </p>
+              <div className="flex items-center gap-3 text-sm">
+                <Filter className="h-4 w-4 text-gray-500 dark:text-zinc-400" />
+                <span className="text-gray-600 dark:text-zinc-400">
+                  {tCommon("sort_by")}
+                </span>
+                <select className={`bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-2 text-gray-700 dark:text-zinc-300 font-medium focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition-all`}>
+                  <option>Featured</option>
+                  <option>Alphabetical</option>
+                  <option>Newest</option>
+                </select>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Categories Grid or Empty State */}
+          {filteredCategories.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className={`bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-3xl shadow-2xl p-12 text-center border border-amber-200 dark:border-amber-700`}
+            >
+              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full bg-linear-to-br from-amber-500/20 to-emerald-500/20 dark:from-amber-600/30 dark:to-emerald-600/30 mb-6`}>
+                <Search className={`h-10 w-10 text-amber-600 dark:text-amber-400`} />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-zinc-100 mb-3">
+                {tCommon("no_categories_found")}
+              </h3>
+              <p className="text-gray-600 dark:text-zinc-400 mb-6 max-w-md mx-auto">
+                {t("we_couldnt_find_any_categories_matching")} {t("try_different_keywords_or_browse_all_categories_1")}
+              </p>
+              <button
+                onClick={clearSearch}
+                className={`inline-flex items-center px-6 py-3 border border-amber-500 dark:border-amber-700 rounded-xl shadow-sm text-sm font-medium text-amber-700 dark:text-amber-400 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm hover:bg-amber-500/10 dark:hover:bg-amber-600/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-600/50 transition-all duration-200`}
+              >
+                {tCommon("clear_search")}
+              </button>
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:gap-10">
+              {filteredCategories.map((category, index) => (
+                <motion.div
+                  key={category.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  <CategoryCard category={category} />
+                </motion.div>
+              ))}
+            </div>
           )}
         </div>
-        <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm text-gray-500 dark:text-zinc-400">
-            {filteredCategories.length}{" "}
-            {filteredCategories.length === 1 ? "category" : "categories"}
-            {t("found")}
-          </p>
-          <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-zinc-400">
-            <Filter className="h-4 w-4" />
-            <span>{t("sort_by")}</span>
-            <select className="bg-transparent border-none focus:ring-0 text-gray-700 dark:text-zinc-300 font-medium">
-              <option>{t("Featured")}</option>
-              <option>{t("Alphabetical")}</option>
-              <option>{t("Newest")}</option>
-            </select>
-          </div>
-        </div>
       </div>
-
-      {filteredCategories.length === 0 ? (
-        <div className="bg-white dark:bg-zinc-800/50 rounded-2xl shadow-xl p-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-zinc-700 mb-4">
-            <Search className="h-8 w-8 text-gray-500 dark:text-zinc-400" />
-          </div>
-          <h3 className="text-xl font-medium text-gray-900 dark:text-zinc-100">
-            {t("no_categories_found")}
-          </h3>
-          <p className="mt-2 text-gray-500 dark:text-zinc-400">
-            {t("we_couldnt_find_your_search")}.{" "}
-            {t("try_different_keywords_or_browse_all_categories")}.
-          </p>
-          <button
-            onClick={clearSearch}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            {t("clear_search")}
-          </button>
-        </div>
-      ) : (
-        // Replace motion.div with regular div
-        <div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
-          {filteredCategories.map((category, index) => (
-            <div key={category.id}>
-              <CategoryCard category={category} />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    </motion.div>
   );
 }

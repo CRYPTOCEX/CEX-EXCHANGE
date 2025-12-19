@@ -30,10 +30,17 @@ export const metadata = {
   responses: updateRecordResponses("Binary Order"),
   requiresAuth: true,
   permission: "edit.binary.order",
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk Update Binary Order Status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("binaryOrder", ids, status);
+
+  ctx?.step("Update Binary Order Status...");
+  const result = await updateStatus("binaryOrder", ids, status);
+
+  ctx?.success("Bulk Update Binary Order Status completed successfully");
+  return result;
 };

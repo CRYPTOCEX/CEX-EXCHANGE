@@ -14,7 +14,7 @@ export function CardSettings({
   settings,
   onSettingChange,
 }: SettingsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const handleImageChange = (file: File | null) => {
     if (file) {
       const imageUrl = URL.createObjectURL(file);
@@ -28,7 +28,7 @@ export function CardSettings({
     <div className="space-y-4">
       <LabeledInput
         id="title"
-        label="Card Title"
+        label={t("card_title")}
         value={settings.title || "Card Title"}
         onChange={(e) => onSettingChange("title", e.target.value)}
       />
@@ -49,7 +49,7 @@ export function CardSettings({
       </div>
       <LabeledInput
         id="buttonText"
-        label="Button Text"
+        label={t("button_text")}
         value={settings.buttonText || "Learn More"}
         onChange={(e) => onSettingChange("buttonText", e.target.value)}
       />

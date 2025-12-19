@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
-import StakingNavbar from "./navbar";
+import SiteHeader from "@/components/partials/header/site-header";
+import { ExtensionLayoutWrapper } from "@/components/layout/extension-layout-wrapper";
+import { menu, colorSchema, adminPath } from "./menu";
 
 interface StakingLayoutProps {
   children: ReactNode;
@@ -8,8 +10,14 @@ interface StakingLayoutProps {
 export default function StakingLayout({ children }: StakingLayoutProps) {
   return (
     <>
-      <StakingNavbar />
-      <main className="flex-1 pt-12">{children}</main>
+      <SiteHeader
+        menu={menu}
+        colorSchema={colorSchema}
+        adminPath={adminPath}
+      />
+      <ExtensionLayoutWrapper landingPath="/staking">
+        {children}
+      </ExtensionLayoutWrapper>
     </>
   );
 }

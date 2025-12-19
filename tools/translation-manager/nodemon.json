@@ -1,0 +1,11 @@
+{
+  "watch": ["server.js", "server/"],
+  "ext": "js,json",
+  "ignore": [
+    "scripts/*",
+    "node_modules/*",
+    "*.json",
+    "menu-translations.json",
+    "master-translations-data.json"
+  ]
+}

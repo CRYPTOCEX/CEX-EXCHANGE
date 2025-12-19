@@ -95,20 +95,19 @@ function createUntranslatableRoutes(api, untranslatableConfig, getTsxFiles) {
                 if (a.type !== b.type) return a.type.localeCompare(b.type);
                 return a.key.localeCompare(b.key);
             });
-            
+
+            // Build stats dynamically from actual types found
+            const stats = {};
+            for (const item of untranslatableItems) {
+                if (item.type) {
+                    stats[item.type] = (stats[item.type] || 0) + 1;
+                }
+            }
+
             res.json({
                 total: untranslatableItems.length,
                 items: untranslatableItems,
-                stats: {
-                    placeholder: untranslatableItems.filter(i => i.type === 'placeholder').length,
-                    underscore: untranslatableItems.filter(i => i.type === 'underscore').length,
-                    symbols: untranslatableItems.filter(i => i.type === 'symbol').length,
-                    numbers: untranslatableItems.filter(i => i.type === 'number').length,
-                    single: untranslatableItems.filter(i => i.type === 'single').length,
-                    emoji: untranslatableItems.filter(i => i.type === 'emoji').length,
-                    special: untranslatableItems.filter(i => i.type === 'special').length,
-                    whitespace: untranslatableItems.filter(i => i.type === 'whitespace').length
-                }
+                stats
             });
         } catch (error) {
             res.status(500).json({ error: error.message });
@@ -216,27 +215,27 @@ function createUntranslatableRoutes(api, untranslatableConfig, getTsxFiles) {
         }
     });
 
-    // Clean untranslatable texts
+    // Clean untranslatable texts (just replace values in locales)
     router.post('/clean', async (req, res) => {
         try {
             const { items } = req.body;
-            
+
             if (!items || !Array.isArray(items) || items.length === 0) {
                 return res.status(400).json({ error: 'No items provided' });
             }
-            
+
             const results = {
                 replaced: {},
                 removed: {},
                 errors: [],
                 tsxFiles: []
             };
-            
+
             // Process each locale
             for (const [localeCode, locale] of api.locales.entries()) {
                 const updatedKeys = { ...locale.keys };
                 let changesCount = 0;
-                
+
                 for (const item of items) {
                     if (updatedKeys[item.key]) {
                         if (item.suggestedReplacement !== null && item.suggestedReplacement !== undefined) {
@@ -245,18 +244,168 @@ function createUntranslatableRoutes(api, untranslatableConfig, getTsxFiles) {
                         }
                     }
                 }
-                
+
                 if (changesCount > 0) {
                     await api.saveLocale(localeCode, updatedKeys);
                     results.replaced[localeCode] = changesCount;
                 }
             }
-            
+
             res.json({
                 success: true,
                 results
             });
         } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    // Remove untranslatable keys from locales AND revert TSX files to literal strings
+    router.post('/remove', async (req, res) => {
+        try {
+            const { items } = req.body;
+
+            if (!items || !Array.isArray(items) || items.length === 0) {
+                return res.status(400).json({ error: 'No items provided' });
+            }
+
+            const results = {
+                keysRemoved: 0,
+                localesModified: new Set(),
+                tsxFilesModified: new Set(),
+                replacements: [],
+                errors: []
+            };
+
+            // Get all TSX files once
+            const tsxFiles = getTsxFiles();
+            console.log(`[UNTRANSLATABLE] Found ${tsxFiles.length} TSX files to scan`);
+
+            // Group items by namespace for efficient TSX processing
+            const itemsByNamespace = {};
+            for (const item of items) {
+                const [namespace, ...keyParts] = item.key.split('.');
+                const keyPart = keyParts.join('.');
+                if (!itemsByNamespace[namespace]) {
+                    itemsByNamespace[namespace] = [];
+                }
+                itemsByNamespace[namespace].push({
+                    ...item,
+                    namespace,
+                    keyPart,
+                    // The value to replace t('key') with - use the original value as literal text
+                    literalValue: item.value
+                });
+            }
+
+            // Step 1: Update TSX files - replace t('key') with literal value
+            console.log(`[UNTRANSLATABLE] Processing ${Object.keys(itemsByNamespace).length} namespaces...`);
+
+            for (const tsxFile of tsxFiles) {
+                try {
+                    let content = await fs.readFile(tsxFile, 'utf8');
+                    let fileModified = false;
+
+                    for (const [namespace, namespaceItems] of Object.entries(itemsByNamespace)) {
+                        // Check if file uses this namespace (client or server components)
+                        const clientNamespacePattern = new RegExp(`useTranslations\\s*\\(\\s*['"\`]${namespace}['"\`]\\s*\\)`);
+                        const serverNamespacePattern = new RegExp(`getTranslations\\s*\\(\\s*['"\`]${namespace}['"\`]\\s*\\)`);
+                        if (!clientNamespacePattern.test(content) && !serverNamespacePattern.test(content)) continue;
+
+                        for (const item of namespaceItems) {
+                            // Match t('keyPart') or t("keyPart") or tVarName('keyPart')
+                            // Need to handle both t() and aliased translators like tCommon()
+                            const keyPatterns = [
+                                // Standard t('key')
+                                new RegExp(`\\bt\\s*\\(\\s*['"\`]${item.keyPart.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"\`]\\s*\\)`, 'g'),
+                                // Aliased translators like tCommon('key'), tExt('key'), etc.
+                                new RegExp(`\\bt\\w+\\s*\\(\\s*['"\`]${item.keyPart.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"\`]\\s*\\)`, 'g'),
+                            ];
+
+                            for (const keyPattern of keyPatterns) {
+                                if (keyPattern.test(content)) {
+                                    keyPattern.lastIndex = 0;
+
+                                    // Escape the literal value for JSX
+                                    let replacement = item.literalValue;
+
+                                    // If the value contains special characters, we might need quotes
+                                    // But typically in JSX we just use the literal text
+                                    // Check if it's inside JSX attribute vs JSX content
+
+                                    // For now, use quoted string for safety
+                                    const escapedValue = replacement
+                                        .replace(/\\/g, '\\\\')
+                                        .replace(/"/g, '\\"')
+                                        .replace(/\n/g, '\\n');
+
+                                    content = content.replace(keyPattern, `"${escapedValue}"`);
+                                    fileModified = true;
+
+                                    results.replacements.push({
+                                        file: tsxFile.replace(/.*[\/\\]frontend[\/\\]/, ''),
+                                        key: item.key,
+                                        from: `t('${item.keyPart}')`,
+                                        to: `"${escapedValue}"`
+                                    });
+
+                                    console.log(`[UNTRANSLATABLE] ${tsxFile.replace(/.*[\/\\]frontend[\/\\]/, '')}: t('${item.keyPart}') → "${escapedValue.substring(0, 30)}..."`);
+                                }
+                            }
+                        }
+                    }
+
+                    if (fileModified) {
+                        await fs.writeFile(tsxFile, content, 'utf8');
+                        results.tsxFilesModified.add(tsxFile);
+                    }
+                } catch (err) {
+                    console.error(`Error processing TSX file ${tsxFile}:`, err.message);
+                    results.errors.push({ file: tsxFile, error: err.message });
+                }
+            }
+
+            console.log(`[UNTRANSLATABLE] Modified ${results.tsxFilesModified.size} TSX files`);
+
+            // Step 2: Remove keys from all locales
+            console.log(`[UNTRANSLATABLE] Removing ${items.length} keys from locales...`);
+
+            for (const [localeCode, locale] of api.locales.entries()) {
+                let localeModified = false;
+
+                for (const item of items) {
+                    if (locale.keys[item.key]) {
+                        delete locale.keys[item.key];
+                        localeModified = true;
+                        results.keysRemoved++;
+                    }
+                }
+
+                if (localeModified) {
+                    await api.saveLocale(localeCode);
+                    results.localesModified.add(localeCode);
+                }
+            }
+
+            console.log(`[UNTRANSLATABLE] Removed keys from ${results.localesModified.size} locales`);
+
+            res.json({
+                success: true,
+                stats: {
+                    keysRemoved: results.keysRemoved,
+                    localesModified: results.localesModified.size,
+                    tsxFilesModified: results.tsxFilesModified.size
+                },
+                replacements: results.replacements.slice(0, 50), // Limit response size
+                modifiedFiles: {
+                    locales: [...results.localesModified],
+                    tsx: [...results.tsxFilesModified].map(f => f.replace(/.*[\/\\]frontend[\/\\]/, ''))
+                },
+                errors: results.errors,
+                message: `Removed ${items.length} untranslatable keys from ${results.localesModified.size} locales and reverted ${results.tsxFilesModified.size} TSX files to literal strings.`
+            });
+        } catch (error) {
+            console.error('[UNTRANSLATABLE] Remove error:', error);
             res.status(500).json({ error: error.message });
         }
     });

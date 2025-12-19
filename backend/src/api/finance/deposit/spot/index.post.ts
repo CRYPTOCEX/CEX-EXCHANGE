@@ -16,6 +16,8 @@ export const metadata: OperationObject = {
   operationId: "initiateSpotDeposit",
   tags: ["Finance", "Deposit"],
   requiresAuth: true,
+  logModule: "SPOT_DEPOSIT",
+  logTitle: "Initiate spot deposit",
   requestBody: {
     required: true,
     content: {
@@ -56,31 +58,41 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
-  if (!user?.id)
+  const { user, body, ctx } = data;
+
+  if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
   const { currency, chain, trx } = body;
 
+  ctx?.step("Processing network configuration");
   const provider = await ExchangeManager.getProvider();
   const parsedChain =
     provider === "xt" ? handleNetworkMappingReverse(chain) : chain;
 
+  ctx?.step("Fetching user account");
   const userPk = await models.user.findByPk(user.id);
-  if (!userPk)
+  if (!userPk) {
+    ctx?.fail("User not found");
     throw createError({ statusCode: 404, message: "User not found" });
+  }
 
+  ctx?.step("Checking for duplicate transaction");
   const existingTransaction = await models.transaction.findOne({
     where: { referenceId: trx, type: "DEPOSIT" },
   });
 
   if (existingTransaction) {
+    ctx?.warn("Transaction already exists");
     throw createError({
       statusCode: 400,
       message: "Transaction already exists",
     });
   }
 
+  ctx?.step("Finding or creating SPOT wallet");
   let wallet = await models.wallet.findOne({
     where: { userId: user.id, currency: currency, type: "SPOT" },
   });
@@ -94,16 +106,19 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Validating currency");
   const currencyData = await models.exchangeCurrency.findOne({
     where: { currency },
   });
   if (!currencyData) {
+    ctx?.fail("Currency not found");
     throw createError({
       statusCode: 404,
       message: "Currency not found",
     });
   }
 
+  ctx?.step("Creating deposit transaction record");
   const transaction = await models.transaction.create({
     userId: user.id,
     walletId: wallet.id,
@@ -114,6 +129,8 @@ export default async (data: Handler) => {
     metadata: JSON.stringify({ currency, chain: parsedChain, trx }),
     referenceId: trx,
   });
+
+  ctx?.success(`Spot deposit initiated: ${currency} on ${parsedChain}`);
 
   return {
     transaction,

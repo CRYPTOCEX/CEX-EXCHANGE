@@ -65,14 +65,18 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params, query } = data;
+  const { user, params, query, ctx } = data;
+
   if (!user) throw createError({ statusCode: 401, message: "Unauthorized" });
+
   const { id } = params;
   const { type } = query;
 
   if (!type || typeof type !== "string") {
     throw new Error("Invalid investment type");
   }
+
+  ctx?.step(`Fetching ${type} investment ${id}`);
   let model, planModel, durationModel;
   switch (type.toLowerCase()) {
     case "general":
@@ -110,5 +114,6 @@ export default async (data: Handler) => {
     throw new Error("Investment not found");
   }
 
+  ctx?.success("Investment retrieved successfully");
   return response.get({ plain: true });
 };

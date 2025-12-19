@@ -1,77 +1,75 @@
 import React from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CompoundCellSkeleton } from "./compound-cell";
+import { cn } from "@/lib/utils";
 
 interface CellSkeletonProps {
   column: ColumnDefinition;
   width: number;
 }
 
+// Skeleton animation class
+const skeletonClass = "animate-pulse";
+
 export function CellSkeleton({ column, width }: CellSkeletonProps) {
-  // Determine the skeleton width based on the column type and provided width
-  const getSkeletonWidth = () => {
-    if (column.key === "select") return 16;
-    if (column.key === "actions") return 32;
-    if (column.type === "image" || column.key === "avatar") return 40;
-    if (column.type === "boolean" || column.key === "emailVerified") return 64;
-    if (column.render?.type === "badge" || column.key === "status") return 96;
-    if (column.type === "date") return 140;
-    return width;
-  };
-
-  const skeletonWidth = getSkeletonWidth();
-
+  // Select checkbox skeleton
   if (column.key === "select") {
-    return <Skeleton className="h-5 w-5 rounded" />;
+    return <Skeleton className={cn("h-4 w-4 rounded", skeletonClass)} />;
   }
 
+  // Actions button skeleton - matches the actual 3-dot button
   if (column.key === "actions") {
-    return <Skeleton className="h-8 w-8 rounded-md" />;
+    return <Skeleton className={cn("h-8 w-8 rounded-lg", skeletonClass)} />;
   }
 
+  // Image/avatar skeleton
   if (column.type === "image" || column.key === "avatar") {
-    return <Skeleton className="w-10 h-10 rounded-full" />;
+    return <Skeleton className={cn("w-11 h-11 rounded-full", skeletonClass)} />;
   }
 
-  if (column.type === "boolean" || column.key === "emailVerified") {
+  // Boolean toggle skeleton - matches the actual Switch/toggle size
+  if (column.type === "boolean" || column.key === "emailVerified" || column.type === "toggle") {
     return (
       <div className="flex items-center">
-        <Skeleton className="h-6 w-16 rounded-full" />
+        <Skeleton className={cn("h-5 w-9 rounded-full", skeletonClass)} />
       </div>
     );
   }
 
+  // Date skeleton
   if (column.type === "date") {
-    return <Skeleton className="h-5" style={{ width: `${skeletonWidth}px` }} />;
+    return <Skeleton className={cn("h-4 w-20 rounded", skeletonClass)} />;
   }
 
-  if (column.render?.type === "badge" || column.key === "status") {
-    return <Skeleton className="h-6 w-24 rounded-full" />;
+  // Badge skeleton - matches actual badge size
+  if (column.render?.type === "badge" || column.key === "status" || column.key === "type") {
+    return <Skeleton className={cn("h-6 w-16 rounded-full", skeletonClass)} />;
   }
 
+  // Compound cell skeleton
   if (column.render?.type === "compound") {
-    // If you have a skeleton for compound cells:
     return <CompoundCellSkeleton config={column.render.config} />;
   }
 
+  // Tags skeleton
   if (column.type === "tags" || column.key === "tags") {
     return (
-      <div className="flex items-center gap-1 overflow-hidden">
-        {[1, 2, 3].map((_, i: number) => (
+      <div className="flex items-center gap-1.5 overflow-hidden">
+        {[1, 2].map((_, i: number) => (
           <Skeleton
             key={i}
-            className="h-6 rounded-full"
-            style={{ width: `${skeletonWidth / 4}px` }}
+            className={cn("h-5 rounded-full", i === 0 ? "w-14" : "w-12", skeletonClass)}
           />
         ))}
       </div>
     );
   }
 
-  // Default text skeleton with dynamic width
-  if (column.key === "id") {
-    return <Skeleton className="h-5" style={{ width: `${skeletonWidth}px` }} />;
+  // Number/currency skeleton - shorter width
+  if (column.type === "number" || column.key === "balance" || column.key === "amount") {
+    return <Skeleton className={cn("h-4 w-16 rounded", skeletonClass)} />;
   }
 
-  return <Skeleton className="h-5" style={{ width: `${skeletonWidth}px` }} />;
+  // Default text skeleton - reasonable width based on content type
+  return <Skeleton className={cn("h-4 w-20 rounded", skeletonClass)} />;
 }

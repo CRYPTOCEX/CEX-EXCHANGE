@@ -5,6 +5,7 @@ import {
   unauthorizedResponse,
   notFoundMetadataResponse,
 } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Migrate ECO Transaction Reference IDs",
@@ -40,16 +41,19 @@ export const metadata: OperationObject = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "ADMIN_SYS",
+  logTitle: "Migrate ECO transactions",
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
-  
+  const { user, ctx } = data;
+
   if (!user?.id) {
     throw new Error("Unauthorized");
   }
 
   try {
+    ctx?.step("Finding ECO transactions with referenceId");
     // Find all transactions with wallet type ECO that have a referenceId
     const [updatedCount] = await models.transaction.update(
       {
@@ -66,13 +70,16 @@ export default async (data: Handler) => {
       }
     );
 
+    ctx?.success(`Successfully migrated ${updatedCount} ECO transactions`);
+
     return {
       success: true,
       updated: updatedCount,
       message: `Successfully migrated ${updatedCount} ECO transactions`
     };
   } catch (error) {
-    console.error("Error migrating ECO transactions:", error);
+    logger.error("SYSTEM", "Error migrating ECO transactions", error);
+    ctx?.fail(`Failed to migrate ECO transactions: ${error.message}`);
     throw new Error("Failed to migrate ECO transactions");
   }
 }; 

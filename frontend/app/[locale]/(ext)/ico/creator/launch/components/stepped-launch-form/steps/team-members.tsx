@@ -20,7 +20,8 @@ export default function TeamMembersStep({
   errors,
   maxTeamMembers = 999,
 }: TeamMembersStepProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
   const addTeamMember = () => {
     updateFormData("teamMembers", [
       ...formData.teamMembers,
@@ -93,7 +94,7 @@ export default function TeamMembersStep({
             <AlertCircle className="h-4 w-4 text-amber-800" />
             <AlertDescription>
               {t("youve_reached_the_in_your")} {formData.selectedPlan.name}
-              {t("plan")}.
+              {tCommon("plan")}.
               {formData.selectedPlan.name !== "Premium" &&
                 " Consider upgrading your plan for more team members."}
             </AlertDescription>

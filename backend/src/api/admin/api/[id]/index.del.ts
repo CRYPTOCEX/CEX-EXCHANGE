@@ -8,6 +8,8 @@ export const metadata: OperationObject = {
   summary: "Deletes a specific API key",
   operationId: "deleteApiKey",
   tags: ["Admin", "API Keys"],
+  logModule: "ADMIN_API",
+  logTitle: "Delete API",
   parameters: deleteRecordParams("API Key"),
   responses: deleteRecordResponses("API Key"),
   permission: "delete.api.key",
@@ -15,11 +17,15 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
+  const { params, query, ctx } = data;
 
-  return handleSingleDelete({
+  ctx?.step("Validating API key ID");
+  ctx?.step(`Deleting API key: ${params.id}`);
+  const result = await handleSingleDelete({
     model: "apiKey",
     id: params.id,
     query,
   });
+  ctx?.success();
+  return result;
 };

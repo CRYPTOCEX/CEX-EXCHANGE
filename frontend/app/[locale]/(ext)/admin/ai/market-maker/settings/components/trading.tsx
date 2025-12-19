@@ -17,7 +17,8 @@ export default function TradingSettingsSection({
   settings = {},
   onUpdate,
 }: TradingSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
   const safeSettings = {
     TradingEnabled: settings.TradingEnabled ?? true,
     GlobalPauseEnabled: settings.GlobalPauseEnabled ?? false,
@@ -59,7 +60,7 @@ export default function TradingSettingsSection({
 
           <div className="flex items-center justify-between border p-4 rounded-lg">
             <div className="space-y-0.5">
-              <span className="text-sm font-medium">{t("maintenance_mode")}</span>
+              <span className="text-sm font-medium">{tExt("maintenance_mode")}</span>
               <p className="text-xs text-muted-foreground">
                 {t("enable_for_system_maintenance")} {t("this_will_stop_all_trading_and")}
               </p>

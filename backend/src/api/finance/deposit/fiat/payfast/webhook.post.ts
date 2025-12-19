@@ -1,6 +1,7 @@
 import { models, sequelize } from '@b/db'
 import { createError } from '@b/utils/error'
 import { sendFiatTransactionEmail } from '@b/utils/emails'
+import { logger } from '@b/utils/console'
 import {
   validatePayFastConfig,
   validateSignature,
@@ -16,6 +17,8 @@ export const metadata = {
   description: 'Processes PayFast Instant Transaction Notification (ITN) callbacks',
   operationId: 'handlePayFastWebhook',
   tags: ['Finance', 'Deposit', 'PayFast', 'Webhook'],
+  logModule: "WEBHOOK",
+  logTitle: "PayFast webhook",
   requiresAuth: false, // Webhooks don't use user authentication
   requestBody: {
     required: true,
@@ -87,12 +90,7 @@ interface Handler {
 export default async (data: Handler) => {
   const { body } = data
 
-  console.log('PayFast ITN received:', {
-    m_payment_id: body.m_payment_id,
-    pf_payment_id: body.pf_payment_id,
-    payment_status: body.payment_status,
-    amount_gross: body.amount_gross
-  })
+  logger.info('PAYFAST', `ITN received: ${body.m_payment_id}, status: ${body.payment_status}, amount: ${body.amount_gross}`)
 
   // Validate required fields
   if (!body.m_payment_id || !body.pf_payment_id || !body.payment_status) {
@@ -110,7 +108,7 @@ export default async (data: Handler) => {
     if (PAYFAST_CONFIG.PASSPHRASE) {
       const isValidSignature = validateSignature(body, PAYFAST_CONFIG.PASSPHRASE)
       if (!isValidSignature) {
-        console.error('PayFast ITN signature validation failed')
+        logger.error('PAYFAST', 'ITN signature validation failed')
         throw createError({
           statusCode: 400,
           message: 'Invalid webhook signature',
@@ -121,7 +119,7 @@ export default async (data: Handler) => {
     // Validate ITN with PayFast (optional additional security)
     const itnValidation = await validateITN(body)
     if (!itnValidation.valid) {
-      console.error('PayFast ITN validation failed:', itnValidation.error)
+      logger.warn('PAYFAST', `ITN validation failed: ${itnValidation.error}`)
       // Log but don't fail - signature validation is primary security
     }
 
@@ -140,7 +138,7 @@ export default async (data: Handler) => {
     })
 
     if (!transaction) {
-      console.error('Transaction not found for PayFast ITN:', body.m_payment_id)
+      logger.error('PAYFAST', `Transaction not found for ITN: ${body.m_payment_id}`)
       throw createError({
         statusCode: 404,
         message: 'Transaction not found',
@@ -152,7 +150,7 @@ export default async (data: Handler) => {
     const newStatus = mapPayFastStatus(body.payment_status)
     
     if (currentStatus === newStatus) {
-      console.log('PayFast ITN: Status unchanged, skipping processing')
+      logger.debug('PAYFAST', 'ITN: Status unchanged, skipping processing')
       return 'OK'
     }
 
@@ -230,7 +228,7 @@ export default async (data: Handler) => {
               })
             }, { transaction: dbTransaction })
           } catch (profitError) {
-            console.error('Failed to record admin profit:', profitError)
+            logger.error('PAYFAST', 'Failed to record admin profit', profitError)
             // Don't fail the transaction for profit recording errors
           }
         }
@@ -244,7 +242,7 @@ export default async (data: Handler) => {
             newBalance
           )
         } catch (emailError) {
-          console.error('Failed to send confirmation email:', emailError)
+          logger.error('PAYFAST', 'Failed to send confirmation email', emailError)
           // Don't fail the transaction for email errors
         }
       }
@@ -252,13 +250,7 @@ export default async (data: Handler) => {
       // Commit the database transaction
       await dbTransaction.commit()
 
-      console.log('PayFast ITN processed successfully:', {
-        transactionId: transaction.id,
-        oldStatus: currentStatus,
-        newStatus: newStatus,
-        amount: grossAmount,
-        fee: feeAmount
-      })
+      logger.success('PAYFAST', `ITN processed: Transaction ${transaction.id}, ${currentStatus} → ${newStatus}, amount: ${grossAmount}, fee: ${feeAmount}`)
 
       return 'OK'
 
@@ -268,8 +260,8 @@ export default async (data: Handler) => {
     }
 
   } catch (error) {
-    console.error('PayFast ITN processing error:', error)
-    
+    logger.error('PAYFAST', 'ITN processing error', error)
+
     // Return error response but don't expose internal details
     throw createError({
       statusCode: error.statusCode || 500,

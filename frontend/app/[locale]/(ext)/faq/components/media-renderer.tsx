@@ -19,7 +19,7 @@ interface MediaRendererProps {
 }
 
 export function MediaRenderer({ media, className = "" }: MediaRendererProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_faq");
   const [isOpen, setIsOpen] = useState(false);
 
   // Handle YouTube embeds

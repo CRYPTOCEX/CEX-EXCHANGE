@@ -1,9 +1,12 @@
 import { messageBroker } from "@b/handler/Websocket";
-import { FuturesMatchingEngine } from "@b/api/(ext)/futures/utils/matchingEngine";
-import { getOrderBook } from "@b/api/(ext)/futures/utils/queries/orderbook";
+import { FuturesMatchingEngine } from "../utils/matchingEngine";
+import { getOrderBook } from "../utils/queries/orderbook";
 import { models } from "@b/db";
 
-export const metadata = {};
+export const metadata = {
+  logModule: "FUTURES",
+  logTitle: "Futures market data websocket",
+};
 
 class UnifiedFuturesMarketDataHandler {
   private static instance: UnifiedFuturesMarketDataHandler;
@@ -160,17 +163,24 @@ class UnifiedFuturesMarketDataHandler {
 }
 
 export default async (data: Handler, message) => {
+  const { ctx } = data;
+
   if (typeof message === "string") {
     message = JSON.parse(message);
   }
 
   const { type, symbol } = message.payload;
 
+  ctx?.step?.(`Processing subscription request for ${symbol} (${type})`);
   if (!type || !symbol) {
+    ctx?.fail?.("Invalid message structure: missing type or symbol");
     console.error("Invalid message structure: type or symbol is missing");
     return;
   }
 
+  ctx?.step?.(`Adding subscription: ${symbol} - ${type}`);
   const handler = UnifiedFuturesMarketDataHandler.getInstance();
   await handler.addSubscription(symbol, type);
+
+  ctx?.success?.(`Subscription added for ${symbol} (${type})`);
 };

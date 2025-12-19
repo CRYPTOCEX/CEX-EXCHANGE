@@ -17,7 +17,7 @@ export default function PlatformFeaturesSection({
   allowPublicOfferings,
   onUpdate,
 }: PlatformFeaturesSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">{t("platform_features")}</h3>

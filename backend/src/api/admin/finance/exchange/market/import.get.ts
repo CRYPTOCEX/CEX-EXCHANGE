@@ -37,7 +37,8 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const exchange = await ExchangeManager.startExchange();
+  const { ctx } = data;
+  const exchange = await ExchangeManager.startExchange(ctx);
   const provider = await ExchangeManager.getProvider();
   if (!exchange) {
     throw new Error(`Failed to start exchange provider: ${provider}`);

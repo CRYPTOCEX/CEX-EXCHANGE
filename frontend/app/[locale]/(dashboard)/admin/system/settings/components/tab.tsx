@@ -36,6 +36,7 @@ const SettingsGroup: React.FC<SettingsGroupProps> = ({
   formValues,
   handleChange,
 }) => {
+  const t = useTranslations("common");
   const displayedFields = fields.filter(
     (field) => !field.showIf || field.showIf(formValues)
   );
@@ -64,7 +65,7 @@ const SettingsGroup: React.FC<SettingsGroupProps> = ({
           <AffiliateLevels
             levelsCount={Number(formValues.binaryLevels) || 0}
             levelPrefix="binaryLevel"
-            title="Binary Levels"
+            title={t("binary_levels")}
             formValues={formValues}
             handleChange={handleChange}
           />
@@ -74,7 +75,7 @@ const SettingsGroup: React.FC<SettingsGroupProps> = ({
           <AffiliateLevels
             levelsCount={Number(formValues.unilevelLevels) || 0}
             levelPrefix="unilevelLevel"
-            title="Unilevel Levels"
+            title={t("unilevel_levels")}
             formValues={formValues}
             handleChange={handleChange}
           />
@@ -91,7 +92,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
   draftSettings,
   onFieldChange,
 }) => {
-  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const formValues = draftSettings;
   
 
@@ -116,12 +118,12 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
       <CardHeader className="bg-zinc-50 dark:bg-zinc-900 rounded-t-lg mb-4 flex-shrink-0">
         <CardTitle>
           {tabLabel}{" "}
-          {t("Settings")}
+          {tCommon("settings")}
         </CardTitle>
         <CardDescription>
-          {t("Manage")}{" "}
+          {tCommon("manage")}{" "}
           {tabLabel.toLowerCase()}{" "}
-          {t("settings_for_your_application")}.
+          {tDashboardAdmin("settings_for_your_application")}.
         </CardDescription>
       </CardHeader>
 

@@ -68,7 +68,7 @@ export function OrderPanel({
   isMobile = false,
   darkMode = true,
 }: OrderPanelProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("binary_components");
   // Core state - Get selectedExpiryMinutes from store
   const storeSelectedExpiryMinutes = useBinaryStore((state) => state.selectedExpiryMinutes);
   const [amount, setAmount] = useState<number>(1000);
@@ -477,7 +477,7 @@ export function OrderPanel({
   const handlePlaceOrder = (side: OrderSide) => {
     // Check if we're in the safe zone
     if (isInSafeZone) {
-      setOrderPlacementError("Cannot place orders within 15 seconds of expiry");
+      setOrderPlacementError(t("cannot_place_orders_within_15_seconds_of_expiry"));
       return;
     }
 

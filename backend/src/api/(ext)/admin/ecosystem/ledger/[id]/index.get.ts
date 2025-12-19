@@ -8,28 +8,32 @@ import { baseEcosystemPrivateLedgerSchema } from "../utils";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
-  summary:
-    "Retrieves detailed information of a specific ecosystem private ledger entry by ID",
+  summary: "Get ecosystem private ledger entry by ID",
   operationId: "getEcosystemPrivateLedgerById",
-  tags: ["Admin", "Ecosystem Private Ledger"],
+  tags: ["Admin", "Ecosystem", "Ledger"],
+  description:
+    "Retrieves detailed information of a specific ecosystem private ledger entry by its unique identifier. Returns the ledger entry with associated wallet information including currency, address, and balance.",
+  logModule: "ADMIN_ECO",
+  logTitle: "Get private ledger details",
   parameters: [
     {
       index: 0,
       name: "id",
       in: "path",
       required: true,
-      description: "ID of the ecosystem private ledger entry to retrieve",
+      description: "Unique identifier of the ecosystem private ledger entry",
       schema: { type: "string" },
     },
   ],
   responses: {
     200: {
-      description: "Ecosystem private ledger entry details",
+      description:
+        "Successfully retrieved ecosystem private ledger entry with wallet details",
       content: {
         "application/json": {
           schema: {
             type: "object",
-            properties: baseEcosystemPrivateLedgerSchema, // Define this schema in your utils if it's not already defined
+            properties: baseEcosystemPrivateLedgerSchema,
           },
         },
       },
@@ -43,13 +47,17 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("ecosystemPrivateLedger", params.id, [
+  ctx?.step("Retrieving private ledger details");
+  const ledger = await getRecord("ecosystemPrivateLedger", params.id, [
     {
       model: models.wallet,
       as: "wallet",
       attributes: ["currency", "address", "balance"],
     },
   ]);
+
+  ctx?.success("Private ledger details retrieved");
+  return ledger;
 };

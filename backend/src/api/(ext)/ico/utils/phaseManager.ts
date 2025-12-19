@@ -1,6 +1,7 @@
 import { models, sequelize } from "@b/db";
 import { Op } from "sequelize";
 import { createNotification } from "@b/utils/notifications";
+import { logger } from "@b/utils/console";
 
 export interface PhaseInfo {
   id: string;
@@ -176,7 +177,7 @@ export async function checkAndUpdateOfferingStatus(): Promise<void> {
     await transaction.commit();
   } catch (error) {
     await transaction.rollback();
-    console.error('Error updating offering statuses:', error);
+    logger.error("ICO", "Error updating offering statuses", error);
     throw error;
   }
 }
@@ -232,7 +233,7 @@ export async function transitionToNextPhase(offeringId: string): Promise<boolean
     return true;
   } catch (error) {
     await transaction.rollback();
-    console.error('Error transitioning phase:', error);
+    logger.error("ICO", "Error transitioning phase", error);
     return false;
   }
 }

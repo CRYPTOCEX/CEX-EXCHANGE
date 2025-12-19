@@ -32,14 +32,21 @@ export const metadata = {
   responses: commonBulkDeleteResponses("Deposit Methods"),
   requiresAuth: true,
   permission: "delete.deposit.method",
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk delete deposit methods",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step(`Deleting ${ids.length} deposit method(s)`);
+  const result = await handleBulkDelete({
     model: "depositMethod",
     ids,
     query,
   });
+
+  ctx?.success("Deposit methods deleted successfully");
+  return result;
 };

@@ -1,7 +1,12 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { Bell } from "lucide-react";
+import { useColumns, useFormConfig } from "./columns";
+import { useTranslations } from "next-intl";
 export default function NotificationTemplatesPage() {
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
   return (
     <DataTable
       apiEndpoint="/api/admin/system/notification/template"
@@ -13,14 +18,22 @@ export default function NotificationTemplatesPage() {
         edit: "edit.notification.template",
         delete: "delete.notification.template",
       }}
-      pageSize={10}
-      canEdit={true}
+      pageSize={12}
+      canCreate={false}
+      canEdit
       editLink="/admin/system/notification/template/[id]"
-      canView={true}
+      canDelete={false}
+      canView
       isParanoid={false}
-      title="Notification Templates"
+      title={t("notification_templates")}
+      description={t("manage_notification_templates_and_messaging")}
       itemTitle="Notification Template"
       columns={columns}
+      formConfig={formConfig}
+      design={{
+        animation: "orbs",
+        icon: Bell,
+      }}
     />
   );
 }

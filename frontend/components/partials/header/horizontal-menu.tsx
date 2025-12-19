@@ -10,14 +10,22 @@ import { cn } from "@/lib/utils";
 import { getMenu } from "@/config/menu";
 import { useSettings } from "@/hooks/use-settings";
 import { useMenuTranslations } from "@/components/partials/menu-translator";
+import { useTheme } from "next-themes";
+import { motion } from "framer-motion";
+import { getGradientStyle, getColorHex, NAV_COLOR_SCHEMAS } from "@/lib/nav-color-schema";
 
 import ChildMenu from "./menu/child-menu";
 import MegaMenu from "./menu/mega-menu";
 import PartialMegaMenu from "./menu/partial-mega-menu";
 import { Icon } from "@iconify/react";
 
+interface MainMenuProps {
+  menu: "user" | "admin" | MenuItem[];
+  colorSchema?: NavColorSchema;
+}
+
 // Support both string ("user", "admin") and array (custom menu)
-export default function MainMenu({ menu }) {
+export default function MainMenu({ menu, colorSchema }: MainMenuProps) {
   const pathname = usePathname();
   const user = useUserStore((s) => s.user);
   const { settings, extensions, settingsFetched } = useSettings();
@@ -138,7 +146,105 @@ export default function MainMenu({ menu }) {
     return false;
   }
 
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
+  // Get the effective color schema
+  const schema = colorSchema || NAV_COLOR_SCHEMAS.default;
+  const gradientStyle = getGradientStyle(schema, isDark);
+  const primaryColor = getColorHex(schema.primary, isDark);
+  const secondaryColor = schema.secondary ? getColorHex(schema.secondary, isDark) : primaryColor;
+
   if (!menuItems || menuItems.length === 0) return null;
+
+  // Helper to get themed classes
+  const getItemClasses = (active: boolean) => {
+    if (colorSchema) {
+      return cn(
+        "flex items-center py-4 cursor-pointer group/item transition-all duration-300 relative",
+        active
+          ? schema.textActive
+          : cn(schema.text, "hover:opacity-100")
+      );
+    }
+    // Default styling when no color schema
+    return cn(
+      "flex items-center py-4 cursor-pointer group/item transition-all duration-300 relative",
+      active
+        ? "text-primary font-semibold"
+        : "text-foreground/70 hover:text-primary"
+    );
+  };
+
+  // Helper to render the active indicator
+  const renderActiveIndicator = (active: boolean) => {
+    if (!active) return null;
+
+    if (colorSchema && schema.indicatorStyle === "gradient-underline") {
+      return (
+        <motion.div
+          layoutId="nav-indicator"
+          className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+          style={{ background: gradientStyle }}
+          initial={{ opacity: 0, scaleX: 0 }}
+          animate={{ opacity: 1, scaleX: 1 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        />
+      );
+    }
+
+    if (colorSchema && schema.indicatorStyle === "glow") {
+      return (
+        <motion.div
+          layoutId="nav-indicator"
+          className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+          style={{
+            background: gradientStyle,
+            boxShadow: `0 0 10px ${primaryColor}80, 0 0 20px ${primaryColor}40`,
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        />
+      );
+    }
+
+    if (colorSchema && schema.indicatorStyle === "pill") {
+      return (
+        <motion.div
+          layoutId="nav-indicator"
+          className="absolute inset-0 rounded-lg -z-10"
+          style={{
+            background: `${primaryColor}15`,
+            border: `1px solid ${primaryColor}30`,
+          }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.2 }}
+        />
+      );
+    }
+
+    // Default underline
+    return (
+      <motion.div
+        layoutId="nav-indicator"
+        className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
+        initial={{ opacity: 0, scaleX: 0 }}
+        animate={{ opacity: 1, scaleX: 1 }}
+        transition={{ duration: 0.3 }}
+      />
+    );
+  };
+
+  // Helper to get icon color
+  const getIconStyle = (active: boolean) => {
+    if (!colorSchema) return {};
+    return {
+      color: active ? primaryColor : undefined,
+      transition: "color 0.3s ease",
+    };
+  };
 
   return (
     <div>
@@ -149,7 +255,7 @@ export default function MainMenu({ menu }) {
       >
         <NavigationMenu.List
           ref={setList}
-          className="group flex list-none gap-5"
+          className="group flex list-none gap-1"
         >
           {menuItems.map((item, index) => {
             const itemKey = item.key || `item-${index}`;
@@ -170,28 +276,46 @@ export default function MainMenu({ menu }) {
                     >
                       <div
                         className={cn(
-                          "flex items-center py-4 cursor-pointer group transition",
-                          active
-                            ? "text-primary border-b-2 border-primary font-semibold"
-                            : "hover:text-primary"
+                          getItemClasses(active),
+                          "px-3 rounded-lg",
+                          colorSchema && !active && schema.bgHover
                         )}
                       >
                         {item.icon && (
-                          <Icon icon={item.icon} className="h-5 w-5 ltr:mr-2 rtl:ml-2" />
+                          <Icon
+                            icon={item.icon}
+                            className={cn(
+                              "h-5 w-5 ltr:mr-2 rtl:ml-2 transition-all duration-300",
+                              active && colorSchema && "drop-shadow-sm"
+                            )}
+                            style={getIconStyle(active)}
+                          />
                         )}
-                        <span className="text-sm font-medium text-foreground">
+                        <span className={cn(
+                          "text-sm font-medium transition-all duration-300",
+                          active && colorSchema && "font-semibold"
+                        )}>
                           {getTitle(item)}
                         </span>
                         <ChevronDown
-                          className="relative top-[1px] ltr:ml-1 rtl:mr-1 h-4 w-4 transition duration-200 group-data-[state=open]:rotate-180"
+                          className={cn(
+                            "relative top-[1px] ltr:ml-1 rtl:mr-1 h-4 w-4 transition-all duration-300",
+                            "group-data-[state=open]:rotate-180"
+                          )}
+                          style={getIconStyle(active)}
                           aria-hidden="true"
                         />
+                        {renderActiveIndicator(active)}
                       </div>
                     </NavigationMenu.Trigger>
                     <NavigationMenu.Content
                       className={cn(
-                        "w-full rounded-md border bg-popover text-popover-foreground shadow-lg"
+                        "w-full rounded-xl border bg-popover text-popover-foreground shadow-xl",
+                        colorSchema && "border-opacity-50"
                       )}
+                      style={colorSchema ? {
+                        borderColor: `${primaryColor}20`,
+                      } : undefined}
                     >
                       {hasMegaMenu && <MegaMenu megaMenu={item.megaMenu} />}
                       {hasChild &&
@@ -208,18 +332,28 @@ export default function MainMenu({ menu }) {
                     <Link
                       href={item.href || "#"}
                       className={cn(
-                        "flex items-center py-4 cursor-pointer transition",
-                        active
-                          ? "text-primary border-b-2 border-primary font-semibold"
-                          : "hover:text-primary"
+                        getItemClasses(active),
+                        "px-3 rounded-lg",
+                        colorSchema && !active && schema.bgHover
                       )}
                     >
                       {item.icon && (
-                        <Icon icon={item.icon} className="h-5 w-5 ltr:mr-2 rtl:ml-2" />
+                        <Icon
+                          icon={item.icon}
+                          className={cn(
+                            "h-5 w-5 ltr:mr-2 rtl:ml-2 transition-all duration-300",
+                            active && colorSchema && "drop-shadow-sm"
+                          )}
+                          style={getIconStyle(active)}
+                        />
                       )}
-                      <span className="text-sm font-medium text-foreground">
+                      <span className={cn(
+                        "text-sm font-medium transition-all duration-300",
+                        active && colorSchema && "font-semibold"
+                      )}>
                         {getTitle(item)}
                       </span>
+                      {renderActiveIndicator(active)}
                     </Link>
                   </NavigationMenu.Link>
                 )}

@@ -17,7 +17,7 @@ const ListItem = React.forwardRef<HTMLAnchorElement, ListItemProps>(
         <Link
           href={href}
           className={cn(
-            "select-none text-sm text-foreground rounded-md flex items-center gap-2 mb-4 last:mb-0 leading-none no-underline transition-colors hover:text-primary focus:text-primary",
+            "select-none text-sm text-foreground rounded-md flex items-center gap-2 mb-4 last:mb-0 leading-none no-underline transition-colors hover:text-primary focus:text-primary cursor-pointer",
             className
           )}
           {...props}

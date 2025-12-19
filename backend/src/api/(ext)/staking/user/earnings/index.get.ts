@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "getUserStakingEarnings",
   tags: ["Staking", "User", "Earnings"],
   requiresAuth: true,
+  logModule: "STAKE",
+  logTitle: "Get User Earnings",
   parameters: [
     {
       index: 0,
@@ -80,7 +82,9 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+
+  ctx?.step("Validating user authentication");
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -205,6 +209,7 @@ export default async (data: Handler) => {
     raw: true,
   });
 
+  ctx?.success(`Retrieved ${earnings.length} earning records`);
   return {
     earnings,
     summary: {

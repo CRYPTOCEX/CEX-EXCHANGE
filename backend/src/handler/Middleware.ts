@@ -8,7 +8,7 @@ import {
 import { Response } from "./Response";
 import { Request } from "./Request";
 import { MashServer } from "..";
-import logger, { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import { models } from "@b/db";
 
 const isDemo: boolean = process.env.NEXT_PUBLIC_DEMO_STATUS === "true";
@@ -72,12 +72,7 @@ export async function authenticate(
         req.setUser({ id: apiKeyRecord.userId, permissions: userPermissions });
         return next(); // Skip further JWT checks.
       } catch (error: any) {
-        logger(
-          "error",
-          "auth",
-          __filename,
-          `API Key Verification Error: ${error.message}`
-        );
+        logger.error("AUTH", "API Key Verification Error", error);
         return res.handleError(401, "Authentication Required");
       }
     }
@@ -85,17 +80,12 @@ export async function authenticate(
     // Process JWT-based authentication.
     // For WebSocket connections, also check query params
     const accessToken: string | undefined =
-      req.cookies.accessToken || 
-      req.headers.accesstoken || 
+      req.cookies.accessToken ||
+      req.headers.accesstoken ||
       (req.query?.token as string);
     if (!accessToken) {
       return await attemptRefreshToken(res, req, next).catch((error: any) => {
-        logger(
-          "error",
-          "auth",
-          __filename,
-          `JWT Verification Error: ${error.message}`
-        );
+        logger.error("AUTH", "JWT Verification Error - No access token", error);
         return res.handleError(401, "Authentication Required");
       });
     }
@@ -103,12 +93,7 @@ export async function authenticate(
     const userPayload = await verifyAccessToken(accessToken);
     if (!userPayload) {
       return await attemptRefreshToken(res, req, next).catch((error: any) => {
-        logger(
-          "error",
-          "auth",
-          __filename,
-          `JWT Verification Error: ${error.message}`
-        );
+        logger.error("AUTH", "JWT Verification Error - Invalid access token", error);
         return res.handleError(401, "Authentication Required");
       });
     }
@@ -120,12 +105,7 @@ export async function authenticate(
     req.setUser(userPayload.sub);
     return await csrfCheck(res, req, next);
   } catch (error: any) {
-    logger(
-      "error",
-      "auth",
-      __filename,
-      `Error in authentication: ${error.message}`
-    );
+    logger.error("AUTH", "Error in authentication", error);
     return res.handleError(500, error.message);
   }
 }
@@ -176,12 +156,7 @@ async function attemptRefreshToken(
       }
       newTokens = await refreshTokens(decoded.sub, sessionId);
     } catch (error: any) {
-      logger(
-        "warn",
-        "auth",
-        __filename,
-        `Refresh token validation failed: ${error.message}`
-      );
+      logger.warn("AUTH", "Refresh token validation failed", error);
       newTokens = await generateTokens(user);
     }
 
@@ -190,12 +165,7 @@ async function attemptRefreshToken(
     req.setUser(user);
     next();
   } catch (error: any) {
-    logger(
-      "error",
-      "auth",
-      __filename,
-      `Token refresh error: ${error.message}`
-    );
+    logger.error("AUTH", "Token refresh error", error);
     return res.handleError(401, `Authentication Required: ${error.message}`);
   }
 }
@@ -256,12 +226,7 @@ export async function handleApiVerification(
 
     next();
   } catch (error: any) {
-    logger(
-      "error",
-      "apiVerification",
-      __filename,
-      `API Verification Error: ${error.message}`
-    );
+    logger.error("API_VERIFICATION", "API Verification Error", error);
     return res.handleError(500, "Internal Server Error");
   }
 }
@@ -308,7 +273,7 @@ export async function csrfCheck(
 
     next();
   } catch (error: any) {
-    logger("error", "csrf", __filename, `CSRF Check Error: ${error.message}`);
+    logger.error("CSRF", "CSRF Check Error", error);
     res.handleError(403, "CSRF Check Failed");
   }
 }
@@ -352,12 +317,7 @@ export async function rateLimit(
 
     next();
   } catch (error: any) {
-    logger(
-      "error",
-      "rateLimit",
-      __filename,
-      `Rate Limiting Error: ${error.message}`
-    );
+    logger.error("RATE_LIMIT", "Rate Limiting Error", error);
     res.handleError(500, error.message);
   }
 }
@@ -546,6 +506,51 @@ export const rateLimiters = {
     keyPrefix: "p2p:admin:trade",
     message: "Too many trade management requests. Please wait.",
   }),
+
+  // Copy Trading rate limiters
+  copyTradingLeaderApply: createRateLimiter({
+    limit: 3,
+    window: 86400, // 24 hours
+    keyPrefix: "copytrading:leader:apply",
+    message:
+      "Too many leader applications. Please wait 24 hours before trying again.",
+  }),
+
+  copyTradingLeaderUpdate: createRateLimiter({
+    limit: 10,
+    window: 3600, // 1 hour
+    keyPrefix: "copytrading:leader:update",
+    message: "Too many profile updates. Please wait before making more changes.",
+  }),
+
+  copyTradingFollow: createRateLimiter({
+    limit: 10,
+    window: 3600, // 1 hour
+    keyPrefix: "copytrading:follower:follow",
+    message:
+      "Too many follow requests. Please wait before following more leaders.",
+  }),
+
+  copyTradingFollowerAction: createRateLimiter({
+    limit: 30,
+    window: 3600, // 1 hour
+    keyPrefix: "copytrading:follower:action",
+    message: "Too many subscription actions. Please slow down.",
+  }),
+
+  copyTradingFunds: createRateLimiter({
+    limit: 20,
+    window: 3600, // 1 hour
+    keyPrefix: "copytrading:funds",
+    message: "Too many fund operations. Please wait before making more changes.",
+  }),
+
+  copyTradingAdmin: createRateLimiter({
+    limit: 50,
+    window: 3600, // 1 hour
+    keyPrefix: "copytrading:admin",
+    message: "Too many admin actions. Please wait.",
+  }),
 };
 
 // Aliases for backward compatibility
@@ -654,12 +659,7 @@ export async function rolesGate(
 
     next();
   } catch (error: any) {
-    logger(
-      "error",
-      "rolesGate",
-      __filename,
-      `Roles Gate Error: ${error.message}`
-    );
+    logger.error("ROLES_GATE", "Roles Gate Error", error);
     res.handleError(500, error.message);
   }
 }
@@ -695,7 +695,7 @@ export async function siteMaintenanceAccessGate(
     }
     next();
   } catch (error: any) {
-    logError("middleware", error, __filename);
+    logger.error("MIDDLEWARE", "Site maintenance access gate error", error);
     return res.handleError(500, error.message);
   }
 }

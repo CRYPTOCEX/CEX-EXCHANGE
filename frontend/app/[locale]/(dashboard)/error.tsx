@@ -12,7 +12,7 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
   return (
     <div className="space-y-4">
       <Alert color="destructive">

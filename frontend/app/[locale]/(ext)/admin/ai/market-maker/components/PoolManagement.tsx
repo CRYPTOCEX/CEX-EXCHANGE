@@ -123,7 +123,9 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
   quoteCurrency = "",
   baseCurrency = "",
 }) => {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const [depositAmount, setDepositAmount] = useState("");
   const [depositCurrency, setDepositCurrency] = useState<"BASE" | "QUOTE">("QUOTE");
   const [withdrawAmount, setWithdrawAmount] = useState("");
@@ -256,7 +258,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
               <WalletCards className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-white">{t("your_wallet_balance")}</h3>
+              <h3 className="font-semibold text-white">{tExt("your_wallet_balance")}</h3>
               <p className="text-xs text-white/70">{t("available_funds_to_deposit_into_the_pool")}</p>
             </div>
             <Button
@@ -274,7 +276,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
               <p className="text-xs text-white/60 mb-1">{t("base")}{walletBalances?.base?.currency || baseCurrency || ""})</p>
               <p className="text-xl font-bold">
                 {loadingWallet ? (
-                  <span className="text-white/50">{t("loading_ellipsis")}</span>
+                  <span className="text-white/50">{tCommon('loading')}</span>
                 ) : (
                   `${(walletBalances?.base?.balance || 0).toFixed(8)}`
                 )}
@@ -284,7 +286,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
               <p className="text-xs text-white/60 mb-1">{t("quote")}{walletBalances?.quote?.currency || quoteCurrency || ""})</p>
               <p className="text-xl font-bold">
                 {loadingWallet ? (
-                  <span className="text-white/50">{t("loading_ellipsis")}</span>
+                  <span className="text-white/50">{tCommon('loading')}</span>
                 ) : (
                   `${(walletBalances?.quote?.balance || 0).toLocaleString()}`
                 )}
@@ -301,7 +303,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
           value={baseBalance.toFixed(6)}
           currency={baseCurrency}
           icon={Coins}
-          gradient="from-blue-500 to-blue-600"
+          gradient="from-purple-500 to-purple-600"
         />
         <BalanceCard
           label={t("quote_balance")}
@@ -311,14 +313,14 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
           gradient="from-green-500 to-green-600"
         />
         <BalanceCard
-          label={t("total_value_locked")}
+          label={tCommon("total_value_locked")}
           value={tvl.toLocaleString()}
           currency={quoteCurrency}
           icon={Wallet}
           gradient="from-purple-500 to-purple-600"
         />
         <BalanceCard
-          label={t("total_p_l")}
+          label={tCommon("total_p_l")}
           value={`${totalPnL >= 0 ? "+" : ""}${Math.abs(totalPnL).toFixed(2)}`}
           currency={quoteCurrency}
           subValue={`${totalPnL >= 0 ? "+" : ""}${tvl > 0 ? ((totalPnL / tvl) * 100).toFixed(2) : 0}%`}
@@ -356,7 +358,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
               ) : (
                 <div className="h-8 rounded-xl overflow-hidden flex bg-secondary shadow-inner">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-blue-400 flex items-center justify-center transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-purple-500 to-purple-400 flex items-center justify-center transition-all duration-500"
                     style={{ width: `${baseValuePercent}%` }}
                   >
                     {baseValuePercent > 15 && (
@@ -383,7 +385,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
             <div className="flex justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <div className={`w-4 h-4 rounded-full bg-gradient-to-r from-blue-500 to-blue-400 shadow ${isPoolEmpty ? "opacity-30" : ""}`} />
+                  <div className={`w-4 h-4 rounded-full bg-gradient-to-r from-purple-500 to-purple-400 shadow ${isPoolEmpty ? "opacity-30" : ""}`} />
                   <div>
                     <p className="text-sm font-medium text-foreground">{t("base_asset")}</p>
                     <p className="text-xs text-muted-foreground">{baseBalance.toFixed(4)} {baseCurrency}</p>
@@ -440,7 +442,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
 
             {/* Available Balance */}
             <div className="text-sm text-muted-foreground bg-secondary/50 rounded-lg px-3 py-2">
-              {t("available")} {" "}
+              {tCommon("available")} {" "}
               <span className="font-medium text-foreground">
                 {depositCurrency === "BASE"
                   ? `${(walletBalances?.base?.balance || 0).toFixed(8)} ${walletBalances?.base?.currency || baseCurrency || ""}`
@@ -485,7 +487,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
               ) : (
                 <PlusCircle className="w-5 h-5 mr-2" />
               )}
-              {t("deposit_funds")}
+              {tExt("deposit_funds")}
             </Button>
           </div>
         </ActionCard>
@@ -570,7 +572,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
               ) : (
                 <MinusCircle className="w-5 h-5 mr-2" />
               )}
-              {t("withdraw_funds")}
+              {tCommon("withdraw_funds")}
             </Button>
           </div>
         </ActionCard>
@@ -580,18 +582,18 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
           title="Rebalance"
           description={t("adjust_pool_asset_distribution")}
           icon={Scale}
-          gradient="from-blue-500 to-blue-600"
+          gradient="from-purple-500 to-purple-600"
         >
           <div className="space-y-4">
             {/* Ratio Display */}
-            <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-500/10 to-blue-600/10 dark:from-blue-500/20 dark:to-blue-600/20">
+            <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-purple-600/10 dark:from-purple-500/20 dark:to-purple-600/20">
               <div className="text-center">
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{rebalanceRatio[0]}%</p>
+                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{rebalanceRatio[0]}%</p>
                 <p className="text-xs text-muted-foreground">Base</p>
               </div>
-              <Scale className="w-8 h-8 text-blue-500/50" />
+              <Scale className="w-8 h-8 text-purple-500/50" />
               <div className="text-center">
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{100 - rebalanceRatio[0]}%</p>
+                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{100 - rebalanceRatio[0]}%</p>
                 <p className="text-xs text-muted-foreground">Quote</p>
               </div>
             </div>
@@ -623,7 +625,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
 
             {/* Rebalance Button */}
             <Button
-              className="w-full h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg"
+              className="w-full h-12 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg"
               onClick={handleRebalance}
               disabled={loading === "rebalance"}
             >
@@ -704,7 +706,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
             {/* Total P&L */}
             <div className={`relative overflow-hidden p-5 rounded-2xl bg-gradient-to-br ${totalPnL >= 0 ? "from-green-500/20 to-green-600/10" : "from-red-500/20 to-red-600/10"}`}>
               <div className="relative z-10">
-                <p className="text-sm text-muted-foreground mb-2">{t("total_p_l")}</p>
+                <p className="text-sm text-muted-foreground mb-2">{tCommon("total_p_l")}</p>
                 <div className="flex items-center gap-2">
                   {totalPnL >= 0 ? (
                     <ArrowUpRight className="w-5 h-5 text-green-500" />

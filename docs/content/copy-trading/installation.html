@@ -1,0 +1,495 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">📈</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Copy Trading Extension</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete Installation & Setup Guide</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 What is the Copy Trading Extension?</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            The Copy Trading extension transforms your v5 platform into a comprehensive social trading platform where users can follow and automatically replicate the trades of experienced leaders. Built with high-performance queue-based architecture, the system supports thousands of followers per leader without blocking order execution.
+        </p>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Leaders can earn profit sharing from their followers' successful trades, while followers benefit from automated trade replication with customizable risk management. The extension includes real-time statistics calculation, comprehensive audit logging, and advanced allocation management across multiple trading pairs.
+        </p>
+        <p class="text-zinc-600 dark:text-zinc-400">
+            The system integrates seamlessly with the Ecosystem extension for spot trading and supports proportional copying, fixed amounts, and fixed ratios with per-market allocation controls.
+        </p>
+    </div>
+</div>
+
+<!-- Features -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">✨ Key Features</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">👨‍💼</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Leader System</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Public leader profiles with approval workflow, market selection, and performance tracking</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">👥</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Follower Management</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Multi-leader following with per-market allocations and risk controls</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">⚡</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Real-time Replication</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Queue-based async processing handles 1000+ followers without blocking</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">💰</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Profit Sharing</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Automatic profit distribution from follower trades (configurable 0-50%)</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">📊</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Advanced Analytics</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Real-time ROI, win rate, P&L tracking with Redis caching</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">🎯</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Flexible Copy Modes</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Proportional, fixed amount, or fixed ratio copying strategies</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">🛡️</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Risk Management</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Max daily loss, position limits, stop loss, and take profit controls</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">📝</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Comprehensive Audit</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Complete audit trail with timeline view and admin controls</p>
+        </div>
+    </div>
+</div>
+
+<!-- Prerequisites -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📋 Prerequisites</h2>
+
+    <div class="space-y-4">
+        <div class="border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">✅ Required Components</h3>
+            <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1">
+                <li>v5 Core Platform installed and configured</li>
+                <li><strong>Ecosystem Extension</strong> - Required for spot trading integration and wallet management</li>
+                <li>User authentication system active</li>
+                <li>Database with proper user management</li>
+                <li>Redis server - For statistics caching and performance optimization</li>
+                <li>Working spot trading markets configured in Ecosystem</li>
+            </ul>
+        </div>
+
+        <div class="border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20 p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">🔌 Recommended Integrations</h3>
+            <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1">
+                <li>KYC Extension - For leader verification requirements</li>
+                <li>Email service - For notifications (leader approval, follower alerts)</li>
+                <li>WebSocket server - For real-time updates on followed trades</li>
+                <li>Monitoring tools - For queue performance tracking</li>
+            </ul>
+        </div>
+
+        <div class="border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-900/20 p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">⚠️ Important Notes</h3>
+            <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1">
+                <li>Copy trading requires active spot trading markets in the Ecosystem extension</li>
+                <li>Redis is strongly recommended for production deployments (handles stat caching)</li>
+                <li>Queue system processes up to 10 followers concurrently per leader trade</li>
+                <li>Cron jobs run automatically every 10 seconds for pending trade replication</li>
+                <li>All trades are replicated asynchronously - leader orders never blocked</li>
+                <li>Statistics calculated on-demand from trade data (no redundant storage)</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Installation Steps -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📦 Installation Steps</h2>
+
+    <!-- Step 1 -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Download License from CodeCanyon</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    Purchase and download the Copy Trading extension license from CodeCanyon:
+                </p>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                    <li>• Visit the CodeCanyon marketplace</li>
+                    <li>• Purchase the Copy Trading extension</li>
+                    <li>• Download the license file</li>
+                    <li>• Note down your <strong>username</strong> and <strong>license code</strong></li>
+                </ul>
+
+                <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-3">
+                    <p class="text-amber-800 dark:text-amber-200 text-sm">
+                        <strong>⚠️ Important:</strong> Keep your license code secure and don't share it with others.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Access Extension Management</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    Navigate to the system extension management page:
+                </p>
+                <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 font-mono text-sm">
+                    /admin/system/extension
+                </div>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4 mt-3">
+                    <li>• Login to your admin panel</li>
+                    <li>• Go to <strong>System → Extensions</strong></li>
+                    <li>• Find the "Copy Trading" extension in the list</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Activate the Extension</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    Use your CodeCanyon credentials to activate the extension:
+                </p>
+                <ol class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                    <li>1. Click on the "Copy Trading" extension</li>
+                    <li>2. Enter your <strong>CodeCanyon username</strong></li>
+                    <li>3. Enter your <strong>license code</strong></li>
+                    <li>4. Click "Activate"</li>
+                </ol>
+
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mt-3">
+                    <p class="text-blue-800 dark:text-blue-200 text-sm">
+                        <strong>ℹ️ Note:</strong> The system will verify your license with CodeCanyon and activate the extension. This may take a few seconds.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Verify Database Setup</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    After activation, the system automatically creates the following database tables:
+                </p>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">copy_trading_leaders</code> - Leader profiles and configuration</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">copy_trading_followers</code> - Follower subscriptions</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">copy_trading_leader_markets</code> - Leader market declarations</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">copy_trading_follower_allocations</code> - Per-market allocations</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">copy_trading_trades</code> - All copy trades (leader and follower)</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">copy_trading_transactions</code> - Financial transactions</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">copy_trading_audit_logs</code> - Complete audit trail</li>
+                </ul>
+
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 mt-3">
+                    <p class="text-green-800 dark:text-green-200 text-sm">
+                        <strong>✅ Success:</strong> Once activated, you'll see "Copy Trading" in your admin sidebar navigation under the Extensions section.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">5</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Configure Ecosystem Integration</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    Ensure the Ecosystem extension is properly configured with active trading markets:
+                </p>
+                <ol class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                    <li>1. Navigate to <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/ecosystem/market</code></li>
+                    <li>2. Verify trading markets are active (e.g., BTC/USDT, ETH/USDT, MO/USDT)</li>
+                    <li>3. Ensure users have sufficient wallet balances to start trading</li>
+                    <li>4. Test market by placing a sample order</li>
+                </ol>
+
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
+                    <h4 class="text-sm font-semibold mb-1 text-blue-900 dark:text-blue-100">ℹ️ Integration Details</h4>
+                    <p class="text-blue-800 dark:text-blue-200 text-xs">Copy trading hooks into the ecosystem order creation flow. When a leader places an order, it's automatically queued for replication to all active followers.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 6 -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">6</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Verify Queue System Initialization</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    The copy trading queue processor starts automatically with the cron system:
+                </p>
+                <ol class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                    <li>1. Check backend logs for: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">[CRON] Copy trading queue initialized</code></li>
+                    <li>2. Verify cron job appears in admin cron management: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">processPendingCopyTrades</code></li>
+                    <li>3. Queue processes every 100ms automatically</li>
+                </ol>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                    <div class="bg-green-50 dark:bg-green-900/20 rounded p-3">
+                        <p class="text-sm font-medium text-green-900 dark:text-green-100">⚡ Queue Configuration</p>
+                        <ul class="text-xs text-green-800 dark:text-green-200 ml-4 mt-1 space-y-1">
+                            <li>• Max concurrent: 10 followers</li>
+                            <li>• Process interval: 100ms</li>
+                            <li>• Auto-retry: 3 attempts</li>
+                            <li>• Max queue size: 1000</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                        <p class="text-sm font-medium text-blue-900 dark:text-blue-100">📊 Performance Benefits</p>
+                        <ul class="text-xs text-blue-800 dark:text-blue-200 ml-4 mt-1 space-y-1">
+                            <li>• Non-blocking order creation</li>
+                            <li>• Handles 1000+ followers</li>
+                            <li>• <200ms order response time</li>
+                            <li>• Batch processing efficiency</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- System Architecture -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🏗️ System Architecture</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            Understanding the copy trading architecture helps with troubleshooting and optimization:
+        </p>
+
+        <div class="space-y-4">
+            <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-4">
+                <h3 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">1. Order Creation Flow</h3>
+                <div class="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                    <p>Leader places order → Order created instantly → Safe import triggers copy trading → Trade queued asynchronously</p>
+                    <p class="text-xs mt-2 italic">Leader's order returns in <200ms regardless of follower count</p>
+                </div>
+            </div>
+
+            <div class="bg-green-50 dark:bg-green-900/20 rounded p-4">
+                <h3 class="font-semibold text-green-900 dark:text-green-100 mb-2">2. Queue Processing</h3>
+                <div class="text-sm text-green-800 dark:text-green-200 space-y-1">
+                    <p>Queue processor runs every 100ms → Picks task from queue → Processes 10 followers concurrently → Updates stats</p>
+                    <p class="text-xs mt-2 italic">Failed trades retry up to 3 times with exponential backoff</p>
+                </div>
+            </div>
+
+            <div class="bg-purple-50 dark:bg-purple-900/20 rounded p-4">
+                <h3 class="font-semibold text-purple-900 dark:text-purple-100 mb-2">3. Statistics Calculation</h3>
+                <div class="text-sm text-purple-800 dark:text-purple-200 space-y-1">
+                    <p>Stats calculated on-demand from trade table → Cached in Redis (5 min TTL) → Auto-invalidated on trade close</p>
+                    <p class="text-xs mt-2 italic">No redundant stat storage in database - single source of truth</p>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 dark:bg-amber-900/20 rounded p-4">
+                <h3 class="font-semibold text-amber-900 dark:text-amber-100 mb-2">4. Allocation Management</h3>
+                <div class="text-sm text-amber-800 dark:text-amber-200 space-y-1">
+                    <p>Per-market allocations tracked → Base amount (for SELL) + Quote amount (for BUY) → Used amounts updated on copy</p>
+                    <p class="text-xs mt-2 italic">Prevents overallocation and ensures proper balance management</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Database Tables -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🗄️ Database Tables</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            The Copy Trading extension creates the following database tables automatically during activation:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                <p class="text-sm font-medium text-blue-900 dark:text-blue-100">👨‍💼 copyTradingLeader</p>
+                <p class="text-xs text-blue-800 dark:text-blue-200">Leader profiles (status, bio, profit share, risk level)</p>
+            </div>
+
+            <div class="bg-purple-50 dark:bg-purple-900/20 rounded p-3">
+                <p class="text-sm font-medium text-purple-900 dark:text-purple-100">👥 copyTradingFollower</p>
+                <p class="text-xs text-purple-800 dark:text-purple-200">Follower subscriptions (copy mode, risk limits)</p>
+            </div>
+
+            <div class="bg-green-50 dark:bg-green-900/20 rounded p-3">
+                <p class="text-sm font-medium text-green-900 dark:text-green-100">📊 copyTradingLeaderMarket</p>
+                <p class="text-xs text-green-800 dark:text-green-200">Markets leaders actively trade (symbol, isActive)</p>
+            </div>
+
+            <div class="bg-amber-50 dark:bg-amber-900/20 rounded p-3">
+                <p class="text-sm font-medium text-amber-900 dark:text-amber-100">💰 copyTradingFollowerAllocation</p>
+                <p class="text-xs text-amber-800 dark:text-amber-200">Per-market allocations (base/quote amounts, used amounts)</p>
+            </div>
+
+            <div class="bg-red-50 dark:bg-red-900/20 rounded p-3">
+                <p class="text-sm font-medium text-red-900 dark:text-red-100">📈 copyTradingTrade</p>
+                <p class="text-xs text-red-800 dark:text-red-200">All trades (leader and follower) with P&L tracking</p>
+            </div>
+
+            <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded p-3">
+                <p class="text-sm font-medium text-indigo-900 dark:text-indigo-100">💵 copyTradingTransaction</p>
+                <p class="text-xs text-indigo-800 dark:text-indigo-200">Financial transactions (deposits, withdrawals, profit shares)</p>
+            </div>
+
+            <div class="bg-pink-50 dark:bg-pink-900/20 rounded p-3">
+                <p class="text-sm font-medium text-pink-900 dark:text-pink-100">📝 copyTradingAuditLog</p>
+                <p class="text-xs text-pink-800 dark:text-pink-200">Complete audit trail with admin actions and system events</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Troubleshooting -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔧 Troubleshooting</h2>
+
+    <div class="space-y-3">
+        <details class="border border-zinc-200 dark:border-zinc-700 rounded-lg">
+            <summary class="p-4 cursor-pointer font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                Copy trading not triggering when leader places order
+            </summary>
+            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
+                <ul class="text-sm space-y-2 text-zinc-600 dark:text-zinc-400">
+                    <li>• Verify leader status is ACTIVE in copy_trading_leaders table</li>
+                    <li>• Check leader has declared the market in copy_trading_leader_markets (isActive=true)</li>
+                    <li>• Ensure leader has at least one ACTIVE follower</li>
+                    <li>• Check backend logs for safe import errors</li>
+                    <li>• Verify queue processor initialized: grep for "Copy trading queue initialized"</li>
+                </ul>
+            </div>
+        </details>
+
+        <details class="border border-zinc-200 dark:border-zinc-700 rounded-lg">
+            <summary class="p-4 cursor-pointer font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                Follower trades not replicating
+            </summary>
+            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
+                <ul class="text-sm space-y-2 text-zinc-600 dark:text-zinc-400">
+                    <li>• Check follower status is ACTIVE (not PAUSED or STOPPED)</li>
+                    <li>• Verify follower has allocation for the market with sufficient balance</li>
+                    <li>• Check allocation isActive = true in copy_trading_follower_allocations</li>
+                    <li>• Verify daily loss limits not exceeded</li>
+                    <li>• Check follower wallet has sufficient balance in ecosystem_wallets</li>
+                </ul>
+            </div>
+        </details>
+
+        <details class="border border-zinc-200 dark:border-zinc-700 rounded-lg">
+            <summary class="p-4 cursor-pointer font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                Statistics showing as 0 or incorrect
+            </summary>
+            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
+                <ul class="text-sm space-y-2 text-zinc-600 dark:text-zinc-400">
+                    <li>• Check Redis is running and accessible</li>
+                    <li>• Verify trades exist in copy_trading_trades with status = "CLOSED"</li>
+                    <li>• Clear Redis cache: redis-cli FLUSHDB (stats will recalculate)</li>
+                    <li>• Check for profit calculation in closed trades</li>
+                    <li>• Verify stats-calculator.ts functions are working</li>
+                </ul>
+            </div>
+        </details>
+
+        <details class="border border-zinc-200 dark:border-zinc-700 rounded-lg">
+            <summary class="p-4 cursor-pointer font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                Queue processing slow or backed up
+            </summary>
+            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
+                <ul class="text-sm space-y-2 text-zinc-600 dark:text-zinc-400">
+                    <li>• Check queue stats via getCopyQueueStats() function</li>
+                    <li>• Increase MAX_CONCURRENT_FOLLOWERS in copyQueue.ts (default 10)</li>
+                    <li>• Reduce QUEUE_PROCESS_INTERVAL if needed (default 100ms)</li>
+                    <li>• Check database query performance</li>
+                    <li>• Monitor system resources (CPU, memory)</li>
+                </ul>
+            </div>
+        </details>
+    </div>
+</div>
+
+<!-- Next Steps -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🚀 Next Steps</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <a href="/docs/copy-trading/admin-features" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">👨‍💼 Admin Features Guide</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Learn about leader approval, follower management, analytics, and audit logging</p>
+        </a>
+
+        <a href="/docs/copy-trading/user-features" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">👥 User Features Guide</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Understand how to become a leader or follow traders with allocation management</p>
+        </a>
+
+        <a href="/docs/copy-trading/settings" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">⚙️ Settings Configuration</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Configure platform settings, risk limits, and profit sharing rules</p>
+        </a>
+
+        <a href="/docs/ecosystem/installation" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">🔗 Ecosystem Extension</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Set up spot trading markets and wallet infrastructure</p>
+        </a>
+    </div>
+</div>
+
+<!-- Support -->
+<div class="border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg">
+    <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">💬 Need Help?</h3>
+    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+        If you encounter any issues during installation or have questions about the Copy Trading extension:
+    </p>
+    <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+        <li>• Check the <a href="/docs/faq" class="text-blue-600 dark:text-blue-400 hover:underline">FAQ section</a></li>
+        <li>• Visit our <a href="https://support.mash3div.com" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">support portal</a></li>
+        <li>• Contact our support team via the admin panel</li>
+        <li>• Join our community Discord server</li>
+    </ul>
+</div>

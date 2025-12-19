@@ -1,15 +1,19 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import { nftAuctionAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
+import { Layers } from "lucide-react";
 
 export default function NFTAuctionsPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/auction"
-      model="nftAuction"
+      model="nftListing"
       permissions={{
         access: "access.nft.auction",
         view: "view.nft.auction",
@@ -17,7 +21,7 @@ export default function NFTAuctionsPage() {
         edit: "edit.nft.auction",
         delete: "delete.nft.auction",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={false}
       canEdit={true}
       canDelete={false}
@@ -25,9 +29,16 @@ export default function NFTAuctionsPage() {
       isParanoid={false}
       title="NFT Auctions"
       itemTitle="Auction"
-      description={t("monitor_nft_auction_activity_track_bidding")}
+      description={t("manage_and_monitor_nft_auction_events")}
       columns={columns}
+      formConfig={formConfig}
       analytics={nftAuctionAnalytics}
+      design={{
+        animation: "orbs",
+        primaryColor: "purple",
+        secondaryColor: "pink",
+        icon: Layers,
+      }}
     />
   );
 }

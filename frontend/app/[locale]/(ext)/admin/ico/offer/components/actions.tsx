@@ -37,7 +37,9 @@ export function OfferingActions({
   processingId,
   setProcessingId,
 }: OfferingActionsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const router = useRouter();
   const {
     approveOffering,
@@ -169,7 +171,7 @@ export function OfferingActions({
       <div className="flex gap-2">
         <Button size="sm" variant="outline" onClick={handleView}>
           <Eye className="h-4 w-4 mr-1" />
-          {t("View")}
+          {tCommon("view")}
         </Button>
 
         {isPending && (
@@ -182,7 +184,7 @@ export function OfferingActions({
               disabled={processingId === offering.id}
             >
               <CheckCircle className="h-4 w-4 mr-1" />
-              {t("Approve")}
+              {tCommon("approve")}
             </Button>
             <Button
               size="sm"
@@ -192,7 +194,7 @@ export function OfferingActions({
               disabled={processingId === offering.id}
             >
               <X className="h-4 w-4 mr-1" />
-              {t("Reject")}
+              {tCommon("reject")}
             </Button>
           </>
         )}
@@ -213,12 +215,12 @@ export function OfferingActions({
               {isPaused ? (
                 <>
                   <PlayCircle className="h-4 w-4 mr-1" />
-                  {t("Resume")}
+                  {tCommon("resume")}
                 </>
               ) : (
                 <>
                   <PauseCircle className="h-4 w-4 mr-1" />
-                  {t("Pause")}
+                  {tCommon("pause")}
                 </>
               )}
             </Button>
@@ -236,7 +238,7 @@ export function OfferingActions({
                 disabled={processingId === offering.id}
               >
                 <Flag className="h-4 w-4 mr-1" />
-                {t("Unflag")}
+                {t("unflag")}
               </Button>
             ) : (
               <Button
@@ -247,7 +249,7 @@ export function OfferingActions({
                 disabled={processingId === offering.id}
               >
                 <AlertTriangle className="h-4 w-4 mr-1" />
-                {t("Flag")}
+                {t("flag")}
               </Button>
             )}
           </>
@@ -261,7 +263,7 @@ export function OfferingActions({
             disabled={processingId === offering.id}
           >
             <Trash2 className="h-4 w-4 mr-1" />
-            {t("Delete")}
+            {tCommon("delete")}
           </Button>
         )}
       </div>
@@ -282,7 +284,7 @@ export function OfferingActions({
             </DialogDescription>
           </DialogHeader>
           <Textarea
-            placeholder="Enter rejection reason..."
+            placeholder={tCommon('enter_rejection_reason')}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="min-h-[100px]"
@@ -292,7 +294,7 @@ export function OfferingActions({
               variant="outline"
               onClick={() => setRejectDialogOpen(false)}
             >
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -315,14 +317,14 @@ export function OfferingActions({
             </DialogDescription>
           </DialogHeader>
           <Textarea
-            placeholder="Enter flag reason..."
+            placeholder={t("enter_flag_reason_ellipsis")}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="min-h-[100px]"
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setFlagDialogOpen(false)}>
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -338,21 +340,21 @@ export function OfferingActions({
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("Delete")} {t("Offering")}</DialogTitle>
+            <DialogTitle>{tCommon("delete")} {tExt("offering")}</DialogTitle>
             <DialogDescription>
               {t("are_you_sure_delete_offering_cannot_undone")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={processingId !== null}
             >
-              {t("Delete")} {t("Offering")}
+              {tCommon("delete")} {tExt("offering")}
             </Button>
           </DialogFooter>
         </DialogContent>

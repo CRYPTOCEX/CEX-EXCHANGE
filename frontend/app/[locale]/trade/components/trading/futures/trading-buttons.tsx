@@ -17,7 +17,8 @@ export default function TradingButtons({
   amount,
   isSubmitting = false,
 }: TradingButtonsProps) {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   
   const isDisabled = !currentPrice || amount <= 0 || isSubmitting;
   
@@ -34,7 +35,7 @@ export default function TradingButtons({
         ) : (
           <ArrowUpCircle className="h-4 w-4 mr-2" />
         )}
-        {isSubmitting ? t("submitting") : t("Long")}
+        {isSubmitting ? tCommon("submitting") : tExtAdmin("long")}
       </Button>
       <Button
         variant="default"
@@ -47,7 +48,7 @@ export default function TradingButtons({
         ) : (
           <ArrowDownCircle className="h-4 w-4 mr-2" />
         )}
-        {isSubmitting ? t("submitting") : t("Short")}
+        {isSubmitting ? tCommon("submitting") : tExtAdmin("short")}
       </Button>
     </div>
   );

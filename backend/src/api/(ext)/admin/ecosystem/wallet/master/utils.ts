@@ -21,55 +21,90 @@ import { walletResponseAttributes } from "@b/api/(ext)/ecosystem/utils/wallet";
 import { getSolanaService, getTronService, getMoneroService, getTonService } from "@b/utils/safe-imports";
 import path from "path";
 
+interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
+
 // Fetch all master wallets
-export async function getAllMasterWallets(): Promise<
+export async function getAllMasterWallets(ctx?: LogContext): Promise<
   ecosystemMasterWalletAttributes[]
 > {
-  return models.ecosystemMasterWallet.findAll({
+  ctx?.step?.("Fetching all master wallets");
+  const wallets = await models.ecosystemMasterWallet.findAll({
     attributes: walletResponseAttributes,
   });
+  ctx?.success?.(`Found ${wallets.length} master wallet(s)`);
+  return wallets;
 }
 
 // Fetch a single master wallet by ID
 export async function getMasterWalletById(
-  id: string
+  id: string,
+  ctx?: LogContext
 ): Promise<ecosystemMasterWalletAttributes | null> {
-  return models.ecosystemMasterWallet.findOne({
+  ctx?.step?.(`Fetching master wallet by ID: ${id}`);
+  const wallet = await models.ecosystemMasterWallet.findOne({
     where: { id },
     attributes: walletResponseAttributes,
   });
+  if (wallet) {
+    ctx?.success?.(`Master wallet found: ${id}`);
+  } else {
+    ctx?.fail?.(`Master wallet not found: ${id}`);
+  }
+  return wallet;
 }
 
 // Fetch a single master wallet by UUID (no select constraint)
 export async function getMasterWallet(
-  id: string
+  id: string,
+  ctx?: LogContext
 ): Promise<ecosystemMasterWalletAttributes | null> {
-  return models.ecosystemMasterWallet.findOne({
+  ctx?.step?.(`Fetching master wallet: ${id}`);
+  const wallet = await models.ecosystemMasterWallet.findOne({
     where: { id },
   });
+  if (wallet) {
+    ctx?.success?.(`Master wallet retrieved: ${id}`);
+  } else {
+    ctx?.fail?.(`Master wallet not found: ${id}`);
+  }
+  return wallet;
 }
 
 // Create a new master wallet
 export async function createMasterWallet(
   walletData: Web3WalletData,
-  currency: string
+  currency: string,
+  ctx?: LogContext
 ): Promise<ecosystemMasterWalletCreationAttributes> {
+  ctx?.step?.(`Creating master wallet for ${currency} on ${walletData.chain}`);
+  try {
   const wallet = await models.ecosystemMasterWallet.create({
     currency,
     chain: walletData.chain,
     address: walletData.address,
     data: walletData.data,
     status: true,
-  });
-
-  return wallet;
+    });
+    ctx?.success?.(`Master wallet created: ${wallet.id}`);
+    return wallet;
+  } catch (error: any) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }
 
 // Update master wallet balance
 export async function updateMasterWalletBalance(
   id: string,
-  balance: number
+  balance: number,
+  ctx?: LogContext
 ): Promise<ecosystemMasterWalletAttributes | null> {
+  ctx?.step?.(`Updating master wallet balance for ${id}: ${balance}`);
+  try {
   await models.ecosystemMasterWallet.update(
     {
       balance,
@@ -77,9 +112,13 @@ export async function updateMasterWalletBalance(
     {
       where: { id },
     }
-  );
-
-  return getMasterWalletById(id);
+    );
+    ctx?.success?.(`Master wallet balance updated: ${id}`);
+    return getMasterWalletById(id, ctx);
+  } catch (error: any) {
+    ctx?.fail?.(error.message);
+    throw error;
+  }
 }
 
 const id = baseStringSchema("ID of the ecosystem master wallet");
@@ -153,8 +192,10 @@ export const ecosystemMasterWalletStoreSchema = {
 };
 
 export const createAndEncryptWallet = async (
-  chain: string
+  chain: string,
+  ctx?: LogContext
 ): Promise<Web3WalletData> => {
+  ctx?.step?.(`Creating and encrypting wallet for ${chain}`);
   let wallet;
 
   if (["BTC", "LTC", "DOGE", "DASH"].includes(chain)) {
@@ -224,6 +265,7 @@ export const createAndEncryptWallet = async (
   // Encrypt all the wallet details
   const data = encrypt(JSON.stringify(wallet.data));
 
+  ctx?.success?.(`Wallet created and encrypted for ${chain}: ${wallet.address}`);
   return {
     address: wallet.address,
     chain,
@@ -275,8 +317,10 @@ export const createEVMWallet = () => {
 };
 
 export const getEcosystemMasterWalletBalance = async (
-  wallet: ecosystemMasterWalletAttributes
+  wallet: ecosystemMasterWalletAttributes,
+  ctx?: LogContext
 ): Promise<void> => {
+  ctx?.step?.(`Fetching balance for master wallet ${wallet.chain}: ${wallet.address.substring(0, 10)}...`);
   try {
     const cacheKey = `wallet:${wallet.id}:balance`;
     const redis = RedisSingleton.getInstance();
@@ -363,7 +407,7 @@ export const getEcosystemMasterWalletBalance = async (
 
     // Always update the database, even if balance is 0
     const balanceFloat = parseFloat(formattedBalance);
-    await updateMasterWalletBalance(wallet.id, balanceFloat);
+    await updateMasterWalletBalance(wallet.id, balanceFloat, ctx);
 
     // Cache the balance for 1 minute
     const cacheData = {
@@ -372,16 +416,19 @@ export const getEcosystemMasterWalletBalance = async (
     };
 
     await redis.setex(cacheKey, 60, JSON.stringify(cacheData));
-  } catch (error) {
-    console.error(
-      `Failed to fetch ${wallet.chain} wallet balance: ${error.message}`
-    );
+    ctx?.success?.(`Balance updated for ${wallet.chain}: ${balanceFloat}`);
+  } catch (error: any) {
+    const errorMsg = `Failed to fetch ${wallet.chain} wallet balance: ${error.message}`;
+    ctx?.fail?.(errorMsg);
+    console.error(errorMsg);
   }
 };
 
 export async function deployCustodialContract(
-  masterWallet: ecosystemMasterWalletAttributes
+  masterWallet: ecosystemMasterWalletAttributes,
+  ctx?: LogContext
 ): Promise<string | undefined> {
+  ctx?.step?.(`Deploying custodial contract for ${masterWallet.chain}`);
   try {
     // Initialize Ethereum provider
     const provider = await getProvider(masterWallet.chain);
@@ -432,8 +479,11 @@ export async function deployCustodialContract(
     // Wait for the contract to be deployed
     const response = await custodialWalletContract.waitForDeployment();
 
-    return await response.getAddress();
-  } catch (error) {
+    const contractAddress = await response.getAddress();
+    ctx?.success?.(`Custodial contract deployed at ${contractAddress}`);
+    return contractAddress;
+  } catch (error: any) {
+    ctx?.fail?.(error.message);
     throw new Error(error.message);
   }
 }

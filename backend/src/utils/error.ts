@@ -1,5 +1,3 @@
-import { logError } from "@b/utils/logger";
-
 export interface ErrorOptions {
   statusCode: number;
   message: string;

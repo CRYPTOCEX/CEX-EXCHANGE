@@ -1109,6 +1109,364 @@ const notificationTemplates = [
     shortCodes: ["SELLER_NAME", "OFFERING_NAME", "TRANSACTION_ID"],
     email: true,
   },
+  // Copy Trading Email Templates
+  {
+    id: 74,
+    name: "CopyTradingLeaderApplicationSubmitted",
+    subject: "Copy Trading Leader Application Received",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>Thank you for applying to become a Copy Trading Leader!</p>
+      <p>Your application has been received and is currently under review by our team. We will carefully evaluate your trading history and qualifications.</p>
+      <p><strong>Application Details:</strong></p>
+      <ul>
+        <li>Display Name: %DISPLAY_NAME%</li>
+        <li>Submitted: %CREATED_AT%</li>
+        <li>Status: Under Review</li>
+      </ul>
+      <p>You will receive an email notification once your application has been reviewed. This process typically takes 1-3 business days.</p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "DISPLAY_NAME", "CREATED_AT"],
+    email: true,
+  },
+  {
+    id: 75,
+    name: "CopyTradingLeaderApplicationApproved",
+    subject: "Congratulations! Your Copy Trading Leader Application has been Approved",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>Great news! Your application to become a Copy Trading Leader has been <strong>approved</strong>!</p>
+      <p>You can now start building your follower base and earning profit share from successful trades.</p>
+      <p><strong>Next Steps:</strong></p>
+      <ul>
+        <li>Complete your leader profile with trading strategies and risk information</li>
+        <li>Set your profit share percentage</li>
+        <li>Start trading - your trades will be visible to potential followers</li>
+      </ul>
+      <p><a href="%URL%/copy-trading/leader/dashboard" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Go to Leader Dashboard</a></p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "URL"],
+    email: true,
+  },
+  {
+    id: 76,
+    name: "CopyTradingLeaderApplicationRejected",
+    subject: "Copy Trading Leader Application Update",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>Thank you for your interest in becoming a Copy Trading Leader.</p>
+      <p>After careful review, we are unable to approve your application at this time.</p>
+      <p><strong>Reason:</strong></p>
+      <p>%REJECTION_REASON%</p>
+      <p>You may reapply in the future once you meet the eligibility requirements. Please ensure you have:</p>
+      <ul>
+        <li>Sufficient trading history on the platform</li>
+        <li>A verified account with completed KYC</li>
+        <li>A positive trading track record</li>
+      </ul>
+      <p>If you have questions, please contact our support team.</p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "REJECTION_REASON"],
+    email: true,
+  },
+  {
+    id: 77,
+    name: "CopyTradingLeaderSuspended",
+    subject: "Important: Your Copy Trading Leader Account has been Suspended",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>Your Copy Trading Leader account has been <strong>suspended</strong>.</p>
+      <p><strong>Reason:</strong></p>
+      <p>%SUSPENSION_REASON%</p>
+      <p><strong>Impact:</strong></p>
+      <ul>
+        <li>Your leader profile is no longer visible to followers</li>
+        <li>All active follower subscriptions have been paused</li>
+        <li>You cannot accept new followers during suspension</li>
+      </ul>
+      <p>If you believe this suspension was made in error, please contact our support team immediately.</p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "SUSPENSION_REASON"],
+    email: true,
+  },
+  {
+    id: 78,
+    name: "CopyTradingLeaderNewFollower",
+    subject: "New Follower Started Copying Your Trades!",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>Congratulations! You have a new follower copying your trading strategy.</p>
+      <p><strong>Follower Details:</strong></p>
+      <ul>
+        <li>User: %FOLLOWER_NAME%</li>
+        <li>Copy Mode: %COPY_MODE%</li>
+        <li>Started: %STARTED_AT%</li>
+      </ul>
+      <p>Continue executing your winning strategy, and you'll earn profit share from this follower's successful trades!</p>
+      <p><a href="%URL%/copy-trading/leader/followers" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">View All Followers</a></p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "FOLLOWER_NAME", "COPY_MODE", "STARTED_AT", "URL"],
+    email: true,
+  },
+  {
+    id: 79,
+    name: "CopyTradingLeaderFollowerStopped",
+    subject: "A Follower has Stopped Copying Your Trades",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>One of your followers has stopped copying your trading strategy.</p>
+      <p><strong>Details:</strong></p>
+      <ul>
+        <li>Follower: %FOLLOWER_NAME%</li>
+        <li>Stopped: %STOPPED_AT%</li>
+        <li>Total Days Following: %DAYS_FOLLOWED%</li>
+      </ul>
+      <p>Keep improving your trading performance to attract and retain more followers!</p>
+      <p><a href="%URL%/copy-trading/leader/dashboard" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">View Dashboard</a></p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "FOLLOWER_NAME", "STOPPED_AT", "DAYS_FOLLOWED", "URL"],
+    email: true,
+  },
+  {
+    id: 80,
+    name: "CopyTradingFollowerSubscriptionStarted",
+    subject: "You're Now Copying %LEADER_NAME%'s Trading Strategy!",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>Your copy trading subscription has been successfully activated!</p>
+      <p><strong>Leader Details:</strong></p>
+      <ul>
+        <li>Leader: %LEADER_NAME%</li>
+        <li>Risk Level: %RISK_LEVEL%</li>
+        <li>Trading Style: %TRADING_STYLE%</li>
+        <li>Win Rate: %WIN_RATE%%</li>
+      </ul>
+      <p><strong>Your Settings:</strong></p>
+      <ul>
+        <li>Copy Mode: %COPY_MODE%</li>
+        <li>Max Daily Loss: %MAX_DAILY_LOSS% USDT</li>
+        <li>Max Position Size: %MAX_POSITION_SIZE% USDT</li>
+      </ul>
+      <p>All of %LEADER_NAME%'s trades will now be automatically copied to your account based on your settings.</p>
+      <p><a href="%URL%/copy-trading/follower/subscriptions" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">View Your Subscriptions</a></p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "LEADER_NAME", "RISK_LEVEL", "TRADING_STYLE", "WIN_RATE", "COPY_MODE", "MAX_DAILY_LOSS", "MAX_POSITION_SIZE", "URL"],
+    email: true,
+  },
+  {
+    id: 81,
+    name: "CopyTradingFollowerSubscriptionPaused",
+    subject: "Your Copy Trading Subscription has been Paused",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>Your copy trading subscription for %LEADER_NAME% has been paused.</p>
+      <p><strong>Reason:</strong></p>
+      <p>%PAUSE_REASON%</p>
+      <p>While paused, no new trades will be copied. Your existing positions remain open.</p>
+      <p>You can resume your subscription at any time from your dashboard.</p>
+      <p><a href="%URL%/copy-trading/follower/subscriptions" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Manage Subscriptions</a></p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "LEADER_NAME", "PAUSE_REASON", "URL"],
+    email: true,
+  },
+  {
+    id: 82,
+    name: "CopyTradingFollowerSubscriptionResumed",
+    subject: "Your Copy Trading Subscription has been Resumed",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>Your copy trading subscription for %LEADER_NAME% has been resumed successfully!</p>
+      <p>New trades from %LEADER_NAME% will now be automatically copied to your account again.</p>
+      <p><strong>Active Settings:</strong></p>
+      <ul>
+        <li>Copy Mode: %COPY_MODE%</li>
+        <li>Status: ACTIVE</li>
+      </ul>
+      <p><a href="%URL%/copy-trading/follower/subscriptions" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">View Subscriptions</a></p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "LEADER_NAME", "COPY_MODE", "URL"],
+    email: true,
+  },
+  {
+    id: 83,
+    name: "CopyTradingFollowerSubscriptionStopped",
+    subject: "Your Copy Trading Subscription has been Stopped",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>Your copy trading subscription for %LEADER_NAME% has been stopped.</p>
+      <p><strong>Summary:</strong></p>
+      <ul>
+        <li>Total Trades Copied: %TOTAL_TRADES%</li>
+        <li>Win Rate: %WIN_RATE%%</li>
+        <li>Total Profit/Loss: %TOTAL_PROFIT% USDT</li>
+        <li>ROI: %ROI%%</li>
+      </ul>
+      <p>No new trades will be copied. All existing positions will remain open until you manually close them.</p>
+      <p>Thank you for using our copy trading service!</p>
+      <p><a href="%URL%/copy-trading/leaders" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Browse Other Leaders</a></p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "LEADER_NAME", "TOTAL_TRADES", "WIN_RATE", "TOTAL_PROFIT", "ROI", "URL"],
+    email: true,
+  },
+  {
+    id: 84,
+    name: "CopyTradingTradeProfit",
+    subject: "Great News! Your Copy Trade Closed with Profit",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>A copied trade from %LEADER_NAME% has closed with profit!</p>
+      <p><strong>Trade Details:</strong></p>
+      <ul>
+        <li>Symbol: %SYMBOL%</li>
+        <li>Side: %SIDE%</li>
+        <li>Entry Price: %ENTRY_PRICE%</li>
+        <li>Exit Price: %EXIT_PRICE%</li>
+        <li>Profit: <span style="color: green;">+%PROFIT% USDT</span></li>
+      </ul>
+      <p><strong>Profit Distribution:</strong></p>
+      <ul>
+        <li>Your Profit: %YOUR_PROFIT% USDT</li>
+        <li>Leader Profit Share (%PROFIT_SHARE_PERCENT%%): %LEADER_PROFIT_SHARE% USDT</li>
+      </ul>
+      <p>Keep following winning strategies!</p>
+      <p><a href="%URL%/copy-trading/follower/trades" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">View All Trades</a></p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "LEADER_NAME", "SYMBOL", "SIDE", "ENTRY_PRICE", "EXIT_PRICE", "PROFIT", "YOUR_PROFIT", "PROFIT_SHARE_PERCENT", "LEADER_PROFIT_SHARE", "URL"],
+    email: true,
+  },
+  {
+    id: 85,
+    name: "CopyTradingTradeLoss",
+    subject: "Copy Trade Closed with Loss",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>A copied trade from %LEADER_NAME% has closed with a loss.</p>
+      <p><strong>Trade Details:</strong></p>
+      <ul>
+        <li>Symbol: %SYMBOL%</li>
+        <li>Side: %SIDE%</li>
+        <li>Entry Price: %ENTRY_PRICE%</li>
+        <li>Exit Price: %EXIT_PRICE%</li>
+        <li>Loss: <span style="color: red;">-%LOSS% USDT</span></li>
+      </ul>
+      <p>Remember that trading involves risk, and losses are a normal part of trading. Review your risk management settings if needed.</p>
+      <p><a href="%URL%/copy-trading/follower/settings/%SUBSCRIPTION_ID%" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Adjust Risk Settings</a></p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "LEADER_NAME", "SYMBOL", "SIDE", "ENTRY_PRICE", "EXIT_PRICE", "LOSS", "SUBSCRIPTION_ID", "URL"],
+    email: true,
+  },
+  {
+    id: 86,
+    name: "CopyTradingDailyLossLimitReached",
+    subject: "ALERT: Daily Loss Limit Reached - Subscription Auto-Paused",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p><strong>⚠️ RISK MANAGEMENT ALERT</strong></p>
+      <p>Your copy trading subscription for %LEADER_NAME% has been automatically paused because your daily loss limit has been reached.</p>
+      <p><strong>Loss Details:</strong></p>
+      <ul>
+        <li>Daily Loss Limit: %DAILY_LOSS_LIMIT% USDT</li>
+        <li>Current Loss Today: <span style="color: red;">-%CURRENT_LOSS% USDT</span></li>
+        <li>Status: PAUSED</li>
+      </ul>
+      <p>This is a protective measure to prevent further losses. Your subscription will automatically resume tomorrow, or you can manually resume it after reviewing your strategy.</p>
+      <p><a href="%URL%/copy-trading/follower/subscriptions" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Manage Subscription</a></p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "LEADER_NAME", "DAILY_LOSS_LIMIT", "CURRENT_LOSS", "URL"],
+    email: true,
+  },
+  {
+    id: 87,
+    name: "CopyTradingInsufficientBalance",
+    subject: "Insufficient Balance to Copy Trade",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>A trade from %LEADER_NAME% could not be copied due to insufficient balance in your allocation.</p>
+      <p><strong>Details:</strong></p>
+      <ul>
+        <li>Symbol: %SYMBOL%</li>
+        <li>Required Amount: %REQUIRED_AMOUNT% USDT</li>
+        <li>Available Balance: %AVAILABLE_BALANCE% USDT</li>
+      </ul>
+      <p>To continue copying trades, please add more funds to your allocation.</p>
+      <p><a href="%URL%/copy-trading/follower/allocations/%SUBSCRIPTION_ID%" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Add Funds</a></p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "LEADER_NAME", "SYMBOL", "REQUIRED_AMOUNT", "AVAILABLE_BALANCE", "SUBSCRIPTION_ID", "URL"],
+    email: true,
+  },
+  {
+    id: 88,
+    name: "CopyTradingProfitShareEarned",
+    subject: "You Earned Profit Share: %PROFIT_SHARE_AMOUNT% USDT",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>Congratulations! You've earned profit share from one of your followers!</p>
+      <p><strong>Profit Share Details:</strong></p>
+      <ul>
+        <li>Follower: %FOLLOWER_NAME%</li>
+        <li>Trade Symbol: %SYMBOL%</li>
+        <li>Follower's Profit: %FOLLOWER_PROFIT% USDT</li>
+        <li>Your Profit Share (%PROFIT_SHARE_PERCENT%%): <span style="color: green;">+%PROFIT_SHARE_AMOUNT% USDT</span></li>
+      </ul>
+      <p>Keep trading successfully to earn more profit share from your followers!</p>
+      <p><a href="%URL%/copy-trading/leader/earnings" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">View Earnings</a></p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "FOLLOWER_NAME", "SYMBOL", "FOLLOWER_PROFIT", "PROFIT_SHARE_PERCENT", "PROFIT_SHARE_AMOUNT", "URL"],
+    email: true,
+  },
+  {
+    id: 89,
+    name: "CopyTradingProfitSharePaid",
+    subject: "Profit Share Paid to Leader: %PROFIT_SHARE_AMOUNT% USDT",
+    emailBody: `
+      <p>Dear %FIRSTNAME%,</p>
+      <p>A profit share payment has been deducted from your recent winning trade.</p>
+      <p><strong>Payment Details:</strong></p>
+      <ul>
+        <li>Leader: %LEADER_NAME%</li>
+        <li>Trade Symbol: %SYMBOL%</li>
+        <li>Your Profit: %YOUR_PROFIT% USDT</li>
+        <li>Profit Share (%PROFIT_SHARE_PERCENT%%): -%PROFIT_SHARE_AMOUNT% USDT</li>
+        <li>Net Profit: <span style="color: green;">+%NET_PROFIT% USDT</span></li>
+      </ul>
+      <p>Profit share is paid only on winning trades as compensation for copying the leader's strategy.</p>
+      <p><a href="%URL%/copy-trading/follower/trades" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">View Trades</a></p>
+      <p>Best regards,</p>
+      <p>Copy Trading Team</p>
+    `,
+    shortCodes: ["FIRSTNAME", "LEADER_NAME", "SYMBOL", "YOUR_PROFIT", "PROFIT_SHARE_PERCENT", "PROFIT_SHARE_AMOUNT", "NET_PROFIT", "URL"],
+    email: true,
+  },
 ];
 
 /** @type {import('sequelize-cli').Migration} */

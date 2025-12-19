@@ -6,6 +6,8 @@ export const metadata = {
   description: "Retrieves all launch plans for ICO admin.",
   operationId: "getLaunchPlans",
   tags: ["ICO", "Admin", "LaunchPlans"],
+  logModule: "ICO",
+  logTitle: "Get launch plans",
   requiresAuth: true,
   responses: {
     200: {
@@ -22,14 +24,17 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Fetching launch plans");
   // Return launch plans ordered by sortOrder
   const launchPlans = await models.icoLaunchPlan.findAll({
     order: [["sortOrder", "ASC"]],
   });
+
+  ctx?.success(`Retrieved ${launchPlans.length} launch plans`);
   return launchPlans;
 };

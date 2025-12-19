@@ -62,10 +62,10 @@ export const ChartToolbar: React.FC<ChartToolbarProps> = ({
   ];
 
   const handleTimeframeChange = (newTimeframe: TimeFrame) => {
-            // Only log in development mode
-        if (process.env.NODE_ENV === 'development') {
-          console.log("🕒 Changing timeframe to:", newTimeframe);
-        }
+    // Only log in development mode
+    if (process.env.NODE_ENV === 'development') {
+      console.log("🕒 Changing timeframe to:", newTimeframe);
+    }
 
     if (onTimeFrameChange) {
       // Call the context's timeframe change handler

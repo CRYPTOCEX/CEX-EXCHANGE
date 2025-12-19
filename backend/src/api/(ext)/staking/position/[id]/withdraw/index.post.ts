@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "withdrawStakingPosition",
   tags: ["Staking", "Positions", "Withdrawal"],
   requiresAuth: true,
+  logModule: "STAKING",
+  logTitle: "Request withdrawal",
   parameters: [
     {
       index: 0,
@@ -44,13 +46,14 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, params, body } = data;
+  const { user, params, body, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { id } = params;
 
+  ctx?.step("Retrieving staking position");
   // Start a transaction
   const transaction = await sequelize.transaction();
 
@@ -73,6 +76,7 @@ export default async (data: Handler) => {
       throw createError({ statusCode: 404, message: "Position not found" });
     }
 
+    ctx?.step("Verifying position ownership");
     // Verify that the position belongs to the user.
     if (position.userId !== user.id) {
       await transaction.rollback();
@@ -82,6 +86,7 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.step("Validating position status");
     // Ensure the position is not already being withdrawn or completed.
     if (position.status === "PENDING_WITHDRAWAL") {
       await transaction.rollback();
@@ -102,6 +107,7 @@ export default async (data: Handler) => {
     // For full withdrawal, the withdrawal amount equals the staked amount.
     const withdrawalAmount = position.amount;
 
+    ctx?.step("Updating position status to pending withdrawal");
     // Update the position: mark withdrawal as requested and update the status.
     await models.stakingPosition.update(
       {
@@ -115,6 +121,7 @@ export default async (data: Handler) => {
       }
     );
 
+    ctx?.step("Creating withdrawal notification");
     // Create a notification for the user.
     await createNotification({
       userId: user.id,
@@ -132,6 +139,7 @@ export default async (data: Handler) => {
       ],
     });
 
+    ctx?.step("Retrieving updated position details");
     // Retrieve the updated position.
     const updatedPosition = await models.stakingPosition.findOne({
       where: { id },
@@ -146,6 +154,8 @@ export default async (data: Handler) => {
 
     await transaction.commit();
 
+    ctx?.success(`Withdrawal request submitted for ${withdrawalAmount} ${position.pool.symbol}`);
+
     return {
       success: true,
       message: "Withdrawal request submitted successfully",
@@ -153,6 +163,7 @@ export default async (data: Handler) => {
     };
   } catch (error) {
     await transaction.rollback();
+    ctx?.fail(error.message || "Failed to process withdrawal request");
     throw error;
   }
 };

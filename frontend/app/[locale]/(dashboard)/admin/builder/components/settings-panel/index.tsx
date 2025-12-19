@@ -22,24 +22,25 @@ function EmptyStatePanel({
 }: {
   toggleAddSectionModal: () => void;
 }) {
-  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
+  const tDashboard = useTranslations("dashboard");
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
       <div className="mb-3 p-2 rounded-full bg-zinc-100 dark:bg-zinc-800">
         <SettingsIcon className="h-6 w-6 text-zinc-400 dark:text-zinc-400" />
       </div>
       <h3 className="text-base font-medium mb-1 dark:text-zinc-300">
-        {t("no_element_selected")}
+        {tCommon("no_element_selected")}
       </h3>
       <p className="text-xs text-muted-foreground dark:text-zinc-400 mb-4">
-        {t("select_an_element_new_element")}.
+        {tDashboard("select_an_element_new_element")}.
       </p>
       <Button
         onClick={toggleAddSectionModal}
         className="bg-purple-600 hover:bg-purple-700 h-8 text-xs px-3 text-white dark:text-white"
       >
         <Plus className="h-3.5 w-3.5 mr-1.5" />
-        {t("add_section")}
+        {tCommon("add_section")}
       </Button>
     </div>
   );
@@ -147,7 +148,7 @@ function SettingsTabs({
 }
 
 export default function ElementSettingsPanel() {
-  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   const {
     selectedElementId,
     selectedSectionId,
@@ -281,7 +282,7 @@ export default function ElementSettingsPanel() {
       <div className="w-80 border-l bg-white dark:bg-zinc-900 dark:border-zinc-800 flex flex-col h-full transition-all duration-300 ease-in-out">
         <div className="flex items-center justify-between p-3 border-b dark:border-zinc-800">
           <h3 className="font-medium text-sm dark:text-zinc-300">
-            {t("element_settings")}
+            {tCommon("element_settings")}
           </h3>
           <Button
             variant="ghost"

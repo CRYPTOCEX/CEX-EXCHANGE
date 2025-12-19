@@ -1,18 +1,23 @@
 import { models, sequelize } from "@b/db";
-import { poolDepositSchema, aiMarketMakerPoolStoreSchema } from "../../utils";
+import { poolDepositSchema, aiMarketMakerPoolSchema } from "../../utils";
 import {
   unauthorizedResponse,
-  notFoundMetadataResponse,
+  notFoundResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+  badRequestResponse,
+} from "@b/utils/schema/errors";
 import { createError } from "@b/utils/error";
 import { getWalletByUserIdAndCurrency } from "@b/api/(ext)/ecosystem/utils/wallet";
 import { calculateTVL } from "../../utils/helpers/tvl";
 
 export const metadata: OperationObject = {
-  summary: "Deposit liquidity into AI Market Maker pool from admin wallet",
-  operationId: "depositAiMarketMakerPool",
+  summary: "Deposit liquidity into AI Market Maker pool",
+  operationId: "depositToMarketMakerPool",
   tags: ["Admin", "AI Market Maker", "Pool"],
+  description:
+    "Deposits liquidity from the admin\'s wallet into an AI Market Maker pool. The deposit can be in either base or quote currency, and will update the pool\'s balance and TVL accordingly. A transaction record is created for auditing purposes.",
+  logModule: "ADMIN_MM",
+  logTitle: "Deposit to Market Maker Pool",
   parameters: [
     {
       index: 0,
@@ -32,9 +37,35 @@ export const metadata: OperationObject = {
     },
   },
   responses: {
-    200: aiMarketMakerPoolStoreSchema,
+    200: {
+      description: "Pool deposit completed successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              ...aiMarketMakerPoolSchema,
+              wallet: {
+                type: "object",
+                properties: {
+                  currency: {
+                    type: "string",
+                    description: "Currency symbol",
+                  },
+                  balanceAfter: {
+                    type: "number",
+                    description: "Admin wallet balance after deposit",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    400: badRequestResponse,
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("AI Market Maker Pool"),
+    404: notFoundResponse("AI Market Maker Pool"),
     500: serverErrorResponse,
   },
   requiresAuth: true,
@@ -42,7 +73,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, body, user } = data;
+  const { params, body, user, ctx } = data;
   const { currency, amount } = body;
 
   if (!user?.id) {
@@ -53,6 +84,7 @@ export default async (data: Handler) => {
     throw createError(400, "Amount must be greater than 0");
   }
 
+  ctx?.step("Fetch market maker with pool and market info");
   // Get market maker with pool and market info
   const marketMaker = await models.aiMarketMaker.findByPk(params.marketId, {
     include: [
@@ -81,6 +113,7 @@ export default async (data: Handler) => {
     throw createError(404, "Ecosystem market not found");
   }
 
+  ctx?.step("Validate admin wallet and balance");
   // Determine which currency to use based on BASE or QUOTE
   const currencySymbol = currency === "BASE" ? market.currency : market.pair;
 
@@ -106,6 +139,7 @@ export default async (data: Handler) => {
     );
   }
 
+  ctx?.step("Execute deposit transaction");
   // Execute deposit within a transaction
   const result = await sequelize.transaction(async (transaction) => {
     // 1. Deduct from admin wallet
@@ -198,6 +232,7 @@ export default async (data: Handler) => {
     };
   });
 
+  ctx?.success("Deposit completed successfully");
   // Return updated pool with wallet info
   return {
     ...result.pool?.toJSON(),

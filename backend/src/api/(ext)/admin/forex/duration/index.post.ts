@@ -4,9 +4,10 @@ import { storeRecord, storeRecordResponses } from "@b/utils/query";
 import { forexDurationStoreSchema, forexDurationUpdateSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary: "Stores a new Forex Duration",
-  operationId: "storeForexDuration",
-  tags: ["Admin", "Forex Durations"],
+  summary: "Creates a new Forex duration",
+  description: "Creates a new Forex duration configuration with specified time value and timeframe unit (HOUR, DAY, WEEK, or MONTH).",
+  operationId: "createForexDuration",
+  tags: ["Admin", "Forex", "Duration"],
   requestBody: {
     required: true,
     content: {
@@ -18,17 +19,25 @@ export const metadata: OperationObject = {
   responses: storeRecordResponses(forexDurationStoreSchema, "Forex Duration"),
   requiresAuth: true,
   permission: "create.forex.duration",
+  logModule: "ADMIN_FOREX",
+  logTitle: "Create forex duration",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { duration, timeframe } = body;
 
-  return await storeRecord({
+  ctx?.step("Validating forex duration data");
+
+  ctx?.step("Creating forex duration");
+  const result = await storeRecord({
     model: "forexDuration",
     data: {
       duration,
       timeframe,
     },
   });
+
+  ctx?.success("Forex duration created successfully");
+  return result;
 };

@@ -7,6 +7,8 @@ export const metadata: OperationObject = {
     "Updates an API key's details such as permissions, IP whitelist, or IP restriction.",
   operationId: "updateApiKey",
   tags: ["API Key Management"],
+  logModule: "USER",
+  logTitle: "Update API key",
   parameters: [
     {
       index: 0,
@@ -69,18 +71,25 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { user, params, body } = data;
-  if (!user) throw createError({ statusCode: 401, message: "Unauthorized" });
+  const { user, params, body, ctx } = data;
+  if (!user) {
+    ctx?.fail("User not authenticated");
+    throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
   const { id } = params;
   const { permissions, ipWhitelist, ipRestriction } = body;
 
+  ctx?.step("Finding API key");
   const apiKey = await models.apiKey.findOne({
     where: { id, userId: user.id },
   });
-  if (!apiKey)
+  if (!apiKey) {
+    ctx?.fail("API Key not found");
     throw createError({ statusCode: 404, message: "API Key not found" });
+  }
 
+  ctx?.step("Validating and preparing update fields");
   // Validate and sanitize inputs
   const updatedFields: Record<string, any> = {};
   if (permissions !== undefined) updatedFields.permissions = permissions;
@@ -88,8 +97,10 @@ export default async (data) => {
   if (ipRestriction !== undefined)
     updatedFields.ipRestriction = Boolean(ipRestriction);
 
+  ctx?.step("Updating API key");
   // Update only the provided fields
   const updatedApiKey = await apiKey.update(updatedFields);
 
+  ctx?.success("API Key updated successfully");
   return updatedApiKey;
 };

@@ -24,17 +24,25 @@ export const metadata = {
   ),
   requiresAuth: true,
   permission: "create.investment.duration",
+  logModule: "ADMIN_FIN",
+  logTitle: "Create Investment Duration",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { duration, timeframe } = body;
 
-  return await storeRecord({
+  ctx?.step("Validating investment duration data");
+
+  ctx?.step("Creating investment duration record");
+  const result = await storeRecord({
     model: "investmentDuration",
     data: {
       duration,
       timeframe,
     },
   });
+
+  ctx?.success("Investment duration created successfully");
+  return result;
 };

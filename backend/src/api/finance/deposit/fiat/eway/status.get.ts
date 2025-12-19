@@ -2,11 +2,11 @@ import {
   notFoundMetadataResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
-
-import { 
-  makeEwayRequest, 
+import { logger } from "@b/utils/console";
+import {
+  makeEwayRequest,
   EwayTransactionQueryResponse,
-  EwayError 
+  EwayError
 } from "./utils";
 import { models } from "@b/db";
 
@@ -144,8 +144,8 @@ export default async (data: Handler) => {
     };
 
   } catch (error) {
-    console.error("eWAY status check error:", error);
-    
+    logger.error("EWAY", "Status check error", error);
+
     if (error instanceof EwayError) {
       throw new Error(`eWAY Error: ${error.message}`);
     }

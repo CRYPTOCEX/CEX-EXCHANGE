@@ -36,7 +36,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import RichTextEditor from "@/components/ui/editor";
+import { WysiwygEditor } from "@/components/ui/wysiwyg";
 import { imageUploader } from "@/utils/upload";
 import { useTranslations } from "next-intl";
 
@@ -70,7 +70,8 @@ export function FAQForm({
   isSubmitting = false,
   faqs,
 }: FAQFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("all");
@@ -357,7 +358,7 @@ export function FAQForm({
 <p>If you need further assistance, our support team is available 24/7 through:</p>
 <ul>
   <li>Live Chat: Available on our website</li>
-  <li>Email: support@example.com</li>
+  <li>Email: ${process.env.NEXT_PUBLIC_APP_EMAIL || "support@example.com"}</li>
   <li>Phone: 1-800-123-4567</li>
 </ul>`;
       }
@@ -605,7 +606,7 @@ export function FAQForm({
             className="relative flex items-center gap-2"
           >
             <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("Content")}</span>
+            <span className="hidden sm:inline">{tCommon("content")}</span>
             {(errors.question || errors.answer) && touched.question && (
               <span className="absolute -top-1 -right-1 h-2 w-2 bg-destructive rounded-full" />
             )}
@@ -615,14 +616,14 @@ export function FAQForm({
             className="relative flex items-center gap-2"
           >
             <Image className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("Image")}</span>
+            <span className="hidden sm:inline">{tCommon("image")}</span>
           </TabsTrigger>
           <TabsTrigger
             value="pages"
             className="relative flex items-center gap-2"
           >
             <Layers className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("Pages")}</span>
+            <span className="hidden sm:inline">{t("pages")}</span>
             {errors.pagePath && touched.pagePath && (
               <span className="absolute -top-1 -right-1 h-2 w-2 bg-destructive rounded-full" />
             )}
@@ -632,14 +633,14 @@ export function FAQForm({
             className="relative flex items-center gap-2"
           >
             <Link2 className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("Related")}</span>
+            <span className="hidden sm:inline">{t("related")}</span>
           </TabsTrigger>
           <TabsTrigger
             value="settings"
             className="relative flex items-center gap-2"
           >
             <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("Settings")}</span>
+            <span className="hidden sm:inline">{tCommon("settings")}</span>
             {errors.category && touched.category && (
               <span className="absolute -top-1 -right-1 h-2 w-2 bg-destructive rounded-full" />
             )}
@@ -655,7 +656,7 @@ export function FAQForm({
           >
             <div className="flex flex-col space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="question">{t("Question")}</Label>
+                <Label htmlFor="question">{t("question")}</Label>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -666,7 +667,7 @@ export function FAQForm({
                   {isImprovingQuestion ? (
                     <>
                       <div className="animate-spin mr-1 h-3 w-3 border-2 border-current border-t-transparent rounded-full" />
-                      {t("Improving")}.
+                      {tCommon("improving")}.
                     </>
                   ) : (
                     <>
@@ -681,7 +682,7 @@ export function FAQForm({
                 value={faq.question || ""}
                 onChange={(e) => onChange({ ...faq, question: e.target.value })}
                 onBlur={() => handleFieldTouch("question")}
-                placeholder="Enter the question here..."
+                placeholder={t("enter_the_question_here_ellipsis")}
                 className={
                   touched.question && errors.question ? "border-red-500" : ""
                 }
@@ -707,7 +708,7 @@ export function FAQForm({
                       onClick={applyQuestionSuggestion}
                       className="h-7 px-2 text-xs border-blue-300 bg-blue-100 hover:bg-blue-200 dark:border-blue-700 dark:bg-blue-800/30 dark:hover:bg-blue-800/50"
                     >
-                      {t("Apply")}
+                      {tCommon("apply")}
                     </Button>
                   </div>
                   <p className="text-sm">{aiSuggestions.question}</p>
@@ -717,7 +718,7 @@ export function FAQForm({
 
             <div className="flex flex-col space-y-2 mt-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="answer">{t("Answer")}</Label>
+                <Label htmlFor="answer">{t("answer")}</Label>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -728,7 +729,7 @@ export function FAQForm({
                   {isImprovingAnswer ? (
                     <>
                       <div className="animate-spin mr-1 h-3 w-3 border-2 border-current border-t-transparent rounded-full" />
-                      {t("Improving")}.
+                      {tCommon("improving")}.
                     </>
                   ) : (
                     <>
@@ -738,11 +739,13 @@ export function FAQForm({
                   )}
                 </Button>
               </div>
-              <RichTextEditor
+              <WysiwygEditor
                 value={faq.answer || ""}
                 onChange={(value) => onChange({ ...faq, answer: value })}
-                placeholder="Enter the answer here..."
-                error={touched.answer && !!errors.answer}
+                placeholder={t("enter_the_answer_here_ellipsis")}
+                uploadDir="faq"
+                minHeight={300}
+                showWordCount
               />
               {touched.answer && errors.answer && (
                 <div className="flex items-center gap-2 text-red-500 text-sm mt-1 bg-red-50 dark:bg-red-900/10 p-2 rounded-md">
@@ -767,7 +770,7 @@ export function FAQForm({
                       onClick={applyAnswerSuggestion}
                       className="h-7 px-2 text-xs border-blue-300 bg-blue-100 hover:bg-blue-200 dark:border-blue-700 dark:bg-blue-800/30 dark:hover:bg-blue-800/50"
                     >
-                      {t("Apply")}
+                      {tCommon("apply")}
                     </Button>
                   </div>
                   <div className="text-sm prose dark:prose-invert max-w-none prose-sm">
@@ -802,7 +805,7 @@ export function FAQForm({
             </p>
 
             <ImageUpload
-              title="Answer Image"
+              title={t("answer_image")}
               value={imageFile || faq.image || null}
               onChange={handleImageChange}
               loading={isUploading}
@@ -830,7 +833,7 @@ export function FAQForm({
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search pages..."
+                  placeholder={tCommon("search_pages_ellipsis")}
                   className="pl-8"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -839,7 +842,7 @@ export function FAQForm({
 
               <Select value={selectedGroup} onValueChange={setSelectedGroup}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="All Groups" />
+                  <SelectValue placeholder={t("all_groups")} />
                 </SelectTrigger>
                 <SelectContent>
                   {groups.map((group) => (
@@ -940,7 +943,7 @@ export function FAQForm({
                 {isFindingRelated ? (
                   <>
                     <div className="animate-spin mr-1 h-3 w-3 border-2 border-current border-t-transparent rounded-full" />
-                    {t("Finding")}.
+                    {t("finding")}.
                   </>
                 ) : (
                   <>
@@ -954,7 +957,7 @@ export function FAQForm({
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search FAQs..."
+                placeholder={tCommon("search_faqs_ellipsis")}
                 className="pl-8"
                 value={relatedFaqSearchTerm}
                 onChange={(e) => setRelatedFaqSearchTerm(e.target.value)}
@@ -1105,15 +1108,15 @@ export function FAQForm({
               title="Category"
               value={faq.category || ""}
               onChange={(e) => onChange({ ...faq, category: e.target.value })}
-              placeholder="e.g., general, account, security"
+              placeholder={t("e_g_general_account_security")}
               error={touched.category && !!errors.category}
-              description="Group related FAQs together with categories"
+              description={t("group_related_faqs_together_with_categories")}
               validateOnChange={false}
               onBlur={() => handleFieldTouch("category")}
             />
 
             <Input
-              title="Display Order"
+              title={t("display_order")}
               type="number"
               value={faq.order?.toString() || "0"}
               onChange={(e) =>
@@ -1122,7 +1125,7 @@ export function FAQForm({
                   order: Number.parseInt(e.target.value) || 0,
                 })
               }
-              description="Lower numbers appear first"
+              description={t("lower_numbers_appear_first")}
               validationRules={[
                 validationRules.numeric("Order must be a number"),
                 validationRules.min(0, "Order must be a positive number"),
@@ -1138,7 +1141,7 @@ export function FAQForm({
             className="space-y-2"
           >
             <div className="flex items-center justify-between">
-              <Label htmlFor="tags">{t("Tags")}</Label>
+              <Label htmlFor="tags">{tCommon("tags")}</Label>
               <Button
                 variant="ghost"
                 size="sm"
@@ -1149,7 +1152,7 @@ export function FAQForm({
                 {isSuggestingTags ? (
                   <>
                     <div className="animate-spin mr-1 h-3 w-3 border-2 border-current border-t-transparent rounded-full" />
-                    {t("Suggesting")}.
+                    {t("suggesting")}.
                   </>
                 ) : (
                   <>
@@ -1165,8 +1168,8 @@ export function FAQForm({
               onChange={(newTags: string[]) =>
                 onChange({ ...faq, tags: newTags })
               }
-              placeholder="Add tags and press Enter..."
-              description="Add tags to improve searchability (e.g., password, billing, account)"
+              placeholder={t("add_tags_and_press_enter_ellipsis")}
+              description={t("add_tags_to_improve_searchability_e")}
               maxTags={10}
             />
 
@@ -1244,7 +1247,7 @@ export function FAQForm({
 
       <div className="flex justify-end gap-2 mt-6">
         <Button variant="outline" onClick={onCancel}>
-          {t("Cancel")}
+          {tCommon("cancel")}
         </Button>
         <Button onClick={handleSubmit} disabled={!isValid || isSubmitting}>
           {isSubmitting ? (
@@ -1255,7 +1258,7 @@ export function FAQForm({
           ) : isEditing ? (
             <>
               <Save className="mr-2 h-4 w-4" />
-              {t("save_changes")}
+              {tCommon("save_changes")}
             </>
           ) : (
             <>

@@ -24,7 +24,8 @@ interface FAQThumbsProps {
 }
 
 export function FAQThumbs({ faqId, className }: FAQThumbsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_faq");
+  const tCommon = useTranslations("common");
   const { submitFeedback } = useFAQStore();
   const { user } = useUserStore();
   const [feedback, setFeedback] = useState<boolean | null>(null);
@@ -235,7 +236,7 @@ export function FAQThumbs({ faqId, className }: FAQThumbsProps) {
                     : "How can we improve this answer?"}
                 </label>
                 <Textarea
-                  placeholder="Share your thoughts and suggestions..."
+                  placeholder={t("share_your_thoughts_and_suggestions_ellipsis")}
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   rows={4}
@@ -252,7 +253,7 @@ export function FAQThumbs({ faqId, className }: FAQThumbsProps) {
                   }}
                   disabled={submitting}
                 >
-                  {t("Cancel")}
+                  {tCommon("cancel")}
                 </Button>
                 <Button
                   onClick={handleSubmitComment}

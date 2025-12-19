@@ -20,7 +20,7 @@ try {
 } catch (e) {
   // Ecosystem extension not available
 }
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import { FuturesOrder } from "./order";
 
 export type OrderBookSide = "bids" | "asks";
@@ -53,13 +53,11 @@ export async function getOrderbookEntry(
       const row = result.rows[0];
       return toBigIntFloat(row["amount"]);
     } else {
-      console.warn(
-        `Orderbook entry not found for params: ${JSON.stringify(params)}`
-      );
+      logger.warn("ORDERBOOK", `Orderbook entry not found for params: ${JSON.stringify(params)}`);
       return null;
     }
   } catch (error) {
-    console.error(`Failed to fetch futures orderbook entry: ${error.message}`);
+    logger.error("ORDERBOOK", "Failed to fetch futures orderbook entry", error);
     throw new Error(
       `Failed to fetch futures orderbook entry: ${error.message}`
     );
@@ -114,7 +112,7 @@ export async function fetchOrderBooks(): Promise<any[] | null> {
       side: row.side,
     }));
   } catch (error) {
-    console.error(`Failed to fetch futures order books: ${error.message}`);
+    logger.error("ORDERBOOK", "Failed to fetch futures order books", error);
     return null;
   }
 }
@@ -149,7 +147,7 @@ export async function updateOrderBookInDB(
   try {
     await client.execute(query, params, { prepare: true });
   } catch (error) {
-    console.error(`Failed to update futures order book: ${error.message}`);
+    logger.error("ORDERBOOK", "Failed to update futures order book", error);
   }
 }
 
@@ -177,8 +175,7 @@ export async function fetchExistingAmounts(
 
     return symbolOrderBook;
   } catch (error) {
-    logError("fetch_existing_amounts", error, __filename);
-    console.error(`Failed to fetch existing amounts for ${symbol}:`, error);
+    logger.error("FUTURES", `Failed to fetch existing amounts for ${symbol}`, error);
     throw new Error(`Failed to fetch existing amounts for ${symbol}`);
   }
 }
@@ -241,8 +238,7 @@ export async function updateSingleOrderBook(
     }
     return symbolOrderBook;
   } catch (err) {
-    logError("update_single_order_book", err, __filename);
-    console.error("Failed to update order book in database:", err);
+    logger.error("FUTURES", "Failed to update order book in database", err);
     throw new Error("Failed to update order book in database");
   }
 }

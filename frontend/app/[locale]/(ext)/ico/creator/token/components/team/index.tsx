@@ -16,13 +16,13 @@ import DeleteConfirmationDialog from "./delete-dialog";
 import LoadingTeam from "./loading";
 import TeamMemberSheet from "./sheet";
 import { useTranslations } from "next-intl";
-
 type TokenTeamProps = {
   tokenId: string;
 };
 
 export default function TokenTeam({ tokenId }: TokenTeamProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
   const { currentToken, isLoadingToken, tokenError } = useCreatorStore();
   const { teamMembers, isLoading, fetchTeamMembers, removeTeamMember } =
     useTeamMemberStore();
@@ -113,7 +113,7 @@ export default function TokenTeam({ tokenId }: TokenTeamProps) {
             className="ml-2"
             onClick={refreshData}
           >
-            {t("Retry")}
+            {tCommon("retry")}
           </Button>
         </AlertDescription>
       </Alert>
@@ -128,7 +128,7 @@ export default function TokenTeam({ tokenId }: TokenTeamProps) {
       (member) =>
         member.name.toLowerCase().includes(query) ||
         member.role.toLowerCase().includes(query) ||
-        member.bio.toLowerCase().includes(query)
+        (member.bio ?? "").toLowerCase().includes(query)
     );
   };
 
@@ -181,15 +181,12 @@ export default function TokenTeam({ tokenId }: TokenTeamProps) {
       {!canAddMore && (
         <Alert className="border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300">
           <p>
-            {t(
-              "You've reached the maximum number of team members for your plan"
-            )}
-            .{" "}
+            You've reached the maximum number of team members for your plan.{" "}
             <Link
               href={upgradeLink}
               className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
             >
-              {t("upgrade_to_add_more")}
+              Upgrade to add more
             </Link>
           </p>
         </Alert>
@@ -218,7 +215,7 @@ export default function TokenTeam({ tokenId }: TokenTeamProps) {
         <Alert className="bg-muted/50">
           <AlertTitle>{t("no_matching_team_members")}</AlertTitle>
           <AlertDescription>
-            {t("try_adjusting_your_looking_for")}.
+            {tCommon("try_adjusting_your_looking_for")}.
           </AlertDescription>
         </Alert>
       ) : viewMode === "grid" ? (

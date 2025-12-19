@@ -38,10 +38,16 @@ export const metadata = {
   },
   permission: "view.slider",
   requiresAuth: true,
+  logModule: "ADMIN_CMS",
+  logTitle: "Get slider details",
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return getRecord("slider", params.id);
+  ctx?.step(`Fetching slider with ID: ${params.id}`);
+  const slider = await getRecord("slider", params.id);
+
+  ctx?.success("Slider retrieved successfully");
+  return slider;
 };

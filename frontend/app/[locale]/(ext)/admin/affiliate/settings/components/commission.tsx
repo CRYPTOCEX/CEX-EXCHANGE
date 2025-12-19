@@ -28,7 +28,7 @@ export default function AffiliateCommissionSettingsSection({
   settings = {},
   onUpdate,
 }: AffiliateCommissionSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const safeSettings = {
     DefaultCommissionRate: settings.DefaultCommissionRate ?? 10,
     MaxCommissionRate: settings.MaxCommissionRate ?? 30,
@@ -47,7 +47,7 @@ export default function AffiliateCommissionSettingsSection({
             htmlFor="defaultCommissionRate"
             className="block text-sm font-medium mb-1.5"
           >
-            {t("default_commission_rate_(%)")}
+            {`${t("default_commission_rate")} (%)`}
           </Label>
           <Input
             id="defaultCommissionRate"
@@ -56,7 +56,7 @@ export default function AffiliateCommissionSettingsSection({
             onChange={(e) =>
               onUpdate("DefaultCommissionRate", Number(e.target.value))
             }
-            placeholder="Enter default commission rate"
+            placeholder={t("enter_default_commission_rate")}
             min="0"
             max="100"
             step="0.1"
@@ -70,7 +70,7 @@ export default function AffiliateCommissionSettingsSection({
             htmlFor="maxCommissionRate"
             className="block text-sm font-medium mb-1.5"
           >
-            {t("maximum_commission_rate_(%)")}
+            {`${t("maximum_commission_rate")} (%)`}
           </Label>
           <Input
             id="maxCommissionRate"
@@ -79,7 +79,7 @@ export default function AffiliateCommissionSettingsSection({
             onChange={(e) =>
               onUpdate("MaxCommissionRate", Number(e.target.value))
             }
-            placeholder="Enter maximum commission rate"
+            placeholder={t("enter_maximum_commission_rate")}
             min="0"
             max="100"
             step="0.1"
@@ -106,7 +106,7 @@ export default function AffiliateCommissionSettingsSection({
             onChange={(e) =>
               onUpdate("PayoutThreshold", Number(e.target.value))
             }
-            placeholder="Enter payout threshold"
+            placeholder={t("enter_payout_threshold")}
             min="0"
             step="1"
           />

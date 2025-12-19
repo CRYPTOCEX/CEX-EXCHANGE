@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
     "Retrieves all wallets associated with the logged-in user, optionally including transactions and address.",
   operationId: "listWallets",
   tags: ["Wallet", "User"],
+  logModule: "ECOSYSTEM",
+  logTitle: "List user wallets",
   parameters: [
     {
       name: "transactions",
@@ -47,16 +49,19 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("Wallet"),
     500: serverErrorResponse,
   },
+  requiresAuth: true
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { transactions, address } = query;
   try {
+    ctx?.step("Building query parameters");
     const include: any[] = [];
     if (transactions === "true") {
       include.push({
@@ -79,12 +84,18 @@ export default async (data: Handler) => {
     if (address === "true") {
       attributes.push("address");
     }
-    return await models.wallet.findAll({
+
+    ctx?.step("Fetching user wallets");
+    const wallets = await models.wallet.findAll({
       where: { userId: user.id, type: "ECO" },
       include,
       attributes,
     });
+
+    ctx?.success(`Retrieved ${wallets?.length || 0} wallets`);
+    return wallets;
   } catch (error) {
+    ctx?.fail(`Failed to fetch wallets: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: `Failed to fetch wallets: ${error.message}`,

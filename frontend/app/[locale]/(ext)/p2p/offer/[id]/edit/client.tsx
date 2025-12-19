@@ -41,6 +41,7 @@ import { useTranslations } from "next-intl";
 import { CountrySelect } from "@/components/ui/country-select";
 import { StateSelect } from "@/components/ui/state-select";
 import { CitySelect } from "@/components/ui/city-select";
+import { HeroSection } from "@/components/ui/hero-section";
 
 // Helper function to parse JSON safely - handles both objects and JSON strings
 const safeJsonParse = (value: any, defaultValue = {}) => {
@@ -64,7 +65,9 @@ const safeJsonParse = (value: any, defaultValue = {}) => {
 };
 
 export default function EditOfferClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const params = useParams();
   const offerId = params.id as string;
   const router = useRouter();
@@ -262,7 +265,7 @@ export default function EditOfferClient() {
 
       if (error) {
         toast({
-          title: t("Error"),
+          title: "Error",
           description: error,
           variant: "destructive",
         });
@@ -286,7 +289,7 @@ export default function EditOfferClient() {
       );
 
       toast({
-        title: t("Success"),
+        title: tExt("success"),
         description: t("payment_method_updated_successfully"),
       });
 
@@ -295,7 +298,7 @@ export default function EditOfferClient() {
     } catch (err) {
       console.error("Error saving payment method:", err);
       toast({
-        title: t("Error"),
+        title: "Error",
         description: t("failed_to_save_payment_method"),
         variant: "destructive",
       });
@@ -315,7 +318,7 @@ export default function EditOfferClient() {
 
       if (error) {
         toast({
-          title: t("Error"),
+          title: "Error",
           description: error,
           variant: "destructive",
         });
@@ -329,13 +332,13 @@ export default function EditOfferClient() {
       setCustomPaymentMethods((prev) => prev.filter((m) => m.id !== methodId));
 
       toast({
-        title: t("Success"),
+        title: tExt("success"),
         description: t("payment_method_deleted_successfully"),
       });
     } catch (err) {
       console.error("Error deleting payment method:", err);
       toast({
-        title: t("Error"),
+        title: "Error",
         description: t("failed_to_delete_payment_method"),
         variant: "destructive",
       });
@@ -427,7 +430,7 @@ export default function EditOfferClient() {
     if (selectedPaymentMethods.length === 0) {
       toast({
         title: t("validation_error"),
-        description: t("please_select_at_least_one_payment_method"),
+        description: tExt("please_select_at_least_one_payment_method"),
         variant: "destructive",
       });
       return;
@@ -451,7 +454,7 @@ export default function EditOfferClient() {
 
       if (!error) {
         toast({
-          title: t("Success"),
+          title: tExt("success"),
           description: t("offer_updated_successfully_and_is_pending_approval"),
         });
         router.push(`/p2p/offer/${offerId}`);
@@ -502,87 +505,84 @@ export default function EditOfferClient() {
 
   // Show loading state - wait for mount to avoid hydration mismatch
   if (!mounted || loading) {
-    return (
-      <div className="container mx-auto py-12 px-4" style={{ minHeight: 'calc(100vh - 232px)' }}>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>{t("loading_offer_details")}...</p>
-          </div>
-        </div>
-      </div>
-    );
+    const EditOfferLoading = require('./loading').default;
+    return <EditOfferLoading />;
   }
 
   if (error || !offer) {
-    return (
-      <div className="container mx-auto py-12 px-4" style={{ minHeight: 'calc(100vh - 232px)' }}>
-        <Alert className="mb-6">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            {error || t("offer_not_found_or")}
-          </AlertDescription>
-        </Alert>
-        <Link href="/p2p/offer">
-          <Button variant="outline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {t("back_to_offers")}
-          </Button>
-        </Link>
-      </div>
-    );
+    const { EditOfferErrorState } = require('./error-state');
+    return <EditOfferErrorState error={error} offerId={offerId} />;
   }
 
   return (
-    <div className="container mx-auto py-12 px-4" style={{ minHeight: 'calc(100vh - 232px)' }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">
-            {t("edit_offer")} - {offer?.type === 'BUY' ? t('Buy') : t('Sell')} {offer?.currency}
-          </h1>
-          <p className="text-muted-foreground">
-            {t("update_your_offer_settings_and_requirements")}
-          </p>
-        </div>
-        <Link href={`/p2p/offer/${offerId}`}>
-          <Button variant="outline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {t("back_to_offer")}
-          </Button>
-        </Link>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+      {/* Hero Section */}
+      <HeroSection
+        badge={{
+          icon: <Pencil className="h-3.5 w-3.5" />,
+          text: "Edit Offer",
+          gradient: `from-blue-500/10 to-violet-500/10`,
+          iconColor: `text-blue-500`,
+          textColor: `text-blue-600 dark:text-blue-400`,
+        }}
+        title={[
+          { text: tCommon("edit_offer") + " - " },
+          { text: `${offer?.type === 'BUY' ? tCommon("buy") : tCommon("sell")} ${offer?.currency}`, gradient: `from-blue-600 via-violet-500 to-blue-600` },
+        ]}
+        description={t("update_your_offer_settings_and_requirements")}
+        paddingTop="pt-24"
+        paddingBottom="pb-12"
+        layout="split"
+        rightContent={
+          <div className="lg:mt-8">
+            <Link href={`/p2p/offer/${offerId}`}>
+              <Button variant="outline" className="rounded-xl w-full sm:w-auto border-zinc-300 dark:border-zinc-700">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {t("back_to_offer")}
+              </Button>
+            </Link>
+          </div>
+        }
+        background={{
+          orbs: [
+            { color: "#3b82f6", position: { top: "-10rem", right: "-10rem" }, size: "20rem" },
+            { color: "#8b5cf6", position: { bottom: "-5rem", left: "-5rem" }, size: "15rem" },
+          ],
+        }}
+        particles={{ count: 6, type: "floating", colors: ["#3b82f6", "#8b5cf6"], size: 8 }}
+      />
 
+      <main className="container mx-auto py-12 space-y-6">
       {/* Info Notice */}
       <Alert className="mb-6">
         <Info className="h-4 w-4" />
         <AlertDescription>
-          <strong>{t("Note")}</strong>{" "}
-          {t("changes_to_price_and_amount_settings_may_require_admin_approval_before_taking_effect")}.
+          <strong>{tCommon("note")}</strong>{" "}
+          {t("changes_to_price_and_amount_settings")}.
         </AlertDescription>
       </Alert>
 
       {/* Offer Info */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>{t("offer_information")}</CardTitle>
+          <CardTitle>{tExt("offer_information")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
             <div>
-              <label className="font-medium">{t("Type")}</label>
+              <label className="font-medium">{tCommon("type")}</label>
               <p className="text-muted-foreground">{offer?.type || "N/A"}</p>
             </div>
             <div>
-              <label className="font-medium">{t("Currency")}</label>
+              <label className="font-medium">{tCommon("currency")}</label>
               <p className="text-muted-foreground">{offer?.currency || "N/A"}</p>
             </div>
             <div>
-              <label className="font-medium">{t("Wallet")}</label>
+              <label className="font-medium">{tCommon("wallet")}</label>
               <p className="text-muted-foreground">{offer?.walletType || "N/A"}</p>
             </div>
             <div>
-              <label className="font-medium">{t("Status")}</label>
+              <label className="font-medium">{tCommon("status")}</label>
               <p className="text-muted-foreground">{offer?.status || "N/A"}</p>
             </div>
           </div>
@@ -606,19 +606,19 @@ export default function EditOfferClient() {
       <form onSubmit={handleSubmit}>
         <Tabs defaultValue="price-amount" className="space-y-6">
           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="price-amount">{t("price_&_amount")}</TabsTrigger>
-            <TabsTrigger value="trade-settings">{t("trade_settings")}</TabsTrigger>
-            <TabsTrigger value="payment-methods">{t("payment_methods")}</TabsTrigger>
-            <TabsTrigger value="location">{t("Location")}</TabsTrigger>
-            <TabsTrigger value="requirements">{t("Requirements")}</TabsTrigger>
-            <TabsTrigger value="status">{t("Status")}</TabsTrigger>
+            <TabsTrigger value="price-amount">{t("price_amount")}</TabsTrigger>
+            <TabsTrigger value="trade-settings">{tCommon("trade_settings")}</TabsTrigger>
+            <TabsTrigger value="payment-methods">{tExt("payment_methods")}</TabsTrigger>
+            <TabsTrigger value="location">{tCommon("location")}</TabsTrigger>
+            <TabsTrigger value="requirements">{tExt("requirements")}</TabsTrigger>
+            <TabsTrigger value="status">{tCommon("status")}</TabsTrigger>
           </TabsList>
 
           {/* Price & Amount Settings */}
           <TabsContent value="price-amount">
             <Card>
               <CardHeader>
-                <CardTitle>{t("price_&_amount_settings")}</CardTitle>
+                <CardTitle>{t("price_amount_settings")}</CardTitle>
                 <p className="text-sm text-muted-foreground">
                   {t("update_pricing_model_and_trading_limits")}
                 </p>
@@ -633,11 +633,11 @@ export default function EditOfferClient() {
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="fixed" id="fixed" />
-                      <Label htmlFor="fixed">{t("fixed_price")}</Label>
+                      <Label htmlFor="fixed">{tExt("fixed_price")}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="dynamic" id="dynamic" />
-                      <Label htmlFor="dynamic">{t("dynamic_price_(market_based)")}</Label>
+                      <Label htmlFor="dynamic">{`${t("dynamic_price_market_based")} (Market Based)`}</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -646,7 +646,7 @@ export default function EditOfferClient() {
                 {formData?.priceConfig?.model === "fixed" && (
                   <div className="space-y-2">
                     <Label htmlFor="fixedPrice">
-                      {t("fixed_price")} ({formData?.priceConfig?.currency || "USD"})
+                      {tExt("fixed_price")} ({formData?.priceConfig?.currency || "USD"})
                     </Label>
                     <Input
                       id="fixedPrice"
@@ -666,7 +666,7 @@ export default function EditOfferClient() {
                 {/* Dynamic Offset */}
                 {formData?.priceConfig?.model === "dynamic" && (
                   <div className="space-y-2">
-                    <Label htmlFor="dynamicOffset">{t("market_price_offset_(%)")}</Label>
+                    <Label htmlFor="dynamicOffset">{`${t("market_price_offset")} (%)`}</Label>
                     <Input
                       id="dynamicOffset"
                       type="number"
@@ -690,7 +690,7 @@ export default function EditOfferClient() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="minAmount">
-                        {t("minimum_amount")} ({formData?.priceConfig?.currency || "USD"})
+                        {tCommon("minimum_amount")} ({formData?.priceConfig?.currency || "USD"})
                       </Label>
                       <Input
                         id="minAmount"
@@ -705,7 +705,7 @@ export default function EditOfferClient() {
 
                     <div className="space-y-2">
                       <Label htmlFor="maxAmount">
-                        {t("maximum_amount")} ({formData?.priceConfig?.currency || "USD"})
+                        {tCommon("maximum_amount")} ({formData?.priceConfig?.currency || "USD"})
                       </Label>
                       <Input
                         id="maxAmount"
@@ -742,12 +742,12 @@ export default function EditOfferClient() {
           <TabsContent value="trade-settings">
             <Card>
               <CardHeader>
-                <CardTitle>{t("trade_settings")}</CardTitle>
+                <CardTitle>{tCommon("trade_settings")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="autoCancel">{t("auto_cancel_time_(minutes)")}</Label>
+                    <Label htmlFor="autoCancel">{t("auto_cancel_time_minutes")}</Label>
                     <Input
                       id="autoCancel"
                       type="number"
@@ -757,23 +757,23 @@ export default function EditOfferClient() {
                       onChange={(e) => updateFormData("tradeSettings", "autoCancel", parseInt(e.target.value) || 15)}
                     />
                     <p className="text-sm text-muted-foreground">
-                      {t("time_limit_for_payment_(5-1440_minutes)")}
+                      {t("time_limit_for_payment_5_1440_minutes")}
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{t("Visibility")}</Label>
+                    <Label>{t("visibility")}</Label>
                     <RadioGroup
                       value={formData?.tradeSettings?.visibility || "PUBLIC"}
                       onValueChange={(value) => updateFormData("tradeSettings", "visibility", value)}
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="PUBLIC" id="public" />
-                        <Label htmlFor="public">{t("Public")}</Label>
+                        <Label htmlFor="public">{tCommon("public")}</Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="PRIVATE" id="private" />
-                        <Label htmlFor="private">{t("Private")}</Label>
+                        <Label htmlFor="private">{tCommon("private")}</Label>
                       </div>
                     </RadioGroup>
                   </div>
@@ -785,7 +785,7 @@ export default function EditOfferClient() {
                     checked={formData?.tradeSettings?.kycRequired || false}
                     onCheckedChange={(checked) => updateFormData("tradeSettings", "kycRequired", checked)}
                   />
-                  <Label htmlFor="kycRequired">{t("require_kyc_verification")}</Label>
+                  <Label htmlFor="kycRequired">{tExt("require_kyc_verification")}</Label>
                 </div>
 
                 <div className="space-y-2">
@@ -799,7 +799,7 @@ export default function EditOfferClient() {
                     rows={4}
                   />
                   <p className="text-sm text-muted-foreground">
-                    {(formData?.tradeSettings?.termsOfTrade?.length || 0)}/1000 {t("characters")}
+                    {(formData?.tradeSettings?.termsOfTrade?.length || 0)}/1000 {tCommon("characters")}
                   </p>
                 </div>
 
@@ -814,7 +814,7 @@ export default function EditOfferClient() {
                     rows={3}
                   />
                   <p className="text-sm text-muted-foreground">
-                    {(formData?.tradeSettings?.additionalNotes?.length || 0)}/500 {t("characters")}
+                    {(formData?.tradeSettings?.additionalNotes?.length || 0)}/500 {tCommon("characters")}
                   </p>
                 </div>
               </CardContent>
@@ -825,16 +825,16 @@ export default function EditOfferClient() {
           <TabsContent value="payment-methods">
             <Card>
               <CardHeader>
-                <CardTitle>{t("payment_methods")}</CardTitle>
+                <CardTitle>{tExt("payment_methods")}</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  {t("select_the_payment_methods")}
+                  {tExt("select_the_payment_methods")}
                 </p>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Global Payment Methods */}
                 {globalPaymentMethods.length > 0 && (
                   <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-muted-foreground">{t("Global")} {t("payment_methods")}</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground">{tExt("global")} {tExt("payment_methods")}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {globalPaymentMethods.map((method) => (
                         <div
@@ -886,7 +886,7 @@ export default function EditOfferClient() {
                 {/* Custom Payment Methods */}
                 {customPaymentMethods.length > 0 && (
                   <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-muted-foreground">{t("your_custom_payment_methods")}</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground">{tExt("your_custom_payment_methods")}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {customPaymentMethods.map((method) => {
                         const isSelected = selectedPaymentMethods.includes(method.id);
@@ -924,7 +924,7 @@ export default function EditOfferClient() {
                                       {method?.name || "Unknown"}
                                     </p>
                                     <Badge variant="outline" className="text-xs shrink-0">
-                                      {t("Custom")}
+                                      {tExt("custom")}
                                     </Badge>
                                     {hasActiveTrade && (
                                       <Badge variant="secondary" className="text-xs shrink-0 gap-1">
@@ -972,9 +972,9 @@ export default function EditOfferClient() {
                                   e.stopPropagation();
                                   toggleMethodExpansion(method.id);
                                 }}
-                                className="flex-1 px-4 py-2 text-xs text-muted-foreground hover:bg-muted/50 flex items-center justify-center gap-1"
+                                className="flex-1 py-2 text-xs text-muted-foreground hover:bg-muted/50 flex items-center justify-center gap-1"
                               >
-                                {isExpanded ? t("hide_details") : t("view_details")}
+                                {isExpanded ? t("hide_details") : tCommon("view_details")}
                                 <span className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}>▼</span>
                               </button>
                               <button
@@ -986,15 +986,15 @@ export default function EditOfferClient() {
                                   }
                                 }}
                                 disabled={!canEdit}
-                                className={`flex-1 px-4 py-2 text-xs flex items-center justify-center gap-1 border-l ${
+                                className={`flex-1 py-2 text-xs flex items-center justify-center gap-1 border-l ${
                                   canEdit
                                     ? "text-primary hover:bg-primary/10"
                                     : "text-muted-foreground cursor-not-allowed"
                                 }`}
-                                title={!canEdit ? t("cannot_edit_active_trade") : t("edit_payment_method")}
+                                title={!canEdit ? t("cannot_edit_active_trade") : tCommon("edit_payment_method")}
                               >
                                 <Pencil className="h-3 w-3" />
-                                {t("Edit")}
+                                {tCommon("edit")}
                               </button>
                               {canDelete && (
                                 <AlertDialog>
@@ -1003,30 +1003,30 @@ export default function EditOfferClient() {
                                       type="button"
                                       onClick={(e) => e.stopPropagation()}
                                       disabled={deletingMethodId === method.id}
-                                      className="flex-1 px-4 py-2 text-xs flex items-center justify-center gap-1 border-l text-destructive hover:bg-destructive/10"
+                                      className="flex-1 py-2 text-xs flex items-center justify-center gap-1 border-l text-destructive hover:bg-destructive/10"
                                     >
                                       {deletingMethodId === method.id ? (
                                         <Loader2 className="h-3 w-3 animate-spin" />
                                       ) : (
                                         <Trash2 className="h-3 w-3" />
                                       )}
-                                      {t("Delete")}
+                                      {tCommon("delete")}
                                     </button>
                                   </AlertDialogTrigger>
                                   <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                                     <AlertDialogHeader>
                                       <AlertDialogTitle>{t("delete_payment_method")}</AlertDialogTitle>
                                       <AlertDialogDescription>
-                                        {t("are_you_sure_delete_payment_method")} <strong>{method.name}</strong>? {t("this_action_cannot_be_undone")}
+                                        {t("are_you_sure_delete_payment_method")} <strong>{method.name}</strong>? {tCommon("this_action_cannot_be_undone")}
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                      <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+                                      <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
                                       <AlertDialogAction
                                         onClick={() => deletePaymentMethod(method.id)}
                                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                       >
-                                        {t("Delete")}
+                                        {tCommon("delete")}
                                       </AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
@@ -1039,7 +1039,7 @@ export default function EditOfferClient() {
                                 {/* Payment Details (Metadata) */}
                                 {metadata && Object.keys(metadata).length > 0 && (
                                   <div className="pt-3">
-                                    <p className="text-xs font-medium text-muted-foreground mb-2">{t("payment_details")}</p>
+                                    <p className="text-xs font-medium text-muted-foreground mb-2">{tCommon("payment_details")}</p>
                                     <div className="space-y-1.5">
                                       {Object.entries(metadata).map(([key, value]) => (
                                         <div key={key} className="flex justify-between text-sm bg-background rounded px-2 py-1">
@@ -1054,7 +1054,7 @@ export default function EditOfferClient() {
                                 {/* Instructions */}
                                 {method.instructions && (
                                   <div className="pt-2">
-                                    <p className="text-xs font-medium text-muted-foreground mb-1">{t("Instructions")}</p>
+                                    <p className="text-xs font-medium text-muted-foreground mb-1">{tCommon("instructions")}</p>
                                     <p className="text-sm text-foreground bg-background rounded p-2 whitespace-pre-wrap">
                                       {method.instructions}
                                     </p>
@@ -1072,7 +1072,7 @@ export default function EditOfferClient() {
                 {allPaymentMethods.length === 0 && (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">
-                      {t("no_payment_methods_available")}
+                      {tCommon("no_payment_methods")}
                     </p>
                   </div>
                 )}
@@ -1081,13 +1081,13 @@ export default function EditOfferClient() {
                   <Alert>
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      {t("please_select_at_least_one_payment_method")}
+                      {tExt("please_select_at_least_one_payment_method")}
                     </AlertDescription>
                   </Alert>
                 )}
 
                 <div className="text-sm text-muted-foreground">
-                  <p>{t("selected")}: {selectedPaymentMethods.length} {t("payment_methods")}</p>
+                  <p>{tCommon("selected")}: {selectedPaymentMethods.length} {tExt("payment_methods")}</p>
                 </div>
               </CardContent>
             </Card>
@@ -1097,12 +1097,12 @@ export default function EditOfferClient() {
           <TabsContent value="location">
             <Card>
               <CardHeader>
-                <CardTitle>{t("location_settings")}</CardTitle>
+                <CardTitle>{tExt("location_settings")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
-                    <Label>{t("Country")}</Label>
+                    <Label>{tCommon("country")}</Label>
                     <CountrySelect
                       value={formData?.locationSettings?.country || ""}
                       onValueChange={(value) => {
@@ -1117,12 +1117,12 @@ export default function EditOfferClient() {
                           }
                         }));
                       }}
-                      placeholder={t("select_country")}
+                      placeholder={tCommon("select_country")}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{t("region/state")}</Label>
+                    <Label>{tExt("region_state")}</Label>
                     <StateSelect
                       value={formData?.locationSettings?.region || ""}
                       onValueChange={(value) => {
@@ -1137,18 +1137,18 @@ export default function EditOfferClient() {
                         }));
                       }}
                       countryCode={formData?.locationSettings?.country || ""}
-                      placeholder={t("select_state")}
+                      placeholder={tCommon("select_state")}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{t("City")}</Label>
+                    <Label>{tCommon("city")}</Label>
                     <CitySelect
                       value={formData?.locationSettings?.city || ""}
                       onValueChange={(value) => updateFormData("locationSettings", "city", value)}
                       countryCode={formData?.locationSettings?.country || ""}
                       stateName={formData?.locationSettings?.region || ""}
-                      placeholder={t("select_city")}
+                      placeholder={tCommon("select_city")}
                     />
                   </div>
                 </div>
@@ -1177,7 +1177,7 @@ export default function EditOfferClient() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="minSuccessRate">{t("minimum_success_rate_(%)")}</Label>
+                    <Label htmlFor="minSuccessRate">{`${t("minimum_success_rate")} (%)`}</Label>
                     <Input
                       id="minSuccessRate"
                       type="number"
@@ -1189,7 +1189,7 @@ export default function EditOfferClient() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="minAccountAge">{t("minimum_account_age_(days)")}</Label>
+                    <Label htmlFor="minAccountAge">{`${tCommon("minimum_account_age_days")} (days)`}</Label>
                     <Input
                       id="minAccountAge"
                       type="number"
@@ -1221,21 +1221,21 @@ export default function EditOfferClient() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
-                  <Label>{t("current_status")}</Label>
+                  <Label>{tExt("current_status")}</Label>
                   <RadioGroup
                     value={formData?.status || "ACTIVE"}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as "ACTIVE" | "PAUSED" }))}
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="ACTIVE" id="active" />
-                      <Label htmlFor="active">{t("Active")}</Label>
+                      <Label htmlFor="active">{tCommon("active")}</Label>
                       <span className="text-sm text-muted-foreground">
                         - {t("offer_is_visible_and_available_for_trading")}
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="PAUSED" id="paused" />
-                      <Label htmlFor="paused">{t("Paused")}</Label>
+                      <Label htmlFor="paused">{tCommon("paused")}</Label>
                       <span className="text-sm text-muted-foreground">
                         - {t("offer_is_hidden_and_not_available_for_trading")}
                       </span>
@@ -1251,30 +1251,31 @@ export default function EditOfferClient() {
         <div className="flex justify-end space-x-4 mt-8">
           <Link href={`/p2p/offer/${offerId}`}>
             <Button type="button" variant="outline">
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
           </Link>
           <Button type="submit" disabled={saving}>
             {saving ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                {t("Saving")}...
+                {tCommon("saving")}...
               </>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                {t("save_changes")}
+                {tCommon("save_changes")}
               </>
             )}
           </Button>
         </div>
       </form>
+      </main>
 
       {/* Edit Payment Method Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent size="3xl" className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t("edit_payment_method")}</DialogTitle>
+            <DialogTitle>{tCommon("edit_payment_method")}</DialogTitle>
             <DialogDescription>
               {t("update_your_payment_method_details")}
             </DialogDescription>
@@ -1283,7 +1284,7 @@ export default function EditOfferClient() {
           <div className="space-y-4 py-4">
             {/* Name */}
             <div className="space-y-2">
-              <Label htmlFor="edit-name">{t("Name")}</Label>
+              <Label htmlFor="edit-name">{tCommon("name")}</Label>
               <Input
                 id="edit-name"
                 value={editFormData.name}
@@ -1295,7 +1296,7 @@ export default function EditOfferClient() {
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="edit-description">{t("Description")}</Label>
+              <Label htmlFor="edit-description">{tCommon("description")}</Label>
               <Textarea
                 id="edit-description"
                 value={editFormData.description}
@@ -1308,19 +1309,19 @@ export default function EditOfferClient() {
 
             {/* Processing Time */}
             <div className="space-y-2">
-              <Label htmlFor="edit-processingTime">{t("processing_time")}</Label>
+              <Label htmlFor="edit-processingTime">{tCommon("processing_time")}</Label>
               <Input
                 id="edit-processingTime"
                 value={editFormData.processingTime}
                 onChange={(e) => setEditFormData((prev) => ({ ...prev, processingTime: e.target.value }))}
-                placeholder="e.g., Instant, 1-3 days"
+                placeholder={t("e_g_instant_1_3_days")}
                 maxLength={100}
               />
             </div>
 
             {/* Instructions */}
             <div className="space-y-2">
-              <Label htmlFor="edit-instructions">{t("Instructions")}</Label>
+              <Label htmlFor="edit-instructions">{tCommon("instructions")}</Label>
               <Textarea
                 id="edit-instructions"
                 value={editFormData.instructions}
@@ -1333,7 +1334,7 @@ export default function EditOfferClient() {
 
             {/* Payment Details (Metadata) */}
             <div className="space-y-3">
-              <Label>{t("payment_details")}</Label>
+              <Label>{tCommon("payment_details")}</Label>
               <p className="text-xs text-muted-foreground">
                 {t("add_custom_fields_like_account_number_email_etc")}
               </p>
@@ -1345,7 +1346,7 @@ export default function EditOfferClient() {
                     <div key={key} className="flex items-start gap-2">
                       <div className="grid grid-cols-2 gap-2 flex-1">
                         <div>
-                          <Label className="text-xs text-muted-foreground mb-1 block">{t("field_name")}</Label>
+                          <Label className="text-xs text-muted-foreground mb-1 block">{tCommon("field_name")}</Label>
                           <Input
                             value={key}
                             disabled
@@ -1379,7 +1380,7 @@ export default function EditOfferClient() {
               {/* Add New Field */}
               <div className="flex gap-2">
                 <Input
-                  placeholder={t("field_name")}
+                  placeholder={tCommon("field_name")}
                   value={newFieldKey}
                   onChange={(e) => setNewFieldKey(e.target.value)}
                   className="flex-1"
@@ -1412,7 +1413,7 @@ export default function EditOfferClient() {
               onClick={() => setEditDialogOpen(false)}
               disabled={savingMethod}
             >
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
             <Button
               type="button"
@@ -1422,12 +1423,12 @@ export default function EditOfferClient() {
               {savingMethod ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {t("Saving")}...
+                  {tCommon("saving")}...
                 </>
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
-                  {t("save_changes")}
+                  {tCommon("save_changes")}
                 </>
               )}
             </Button>

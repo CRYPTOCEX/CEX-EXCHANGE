@@ -56,7 +56,9 @@ interface PoolAnalyticsTabProps {
 }
 
 export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const poolAnalytics = useStakingAdminAnalyticsStore(
     (state) => state.poolAnalytics
   );
@@ -116,11 +118,11 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
           <div className="flex items-center gap-2">
             <Select value={timeRange} onValueChange={handleTimeRangeChange}>
               <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="Time Range" />
+                <SelectValue placeholder={t("time_range")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="7d">{t("last_7_days")}</SelectItem>
-                <SelectItem value="30d">{t("last_30_days")}</SelectItem>
+                <SelectItem value="7d">{tCommon("last_7_days")}</SelectItem>
+                <SelectItem value="30d">{tCommon("last_30_days")}</SelectItem>
                 <SelectItem value="90d">{t("last_90_days")}</SelectItem>
                 <SelectItem value="1y">{t("last_year")}</SelectItem>
               </SelectContent>
@@ -151,7 +153,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
         </div>
         <div className="h-[400px] bg-muted/20 rounded-lg flex items-center justify-center">
           <div className="text-muted-foreground">
-            {t("loading_analytics_data")}.
+            {tCommon('loading_analytics_data_ellipsis')}.
           </div>
         </div>
       </div>
@@ -167,11 +169,11 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
           <div className="flex items-center gap-2">
             <Select value={timeRange} onValueChange={handleTimeRangeChange}>
               <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="Time Range" />
+                <SelectValue placeholder={t("time_range")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="7d">{t("last_7_days")}</SelectItem>
-                <SelectItem value="30d">{t("last_30_days")}</SelectItem>
+                <SelectItem value="7d">{tCommon("last_7_days")}</SelectItem>
+                <SelectItem value="30d">{tCommon("last_30_days")}</SelectItem>
                 <SelectItem value="90d">{t("last_90_days")}</SelectItem>
                 <SelectItem value="1y">{t("last_year")}</SelectItem>
               </SelectContent>
@@ -193,7 +195,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
               className="mt-4"
               onClick={() => fetchPoolAnalytics(pool.id)}
             >
-              {t("Retry")}
+              {tCommon("retry")}
             </Button>
           </div>
         </Card>
@@ -205,7 +207,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
   const { timeSeriesData, metrics, distributions, performance } = poolAnalytics;
 
   // Colors for charts
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
+  const COLORS = ["#8b5cf6", "#6366f1", "#a78bfa", "#818cf8", "#c4b5fd"];
 
   return (
     <div className="space-y-6">
@@ -215,11 +217,11 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
         <div className="flex items-center gap-2">
           <Select value={timeRange} onValueChange={handleTimeRangeChange}>
             <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Time Range" />
+              <SelectValue placeholder={t("time_range")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7d">{t("last_7_days")}</SelectItem>
-              <SelectItem value="30d">{t("last_30_days")}</SelectItem>
+              <SelectItem value="7d">{tCommon("last_7_days")}</SelectItem>
+              <SelectItem value="30d">{tCommon("last_30_days")}</SelectItem>
               <SelectItem value="90d">{t("last_90_days")}</SelectItem>
               <SelectItem value="1y">{t("last_year")}</SelectItem>
             </SelectContent>
@@ -237,7 +239,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
-              <span>{t("active_positions")}</span>
+              <span>{tCommon("active_positions")}</span>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardTitle>
           </CardHeader>
@@ -257,7 +259,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
-              <span>{t("total_earnings")}</span>
+              <span>{tCommon("total_earnings")}</span>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardTitle>
           </CardHeader>
@@ -278,7 +280,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
               <span>
-                {t("Avg")}. {t("stake_amount")}
+                {tCommon("avg")}. {t("stake_amount")}
               </span>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardTitle>
@@ -294,7 +296,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
               </span>
               <span className="mx-1">•</span>
               <span>
-                {t("max")}
+                {tCommon("max")}
                 {pool.maxStake || "∞"} {pool.symbol}
               </span>
             </div>
@@ -304,7 +306,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
-              <span>{t("Performance")}</span>
+              <span>{tExt("performance")}</span>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardTitle>
           </CardHeader>
@@ -332,10 +334,10 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">{t("Overview")}</TabsTrigger>
-          <TabsTrigger value="earnings">{t("Earnings")}</TabsTrigger>
-          <TabsTrigger value="users">{t("Users")}</TabsTrigger>
-          <TabsTrigger value="performance">{t("Performance")}</TabsTrigger>
+          <TabsTrigger value="overview">{tCommon("overview")}</TabsTrigger>
+          <TabsTrigger value="earnings">{tExt("earnings")}</TabsTrigger>
+          <TabsTrigger value="users">{tCommon("users")}</TabsTrigger>
+          <TabsTrigger value="performance">{tExt("performance")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -360,12 +362,12 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                       >
                         <stop
                           offset="5%"
-                          stopColor="#8884d8"
+                          stopColor="#8b5cf6"
                           stopOpacity={0.8}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#8884d8"
+                          stopColor="#8b5cf6"
                           stopOpacity={0.1}
                         />
                       </linearGradient>
@@ -379,7 +381,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                       type="monotone"
                       dataKey="staked"
                       name={`Staked ${pool.symbol}`}
-                      stroke="#8884d8"
+                      stroke="#8b5cf6"
                       fillOpacity={1}
                       fill="url(#colorStaked)"
                     />
@@ -407,7 +409,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                         cy="50%"
                         labelLine={false}
                         outerRadius={100}
-                        fill="#8884d8"
+                        fill="#8b5cf6"
                         dataKey="value"
                         nameKey="name"
                         label={({ name, percent }) =>
@@ -523,7 +525,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
         <TabsContent value="earnings" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>{t("earnings_over_time")}</CardTitle>
+              <CardTitle>{tExt("earnings_over_time")}</CardTitle>
               <CardDescription>
                 {t("daily_earnings_generated_by_the_pool")}
               </CardDescription>
@@ -541,7 +543,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                       type="monotone"
                       dataKey="earnings"
                       name={`Earnings (${pool.symbol})`}
-                      stroke="#82ca9d"
+                      stroke="#6366f1"
                       activeDot={{ r: 8 }}
                     />
                   </LineChart>
@@ -568,7 +570,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                         cy="50%"
                         labelLine={false}
                         outerRadius={100}
-                        fill="#8884d8"
+                        fill="#8b5cf6"
                         dataKey="value"
                         nameKey="name"
                         label={({ name, percent }) =>
@@ -644,9 +646,9 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                 <div className="p-4 rounded-lg border">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-purple-500" />
+                      <Users className="h-5 w-5 text-violet-500" />
                       <div>
-                        <div className="font-medium">{t("admin_fee")}</div>
+                        <div className="font-medium">{tExt("admin_fee")}</div>
                         <div className="text-sm text-muted-foreground">
                           {t("platform_revenue")}
                         </div>
@@ -677,7 +679,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="users" name="Active Users" fill="#8884d8" />
+                    <Bar dataKey="users" name="Active Users" fill="#8b5cf6" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -702,7 +704,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                         cy="50%"
                         labelLine={false}
                         outerRadius={100}
-                        fill="#8884d8"
+                        fill="#8b5cf6"
                         dataKey="value"
                         nameKey="name"
                         label={({ name, percent }) =>
@@ -735,9 +737,9 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                     <div className="flex items-center gap-2">
                       <Users className="h-5 w-5 text-blue-500" />
                       <div>
-                        <div className="font-medium">{t("total_users")}</div>
+                        <div className="font-medium">{tCommon("total_users")}</div>
                         <div className="text-sm text-muted-foreground">
-                          {t("all_time")}
+                          {tCommon("all_time")}
                         </div>
                       </div>
                     </div>
@@ -824,14 +826,14 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                       type="monotone"
                       dataKey="expectedAPR"
                       name="Expected APR (%)"
-                      stroke="#8884d8"
+                      stroke="#8b5cf6"
                       strokeDasharray="5 5"
                     />
                     <Line
                       type="monotone"
                       dataKey="actualAPR"
                       name="Actual APR (%)"
-                      stroke="#82ca9d"
+                      stroke="#6366f1"
                       activeDot={{ r: 8 }}
                     />
                   </LineChart>
@@ -862,12 +864,12 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                         >
                           <stop
                             offset="5%"
-                            stopColor="#82ca9d"
+                            stopColor="#6366f1"
                             stopOpacity={0.8}
                           />
                           <stop
                             offset="95%"
-                            stopColor="#82ca9d"
+                            stopColor="#6366f1"
                             stopOpacity={0.1}
                           />
                         </linearGradient>
@@ -881,7 +883,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                         type="monotone"
                         dataKey="efficiency"
                         name="Efficiency"
-                        stroke="#82ca9d"
+                        stroke="#6366f1"
                         fillOpacity={1}
                         fill="url(#colorEfficiency)"
                       />
@@ -946,7 +948,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                 <div className="p-4 rounded-lg border">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-purple-500" />
+                      <CheckCircle2 className="h-5 w-5 text-violet-500" />
                       <div>
                         <div className="font-medium">
                           {t("risk_assessment")}

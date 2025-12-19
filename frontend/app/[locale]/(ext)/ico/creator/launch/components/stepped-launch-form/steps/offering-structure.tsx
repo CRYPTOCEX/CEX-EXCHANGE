@@ -15,7 +15,6 @@ import PhaseForm from "../components/phase-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
-
 interface OfferingStructureStepProps {
   formData: FormData;
   updateFormData: (field: keyof FormData, value: any) => void;
@@ -29,7 +28,9 @@ export default function OfferingStructureStep({
   errors,
   maxPhases = 999,
 }: OfferingStructureStepProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const addPhase = () => {
     updateFormData("phases", [
       ...formData.phases,
@@ -65,9 +66,9 @@ export default function OfferingStructureStep({
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
-          label="Target Amount (USD)"
+          label={t("target_amount_usd")}
           type="number"
-          placeholder="e.g. 1000000"
+          placeholder={t("e_g_1000000")}
           value={formData.targetAmount || ""}
           onChange={(e) =>
             updateFormData("targetAmount", Number(e.target.value))
@@ -77,7 +78,7 @@ export default function OfferingStructureStep({
         />
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t("start_date")}</label>
+          <label className="text-sm font-medium">{tExt("start_date")}</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -88,7 +89,7 @@ export default function OfferingStructureStep({
                 {formData.startDate ? (
                   format(formData.startDate, "PPP")
                 ) : (
-                  <span>{t("pick_a_date")}</span>
+                  <span>{tExt("pick_a_date")}</span>
                 )}
               </Button>
             </PopoverTrigger>
@@ -115,11 +116,11 @@ export default function OfferingStructureStep({
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-base font-medium capitalize">{t("offering_phases")}</h4>
+          <h4 className="text-base font-medium capitalize">{tExt("offering_phases")}</h4>
           <div className="flex items-center gap-2">
             {formData.selectedPlan && (
               <span className="text-sm text-muted-foreground">
-                {formData.phases.length}/{maxPhases} {t("phases")}
+                {formData.phases.length}/{maxPhases} {tExt("phases")}
               </span>
             )}
             <Button
@@ -140,7 +141,7 @@ export default function OfferingStructureStep({
             <AlertCircle className="h-4 w-4 text-amber-800" />
             <AlertDescription>
               {t("youve_reached_the_in_your")} {formData.selectedPlan.name}
-              {t("plan")}.
+              {tCommon("plan")}.
               {formData.selectedPlan.name !== "Premium" &&
                 " Consider upgrading your plan for more offering phases."}
             </AlertDescription>

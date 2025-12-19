@@ -235,3 +235,10 @@ interface ForexPaginatedResponse<T> {
     totalPages: number;
   };
 }
+
+// Type aliases for easier usage (matching Sequelize model naming)
+type forexAccountAttributes = ForexAccount;
+type forexSignalAttributes = ForexSignal;
+type forexInvestmentAttributes = ForexInvestment;
+type forexPlanAttributes = ForexPlan;
+type forexDurationAttributes = ForexDuration;

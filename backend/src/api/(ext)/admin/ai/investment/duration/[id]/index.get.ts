@@ -7,10 +7,11 @@ import {
 import { baseAIInvestmentDurationSchema } from "../utils";
 
 export const metadata: OperationObject = {
-  summary:
-    "Retrieves detailed information of a specific AI Investment Duration by ID",
-  operationId: "getAIInvestmentDurationById",
-  tags: ["Admin", "AI Investment Durations"],
+  summary: "Get an AI investment duration by ID",
+  operationId: "getAiInvestmentDurationById",
+  tags: ["Admin", "AI Investment", "Duration"],
+  description:
+    "Retrieves detailed information of a specific AI investment duration by its ID. Returns the duration value and timeframe type.",
   parameters: [
     {
       index: 0,
@@ -18,17 +19,17 @@ export const metadata: OperationObject = {
       in: "path",
       required: true,
       description: "ID of the AI Investment Duration to retrieve",
-      schema: { type: "string" },
+      schema: { type: "string", format: "uuid" },
     },
   ],
   responses: {
     200: {
-      description: "AI Investment Duration details",
+      description: "AI Investment Duration details retrieved successfully",
       content: {
         "application/json": {
           schema: {
             type: "object",
-            properties: baseAIInvestmentDurationSchema, // Define this schema in your utils if it's not already defined
+            properties: baseAIInvestmentDurationSchema,
           },
         },
       },
@@ -39,10 +40,16 @@ export const metadata: OperationObject = {
   },
   permission: "view.ai.investment.duration",
   requiresAuth: true,
+  logModule: "ADMIN_AI",
+  logTitle: "Get investment duration",
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("aiInvestmentDuration", params.id);
+  ctx?.step(`Fetching duration ${params.id}`);
+  const result = await getRecord("aiInvestmentDuration", params.id);
+
+  ctx?.success("Duration retrieved");
+  return result;
 };

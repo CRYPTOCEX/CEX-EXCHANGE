@@ -74,7 +74,7 @@ const getActivityDetails = (activity: any) => {
     case "SALE":
       return {
         icon: ShoppingCart,
-        color: "from-purple-500 to-pink-600",
+        color: `from-purple-500 to-pink-600`,
         title: "Sold",
         description: `Sold for ${activity.price} ${activity.currency}`,
       };
@@ -95,7 +95,7 @@ const getActivityDetails = (activity: any) => {
     case "BID":
       return {
         icon: DollarSign,
-        color: "from-indigo-500 to-purple-600",
+        color: `from-indigo-500 to-purple-600`,
         title: "Bid Placed",
         description: `Bid of ${activity.price} ${activity.currency}`,
       };
@@ -116,14 +116,14 @@ const getActivityDetails = (activity: any) => {
     case "COLLECTION_CREATED":
       return {
         icon: Sparkles,
-        color: "from-violet-500 to-purple-600",
+        color: `from-violet-500 to-purple-600`,
         title: "Collection Created",
         description: `${metadata.collectionName || "Collection"} was created`,
       };
     case "COLLECTION_DEPLOYED":
       return {
         icon: Rocket,
-        color: "from-blue-600 to-purple-600",
+        color: `from-blue-600 to-purple-600`,
         title: "Contract Deployed",
         description: `Smart contract deployed to ${metadata.chain || "blockchain"}`,
         extraInfo: metadata.contractAddress ? `Contract: ${metadata.contractAddress.slice(0, 6)}...${metadata.contractAddress.slice(-4)}` : null,
@@ -284,7 +284,7 @@ export default function CollectionDetailClient({ initialCollection }: Collection
       });
 
       if (error) {
-        toast.error(error.message || "Failed to deploy contract");
+        toast.error((error as any)?.message || "Failed to deploy contract");
         return;
       }
 
@@ -354,7 +354,7 @@ export default function CollectionDetailClient({ initialCollection }: Collection
 
         {/* Collection Info Overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-8">
-          <div className="container mx-auto">
+          <div className="container">
             <div className="flex flex-col md:flex-row items-start md:items-end gap-6">
               {/* Logo */}
               <div className="relative">
@@ -466,7 +466,7 @@ export default function CollectionDetailClient({ initialCollection }: Collection
       </div>
 
       {/* Stats Section */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container py-8">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           {[
             { icon: Tag, label: "Items", value: formatNumber(stats.totalMinted || 0) },
@@ -493,11 +493,11 @@ export default function CollectionDetailClient({ initialCollection }: Collection
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <TabsList className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-1">
-              <TabsTrigger value="items" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">
+              <TabsTrigger value="items" className={`data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white`}>
                 <Grid className="h-4 w-4 mr-2" />
                 Items
               </TabsTrigger>
-              <TabsTrigger value="activity" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">
+              <TabsTrigger value="activity" className={`data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white`}>
                 <Activity className="h-4 w-4 mr-2" />
                 Activity
               </TabsTrigger>
@@ -575,7 +575,7 @@ export default function CollectionDetailClient({ initialCollection }: Collection
             ) : tokens.length === 0 ? (
               <Card className="border-zinc-200 dark:border-zinc-800">
                 <CardContent className="p-20 text-center">
-                  <div className="inline-flex p-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 mb-6">
+                  <div className={`inline-flex p-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 mb-6`}>
                     <Tag className="h-12 w-12 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold mb-2">
@@ -588,7 +588,7 @@ export default function CollectionDetailClient({ initialCollection }: Collection
                   </p>
                   {!searchQuery && collection.contractAddress && (
                     <Link href="/nft/create">
-                      <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+                      <Button className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white`}>
                         <Sparkles className="h-4 w-4 mr-2" />
                         Create First NFT
                       </Button>
@@ -766,7 +766,7 @@ export default function CollectionDetailClient({ initialCollection }: Collection
         {collection.website && (
           <Button
             size="sm"
-            className="rounded-full w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+            className={`rounded-full w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300`}
             onClick={() => window.open(collection.website, "_blank")}
           >
             <Globe className="h-5 w-5" />
@@ -784,7 +784,7 @@ export default function CollectionDetailClient({ initialCollection }: Collection
         {collection.discord && (
           <Button
             size="sm"
-            className="rounded-full w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+            className={`rounded-full w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300`}
             onClick={() => window.open(collection.discord, "_blank")}
           >
             <MessageCircle className="h-5 w-5" />

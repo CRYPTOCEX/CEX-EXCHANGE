@@ -68,6 +68,7 @@ import {
 import { Link } from "@/i18n/routing";
 import $fetch from "@/lib/api";
 import { toast } from "sonner";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 interface LineItem {
   name: string;
@@ -259,7 +260,7 @@ export default function AdminPaymentDetailsClient() {
     });
 
     if (fetchError) {
-      setError(fetchError.message || "Failed to load payment details");
+      setError(typeof fetchError === 'string' ? fetchError : "Failed to load payment details");
     } else if (data) {
       setPayment(data);
     }
@@ -306,7 +307,7 @@ export default function AdminPaymentDetailsClient() {
     });
 
     if (refundError) {
-      toast.error(refundError.message || "Failed to process refund");
+      toast.error(typeof refundError === 'string' ? refundError : "Failed to process refund");
     } else {
       toast.success(`Refund of ${formatCurrency(amount, payment.currency)} processed successfully`);
       setRefundDialogOpen(false);
@@ -405,7 +406,7 @@ export default function AdminPaymentDetailsClient() {
     : {};
 
   return (
-    <div className="space-y-6">
+    <div className={`container ${PAGE_PADDING} pt-20 space-y-6`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">

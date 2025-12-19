@@ -25,7 +25,8 @@ import { useCampaignStore } from "./store";
 import { useTranslations } from "next-intl";
 
 export function AddTargetsDialog() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const {
     open,
     setOpen,
@@ -79,25 +80,25 @@ export function AddTargetsDialog() {
           {t("add_targets")}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{t("select_targets")}</DialogTitle>
           <DialogDescription>
             {t("please_select_the_this_campaign")}.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-6 py-4">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col flex-1 min-h-0">
+          <div className="flex items-center gap-4 pb-4">
             <Input
               value={userFilter}
               onChange={(e) => setUserFilter(e.target.value)}
-              placeholder="Search users..."
+              placeholder={t("search_users_ellipsis")}
               icon="lucide:search"
               iconPosition="left"
               className="w-full"
             />
           </div>
-          <div className="max-h-96 overflow-y-auto rounded-lg border-zinc-200 dark:border-zinc-700">
+          <div className="flex-1 overflow-y-auto rounded-lg border-zinc-200 dark:border-zinc-700">
             {users.length > 0 ? (
               users.map((user) => (
                 <div
@@ -140,7 +141,8 @@ export function AddTargetsDialog() {
               </div>
             )}
           </div>
-          <Pagination>
+          <div className="pt-4">
+            <Pagination>
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
@@ -181,12 +183,13 @@ export function AddTargetsDialog() {
               </PaginationItem>
             </PaginationContent>
           </Pagination>
+          </div>
         </div>
         <DialogFooter>
           <div className="flex w-full items-center justify-between">
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              {t("selected")}
-              {selectedUsers.length}
+              {tCommon("selected")}
+              <span className="mx-1">{selectedUsers.length}</span>
               {t("targets")}
             </p>
             <div className="flex gap-2">
@@ -195,7 +198,7 @@ export function AddTargetsDialog() {
                 onClick={handleAddAllUsers}
                 disabled={isLoading || items.length === totalUsersInDatabase}
               >
-                {t("select_all")}
+                {tCommon("select_all")}
               </Button>
               <Button
                 onClick={handleAddUsers}

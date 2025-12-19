@@ -1,28 +1,28 @@
+"use client";
+
 import type React from "react";
-import type { Metadata } from "next";
+import SiteHeader from "@/components/partials/header/site-header";
 import Footer from "@/components/partials/footer";
-import IcoNavbar from "../../ico/navbar";
-import AdminNavbar from "./components/navbar";
+import { menu, colorSchema } from "./menu";
+import { usePathname } from "@/i18n/routing";
 
-export const metadata: Metadata = {
-  title: {
-    default: "Initial Token Offering",
-    template: "%s",
-  },
-  description: "Launch and invest in the next generation of digital assets",
-};
-
-export default function RootLayout({
+export default function AdminStakingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isSettingsPage = pathname.endsWith("/settings");
+
+  // Full-screen layout for settings page
+  if (isSettingsPage) {
+    return <>{children}</>;
+  }
+
   return (
     <>
-      <AdminNavbar />
-      <main className="flex-1 mx-auto container pt-8 space-y-8 pb-24">
-        {children}
-      </main>
+      <SiteHeader menu={menu} colorSchema={colorSchema} userPath="/staking" />
+      <main className="flex-1">{children}</main>
       <Footer />
     </>
   );

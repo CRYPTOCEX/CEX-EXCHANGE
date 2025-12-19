@@ -1,9 +1,12 @@
-import { updateStatus, updateRecordResponses } from "@b/utils/query";
+import { updateStatus } from "@b/utils/query";
+import { statusUpdateResponses } from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Update Status for a Mailwizard Template",
+  summary: "Update template status",
   operationId: "updateMailwizardTemplateStatus",
-  tags: ["Admin", "Mailwizard Templates"],
+  tags: ["Admin", "Mailwizard", "Templates"],
+  description:
+    "Updates the status of a specific Mailwizard template. Valid statuses: ACTIVE, INACTIVE, ARCHIVED. Changing status to INACTIVE or ARCHIVED may affect campaigns using this template.",
   parameters: [
     {
       index: 0,
@@ -32,14 +35,21 @@ export const metadata = {
       },
     },
   },
-  responses: updateRecordResponses("Mailwizard Template"),
+  responses: statusUpdateResponses("Mailwizard Template"),
   requiresAuth: true,
   permission: "edit.mailwizard.template",
+  logModule: "ADMIN_MAIL",
+  logTitle: "Update template status",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
-  return updateStatus("mailwizardTemplate", id, status);
+
+  ctx?.step(`Updating template status to ${status}`);
+  const result = await updateStatus("mailwizardTemplate", id, status);
+
+  ctx?.success("Template status updated successfully");
+  return result;
 };

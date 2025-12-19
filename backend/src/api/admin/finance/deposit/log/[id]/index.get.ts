@@ -1,6 +1,7 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { crudParameters, paginationSchema } from "@b/utils/constants";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Get deposit transaction by ID",
@@ -60,6 +61,7 @@ export const metadata = {
   },
   requiresAuth: true,
   permission: "view.deposit",
+  demoMask: ["user.email"],
 };
 
 export default async (data) => {
@@ -104,7 +106,7 @@ export default async (data) => {
       ...transaction.get({ plain: true }),
     };
   } catch (error) {
-    console.error("Error fetching deposit transaction:", error);
+    logger.error("DEPOSIT", "Error fetching deposit transaction", error);
     throw createError({
       statusCode: 500,
       message: error.message || "Internal server error",

@@ -1,29 +1,38 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { adminProfitAnalytics } from "./analytics";
+import { Wallet } from "lucide-react";
+import { useColumns } from "./columns";
+import { useAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
 export default function AdminProfitPage() {
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
+  const analytics = useAnalytics();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/finance/profit"
       model="adminProfit"
       permissions={{
-        access: "access.admin.profit",
-        view: "view.admin.profit",
-        create: "create.admin.profit",
-        edit: "edit.admin.profit",
-        delete: "delete.admin.profit",
-      }}
-      pageSize={10}
+        access: "access.profit",
+        view: "view.profit",
+        create: "create.profit",
+        edit: "edit.profit",
+        delete: "delete.profit"}}
+      pageSize={12}
       canCreate={false}
       canEdit={false}
-      canDelete={true}
-      canView={true}
-      isParanoid={false} // Model is non-paranoid
-      title="Admin Profit Management"
+      canDelete
+      canView
+      isParanoid={true}
+      title={t("admin_profit_management")}
+      description={t("manage_user_profits_and_earnings")}
       itemTitle="Profit"
       columns={columns}
-      analytics={adminProfitAnalytics}
+      analytics={analytics}
+      design={{
+        animation: "orbs",
+        icon: Wallet}}
     />
   );
 }

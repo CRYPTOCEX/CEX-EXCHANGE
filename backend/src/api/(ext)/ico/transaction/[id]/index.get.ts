@@ -1,4 +1,5 @@
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Get ICO Transaction by ID",
@@ -6,6 +7,8 @@ export const metadata = {
     "Retrieves detailed ICO transaction data by its unique identifier, including associated offering and user details.",
   operationId: "getIcoTransactionById",
   tags: ["ICO", "Transactions"],
+  logModule: "ICO",
+  logTitle: "Get ICO Transaction",
   parameters: [
     {
       index: 0,
@@ -89,8 +92,10 @@ export const metadata = {
   },
 };
 
-export default async (data: { params?: any }): Promise<any> => {
+export default async (data: { params?: any; ctx?: any }): Promise<any> => {
   try {
+    const { ctx } = data;
+    ctx?.step("Fetching get ico transaction");
     const { id } = data.params || {};
     if (!id) {
       throw new Error("No transaction ID provided");
@@ -110,13 +115,15 @@ export default async (data: { params?: any }): Promise<any> => {
     });
 
     if (!transaction) {
-      return { error: "Transaction not found" };
+      ctx?.success("Get ICO Transaction retrieved successfully");
+
+  return { error: "Transaction not found" };
     }
 
     // Return the raw object (ensure toJSON() is called if needed)
     return transaction.toJSON();
   } catch (error) {
-    console.error("Error in getIcoTransactionById:", error);
+    logger.error("ICO_TRANSACTION", "Error retrieving ICO transaction by ID", error);
     throw error;
   }
 };

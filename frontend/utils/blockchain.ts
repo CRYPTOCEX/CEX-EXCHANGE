@@ -8,31 +8,30 @@ interface EthereumProvider {
   [key: string]: any;
 }
 
-declare global {
-  interface Window {
-    ethereum?: EthereumProvider;
-  }
+// Get ethereum provider with proper typing
+function getEthereumProvider(): EthereumProvider | undefined {
+  if (typeof window === 'undefined') return undefined;
+  return (window as any).ethereum as EthereumProvider | undefined;
 }
 
 /**
  * Detect if a Web3 provider (like MetaMask) is available
  */
-export async function detectProvider() {
-  if (typeof window === "undefined") {
-    return null;
-  }
+export async function detectProvider(): Promise<EthereumProvider | null> {
+  const provider = getEthereumProvider();
 
   // Check for MetaMask or other injected providers
-  if (window.ethereum) {
-    return window.ethereum;
+  if (provider) {
+    return provider;
   }
 
   // Wait a bit for provider to be injected
   return new Promise((resolve) => {
     const checkInterval = setInterval(() => {
-      if (window.ethereum) {
+      const p = getEthereumProvider();
+      if (p) {
         clearInterval(checkInterval);
-        resolve(window.ethereum);
+        resolve(p);
       }
     }, 100);
 

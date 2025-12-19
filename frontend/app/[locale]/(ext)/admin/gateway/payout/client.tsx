@@ -1,15 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, CheckCircle, XCircle } from "lucide-react";
+import { Eye, CheckCircle, XCircle, Wallet } from "lucide-react";
 import DataTable from "@/components/blocks/data-table";
 import { Button } from "@/components/ui/button";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import PayoutDetailsDrawer from "./payout-details-drawer";
 import $fetch from "@/lib/api";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export default function AdminPayoutsPage() {
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
   const [selectedPayoutId, setSelectedPayoutId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -31,7 +35,7 @@ export default function AdminPayoutsPage() {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(typeof error === 'string' ? error : "Failed to approve payout");
     } else {
       toast.success("Payout approved successfully");
       setRefreshKey((prev) => prev + 1);
@@ -45,7 +49,7 @@ export default function AdminPayoutsPage() {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(typeof error === 'string' ? error : "Failed to reject payout");
     } else {
       toast.success("Payout rejected");
       setRefreshKey((prev) => prev + 1);
@@ -65,14 +69,16 @@ export default function AdminPayoutsPage() {
           edit: "edit.gateway.payout",
           delete: "delete.gateway.payout",
         }}
-        pageSize={10}
+        pageSize={12}
         canCreate={false}
         canEdit={false}
         canDelete={false}
         canView={true}
-        title="Payouts"
+        title={t("gateway_payouts")}
+        description={t("manage_merchant_payout_requests")}
         itemTitle="Payout"
         columns={columns}
+        formConfig={formConfig}
         isParanoid={false}
         expandedButtons={(row) => (
           <div className="flex gap-2">
@@ -106,6 +112,12 @@ export default function AdminPayoutsPage() {
             )}
           </div>
         )}
+        design={{
+          animation: "orbs",
+          primaryColor: "indigo",
+          secondaryColor: "cyan",
+          icon: Wallet,
+        }}
       />
 
       <PayoutDetailsDrawer

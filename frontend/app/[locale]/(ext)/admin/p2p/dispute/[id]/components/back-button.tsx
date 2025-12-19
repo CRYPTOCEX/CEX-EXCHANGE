@@ -6,7 +6,7 @@ import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
 export function BackButton() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const router = useRouter();
 
   return (

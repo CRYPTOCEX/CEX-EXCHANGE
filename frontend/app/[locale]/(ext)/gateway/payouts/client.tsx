@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PayoutsLoading from "./loading";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -29,6 +29,7 @@ import { Link } from "@/i18n/routing";
 import $fetch from "@/lib/api";
 import { useMerchantMode } from "../context/merchant-mode";
 import { useTranslations } from "next-intl";
+import { PayoutHero } from "./components/payout-hero";
 
 interface Balance {
   id: string;
@@ -74,7 +75,8 @@ const WALLET_CONFIG: Record<string, { label: string; icon: any; color: string }>
 };
 
 export default function PayoutsClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_gateway");
+  const tCommon = useTranslations("common");
   const { mode } = useMerchantMode();
   const [loading, setLoading] = useState(true);
   const [balances, setBalances] = useState<Balance[]>([]);
@@ -148,17 +150,7 @@ export default function PayoutsClient() {
     : payouts.filter(p => p.status === activeTab.toUpperCase());
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-10 w-64" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-        </div>
-        <Skeleton className="h-64" />
-      </div>
-    );
+    return <PayoutsLoading />;
   }
 
   if (needsRegistration) {
@@ -181,72 +173,72 @@ export default function PayoutsClient() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Payouts</h1>
-          <p className="text-muted-foreground">{t("track_your_earnings_and_payout_history")}</p>
-        </div>
-        <Button variant="outline" onClick={fetchData}>
-          <RefreshCcw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
-      </div>
+    <div className="w-full">
+      {/* Hero Section */}
+      <PayoutHero
+        rightContent={
+          <Button variant="outline" onClick={fetchData}>
+            <RefreshCcw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        }
+        bottomSlot={
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="bg-linear-to-br from-green-500/10 via-green-500/5 to-transparent border-green-500/20">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">{tCommon("available_balance")}</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      ${totalAvailable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("ready_for_payout")}</p>
+                  </div>
+                  <div className="p-3 rounded-full bg-green-500/10">
+                    <Wallet className="h-6 w-6 text-green-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-      {/* Balance Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent border-green-500/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{t("available_balance")}</p>
-                <p className="text-2xl font-bold text-green-600">
-                  ${totalAvailable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">{t("ready_for_payout")}</p>
-              </div>
-              <div className="p-3 rounded-full bg-green-500/10">
-                <Wallet className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            <Card className="bg-linear-to-br from-yellow-500/10 via-yellow-500/5 to-transparent border-yellow-500/20">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">{t("pending_balance")}</p>
+                    <p className="text-2xl font-bold text-yellow-600">
+                      ${totalPending.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("processing_payments")}</p>
+                  </div>
+                  <div className="p-3 rounded-full bg-yellow-500/10">
+                    <Clock className="h-6 w-6 text-yellow-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="bg-gradient-to-br from-yellow-500/10 via-yellow-500/5 to-transparent border-yellow-500/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{t("pending_balance")}</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  ${totalPending.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">{t("processing_payments")}</p>
-              </div>
-              <div className="p-3 rounded-full bg-yellow-500/10">
-                <Clock className="h-6 w-6 text-yellow-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            <Card className="bg-linear-to-br from-blue-500/10 via-blue-500/5 to-transparent border-blue-500/20">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">{t("total_paid_out")}</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      ${totalPaidOut.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">{tCommon("all_time")}</p>
+                  </div>
+                  <div className="p-3 rounded-full bg-blue-500/10">
+                    <TrendingUp className="h-6 w-6 text-blue-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        }
+      />
 
-        <Card className="bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent border-blue-500/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{t("total_paid_out")}</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  ${totalPaidOut.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">{t("all_time")}</p>
-              </div>
-              <div className="p-3 rounded-full bg-blue-500/10">
-                <TrendingUp className="h-6 w-6 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <div className="container mx-auto space-y-6 pb-6 pt-8">
 
       {/* Balance Breakdown by Wallet Type */}
       {balances.length > 0 && (
@@ -280,7 +272,7 @@ export default function PayoutsClient() {
                         </div>
                         <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                           <span>{t("received")}: {formatCurrency(balance.totalReceived, balance.currency)}</span>
-                          <span>{t("Fees")}: {formatCurrency(balance.totalFees, balance.currency)}</span>
+                          <span>{tCommon("fees")}: {formatCurrency(balance.totalFees, balance.currency)}</span>
                         </div>
                       </div>
                     </div>
@@ -356,7 +348,7 @@ export default function PayoutsClient() {
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">{t("payout")}{payout.id.slice(-8)}</span>
+                              <span className="font-medium">{`${t("payout")} #`}{payout.id.slice(-8)}</span>
                               <Badge variant="outline" className={statusConfig.bgColor}>
                                 {statusConfig.label}
                               </Badge>
@@ -402,6 +394,7 @@ export default function PayoutsClient() {
           </Tabs>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

@@ -2,8 +2,12 @@ import { messageBroker } from "@b/handler/Websocket";
 import { MatchingEngine } from "@b/api/(ext)/ecosystem/utils/matchingEngine";
 import { getOrderBook, getRecentTrades, getOHLCV } from "@b/api/(ext)/ecosystem/utils/scylla/queries";
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 
-export const metadata = {};
+export const metadata = {
+  logModule: "ECOSYSTEM",
+  logTitle: "Market WebSocket connection"
+};
 
 class UnifiedEcosystemMarketDataHandler {
   private static instance: UnifiedEcosystemMarketDataHandler;
@@ -69,7 +73,7 @@ class UnifiedEcosystemMarketDataHandler {
                   );
                 }
               } catch (tradesError) {
-                console.error(`Error fetching trades for ${symbol}:`, tradesError);
+                logger.error("ECO_WS", `Error fetching trades for ${symbol}`, tradesError);
               }
               break;
             case "ticker":
@@ -107,18 +111,18 @@ class UnifiedEcosystemMarketDataHandler {
                   );
                 }
               } catch (ohlcvError) {
-                console.error(`Error fetching OHLCV for ${symbol}:`, ohlcvError);
+                logger.error("ECO_WS", `Error fetching OHLCV for ${symbol}`, ohlcvError);
               }
               break;
           }
         } catch (error) {
-          console.error(`Error fetching ${type} data for ${symbol}:`, error);
+          logger.error("ECO_WS", `Error fetching ${type} data for ${symbol}`, error);
         }
       });
 
       await Promise.allSettled(fetchPromises);
     } catch (error) {
-      console.error(`Error in fetchAndBroadcastData for ${symbol}:`, error);
+      logger.error("ECO_WS", `Error in fetchAndBroadcastData for ${symbol}`, error);
     }
   }
 
@@ -142,13 +146,13 @@ class UnifiedEcosystemMarketDataHandler {
   public async addSubscription(symbol: string, payload: any) {
     // Validate that the symbol exists in the database and is enabled
     if (!symbol) {
-      console.warn("No symbol provided in ecosystem subscription request");
+      logger.warn("ECO_WS", "No symbol provided in ecosystem subscription request");
       return;
     }
 
     const [currency, pair] = symbol.split("/");
     if (!currency || !pair) {
-      console.warn(`Invalid symbol format: ${symbol}. Expected format: CURRENCY/PAIR`);
+      logger.warn("ECO_WS", `Invalid symbol format: ${symbol}. Expected format: CURRENCY/PAIR`);
       return;
     }
 
@@ -161,7 +165,7 @@ class UnifiedEcosystemMarketDataHandler {
     });
 
     if (!market) {
-      console.warn(`Ecosystem market ${symbol} not found in database or is disabled. Skipping subscription.`);
+      logger.warn("ECO_WS", `Ecosystem market ${symbol} not found in database or is disabled. Skipping subscription.`);
       return;
     }
 
@@ -215,7 +219,7 @@ class UnifiedEcosystemMarketDataHandler {
    */
   public clearOrderbookCache(symbol: string): void {
     this.lastOrderbookData.delete(symbol);
-    console.info(`[WS] Cleared orderbook cache for ${symbol}`);
+    logger.debug("ECO_WS", `Cleared orderbook cache for ${symbol}`);
   }
 
   /**
@@ -230,7 +234,7 @@ class UnifiedEcosystemMarketDataHandler {
       // Get the subscription map for this symbol
       const subscriptionMap = this.activeSubscriptions.get(symbol);
       if (!subscriptionMap) {
-        console.info(`[WS] No active subscriptions for ${symbol}, skipping forced broadcast`);
+        logger.debug("ECO_WS", `No active subscriptions for ${symbol}, skipping forced broadcast`);
         return;
       }
 
@@ -249,10 +253,10 @@ class UnifiedEcosystemMarketDataHandler {
           { stream: streamKey, data: orderbook }
         );
 
-        console.info(`[WS] Forced orderbook broadcast for ${symbol}`);
+        logger.debug("ECO_WS", `Forced orderbook broadcast for ${symbol}`);
       }
     } catch (error) {
-      console.error(`[WS] Failed to force orderbook broadcast for ${symbol}:`, error);
+      logger.error("ECO_WS", `Failed to force orderbook broadcast for ${symbol}`, error);
     }
   }
 }
@@ -267,6 +271,9 @@ export async function forceOrderbookBroadcast(symbol: string): Promise<void> {
 }
 
 export default async (data: Handler, message: any) => {
+  const { ctx } = data;
+
+  ctx?.step("Processing market WebSocket message");
   // Parse the incoming message if it's a string.
   if (typeof message === "string") {
     message = JSON.parse(message);
@@ -276,15 +283,20 @@ export default async (data: Handler, message: any) => {
   const { type, symbol } = payload || {};
 
   if (!type || !symbol) {
-    console.error("Invalid message structure: type or symbol is missing");
+    logger.error("ECO_WS", "Invalid message structure: type or symbol is missing");
+    ctx?.fail("Invalid message structure: missing type or symbol");
     return;
   }
 
   const handler = UnifiedEcosystemMarketDataHandler.getInstance();
 
   if (action === "SUBSCRIBE") {
+    ctx?.step(`Subscribing to ${type} for ${symbol}`);
     await handler.addSubscription(symbol, payload);
+    ctx?.success(`Subscribed to ${type} for ${symbol}`);
   } else if (action === "UNSUBSCRIBE") {
+    ctx?.step(`Unsubscribing from ${type} for ${symbol}`);
     handler.removeSubscription(symbol, type);
+    ctx?.success(`Unsubscribed from ${type} for ${symbol}`);
   }
 };

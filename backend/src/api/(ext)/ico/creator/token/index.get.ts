@@ -8,6 +8,8 @@ export const metadata = {
     "Retrieves ICO offerings for the authenticated creator, grouped by status (active, pending, completed) along with currentRaised for each offering.",
   operationId: "getCreatorOfferings",
   tags: ["ICO", "Creator", "Offerings"],
+  logModule: "ICO",
+  logTitle: "Get Creator Tokens",
   requiresAuth: true,
   responses: {
     200: {
@@ -31,10 +33,13 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Fetching creator tokens");
 
   // Fetch offerings for the current creator.
   const offerings = await models.icoTokenOffering.findAll({
@@ -44,6 +49,7 @@ export default async (data: Handler) => {
 
   // If there are no offerings, return empty arrays.
   if (!offerings.length) {
+    ctx?.success("Creator tokens retrieved successfully");
     return { active: [], pending: [], completed: [] };
   }
 
@@ -80,6 +86,8 @@ export default async (data: Handler) => {
   const active = offeringsWithRaised.filter((o) => o.status === "ACTIVE");
   const pending = offeringsWithRaised.filter((o) => o.status === "PENDING");
   const completed = offeringsWithRaised.filter((o) => o.status === "SUCCESS");
+
+  ctx?.success("Get Creator Tokens retrieved successfully");
 
   return { active, pending, completed };
 };

@@ -1,3 +1,5 @@
+import { logger } from "./console";
+
 const mimes: { [key: string]: string } = {
   "3gp": "video/3gpp",
   a: "application/octet-stream",
@@ -176,7 +178,7 @@ export const getMime = (path: string) => {
     const mime = mimes[path.slice(i + 1).toLowerCase()];
     return mime || mimes.default;
   } catch (error) {
-    console.log(`Error getting mime type for path: ${path}`);
+    logger.error("MIME", `Error getting mime type for path: ${path}`);
     return mimes.default;
   }
 };

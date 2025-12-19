@@ -1,9 +1,10 @@
 import { updateStatus, updateRecordResponses } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Updates the status of an Ecosystem Custodial Wallet",
+  summary: "Update custodial wallet",
+  description: "Updates the configuration of a specific ecosystem custodial wallet. Currently supports updating the wallet status.",
   operationId: "updateEcosystemCustodialWalletStatus",
-  tags: ["Admin", "Ecosystem Custodial Wallets"],
+  tags: ["Admin", "Ecosystem", "Wallet"],
   parameters: [
     {
       index: 0,
@@ -35,11 +36,18 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Ecosystem Custodial Wallet"),
   requiresAuth: true,
   permission: "edit.ecosystem.custodial.wallet",
+  logModule: "ADMIN_ECO",
+  logTitle: "Update Custodial Wallet",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
-  return updateStatus("ecosystemCustodialWallet", id, status);
+
+  ctx?.step("Updating Custodial Wallet Status");
+  const result = await updateStatus("ecosystemCustodialWallet", id, status);
+
+  ctx?.success(`Custodial wallet ${id} status updated`);
+  return result;
 };

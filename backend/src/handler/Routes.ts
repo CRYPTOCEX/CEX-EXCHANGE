@@ -7,11 +7,13 @@ import {
   rateLimit,
   rolesGate,
   siteMaintenanceAccessGate,
+  rateLimiters,
 } from "../handler/Middleware";
 import { sanitizePath } from "@b/utils/validation";
 import { isProduction } from "@b/utils/constants";
-import { logError } from "@b/utils/logger";
+import { logger, withLogger, type ApiContext } from "@b/utils/console";
 import { setupWebSocketEndpoint } from "./Websocket";
+import { applyDemoMask } from "@b/utils/demoMask";
 
 // Use .js extension in production, otherwise .ts for development.
 const fileExtension: string = isProduction ? ".js" : ".ts";
@@ -43,23 +45,14 @@ export async function setupApiRoutes(
 ): Promise<void> {
   try {
     const entries = await fs.readdir(startPath, { withFileTypes: true });
-    // Sort so that file entries come before directories and bracketed directories come last.
-    const sortedEntries = entries.sort((a, b) => {
-      if (a.isDirectory() && !b.isDirectory()) return 1;
-      if (!a.isDirectory() && b.isDirectory()) return -1;
-      if (a.isDirectory() && b.isDirectory()) {
-        const aHasBrackets = a.name.includes("[");
-        const bHasBrackets = b.name.includes("[");
-        if (aHasBrackets && !bHasBrackets) return 1;
-        if (!aHasBrackets && bHasBrackets) return -1;
-      }
-      return 0;
-    });
 
-    for (const entry of sortedEntries) {
-      const entryPath: string = sanitizePath(path.join(startPath, entry.name));
+    // Separate files and directories for parallel processing
+    const files: { entry: typeof entries[0]; entryPath: string }[] = [];
+    const directories: { entry: typeof entries[0]; entryPath: string; newBasePath: string }[] = [];
+    const bracketDirs: { entry: typeof entries[0]; entryPath: string; newBasePath: string }[] = [];
 
-      // Skip certain directories and files.
+    for (const entry of entries) {
+      // Skip certain directories and files
       if (
         (entry.isDirectory() && entry.name === "util") ||
         entry.name === `queries${fileExtension}` ||
@@ -68,36 +61,60 @@ export async function setupApiRoutes(
         continue;
       }
 
-      // If entry is a directory, update the basePath and recurse.
+      const entryPath: string = sanitizePath(path.join(startPath, entry.name));
+
       if (entry.isDirectory()) {
         let newBasePath = basePath;
-        // If the folder name is wrapped in parentheses (grouping folder), skip it.
+        // If the folder name is wrapped in parentheses (grouping folder), skip path addition
         if (!/^\(.*\)$/.test(entry.name)) {
           newBasePath = `${basePath}/${entry.name.replace(/\[(\w+)\]/, ":$1")}`;
         }
-        await setupApiRoutes(app, entryPath, newBasePath);
-        continue;
-      }
-
-      // For files: determine the route path and HTTP method.
-      const [fileName, method] = entry.name.split(".");
-      let routePath = basePath + (fileName !== "index" ? `/${fileName}` : "");
-      // Convert bracketed parameters (e.g. [id]) to Express-like ":id" syntax.
-      routePath = routePath
-        .replace(/\[(\w+)\]/g, ":$1")
-        .replace(/\.get|\.post|\.put|\.delete|\.del|\.ws/, "");
-
-      // Register the route if the HTTP method exists on the app.
-      if (typeof app[method] === "function") {
-        if (method === "ws") {
-          setupWebSocketEndpoint(app, routePath, entryPath);
+        // Separate bracketed directories (dynamic routes) to process last
+        if (entry.name.includes("[")) {
+          bracketDirs.push({ entry, entryPath, newBasePath });
         } else {
-          await handleHttpMethod(app, method, routePath, entryPath);
+          directories.push({ entry, entryPath, newBasePath });
         }
+      } else {
+        files.push({ entry, entryPath });
       }
     }
+
+    // Process files first (register routes)
+    await Promise.all(
+      files.map(async ({ entry, entryPath }) => {
+        const [fileName, method] = entry.name.split(".");
+        let routePath = basePath + (fileName !== "index" ? `/${fileName}` : "");
+        // Convert bracketed parameters to Express-like ":id" syntax
+        routePath = routePath
+          .replace(/\[(\w+)\]/g, ":$1")
+          .replace(/\.get|\.post|\.put|\.delete|\.del|\.ws/, "");
+
+        if (typeof app[method] === "function") {
+          if (method === "ws") {
+            setupWebSocketEndpoint(app, routePath, entryPath);
+          } else {
+            await handleHttpMethod(app, method, routePath, entryPath);
+          }
+        }
+      })
+    );
+
+    // Process non-bracketed directories in parallel
+    await Promise.all(
+      directories.map(({ entryPath, newBasePath }) =>
+        setupApiRoutes(app, entryPath, newBasePath)
+      )
+    );
+
+    // Process bracketed directories last (to ensure dynamic routes are registered after static ones)
+    await Promise.all(
+      bracketDirs.map(({ entryPath, newBasePath }) =>
+        setupApiRoutes(app, entryPath, newBasePath)
+      )
+    );
   } catch (error: any) {
-    logError("setupApiRoutes", error, startPath);
+    logger.error("ROUTES", `Error setting up API routes in ${startPath}`, error);
     throw error;
   }
 }
@@ -143,7 +160,7 @@ async function handleHttpMethod(
         req.setMetadata(metadata);
         routeCache.set(entryPath, { handler, metadata });
       } catch (error: any) {
-        logError("route", error, entryPath);
+        logger.error("ROUTE", `Error loading handler for ${entryPath}`, error);
         res.handleError(500, error.message);
         return;
       }
@@ -156,42 +173,19 @@ async function handleHttpMethod(
     try {
       await req.parseBody();
     } catch (error: any) {
-      logError("route", error, entryPath);
+      logger.error("ROUTE", `Error parsing request body for ${entryPath}`, error);
       res.handleError(400, `Invalid request body: ${error.message}`);
       return;
     }
 
-    // Benchmark the request and log performance with color-coded labels.
+    // Benchmark the request (debug level only)
     const endBenchmarking = (): void => {
       const duration: number = Date.now() - startTime;
-      let color = "\x1b[0m";
-      let label = "FAST";
-
       if (duration > 1000) {
-        color = "\x1b[41m";
-        label = "VERY SLOW";
-      } else if (duration > 500) {
-        color = "\x1b[31m";
-        label = "SLOW";
-      } else if (duration > 200) {
-        color = "\x1b[33m";
-        label = "MODERATE";
-      } else if (duration > 100) {
-        color = "\x1b[32m";
-        label = "GOOD";
-      } else if (duration > 50) {
-        color = "\x1b[36m";
-        label = "FAST";
-      } else if (duration > 10) {
-        color = "\x1b[34m";
-        label = "VERY FAST";
+        logger.warn("ROUTE", `Slow request: ${method.toUpperCase()} ${routePath} (${duration}ms)`);
       } else {
-        color = "\x1b[35m";
-        label = "EXCELLENT";
+        logger.debug("ROUTE", `${method.toUpperCase()} ${routePath} (${duration}ms)`);
       }
-      console.log(
-        `${color}[${label}] Request to ${routePath} (${method.toUpperCase()}) - Duration: ${duration}ms\x1b[0m`
-      );
     };
 
     // Determine the middleware chain based on metadata flags.
@@ -223,9 +217,34 @@ async function handleHttpMethod(
 }
 
 /**
+ * Processes middleware array from metadata.
+ * Middleware names directly map to rate limiters in rateLimiters object.
+ * Example: middleware: ["copyTradingAdmin"] -> rateLimiters.copyTradingAdmin
+ *
+ * @param middleware - Array of middleware names (must match keys in rateLimiters)
+ * @param req - The request object
+ */
+async function processMiddleware(
+  middleware: string[],
+  req: Request
+): Promise<void> {
+  for (const middlewareName of middleware) {
+    const rateLimiter = rateLimiters[middlewareName as keyof typeof rateLimiters];
+
+    if (rateLimiter) {
+      await rateLimiter(req);
+    } else {
+      logger.warn("MIDDLEWARE", `Unknown middleware: ${middlewareName}`);
+    }
+  }
+}
+
+/**
  * Executes the route handler and sends the response.
  *
- * If an error occurs, it logs the error and sends an error response.
+ * If metadata contains logModule and logTitle, the handler is automatically
+ * wrapped with logging context. The ctx object is passed to the handler via
+ * the request data object.
  *
  * @param res - The response object.
  * @param req - The request object.
@@ -240,14 +259,51 @@ async function handleRequest(
   entryPath: string,
   metadata?: any
 ): Promise<void> {
+  // Check if logging is enabled via metadata
+  const hasLogging = metadata?.logModule && metadata?.logTitle;
+
   try {
-    const result = await handler(req);
+    // Process middleware from metadata if present
+    if (metadata?.middleware && Array.isArray(metadata.middleware)) {
+      await processMiddleware(metadata.middleware, req);
+    }
+
+    let result: any;
+
+    if (hasLogging) {
+      // Wrap with logging context - add ctx to the req object
+      result = await withLogger(
+        metadata.logModule,
+        metadata.logTitle,
+        { user: req.user },
+        async (ctx: ApiContext) => {
+          (req as any).ctx = ctx;
+          return await handler(req);
+        },
+        { method: req.method, url: req.url?.split("?")[0] }
+      );
+    } else {
+      // Execute without logging context
+      result = await handler(req);
+    }
+
+    // Apply demo masking if configured in metadata
+    if (metadata?.demoMask && Array.isArray(metadata.demoMask)) {
+      result = applyDemoMask(result, metadata.demoMask);
+    }
+
     res.sendResponse(req, 200, result, metadata?.responseType);
   } catch (error: any) {
-    logError("route", error, entryPath);
-
     const statusCode: number = error.statusCode || 500;
     const message: string = error.message || "Internal Server Error";
+
+    // Only log server errors (5xx) - client errors (4xx) are expected behavior
+    // Skip logging if withLogger already handled it (hasLogging is true)
+    if (statusCode >= 500 && !hasLogging) {
+      const method = req.method?.toUpperCase() || "???";
+      const apiPath = req.url?.split("?")[0] || entryPath;
+      logger.error("API", `${method} ${apiPath} → ${statusCode} ${message}`);
+    }
 
     // Handle validation errors by sending a custom response
     if (error.validationErrors) {

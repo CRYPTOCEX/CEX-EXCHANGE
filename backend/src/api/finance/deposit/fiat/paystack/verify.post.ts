@@ -1,6 +1,7 @@
 import { models, sequelize } from '@b/db'
 import { createError } from '@b/utils/error'
 import { sendFiatTransactionEmail } from '@b/utils/emails'
+import { logger } from '@b/utils/console'
 import {
   validatePaystackConfig,
   makePaystackRequest,
@@ -16,6 +17,8 @@ export const metadata = {
   operationId: 'verifyPaystackPayment',
   tags: ['Finance', 'Deposit', 'Paystack'],
   requiresAuth: true,
+  logModule: "PAYSTACK_DEPOSIT",
+  logTitle: "Verify Paystack payment",
   requestBody: {
     required: true,
     content: {
@@ -248,7 +251,7 @@ export default async (data: Handler) => {
           
           await sendFiatTransactionEmail(user, transaction, transaction.currency, newBalance)
         } catch (emailError) {
-          console.error('Failed to send confirmation email:', emailError)
+          logger.error('PAYSTACK', 'Failed to send confirmation email', emailError)
           // Don't fail the transaction if email fails
         }
       }

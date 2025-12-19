@@ -2,11 +2,14 @@ import { models, sequelize } from "@b/db";
 import { cacheRoles } from "./utils";
 import { commonBulkDeleteResponses } from "@b/utils/query";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Bulk deletes roles",
   operationId: "deleteBulkRoles",
   tags: ["Admin", "CRM", "Role"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Bulk delete roles",
   requestBody: {
     required: true,
     content: {
@@ -33,9 +36,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
   const { ids } = body;
 
+  ctx?.step("Validating user authorization");
   if (!user?.id) {
     throw createError({
       statusCode: 401,
@@ -55,6 +59,8 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Validating role deletion permissions");
+
   // Optionally, prevent deletion of any Super Admin role if you have such a concept.
   // If roles have a special "Super Admin" role that shouldn't be deleted, you can check here.
   const superAdminRole = await models.role.findOne({
@@ -71,6 +77,7 @@ export default async (data: Handler) => {
   }
 
   try {
+    ctx?.step(`Deleting ${ids.length} roles`);
     // Wrap operations in a transaction block
     await sequelize.transaction(async (transaction) => {
       // Delete role permissions for the specified roles
@@ -90,13 +97,15 @@ export default async (data: Handler) => {
       });
     });
 
+    ctx?.step("Rebuilding roles cache");
     await cacheRoles(); // Rebuild the roles cache
 
+    ctx?.success();
     return {
       message: "Roles removed successfully",
     };
   } catch (error) {
-    console.error("Failed to remove roles:", error);
+    logger.error("ROLE", "Failed to remove roles", error);
     throw new Error("Failed to remove roles");
   }
 };

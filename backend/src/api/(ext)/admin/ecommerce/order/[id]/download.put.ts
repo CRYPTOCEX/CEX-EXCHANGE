@@ -9,6 +9,8 @@ export const metadata: OperationObject = {
   operationId: "addDownloadDetails",
   tags: ["Admin", "Ecommerce Orders"],
   requiresAuth: true,
+  logModule: "ADMIN_ECOM",
+  logTitle: "Add order download details",
   requestBody: {
     required: true,
     content: {
@@ -39,22 +41,27 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { orderItemId, key, filePath, instructions } = body;
 
+  ctx?.step("Validating order item ID");
   const transaction = await sequelize.transaction();
 
   try {
+    ctx?.step(`Finding order item: ${orderItemId}`);
     const orderItem = await models.ecommerceOrderItem.findByPk(orderItemId);
     if (!orderItem) {
       throw createError({ statusCode: 404, message: "Order item not found" });
     }
 
+    ctx?.step("Updating download details");
     await orderItem.update({ key, filePath, instructions }, { transaction });
 
     await transaction.commit();
+    ctx?.success("Download details added/updated successfully");
     return { message: "Download details added/updated successfully" };
   } catch (error) {
+    ctx?.fail("Failed to update download details");
     await transaction.rollback();
     throw createError({ statusCode: 500, message: error.message });
   }

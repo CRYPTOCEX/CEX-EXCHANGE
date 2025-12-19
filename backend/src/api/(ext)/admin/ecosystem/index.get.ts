@@ -11,6 +11,8 @@ export const metadata: OperationObject = {
   summary: "Get ecosystem blockchains information",
   operationId: "getEcosystemBlockchains",
   tags: ["Admin", "Ecosystem", "Blockchains"],
+  logModule: "ADMIN_ECO",
+  logTitle: "Get ecosystem blockchains",
   responses: {
     200: {
       description: "Ecosystem blockchains information",
@@ -70,11 +72,19 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
+  const { ctx } = data;
+
   try {
+    ctx?.step("Checking chain environment variables");
     const { utxoChains, evmChains } = await checkChainEnvVariables();
+
+    ctx?.step("Fetching extended chains status");
     const extendedChains = await fetchExtendedChainsStatus();
+
+    ctx?.step("Checking vault unlock status");
     const isUnlockedVault = isUnlockedEcosystemVault();
 
+    ctx?.success("Ecosystem blockchains retrieved successfully");
     return {
       baseChains: utxoChains
         .map((chain) => ({
@@ -94,6 +104,7 @@ export default async (data: Handler) => {
       isUnlockedVault,
     };
   } catch (error) {
+    ctx?.fail(error.message);
     throw new Error(`Failed to fetch ecosystem blockchains: ${error.message}`);
   }
 };

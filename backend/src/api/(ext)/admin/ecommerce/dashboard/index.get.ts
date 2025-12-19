@@ -8,6 +8,8 @@ export const metadata = {
   operationId: "getAdminEcommerceDashboard",
   tags: ["Ecommerce", "Admin", "Dashboard"],
   requiresAuth: true,
+  logModule: "ADMIN_ECOM",
+  logTitle: "Get dashboard data",
   parameters: [
     {
       name: "startDate",
@@ -42,13 +44,16 @@ export const metadata = {
     500: { description: "Internal Server Error" },
   },
   permission: "access.ecommerce.dashboard",
+  demoMask: ["recentOrders.customer.email"],
 };
 
-export default async (data: { user?: any; query?: any }) => {
-  const { user, query } = data;
+export default async (data: { user?: any; query?: any; ctx?: any }) => {
+  const { user, query, ctx } = data;
+
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
+  ctx?.step("Parsing date range and chart parameters");
   // === Date handling ===
   const now = new Date();
   const { startDate, endDate, chartType: chartTypeRaw } = query || {};
@@ -72,6 +77,7 @@ export default async (data: { user?: any; query?: any }) => {
   const prevEnd = new Date(start.getTime());
 
   try {
+    ctx?.step("Fetching products data");
     // === PRODUCTS ===
     const productsRaw = await models.ecommerceProduct.findAll({
       include: [
@@ -104,6 +110,7 @@ export default async (data: { user?: any; query?: any }) => {
       soldCount: Number(p.get("soldCount") || 0),
     }));
 
+    ctx?.step("Fetching orders data");
     // === ORDERS ===
     const ordersRaw = await models.ecommerceOrder.findAll({
       include: [
@@ -137,6 +144,7 @@ export default async (data: { user?: any; query?: any }) => {
       return order;
     });
 
+    ctx?.step("Fetching customers data");
     // === CUSTOMERS ===
     const customersRaw = await models.user.findAll({
       include: [
@@ -161,6 +169,7 @@ export default async (data: { user?: any; query?: any }) => {
     });
     const customers = customersRaw.map((u) => u.get({ plain: true }));
 
+    ctx?.step("Calculating current period statistics");
     // === STATS (Current Period) ===
     const completedOrders = orders.filter(
       (o) =>
@@ -209,6 +218,7 @@ export default async (data: { user?: any; query?: any }) => {
       (o) => o.status === "DELIVERED"
     ).length;
 
+    ctx?.step("Calculating previous period statistics");
     // === STATS (Previous Period, for change % calculation) ===
     const completedOrdersPrev = orders.filter(
       (o) =>
@@ -254,6 +264,7 @@ export default async (data: { user?: any; query?: any }) => {
     const unitsSoldChange = calcChange(totalUnitsSold, unitsSoldPrev);
     const newCustomersChange = calcChange(newCustomersCount, newCustomersPrev);
 
+    ctx?.step("Building chart data");
     // === Chart Data: build all datasets (7/30/12 based on range) ===
     function buildChartData(
       key: "revenue" | "orders" | "customers" | "unitsSold",
@@ -373,6 +384,7 @@ export default async (data: { user?: any; query?: any }) => {
     const unitsSoldChart = buildChartData("unitsSold", start, end);
     const customersChart = buildChartData("customers", start, end);
 
+    ctx?.step("Compiling dashboard summary");
     // === Top Products & Recent Data ===
     const topProducts = [...products]
       .sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0))
@@ -385,6 +397,7 @@ export default async (data: { user?: any; query?: any }) => {
       )
       .slice(0, 5);
 
+    ctx?.success("Dashboard data retrieved successfully");
     // === Final shape: match frontend ===
     return {
       totalRevenue,
@@ -426,6 +439,7 @@ export default async (data: { user?: any; query?: any }) => {
       // Optionally: categories, customers, orders, products if you want to use them elsewhere
     };
   } catch (err) {
+    ctx?.fail("Failed to fetch dashboard data");
     console.error("Failed to fetch ecommerce dashboard data", err);
     throw createError({
       statusCode: 500,

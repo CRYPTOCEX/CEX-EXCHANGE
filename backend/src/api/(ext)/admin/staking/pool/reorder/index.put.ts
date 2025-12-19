@@ -5,6 +5,8 @@ export const metadata = {
   summary: "Reorder staking pools display order",
   operationId: "reorderStakingPools",
   tags: ["Admin", "Staking", "Pool", "Reorder"],
+  logModule: "ADMIN_STAKE",
+  logTitle: "Reorder Pools Display Order",
   requestBody: {
     required: true,
     content: {
@@ -55,8 +57,8 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
-  
+  const { user, body, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -112,6 +114,7 @@ export default async (data: Handler) => {
   const transaction = await sequelize.transaction();
 
   try {
+    ctx?.step("Verify all pools exist");
     // Verify all pools exist
     const existingPools = await models.stakingPool.findAll({
       where: {
@@ -131,6 +134,7 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.step("Update pool orders");
     // Update pool orders
     const updatePromises = poolOrders.map(({ poolId, order }) =>
       models.stakingPool.update(
@@ -144,6 +148,7 @@ export default async (data: Handler) => {
 
     await Promise.all(updatePromises);
 
+    ctx?.step("Create admin activity log");
     // Create admin activity log
     await models.stakingAdminActivity.create({
       userId: user.id,
@@ -158,6 +163,7 @@ export default async (data: Handler) => {
 
     await transaction.commit();
 
+    ctx?.success("Staking pools reordered successfully");
     return {
       message: "Staking pools reordered successfully",
       updated: poolOrders.length

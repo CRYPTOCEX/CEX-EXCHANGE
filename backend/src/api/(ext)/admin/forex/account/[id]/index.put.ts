@@ -2,9 +2,9 @@ import { updateRecord, updateRecordResponses } from "@b/utils/query";
 import { forexAccountUpdateSchema } from "../utils";
 
 export const metadata: OperationObject = {
-  summary: "Updates a specific Forex Account",
+  summary: "Updates a Forex account",
   operationId: "updateForexAccount",
-  tags: ["Admin", "Forex Accounts"],
+  tags: ["Admin", "Forex", "Account"],
   parameters: [
     {
       index: 0,
@@ -28,10 +28,12 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Forex Account"),
   requiresAuth: true,
   permission: "edit.forex.account",
+  logModule: "ADMIN_FOREX",
+  logTitle: "Update forex account",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     userId,
@@ -45,7 +47,10 @@ export default async (data) => {
     status,
   } = body;
 
-  return await updateRecord("forexAccount", id, {
+  ctx?.step("Validating forex account data");
+
+  ctx?.step(`Updating forex account ${id}`);
+  const result = await updateRecord("forexAccount", id, {
     userId,
     accountId,
     password,
@@ -56,4 +61,7 @@ export default async (data) => {
     type,
     status,
   });
+
+  ctx?.success("Forex account updated successfully");
+  return result;
 };

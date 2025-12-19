@@ -1,8 +1,14 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { walletAnalytics } from "./analytics";
+import { Wallet } from "lucide-react";
+import { useColumns } from "./columns";
+import { useAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
 export default function WalletPage() {
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
+  const analytics = useAnalytics();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/finance/wallet"
@@ -12,18 +18,21 @@ export default function WalletPage() {
         view: "view.wallet",
         create: "create.wallet",
         edit: "edit.wallet",
-        delete: "delete.wallet",
-      }}
-      pageSize={10}
+        delete: "delete.wallet"}}
+      pageSize={12}
       canCreate={false}
-      canEdit={true}
-      editCondition={(row) => row.type !== "ECO" && row.type !== "FUTURES"}
-      canDelete={true}
+      canEdit={false}
+      canDelete={false}
       canView={true}
-      title="Wallet Management"
+      isParanoid={false}
+      title={t("wallet_management")}
+      description={t("manage_user_wallets_and_balances")}
       itemTitle="Wallet"
       columns={columns}
-      analytics={walletAnalytics}
+      analytics={analytics}
+      design={{
+        animation: "orbs",
+        icon: Wallet}}
     />
   );
 }

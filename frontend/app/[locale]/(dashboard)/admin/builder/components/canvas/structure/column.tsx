@@ -20,6 +20,7 @@ import {
 } from "../dnd";
 import ReorderControls from "./reorder-controls";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 
 interface ColumnProps {
   column: ColumnType;
@@ -44,6 +45,7 @@ export default function Column({
   totalColumns,
   isEditMode,
 }: ColumnProps) {
+  const t = useTranslations("dashboard_admin");
   const [showAddContentModal, setShowAddContentModal] = useState(false);
   const { theme } = useTheme();
 
@@ -248,7 +250,7 @@ export default function Column({
           onClick={handleAddButtonClick}
           isVisible={isSelected}
           size="sm"
-          label="Add Content"
+          label={t("add_content")}
         />
       </div>
     );
@@ -265,7 +267,7 @@ export default function Column({
           onClick={handleAddButtonClick}
           isVisible={true}
           size="sm"
-          label="Add Content"
+          label={t("add_content")}
         />
       </div>
     );

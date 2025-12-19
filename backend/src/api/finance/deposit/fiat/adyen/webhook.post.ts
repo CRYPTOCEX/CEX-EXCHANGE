@@ -1,6 +1,7 @@
 import { models } from "@b/db";
 import { Op } from "sequelize";
 import { getAdyenConfig, verifyHmacSignature } from "./utils";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Handles Adyen webhook notifications",
@@ -8,6 +9,8 @@ export const metadata: OperationObject = {
     "Processes Adyen webhook notifications for payment events. This endpoint handles automatic payment status updates, wallet balance updates, and transaction processing based on Adyen's notification system.",
   operationId: "handleAdyenWebhook",
   tags: ["Finance", "Webhook"],
+  logModule: "WEBHOOK",
+  logTitle: "Adyen webhook",
   requestBody: {
     description: "Adyen webhook notification data",
     content: {
@@ -93,7 +96,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, headers } = data;
+  const { body, headers, ctx } = data;
 
   try {
     // Get Adyen configuration
@@ -112,7 +115,7 @@ export default async (data: Handler) => {
         );
 
         if (!isValidSignature) {
-          console.error("Adyen webhook: Invalid HMAC signature");
+          logger.error("ADYEN", "Invalid HMAC signature");
           throw new Error("Invalid HMAC signature");
         }
       }
@@ -134,7 +137,7 @@ export default async (data: Handler) => {
           additionalData,
         } = notification;
 
-        console.log(`Processing Adyen webhook: ${eventCode} for ${merchantReference}`);
+        logger.info("ADYEN", `Processing webhook: ${eventCode} for ${merchantReference}`);
 
         // Handle AUTHORISATION events
         if (eventCode === "AUTHORISATION") {
@@ -185,7 +188,7 @@ export default async (data: Handler) => {
     // Return success response
     return "[accepted]";
   } catch (error) {
-    console.error("Adyen webhook processing error:", error);
+    logger.error("ADYEN", "Webhook processing error", error);
     throw new Error(`Webhook processing failed: ${error.message}`);
   }
 };
@@ -223,7 +226,7 @@ async function handleAuthorisation({
     });
 
     if (!transaction) {
-      console.log(`Transaction not found for reference: ${merchantReference}`);
+      logger.warn("ADYEN", `Transaction not found for reference: ${merchantReference}`);
       return;
     }
 
@@ -278,12 +281,10 @@ async function handleAuthorisation({
       // Transaction record is already created in the transaction variable above
       // No need to create another walletTransaction
 
-      console.log(
-        `Adyen deposit completed: ${depositAmount} ${currency} for user ${user.id}`
-      );
+      logger.success("ADYEN", `Deposit completed: ${depositAmount} ${currency} for user ${user.id}`);
     }
   } catch (error) {
-    console.error("Error handling Adyen authorisation:", error);
+    logger.error("ADYEN", "Error handling authorisation", error);
     throw error;
   }
 }
@@ -328,7 +329,7 @@ async function handleCapture({
       );
     }
   } catch (error) {
-    console.error("Error handling Adyen capture:", error);
+    logger.error("ADYEN", "Error handling capture", error);
   }
 }
 
@@ -347,7 +348,7 @@ async function handleRefund({
   additionalData: any;
 }) {
   // Handle refund notifications
-  console.log(`Adyen refund notification: ${pspReference} - ${success ? "Success" : "Failed"}`);
+  logger.info("ADYEN", `Refund notification: ${pspReference} - ${success ? "Success" : "Failed"}`);
 }
 
 // Handle cancellation events
@@ -392,6 +393,6 @@ async function handleCancellation({
       );
     }
   } catch (error) {
-    console.error("Error handling Adyen cancellation:", error);
+    logger.error("ADYEN", "Error handling cancellation", error);
   }
 } 

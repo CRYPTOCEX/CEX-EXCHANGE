@@ -12,7 +12,7 @@ export function Sizing({
   structureType,
   elementType,
 }: SizingProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   // Determine which sizing options to show based on the type
   const showWidth = true; // Width is relevant for all types
   const showHeight =
@@ -29,7 +29,7 @@ export function Sizing({
     <div className="space-y-2 max-w-full">
       {showWidth && (
         <div>
-          <Label className="text-xs mb-1 block">{t("Width")}</Label>
+          <Label className="text-xs mb-1 block">{t("width")}</Label>
           <div className="flex items-center gap-2">
             <Input
               value={(() => {
@@ -96,7 +96,7 @@ export function Sizing({
       )}
       {showHeight && (
         <div>
-          <Label className="text-xs mb-1 block">{t("Height")}</Label>
+          <Label className="text-xs mb-1 block">{t("height")}</Label>
           <div className="flex items-center gap-2">
             <Input
               value={settings.height || "auto"}
@@ -132,25 +132,25 @@ export function Sizing({
           <Label className="text-xs mb-1 block">{t("min_max_size")}</Label>
           <div className="grid grid-cols-2 gap-2">
             <Input
-              placeholder="Min width"
+              placeholder={t("min_width")}
               value={settings.minWidth || ""}
               onChange={(e) => onSettingChange("minWidth", e.target.value)}
               className="h-7 text-xs"
             />
             <Input
-              placeholder="Max width"
+              placeholder={t("max_width")}
               value={settings.maxWidth || ""}
               onChange={(e) => onSettingChange("maxWidth", e.target.value)}
               className="h-7 text-xs"
             />
             <Input
-              placeholder="Min height"
+              placeholder={t("min_height")}
               value={settings.minHeight || ""}
               onChange={(e) => onSettingChange("minHeight", e.target.value)}
               className="h-7 text-xs"
             />
             <Input
-              placeholder="Max height"
+              placeholder={t("max_height")}
               value={settings.maxHeight || ""}
               onChange={(e) => onSettingChange("maxHeight", e.target.value)}
               className="h-7 text-xs"

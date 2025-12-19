@@ -112,6 +112,7 @@ export default function CreateCollectionClient() {
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<CollectionFormData>({
+    // @ts-ignore - Complex Zod type inference causing build issues
     resolver: zodResolver(collectionSchema),
     defaultValues: {
       name: "",
@@ -325,12 +326,12 @@ export default function CreateCollectionClient() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10 border-b">
+      <div className={`relative overflow-hidden bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10 border-b`}>
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:60px_60px]" />
-        <div className="relative container mx-auto px-4 py-16">
+        <div className="relative container py-16">
           {/* Centered Content */}
           <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            <div className={`inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4`}>
               <Package className="h-6 w-6 text-blue-600" />
               <span className="text-sm font-medium uppercase tracking-wider">Create Collection</span>
             </div>
@@ -369,7 +370,7 @@ export default function CreateCollectionClient() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-12 max-w-7xl">
+      <div className="container py-12">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <Tabs value={`step-${currentStep}`} className="w-full">
@@ -588,7 +589,7 @@ export default function CreateCollectionClient() {
                     onClick={() => goToStep(2)}
                     disabled={!canProceedToStep(2)}
                     size="lg"
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                    className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white`}
                   >
                     Continue
                     <ChevronRight className="h-4 w-4 ml-2" />
@@ -722,7 +723,7 @@ export default function CreateCollectionClient() {
                     onClick={() => goToStep(3)}
                     disabled={!canProceedToStep(3)}
                     size="lg"
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                    className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white`}
                   >
                     Continue
                     <ChevronRight className="h-4 w-4 ml-2" />
@@ -889,7 +890,7 @@ export default function CreateCollectionClient() {
                     onClick={() => goToStep(4)}
                     disabled={!canProceedToStep(4)}
                     size="lg"
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                    className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white`}
                   >
                     Continue
                     <ChevronRight className="h-4 w-4 ml-2" />

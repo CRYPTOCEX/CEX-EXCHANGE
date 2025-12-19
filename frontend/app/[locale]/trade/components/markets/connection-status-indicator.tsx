@@ -9,7 +9,7 @@ interface ConnectionStatusIndicatorProps {
 export function ConnectionStatusIndicator({
   status,
 }: ConnectionStatusIndicatorProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("trade_components");
   if (status === ConnectionStatus.CONNECTED) {
     return null;
   }
@@ -19,7 +19,7 @@ export function ConnectionStatusIndicator({
       {status === ConnectionStatus.CONNECTING ? (
         <div className="flex items-center text-amber-500">
           <Wifi className="h-3 w-3 mr-1 animate-pulse" />
-          <span>{t("Connecting")}.</span>
+          <span>{t("connecting")}.</span>
         </div>
       ) : (
         <div className="flex items-center text-red-500">

@@ -34,10 +34,12 @@ export const metadata = {
   ),
   requiresAuth: true,
   permission: "create.withdraw.method",
+  logModule: "ADMIN_FIN",
+  logTitle: "Create Withdraw Method",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const {
     title,
     processingTime,
@@ -51,7 +53,8 @@ export default async (data: Handler) => {
     status,
   } = body;
 
-  return await storeRecord({
+  ctx?.step("Creating withdraw method");
+  const result = await storeRecord({
     model: "withdrawMethod",
     data: {
       title,
@@ -66,4 +69,7 @@ export default async (data: Handler) => {
       status,
     },
   });
+
+  ctx?.success("Withdraw method created successfully");
+  return result;
 };

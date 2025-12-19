@@ -30,10 +30,17 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Page"),
   requiresAuth: true,
   permission: "edit.page",
+  logModule: "ADMIN_CMS",
+  logTitle: "Bulk update page status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("page", ids, status);
+
+  ctx?.step(`Updating status of ${ids?.length || 0} page(s) to ${status}`);
+  const result = await updateStatus("page", ids, status);
+
+  ctx?.success(`Successfully updated page status`);
+  return result;
 };

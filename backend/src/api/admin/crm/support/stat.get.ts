@@ -33,9 +33,14 @@ export const metadata: OperationObject = {
     401: { description: "Unauthorized" },
     500: { description: "Server error" },
   },
+  logModule: "ADMIN_CRM",
+  logTitle: "Get Support Ticket Stats",
 };
 
 export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step("Fetching support ticket statistics");
   // All in one call for speed:
   const [
     total,
@@ -65,6 +70,7 @@ export default async (data: Handler) => {
     }),
   ]);
 
+  ctx?.success("Support ticket statistics retrieved successfully");
   return {
     total,
     open,

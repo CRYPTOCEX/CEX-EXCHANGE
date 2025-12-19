@@ -16,7 +16,7 @@ interface RestoreActionProps {
 }
 
 export function RestoreAction({ row, onSelect }: RestoreActionProps) {
-  const t = useTranslations("common");
+  const tCommon = useTranslations("common");
   const permissions = useTableStore((state) => state.permissions);
   const user = useUserStore((state) => state.user);
   const handleRestore = useTableStore((state) => state.handleRestore);
@@ -54,7 +54,7 @@ export function RestoreAction({ row, onSelect }: RestoreActionProps) {
           )}
         >
           <RefreshCw className="mr-2 h-4 w-4" />
-          {t("Restore")}
+          {tCommon("restore")}
         </DropdownMenuItem>
       </div>
     </TooltipWrapper>

@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { SectionSnapshot } from "../renderers/section-snapshot";
 import type { Section } from "@/types/builder";
 import { getTemplates } from "../../templates/sections";
+import { useTranslations } from "next-intl";
 interface CategorySelectorProps {
   category: string;
   searchTerm: string;
@@ -14,6 +15,7 @@ export function CategorySelector({
   searchTerm,
   onSelectTemplate,
 }: CategorySelectorProps) {
+  const t = useTranslations("dashboard_admin");
   const [templates, setTemplates] = useState<Section[]>([]);
   const [loading, setLoading] = useState(true);
   const [snapshotStatus, setSnapshotStatus] = useState<Record<string, boolean>>(
@@ -157,10 +159,10 @@ export function CategorySelector({
               </svg>
             </div>
             <h3 className="text-lg font-medium mb-2 dark:text-zinc-100">
-              No templates found
+              {t("no_templates_found")}
             </h3>
             <p className="text-sm">
-              Try selecting a different category or adjusting your search.
+              {t("try_selecting_a_different_category_or")}
             </p>
           </div>
         </div>

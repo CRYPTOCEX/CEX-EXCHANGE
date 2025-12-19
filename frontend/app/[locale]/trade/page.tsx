@@ -58,7 +58,7 @@ export default function TradePage() {
   // Only check KYC for logged-in users who want to actually trade
   // Visitors can view the trade page without KYC
   if (kycEnabled && user) {
-    const kycRequirement = getKycRequirement(user, requiredFeature);
+    const kycRequirement = getKycRequirement(user as any, requiredFeature);
     if (kycRequirement.required) {
       return <KycRequiredNotice feature={requiredFeature} />;
     }

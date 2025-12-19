@@ -6,6 +6,8 @@ export const metadata: OperationObject = {
   summary: "Updates the status of a user",
   operationId: "updateUserStatus",
   tags: ["Admin", "CRM", "User"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Update user status",
   parameters: [
     {
       index: 0,
@@ -40,8 +42,12 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
-  return updateStatus("user", id, status);
+
+  ctx?.step(`Updating user status to ${status}`);
+  const result = await updateStatus("user", id, status);
+  ctx?.success();
+  return result;
 };

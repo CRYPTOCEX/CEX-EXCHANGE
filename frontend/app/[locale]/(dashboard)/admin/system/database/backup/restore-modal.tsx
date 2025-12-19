@@ -26,7 +26,8 @@ export function RestoreModal({
   filename,
   isLoading,
 }: RestoreModalProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -40,7 +41,7 @@ export function RestoreModal({
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
-            {t("Cancel")}
+            {tCommon("cancel")}
           </Button>
           <Button onClick={onConfirm} disabled={isLoading}>
             {isLoading ? "Restoring..." : "Confirm"}

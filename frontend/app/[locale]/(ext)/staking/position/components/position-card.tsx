@@ -32,7 +32,9 @@ interface PositionCardProps {
 }
 
 export function PositionCard({ position }: PositionCardProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_staking");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const withdraw = userStakingStore((state) => state.withdraw);
   const claimRewards = userStakingStore((state) => state.claimRewards);
 
@@ -106,13 +108,13 @@ export function PositionCard({ position }: PositionCardProps) {
   const getStatusBadgeColor = () => {
     switch (position.status) {
       case "ACTIVE":
-        return "bg-green-500/20 text-green-600 hover:bg-green-500/30";
+        return "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800";
       case "PENDING_WITHDRAWAL":
-        return "bg-yellow-500/20 text-yellow-600 hover:bg-yellow-500/30";
+        return "bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800";
       case "COMPLETED":
-        return "bg-blue-500/20 text-blue-600 hover:bg-blue-500/30";
+        return "bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800";
       case "CANCELLED":
-        return "bg-red-500/20 text-red-600 hover:bg-red-500/30";
+        return "bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800";
       default:
         return "bg-gray-500/20 text-gray-600 hover:bg-gray-500/30";
     }
@@ -165,7 +167,7 @@ export function PositionCard({ position }: PositionCardProps) {
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">{t("APR")}</p>
+              <p className="text-xs text-muted-foreground">{tCommon("apr")}</p>
               <p className="flex items-center gap-1 text-sm font-medium">
                 <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
                 {safePosition.apr}%
@@ -177,7 +179,7 @@ export function PositionCard({ position }: PositionCardProps) {
             <div className="space-y-1">
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">
-                  {t("lock_period")}
+                  {tCommon("lock_period")}
                 </span>
                 <span className="font-medium">{getTimeRemaining()}</span>
               </div>
@@ -187,7 +189,7 @@ export function PositionCard({ position }: PositionCardProps) {
 
           <div className="bg-muted/50 rounded-md p-3 space-y-1">
             <p className="text-xs text-muted-foreground">
-              {t("pending_rewards")}
+              {tExt("pending_rewards")}
             </p>
             <p className="text-lg font-semibold flex items-center gap-1">
               <CoinsIcon className="h-4 w-4 text-yellow-500" />
@@ -219,7 +221,7 @@ export function PositionCard({ position }: PositionCardProps) {
                 {isClaiming ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 ) : null}
-                {t("Claim")}
+                {t("claim")}
               </Button>
             </>
           )}
@@ -236,7 +238,7 @@ export function PositionCard({ position }: PositionCardProps) {
               className="w-full"
               onClick={() => setShowDetails(true)}
             >
-              {t("view_details")}
+              {tCommon("view_details")}
             </Button>
           )}
         </CardFooter>
@@ -260,15 +262,15 @@ export function PositionCard({ position }: PositionCardProps) {
       <ConfirmDialog
         open={showWithdrawConfirm}
         onOpenChange={setShowWithdrawConfirm}
-        title="Confirm Withdraw"
-        description="Are you sure you want to withdraw your funds?"
+        title={tExt("confirm_withdraw")}
+        description={tExt("are_you_sure_you_want_to_withdraw_your_funds")}
         onConfirm={handleWithdraw}
       />
       <ConfirmDialog
         open={showClaimConfirm}
         onOpenChange={setShowClaimConfirm}
-        title="Confirm Claim Rewards"
-        description="Are you sure you want to claim your rewards?"
+        title={tExt("confirm_claim_rewards")}
+        description={tExt("are_you_sure_you_want_to_claim_your_rewards")}
         onConfirm={handleClaimRewards}
       />
     </>

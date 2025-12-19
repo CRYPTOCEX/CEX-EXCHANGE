@@ -14,11 +14,12 @@ import KycRequiredNotice from "@/components/blocks/kyc/kyc-required-notice";
 import { useTranslations } from "next-intl";
 
 interface AskQuestionFormProps {
-  onCancel: () => void;
+  onCancel?: () => void;
 }
 
 export function AskQuestionForm({ onCancel }: AskQuestionFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_faq");
+  const tCommon = useTranslations("common");
   const { hasKyc, canAccessFeature, user } = useUserStore();
   const { settings } = useConfigStore();
   const { toast } = useToast();
@@ -33,12 +34,14 @@ export function AskQuestionForm({ onCancel }: AskQuestionFormProps) {
       <div className="py-4">
         <p className="text-muted-foreground">
           {t("you_must_be_logged_in_to_ask_a_question")}.{" "}
-          <Button variant="link" onClick={onCancel}>
-            {t("Cancel")}
-          </Button>
+          {onCancel && (
+            <Button variant="link" onClick={onCancel}>
+              {tCommon("cancel")}
+            </Button>
+          )}
         </p>
         <Link href="/login" className="mt-4">
-          <Button>{t("log_in")}</Button>
+          <Button>{tCommon("log_in")}</Button>
         </Link>
       </div>
     );
@@ -127,7 +130,7 @@ export function AskQuestionForm({ onCancel }: AskQuestionFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Textarea
-          placeholder="What would you like to know?"
+          placeholder={t("what_would_you_like_to_know")}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           required
@@ -138,7 +141,7 @@ export function AskQuestionForm({ onCancel }: AskQuestionFormProps) {
       <div className="space-y-2">
         <Input
           type="email"
-          placeholder="your@email.com (optional)"
+          placeholder={`email@example.com (${tCommon('optional')})`}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full"
@@ -149,11 +152,13 @@ export function AskQuestionForm({ onCancel }: AskQuestionFormProps) {
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          {t("Cancel")}
-        </Button>
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            {tCommon("cancel")}
+          </Button>
+        )}
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting..." : "Submit Question"}
+          {isSubmitting ? tCommon("submitting") : t("submit_question")}
         </Button>
       </div>
     </form>

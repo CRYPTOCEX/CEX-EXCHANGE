@@ -1,4 +1,4 @@
-import { p2pTradeTimeout } from "@b/utils/crons/p2pTradeTimeout";
+import { p2pTradeTimeout } from "@b/api/(ext)/p2p/utils/cron";
 import { createError } from "@b/utils/error";
 
 export const metadata = {
@@ -7,6 +7,8 @@ export const metadata = {
   operationId: "triggerP2PTradeTimeout",
   tags: ["Admin", "P2P", "Trades", "Cron"],
   requiresAuth: true,
+  logModule: "ADMIN_P2P",
+  logTitle: "Trigger trade timeout",
   responses: {
     200: {
       description: "Trade timeout process completed successfully",
@@ -22,7 +24,7 @@ export const metadata = {
 };
 
 export default async (data: any) => {
-  const { user } = data;
+  const { user, ctx } = data;
 
   if (!user?.id) {
     throw createError({
@@ -32,15 +34,18 @@ export default async (data: any) => {
   }
 
   try {
+    ctx?.step("Executing trade timeout process");
     // Execute the timeout handler
     await p2pTradeTimeout();
 
+    ctx?.success("Trade timeout process completed successfully");
     return {
       message: "P2P trade timeout process completed successfully",
       executedBy: user.id,
       executedAt: new Date().toISOString(),
     };
   } catch (error: any) {
+    ctx?.fail("Failed to execute trade timeout process");
     throw createError({
       statusCode: 500,
       message: error.message || "Failed to execute P2P trade timeout process",

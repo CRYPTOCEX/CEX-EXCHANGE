@@ -37,7 +37,8 @@ export default function MarketsPanel({
   currentSymbol = "BTC/USDT",
   defaultMarketType = "spot",
 }: MarketsPanelProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tTradeComponents = useTranslations("trade_components");
   const locale = useLocale();
   const pathname = usePathname();
   const { isExtensionAvailable, extensions } = useExtensionChecker();
@@ -48,8 +49,8 @@ export default function MarketsPanel({
     useState<Symbol>(currentSymbol);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("markets");
-  const [marketType, setMarketType] = useState<"spot" | "futures">(
-    defaultMarketType
+  const [marketType, setMarketType] = useState<"spot" | "eco" | "futures">(
+    defaultMarketType ?? "spot"
   );
   const [markets, setMarkets] = useState<any[]>([]);
   const [futuresMarkets, setFuturesMarkets] = useState<FuturesMarket[]>([]);
@@ -440,7 +441,7 @@ export default function MarketsPanel({
 
       if (currency && pair) {
         // Determine URL type parameter based on market type and isEco flag
-        let urlType = marketType;
+        let urlType: string = marketType;
         if (marketType === "spot" && isEco) {
           urlType = "spot-eco";
         }
@@ -454,9 +455,11 @@ export default function MarketsPanel({
 
   // Toggle watchlist
   const toggleWatchlist = useCallback(
-    (symbol: string, marketType: "spot" | "futures", e: React.MouseEvent) => {
+    (symbol: string, marketType: "spot" | "eco" | "futures", e: React.MouseEvent) => {
       e.stopPropagation();
-      wishlistService.toggleWishlist(symbol, marketType);
+      // eco markets use spot wishlist
+      const wishlistType = marketType === "eco" ? "spot" : marketType;
+      wishlistService.toggleWishlist(symbol, wishlistType);
     },
     []
   );
@@ -689,13 +692,13 @@ export default function MarketsPanel({
       >
         <TabsList className="w-full grid grid-cols-3">
           <TabTrigger value="watchlist" icon={<Star className="h-3 w-3" />}>
-            {t("Watchlist")}
+            {tTradeComponents("watchlist")}
           </TabTrigger>
           <TabTrigger value="markets" icon={<BarChart2 className="h-3 w-3" />}>
-            {t("Spot")}
+            {t("spot")}
           </TabTrigger>
           <TabTrigger value="futures" icon={<Zap className="h-3 w-3" />}>
-            {t("Futures")}
+            {t("futures")}
           </TabTrigger>
         </TabsList>
 
@@ -704,7 +707,7 @@ export default function MarketsPanel({
           className="flex flex-col flex-1 overflow-hidden"
         >
           <SearchBar
-            placeholder="Search markets..."
+            placeholder={t("search_markets_ellipsis")}
             value={searchQuery}
             onChange={setSearchQuery}
           />
@@ -735,7 +738,7 @@ export default function MarketsPanel({
           className="flex flex-col flex-1 overflow-hidden"
         >
           <SearchBar
-            placeholder="Search futures..."
+            placeholder={tTradeComponents("search_futures_ellipsis")}
             value={searchQuery}
             onChange={setSearchQuery}
           />

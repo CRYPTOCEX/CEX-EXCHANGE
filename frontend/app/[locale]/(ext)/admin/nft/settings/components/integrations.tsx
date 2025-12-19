@@ -25,7 +25,8 @@ export default function NFTIntegrationSettingsSection({
   validationErrors = {},
   hasSubmitted = false,
 }: NFTIntegrationSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
   
   const safeSettings = {
     EnableCrossChain: settings.EnableCrossChain ?? true,
@@ -86,13 +87,13 @@ export default function NFTIntegrationSettingsSection({
             {t("blockchain_integration")}
           </CardTitle>
           <CardDescription>
-            {t("configure_multi-chain_support_and")}
+            {t("configure_multi_chain_support_and")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label htmlFor="crossChain">{t("enable_cross-chain_support")}</Label>
+              <Label htmlFor="crossChain">{t("enable_cross_chain_support")}</Label>
               <p className="text-sm text-muted-foreground">
                 {t("allow_nfts_to_be")}
               </p>
@@ -107,7 +108,7 @@ export default function NFTIntegrationSettingsSection({
           {safeSettings.EnableCrossChain && (
             <>
               <div className="space-y-2">
-                <Label>{t("supported_blockchains")}</Label>
+                <Label>{tExt("supported_blockchains")}</Label>
                 <p className="text-sm text-muted-foreground">
                   {t("based_on_enabled_blockchains_in_ecosystem_settings")}
                 </p>

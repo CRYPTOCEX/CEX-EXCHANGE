@@ -6,7 +6,7 @@ export interface ColumnVisibilitySlice {
 
   setVisibleColumns: (columns: string[]) => void;
   toggleColumnVisibility: (columnKey: string) => void;
-  getVisibleColumns: () => ColumnDefinition[];
+  getVisibleColumns: (options?: { ignorePriority?: boolean }) => ColumnDefinition[];
   getHiddenColumns: () => string[];
 }
 
@@ -25,15 +25,17 @@ export const createColumnVisibilitySlice: StateCreator<
   // Helper to filter columns based on visibility, expandedOnly flag, and priority rules
   const filterVisibleColumns = (
     columns: ColumnDefinition[],
-    visibleKeys: string[]
+    visibleKeys: string[],
+    ignorePriority: boolean = false
   ): ColumnDefinition[] => {
     // 1) Exclude columns flagged as expandedOnly and include only those in the visible list.
     let filtered = columns.filter(
       (col) => !col.expandedOnly && visibleKeys.includes(col.key)
     );
 
-    // 2) For non-desktop screens, filter based on column priority.
-    if (!isDesktop()) {
+    // 2) For non-desktop screens, filter based on column priority (unless ignorePriority is true).
+    // Card view should ignore priority since cards can show all columns in their own layout.
+    if (!ignorePriority && !isDesktop()) {
       filtered = filtered.filter((col) => {
         const priority = col.priority ?? 5;
         return isTablet() ? priority <= 3 : priority <= 2;
@@ -57,9 +59,9 @@ export const createColumnVisibilitySlice: StateCreator<
           : [...state.visibleColumns, columnKey],
       })),
 
-    getVisibleColumns: () => {
+    getVisibleColumns: (options?: { ignorePriority?: boolean }) => {
       const { columns, visibleColumns } = get();
-      return filterVisibleColumns(columns, visibleColumns);
+      return filterVisibleColumns(columns, visibleColumns, options?.ignorePriority ?? false);
     },
 
     getHiddenColumns: () => {

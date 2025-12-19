@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -20,27 +19,19 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useOfferStore } from "@/store/ico/offer/offer-store";
-import { useFilterStore } from "@/store/ico/offer/filter-store";
 import { formatCurrency } from "@/lib/ico/utils";
 import { Link } from "@/i18n/routing";
 import { useConfigStore } from "@/store/config";
 import ActiveOffersLoading from "./active-offers-loading";
 import { formatCrypto } from "@/utils/formatters";
 import { useTranslations } from "next-intl";
-
 export function ActiveTokenOfferings() {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const {
     activeOfferings,
     isLoadingActive,
     activeOfferingsFetched,
-    fetchActiveOfferings,
   } = useOfferStore();
-  const { getQueryParams } = useFilterStore();
-
-  useEffect(() => {
-    fetchActiveOfferings(getQueryParams());
-  }, [fetchActiveOfferings, getQueryParams]);
 
   if (isLoadingActive || !activeOfferingsFetched) {
     return <ActiveOffersLoading />;
@@ -50,10 +41,10 @@ export function ActiveTokenOfferings() {
     return (
       <div className="text-center py-12">
         <h3 className="text-lg font-medium">
-          {t("no_offerings_match_your_filters")}
+          {tCommon("no_offerings_match_your_filters")}
         </h3>
         <p className="text-muted-foreground mt-2">
-          {t("try_adjusting_your_search_or_filter_criteria")}
+          {tCommon("try_adjusting_your_search_or_filter_criteria")}
         </p>
       </div>
     );
@@ -70,6 +61,7 @@ export function ActiveTokenOfferings() {
 
 function OfferingCard({ offering }) {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { settings } = useConfigStore();
   const currency = offering.purchaseWalletCurrency || "";
   const progress = (offering.currentRaised / offering.targetAmount) * 100;
@@ -97,7 +89,11 @@ function OfferingCard({ offering }) {
           <div className="absolute top-4 right-4">
             <Badge
               variant={offering.status === "ACTIVE" ? "default" : "outline"}
-              className="shadow-sm"
+              className={`shadow-sm ${
+                offering.status === "ACTIVE"
+                  ? "bg-teal-100 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-800 border"
+                  : ""
+              }`}
             >
               {offering.status === "ACTIVE" ? "Active" : offering.status}
             </Badge>
@@ -127,7 +123,7 @@ function OfferingCard({ offering }) {
             <div className="flex items-center gap-1 text-sm font-medium text-muted-foreground mb-1">
               <Clock className="h-3.5 w-3.5" />
               <span>
-                {t("current_phase")}
+                {tCommon("current_phase")}
                 {currentPhase.name}
               </span>
             </div>
@@ -137,7 +133,7 @@ function OfferingCard({ offering }) {
             {nextPhase && (
               <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                 <TrendingUp className="h-3.5 w-3.5" />
-                {t("next")}
+                {tCommon("next")}
                 {formatCrypto(nextPhase.tokenPrice, currency)}
                 (
                 {nextPhase.name}
@@ -178,13 +174,13 @@ function OfferingCard({ offering }) {
                   <Clock className="h-4 w-4 text-primary" />
                   <p className="font-medium">
                     {currentPhase.endsIn}
-                    {t("days")}
+                    {tCommon("days")}
                   </p>
                 </div>
               </div>
               <div className="bg-muted/30 p-3 rounded-lg">
                 <p className="text-xs text-muted-foreground mb-1">
-                  {t("Min")}. {t("Investment")}
+                  {tCommon("min")}. {tCommon("investment")}
                 </p>
                 <p className="font-medium">
                   {formatCrypto(settings["icoMinInvestmentAmount"], currency)}
@@ -192,7 +188,7 @@ function OfferingCard({ offering }) {
               </div>
               <div className="bg-muted/30 p-3 rounded-lg">
                 <p className="text-xs text-muted-foreground mb-1">
-                  {t("Participants")}
+                  {t("participants")}
                 </p>
                 <div className="flex items-center gap-1">
                   <Users className="h-4 w-4 text-primary" />
@@ -210,7 +206,7 @@ function OfferingCard({ offering }) {
                           </p>
                           <Info className="h-3 w-3 text-muted-foreground" />
                         </div>
-                        <p className="font-medium">{t("Utility")}</p>
+                        <p className="font-medium">{tCommon("utility")}</p>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -230,7 +226,7 @@ function OfferingCard({ offering }) {
             <div className="pt-2">
               <Link href={`/ico/offer/${offering.id}`}>
                 <Button className="w-full group">
-                  {t("invest_now")}
+                  {tCommon("invest_now")}
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>

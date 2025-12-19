@@ -4,12 +4,15 @@ import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 
 import { createRecordResponses } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Creates a new blog comment",
   description: "This endpoint creates a new blog comment.",
   operationId: "createComment",
   tags: ["Blog"],
+  logModule: "BLOG",
+  logTitle: "Create comment",
   requiresAuth: true,
   parameters: [
     {
@@ -46,7 +49,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body, params } = data;
+  const { user, body, params, ctx } = data;
 
   if (!user?.id) {
     return createError(
@@ -55,6 +58,7 @@ export default async (data: Handler) => {
     );
   }
 
+  ctx?.step("Checking comment moderation settings");
   const cacheManager = CacheManager.getInstance();
   const settings = await cacheManager.getSettings();
   const moderateCommentsRaw = settings.has("moderateComments")
@@ -73,6 +77,7 @@ export default async (data: Handler) => {
   const { postId } = params;
 
   try {
+    ctx?.step("Creating comment");
     // Create the comment
     const newComment = await models.comment.create({
       content,
@@ -81,6 +86,7 @@ export default async (data: Handler) => {
       status: moderateComments ? "PENDING" : "APPROVED",
     });
 
+    ctx?.step("Fetching comment with user details");
     // Fetch the comment along with the associated user
     const commentWithUser = await models.comment.findOne({
       where: { id: newComment.id },
@@ -97,11 +103,13 @@ export default async (data: Handler) => {
       return createError(404, "Comment created but not found");
     }
 
+    ctx?.success(`Comment created on post ${postId} by user ${user.id} - ${moderateComments ? "pending moderation" : "approved"}`);
     return {
       message: "Comment created successfully",
     };
   } catch (error) {
-    console.error("Failed to create and retrieve comment:", error);
+    logger.error("BLOG", "Failed to create and retrieve comment", error);
+    ctx?.fail("Failed to create comment");
     return createError(500, "Internal server error");
   }
 };

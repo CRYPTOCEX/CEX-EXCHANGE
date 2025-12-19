@@ -4,6 +4,7 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Retrieves the application settings",
@@ -54,7 +55,7 @@ export default async () => {
       extensions,
     };
   } catch (error) {
-    console.error("Error fetching settings and extensions:", error);
+    logger.error("SETTINGS", "Error fetching settings and extensions", error);
     return serverErrorResponse;
   }
 };

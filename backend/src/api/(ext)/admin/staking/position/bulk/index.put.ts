@@ -6,6 +6,8 @@ export const metadata = {
   summary: "Bulk update staking positions",
   operationId: "bulkUpdateStakingPositions",
   tags: ["Admin", "Staking", "Position", "Bulk"],
+  logModule: "ADMIN_STAKE",
+  logTitle: "Bulk Update Positions",
   requestBody: {
     required: true,
     content: {
@@ -69,8 +71,8 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
-  
+  const { user, body, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -115,6 +117,7 @@ export default async (data: Handler) => {
   const errors: Array<{ positionId: string; error: string }> = [];
 
   try {
+    ctx?.step("Fetch all positions");
     // Fetch all positions
     const positions = await models.stakingPosition.findAll({
       where: {
@@ -137,6 +140,7 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.step("Process each position");
     // Process each position
     for (const position of positions) {
       try {
@@ -279,6 +283,7 @@ export default async (data: Handler) => {
       }
     }
 
+    ctx?.step("Create admin activity log");
     // Create admin activity log
     await models.stakingAdminActivity.create({
       userId: user.id,
@@ -297,6 +302,7 @@ export default async (data: Handler) => {
 
     await transaction.commit();
 
+    ctx?.success("Bulk position update completed successfully");
     return {
       message: `Bulk position update completed`,
       updated,

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 // Full list for MySQL
 const mysqlNumberOperators = [
@@ -56,6 +57,8 @@ export function RangeFilter({
   max,
   db = "mysql",
 }: RangeFilterProps) {
+  const t = useTranslations("common");
+  const tComponentsBlocks = useTranslations("components_blocks");
   const [range, setRange] = React.useState<[number, number]>([min, max]);
   const [operator, setOperator] = React.useState<string>("greaterThanOrEqual");
   const [singleValue, setSingleValue] = React.useState<number>(min);
@@ -100,7 +103,7 @@ export function RangeFilter({
         <div>
           <Select value={operator} onValueChange={handleOperatorChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Select operator" />
+              <SelectValue placeholder={t("select_operator")} />
             </SelectTrigger>
             <SelectContent>
               {operators.map((op) => (
@@ -116,7 +119,7 @@ export function RangeFilter({
             <Input
               type="number"
               value={range[0]}
-              placeholder="From"
+              placeholder={t("from")}
               onChange={(e) =>
                 handleRangeChange([Number(e.target.value), range[1]])
               }
@@ -127,7 +130,7 @@ export function RangeFilter({
             <Input
               type="number"
               value={range[1]}
-              placeholder="To"
+              placeholder={t("to")}
               onChange={(e) =>
                 handleRangeChange([range[0], Number(e.target.value)])
               }
@@ -140,7 +143,7 @@ export function RangeFilter({
           <Input
             type="number"
             value={singleValue}
-            placeholder="Value"
+            placeholder={t("value")}
             onChange={(e) => handleSingleValueChange(Number(e.target.value))}
             min={min}
             max={max}
@@ -151,7 +154,7 @@ export function RangeFilter({
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Reset filter"
+            aria-label={tComponentsBlocks("reset_filter")}
             className="h-5 w-5 ml-auto"
             onClick={(e) => {
               e.stopPropagation();

@@ -22,6 +22,8 @@ import {
 } from "./columnVisibilitySlice";
 import { createPermissionsSlice, PermissionsSlice } from "./permissionsSlice";
 import { createAnalyticsSlice, AnalyticsSlice } from "./analyticsSlice";
+import { createViewSlice, ViewSlice } from "./viewSlice";
+import { createViewModeSlice, ViewModeSlice } from "./viewModeSlice";
 
 import { checkPermission } from "../utils/permissions";
 import { useUserStore } from "@/store/user";
@@ -34,7 +36,7 @@ const initialState = {
 
   data: [] as userAttributes[],
   page: 1,
-  pageSize: 10,
+  pageSize: 12,
   totalItems: 0,
   totalPages: 0,
 
@@ -82,15 +84,35 @@ const initialState = {
   totalItemsLoading: false,
   error: null as string | null,
 
+  selectedRow: null as any,
   isCreateDrawerOpen: false,
   isEditDrawerOpen: false,
-  selectedRow: null as any,
 
   availableSortingOptions: [] as { id: string; label: string }[],
   currentSortLabel: null as string | null,
 
   // Add apiEndpoint field if you want to store it
   apiEndpoint: "" as string,
+
+  // View state (for create/edit views instead of drawers)
+  currentView: "overview" as "overview" | "analytics" | "create" | "edit",
+  previousView: "overview" as "overview" | "analytics" | "create" | "edit",
+  editingRowId: null as string | null,
+
+  // Form state for premium header integration
+  formState: {
+    isSubmitting: false,
+    isDirty: false,
+    onSubmit: null as (() => void) | null,
+    onCancel: null as (() => void) | null,
+  },
+
+  // Design config for premium header
+  designConfig: null as any,
+
+  // View mode (table vs card)
+  viewMode: "table" as "table" | "card",
+  autoSwitchViewMode: true,
 };
 
 // 2) Create Store
@@ -105,7 +127,9 @@ export const useTableStore = createSelectors(
       ActionsSlice &
       ColumnVisibilitySlice &
       PermissionsSlice &
-      AnalyticsSlice
+      AnalyticsSlice &
+      ViewSlice &
+      ViewModeSlice
   >()(
     persist(
       (set, get, store) => ({
@@ -121,6 +145,8 @@ export const useTableStore = createSelectors(
         ...createColumnVisibilitySlice(set, get, store),
         ...createPermissionsSlice(set, get, store),
         ...createAnalyticsSlice(set, get, store),
+        ...createViewSlice(set, get, store),
+        ...createViewModeSlice(set, get, store),
 
         // Additional inline methods
         setShowDeleted: async (showDeleted) => {
@@ -156,7 +182,9 @@ export const useTableStore = createSelectors(
         },
 
         reset: () => {
-          set({ ...initialState });
+          // Preserve viewMode across resets (user preference should persist)
+          const currentViewMode = get().viewMode;
+          set({ ...initialState, viewMode: currentViewMode });
         },
 
         setTableConfig: (config) => set({ tableConfig: config }),
@@ -181,9 +209,6 @@ export const useTableStore = createSelectors(
           });
         },
 
-        setCreateDrawerOpen: (isOpen: boolean) =>
-          set({ isCreateDrawerOpen: isOpen }),
-
         setKpis: (kpis) => set({ kpis }),
 
         setData: (data: userAttributes[]) => set({ data }),
@@ -203,6 +228,10 @@ export const useTableStore = createSelectors(
           set({ modelConfig: config });
           if (config) set({ filters: config });
         },
+
+        setDesignConfig: (config: any) => {
+          set({ designConfig: config });
+        },
       }),
       {
         name: "table-storage",
@@ -215,8 +244,6 @@ export const useTableStore = createSelectors(
           visibleColumns: state.visibleColumns,
           permissions: state.permissions,
           tableConfig: state.tableConfig,
-          isCreateDrawerOpen: state.isCreateDrawerOpen,
-          isEditDrawerOpen: state.isEditDrawerOpen,
           selectedRow: state.selectedRow,
           columns: state.columns,
           hasCreatePermission: state.hasCreatePermission,
@@ -231,6 +258,13 @@ export const useTableStore = createSelectors(
           analyticsLoading: state.analyticsLoading,
           analyticsError: state.analyticsError,
           apiEndpoint: state.apiEndpoint,
+          // View mode (table vs card)
+          viewMode: state.viewMode,
+          autoSwitchViewMode: state.autoSwitchViewMode,
+          // View state (don't persist create/edit views - always start at overview)
+          // currentView: state.currentView,
+          // previousView: state.previousView,
+          // editingRowId: state.editingRowId,
         }),
       }
     )

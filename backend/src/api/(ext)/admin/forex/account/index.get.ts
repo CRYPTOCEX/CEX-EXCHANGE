@@ -12,10 +12,12 @@ import {
 import { forexAccountSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary: "Lists all Forex accounts with pagination and optional details",
+  summary: "Lists all Forex accounts",
   operationId: "listForexAccounts",
-  tags: ["Admin", "Forex"],
+  tags: ["Admin", "Forex", "Account"],
   parameters: crudParameters,
+  logModule: "ADMIN_FOREX",
+  logTitle: "Get Forex Accounts",
   responses: {
     200: {
       description: "List of Forex accounts",
@@ -24,7 +26,7 @@ export const metadata: OperationObject = {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -43,12 +45,14 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.forex.account",
+  demoMask: ["items.user.email", "items.accountId", "items.password", "items.broker"],
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching forex accounts");
+  const result = await getFiltered({
     model: models.forexAccount,
     query,
     sortField: query.sortField || "createdAt",
@@ -61,4 +65,7 @@ export default async (data: Handler) => {
     ],
     numericFields: ["balance", "leverage", "mt"],
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} forex accounts`);
+  return result;
 };

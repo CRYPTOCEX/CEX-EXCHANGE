@@ -85,7 +85,8 @@ interface ActivityItemProps {
 }
 
 export function ActivityItem({ activity, onView, onDelete, index = 0 }: ActivityItemProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const [isExpanded, setIsExpanded] = useState(false);
 
   const getIcon = (type: string) => {
@@ -388,7 +389,7 @@ export function ActivityItem({ activity, onView, onDelete, index = 0 }: Activity
                 )}
                 {activity.transactionHash && (
                   <div className="col-span-2">
-                    <p className="text-xs text-muted-foreground mb-1">{t("transaction_hash")}</p>
+                    <p className="text-xs text-muted-foreground mb-1">{tCommon("transaction_hash")}</p>
                     <div className="flex items-center gap-2">
                       <code className="text-xs bg-muted px-2 py-1 rounded flex-1 truncate">
                         {activity.transactionHash}

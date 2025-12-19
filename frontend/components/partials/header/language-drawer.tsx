@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import Image from "next/image";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
   DrawerClose,
+  DrawerDescription,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,8 @@ import { usePathname, useRouter } from "@/i18n/routing";
 import { useLocale } from "next-intl";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
+
 interface Language {
   code: string;
   name: string;
@@ -1060,13 +1062,15 @@ interface LanguageDrawerProps {
   onClose: () => void;
 }
 const LanguageDrawer: React.FC<LanguageDrawerProps> = ({ isOpen, onClose }) => {
+  const t = useTranslations("components");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
   const locale = useLocale();
   const [, startTransition] = React.useTransition();
   const [searchQuery, setSearchQuery] = useState("");
-  const allLanguages = getLanguageData();
+  const allLanguages = useMemo(() => getLanguageData(), []);
   const defaultLanguage = process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE || "en";
   const filteredLanguages = useMemo(() => {
     if (searchQuery === "") {
@@ -1083,10 +1087,11 @@ const LanguageDrawer: React.FC<LanguageDrawerProps> = ({ isOpen, onClose }) => {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [allLanguages, searchQuery]);
   const currentLanguage = allLanguages.find((lang) => lang.code === locale);
+
   const handleLanguageSelect = (langCode: string) => {
     // Set cookie to persist language preference
     document.cookie = `NEXT_LOCALE=${langCode}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
-    
+
     startTransition(() => {
       router.replace(pathname, { locale: langCode });
       onClose();
@@ -1094,8 +1099,8 @@ const LanguageDrawer: React.FC<LanguageDrawerProps> = ({ isOpen, onClose }) => {
   };
   return (
     <Drawer open={isOpen} onOpenChange={onClose} direction="right">
-      <DrawerContent className="h-screen w-[90vw] max-w-md fixed right-0 top-0">
-        <DrawerHeader className="border-b border-zinc-200 dark:border-zinc-800">
+      <DrawerContent className="h-screen w-full sm:w-[85vw] sm:max-w-sm fixed right-0 top-0 flex flex-col">
+        <DrawerHeader className="shrink-0 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
@@ -1103,12 +1108,12 @@ const LanguageDrawer: React.FC<LanguageDrawerProps> = ({ isOpen, onClose }) => {
               </div>
               <div>
                 <DrawerTitle className="text-xl font-semibold">
-                  Choose Language
+                  {t("choose_language")}
                 </DrawerTitle>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Select your preferred language from {allLanguages.length}{" "}
-                  available options
-                </p>
+                <DrawerDescription className="text-sm text-zinc-600 dark:text-zinc-400">
+                  {t("select_your_preferred_language_from")}{" "}
+                  {allLanguages.length} {t("available_options")}
+                </DrawerDescription>
               </div>
             </div>
             <DrawerClose asChild>
@@ -1119,25 +1124,23 @@ const LanguageDrawer: React.FC<LanguageDrawerProps> = ({ isOpen, onClose }) => {
           </div>
         </DrawerHeader>
 
-        <div className="flex flex-col h-full max-h-[calc(100vh-0px)]">
-          {/* Fixed Content Section */}
-          <div className="flex-shrink-0 p-4 space-y-4 border-b border-zinc-200 dark:border-zinc-800">
+        {/* Fixed Content Section */}
+        <div className="shrink-0 p-4 space-y-4 border-b border-zinc-200 dark:border-zinc-800">
             {/* Current Language */}
             {currentLanguage && (
               <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 rounded-full overflow-hidden">
-                    <Image
+                    <img
                       src={currentLanguage.flag}
                       alt=""
-                      width={28}
-                      height={28}
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   </div>
                   <div>
                     <p className="font-medium text-blue-900 dark:text-blue-100 text-sm">
-                      Current: {currentLanguage.name}
+                      {tCommon("current")}: {currentLanguage.name}
                     </p>
                     <p className="text-xs text-blue-700 dark:text-blue-300">
                       {currentLanguage.nativeName}
@@ -1154,7 +1157,7 @@ const LanguageDrawer: React.FC<LanguageDrawerProps> = ({ isOpen, onClose }) => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
               <Input
-                placeholder="Search languages..."
+                placeholder={t("search_languages_ellipsis")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -1162,85 +1165,83 @@ const LanguageDrawer: React.FC<LanguageDrawerProps> = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Scrollable Language List */}
-          <div className="flex-1 overflow-hidden min-h-0">
-            <ScrollArea className="h-full max-h-full">
-              <div className="p-4 space-y-1 pb-6">
-                <AnimatePresence>
-                  {filteredLanguages.map((lang, index) => {
-                    return (
-                      <motion.button
-                        key={lang.code}
-                        initial={{
-                          opacity: 0,
-                          y: 10,
-                        }}
-                        animate={{
-                          opacity: 1,
-                          y: 0,
-                        }}
-                        exit={{
-                          opacity: 0,
-                          y: -10,
-                        }}
-                        transition={{
-                          delay: index * 0.01,
-                        }}
-                        whileHover={{
-                          scale: 1.005,
-                        }}
-                        whileTap={{
-                          scale: 0.995,
-                        }}
-                        onClick={() => handleLanguageSelect(lang.code)}
-                        className={cn(
-                          "w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left",
-                          locale === lang.code
-                            ? "bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800"
-                            : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50 border-transparent hover:border-zinc-200 dark:hover:border-zinc-700"
-                        )}
-                      >
-                        <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
-                          <Image
-                            src={lang.flag}
-                            alt=""
-                            width={24}
-                            height={24}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm">{lang.name}</p>
-                          <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                            {lang.nativeName}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
+        {/* Scrollable Language List */}
+        <div className="flex-1 overflow-hidden min-h-0">
+          <ScrollArea className="h-full">
+            <div className="p-4 space-y-1 pb-6">
+              <AnimatePresence>
+                {filteredLanguages.map((lang, index) => {
+                  return (
+                    <motion.button
+                      key={lang.code}
+                      initial={{
+                        opacity: 0,
+                        y: 10,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        y: 0,
+                      }}
+                      exit={{
+                        opacity: 0,
+                        y: -10,
+                      }}
+                      transition={{
+                        delay: index * 0.01,
+                      }}
+                      whileHover={{
+                        scale: 1.005,
+                      }}
+                      whileTap={{
+                        scale: 0.995,
+                      }}
+                      onClick={() => handleLanguageSelect(lang.code)}
+                      className={cn(
+                        "w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left",
+                        locale === lang.code
+                          ? "bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800"
+                          : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50 border-transparent hover:border-zinc-200 dark:hover:border-zinc-700"
+                      )}
+                    >
+                      <div className="w-6 h-6 rounded-full overflow-hidden shrink-0">
+                        <img
+                          src={lang.flag}
+                          alt=""
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm">{lang.name}</p>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                          {lang.nativeName}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className="text-xs px-1.5 py-0.5"
+                        >
+                          {lang.region}
+                        </Badge>
+                        {lang.code === defaultLanguage && (
                           <Badge
-                            variant="outline"
-                            className="text-xs px-1.5 py-0.5"
+                            variant="secondary"
+                            className="text-xs px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-800"
                           >
-                            {lang.region}
+                            Default
                           </Badge>
-                          {lang.code === defaultLanguage && (
-                            <Badge
-                              variant="secondary"
-                              className="text-xs px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-800"
-                            >
-                              Default
-                            </Badge>
-                          )}
-                          {locale === lang.code && (
-                            <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                          )}
-                        </div>
-                      </motion.button>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
-            </ScrollArea>
-          </div>
+                        )}
+                        {locale === lang.code && (
+                          <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        )}
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          </ScrollArea>
         </div>
       </DrawerContent>
     </Drawer>

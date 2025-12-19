@@ -2,6 +2,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { Link } from "@/i18n/routing";
 import type { FormData } from "../types";
+import { useTranslations } from "next-intl";
 interface ReviewStepProps {
   formData: FormData;
   updateFormData: (field: keyof FormData, value: any) => void;
@@ -12,19 +13,22 @@ export default function ReviewStep({
   updateFormData,
   errors,
 }: ReviewStepProps) {
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <h4 className="font-medium">Token Information</h4>
+        <h4 className="font-medium">{tExt("token_information")}</h4>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-muted-foreground">Token Name</p>
+            <p className="text-muted-foreground">{tExt("token_name")}</p>
             <p className="font-medium">
               {formData.name} ({formData.symbol})
             </p>
           </div>
           <div>
-            <p className="text-muted-foreground">Token Type</p>
+            <p className="text-muted-foreground">{tExt("token_type")}</p>
             <p className="font-medium">{formData.tokenType}</p>
           </div>
           <div>
@@ -32,7 +36,7 @@ export default function ReviewStep({
             <p className="font-medium">{formData.blockchain}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Total Supply</p>
+            <p className="text-muted-foreground">{tExt("total_supply")}</p>
             <p className="font-medium">
               {formData.totalSupply.toLocaleString()}
             </p>
@@ -71,16 +75,16 @@ export default function ReviewStep({
       </div>
 
       <div className="space-y-4">
-        <h4 className="font-medium">Offering Details</h4>
+        <h4 className="font-medium">{t("offering_details")}</h4>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-muted-foreground">Target Amount</p>
+            <p className="text-muted-foreground">{t("target_amount")}</p>
             <p className="font-medium">
               ${formData.targetAmount.toLocaleString()}
             </p>
           </div>
           <div>
-            <p className="text-muted-foreground">Start Date</p>
+            <p className="text-muted-foreground">{tExt("start_date")}</p>
             <p className="font-medium">
               {formData.startDate
                 ? format(formData.startDate, "PPP")
@@ -97,8 +101,8 @@ export default function ReviewStep({
                 <div key={phase.id} className="text-sm p-2 bg-muted/50 rounded">
                   <p className="font-medium">{phase.name}</p>
                   <p className="text-muted-foreground">
-                    Price: ${phase.tokenPrice.toFixed(4)} • Allocation:{" "}
-                    {phase.allocation.toLocaleString()} • Duration:{" "}
+                    {tCommon("price")}{phase.tokenPrice.toFixed(4)} {tExt('allocation')}:{" "}
+                    {phase.allocation.toLocaleString()} {tCommon("duration")}:{" "}
                     {phase.durationDays} days
                   </p>
                 </div>
@@ -118,16 +122,16 @@ export default function ReviewStep({
         />
         <div className="space-y-1 leading-none">
           <label htmlFor="terms" className="text-sm font-medium">
-            I accept the terms and conditions
+            {t("i_accept_the_terms_and_conditions")}
           </label>
           <p className="text-sm text-muted-foreground">
-            By submitting this application, you agree to our{" "}
+            {t("by_submitting_this_application_you_agree_to_our")}{" "}
             <Link href="/terms" className="text-primary hover:underline">
-              Terms of Service
+              {t("terms_of_service")}
             </Link>{" "}
             and{" "}
             <Link href="/privacy" className="text-primary hover:underline">
-              Privacy Policy
+              {t("privacy_policy")}
             </Link>
             .
           </p>

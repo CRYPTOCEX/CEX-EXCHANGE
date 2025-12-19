@@ -7,7 +7,9 @@ import { formatCurrency } from "@/lib/ico/utils";
 import { useTranslations } from "next-intl";
 
 export function PortfolioOverview() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { portfolio, fetchPortfolio, error } = usePortfolioStore();
 
   // Trigger fetch on mount.
@@ -21,7 +23,7 @@ export function PortfolioOverview() {
     );
   }
   if (!portfolio) {
-    return <div>{t("no_portfolio_data_available")}.</div>;
+    return <div>{tExt("no_portfolio_data_available")}.</div>;
   }
 
   return (
@@ -30,7 +32,7 @@ export function PortfolioOverview() {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">
-            {t("total_invested")}
+            {tCommon("total_invested")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -115,7 +117,7 @@ export function PortfolioOverview() {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">
-            {t("current_value")}
+            {tExt("current_value")}
           </CardTitle>
         </CardHeader>
         <CardContent>

@@ -2,6 +2,7 @@ import { models } from "@b/db";
 import { Op } from "sequelize";
 import { createError } from "@b/utils/error";
 import { v4 as uuidv4 } from "uuid";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Send Trade Message",
@@ -10,6 +11,8 @@ export const metadata = {
   tags: ["P2P", "Trade"],
   requiresAuth: true,
   middleware: ["p2pMessageRateLimit"],
+  logModule: "P2P_MESSAGE",
+  logTitle: "Send trade message",
   parameters: [
     {
       index: 0,
@@ -43,15 +46,16 @@ export const metadata = {
   },
 };
 
-export default async (data: { params?: any; body: any; user?: any }) => {
+export default async (data: { params?: any; body: any; user?: any; ctx?: any }) => {
   const { id } = data.params || {};
   const { message } = data.body;
-  const { user } = data;
-  
+  const { user, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Validating message content");
   // Import validation utilities
   const { validateMessage } = await import("../../../utils/validation");
   const { notifyTradeEvent } = await import("../../../utils/notifications");
@@ -60,6 +64,7 @@ export default async (data: { params?: any; body: any; user?: any }) => {
   // Validate and sanitize message
   const sanitizedMessage = validateMessage(message);
 
+  ctx?.step("Finding trade and checking permissions");
   const trade = await models.p2pTrade.findOne({
     where: {
       id,
@@ -86,13 +91,14 @@ export default async (data: { params?: any; body: any; user?: any }) => {
   }
 
   try {
+    ctx?.step("Adding message to trade timeline");
     // Parse timeline if it's a string
     let timeline = trade.timeline || [];
     if (typeof timeline === 'string') {
       try {
         timeline = JSON.parse(timeline);
       } catch (e) {
-        console.error('Failed to parse timeline JSON:', e);
+        logger.error("P2P_TRADE", "Failed to parse timeline JSON", e);
         timeline = [];
       }
     }
@@ -112,9 +118,9 @@ export default async (data: { params?: any; body: any; user?: any }) => {
     };
 
     timeline.push(messageEntry);
-    
+
     // Update trade with new message
-    await trade.update({ 
+    await trade.update({
       timeline,
       lastMessageAt: new Date(),
     });
@@ -154,7 +160,9 @@ export default async (data: { params?: any; body: any; user?: any }) => {
       },
     });
 
-    return { 
+    ctx?.success(`Sent message in trade ${trade.id.slice(0, 8)}...`);
+
+    return {
       message: "Message sent successfully.",
       data: {
         id: messageEntry.id,

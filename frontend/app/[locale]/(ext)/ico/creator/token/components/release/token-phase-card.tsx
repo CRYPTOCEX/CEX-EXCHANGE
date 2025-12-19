@@ -2,7 +2,6 @@ import { Clock } from "lucide-react";
 import { formatNumber } from "@/lib/ico/utils";
 import { Progress } from "@/components/ui/progress";
 import { useTranslations } from "next-intl";
-
 interface TokenPhaseCardProps {
   phase: {
     name: string;
@@ -21,7 +20,8 @@ export function TokenPhaseCard({
   symbol,
   isNext = false,
 }: TokenPhaseCardProps) {
-  const t = useTranslations("ext");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const soldTokens = phase.allocation - phase.remaining;
   const percentageSold = (soldTokens / phase.allocation) * 100;
   const percentageTimeLeft = (phase.endsIn / phase.duration) * 100;
@@ -40,14 +40,14 @@ export function TokenPhaseCard({
       <div className="space-y-4">
         <div>
           <div className="flex justify-between text-sm mb-1">
-            <span className="text-muted-foreground">{t("Allocation")}</span>
+            <span className="text-muted-foreground">{`• ${tExt("allocation")}`}</span>
             <span className="font-medium">
               {formatNumber(soldTokens)} / {formatNumber(phase.allocation)} {symbol}
             </span>
           </div>
           <Progress value={percentageSold} className="h-2" />
           <p className="text-xs text-muted-foreground mt-1">
-            {percentageSold.toFixed(1)}% {t("sold")}
+            {percentageSold.toFixed(1)}% {tExt("sold")}
           </p>
         </div>
 
@@ -55,10 +55,10 @@ export function TokenPhaseCard({
           <Clock className="h-4 w-4 text-muted-foreground" />
           <div>
             <span className="text-muted-foreground">
-              {t("time_remaining")}:{" "}
+              {tExt("time_remaining")}:{" "}
             </span>
             <span className="font-medium">
-              {phase.endsIn} {t("days")}
+              {phase.endsIn} {tCommon("days")}
             </span>
           </div>
         </div>
@@ -66,9 +66,9 @@ export function TokenPhaseCard({
         <div>
           <Progress value={percentageTimeLeft} className="h-1.5 bg-muted" />
           <div className="flex justify-between text-xs text-muted-foreground mt-1">
-            <span>{t("0_days")}</span>
+            <span>{`0 ${tCommon('days')}`}</span>
             <span>
-              {phase.duration} {t("days")}
+              {phase.duration} {tCommon("days")}
             </span>
           </div>
         </div>

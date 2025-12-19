@@ -12,57 +12,85 @@ import {
   serveStaticFile,
   setCORSHeaders,
   setupProcessEventHandlers,
-  logCORSConfiguration,
 } from "./utils";
 import { setupApiRoutes } from "@b/handler/Routes";
 import { setupSwaggerRoute } from "@b/docs";
 import { setupDefaultRoutes } from "@b/utils";
 import { rolesManager } from "@b/utils/roles";
-import CronJobManager, { createWorker } from "@b/utils/cron";
+import CronJobManager, { createWorker } from "@b/cron";
 import { db } from "@b/db";
-// Safe imports for ecosystem extensions
-async function initializeScylla() {
-  try {
-    // @ts-ignore - Dynamic import for optional extension
-    const scyllaModule = await import("@b/api/(ext)/ecosystem/utils/scylla/client");
-    return scyllaModule.initialize();
-  } catch (error) {
-    console.log("Scylla extension not available, skipping initialization");
-  }
-}
-
-async function initializeMatchingEngine() {
-  try {
-    // @ts-ignore - Dynamic import for optional extension
-    const matchingEngineModule = await import("@b/api/(ext)/ecosystem/utils/matchingEngine");
-    return matchingEngineModule.MatchingEngine.getInstance();
-  } catch (error) {
-    console.log("MatchingEngine extension not available, skipping initialization");
-    return null;
-  }
-}
-import logger from "@b/utils/logger";
+import { console$ } from "@b/utils/console";
+import { initializeScylla, initializeMatchingEngine } from "@b/utils/safe-imports";
 import { Response } from "./handler/Response";
+import { logger } from "@b/utils/console";
 import * as path from "path";
 import { baseUrl, isProduction } from "@b/utils/constants";
 import { CacheManager } from "./utils/cache";
 import { isMainThread, threadId } from "worker_threads";
 import { sequelize } from "@b/db";
 
+// Get package version - use path resolution that works in both dev and production
+// In dev: backend/src/server.ts -> root package.json
+// In prod: backend/dist/src/server.js -> root package.json
+const pkg = (() => {
+  try {
+    // Try root package.json first (3 levels up from dist/src/server.js or 2 from src/server.ts)
+    const rootPkg = isProduction
+      ? require(path.join(__dirname, "../../../package.json"))
+      : require(path.join(__dirname, "../../package.json"));
+    if (rootPkg.version) return rootPkg;
+  } catch {}
+  try {
+    // Fallback: try to find it via process.cwd()
+    return require(path.join(process.cwd(), "package.json"));
+  } catch {}
+  return { version: "unknown" };
+})();
+
 export class MashServer extends RouteHandler {
   private app;
   private roles: any;
   private benchmarkRoutes: { method: string; path: string }[] = [];
+  private initPromise: Promise<void>;
+  private initResolve!: () => void;
+  private initReject!: (error: Error) => void;
+  private startTime: number;
 
   constructor(options: AppOptions = {}) {
     super();
     this.app = App(options);
     this.cors();
+    this.startTime = Date.now();
+
+    // Create a promise that will resolve when initialization is complete
+    this.initPromise = new Promise((resolve, reject) => {
+      this.initResolve = resolve;
+      this.initReject = reject;
+    });
+
+    // Show banner only on main thread
+    if (isMainThread) {
+      const appName = process.env.NEXT_PUBLIC_SITE_NAME || "Bicrypto";
+      const env = isProduction ? "Production" : "Development";
+      console$.banner(appName, pkg.version, env);
+    }
+
     this.initializeServer();
     setupProcessEventHandlers();
-    
-    // Log CORS configuration for debugging
-    logCORSConfiguration();
+  }
+
+  /**
+   * Wait for initialization to complete
+   */
+  public async waitForInit(): Promise<void> {
+    return this.initPromise;
+  }
+
+  /**
+   * Get the total startup time since server was created
+   */
+  public getStartTime(): number {
+    return this.startTime;
   }
 
   public listen(port: number, cb: VoidFunction) {
@@ -100,42 +128,78 @@ export class MashServer extends RouteHandler {
 
   public async initializeServer() {
     try {
-      const threadType = isMainThread ? "Main Thread" : `Worker ${threadId}`;
-      console.log(`\x1b[36m${threadType}: Initializing server...\x1b[0m`);
+      let cronCount = 0;
+      let extensionCount = 0;
 
-      // Ensure models are initialized
-      await this.ensureDatabaseReady();
+      // Database
+      await this.runTask("Database", async () => {
+        await this.ensureDatabaseReady();
+      });
 
-      console.log(`\x1b[36m${threadType}: Setting up roles...\x1b[0m`);
-      await this.safeExecute(() => this.setupRoles(), "setupRoles");
+      // Roles & Permissions
+      await this.runTask("Roles", async () => {
+        await this.setupRoles();
+      });
 
-      console.log(`\x1b[36m${threadType}: Setting up routes...\x1b[0m`);
-      await this.safeExecute(() => this.setupRoutes(), "setupRoutes");
+      // API Routes
+      await this.runTask("Routes", async () => {
+        await this.setupRoutes();
+      });
 
-      console.log(`\x1b[36m${threadType}: Setting up cron jobs...\x1b[0m`);
-      await this.safeExecute(() => this.setupCronJobs(), "setupCronJobs");
+      // Cron Jobs (main thread only)
+      if (isMainThread) {
+        await this.runTask("Cron", async () => {
+          cronCount = await this.setupCronJobs();
+        });
+      }
 
-      console.log(
-        `\x1b[36m${threadType}: Loading extensions and checking ecosystem...\x1b[0m`
-      );
-
-      await this.safeExecute(async () => {
+      // Extensions
+      await this.runTask("Extensions", async () => {
         const cacheManager = CacheManager.getInstance();
         const extensions = await cacheManager.getExtensions();
+        extensionCount = extensions.size;
         if (extensions.has("ecosystem")) {
           await this.setupEcosystem();
         }
-      }, "setupEcosystem");
+      });
 
-      console.log(
-        `\x1b[32m${threadType}: Server initialized successfully\x1b[0m`
-      ); // Green for success log
+      // Signal that initialization is complete
+      this.initResolve();
     } catch (error) {
-      console.error(
-        `\x1b[31mError during application initialization: ${error.message}\x1b[0m`
-      ); // Red for error log
+      logger.error("SERVER", "Initialization failed", error);
+      this.initReject(error as Error);
       process.exit(1);
     }
+  }
+
+  /**
+   * Run a task with minimal logging - shows spinner while running, then result
+   */
+  private async runTask(name: string, fn: () => Promise<void>): Promise<void> {
+    const task = console$.live(name.toUpperCase(), `${name}...`);
+    try {
+      await fn();
+      task.succeed();
+    } catch (error: any) {
+      task.fail(error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Combined initialization and listen - ensures proper startup sequence
+   */
+  public async startServer(port: number): Promise<void> {
+    // Wait for initialization to complete
+    await this.waitForInit();
+
+    // Now start listening
+    return new Promise((resolve) => {
+      this.listen(port, () => {
+        console$.ready(port, this.startTime);
+        resolve();
+      });
+    });
   }
 
   private async ensureDatabaseReady(): Promise<void> {
@@ -151,8 +215,19 @@ export class MashServer extends RouteHandler {
     try {
       await fn();
     } catch (error) {
-      logger("error", label, __filename, `${label} failed: ${error.message}`);
-      throw error; // Rethrow to be handled by initializeServer's catch
+      logger.error("SERVER", `${label} failed`, error);
+      throw error;
+    }
+  }
+
+  // Helper that returns a count from the executed function
+  private async safeExecuteWithCount(fn: () => Promise<number | void>, label: string): Promise<number> {
+    try {
+      const result = await fn();
+      return typeof result === "number" ? result : 0;
+    } catch (error) {
+      logger.error("SERVER", `${label} failed`, error);
+      throw error;
     }
   }
 
@@ -162,9 +237,11 @@ export class MashServer extends RouteHandler {
   }
 
   private async setupRoutes() {
+    const fs = await import("fs/promises");
+
     // Determine the correct API routes path
     let apiRoutesPath: string;
-    
+
     if (isProduction) {
       // In production, the API routes are in the dist folder relative to the current working directory
       apiRoutesPath = path.join(__dirname, "api");
@@ -172,46 +249,53 @@ export class MashServer extends RouteHandler {
       // In development, use the source API path
       apiRoutesPath = path.join(baseUrl, "src", "api");
     }
-    
-    console.log(`\x1b[36mAPI Routes Path: ${apiRoutesPath}\x1b[0m`);
-    
-    // Check if the path exists before trying to set up routes
-    if (require("fs").existsSync(apiRoutesPath)) {
-      setupApiRoutes(this, apiRoutesPath);
+
+    // Check if the path exists using async access (non-blocking)
+    const pathExists = async (p: string) => {
+      try {
+        await fs.access(p);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
+    if (await pathExists(apiRoutesPath)) {
+      await setupApiRoutes(this, apiRoutesPath);
     } else {
-      console.warn(`\x1b[33mWarning: API routes path not found: ${apiRoutesPath}\x1b[0m`);
-      // Try alternative paths
+      // Try alternative paths in parallel
       const alternativePaths = [
         path.join(process.cwd(), "backend", "dist", "src", "api"),
         path.join(process.cwd(), "dist", "src", "api"),
         path.join(__dirname, "..", "api"),
         path.join(baseUrl, "api"),
       ];
-      
-      for (const altPath of alternativePaths) {
-        if (require("fs").existsSync(altPath)) {
-          console.log(`\x1b[32mUsing alternative API path: ${altPath}\x1b[0m`);
-          setupApiRoutes(this, altPath);
-          break;
-        }
+
+      const results = await Promise.all(
+        alternativePaths.map(async (p) => ({ path: p, exists: await pathExists(p) }))
+      );
+
+      const validPath = results.find(r => r.exists);
+      if (validPath) {
+        await setupApiRoutes(this, validPath.path);
       }
     }
-    
+
     setupSwaggerRoute(this);
     setupDefaultRoutes(this);
   }
 
-  private async setupCronJobs(): Promise<void> {
-    if (!isMainThread) return; // Only the main thread should setup cron jobs
-    const cronJobManager = await CronJobManager.getInstance(); // Ensure all cron jobs are loaded
+  private async setupCronJobs(): Promise<number> {
+    if (!isMainThread) return 0; // Only the main thread should setup cron jobs
+    const cronJobManager = await CronJobManager.getInstance();
     const cronJobs = await cronJobManager.getCronJobs();
-    const threadType = isMainThread ? "Main Thread" : `Worker ${threadId}`;
 
-    // Create workers for each job
-    cronJobs.forEach((job) => {
-      createWorker(job.name, job.handler, job.period);
-      console.log(`\x1b[33m${threadType} Cron created: ${job.name}\x1b[0m`);
-    });
+    // Create all workers in parallel (silent - no individual logging)
+    await Promise.all(
+      cronJobs.map((job) => createWorker(job.name, job.handler, job.period))
+    );
+
+    return cronJobs.length;
   }
 
   private async setupEcosystem() {
@@ -219,12 +303,7 @@ export class MashServer extends RouteHandler {
       await initializeScylla();
       await initializeMatchingEngine();
     } catch (error) {
-      logger(
-        "error",
-        "ecosystem",
-        __filename,
-        `Error initializing ecosystem: ${error.message}`
-      );
+      logger.error("ECOSYSTEM", "Error initializing ecosystem", error);
     }
   }
 

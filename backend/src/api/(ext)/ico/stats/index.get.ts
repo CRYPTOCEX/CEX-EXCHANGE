@@ -8,7 +8,9 @@ export const metadata = {
     "Retrieves ICO platform statistics including total raised funds, growth percentage, successful offerings count, total investors, and average ROI. Calculations are now based on all non-rejected transactions and monthly comparisons.",
   operationId: "getIcoStats",
   tags: ["ICO", "Stats"],
-  requiresAuth: true,
+  logModule: "ICO",
+  logTitle: "Get ICO Stats",
+  requiresAuth: false,
   responses: {
     200: {
       description: "ICO platform statistics retrieved successfully.",
@@ -17,11 +19,12 @@ export const metadata = {
           schema: {
             type: "object",
             properties: {
+              projectsLaunched: { type: "number" },
               totalRaised: { type: "number" },
+              totalInvestors: { type: "number" },
               raisedGrowth: { type: "number" },
               successfulOfferings: { type: "number" },
               offeringsGrowth: { type: "number" },
-              totalInvestors: { type: "number" },
               investorsGrowth: { type: "number" },
               averageROI: { type: "number" },
               roiGrowth: { type: "number" },
@@ -30,7 +33,6 @@ export const metadata = {
         },
       },
     },
-    401: { description: "Unauthorized." },
     500: { description: "Internal Server Error." },
   },
 };
@@ -40,10 +42,9 @@ interface Handler {
 }
 
 export default async (data: Handler) => {
-  const { user } = data;
-  if (!user?.id) {
-    throw createError({ statusCode: 401, message: "Unauthorized" });
-  }
+  const { ctx } = data as any;
+
+  ctx?.step("Fetching ICO stats");
 
   if (!models.icoTransaction || !models.icoTokenOffering) {
     throw createError({
@@ -192,12 +193,15 @@ export default async (data: Handler) => {
   const averageROI = 0;
   const roiGrowth = 0;
 
+  ctx?.success("Get ICO Stats retrieved successfully");
+
   return {
+    projectsLaunched: successfulOfferings,
     totalRaised,
+    totalInvestors,
     raisedGrowth,
     successfulOfferings,
     offeringsGrowth,
-    totalInvestors,
     investorsGrowth,
     averageROI,
     roiGrowth,

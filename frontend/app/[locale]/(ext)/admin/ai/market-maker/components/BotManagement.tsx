@@ -84,7 +84,7 @@ interface BotManagementProps {
 // Bot type configuration with icons and colors
 const botTypeConfig: Record<string, { icon: React.ElementType; gradient: string; label: string }> = {
   SCALPER: { icon: Zap, gradient: "from-yellow-500 to-amber-500", label: "Scalper" },
-  SWING: { icon: Waves, gradient: "from-blue-500 to-cyan-500", label: "Swing Trader" },
+  SWING: { icon: Waves, gradient: "from-purple-500 to-violet-500", label: "Swing Trader" },
   ACCUMULATOR: { icon: TrendingUp, gradient: "from-green-500 to-emerald-500", label: "Accumulator" },
   DISTRIBUTOR: { icon: TrendingDown, gradient: "from-red-500 to-rose-500", label: "Distributor" },
   MARKET_MAKER: { icon: Scale, gradient: "from-purple-500 to-violet-500", label: "Market Maker" },
@@ -147,6 +147,8 @@ interface BotCardProps {
 
 const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurrency = "", lastActivity }) => {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
@@ -252,7 +254,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
                 {/* Last action description */}
                 {lastActivity && (
                   <span className="text-xs text-muted-foreground">
-                    {t("last")} {activityConfig[lastActivity.action as BotActivityAction]?.label || lastActivity.action}
+                    {tCommon("last")} {activityConfig[lastActivity.action as BotActivityAction]?.label || lastActivity.action}
                     {lastActivity.details?.side && (
                       <span className={lastActivity.details.side === "BUY" ? "text-green-500 ml-1" : "text-red-500 ml-1"}>
                         ({lastActivity.details.side})
@@ -273,7 +275,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
               </div>
               <div className="text-center">
                 <p className="text-lg font-bold text-foreground">{winRate.toFixed(1)}%</p>
-                <p className="text-xs text-muted-foreground">{t("win_rate")}</p>
+                <p className="text-xs text-muted-foreground">{tCommon("win_rate")}</p>
               </div>
               <div className="text-center">
                 <p className={`text-lg font-bold ${totalPnL >= 0 ? "text-green-500" : "text-red-500"}`}>
@@ -302,21 +304,21 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
             <div className="p-4 bg-background rounded-xl shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 <Activity className="w-4 h-4 text-primary" />
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">{t("total_trades")}</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">{tExt("total_trades")}</span>
               </div>
               <p className="text-xl font-bold text-foreground">{totalTrades}</p>
             </div>
             <div className="p-4 bg-background rounded-xl shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 <Target className="w-4 h-4 text-blue-500" />
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">{t("win_rate")}</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">{tCommon("win_rate")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <p className="text-xl font-bold text-foreground">{winRate.toFixed(1)}%</p>
                 {/* Mini Win Rate Bar */}
                 <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"
+                    className="h-full bg-gradient-to-r from-purple-400 to-purple-600 rounded-full"
                     style={{ width: `${winRate}%` }}
                   />
                 </div>
@@ -325,7 +327,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
             <div className="p-4 bg-background rounded-xl shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 <BarChart3 className="w-4 h-4 text-purple-500" />
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">{t("total_volume")}</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">{tExt("total_volume")}</span>
               </div>
               <p className="text-xl font-bold text-foreground">
                 {totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 })} {quoteCurrency}
@@ -338,7 +340,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
                 ) : (
                   <ArrowDownRight className="w-4 h-4 text-red-500" />
                 )}
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">{t("total_p_l")}</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">{tCommon("total_p_l")}</span>
               </div>
               <p className={`text-xl font-bold ${totalPnL >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                 {totalPnL >= 0 ? "+" : ""}{Math.abs(totalPnL).toFixed(2)} {quoteCurrency}
@@ -413,7 +415,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <label className="text-sm font-medium text-muted-foreground">
-                          {t("risk_tolerance")}
+                          {tCommon("risk_tolerance")}
                         </label>
                         <span className="text-sm font-bold text-primary">
                           {config.riskTolerance[0]}/10
@@ -436,19 +438,19 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
                     {/* Trading Frequency */}
                     <div className="space-y-3">
                       <label className="text-sm font-medium text-muted-foreground">
-                        {t("trading_frequency")}
+                        {tCommon("trading_frequency")}
                       </label>
                       <Select
                         value={config.tradingFrequency}
                         onValueChange={(value) => setConfig({ ...config, tradingFrequency: value })}
                       >
                         <SelectTrigger className="h-12">
-                          <SelectValue placeholder={t("select_frequency")} />
+                          <SelectValue placeholder={tCommon("select_frequency")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="LOW">{t("low_few_trades_per_day")}</SelectItem>
-                          <SelectItem value="MEDIUM">{t("medium_regular_trading")}</SelectItem>
-                          <SelectItem value="HIGH">{t("high_aggressive_trading")}</SelectItem>
+                          <SelectItem value="LOW">{tCommon("low_few_trades_per_day")}</SelectItem>
+                          <SelectItem value="MEDIUM">{tCommon("medium_regular_trading")}</SelectItem>
+                          <SelectItem value="HIGH">{tCommon("high_aggressive_trading")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -456,7 +458,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
                     {/* Min Order Size */}
                     <div className="space-y-3">
                       <label className="text-sm font-medium text-muted-foreground">
-                        {t("min_order_size")}
+                        {tCommon("min_order_size")}
                       </label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
@@ -474,7 +476,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
                     {/* Max Order Size */}
                     <div className="space-y-3">
                       <label className="text-sm font-medium text-muted-foreground">
-                        {t("max_order_size")}
+                        {tCommon("max_order_size")}
                       </label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
@@ -492,7 +494,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
                     {/* Max Daily Trades */}
                     <div className="space-y-3">
                       <label className="text-sm font-medium text-muted-foreground">
-                        {t("max_daily_trades")}
+                        {tCommon("max_daily_trades")}
                       </label>
                       <Input
                         type="number"
@@ -503,7 +505,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
                         max={10000}
                       />
                       <p className="text-xs text-muted-foreground">
-                        {t("maximum_number_of_trades_this_bot")}
+                        {tExt("maximum_number_of_trades_this_bot")} ({tExt("resets_at_midnight")})
                       </p>
                     </div>
                   </div>
@@ -519,7 +521,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
                       ) : (
                         <Check className="w-4 h-4 mr-2" />
                       )}
-                      {t("save_configuration")}
+                      {tCommon("save_configuration")}
                     </Button>
                     <Button
                       variant="outline"
@@ -538,7 +540,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
               <div className="p-4 rounded-xl bg-secondary/50">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{t("last_trade")}</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{tCommon("last_trade")}</span>
                 </div>
                 <p className="text-sm font-medium text-foreground">
                   {bot.lastTradeAt ? new Date(bot.lastTradeAt).toLocaleString() : "Never"}
@@ -547,7 +549,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
               <div className="p-4 rounded-xl bg-secondary/50">
                 <div className="flex items-center gap-2 mb-2">
                   <Timer className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{t("next_scheduled")}</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{tCommon("next_scheduled")}</span>
                 </div>
                 <p className="text-sm font-medium text-foreground">
                   {bot.nextScheduledAt ? new Date(bot.nextScheduledAt).toLocaleString() : "N/A"}
@@ -556,7 +558,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
               <div className="p-4 rounded-xl bg-secondary/50">
                 <div className="flex items-center gap-2 mb-2">
                   <Hash className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{t("behavior_seed")}</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{tCommon("behavior_seed")}</span>
                 </div>
                 <p className="text-sm font-medium font-mono text-foreground truncate">
                   {bot.behaviorSeed || "N/A"}
@@ -627,6 +629,7 @@ export const BotManagement: React.FC<BotManagementProps> = ({
   liveEvents = [],
 }) => {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [filter, setFilter] = useState<string>("ALL");
   const [showActivityLog, setShowActivityLog] = useState(true);
 
@@ -721,13 +724,13 @@ export const BotManagement: React.FC<BotManagementProps> = ({
       {/* Summary Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <SummaryCard
-          label={t("total_bots")}
+          label={tCommon("total_bots")}
           value={bots.length}
           icon={Bot}
           gradient="from-purple-500 to-purple-600"
         />
         <SummaryCard
-          label={t("active_bots")}
+          label={tCommon("active_bots")}
           value={activeBots}
           icon={PlayCircle}
           gradient="from-green-500 to-green-600"
@@ -736,10 +739,10 @@ export const BotManagement: React.FC<BotManagementProps> = ({
           label={t("total_trades")}
           value={totalTrades.toLocaleString()}
           icon={Activity}
-          gradient="from-blue-500 to-blue-600"
+          gradient="from-purple-500 to-purple-600"
         />
         <SummaryCard
-          label={t("avg_win_rate")}
+          label={tCommon("avg_win_rate")}
           value={`${avgWinRate.toFixed(1)}%`}
           icon={TrendingUp}
           gradient="from-cyan-500 to-cyan-600"
@@ -784,7 +787,7 @@ export const BotManagement: React.FC<BotManagementProps> = ({
               </div>
               <div>
                 <CardTitle className="text-lg">{t("live_activity")}</CardTitle>
-                <p className="text-sm text-muted-foreground">{t("real_time_bot_actions_and_trades")}</p>
+                <p className="text-sm text-muted-foreground">{tCommon("real_time_bot_actions_and_trades")}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -872,13 +875,13 @@ export const BotManagement: React.FC<BotManagementProps> = ({
                           </div>
                           <div className="text-xs text-muted-foreground mt-0.5">
                             <span className="text-green-600 dark:text-green-400">{buyBotName}</span>
-                            <span className="mx-1.5 text-muted-foreground/50">{t("bought_from")}</span>
+                            <span className="mx-1.5 text-muted-foreground/50">{tCommon("bought_from")}</span>
                             <span className="text-red-600 dark:text-red-400">{sellBotName}</span>
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            <span>{t("price")} {Number(price).toFixed(6)} {quoteCurrency || ""}</span>
+                            <span>{tCommon("price")} {Number(price).toFixed(6)} {quoteCurrency || ""}</span>
                             <span className="mx-1.5">•</span>
-                            <span>{t("value")} {tradeValue.toFixed(4)} {quoteCurrency || ""}</span>
+                            <span>{tCommon("value")} {tradeValue.toFixed(4)} {quoteCurrency || ""}</span>
                           </div>
                         </div>
                         <span className="text-xs text-muted-foreground shrink-0">
@@ -897,7 +900,7 @@ export const BotManagement: React.FC<BotManagementProps> = ({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium text-foreground">{botName}</span>
-                            <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-500">{t("real_order")}</span>
+                            <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-500">{tCommon("real_order")}</span>
                             <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${side === "BUY" ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"}`}>
                               {side}
                             </span>
@@ -951,7 +954,7 @@ export const BotManagement: React.FC<BotManagementProps> = ({
                 <BotOff className="w-12 h-12 text-muted-foreground" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-2">
-                {t("no_bots_found")}
+                {tCommon("no_bots_found")}
               </h3>
               <p className="text-muted-foreground text-center max-w-md">
                 {filter !== "ALL"

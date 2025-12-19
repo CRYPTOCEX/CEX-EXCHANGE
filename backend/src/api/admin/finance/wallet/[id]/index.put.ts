@@ -30,10 +30,12 @@ export const metadata = {
   responses: updateRecordResponses("Wallet"),
   requiresAuth: true,
   permission: "edit.wallet",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Wallet",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { type, currency, balance, inOrder, status } = body;
 
@@ -45,5 +47,7 @@ export default async (data: Handler) => {
   if (inOrder !== undefined) updateData.inOrder = inOrder;
   if (status !== undefined) updateData.status = status;
 
-  return await updateRecord("wallet", id, updateData);
+  const result = await updateRecord("wallet", id, updateData);
+  ctx?.success("Wallet updated successfully");
+  return result;
 };

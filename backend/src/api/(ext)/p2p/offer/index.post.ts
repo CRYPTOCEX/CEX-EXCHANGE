@@ -14,6 +14,8 @@ export const metadata = {
   tags: ["P2P", "Offer"],
   requiresAuth: true,
   middleware: ["p2pOfferCreateRateLimit"],
+  logModule: "P2P_OFFER",
+  logTitle: "Create P2P offer",
   requestBody: {
     description: "Complete P2P offer payload",
     required: true,
@@ -107,12 +109,13 @@ export const metadata = {
   },
 };
 
-export default async function handler(data: { body: any; user?: any }) {
-  const { user, body } = data;
+export default async function handler(data: { body: any; user?: any; ctx?: any }) {
+  const { user, body, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Validating required fields");
   // Validate required fields
   if (!body.locationSettings?.country) {
     throw createError({
@@ -143,12 +146,14 @@ export default async function handler(data: { body: any; user?: any }) {
     });
   }
 
+  ctx?.step("Checking offer type and requirements");
   // For SELL offers, check balance and lock funds at creation time
   // This ensures sellers can only create offers they can fulfill
   let sellerWallet: any = null;
   let requiredAmount = 0;
 
   if (body.type === "SELL") {
+    ctx?.step("Checking seller balance for SELL offer");
     requiredAmount = body.amountConfig?.total || 0;
     if (requiredAmount <= 0) {
       throw createError({
@@ -158,7 +163,7 @@ export default async function handler(data: { body: any; user?: any }) {
     }
 
     // Get wallet and verify balance
-    sellerWallet = await getWalletSafe(user.id, body.walletType, body.currency);
+    sellerWallet = await getWalletSafe(user.id, body.walletType, body.currency, false, ctx);
     if (!sellerWallet) {
       throw createError({
         statusCode: 400,
@@ -176,6 +181,7 @@ export default async function handler(data: { body: any; user?: any }) {
     }
   }
 
+  ctx?.step("Validating offer configuration and settings");
   // Check if auto-approval is enabled
   const cacheManager = CacheManager.getInstance();
   const autoApprove = await cacheManager.getSetting("p2pAutoApproveOffers");
@@ -252,6 +258,7 @@ export default async function handler(data: { body: any; user?: any }) {
     }
   }
 
+  ctx?.step("Creating offer record");
   // start a transaction so creation + associations roll back together
   const t = await sequelize.transaction();
   try {
@@ -279,6 +286,7 @@ export default async function handler(data: { body: any; user?: any }) {
     // 2. For SELL offers, lock funds at offer creation
     // This ensures the seller cannot spend these funds elsewhere while the offer is active
     if (body.type === "SELL" && sellerWallet && requiredAmount > 0) {
+      ctx?.step(`Locking ${requiredAmount} ${body.currency} for SELL offer`);
       await models.wallet.update(
         { inOrder: sellerWallet.inOrder + requiredAmount },
         { where: { id: sellerWallet.id }, transaction: t }
@@ -300,6 +308,7 @@ export default async function handler(data: { body: any; user?: any }) {
       : [];
 
     if (ids.length) {
+      ctx?.step(`Validating and associating ${ids.length} payment method(s)`);
       console.log('[P2P Offer Create] Validating payment method IDs:', ids);
 
       // fetch and ensure all exist - also check for user-created methods
@@ -345,6 +354,9 @@ export default async function handler(data: { body: any; user?: any }) {
         }
       ]
     });
+
+    const offerStatus = shouldAutoApprove ? "ACTIVE" : "PENDING_APPROVAL";
+    ctx?.success(`Created ${body.type} offer for ${body.amountConfig?.total} ${body.currency} (${offerStatus})`);
 
     return { message: "Offer created successfully.", offer };
   } catch (err: any) {

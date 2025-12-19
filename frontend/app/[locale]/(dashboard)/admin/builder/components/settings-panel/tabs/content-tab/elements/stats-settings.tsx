@@ -11,6 +11,7 @@ import {
 } from "../../structure-tab/ui-components";
 import { IconPicker } from "@/components/ui/icon-picker";
 import type { SettingsProps } from "../settings-map";
+import { useTranslations } from "next-intl";
 interface StatsSettingsProps extends SettingsProps {}
 export function StatsSettings({
   element,
@@ -18,6 +19,7 @@ export function StatsSettings({
   onSettingChange,
   onElementUpdate,
 }: StatsSettingsProps) {
+  const t = useTranslations("dashboard_admin");
   const [editingStatIndex, setEditingStatIndex] = useState<number | null>(null);
 
   // Initialize default stats if none exist
@@ -73,7 +75,7 @@ export function StatsSettings({
               label: "Grid",
             },
           ]}
-          placeholder="Select layout"
+          placeholder={t("select_layout")}
         />
       </div>
       {settings.layout === "grid" && (
@@ -108,7 +110,7 @@ export function StatsSettings({
             }}
             className="h-7 text-xs"
           >
-            <Plus className="h-3 w-3 mr-1" /> Add Stat
+            <Plus className="h-3 w-3 mr-1" /> {t("add_stat")}
           </Button>
         </div>
         <div className="space-y-2 max-h-80 overflow-y-auto border rounded-md p-2">
@@ -243,7 +245,7 @@ export function StatsSettings({
           })}
           {(settings.stats || []).length === 0 && (
             <div className="text-center py-4 text-gray-500 text-sm">
-              No statistics added yet
+              {t("no_statistics_added_yet")}
             </div>
           )}
         </div>

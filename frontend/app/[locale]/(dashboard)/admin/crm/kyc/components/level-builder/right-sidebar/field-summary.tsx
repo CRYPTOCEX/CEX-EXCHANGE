@@ -24,7 +24,8 @@ export function FieldSummary({
   onClose,
   summaryRef,
 }: FieldSummaryProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const fieldColor = getFieldTypeColor(field.type);
 
   return (
@@ -101,7 +102,7 @@ export function FieldSummary({
           <div className="flex items-center gap-1">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500"></span>
             <span className="text-amber-500 dark:text-amber-400">
-              {t("Hidden")}
+              {tDashboardAdmin("hidden")}
             </span>
           </div>
         )}

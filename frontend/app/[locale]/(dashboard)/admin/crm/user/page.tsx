@@ -15,8 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { $fetch } from "@/lib/api";
 import { toast } from "sonner";
-import { columns } from "./columns";
-import { analytics } from "./analytics";
+import { useColumns, useFormConfig } from "./columns";
+import { useAnalytics } from "./analytics";
 import { useUserStore } from "@/store/user";
 
 const BLOCK_REASONS = [
@@ -41,10 +41,13 @@ const DURATION_OPTIONS = [
 ];
 
 export default function UsersPage() {
-  const t = useTranslations();
+  const t = useTranslations("dashboard_admin");
   const router = useRouter();
   const { hasPermission } = useUserStore();
-  
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+  const analytics = useAnalytics();
+
   // Check permissions
   const canImport = hasPermission("import.user");
   const canExport = hasPermission("export.user");
@@ -263,16 +266,22 @@ jane.smith@example.com,Jane,Smith,CustomPass123,+0987654321,ACTIVE,false,false,,
       edit: "edit.user",
       delete: "delete.user",
     },
-    pageSize: 10,
+    pageSize: 12,
     canCreate: true,
     canEdit: true,
     canDelete: false,
     canView: true,
     viewLink: "/admin/crm/user/[id]",
     title: "User Management",
+    description: "Manage user accounts, roles, and permissions",
     itemTitle: "User",
     columns,
+    formConfig,
     analytics,
+    design: {
+      animation: "orbs" as const,
+      icon: Shield,
+    },
     extraRowActions: renderActionButtons,
     extraTopButtons: (refresh?: () => void) => (
       <div className="flex gap-2">
@@ -296,7 +305,7 @@ jane.smith@example.com,Jane,Smith,CustomPass123,+0987654321,ACTIVE,false,false,,
                   Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
               });
-              
+
               if (response.ok) {
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
@@ -324,7 +333,7 @@ jane.smith@example.com,Jane,Smith,CustomPass123,+0987654321,ACTIVE,false,false,,
         )}
       </div>
     ),
-  }), [renderActionButtons, canImport, canExport, setIsImportDialogOpen]);
+  }), [columns, formConfig, renderActionButtons, canImport, canExport, setIsImportDialogOpen]);
 
   return (
     <>

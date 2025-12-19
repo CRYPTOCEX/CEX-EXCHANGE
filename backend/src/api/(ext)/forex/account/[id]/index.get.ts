@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
     "Fetches a specific Forex account by its ID for the currently authenticated user.",
   operationId: "getForexAccountById",
   tags: ["Forex", "Accounts"],
+  logModule: "FOREX",
+  logTitle: "Get Forex Account",
   requiresAuth: true,
   parameters: [
     {
@@ -43,7 +45,9 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const {  user, params , ctx } = data;
+    ctx?.step("Fetching Forex Account");
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -58,5 +62,7 @@ export default async (data: Handler) => {
       message: "Forex account not found",
     });
   }
+  ctx?.success("Get Forex Account fetched successfully");
+
   return account;
 };

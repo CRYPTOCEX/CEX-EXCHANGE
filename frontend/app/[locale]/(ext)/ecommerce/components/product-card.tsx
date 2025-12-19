@@ -1,243 +1,471 @@
 "use client";
 
-import type React from "react";
-import Image from "next/image";
-import { Link } from "@/i18n/routing";
-import {
-  ShoppingCart,
-  Heart,
-  Star,
-  Eye,
-  Tag,
-  Zap,
-  Download,
-  Package,
-  Plus,
-  X,
-} from "lucide-react";
+import { useState, useRef, useEffect, useId, forwardRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { Link, useRouter } from "@/i18n/routing";
+import {
+  Trophy,
+  ShoppingCart,
+  Star,
+  TrendingUp,
+  Heart,
+  Trash2,
+  X,
+  Zap,
+  Package,
+  ExternalLink,
+} from "lucide-react";
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useEcommerceStore } from "@/store/ecommerce/ecommerce";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useOutsideClick } from "@/hooks/use-outside-click";
+
+interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  image?: string;
+  price: number;
+  currency: string;
+  rating?: number;
+  reviewsCount?: number;
+  totalSold?: number;
+  inventoryQuantity?: number;
+  type?: string;
+  category?: { name: string; slug: string };
+  shortDescription?: string;
+  description?: string;
+}
 
 interface ProductCardProps {
-  product: ecommerceProduct;
-  viewMode?: "grid" | "list";
-  categoryName?: string;
+  product: Product;
+  rank?: number;
+  showSoldBadge?: boolean;
+  showTypeBadge?: boolean;
+  showCategory?: boolean;
+  showRating?: boolean;
+  showStock?: boolean;
+  variant?: "default" | "wishlist";
+  onRemoveFromWishlist?: () => void;
+  animationIndex?: number;
+  // For expandable card pattern
+  layoutId?: string;
+  onExpand?: () => void;
+  isActiveCard?: boolean;
 }
 
-interface QuickViewModalProps {
-  product: ProductCardProps["product"];
-  isOpen: boolean;
+// Expanded Product Card Component
+interface ExpandedProductCardProps {
+  product: Product;
   onClose: () => void;
+  layoutId: string;
+  variant?: "default" | "wishlist";
+  onRemoveFromWishlist?: () => void;
 }
 
-function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps) {
-  const t = useTranslations("ext");
-  const { addToCart, addToWishlist, isInWishlist } = useEcommerceStore();
-  const [quantity, setQuantity] = useState(1);
-  const isInWishlistAlready = isInWishlist(product.id);
+const ExpandedProductCard = forwardRef<
+  HTMLDivElement,
+  ExpandedProductCardProps
+>(
+  (
+    { product, onClose, layoutId, variant = "default", onRemoveFromWishlist },
+    ref
+  ) => {
+    const t = useTranslations("ext");
+    const tCommon = useTranslations("common");
+    const router = useRouter();
+    const { addToCart, addToWishlist, isInWishlist } = useEcommerceStore();
+    const [quantity, setQuantity] = useState(1);
+    const isInWishlistAlready = isInWishlist(product.id);
 
-  const handleAddToCart = () => {
-    addToCart(product, quantity);
-    toast.success(`Added ${quantity} ${product.name} to cart!`);
-  };
-
-  const handleAddToWishlist = () => {
-    if (isInWishlistAlready) {
-      toast.info("Product is already in your wishlist");
-    } else {
-      addToWishlist(product);
-      toast.success("Added to wishlist!");
-    }
-  };
-
-  const formatCurrency = (price: number, currency: string) => {
-    const currencySymbols: { [key: string]: string } = {
-      USD: "$",
-      EUR: "€",
-      GBP: "£",
-      AED: "د.إ",
-      BTC: "₿",
-      USDT: "₮",
-      FREEMOON: "🌙",
+    const handleAddToCart = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      addToCart(product as any, quantity);
+      toast.success(`Added ${quantity} ${product.name} to cart!`);
     };
-    const symbol = currencySymbols[currency] || currency;
-    return `${symbol}${price.toFixed(2)}`;
-  };
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    const handleAddToWishlist = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (isInWishlistAlready) {
+        toast.info("Product is already in your wishlist");
+      } else {
+        addToWishlist(product as any);
+        toast.success("Added to wishlist!");
+      }
+    };
+
+    const handleViewDetails = () => {
+      onClose();
+      router.push(`/ecommerce/product/${product.slug}`);
+    };
+
+    return (
+      <motion.div
+        layoutId={`product-card-${product.id}-${layoutId}`}
+        ref={ref}
+        className="w-[95vw] sm:w-[90vw] md:w-[80vw] lg:w-[75vw] xl:w-[70vw] max-w-[1000px] max-h-[90vh] flex flex-col overflow-hidden bg-linear-to-br from-white via-white to-white/95 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900/95 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-700/50 shadow-2xl shadow-black/20 dark:shadow-black/40 rounded-2xl"
+      >
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-amber-500/30 via-amber-500 to-emerald-500/30 rounded-t-2xl z-10" />
+
+        {/* Close button - always visible */}
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
           onClick={onClose}
+          className="absolute top-3 right-3 z-20 p-2 rounded-full bg-zinc-100/90 dark:bg-zinc-800/90 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors backdrop-blur-sm cursor-pointer"
         >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white dark:bg-zinc-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="relative">
-              <button
-                onClick={onClose}
-                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-zinc-800 transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
+          <X className="h-5 w-5" />
+        </motion.button>
 
-              <div className="aspect-video relative overflow-hidden rounded-t-2xl">
+        {/* Main content - scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Responsive layout: stacked on mobile/tablet, side-by-side on desktop */}
+          <div className="flex flex-col md:flex-row">
+            {/* Left side - Product Image */}
+            <div className="w-full md:w-2/5 lg:w-1/2 shrink-0">
+              <motion.div
+                layoutId={`product-image-${product.id}-${layoutId}`}
+                className="relative w-full aspect-square md:aspect-auto md:h-full md:min-h-[300px] lg:min-h-[400px] overflow-hidden"
+              >
                 <Image
-                  src={
-                    product.image ||
-                    "/placeholder.svg?height=400&width=600&query=product"
-                  }
+                  src={product.image || "/placeholder.svg?height=600&width=600"}
                   alt={product.name}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 600px"
+                  sizes="(max-width: 768px) 95vw, (max-width: 1024px) 40vw, 50vw"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-              </div>
+                {/* Out of Stock Overlay */}
+                {(product.inventoryQuantity ?? 1) === 0 && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
+                    <span className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
+                      Out of Stock
+                    </span>
+                  </div>
+                )}
+              </motion.div>
+            </div>
 
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100 mb-2">
-                      {product.name}
-                    </h2>
-                    <p className="text-gray-600 dark:text-zinc-400">
-                      {product.shortDescription || product.description}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-3xl font-bold text-gray-900 dark:text-zinc-100">
-                      {formatCurrency(product.price, product.currency)}
-                    </p>
-                    {product.rating && product.rating > 0 && (
-                      <div className="flex items-center justify-end mt-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < Math.round(product.rating!)
-                                ? "text-yellow-400 fill-yellow-400"
-                                : "text-gray-300 dark:text-zinc-600"
-                            }`}
-                          />
-                        ))}
-                        <span className="ml-1 text-sm text-gray-500 dark:text-zinc-400">
-                          (
-                          {product.reviewsCount || 0}
-                          )
-                        </span>
-                      </div>
-                    )}
-                  </div>
+            {/* Right side - Product Details */}
+            <div className="w-full md:w-3/5 lg:w-1/2 p-4 sm:p-5 md:p-6 flex flex-col">
+              {/* Product Name */}
+              <motion.h2
+                layoutId={`product-name-${product.id}-${layoutId}`}
+                className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2 sm:mb-3 pr-8"
+              >
+                {product.name}
+              </motion.h2>
+
+              {/* Price */}
+              <motion.p
+                layoutId={`product-price-${product.id}-${layoutId}`}
+                className="text-xl sm:text-2xl md:text-3xl font-bold bg-linear-to-r from-amber-600 to-emerald-600 bg-clip-text text-transparent mb-2 sm:mb-3"
+              >
+                {product.currency} {product.price.toFixed(2)}
+              </motion.p>
+
+              {/* Rating */}
+              {product.rating !== undefined && product.rating > 0 && (
+                <div className="flex items-center mb-2 sm:mb-3">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${
+                        i < Math.round(product.rating!)
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-zinc-300 dark:text-zinc-600"
+                      }`}
+                    />
+                  ))}
+                  <span className="ml-2 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
+                    ({product.reviewsCount || 0} reviews)
+                  </span>
                 </div>
+              )}
 
-                <div className="flex items-center gap-4 mb-6">
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                      product.type === "DOWNLOADABLE"
-                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
-                        : "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300"
+              {/* Category */}
+              {product.category && (
+                <div className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mb-2 sm:mb-3">
+                  Category:{" "}
+                  <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                    {product.category.name}
+                  </span>
+                </div>
+              )}
+
+              {/* Description - hidden on very small screens */}
+              {(product.shortDescription || product.description) && (
+                <p className="hidden sm:block text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed mb-3 md:mb-4 line-clamp-3">
+                  {product.shortDescription || product.description}
+                </p>
+              )}
+
+              {/* Product Info Grid */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4">
+                {product.type && (
+                  <div className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-zinc-100/50 dark:bg-zinc-800/50 border border-zinc-200/30 dark:border-zinc-700/30">
+                    <p className="text-[10px] sm:text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-0.5 sm:mb-1">
+                      Type
+                    </p>
+                    <div className="flex items-center">
+                      {product.type === "DOWNLOADABLE" ? (
+                        <>
+                          <Zap className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-emerald-500" />
+                          <span className="text-xs sm:text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            {t("digital_product")}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Package className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-amber-500" />
+                          <span className="text-xs sm:text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            {tCommon("physical_product")}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-zinc-100/50 dark:bg-zinc-800/50 border border-zinc-200/30 dark:border-zinc-700/30">
+                  <p className="text-[10px] sm:text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-0.5 sm:mb-1">
+                    {t("stock")}
+                  </p>
+                  <p
+                    className={`text-xs sm:text-sm font-medium ${
+                      (product.inventoryQuantity ?? 0) > 10
+                        ? "text-green-600 dark:text-green-400"
+                        : (product.inventoryQuantity ?? 0) > 0
+                          ? "text-yellow-600 dark:text-yellow-400"
+                          : "text-red-600 dark:text-red-400"
                     }`}
                   >
-                    {product.type === "DOWNLOADABLE" ? (
-                      <>
-                        <Download className="h-4 w-4 mr-1" />
-                        {t("digital_product")}
-                      </>
-                    ) : (
-                      <>
-                        <Package className="h-4 w-4 mr-1" />
-                        {t("physical_product")}
-                      </>
-                    )}
-                  </span>
-                  <span className="text-sm text-gray-500 dark:text-zinc-400">
-                    {t("stock")}
-                    {product.inventoryQuantity}
-                  </span>
+                    {(product.inventoryQuantity ?? 0) > 0
+                      ? `${product.inventoryQuantity} available`
+                      : "Out of stock"}
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center border border-gray-300 dark:border-zinc-600 rounded-lg">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
-                    >
-                      <Plus className="h-4 w-4 rotate-45" />
-                    </button>
-                    <span className="px-4 py-2 min-w-[60px] text-center">
-                      {quantity}
-                    </span>
-                    <button
-                      onClick={() =>
-                        setQuantity(
-                          Math.min(product.inventoryQuantity, quantity + 1)
-                        )
-                      }
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
+                {product.totalSold !== undefined && product.totalSold > 0 && (
+                  <div className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-zinc-100/50 dark:bg-zinc-800/50 border border-zinc-200/30 dark:border-zinc-700/30">
+                    <p className="text-[10px] sm:text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-0.5 sm:mb-1">
+                      Sold
+                    </p>
+                    <div className="flex items-center">
+                      <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-amber-500" />
+                      <span className="text-xs sm:text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        {product.totalSold} units
+                      </span>
+                    </div>
                   </div>
+                )}
+              </div>
 
+              {/* Quantity Selector */}
+              <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                <span className="text-xs sm:text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Quantity:
+                </span>
+                <div className="flex items-center border border-zinc-300 dark:border-zinc-600 rounded-lg">
                   <button
-                    onClick={handleAddToCart}
-                    disabled={product.inventoryQuantity === 0}
-                    className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors rounded-l-lg font-medium text-sm cursor-pointer"
                   >
-                    <ShoppingCart className="h-5 w-5" />
-                    {t("add_to_cart")}
+                    -
                   </button>
+                  <span className="px-3 sm:px-4 py-1.5 sm:py-2 min-w-10 sm:min-w-[50px] text-center font-medium text-sm">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setQuantity(
+                        Math.min(product.inventoryQuantity ?? 99, quantity + 1)
+                      )
+                    }
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors rounded-r-lg font-medium text-sm cursor-pointer"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
 
+              {/* Spacer to push actions to bottom on large screens */}
+              <div className="hidden md:block flex-1 min-h-0" />
+
+              {/* Action Buttons - Inside right column on large screens */}
+              <div className="hidden md:flex items-center gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                {/* Add to Cart */}
+                <button
+                  onClick={handleAddToCart}
+                  disabled={(product.inventoryQuantity ?? 0) === 0}
+                  className="flex-1 bg-linear-to-r from-amber-600 to-emerald-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium hover:from-amber-700 hover:to-emerald-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
+                >
+                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
+                  {tCommon("add_to_cart")}
+                </button>
+
+                {/* Wishlist */}
+                {variant === "default" && (
                   <button
                     onClick={handleAddToWishlist}
-                    className={`p-3 rounded-lg border transition-all duration-200 ${
+                    className={`p-2.5 sm:p-3 rounded-xl border transition-all duration-200 cursor-pointer ${
                       isInWishlistAlready
                         ? "bg-red-50 border-red-200 text-red-600 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400"
-                        : "border-gray-300 dark:border-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-700"
+                        : "border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-700"
                     }`}
                   >
                     <Heart
-                      className={`h-5 w-5 ${isInWishlistAlready ? "fill-current" : ""}`}
+                      className={`h-4 w-4 sm:h-5 sm:w-5 ${isInWishlistAlready ? "fill-current" : ""}`}
                     />
                   </button>
-                </div>
+                )}
+
+                {/* Remove from Wishlist */}
+                {variant === "wishlist" && onRemoveFromWishlist && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onRemoveFromWishlist();
+                      onClose();
+                    }}
+                    className="p-2.5 sm:p-3 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950 dark:hover:border-red-700 transition-all duration-200 cursor-pointer"
+                  >
+                    <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </button>
+                )}
+
+                {/* View Details */}
+                <button
+                  onClick={handleViewDetails}
+                  className="p-2.5 sm:p-3 rounded-xl border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer"
+                >
+                  <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
+                </button>
               </div>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
+          </div>
+        </div>
 
-export default function ProductCard({
+        {/* Action Buttons - Fixed footer for small screens only */}
+        <div className="md:hidden shrink-0 flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 dark:bg-zinc-800/80 backdrop-blur-sm">
+          {/* Add to Cart */}
+          <button
+            onClick={handleAddToCart}
+            disabled={(product.inventoryQuantity ?? 0) === 0}
+            className="flex-1 bg-linear-to-r from-amber-600 to-emerald-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium hover:from-amber-700 hover:to-emerald-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
+          >
+            <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
+            {tCommon("add_to_cart")}
+          </button>
+
+          {/* Wishlist */}
+          {variant === "default" && (
+            <button
+              onClick={handleAddToWishlist}
+              className={`p-2.5 sm:p-3 rounded-xl border transition-all duration-200 cursor-pointer ${
+                isInWishlistAlready
+                  ? "bg-red-50 border-red-200 text-red-600 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400"
+                  : "border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-700"
+              }`}
+            >
+              <Heart
+                className={`h-4 w-4 sm:h-5 sm:w-5 ${isInWishlistAlready ? "fill-current" : ""}`}
+              />
+            </button>
+          )}
+
+          {/* Remove from Wishlist */}
+          {variant === "wishlist" && onRemoveFromWishlist && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onRemoveFromWishlist();
+                onClose();
+              }}
+              className="p-2.5 sm:p-3 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950 dark:hover:border-red-700 transition-all duration-200 cursor-pointer"
+            >
+              <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
+          )}
+
+          {/* View Details */}
+          <button
+            onClick={handleViewDetails}
+            className="p-2.5 sm:p-3 rounded-xl border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all duration-200 cursor-pointer"
+          >
+            <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+);
+
+ExpandedProductCard.displayName = "ExpandedProductCard";
+
+// Main ProductCard Component
+function ProductCardInner({
   product,
-  viewMode = "grid",
-  categoryName,
+  rank,
+  showSoldBadge = false,
+  showTypeBadge = true,
+  showCategory = true,
+  showRating = true,
+  showStock = false,
+  variant = "default",
+  onRemoveFromWishlist,
+  animationIndex = 0,
+  layoutId,
+  onExpand,
+  isActiveCard,
 }: ProductCardProps) {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [isHovered, setIsHovered] = useState(false);
-  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const { addToCart, addToWishlist, isInWishlist } = useEcommerceStore();
-
   const isInWishlistAlready = isInWishlist(product.id);
+
+  // Reset hover state when card becomes active/inactive
+  useEffect(() => {
+    if (isActiveCard) {
+      setIsHovered(false);
+    }
+  }, [isActiveCard]);
+
+  const getRankBadge = (rankIndex: number) => {
+    const badges: Record<number, { bg: string; text: string; icon: string }> = {
+      0: {
+        bg: "from-yellow-400 to-amber-500",
+        text: "text-amber-900",
+        icon: "1st",
+      },
+      1: {
+        bg: "from-zinc-300 to-zinc-400",
+        text: "text-zinc-700",
+        icon: "2nd",
+      },
+      2: {
+        bg: "from-amber-600 to-amber-700",
+        text: "text-amber-100",
+        icon: "3rd",
+      },
+    };
+    return badges[rankIndex] || null;
+  };
+
+  const rankBadge = rank !== undefined ? getRankBadge(rank) : null;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(product, 1);
+    addToCart(product as any, 1);
     toast.success(`Added ${product.name} to cart!`);
   };
 
@@ -247,382 +475,418 @@ export default function ProductCard({
     if (isInWishlistAlready) {
       toast.info("Product is already in your wishlist");
     } else {
-      addToWishlist(product);
+      addToWishlist(product as any);
       toast.success("Added to wishlist!");
     }
   };
 
-  const handleQuickView = (e: React.MouseEvent) => {
+  const handleRemove = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsQuickViewOpen(true);
+    onRemoveFromWishlist?.();
   };
 
-  const displayDescription =
-    product.shortDescription || product.description || "";
+  const handleCardClick = (e: React.MouseEvent) => {
+    // If clicking interactive elements, don't expand
+    const target = e.target as HTMLElement;
+    const isInteractive =
+      target.closest("[data-prevent-expand]") || target.closest("button");
 
-  if (viewMode === "list") {
-    return (
-      <>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ scale: 1.02 }}
-          transition={{ type: "spring", stiffness: 300 }}
-        >
-          <Link
-            href={`/ecommerce/product/${product.slug}`}
-            className="group relative bg-gradient-to-br from-white to-gray-50 dark:from-zinc-800 dark:to-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 dark:text-zinc-100 flex"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            <div className="relative h-40 w-40 flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-700 dark:to-zinc-800 overflow-hidden">
-              <Image
-                src={
-                  product.image ||
-                  "/placeholder.svg?height=160&width=160&query=product"
-                }
-                alt={product.name}
-                fill
-                className="object-cover transform group-hover:scale-110 transition-transform duration-700"
-                sizes="160px"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+    if (isInteractive) return;
 
-              {categoryName && (
-                <div className="absolute top-2 left-2">
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/90 text-gray-800 backdrop-blur-sm dark:bg-black/60 dark:text-white shadow-lg">
-                    <Tag className="h-3 w-3 mr-1" />
-                    {categoryName}
-                  </span>
-                </div>
-              )}
+    // If we have an expand function, use it (works for both default and wishlist variants)
+    if (onExpand) {
+      e.preventDefault();
+      e.stopPropagation();
+      onExpand();
+    }
+  };
 
-              {product.type && (
-                <div className="absolute top-2 right-2">
-                  <span
-                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm shadow-lg ${
-                      product.type === "DOWNLOADABLE"
-                        ? "bg-blue-500/90 text-white"
-                        : "bg-green-500/90 text-white"
-                    }`}
-                  >
-                    {product.type === "DOWNLOADABLE" ? (
-                      <>
-                        <Zap className="h-3 w-3 mr-1" />
-                        {t("Digital")}
-                      </>
-                    ) : (
-                      <>
-                        <Package className="h-3 w-3 mr-1" />
-                        {t("Physical")}
-                      </>
-                    )}
-                  </span>
-                </div>
-              )}
+  return (
+    <motion.div
+      layoutId={layoutId ? `product-card-${product.id}-${layoutId}` : undefined}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: animationIndex * 0.1, duration: 0.4 }}
+      className={`group ${isActiveCard ? "pointer-events-none opacity-0" : ""}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={handleCardClick}
+    >
+      <div className="relative p-5 rounded-2xl bg-white/80 dark:bg-zinc-900/80 border border-zinc-200/50 dark:border-zinc-700/50 hover:border-amber-400/50 dark:hover:border-amber-600/50 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/10 cursor-pointer">
+        {/* Rank Badge */}
+        {rankBadge && (
+          <div className="absolute -top-3 -left-3 z-10">
+            <div
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-full bg-linear-to-r ${rankBadge.bg} ${rankBadge.text} text-sm font-bold shadow-lg`}
+            >
+              <Trophy className="w-3.5 h-3.5" />
+              {rankBadge.icon}
             </div>
+          </div>
+        )}
 
-            <div className="p-6 flex-grow flex flex-col justify-between">
-              <div>
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-zinc-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                    {product.name}
-                  </h3>
-                  {product.rating !== undefined && product.rating > 0 && (
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${
-                            i < Math.round(product.rating!)
-                              ? "text-yellow-400 fill-yellow-400"
-                              : "text-gray-300 dark:text-zinc-600"
-                          }`}
-                        />
-                      ))}
-                      {product.reviewsCount !== undefined &&
-                        product.reviewsCount > 0 && (
-                          <span className="ml-1 text-sm text-gray-500 dark:text-zinc-400">
-                            (
-                            {product.reviewsCount}
-                            )
-                          </span>
-                        )}
-                    </div>
-                  )}
-                </div>
-                <p className="text-gray-600 dark:text-zinc-400 line-clamp-2 mb-3">
-                  {displayDescription}
-                </p>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`text-sm font-medium ${
-                      product.inventoryQuantity > 10
-                        ? "text-green-600 dark:text-green-400"
-                        : product.inventoryQuantity > 0
-                          ? "text-yellow-600 dark:text-yellow-400"
-                          : "text-red-600 dark:text-red-400"
-                    }`}
-                  >
-                    {product.inventoryQuantity > 0
-                      ? `${product.inventoryQuantity} in stock`
-                      : "Out of stock"}
-                  </span>
-                  {product.inventoryQuantity === 0 && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300">
-                      {t("Unavailable")}
-                    </span>
-                  )}
-                </div>
-              </div>
+        {/* Sold Badge / Type Badge */}
+        <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
+          {showSoldBadge &&
+            product.totalSold !== undefined &&
+            product.totalSold > 0 && (
+              <Badge className="bg-linear-to-r from-amber-500 to-emerald-500 text-white border-0">
+                <TrendingUp className="w-3 h-3 mr-1" />
+                {product.totalSold} sold
+              </Badge>
+            )}
+          {showTypeBadge && product.type && (
+            <Badge
+              className={`border-0 text-white ${
+                product.type === "DOWNLOADABLE"
+                  ? "bg-linear-to-r from-emerald-500 to-green-500"
+                  : "bg-linear-to-r from-amber-500 to-yellow-500"
+              }`}
+            >
+              {product.type === "DOWNLOADABLE" ? (
+                <>
+                  <Zap className="w-3 h-3 mr-1" />
+                  Digital
+                </>
+              ) : (
+                <>
+                  <Package className="w-3 h-3 mr-1" />
+                  Physical
+                </>
+              )}
+            </Badge>
+          )}
+        </div>
 
-              <div className="flex items-center justify-between mt-4">
-                <p className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  {product.price} {product.currency}
-                </p>
-                <div className="flex space-x-2">
+        {/* Product Image */}
+        <motion.div
+          layoutId={
+            layoutId ? `product-image-${product.id}-${layoutId}` : undefined
+          }
+          className="relative aspect-square rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 mb-4 mt-2"
+        >
+          <Image
+            src={product.image || "/placeholder.svg?height=250&width=250"}
+            alt={product.name}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 768px) 100vw, 250px"
+          />
+
+          {/* Out of Stock Overlay */}
+          {(product.inventoryQuantity ?? 1) === 0 && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
+              <span className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
+                Out of Stock
+              </span>
+            </div>
+          )}
+
+          {/* Hover Actions - Wishlist button only (cards expand on click) */}
+          {variant === "default" && (
+            <AnimatePresence>
+              {isHovered && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute bottom-4 left-0 right-0 flex justify-center"
+                  data-prevent-expand
+                >
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={handleAddToWishlist}
-                    className={`p-3 rounded-full transition-all duration-200 ${
+                    className={`p-3 rounded-full backdrop-blur-sm transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer ${
                       isInWishlistAlready
-                        ? "bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-400"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600"
+                        ? "bg-red-500/95 text-white hover:bg-red-600"
+                        : "bg-white/95 text-zinc-700 hover:bg-white hover:text-red-600 dark:bg-zinc-800/95 dark:text-zinc-300 dark:hover:bg-zinc-800"
                     }`}
                   >
                     <Heart
                       className={`h-5 w-5 ${isInWishlistAlready ? "fill-current" : ""}`}
                     />
                   </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={handleAddToCart}
-                    disabled={product.inventoryQuantity === 0}
-                    className="p-3 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                  >
-                    <ShoppingCart className="h-5 w-5" />
-                  </motion.button>
-                </div>
-              </div>
-            </div>
-          </Link>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
         </motion.div>
-        <QuickViewModal
-          product={product}
-          isOpen={isQuickViewOpen}
-          onClose={() => setIsQuickViewOpen(false)}
-        />
-      </>
-    );
-  }
+
+        {/* Category */}
+        {showCategory && product.category && (
+          <span className="text-xs text-zinc-500 dark:text-zinc-400 mb-1 block">
+            {product.category.name}
+          </span>
+        )}
+
+        {/* Product Name */}
+        <motion.h3
+          layoutId={
+            layoutId ? `product-name-${product.id}-${layoutId}` : undefined
+          }
+          className="font-bold text-lg text-zinc-900 dark:text-white mb-2 line-clamp-1 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors"
+        >
+          {product.name}
+        </motion.h3>
+
+        {/* Rating */}
+        {showRating && product.rating !== undefined && product.rating > 0 && (
+          <div className="flex items-center gap-1 mb-3">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`w-4 h-4 ${
+                  i < Math.round(product.rating!)
+                    ? "text-yellow-400 fill-yellow-400"
+                    : "text-zinc-300 dark:text-zinc-600"
+                }`}
+              />
+            ))}
+            <span className="text-sm text-zinc-500 dark:text-zinc-400 ml-1">
+              ({product.reviewsCount || 0})
+            </span>
+          </div>
+        )}
+
+        {/* Stock */}
+        {showStock && (
+          <div
+            className={`text-xs font-medium mb-3 ${
+              (product.inventoryQuantity ?? 0) > 10
+                ? "text-green-600 dark:text-green-400"
+                : (product.inventoryQuantity ?? 0) > 0
+                  ? "text-yellow-600 dark:text-yellow-400"
+                  : "text-red-600 dark:text-red-400"
+            }`}
+          >
+            {(product.inventoryQuantity ?? 0) > 0
+              ? `${product.inventoryQuantity} in stock`
+              : "Out of stock"}
+          </div>
+        )}
+
+        {/* Price & Action */}
+        <div className="relative flex items-center justify-between">
+          <motion.span
+            layoutId={
+              layoutId ? `product-price-${product.id}-${layoutId}` : undefined
+            }
+            className="text-xl font-bold bg-linear-to-r from-amber-600 to-emerald-600 bg-clip-text text-transparent"
+          >
+            {product.currency} {product.price.toFixed(2)}
+          </motion.span>
+
+          {/* Default variant: Cart button on hover - absolute positioned to prevent layout shift */}
+          {variant === "default" && (
+            <AnimatePresence>
+              {isHovered && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.2 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleAddToCart}
+                  disabled={(product.inventoryQuantity ?? 1) === 0}
+                  data-prevent-expand
+                  className="absolute right-0 top-1/2 -translate-y-1/2 p-2 rounded-full bg-linear-to-r from-amber-600 to-emerald-600 text-white hover:from-amber-700 hover:to-emerald-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg hover:shadow-xl"
+                >
+                  {(product.inventoryQuantity ?? 1) === 0 ? (
+                    <X className="h-4 w-4" />
+                  ) : (
+                    <ShoppingCart className="h-4 w-4" />
+                  )}
+                </motion.button>
+              )}
+            </AnimatePresence>
+          )}
+
+          {/* Wishlist variant: Show action buttons */}
+          {variant === "wishlist" && (
+            <div className="flex gap-2" data-prevent-expand>
+              <Button
+                onClick={handleAddToCart}
+                size="sm"
+                className="bg-linear-to-r from-amber-600 to-emerald-600 hover:from-amber-700 hover:to-emerald-700 text-white"
+              >
+                <ShoppingCart className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={handleRemove}
+                variant="outline"
+                size="sm"
+                className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950 dark:hover:border-red-700"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// Product Grid with expandable card support
+interface ProductGridProps {
+  products: Product[];
+  children?: (props: {
+    product: Product;
+    index: number;
+    layoutId: string;
+    onExpand: () => void;
+    isActiveCard: boolean;
+  }) => React.ReactNode;
+  className?: string;
+  // Pass through to children
+  showSoldBadge?: boolean;
+  showTypeBadge?: boolean;
+  showCategory?: boolean;
+  showRating?: boolean;
+  showStock?: boolean;
+  variant?: "default" | "wishlist";
+  onRemoveFromWishlist?: (productId: string) => void;
+  rankFirst?: number; // How many to show rank badges for (e.g., 3 for top 3)
+}
+
+export function ProductGrid({
+  products,
+  children,
+  className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8",
+  showSoldBadge,
+  showTypeBadge,
+  showCategory,
+  showRating,
+  showStock,
+  variant = "default",
+  onRemoveFromWishlist,
+  rankFirst = 0,
+}: ProductGridProps) {
+  const [activeProduct, setActiveProduct] = useState<Product | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  const layoutId = useId();
+  const expandedRef = useRef<HTMLDivElement>(null);
+
+  // Track mount state for portal
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Handle escape key to close
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setActiveProduct(null);
+      }
+    }
+
+    if (activeProduct) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [activeProduct]);
+
+  // Close when clicking outside
+  useOutsideClick(expandedRef, () => setActiveProduct(null));
+
+  // Modal content to be portaled
+  const modalContent = (
+    <>
+      {/* Overlay backdrop */}
+      <AnimatePresence>
+        {activeProduct && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm h-full w-full z-[9999]"
+            onClick={() => setActiveProduct(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Expanded card modal */}
+      <AnimatePresence>
+        {activeProduct && (
+          <div className="fixed inset-0 grid place-items-center z-[10000] p-4 pointer-events-none">
+            <div className="pointer-events-auto">
+              <ExpandedProductCard
+                ref={expandedRef}
+                product={activeProduct}
+                onClose={() => setActiveProduct(null)}
+                layoutId={layoutId}
+                variant={variant}
+                onRemoveFromWishlist={
+                  onRemoveFromWishlist
+                    ? () => onRemoveFromWishlist(activeProduct.id)
+                    : undefined
+                }
+              />
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
+  );
 
   return (
     <>
-      <motion.div
-        whileHover={{ y: -8 }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="h-full"
-      >
-        <Link
-          href={`/ecommerce/product/${product.slug}`}
-          className="group relative bg-gradient-to-br from-white to-gray-50 dark:from-zinc-800 dark:to-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-500 dark:text-zinc-100 h-full flex flex-col"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <div className="relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-700 dark:to-zinc-800">
-            <div className="relative h-64 w-full">
-              <Image
-                src={
-                  product.image ||
-                  "/placeholder.svg?height=256&width=256&query=product"
-                }
-                alt={product.name}
-                fill
-                className="object-cover transform group-hover:scale-110 transition-transform duration-700"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      {/* Portal modal to body to escape any stacking contexts */}
+      {isMounted && createPortal(modalContent, document.body)}
 
-              {categoryName && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="absolute top-3 left-3"
-                >
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/90 text-gray-800 backdrop-blur-sm dark:bg-black/60 dark:text-white shadow-lg">
-                    <Tag className="h-3 w-3 mr-1" />
-                    {categoryName}
-                  </span>
-                </motion.div>
-              )}
-
-              {product.type && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="absolute top-3 right-3"
-                >
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm shadow-lg ${
-                      product.type === "DOWNLOADABLE"
-                        ? "bg-blue-500/90 text-white"
-                        : "bg-green-500/90 text-white"
-                    }`}
-                  >
-                    {product.type === "DOWNLOADABLE" ? (
-                      <>
-                        <Zap className="h-3 w-3 mr-1" />
-                        {t("Digital")}
-                      </>
-                    ) : (
-                      <>
-                        <Package className="h-3 w-3 mr-1" />
-                        {t("Physical")}
-                      </>
-                    )}
-                  </span>
-                </motion.div>
-              )}
-
-              {product.inventoryQuantity === 0 && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
-                  <span className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
-                    {t("out_of_stock")}
-                  </span>
-                </div>
-              )}
-
-              <AnimatedButtons
-                isVisible={isHovered}
-                product={product}
-                onQuickView={handleQuickView}
-                onAddToWishlist={handleAddToWishlist}
-                onAddToCart={handleAddToCart}
-                isInWishlist={isInWishlistAlready}
-              />
-            </div>
-          </div>
-
-          <div className="p-5 flex-grow flex flex-col justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-zinc-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mb-2">
-                {product.name}
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-zinc-400 line-clamp-2 mb-3">
-                {displayDescription}
-              </p>
-              <div
-                className={`text-xs font-medium mb-3 ${
-                  product.inventoryQuantity > 10
-                    ? "text-green-600 dark:text-green-400"
-                    : product.inventoryQuantity > 0
-                      ? "text-yellow-600 dark:text-yellow-400"
-                      : "text-red-600 dark:text-red-400"
-                }`}
-              >
-                {product.inventoryQuantity > 0
-                  ? `${product.inventoryQuantity} in stock`
-                  : "Out of stock"}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <p className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                {product.price} {product.currency}
-              </p>
-              {product.rating !== undefined && product.rating > 0 && (
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 ${
-                        i < Math.round(product.rating!)
-                          ? "text-yellow-400 fill-yellow-400"
-                          : "text-gray-300 dark:text-zinc-600"
-                      }`}
-                    />
-                  ))}
-                  {product.reviewsCount !== undefined &&
-                    product.reviewsCount > 0 && (
-                      <span className="ml-1 text-xs text-gray-500 dark:text-zinc-400">
-                        (
-                        {product.reviewsCount}
-                        )
-                      </span>
-                    )}
-                </div>
-              )}
-            </div>
-          </div>
-        </Link>
-      </motion.div>
-      <QuickViewModal
-        product={product}
-        isOpen={isQuickViewOpen}
-        onClose={() => setIsQuickViewOpen(false)}
-      />
+      {/* Product grid */}
+      <div className={className}>
+        {products.map((product, index) =>
+          children ? (
+            children({
+              product,
+              index,
+              layoutId,
+              onExpand: () => setActiveProduct(product),
+              isActiveCard: activeProduct?.id === product.id,
+            })
+          ) : (
+            <ProductCardInner
+              key={product.id}
+              product={product}
+              rank={rankFirst > 0 && index < rankFirst ? index : undefined}
+              showSoldBadge={showSoldBadge}
+              showTypeBadge={showTypeBadge}
+              showCategory={showCategory}
+              showRating={showRating}
+              showStock={showStock}
+              variant={variant}
+              onRemoveFromWishlist={
+                onRemoveFromWishlist
+                  ? () => onRemoveFromWishlist(product.id)
+                  : undefined
+              }
+              animationIndex={index}
+              layoutId={layoutId}
+              onExpand={() => setActiveProduct(product)}
+              isActiveCard={activeProduct?.id === product.id}
+            />
+          )
+        )}
+      </div>
     </>
   );
 }
 
-function AnimatedButtons({
-  isVisible,
-  product,
-  onQuickView,
-  onAddToWishlist,
-  onAddToCart,
-  isInWishlist,
-}: {
-  isVisible: boolean;
-  product: any;
-  onQuickView: (e: React.MouseEvent) => void;
-  onAddToWishlist: (e: React.MouseEvent) => void;
-  onAddToCart: (e: React.MouseEvent) => void;
-  isInWishlist: boolean;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-      transition={{ duration: 0.3, staggerChildren: 0.1 }}
-      className="absolute bottom-4 left-0 right-0 flex justify-center space-x-3"
-    >
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={onQuickView}
-        className="p-3 rounded-full bg-white/95 text-gray-700 hover:bg-white hover:text-indigo-600 backdrop-blur-sm dark:bg-zinc-800/95 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white transition-all duration-200 shadow-lg hover:shadow-xl"
-      >
-        <Eye className="h-5 w-5" />
-      </motion.button>
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={onAddToWishlist}
-        className={`p-3 rounded-full backdrop-blur-sm transition-all duration-200 shadow-lg hover:shadow-xl ${
-          isInWishlist
-            ? "bg-red-500/95 text-white hover:bg-red-600"
-            : "bg-white/95 text-gray-700 hover:bg-white hover:text-red-600 dark:bg-zinc-800/95 dark:text-zinc-300 dark:hover:bg-zinc-800"
-        }`}
-      >
-        <Heart className={`h-5 w-5 ${isInWishlist ? "fill-current" : ""}`} />
-      </motion.button>
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={onAddToCart}
-        disabled={product.inventoryQuantity === 0}
-        className="p-3 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 backdrop-blur-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-      >
-        {product.inventoryQuantity === 0 ? (
-          <X className="h-5 w-5" />
-        ) : (
-          <ShoppingCart className="h-5 w-5" />
-        )}
-      </motion.button>
-    </motion.div>
-  );
+// Default export for simple usage (legacy support without expand)
+export default function ProductCard(props: ProductCardProps) {
+  return <ProductCardInner {...props} />;
 }
+
+// Named exports
+export { ProductCardInner, ExpandedProductCard };
+export type { Product, ProductCardProps, ProductGridProps };

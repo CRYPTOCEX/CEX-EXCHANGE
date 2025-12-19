@@ -21,7 +21,8 @@ import { useUserStore } from "@/store/user";
 import { useTranslations } from "next-intl";
 
 export default function OfferDetailsClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
   const params = useParams();
   const offerId = params.id as string;
 
@@ -107,7 +108,7 @@ export default function OfferDetailsClient() {
         <Link href="/p2p/offer" className="mt-6">
           <Button variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t("back_to_offers")}
+            {tCommon('back_to_offerings')}
           </Button>
         </Link>
       </div>
@@ -115,7 +116,7 @@ export default function OfferDetailsClient() {
   }
 
   return (
-    <div className="flex flex-col" style={{ minHeight: 'calc(100vh - 232px)' }}>
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
       {/* Hero Section */}
       <OfferHero
         offer={offer}
@@ -125,8 +126,8 @@ export default function OfferDetailsClient() {
       />
 
       {/* Main Content */}
-      <div className="bg-background flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex-1">
+        <div className="container mx-auto py-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left column - Offer details */}
             <div className="lg:col-span-2 space-y-8">

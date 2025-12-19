@@ -28,7 +28,9 @@ export default function AdditionalMetrics({
   pendingWithdrawals,
   analytics,
 }: AdditionalMetricsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
@@ -73,12 +75,12 @@ export default function AdditionalMetrics({
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-blue-500" />
                 <span>
-                  {t("Avg")}. {t("lock_period")}
+                  {tCommon("avg")}. {tCommon("lock_period")}
                 </span>
               </div>
               <span className="font-medium">
                 {avgLockPeriod.toFixed(0)}
-                {t("days")}
+                {tCommon("days")}
               </span>
             </div>
             <Progress value={(avgLockPeriod / 90) * 100} className="h-2" />
@@ -101,7 +103,7 @@ export default function AdditionalMetrics({
                 <div>
                   <h4 className="font-medium">{t("withdrawal_requests")}</h4>
                   <p className="text-sm text-muted-foreground">
-                    {t("pending_approval")}
+                    {tExt("pending_approval")}
                   </p>
                 </div>
               </div>
@@ -131,7 +133,7 @@ export default function AdditionalMetrics({
                   <Coins className="h-4 w-4" />
                 </div>
                 <div>
-                  <h4 className="font-medium">{t("total_earnings")}</h4>
+                  <h4 className="font-medium">{tCommon("total_earnings")}</h4>
                   <p className="text-sm text-muted-foreground">
                     {t("distributed_to_users")}
                   </p>

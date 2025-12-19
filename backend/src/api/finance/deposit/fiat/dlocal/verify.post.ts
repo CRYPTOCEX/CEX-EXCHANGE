@@ -4,18 +4,21 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 
-import { 
-  makeDLocalRequest, 
+import {
+  makeDLocalRequest,
   DLOCAL_STATUS_MAPPING,
-  DLocalError 
+  DLocalError
 } from "./utils";
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Verify dLocal payment status",
   description: "Manually verify a dLocal payment status and update transaction accordingly",
   operationId: "verifyDLocalPayment",
   tags: ["Finance", "Verification"],
+  logModule: "DLOCAL_DEPOSIT",
+  logTitle: "Verify dLocal payment",
   requestBody: {
     description: "Payment verification request",
     content: {
@@ -64,7 +67,8 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user) throw new Error("User not authenticated");
 
   const { payment_id, order_id } = body;
@@ -127,7 +131,7 @@ export default async (data: Handler) => {
       "GET"
     );
 
-    console.log(`dLocal payment verification: ${dLocalPaymentId}, status: ${paymentData.status}`);
+    logger.info("DLOCAL", `Payment verification: ${dLocalPaymentId}, status: ${paymentData.status}`);
 
     // Map dLocal status to internal status
     const internalStatus = DLOCAL_STATUS_MAPPING[paymentData.status] || "pending";
@@ -159,7 +163,8 @@ export default async (data: Handler) => {
       let wallet = transactionUser.wallets?.find((w) => w.currency === currency);
       
       if (!wallet) {
-        wallet = await models.wallet.create({
+      ctx?.step("Creating new wallet");
+      wallet = await models.wallet.create({
           userId: transactionUser.id,
           currency: currency,
           type: "FIAT",
@@ -177,13 +182,15 @@ export default async (data: Handler) => {
       });
 
       walletUpdated = true;
-      console.log(`Wallet updated for user ${transactionUser.id}: +${depositAmount} ${currency}`);
+      logger.success("DLOCAL", `Wallet updated for user ${transactionUser.id}: +${depositAmount} ${currency}`);
 
       // Log the successful deposit
-      console.log(`dLocal deposit verified and completed: ${paymentData.id}, amount: ${depositAmount} ${currency}`);
+      logger.success("DLOCAL", `Deposit verified and completed: ${paymentData.id}, amount: ${depositAmount} ${currency}`);
     }
 
-    return {
+    ctx?.success("Dlocal deposit completed successfully");
+
+  return {
       payment_id: paymentData.id,
       order_id: transaction.uuid,
       status: paymentData.status,
@@ -194,7 +201,7 @@ export default async (data: Handler) => {
     };
 
   } catch (error) {
-    console.error("dLocal payment verification error:", error);
+    logger.error("DLOCAL", "Payment verification error", error);
 
     if (error instanceof DLocalError) {
       throw new Error(`dLocal API Error: ${error.message}`);

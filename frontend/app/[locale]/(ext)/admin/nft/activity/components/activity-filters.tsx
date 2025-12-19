@@ -43,7 +43,9 @@ const activityTypes = [
 ];
 
 export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFiltersProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const [collections, setCollections] = useState<any[]>([]);
   const [creators, setCreators] = useState<any[]>([]);
   const [tokens, setTokens] = useState<any[]>([]);
@@ -108,7 +110,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
         const response = await $fetch({
           url: "/api/admin/nft/token",
           params: {
-            collectionId: activeFilters.collectionId,
+            ...(activeFilters.collectionId && { collectionId: activeFilters.collectionId }),
             pageSize: 100
           },
           silentSuccess: true,
@@ -201,7 +203,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
                 className="h-8 text-xs"
               >
                 <X className="h-3 w-3 mr-1" />
-                {t("clear_all")}
+                {tCommon("clear_all")}
               </Button>
             )}
           </div>
@@ -275,7 +277,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
                 <SelectValue placeholder={loadingCollections ? "Loading..." : "All Collections"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("all_collections")}</SelectItem>
+                <SelectItem value="all">{tExt("all_collections")}</SelectItem>
                 {collections.map((collection) => (
                   <SelectItem key={collection.id} value={collection.id}>
                     {collection.name}
@@ -298,7 +300,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
                   <SelectValue placeholder={loadingTokens ? "Loading..." : "All Tokens"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("all_tokens")}</SelectItem>
+                  <SelectItem value="all">{tExt("all_tokens")}</SelectItem>
                   {tokens.map((token) => (
                     <SelectItem key={token.id} value={token.id}>
                       {token.name} #{token.tokenId}
@@ -337,7 +339,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
       {activeFilterCount > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">{t("active_filters")}</CardTitle>
+            <CardTitle className="text-sm">{tCommon("active_filters")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -411,7 +413,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
               )}
               {activeFilters.search && (
                 <Badge variant="secondary" className="gap-1 pr-1">
-                  {t("search")} {activeFilters.search}
+                  {tCommon("search")} {activeFilters.search}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

@@ -43,7 +43,8 @@ export function TradeForm({
   settings,
   isOwner = false,
 }: TradeFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
   const { hasKyc, canAccessFeature } = useUserStore();
   const { settings: globalSettings } = useConfigStore();
   const kycEnabled = globalSettings?.kycStatus === "true";
@@ -278,7 +279,7 @@ export function TradeForm({
     if (!offer?.id) {
       console.error("Cannot remove offer: offer ID is missing");
       toast({
-        title: t("error") || "Error",
+        title: "Error",
         description: "Cannot remove offer: offer ID is missing",
         variant: "destructive",
       });
@@ -310,10 +311,10 @@ export function TradeForm({
         // Extract meaningful error message
         const errorMessage = typeof error === "string"
           ? error
-          : error?.message || JSON.stringify(error) || "Failed to remove offer";
+          : (error as any)?.message || JSON.stringify(error) || "Failed to remove offer";
 
         toast({
-          title: t("error") || "Error",
+          title: "Error",
           description: errorMessage,
           variant: "destructive",
           duration: 10000, // Show error for 10 seconds
@@ -335,7 +336,7 @@ export function TradeForm({
       console.error("Error removing offer:", error);
       const errorMessage = error?.message || error?.toString() || t("failed_to_remove_offer") || "Failed to remove offer";
       toast({
-        title: t("error") || "Error",
+        title: "Error",
         description: errorMessage,
         variant: "destructive",
         duration: 10000, // Show error for 10 seconds
@@ -377,7 +378,7 @@ export function TradeForm({
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                 </svg>
-                {t("edit_offer")}
+                {tCommon("edit_offer")}
               </Button>
             </Link>
 
@@ -514,7 +515,7 @@ export function TradeForm({
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="amount" className="text-sm font-medium">
-              {t("amount_(")}
+              {tCommon("amount")}
               {currencyCode}
               )
             </Label>
@@ -537,14 +538,14 @@ export function TradeForm({
                 min {minAmountDisplay}
               </span>
               <span className="text-muted-foreground">
-                {t("max")} {maxAmountDisplay}
+                {tCommon("max")} {maxAmountDisplay}
               </span>
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="total" className="text-sm font-medium">
-              {t("Total")} ({priceCurrency})
+              {tCommon("total")} ({priceCurrency})
             </Label>
             <div className="relative">
               <Input
@@ -565,7 +566,7 @@ export function TradeForm({
                 min {minTotal.toFixed(2)} {priceCurrency}
               </span>
               <span className="text-muted-foreground">
-                {t("max")} {maxTotal.toFixed(2)} {priceCurrency}
+                {tCommon("max")} {maxTotal.toFixed(2)} {priceCurrency}
               </span>
             </div>
           </div>
@@ -582,11 +583,11 @@ export function TradeForm({
             if (feeRate > 0 && totalPrice > 0) {
               return (
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">{t("Fees")}</Label>
+                  <Label className="text-sm font-medium">{tCommon("fees")}</Label>
                   <div className="bg-muted/20 p-3 rounded-md space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>
-                        {t("platform_fee_(")}
+                        {tCommon("platform_fee")}
                         {feeRate}
                         %)
                       </span>
@@ -617,7 +618,7 @@ export function TradeForm({
           })()}
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium">{t("payment_method")}</Label>
+            <Label className="text-sm font-medium">{tCommon("payment_method")}</Label>
             {offer.paymentMethods && offer.paymentMethods.length > 0 ? (
               <RadioGroup
                 value={selectedPaymentMethod}
@@ -647,7 +648,7 @@ export function TradeForm({
               </RadioGroup>
             ) : (
               <div className="text-sm text-muted-foreground p-3 border rounded-md">
-                {t("no_payment_methods_available")}
+                {tCommon("no_payment_methods")}
               </div>
             )}
           </div>
@@ -656,7 +657,7 @@ export function TradeForm({
             <Timer className="h-4 w-4 mt-0.5 text-muted-foreground" />
             <div>
               <p className="text-sm font-medium">
-                {t("time_limit")} {timeLimit} {t("minutes")}
+                {t("time_limit")} {timeLimit} {tCommon("minutes")}
               </p>
               <p className="text-xs text-muted-foreground">
                 {t("once_you_start_the_trade_you_will_have")} {timeLimit} {t("minutes_to_complete_the_payment")}.
@@ -685,11 +686,11 @@ export function TradeForm({
             {isSubmitting ? (
               <>
                 <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
-                {t("Processing")}.
+                {tCommon("processing")}.
               </>
             ) : (
               <>
-                {actionText} {currencyCode} {t("Now")}
+                {actionText} {currencyCode} {t("now")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </>
             )}
@@ -702,7 +703,7 @@ export function TradeForm({
         <div className="flex items-center mb-2">
           <Shield className="h-5 w-5 mr-2 text-primary" />
           <span className="font-medium">
-            {t("100%_secure_escrow_protection")}
+            {t("n_100_secure_escrow_protection")}
           </span>
         </div>
         <p className="text-xs text-muted-foreground">

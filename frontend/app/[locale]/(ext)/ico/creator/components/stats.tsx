@@ -6,9 +6,10 @@ import { ArrowDown, ArrowUp, DollarSign, Users, BarChart3 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCreatorStore } from "@/store/ico/creator/creator-store";
 import { useTranslations } from "next-intl";
-
 export function CreatorStats() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { stats, isLoadingStats, statsError, fetchStats } = useCreatorStore();
 
   useEffect(() => {
@@ -53,7 +54,7 @@ export function CreatorStats() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            {t("total_raised")}
+            {tExt("total_raised")}
           </CardTitle>
           <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
             <DollarSign className="h-4 w-4 text-primary" />
@@ -78,7 +79,7 @@ export function CreatorStats() {
               {stats.raiseGrowth}%
             </span>
             <span className="text-muted-foreground text-xs ml-1">
-              {t("from_last_month")}
+              {tExt("from_last_month")}
             </span>
           </div>
         </CardContent>
@@ -88,7 +89,7 @@ export function CreatorStats() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            {t("total_offerings")}
+            {tExt("total_offerings")}
           </CardTitle>
           <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
             <Users className="h-4 w-4 text-primary" />
@@ -123,7 +124,7 @@ export function CreatorStats() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            {t("active_offerings")}
+            {tCommon('active_offers')}
           </CardTitle>
           <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
             <Users className="h-4 w-4 text-primary" />
@@ -140,7 +141,7 @@ export function CreatorStats() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            {t("success_rate")}
+            {tCommon("success_rate")}
           </CardTitle>
           <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
             <BarChart3 className="h-4 w-4 text-primary" />

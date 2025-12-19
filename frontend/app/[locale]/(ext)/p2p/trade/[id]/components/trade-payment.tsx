@@ -41,7 +41,9 @@ interface TradePaymentProps {
 }
 
 export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [reference, setReference] = useState("");
   const [proofNote, setProofNote] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
@@ -160,7 +162,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
     <Card className="border-primary/10">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <CardTitle>{t("payment_details")}</CardTitle>
+          <CardTitle>{tCommon("payment_details")}</CardTitle>
           {trade.status === "waiting_payment" && (
             <Badge
               variant="outline"
@@ -192,13 +194,13 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
             <div className="rounded-md border p-4 bg-muted/30">
               <h3 className="font-medium mb-4 flex items-center">
                 <FileText className="h-4 w-4 mr-2 text-primary" />
-                {t("payment_instructions")}
+                {tCommon("payment_instructions")}
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      {t("payment_method")}
+                      {tCommon("payment_method")}
                     </p>
                     <p className="font-medium">{trade.paymentDetails?.name || trade.paymentMethodDetails?.name || trade.paymentMethod}</p>
                   </div>
@@ -260,7 +262,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <p className="text-sm text-muted-foreground">
-                          {t("Instructions")}
+                          {tCommon("instructions")}
                         </p>
                         <p className="font-medium whitespace-pre-wrap">
                           {trade.paymentDetails.instructions}
@@ -288,7 +290,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      {t("amount_to_send")}
+                      {tCommon("amount_to_send")}
                     </p>
                     <p className="font-medium">
                       {currencySymbol}{trade.total.toLocaleString()}
@@ -318,7 +320,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      {t("Reference")}
+                      {t("reference")}
                     </p>
                     <p className="font-medium">
                       TRADE-{trade.id}
@@ -344,7 +346,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
 
             <Alert className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>{t("Important")}</AlertTitle>
+              <AlertTitle>{tExt("important")}</AlertTitle>
               <AlertDescription>
                 {t("always_include_the_your_payment")}.{" "}
                 {t("this_helps_the_prevents_delays")}.
@@ -368,7 +370,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
 
                 <div className="space-y-2">
                   <Label htmlFor="proof-note">
-                    {t("additional_notes_(optional)")}
+                    {t("additional_notes_optional")}
                   </Label>
                   <Textarea
                     id="proof-note"
@@ -380,7 +382,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
 
                 {/* Receipt Upload */}
                 <div className="space-y-2">
-                  <Label>{t("payment_receipt")} ({t("optional")})</Label>
+                  <Label>{t("payment_receipt")} ({tCommon("optional")})</Label>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -393,7 +395,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                     <div className="relative rounded-lg border overflow-hidden">
                       <img
                         src={receiptPreview}
-                        alt="Receipt preview"
+                        alt={t("receipt_preview")}
                         className="w-full h-48 object-cover"
                       />
                       <Button
@@ -431,7 +433,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                   {isUploading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t("uploading")}...
+                      {tCommon('uploading_ellipsis')}...
                     </>
                   ) : (
                     <>
@@ -456,7 +458,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
             </p>
 
             <div className="mt-6 border rounded-md p-4 text-left">
-              <h4 className="font-medium mb-2">{t("payment_details")}</h4>
+              <h4 className="font-medium mb-2">{tCommon("payment_details")}</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
@@ -466,12 +468,12 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
-                    {t("payment_method")}
+                    {tCommon("payment_method")}
                   </span>
                   <span>{trade.paymentDetails?.name || trade.paymentMethodDetails?.name || trade.paymentMethod}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("amount")}</span>
+                  <span className="text-muted-foreground">{tCommon("amount")}</span>
                   <span>
                     {currencySymbol}{trade.total.toLocaleString()}
                   </span>
@@ -492,7 +494,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
         ) : (
           <div className="text-center py-8">
             <h3 className="font-medium">
-              {t("Payment")}{" "}
+              {tCommon("payment")}{" "}
               {isCompleted(trade.status) ? "Completed" : isExpired(trade.status) ? "Expired" : "Not Required"}
             </h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
@@ -509,7 +511,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
       </CardContent>
       {trade.status === "payment_confirmed" && trade.type === "sell" && (
         <CardFooter>
-          <Button onClick={onConfirmPayment} className="w-full">
+          <Button onClick={() => onConfirmPayment()} className="w-full">
             <CheckCircle2 className="mr-2 h-4 w-4" />
             {t("ive_received_the_payment")}
           </Button>

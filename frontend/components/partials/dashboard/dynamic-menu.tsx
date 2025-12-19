@@ -65,13 +65,17 @@ function renderSubChildLinks(subItems: MenuItem[]) {
   );
 }
 
-// Renders a grid of cards for a standard list of child items.
+// Component for rendering a grid of cards for a standard list of child items.
 // Skips any item whose href matches currentPath.
-function renderMenuCards(
-  items: MenuItem[],
-  currentPath: string | undefined,
-  t: any
-) {
+function MenuCards({
+  items,
+  currentPath,
+}: {
+  items: MenuItem[];
+  currentPath: string | undefined;
+}) {
+  const tCommon = useTranslations("common");
+  const tComponents = useTranslations("components");
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {items
@@ -116,12 +120,12 @@ function renderMenuCards(
                 <CardContent>
                   {isDisabled ? (
                     <Button variant="secondary" disabled className="cursor-not-allowed">
-                      {t("extension_not_installed")}
+                      {tComponents("extension_not_installed")}
                     </Button>
                   ) : (
                     <Link href={item.href}>
                     <Button variant="secondary">
-                        {t("go_to")}{" "}
+                        {tComponents("go_to")}{" "}
                         {item.title}
                       </Button>
                       </Link>
@@ -135,8 +139,8 @@ function renderMenuCards(
                     "text-sm text-muted-foreground",
                     isDisabled && "text-muted-foreground/60"
                   )}>
-                    {t("Contains")}
-                    {item.megaMenu.length} {t("extension_categories")}
+                    {tCommon("contains")}
+                    {item.megaMenu.length} {tComponents("extension_categories")}
                   </p>
                 </CardContent>
               )}
@@ -163,13 +167,16 @@ function renderMenuCards(
   );
 }
 
-// Renders a megaMenu with groups containing images and additional addons.
+// Component for rendering a megaMenu with groups containing images and additional addons.
 // Each group is rendered in a 2‑column grid.
-function renderMegaMenuGroupsWithAddons(
-  groups: MenuItem[],
-  currentPath: string | undefined,
-  t: any
-) {
+function MegaMenuGroupsWithAddons({
+  groups,
+  currentPath,
+}: {
+  groups: MenuItem[];
+  currentPath: string | undefined;
+}) {
+  const tComponents = useTranslations("components");
   try {
     // Filter out groups that have no href and no visible children, but keep disabled extensions for admin
     const visibleGroups = groups.filter((group) => {
@@ -188,7 +195,7 @@ function renderMegaMenuGroupsWithAddons(
       return (
         <div className="p-8 text-center">
           <p className="text-xl text-muted-foreground">
-            {t("no_extensions_available_or_enabled")}.
+            {tComponents("no_extensions_available_or_enabled")}.
           </p>
         </div>
       );
@@ -248,12 +255,12 @@ function renderMegaMenuGroupsWithAddons(
                 <CardContent>
                   {isGroupDisabled ? (
                     <Button variant="secondary" disabled className="cursor-not-allowed">
-                      {t("category_not_available")}
+                      {tComponents("category_not_available")}
                     </Button>
                   ) : (
                     <Link href={group.href}>
                     <Button variant="secondary">
-                        {t("go_to")}
+                        {tComponents("go_to")}
                         {group.title}
                       </Button>
                       </Link>
@@ -319,12 +326,12 @@ function renderMegaMenuGroupsWithAddons(
                         {addon.href && (
                           isAddonDisabled ? (
                             <Button variant="secondary" size="sm" disabled className="cursor-not-allowed">
-                              {t("extension_not_installed")}
+                              {tComponents("extension_not_installed")}
                             </Button>
                           ) : (
                             <Button variant="secondary" size="sm">
                               <Link href={addon.href}>
-                                {t("go_to")}
+                                {tComponents("go_to")}
                                 {addon.title}
                               </Link>
                             </Button>
@@ -368,10 +375,10 @@ function renderMegaMenuGroupsWithAddons(
     return (
       <div className="p-8 text-center">
         <h3 className="text-lg font-semibold text-red-600 mb-2">
-          {t("error_loading_extensions")}
+          {tComponents("error_loading_extensions")}
         </h3>
         <p className="text-muted-foreground">
-          {t("there_was_an_error_rendering_the_extensions_menu")}
+          {tComponents("there_was_an_error_rendering_the_extensions_menu")}
         </p>
       </div>
     );
@@ -380,7 +387,8 @@ function renderMegaMenuGroupsWithAddons(
 
 // Main dynamic menu component that renders different views depending on route and menu data.
 export function DynamicMenuView() {
-  const t = useTranslations("common");
+  const t = useTranslations("components");
+  const tCommon = useTranslations("common");
   const { user } = useUserStore();
   const {
     settings,
@@ -404,7 +412,7 @@ export function DynamicMenuView() {
   if (isLoading && !settingsFetched) {
     return (
       <div className="p-8 text-center">
-        <p className="text-xl">{t("loading_menu")}...</p>
+        <p className="text-xl">{tCommon("loading_menu")}...</p>
       </div>
     );
   }
@@ -420,7 +428,7 @@ export function DynamicMenuView() {
           <p className="text-muted-foreground mt-2">{settingsError}</p>
         </div>
         <Button onClick={retryFetch} variant="outline">
-          {t("Retry")}
+          {tCommon("retry")}
         </Button>
       </div>
     );
@@ -450,7 +458,7 @@ export function DynamicMenuView() {
         <h1 className="text-3xl font-bold mb-6 text-center">
           {activeMenuType === "admin" ? "Admin Menu" : "User Menu"}
         </h1>
-        {renderMenuCards(filteredMenu, normalizedPath, t)}
+        <MenuCards items={filteredMenu} currentPath={normalizedPath} />
       </div>
     );
   }
@@ -475,11 +483,10 @@ export function DynamicMenuView() {
                 {extensionsMenuItem.description}
               </p>
             )}
-            {renderMegaMenuGroupsWithAddons(
-              extensionsMenuItem.megaMenu,
-              normalizedPath,
-              t
-            )}
+            <MegaMenuGroupsWithAddons
+              groups={extensionsMenuItem.megaMenu}
+              currentPath={normalizedPath}
+            />
           </div>
         );
       } catch (error) {
@@ -493,7 +500,7 @@ export function DynamicMenuView() {
               {t("there_was_an_error_loading_the_extensions_page")}
             </p>
             <Button onClick={() => window.location.reload()} variant="outline">
-              {t("Retry")}
+              {tCommon("retry")}
             </Button>
           </div>
         );
@@ -523,7 +530,7 @@ export function DynamicMenuView() {
             {currentMenuItem.description}
           </p>
         )}
-        {renderMenuCards(currentMenuItem.child, normalizedPath, t)}
+        <MenuCards items={currentMenuItem.child} currentPath={normalizedPath} />
       </div>
     );
   }
@@ -538,11 +545,10 @@ export function DynamicMenuView() {
             {currentMenuItem.description}
           </p>
         )}
-        {renderMegaMenuGroupsWithAddons(
-          currentMenuItem.megaMenu,
-          normalizedPath,
-          t
-        )}
+        <MegaMenuGroupsWithAddons
+          groups={currentMenuItem.megaMenu}
+          currentPath={normalizedPath}
+        />
       </div>
     );
   }

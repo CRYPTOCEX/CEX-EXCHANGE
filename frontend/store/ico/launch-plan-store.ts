@@ -71,20 +71,20 @@ export const useLaunchPlanStore = create<LaunchPlanStore>((set, get) => ({
 
   canAddUpdate: async (planId: string, currentUpdatesCount: number) => {
     const plan = await get().checkPlanById(planId);
-    if (!plan) return false;
-    return currentUpdatesCount < plan.features.maxUpdatePosts;
+    if (!plan || !plan.features || typeof plan.features !== 'object' || Array.isArray(plan.features)) return false;
+    return currentUpdatesCount < (plan.features.maxUpdatePosts ?? Infinity);
   },
 
   canAddTeamMember: async (planId: string, currentTeamCount: number) => {
     const plan = await get().checkPlanById(planId);
-    if (!plan) return false;
-    return currentTeamCount < plan.features.maxTeamMembers;
+    if (!plan || !plan.features || typeof plan.features !== 'object' || Array.isArray(plan.features)) return false;
+    return currentTeamCount < (plan.features.maxTeamMembers ?? Infinity);
   },
 
   canAddRoadmapItem: async (planId: string, currentRoadmapCount: number) => {
     const plan = await get().checkPlanById(planId);
-    if (!plan) return false;
-    return currentRoadmapCount < plan.features.maxRoadmapItems;
+    if (!plan || !plan.features || typeof plan.features !== 'object' || Array.isArray(plan.features)) return false;
+    return currentRoadmapCount < (plan.features.maxRoadmapItems ?? Infinity);
   },
 
   upgradePlan: async (tokenId, planId) => {

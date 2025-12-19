@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAdminDashboardStore } from "@/store/p2p/admin-dashboard-store";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 import {
   Card,
   CardContent,
@@ -38,7 +39,8 @@ import { format } from "date-fns";
 import { useTranslations } from "next-intl";
 
 export function AdminActivityClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const { allActivity, isLoadingAllActivity, fetchAllActivity } =
     useAdminDashboardStore();
   const [filter, setFilter] = useState("all");
@@ -73,7 +75,7 @@ export function AdminActivityClient() {
       case "payment":
         return <Shield className="h-5 w-5 text-indigo-500" />;
       case "security":
-        return <Shield className="h-5 w-5 text-purple-500" />;
+        return <Shield className="h-5 w-5 text-violet-500" />;
       case "system":
         return <Info className="h-5 w-5 text-gray-500" />;
       default:
@@ -97,7 +99,7 @@ export function AdminActivityClient() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className={`container ${PAGE_PADDING} flex flex-col gap-6`}>
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">
           {t("activity_log")}
@@ -132,7 +134,7 @@ export function AdminActivityClient() {
                   <SelectItem value="all">{t("all_activities")}</SelectItem>
                   <SelectItem value="user">{t("user_activities")}</SelectItem>
                   <SelectItem value="trade">{t("trade_activities")}</SelectItem>
-                  <SelectItem value="dispute">{t("Disputes")}</SelectItem>
+                  <SelectItem value="dispute">{tCommon("disputes")}</SelectItem>
                   <SelectItem value="payment">{t("payment_activities")}</SelectItem>
                   <SelectItem value="security">
                     {t("security_events")}
@@ -145,10 +147,10 @@ export function AdminActivityClient() {
 
           <Tabs defaultValue="all">
             <TabsList className="mb-4">
-              <TabsTrigger value="all">{t("All")}</TabsTrigger>
-              <TabsTrigger value="critical">{t("Critical")}</TabsTrigger>
-              <TabsTrigger value="warnings">{t("Warnings")}</TabsTrigger>
-              <TabsTrigger value="info">{t("Informational")}</TabsTrigger>
+              <TabsTrigger value="all">{tCommon("all")}</TabsTrigger>
+              <TabsTrigger value="critical">{t("critical")}</TabsTrigger>
+              <TabsTrigger value="warnings">{tCommon('alerts')}</TabsTrigger>
+              <TabsTrigger value="info">{t("informational")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="space-y-4">

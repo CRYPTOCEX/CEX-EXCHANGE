@@ -3,10 +3,10 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
-
-import { 
-  makeEwayRequest, 
-  validateCurrency, 
+import { logger } from "@b/utils/console";
+import {
+  makeEwayRequest,
+  validateCurrency,
   EWAY_TRANSACTION_TYPES,
   EwayTransparentRedirectRequest,
   EwayTransparentRedirectResponse,
@@ -23,6 +23,8 @@ export const metadata: OperationObject = {
     "Initiates an eWAY payment process for Asia-Pacific region. Supports multiple connection methods including Transparent Redirect, Direct Connection, and Responsive Shared Page.",
   operationId: "createEwayPayment",
   tags: ["Finance", "Payment"],
+  logModule: "EWAY_DEPOSIT",
+  logTitle: "Create eWAY payment",
   requestBody: {
     description: "eWAY payment creation request",
     content: {
@@ -148,8 +150,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw new Error("User not authenticated");
   }
 
@@ -189,12 +193,14 @@ export default async (data: Handler) => {
     }
 
     // Get eWAY gateway configuration
-    const gateway = await models.depositGateway.findOne({
+    ctx?.step("Fetching payment gateway configuration");
+  const gateway = await models.depositGateway.findOne({
       where: { alias: "eway", status: true },
     });
 
     if (!gateway) {
-      throw new Error("eWAY gateway is not available");
+    ctx?.fail("Payment gateway not found");
+    throw new Error("eWAY gateway is not available");
     }
 
     // Check if currency is supported by the gateway
@@ -204,7 +210,8 @@ export default async (data: Handler) => {
 
     // Calculate fees (gateway specific fee structure)
     const feePercentage = 0.029; // 2.9% base rate for eWAY
-    const fixedFee = currency.toUpperCase() === "AUD" ? 30 : 0; // 30 cents for AUD
+    ctx?.step("Calculating fees");
+  const fixedFee = currency.toUpperCase() === "AUD" ? 30 : 0; // 30 cents for AUD
     const calculatedFee = Math.round(amount * feePercentage) + fixedFee;
     const totalAmount = amount + calculatedFee;
 
@@ -212,7 +219,8 @@ export default async (data: Handler) => {
     const reference = `EWAY_${Date.now()}_${user.id}`;
 
     // Create transaction record
-    const transaction = await models.transaction.create({
+    ctx?.step("Creating transaction record");
+      const transaction = await models.transaction.create({
       userId: user.id,
       walletId: wallet.id,
       type: "DEPOSIT",
@@ -328,8 +336,8 @@ export default async (data: Handler) => {
     }
 
   } catch (error) {
-    console.error("eWAY payment creation error:", error);
-    
+    logger.error("EWAY", "Payment creation error", error);
+
     if (error instanceof EwayError) {
       throw new Error(`eWAY Error: ${error.message}`);
     }

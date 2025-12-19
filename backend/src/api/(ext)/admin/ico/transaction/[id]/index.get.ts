@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "adminGetTransactionDetails",
   tags: ["ICO", "Admin", "Transaction"],
   requiresAuth: true,
+  logModule: "ADMIN_ICO",
+  logTitle: "Get ICO Transaction",
   responses: {
     200: {
       description: "Transaction details retrieved successfully.",
@@ -77,10 +79,12 @@ export const metadata = {
     500: { description: "Internal Server Error" },
   },
   permission: "view.ico.transaction",
+  demoMask: ["user.email"],
 };
 
 export default async (data: Handler) => {
-  const { params, user } = data;
+  const { params, user, ctx } = data;
+  ctx?.step("Validate user authentication");
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -127,5 +131,6 @@ export default async (data: Handler) => {
   // Attach related transactions to the response.
   const txJSON = transaction.toJSON();
   txJSON.relatedTransactions = relatedTransactions.map((tx) => tx.toJSON());
+  ctx?.success("Get ICO Transaction retrieved successfully");
   return txJSON;
 };

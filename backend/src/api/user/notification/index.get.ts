@@ -52,11 +52,13 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Fetching notifications");
   // Fetch notifications for the user, sorted by creation date descending.
   const notifications = await models.notification.findAll({
     where: { userId: user.id },
@@ -64,6 +66,7 @@ export default async (data: Handler) => {
     raw: true,
   });
 
+  ctx?.step("Calculating statistics");
   // Calculate statistics
   const total = notifications.length;
   const unread = notifications.filter((n) => !n.read).length;
@@ -92,5 +95,6 @@ export default async (data: Handler) => {
     },
   };
 
+  ctx?.success(`Retrieved ${total} notifications (${unread} unread)`);
   return { notifications, stats };
 };

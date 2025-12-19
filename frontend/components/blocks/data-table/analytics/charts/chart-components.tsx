@@ -5,11 +5,15 @@ import { KpiCard } from "../kpi";
 import StatusDistribution from "./donut";
 import ChartCard from "./line";
 import { ChartTimeframe } from "../../types/chart";
+import type { KpiItem, ChartItem } from "../../types/analytics";
+
+type KpiConfig = KpiItem;
+type ChartConfig = ChartItem;
 
 type AnalyticsSection = {
   id: string;
   type: "kpi" | "status" | "chart";
-  data: KpiConfig[] | any[]; // Assuming KpiConfig type is defined elsewhere
+  data: KpiConfig[] | any[];
   config: ChartConfig;
   layout: {
     width: "half" | "full";

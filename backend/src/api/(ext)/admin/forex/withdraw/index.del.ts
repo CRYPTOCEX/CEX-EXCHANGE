@@ -8,9 +8,10 @@ import {
 } from "@b/utils/query";
 
 export const metadata = {
-  summary: "Bulk deletes transactions by IDs",
-  operationId: "bulkDeleteTransactions",
-  tags: ["Admin", "Transaction"],
+  summary: "Bulk deletes Forex withdrawal transactions",
+  description: "Deletes multiple Forex withdrawal transactions by their IDs. This also removes associated admin profit records.",
+  operationId: "bulkDeleteForexWithdrawals",
+  tags: ["Admin", "Forex", "Withdraw"],
   parameters: commonBulkDeleteParams("Transactions"),
   requestBody: {
     required: true,
@@ -33,20 +34,29 @@ export const metadata = {
   responses: commonBulkDeleteResponses("Transactions"),
   requiresAuth: true,
   permission: "delete.forex.withdraw",
+  logModule: "ADMIN_FOREX",
+  logTitle: "Bulk delete forex withdrawals",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query , ctx } = data;
   const { ids } = body;
+
+  ctx?.step(`Validating ${ids.length} IDs`);
+
+  ctx?.step(`Deleting ${ids.length} records`);
   // Delete associated admin profits if they exist
   await models.adminProfit.destroy({
     where: {
       transactionId: ids,
     },
   });
-  return handleBulkDelete({
+  const result = await handleBulkDelete({
     model: "transaction",
     ids,
     query,
   });
+
+  ctx?.success(`Successfully deleted ${ids.length} records`);
+  return result;
 };

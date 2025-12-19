@@ -8,7 +8,7 @@ interface DisputeStatusBadgeProps {
 }
 
 export function DisputeStatusBadge({ status }: DisputeStatusBadgeProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   switch (status) {
     case "pending":
       return (
@@ -16,7 +16,7 @@ export function DisputeStatusBadge({ status }: DisputeStatusBadgeProps) {
           variant="outline"
           className="ml-2 border-orange-200 bg-orange-100 text-orange-800"
         >
-          {t("Pending")}
+          {t("pending")}
         </Badge>
       );
     case "in-progress":
@@ -34,7 +34,7 @@ export function DisputeStatusBadge({ status }: DisputeStatusBadgeProps) {
           variant="outline"
           className="ml-2 border-green-200 bg-green-100 text-green-800"
         >
-          {t("Resolved")}
+          {t("resolved")}
         </Badge>
       );
     default:

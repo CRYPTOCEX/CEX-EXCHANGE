@@ -38,13 +38,14 @@ export default function SearchSortBar({
   sortOrder,
   setSortOrder,
 }: SearchSortBarProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div className="relative w-full sm:w-auto">
         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search team members..."
+          placeholder={t("search_team_members_ellipsis")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-8 w-full sm:w-[250px]"
@@ -89,7 +90,7 @@ export default function SearchSortBar({
                 </svg>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{t("grid_view")}</TooltipContent>
+            <TooltipContent>{tCommon("grid_view")}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
@@ -120,7 +121,7 @@ export default function SearchSortBar({
                 </svg>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{t("list_view")}</TooltipContent>
+            <TooltipContent>{tCommon("list_view")}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
@@ -131,7 +132,7 @@ export default function SearchSortBar({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{t("sort_by")}</DropdownMenuLabel>
+            <DropdownMenuLabel>{tCommon("sort_by")}</DropdownMenuLabel>
             <DropdownMenuRadioGroup
               value={sortOrder}
               onValueChange={(value) =>
@@ -173,7 +174,7 @@ export default function SearchSortBar({
                     strokeLinecap="round"
                   />
                 </svg>
-                {t("name_(a-z)")}
+                {tCommon("name")} (A-Z)
               </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="role">
                 {/* Role Icon */}
@@ -206,7 +207,7 @@ export default function SearchSortBar({
                     strokeLinecap="round"
                   />
                 </svg>
-                {t("role_(a-z)")}
+                {t("role_a_z")}
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>

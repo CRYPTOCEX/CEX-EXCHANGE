@@ -34,7 +34,7 @@ export function MobileHeader({
   handleMarketSelect,
   onTradingModeChange,
 }: MobileHeaderProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("binary_components");
   // Use next-themes hook properly
   const { theme, setTheme } = useTheme();
   const isDarkMode = theme === "dark";
@@ -207,13 +207,13 @@ export function MobileHeader({
       {/* Account Selector Modal */}
       {showAccountSelector && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50"
+          className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/50 backdrop-blur-sm"
           onClick={() => setShowAccountSelector(false)}
         >
           <div
             className={`w-full max-w-lg rounded-t-2xl ${
               isDarkMode ? "bg-zinc-900" : "bg-white"
-            } p-4 pb-6 space-y-3`}
+            } p-4 pb-6 space-y-3 shadow-2xl`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -253,14 +253,14 @@ export function MobileHeader({
             {/* Real Account */}
             <button
               onClick={() => handleAccountSwitch("real")}
-              className={`w-full p-4 rounded-lg border-2 transition-all ${
+              className={`w-full p-4 rounded-lg border-2 transition-all active:scale-95 ${
                 effectiveTradingMode === "real"
                   ? isDarkMode
                     ? "border-green-500/50 bg-green-500/10"
                     : "border-green-500 bg-green-50"
                   : isDarkMode
-                    ? "border-zinc-800 bg-zinc-800/30 hover:border-zinc-700"
-                    : "border-zinc-200 bg-white hover:border-zinc-300"
+                    ? "border-zinc-800 bg-zinc-800/30 hover:border-zinc-700 active:bg-zinc-800/50"
+                    : "border-zinc-200 bg-white hover:border-zinc-300 active:bg-zinc-100"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -301,14 +301,14 @@ export function MobileHeader({
             {/* Demo Account */}
             <button
               onClick={() => handleAccountSwitch("demo")}
-              className={`w-full p-4 rounded-lg border-2 transition-all ${
+              className={`w-full p-4 rounded-lg border-2 transition-all active:scale-95 ${
                 effectiveTradingMode === "demo"
                   ? isDarkMode
                     ? "border-orange-500/50 bg-orange-500/10"
                     : "border-orange-500 bg-orange-50"
                   : isDarkMode
-                    ? "border-zinc-800 bg-zinc-800/30 hover:border-zinc-700"
-                    : "border-zinc-200 bg-white hover:border-zinc-300"
+                    ? "border-zinc-800 bg-zinc-800/30 hover:border-zinc-700 active:bg-zinc-800/50"
+                    : "border-zinc-200 bg-white hover:border-zinc-300 active:bg-zinc-100"
               }`}
             >
               <div className="flex items-center justify-between">

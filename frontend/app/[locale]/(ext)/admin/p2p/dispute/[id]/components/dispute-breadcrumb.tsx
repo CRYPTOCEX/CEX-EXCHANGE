@@ -9,15 +9,15 @@ interface DisputeBreadcrumbProps {
 }
 
 export function DisputeBreadcrumb({ disputeId }: DisputeBreadcrumbProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   return (
     <div className="flex items-center gap-1 text-sm text-muted-foreground">
       <Link href="/admin" className="hover:text-foreground">
-        {t("Admin")}
+        {t("admin")}
       </Link>
       <ChevronRight className="h-4 w-4" />
       <Link href="/admin/disputes" className="hover:text-foreground">
-        {t("Disputes")}
+        {t("disputes")}
       </Link>
       <ChevronRight className="h-4 w-4" />
       <span className="font-medium text-foreground">{disputeId}</span>

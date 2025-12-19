@@ -5,12 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useNetworkStore } from "@/store/affiliate/network-store";
 import { ReferralTree } from "./components/referral-tree";
 import { AlertCircle, HelpCircle, Info } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import AffiliateNetworkLoading from "./loading";
+import AffiliateNetworkErrorState from "./error-state";
+import { NetworkHero } from "./components/network-hero";
+import { useTranslations } from "next-intl";
+
 export default function AffiliateNetworkClient() {
+  const t = useTranslations("ext_affiliate");
+  const tExt = useTranslations("ext");
   const { networkData, loading, error, mlmSystem, fetchNetworkData } =
     useNetworkStore();
   const [activeTab, setActiveTab] = useState("tree");
@@ -18,48 +25,34 @@ export default function AffiliateNetworkClient() {
     fetchNetworkData();
   }, [fetchNetworkData]);
   if (loading && !networkData) {
-    return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <AffiliateNetworkLoading />;
   }
   if (error) {
-    return (
-      <Alert variant="destructive" className="mx-auto max-w-2xl my-8">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
+    return <AffiliateNetworkErrorState error={error} />;
   }
   if (!networkData) {
-    return (
-      <Alert className="mx-auto max-w-2xl my-8">
-        <Info className="h-4 w-4" />
-        <AlertTitle>No Network Data</AlertTitle>
-        <AlertDescription>
-          No network data is available. Start building your network by referring
-          friends.
-        </AlertDescription>
-      </Alert>
-    );
+    return <AffiliateNetworkErrorState noData />;
   }
+  // Calculate network stats
+  const totalNodes = networkData.treeData ? countNetworkNodes(networkData.treeData) : 0;
+  const directReferrals = networkData.referrals?.length || 0;
+  const networkDepth = networkData.treeData ? calculateNetworkDepth(networkData.treeData) : 0;
+
   return (
-    <div className="container mx-auto px-4 py-6 md:px-6">
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">
-          Your Affiliate Network
-        </h1>
-        <p className="text-muted-foreground">
-          Visualize and manage your affiliate network structure
-        </p>
-      </div>
+    <div className="w-full">
+      {/* Hero Section */}
+      <NetworkHero
+        totalNodes={totalNodes}
+        directReferrals={directReferrals}
+        networkDepth={networkDepth}
+      />
+
+      <div className="container mx-auto pb-6 pt-8">
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Your Profile</CardTitle>
+            <CardTitle className="text-sm font-medium">{tExt("your_profile")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-3">
@@ -86,7 +79,7 @@ export default function AffiliateNetworkClient() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Network Type</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("network_type")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -109,7 +102,7 @@ export default function AffiliateNetworkClient() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Your Upline</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("your_upline")}</CardTitle>
           </CardHeader>
           <CardContent>
             {networkData.upline ? (
@@ -139,7 +132,7 @@ export default function AffiliateNetworkClient() {
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No upline</p>
+              <p className="text-sm text-muted-foreground">{t("no_upline")}</p>
             )}
           </CardContent>
         </Card>
@@ -148,20 +141,19 @@ export default function AffiliateNetworkClient() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-4 w-full md:w-auto">
           <TabsTrigger value="tree" className="flex-1 md:flex-none">
-            Tree View
+            {t("tree_view")}
           </TabsTrigger>
           <TabsTrigger value="structure" className="flex-1 md:flex-none">
-            Structure Details
+            {t("structure_details")}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="tree" className="space-y-4">
           <Alert className="mb-4">
             <Info className="h-4 w-4" />
-            <AlertTitle>Interactive Tree View</AlertTitle>
+            <AlertTitle>{t("interactive_tree_view")}</AlertTitle>
             <AlertDescription>
-              Click on members to view their details. Zoom and pan to explore
-              your network structure.
+              {t("click_on_members_to_view_their_details_1")} {t("zoom_and_pan_to_explore_your_network_structure_1")}
             </AlertDescription>
           </Alert>
 
@@ -171,7 +163,7 @@ export default function AffiliateNetworkClient() {
         <TabsContent value="structure" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Network Structure</CardTitle>
+              <CardTitle>{t("network_structure")}</CardTitle>
             </CardHeader>
             <CardContent className="overflow-x-auto">
               <div className="space-y-4 min-w-[300px]">
@@ -183,12 +175,12 @@ export default function AffiliateNetworkClient() {
                 {mlmSystem === "BINARY" && networkData.binaryStructure && (
                   <div>
                     <h3 className="font-medium mb-2">
-                      Binary Structure Summary
+                      {t("binary_structure_summary")}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Card>
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-sm">Left Leg</CardTitle>
+                          <CardTitle className="text-sm">{t("left_leg")}</CardTitle>
                         </CardHeader>
                         <CardContent>
                           {networkData.binaryStructure.left ? (
@@ -224,7 +216,7 @@ export default function AffiliateNetworkClient() {
 
                       <Card>
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-sm">Right Leg</CardTitle>
+                          <CardTitle className="text-sm">{t("right_leg")}</CardTitle>
                         </CardHeader>
                         <CardContent>
                           {networkData.binaryStructure.right ? (
@@ -264,7 +256,7 @@ export default function AffiliateNetworkClient() {
                 {mlmSystem === "UNILEVEL" && networkData.levels && (
                   <div>
                     <h3 className="font-medium mb-2">
-                      Unilevel Structure Summary
+                      {t("unilevel_structure_summary")}
                     </h3>
                     <div className="space-y-2">
                       {networkData.levels.map((level, index) => {
@@ -285,9 +277,9 @@ export default function AffiliateNetworkClient() {
 
                 {mlmSystem === "DIRECT" && networkData.referrals && (
                   <div>
-                    <h3 className="font-medium mb-2">Direct Referrals</h3>
+                    <h3 className="font-medium mb-2">{t("direct_referrals")}</h3>
                     <p className="text-sm">
-                      You have {networkData.referrals.length} direct referrals
+                      {tExt("you_have")} {networkData.referrals.length} {t("direct_referrals")}
                     </p>
                   </div>
                 )}
@@ -296,6 +288,36 @@ export default function AffiliateNetworkClient() {
           </Card>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
+}
+
+// Helper functions for network stats
+function countNetworkNodes(node: any): number {
+  if (!node) return 0;
+  let count = 1; // Count current node
+
+  // Count children
+  if (node.children && Array.isArray(node.children)) {
+    for (const child of node.children) {
+      count += countNetworkNodes(child);
+    }
+  }
+
+  return count;
+}
+
+function calculateNetworkDepth(node: any, currentDepth: number = 0): number {
+  if (!node || !node.children || node.children.length === 0) {
+    return currentDepth;
+  }
+
+  let maxDepth = currentDepth;
+  for (const child of node.children) {
+    const childDepth = calculateNetworkDepth(child, currentDepth + 1);
+    maxDepth = Math.max(maxDepth, childDepth);
+  }
+
+  return maxDepth;
 }

@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
     "Fetches a single ecommerce category by its slug, including all active products in that category with calculated ratings and review counts.",
   operationId: "getEcommerceCategoryBySlug",
   tags: ["Ecommerce", "Categories"],
+  logModule: "ECOM",
+  logTitle: "Get Category",
   parameters: [
     {
       index: 0,
@@ -42,7 +44,9 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
+
+    ctx?.step("Fetching Category");
 
   const category = await models.ecommerceCategory.findOne({
     where: { slug: params.slug, status: true },
@@ -109,6 +113,8 @@ export default async (data: Handler) => {
     };
 
     // Return the processed category
+    ctx?.success("Get Category fetched successfully");
+
     return JSON.parse(JSON.stringify(processedCategory));
   } catch (error) {
     console.error("Error fetching category:", error);

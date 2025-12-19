@@ -50,15 +50,21 @@ export const metadata = {
   },
   requiresAuth: true,
   permission: "view.slider",
+  logModule: "ADMIN_CMS",
+  logTitle: "List sliders",
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
+  ctx?.step("Fetching sliders with filters");
   // Using the getFiltered function which processes all CRUD parameters, including sorting and filtering
-  return getFiltered({
+  const result = await getFiltered({
     model: models.slider,
     query,
     sortField: query.sortField || "createdAt",
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} slider(s)`);
+  return result;
 };

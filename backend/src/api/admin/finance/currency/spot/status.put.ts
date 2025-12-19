@@ -30,10 +30,17 @@ export const metadata = {
   responses: updateRecordResponses("ExchangeCurrency"),
   requiresAuth: true,
   permission: "edit.spot.currency",
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk update spot currency status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("exchangeCurrency", ids, status);
+
+  ctx?.step(`Updating status for ${ids.length} spot currency(ies)`);
+  const result = await updateStatus("exchangeCurrency", ids, status);
+
+  ctx?.success("Spot currency status updated successfully");
+  return result;
 };

@@ -28,18 +28,24 @@ export const metadata = {
   responses: updateRecordResponses("Market"),
   requiresAuth: true,
   permission: "edit.exchange.market",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Exchange Market",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { currency, pair, metadata, isTrending, isHot } = body;
 
-  return await updateRecord("exchangeMarket", id, {
+  ctx?.step("Updating exchange market");
+  const result = await updateRecord("exchangeMarket", id, {
     currency,
     pair,
     metadata,
     isTrending,
     isHot,
   });
+
+  ctx?.success();
+  return result;
 };

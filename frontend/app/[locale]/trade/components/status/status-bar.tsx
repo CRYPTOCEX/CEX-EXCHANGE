@@ -18,7 +18,8 @@ interface MarketData {
 }
 
 export default function StatusBar() {
-  const t = useTranslations("ext");
+  const t = useTranslations("trade_components");
+  const tCommon = useTranslations("common");
   const { isExtensionAvailable, extensions } = useExtensionChecker();
   const [serverTime, setServerTime] = useState(new Date());
   const [spotData, setSpotData] = useState<Record<string, TickerData>>({});
@@ -207,7 +208,7 @@ export default function StatusBar() {
           )}
           {topGainers.length === 0 && topLosers.length === 0 && (
             <span className="text-muted-foreground">
-              {t("loading_market_data")}.
+              {tCommon("loading_market_data")}.
             </span>
           )}
         </div>

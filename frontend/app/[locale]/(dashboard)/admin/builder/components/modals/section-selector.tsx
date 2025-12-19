@@ -30,7 +30,8 @@ export function SectionSelector({
   onSelectTemplate,
   onClose,
 }: SectionSelectorProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<
@@ -93,7 +94,7 @@ export function SectionSelector({
       <div className="w-64 border-r bg-zinc-50 dark:bg-zinc-900 dark:border-zinc-800 p-4 flex flex-col h-full">
         <div className="mb-4">
           <SearchInput
-            placeholder="Search categories..."
+            placeholder={tCommon("search_categories_ellipsis")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -210,7 +211,7 @@ export function SectionSelector({
               </svg>
             </div>
             <h2 className="text-xl font-medium mb-2 dark:text-zinc-100">
-              {t("select_a_category")}
+              {tCommon("select_a_category")}
             </h2>
             <p className="text-zinc-500 dark:text-zinc-400 max-w-md">
               {t("choose_a_category_from_scratch")}.
@@ -248,7 +249,7 @@ export function SectionSelector({
                 onClick={() => setImportSectionOpen(false)}
                 className="dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-700"
               >
-                {t("Cancel")}
+                {tCommon("cancel")}
               </Button>
             </DialogFooter>
           </DialogContent>

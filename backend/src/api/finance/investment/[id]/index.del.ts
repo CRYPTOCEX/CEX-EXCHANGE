@@ -3,19 +3,23 @@
 import { sendInvestmentEmail } from "@b/utils/emails";
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
+import { literal } from "sequelize";
 import {
   notFoundMetadataResponse,
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
 import { getWallet } from "../../wallet/utils";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Cancels an investment",
   description:
-    "Allows a user to cancel an existing investment by its UUID. The operation reverses any financial transactions associated with the investment and updates the user’s wallet balance accordingly.",
+    "Allows a user to cancel an existing investment by its UUID. The operation reverses any financial transactions associated with the investment and updates the user's wallet balance accordingly.",
   operationId: "cancelInvestment",
   tags: ["Finance", "Investment"],
+  logModule: "FINANCE",
+  logTitle: "Cancel investment",
   requiresAuth: true,
   parameters: [
     {
@@ -58,10 +62,12 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params, query } = data;
+  const { user, params, query, ctx } = data;
   if (!user) throw createError({ statusCode: 401, message: "Unauthorized" });
   const { id } = params;
   const { type } = query;
+
+  ctx?.step("Validating investment type");
 
   if (!type || typeof type !== "string") {
     throw new Error("Invalid investment type");
@@ -86,7 +92,9 @@ export default async (data: Handler) => {
     throw new Error("User not found");
   }
 
+  ctx?.step("Processing investment cancellation");
   await sequelize.transaction(async (transaction) => {
+    ctx?.step("Finding investment");
     investment = await model.findOne({
       where: { id },
       include: [
@@ -107,6 +115,7 @@ export default async (data: Handler) => {
     });
     if (!investment) throw new Error("Investment not found");
 
+    ctx?.step("Finding wallet");
     const wallet = await getWallet(
       user.id,
       investment.plan.walletType,
@@ -121,10 +130,11 @@ export default async (data: Handler) => {
       where: { referenceId: id },
     });
 
+    ctx?.step("Updating wallet balance");
     // Update wallet balance
     await models.wallet.update(
       {
-        balance: sequelize.literal(`balance + ${investment.amount}`),
+        balance: literal(`balance + ${investment.amount}`),
       },
       {
         where: { id: wallet.id },
@@ -132,6 +142,7 @@ export default async (data: Handler) => {
       }
     );
 
+    ctx?.step("Deleting investment");
     // Delete investment
     await investment.destroy({
       force: true,
@@ -146,15 +157,20 @@ export default async (data: Handler) => {
       });
     }
   });
+
+  ctx?.step("Sending cancellation email");
   try {
     await sendInvestmentEmail(
       userPk,
       investment.plan,
       investment.duration,
       investment,
-      "InvestmentCanceled"
+      "InvestmentCanceled",
+      ctx
     );
   } catch (error) {
-    console.error("Error sending investment email", error);
+    logger.error("INVESTMENT", "Error sending investment email", error);
   }
+
+  ctx?.success(`Investment ${id} cancelled successfully for user ${user.id}`);
 };

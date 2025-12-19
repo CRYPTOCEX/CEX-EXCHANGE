@@ -12,10 +12,11 @@ import {
 import { aiInvestmentDurationSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary:
-    "Lists all AI investment durations with pagination and optional filtering",
-  operationId: "listAIInvestmentDurations",
-  tags: ["Admin", "AI Investment Duration"],
+  summary: "List all AI investment durations",
+  operationId: "listAiInvestmentDurations",
+  tags: ["Admin", "AI Investment", "Duration"],
+  description:
+    "Retrieves a paginated list of all AI investment duration options. Supports filtering, sorting, and pagination for managing investment timeframes.",
   parameters: crudParameters,
   responses: {
     200: {
@@ -26,7 +27,7 @@ export const metadata: OperationObject = {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -45,15 +46,21 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.ai.investment.duration",
+  logModule: "ADMIN_AI",
+  logTitle: "List investment durations",
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching investment durations");
+  const result = await getFiltered({
     model: models.aiInvestmentDuration,
     query,
     sortField: query.sortField || "duration",
     paranoid: false,
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} duration(s)`);
+  return result;
 };

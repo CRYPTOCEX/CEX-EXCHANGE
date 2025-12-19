@@ -1,21 +1,40 @@
+"use client";
 import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
 
-export const investmentAnalytics: AnalyticsConfig = [
+import { useTranslations } from "next-intl";
+export function useAnalytics() {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
+  return [
   // 1) Row of KPIs for statuses
   {
-    type: "kpi",
+    type: "kpi" as const,
     layout: { cols: 4, rows: 1 },
+    responsive: {
+      mobile: {
+        cols: 1,
+        rows: 4
+      },
+      tablet: {
+        cols: 2,
+        rows: 2
+      },
+      desktop: {
+        cols: 4,
+        rows: 1
+      }
+    },
     items: [
       {
         id: "total_investments",
-        title: "Total Investments",
+        title: tCommon("total_investments"),
         metric: "total",
         model: "investment",
         icon: "mdi:finance",
       },
       {
         id: "active_investments",
-        title: "Status",
+        title: tCommon("active"),
         metric: "ACTIVE",
         model: "investment",
         aggregation: { field: "status", value: "ACTIVE" },
@@ -23,7 +42,7 @@ export const investmentAnalytics: AnalyticsConfig = [
       },
       {
         id: "completed_investments",
-        title: "Completed",
+        title: tCommon("completed"),
         metric: "COMPLETED",
         model: "investment",
         aggregation: { field: "status", value: "COMPLETED" },
@@ -31,7 +50,7 @@ export const investmentAnalytics: AnalyticsConfig = [
       },
       {
         id: "cancelled_investments",
-        title: "Cancelled",
+        title: tCommon("cancelled"),
         metric: "CANCELLED",
         model: "investment",
         aggregation: { field: "status", value: "CANCELLED" },
@@ -42,12 +61,26 @@ export const investmentAnalytics: AnalyticsConfig = [
 
   // 2) Row of KPIs for results (WIN, LOSS, DRAW)
   {
-    type: "kpi",
+    type: "kpi" as const,
     layout: { cols: 3, rows: 1 },
+    responsive: {
+      mobile: {
+        cols: 1,
+        rows: 3
+      },
+      tablet: {
+        cols: 3,
+        rows: 1
+      },
+      desktop: {
+        cols: 3,
+        rows: 1
+      }
+    },
     items: [
       {
         id: "winning_investments",
-        title: "Winning",
+        title: tCommon("winning"),
         metric: "WIN",
         model: "investment",
         aggregation: { field: "result", value: "WIN" },
@@ -55,7 +88,7 @@ export const investmentAnalytics: AnalyticsConfig = [
       },
       {
         id: "losing_investments",
-        title: "Losing",
+        title: tCommon("losing"),
         metric: "LOSS",
         model: "investment",
         aggregation: { field: "result", value: "LOSS" },
@@ -63,7 +96,7 @@ export const investmentAnalytics: AnalyticsConfig = [
       },
       {
         id: "draw_investments",
-        title: "Draw",
+        title: tCommon("draw"),
         metric: "DRAW",
         model: "investment",
         aggregation: { field: "result", value: "DRAW" },
@@ -74,13 +107,17 @@ export const investmentAnalytics: AnalyticsConfig = [
 
   // 3) Pie chart for status distribution
   {
-    type: "chart",
-    // layout is optional for charts since you already do "width='full'"
+    type: "chart" as const,
+    responsive: {
+      mobile: { cols: 1 },
+      tablet: { cols: 1 },
+      desktop: { cols: 1 }
+    },
     items: [
       {
         id: "investmentStatusDistribution",
-        title: "Investment Status Distribution",
-        type: "pie",
+        title: t("investment_status_distribution"),
+        type: "pie" as const,
         model: "investment",
         metrics: ["ACTIVE", "COMPLETED", "CANCELLED", "REJECTED"],
         config: {
@@ -88,25 +125,25 @@ export const investmentAnalytics: AnalyticsConfig = [
           status: [
             {
               value: "ACTIVE",
-              label: "Active",
+              label: tCommon("active"),
               color: "blue",
               icon: "mdi:play-circle",
             },
             {
               value: "COMPLETED",
-              label: "Completed",
+              label: tCommon("completed"),
               color: "green",
               icon: "mdi:check-circle",
             },
             {
               value: "CANCELLED",
-              label: "Cancelled",
+              label: tCommon("cancelled"),
               color: "amber",
               icon: "mdi:cancel",
             },
             {
               value: "REJECTED",
-              label: "Rejected",
+              label: tCommon("rejected"),
               color: "red",
               icon: "mdi:close-circle",
             },
@@ -116,29 +153,34 @@ export const investmentAnalytics: AnalyticsConfig = [
     ],
   },
 
-  // 4) Bar chart for result distribution
+  // 4) Result distribution pie chart
   {
-    type: "chart",
+    type: "chart" as const,
+    responsive: {
+      mobile: { cols: 1 },
+      tablet: { cols: 1 },
+      desktop: { cols: 1 }
+    },
     items: [
       {
         id: "investmentResultDistribution",
-        title: "Investment Result Distribution",
-        type: "bar",
+        title: t("investment_result_distribution"),
+        type: "pie" as const,
         model: "investment",
         metrics: ["WIN", "LOSS", "DRAW"],
         config: {
           field: "result",
           status: [
-            { value: "WIN", label: "Win", color: "green", icon: "mdi:trophy" },
+            { value: "WIN", label: tCommon("win"), color: "green", icon: "mdi:trophy" },
             {
               value: "LOSS",
-              label: "Loss",
+              label: tCommon("loss"),
               color: "red",
               icon: "mdi:thumb-down",
             },
             {
               value: "DRAW",
-              label: "Draw",
+              label: tCommon("draw"),
               color: "gray",
               icon: "mdi:gesture-tap",
             },
@@ -148,14 +190,53 @@ export const investmentAnalytics: AnalyticsConfig = [
     ],
   },
 
+  // 5) Financial Metrics – KPI Grid
+  {
+    type: "kpi" as const,
+    layout: { cols: 3, rows: 1 },
+    responsive: {
+      mobile: { cols: 1, rows: 3 },
+      tablet: { cols: 3, rows: 1 },
+      desktop: { cols: 3, rows: 1 }
+    },
+    items: [
+      {
+        id: "total_invested_amount",
+        title: "Total Invested",
+        metric: "amount",
+        model: "investment",
+        icon: "mdi:cash-multiple",
+      },
+      {
+        id: "total_profit_amount",
+        title: "Total Profit",
+        metric: "profit",
+        model: "investment",
+        icon: "mdi:trending-up",
+      },
+      {
+        id: "average_investment_amount",
+        title: "Average Investment",
+        metric: "average",
+        model: "investment",
+        icon: "mdi:calculator",
+      },
+    ],
+  },
+
   // 5) Line chart for time-series
   {
-    type: "chart",
+    type: "chart" as const,
+    responsive: {
+      mobile: { cols: 1 },
+      tablet: { cols: 1 },
+      desktop: { cols: 1 }
+    },
     items: [
       {
         id: "investmentsOverTime",
-        title: "Investments Over Time",
-        type: "line",
+        title: tCommon("investments_over_time"),
+        type: "line" as const,
         model: "investment",
         metrics: ["total", "ACTIVE", "COMPLETED", "CANCELLED", "REJECTED"],
         timeframes: ["24h", "7d", "30d", "3m", "6m", "y"],
@@ -169,4 +250,5 @@ export const investmentAnalytics: AnalyticsConfig = [
       },
     ],
   },
-];
+] as AnalyticsConfig;
+}

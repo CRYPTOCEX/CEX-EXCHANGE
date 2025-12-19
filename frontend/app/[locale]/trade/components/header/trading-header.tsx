@@ -45,7 +45,8 @@ export default function TradingHeader({
   onSymbolChange?: (symbol: Symbol) => void;
   marketType?: "spot" | "futures" | "eco";
 }) {
-  const t = useTranslations("ext");
+  const t = useTranslations("trade_components");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [price, setPrice] = useState("Loading...");
   const [priceChange, setPriceChange] = useState("0.00%");
@@ -369,14 +370,14 @@ export default function TradingHeader({
         {/* Desktop additional info */}
         <div className="hidden lg:flex items-center text-xs text-zinc-500">
           <div>
-            <div>{t("24h_vol")}</div>
+            <div>{`24h ${tCommon('vol')}`}</div>
             <div className="font-medium">{volume}</div>
           </div>
         </div>
 
         {/* Mobile compact volume display */}
         <div className="flex lg:hidden flex-col items-end text-xs text-zinc-500 dark:text-zinc-400">
-          <div className="text-[10px] opacity-75">{t("24h_vol")}</div>
+          <div className="text-[10px] opacity-75">{`24h ${tCommon('vol')}`}</div>
           <div className="font-medium text-xs">{volume}</div>
         </div>
       </div>
@@ -426,7 +427,7 @@ export default function TradingHeader({
           size="icon"
           className="h-7 w-7"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          aria-label="Toggle theme"
+          aria-label={tCommon("toggle_theme")}
         >
           {theme === "dark" ? (
             <Sun className="h-3.5 w-3.5" />
@@ -458,20 +459,20 @@ export default function TradingHeader({
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <label htmlFor="name" className="text-right">
-                {t("Name")}
+                {tCommon("name")}
               </label>
               <Input
                 id="name"
                 value={newPresetName}
                 onChange={(e) => setNewPresetName(e.target.value)}
                 className="col-span-3"
-                placeholder="My Custom Layout"
+                placeholder={t("my_custom_layout")}
               />
             </div>
           </div>
           <DialogFooter>
             <Button type="submit" onClick={handleSaveLayout}>
-              {t("Save")}
+              {tCommon("save")}
             </Button>
           </DialogFooter>
         </DialogContent>

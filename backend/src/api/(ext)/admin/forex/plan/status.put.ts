@@ -1,9 +1,10 @@
 import { updateRecordResponses, updateStatus } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Bulk updates the status of forex plans",
+  summary: "Bulk updates Forex plan statuses",
+  description: "Updates the active/inactive status of multiple Forex plans at once. Active plans are visible to users for investment.",
   operationId: "bulkUpdateForexPlanStatus",
-  tags: ["Admin", "Forex Plans"],
+  tags: ["Admin", "Forex", "Plan"],
   requestBody: {
     required: true,
     content: {
@@ -30,10 +31,19 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Forex Plan"),
   requiresAuth: true,
   permission: "edit.forex.plan",
+  logModule: "ADMIN_FOREX",
+  logTitle: "Bulk update forex plan status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body , ctx } = data;
   const { ids, status } = body;
-  return updateStatus("forexPlan", ids, status);
+
+  ctx?.step(`Validating ${ids.length} IDs`);
+
+  ctx?.step(`Updating status for ${ids.length} records`);
+  const result = await updateStatus("forexPlan", ids, status);
+
+  ctx?.success(`Successfully updated status for ${ids.length} records`);
+  return result;
 };

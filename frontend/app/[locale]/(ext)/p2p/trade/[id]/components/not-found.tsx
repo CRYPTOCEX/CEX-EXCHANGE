@@ -4,9 +4,9 @@ import { AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function NotFound() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
   return (
-    <div className="flex min-h-screen w-full flex-col">
+    <div className="flex min-h-screen w-full flex-col pt-20">
       <main className="flex flex-1 flex-col items-center justify-center p-4 md:p-8">
         <div className="text-center space-y-4 max-w-md">
           <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center">

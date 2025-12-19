@@ -24,7 +24,8 @@ interface CronCardProps {
 
 // Use memo to prevent unnecessary re-renders
 const CronCard = memo(function CronCard({ cron, onClick }: CronCardProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const formatPeriod = (ms: number) => {
     const seconds = ms / 1000;
     if (seconds < 60) return `${seconds}s`;
@@ -47,31 +48,30 @@ const CronCard = memo(function CronCard({ cron, onClick }: CronCardProps) {
   };
 
   const getStatusBadge = () => {
-    const t = useTranslations("dashboard");
     switch (cron.status) {
       case "running":
         return (
           <Badge className="bg-blue-500 hover:bg-blue-600 text-white">
             <span className="mr-1 inline-block h-2 w-2 rounded-full bg-white status-pulse"></span>
-            {t("Running")}
+            {tDashboardAdmin("running")}
           </Badge>
         );
       case "completed":
         return (
           <Badge variant="outline" className="border-green-500 text-green-500">
-            {t("Completed")}
+            {t("completed")}
           </Badge>
         );
       case "failed":
         return (
           <Badge variant="outline" className="border-red-500 text-red-500">
-            {t("Failed")}
+            {t("failed")}
           </Badge>
         );
       default:
         return (
           <Badge variant="outline" className="border-slate-400 text-slate-400">
-            {t("Idle")}
+            {tDashboardAdmin("idle")}
           </Badge>
         );
     }
@@ -111,7 +111,7 @@ const CronCard = memo(function CronCard({ cron, onClick }: CronCardProps) {
             <div className="flex items-center text-xs sm:text-sm">
               <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-2 text-muted-foreground flex-shrink-0" />
               <span className="text-muted-foreground flex-1 min-w-0">
-                {t("Every")} {formatPeriod(cron.period)}
+                {tDashboardAdmin("every")} {formatPeriod(cron.period)}
               </span>
               {cron.lastRun && (
                 <span className="ml-2 text-xs text-muted-foreground whitespace-nowrap">

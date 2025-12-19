@@ -1,11 +1,22 @@
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
 import { Op } from "sequelize";
+import {
+  badRequestResponse,
+  unauthorizedResponse,
+  forbiddenResponse,
+  notFoundResponse,
+  serverErrorResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Manually distribute earnings for staking positions",
-  operationId: "distributeStakingEarnings",
-  tags: ["Admin", "Staking", "Earnings", "Distribute"],
+  summary: "Distribute Earnings to Positions",
+  operationId: "distributeStakingEarningsToPositions",
+  description:
+    "Manually distributes earnings to active staking positions based on APR and days active. Calculates daily earnings for each position, deducts platform fees, and creates earning records for both users and platform. Supports dry-run mode for testing and can process specific positions or all active positions in a pool. Includes safeguards against recent distributions unless forced.",
+  tags: ["Admin", "Staking", "Earnings"],
+  logModule: "ADMIN_STAKE",
+  logTitle: "Distribute Staking Earnings",
   requestBody: {
     required: true,
     content: {
@@ -48,13 +59,30 @@ export const metadata = {
             type: "object",
             properties: {
               message: { type: "string" },
-              processed: { type: "integer" },
-              totalEarnings: { type: "number" },
-              platformFees: { type: "number" },
-              netEarnings: { type: "number" },
-              dryRun: { type: "boolean" },
+              processed: {
+                type: "integer",
+                description: "Number of positions processed",
+              },
+              totalEarnings: {
+                type: "number",
+                description: "Total gross earnings calculated",
+              },
+              platformFees: {
+                type: "number",
+                description: "Total platform fees collected",
+              },
+              netEarnings: {
+                type: "number",
+                description: "Net earnings distributed to users",
+              },
+              dryRun: {
+                type: "boolean",
+                description: "Whether this was a simulation",
+              },
               details: {
                 type: "array",
+                description:
+                  "Detailed breakdown (only included in dry-run mode)",
                 items: {
                   type: "object",
                   properties: {
@@ -63,28 +91,28 @@ export const metadata = {
                     amount: { type: "number" },
                     earnings: { type: "number" },
                     platformFee: { type: "number" },
-                    netEarning: { type: "number" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    netEarning: { type: "number" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
-    400: { description: "Invalid request data" },
-    401: { description: "Unauthorized" },
-    403: { description: "Forbidden - Admin access required" },
-    404: { description: "Pool not found" },
-    500: { description: "Internal Server Error" }
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    403: forbiddenResponse,
+    404: notFoundResponse("Staking Pool"),
+    500: serverErrorResponse,
   },
   requiresAuth: true,
   permission: "access.staking.management"
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
-  
+  const { user, body, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -117,6 +145,7 @@ export default async (data: Handler) => {
   const transaction = dryRun ? null : await sequelize.transaction();
 
   try {
+    ctx?.step("Fetch staking pool");
     // Fetch the pool
     const pool = await models.stakingPool.findByPk(poolId, { transaction });
     
@@ -141,6 +170,7 @@ export default async (data: Handler) => {
       positionQuery.id = { [Op.in]: positionIds };
     }
 
+    ctx?.step("Check if recently processed");
     // Check if recently processed (unless forced)
     if (!forceProcess) {
       const recentCutoff = new Date();
@@ -167,6 +197,7 @@ export default async (data: Handler) => {
       }
     }
 
+    ctx?.step("Fetch positions to process");
     // Fetch positions to process
     const positions = await models.stakingPosition.findAll({
       where: positionQuery,
@@ -185,6 +216,7 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.step("Calculate and distribute earnings");
     // Calculate earnings for each position
     const now = new Date();
     let totalEarnings = 0;
@@ -256,6 +288,7 @@ export default async (data: Handler) => {
       }
     }
 
+    ctx?.step("Create admin activity log");
     // Create admin activity log
     if (!dryRun) {
       await models.stakingAdminActivity.create({
@@ -278,6 +311,7 @@ export default async (data: Handler) => {
       await transaction.commit();
     }
 
+    ctx?.success(dryRun ? "Dry run completed successfully" : "Earnings distributed successfully");
     return {
       message: dryRun ? "Dry run completed - no changes made" : "Earnings distributed successfully",
       processed: details.length,

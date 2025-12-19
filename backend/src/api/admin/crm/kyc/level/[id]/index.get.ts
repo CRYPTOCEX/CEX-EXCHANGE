@@ -23,13 +23,20 @@ export const metadata = {
   },
   permission: "view.kyc.level",
   requiresAuth: true,
+  logModule: "ADMIN_CRM",
+  logTitle: "Get KYC level",
 };
 
-export default async (data: { params: { id: string } }): Promise<any> => {
-  const { id } = data.params;
+export default async (data: Handler): Promise<any> => {
+  const { params, ctx } = data;
+  const { id } = params;
+
+  ctx?.step(`Fetching KYC level ${id}`);
   const level = await models.kycLevel.findByPk(id);
   if (!level) {
     throw createError({ statusCode: 404, message: "KYC level not found" });
   }
+
+  ctx?.success("KYC level retrieved successfully");
   return level;
 };

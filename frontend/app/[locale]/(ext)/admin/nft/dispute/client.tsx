@@ -153,7 +153,8 @@ const RESOLUTION_TYPES = [
 ];
 
 export function DisputeManagementClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null);
@@ -372,7 +373,7 @@ export function DisputeManagementClient() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className=" container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -465,7 +466,7 @@ export function DisputeManagementClient() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">{t("all_statuses")}</SelectItem>
+                <SelectItem value="ALL">{tCommon("all_statuses")}</SelectItem>
                 {DISPUTE_STATUSES.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
                     {status.label}
@@ -656,7 +657,7 @@ export function DisputeManagementClient() {
                   </ScrollArea>
                   <div className="space-y-2">
                     <Textarea
-                      placeholder={t("type_your_message_ellipsis")}
+                      placeholder={tCommon("type_your_message_ellipsis")}
                       value={messageInput}
                       onChange={(e) => setMessageInput(e.target.value)}
                       className="min-h-[80px]"

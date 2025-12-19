@@ -1,6 +1,7 @@
 import { models } from '@b/db'
 import { createError } from '@b/utils/error'
 import { sendFiatTransactionEmail } from '@b/utils/emails'
+import { logger } from '@b/utils/console'
 import {
   validatePaytmConfig,
   verifyChecksumHash,
@@ -18,6 +19,8 @@ export const metadata = {
   operationId: 'verifyPaytmPayment',
   tags: ['Finance', 'Deposit', 'Paytm'],
   requiresAuth: true,
+  logModule: "PAYTM_DEPOSIT",
+  logTitle: "Verify Paytm payment",
   requestBody: {
     required: true,
     content: {
@@ -232,7 +235,7 @@ export default async (data: Handler) => {
          try {
            await sendFiatTransactionEmail(user, transaction, metadata.currency || 'INR', newBalance)
          } catch (emailError) {
-           console.error('Failed to send confirmation email:', emailError)
+           logger.error('PAYTM', 'Failed to send confirmation email', emailError)
          }
       }
     }

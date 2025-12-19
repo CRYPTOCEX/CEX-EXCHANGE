@@ -19,19 +19,21 @@ import {
 import { useTranslations } from "next-intl";
 
 export function OverviewTab() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
     <Card>
       <CardHeader>
         <CardTitle>{t("what_is_p2p_trading")}</CardTitle>
         <CardDescription>
-          {t("peer-to-peer_trading_allows_other_users")}.
+          {t("peer_to_peer_trading_allows_other_users")}.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">{t("how_it_works")}</h3>
+            <h3 className="text-lg font-medium">{tExt("how_it_works")}</h3>
             <p className="text-muted-foreground">
               {t("our_p2p_platform_safe_transactions")}.
             </p>
@@ -109,7 +111,7 @@ export function OverviewTab() {
         <Separator />
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">{t("getting_started")}</h3>
+          <h3 className="text-lg font-medium">{tExt("getting_started")}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-muted/30 p-4 rounded-lg border relative">
               <div className="absolute -top-3 -left-3 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-medium">
@@ -127,7 +129,7 @@ export function OverviewTab() {
                 2
               </div>
               <div className="pt-2 pl-2">
-                <h4 className="font-medium mb-2">{t("browse_offers")}</h4>
+                <h4 className="font-medium mb-2">{tCommon("browse_offers")}</h4>
                 <p className="text-sm text-muted-foreground">
                   {t("find_offers_that_match_your_trading_preferences")}
                 </p>

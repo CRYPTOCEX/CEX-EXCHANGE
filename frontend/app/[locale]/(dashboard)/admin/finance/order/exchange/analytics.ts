@@ -1,24 +1,34 @@
+"use client";
 import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
 
-export const exchangeOrderAnalytics: AnalyticsConfig = [
+import { useTranslations } from "next-intl";
+export function useAnalytics() {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
+  return [
   // ─────────────────────────────────────────────────────────────
   // Row #1: Status KPIs (2x2) on the left + Status Pie Chart on the right
   // ─────────────────────────────────────────────────────────────
   [
     {
-      type: "kpi",
+      type: "kpi" as const,
       layout: { cols: 3, rows: 2 }, // 2 columns x 2 rows => 4 KPI cards
+      responsive: {
+        mobile: { cols: 1, rows: 6 },
+        tablet: { cols: 2, rows: 3 },
+        desktop: { cols: 3, rows: 2 }
+      },
       items: [
         {
           id: "total_exchange_orders",
-          title: "Total Orders",
+          title: tCommon("total_orders"),
           metric: "total",
           model: "exchangeOrder",
           icon: "mdi:finance",
         },
         {
           id: "open_orders",
-          title: "Open Orders",
+          title: tCommon("open_orders"),
           metric: "OPEN",
           model: "exchangeOrder",
           aggregation: { field: "status", value: "OPEN" },
@@ -26,7 +36,7 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
         },
         {
           id: "closed_orders",
-          title: "Closed Orders",
+          title: t("closed_orders"),
           metric: "CLOSED",
           model: "exchangeOrder",
           aggregation: { field: "status", value: "CLOSED" },
@@ -34,7 +44,7 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
         },
         {
           id: "canceled_orders",
-          title: "Canceled Orders",
+          title: t("canceled_orders"),
           metric: "CANCELED",
           model: "exchangeOrder",
           aggregation: { field: "status", value: "CANCELED" },
@@ -42,7 +52,7 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
         },
         {
           id: "expired_orders",
-          title: "Expired Orders",
+          title: t("expired_orders"),
           metric: "EXPIRED",
           model: "exchangeOrder",
           aggregation: { field: "status", value: "EXPIRED" },
@@ -50,7 +60,7 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
         },
         {
           id: "rejected_orders",
-          title: "Rejected Orders",
+          title: tCommon("rejected_orders"),
           metric: "REJECTED",
           model: "exchangeOrder",
           aggregation: { field: "status", value: "REJECTED" },
@@ -60,10 +70,15 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
     },
     {
       type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
       items: [
         {
           id: "exchangeOrderStatusDistribution",
-          title: "Status Distribution",
+          title: tCommon("status_distribution"),
           type: "pie",
           model: "exchangeOrder",
           metrics: ["OPEN", "CLOSED", "CANCELED", "EXPIRED", "REJECTED"],
@@ -72,31 +87,31 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
             status: [
               {
                 value: "OPEN",
-                label: "Open",
+                label: tCommon("open"),
                 color: "blue",
                 icon: "mdi:door-open",
               },
               {
                 value: "CLOSED",
-                label: "Closed",
+                label: tCommon("closed"),
                 color: "green",
                 icon: "mdi:door-closed",
               },
               {
                 value: "CANCELED",
-                label: "Canceled",
+                label: t("canceled"),
                 color: "amber",
                 icon: "mdi:cancel",
               },
               {
                 value: "EXPIRED",
-                label: "Expired",
+                label: tCommon("expired"),
                 color: "red",
                 icon: "mdi:timer-off",
               },
               {
                 value: "REJECTED",
-                label: "Rejected",
+                label: tCommon("rejected"),
                 color: "purple",
                 icon: "mdi:thumb-down",
               },
@@ -114,10 +129,15 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
     {
       type: "kpi",
       layout: { cols: 2, rows: 2 },
+      responsive: {
+        mobile: { cols: 1, rows: 2, span: 1 },
+          tablet: { cols: 2, rows: 1, span: 2 },
+          desktop: { cols: 2, rows: 1, span: 2 },
+      },
       items: [
         {
           id: "buy_orders",
-          title: "Buy Orders",
+          title: tCommon("buy_orders"),
           metric: "buy",
           model: "exchangeOrder",
           aggregation: { field: "side", value: "BUY" },
@@ -125,7 +145,7 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
         },
         {
           id: "sell_orders",
-          title: "Sell Orders",
+          title: tCommon("sell_orders"),
           metric: "sell",
           model: "exchangeOrder",
           aggregation: { field: "side", value: "SELL" },
@@ -135,10 +155,15 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
     },
     {
       type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
       items: [
         {
           id: "exchangeOrderSideDistribution",
-          title: "Side Distribution",
+          title: tCommon("side_distribution"),
           type: "pie",
           model: "exchangeOrder",
           metrics: ["BUY", "SELL"],
@@ -147,13 +172,13 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
             status: [
               {
                 value: "BUY",
-                label: "Buy",
+                label: tCommon("buy"),
                 color: "green",
                 icon: "mdi:cart-arrow-down",
               },
               {
                 value: "SELL",
-                label: "Sell",
+                label: tCommon("sell"),
                 color: "red",
                 icon: "mdi:cart-arrow-up",
               },
@@ -171,10 +196,15 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
     {
       type: "kpi",
       layout: { cols: 2, rows: 2 },
+      responsive: {
+        mobile: { cols: 1, rows: 2, span: 1 },
+          tablet: { cols: 2, rows: 1, span: 2 },
+          desktop: { cols: 2, rows: 1, span: 2 },
+      },
       items: [
         {
           id: "market_orders",
-          title: "Market Orders",
+          title: t("market_orders"),
           metric: "MARKET",
           model: "exchangeOrder",
           aggregation: { field: "type", value: "MARKET" },
@@ -182,7 +212,7 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
         },
         {
           id: "limit_orders",
-          title: "Limit Orders",
+          title: t("limit_orders"),
           metric: "LIMIT",
           model: "exchangeOrder",
           aggregation: { field: "type", value: "LIMIT" },
@@ -192,10 +222,15 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
     },
     {
       type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
       items: [
         {
           id: "exchangeOrderTypeDistribution",
-          title: "Type Distribution",
+          title: tCommon("type_distribution"),
           type: "pie",
           model: "exchangeOrder",
           metrics: ["MARKET", "LIMIT"],
@@ -204,13 +239,13 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
             status: [
               {
                 value: "MARKET",
-                label: "Market",
+                label: tCommon("market"),
                 color: "blue",
                 icon: "mdi:chart-line",
               },
               {
                 value: "LIMIT",
-                label: "Limit",
+                label: tCommon("limit"),
                 color: "green",
                 icon: "mdi:chart-bell-curve",
               },
@@ -228,10 +263,15 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
     {
       type: "kpi",
       layout: { cols: 2, rows: 2 },
+      responsive: {
+        mobile: { cols: 1, rows: 4, span: 1 },
+          tablet: { cols: 2, rows: 2, span: 2 },
+          desktop: { cols: 2, rows: 2, span: 2 },
+      },
       items: [
         {
           id: "gtc_orders",
-          title: "GTC Orders",
+          title: t("gtc_orders"),
           metric: "GTC",
           model: "exchangeOrder",
           aggregation: { field: "timeInForce", value: "GTC" },
@@ -239,7 +279,7 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
         },
         {
           id: "ioc_orders",
-          title: "IOC Orders",
+          title: t("ioc_orders"),
           metric: "IOC",
           model: "exchangeOrder",
           aggregation: { field: "timeInForce", value: "IOC" },
@@ -247,7 +287,7 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
         },
         {
           id: "fok_orders",
-          title: "FOK Orders",
+          title: t("fok_orders"),
           metric: "FOK",
           model: "exchangeOrder",
           aggregation: { field: "timeInForce", value: "FOK" },
@@ -255,7 +295,7 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
         },
         {
           id: "po_orders",
-          title: "PO Orders",
+          title: t("po_orders"),
           metric: "PO",
           model: "exchangeOrder",
           aggregation: { field: "timeInForce", value: "PO" },
@@ -265,10 +305,15 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
     },
     {
       type: "chart",
+      responsive: {
+        mobile: { cols: 1, rows: 1, span: 1 },
+        tablet: { cols: 1, rows: 1, span: 1 },
+        desktop: { cols: 1, rows: 1, span: 1 },
+      },
       items: [
         {
           id: "exchangeOrderTimeInForceDistribution",
-          title: "Time-In-Force Distribution",
+          title: t("time_in_force_distribution"),
           type: "pie",
           model: "exchangeOrder",
           metrics: ["GTC", "IOC", "FOK", "PO"],
@@ -277,23 +322,23 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
             status: [
               {
                 value: "GTC",
-                label: "GTC",
+                label: t("gtc"),
                 color: "blue",
                 icon: "mdi:timer-sand",
               },
               {
                 value: "IOC",
-                label: "IOC",
+                label: t("ioc"),
                 color: "green",
                 icon: "mdi:timer-sand-full",
               },
               {
                 value: "FOK",
-                label: "FOK",
+                label: t("fok"),
                 color: "amber",
                 icon: "mdi:timer-alert",
               },
-              { value: "PO", label: "PO", color: "red", icon: "mdi:timer-cog" },
+              { value: "PO", label: t("po"), color: "red", icon: "mdi:timer-cog" },
             ],
           },
         },
@@ -302,14 +347,62 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
   ],
 
   // ─────────────────────────────────────────────────────────────
-  // Row #5: Full-width line chart (no array)
+  // Row #5: Financial Metrics – KPI Grid
+  // ─────────────────────────────────────────────────────────────
+  {
+    type: "kpi",
+    layout: { cols: 2, rows: 2 },
+    responsive: {
+      mobile: { cols: 1, rows: 4, span: 1 },
+          tablet: { cols: 2, rows: 2, span: 2 },
+          desktop: { cols: 2, rows: 2, span: 2 },
+    },
+    items: [
+      {
+        id: "total_order_amount",
+        title: "Total Order Amount",
+        metric: "amount",
+        model: "exchangeOrder",
+        icon: "mdi:cash-multiple",
+      },
+      {
+        id: "total_order_cost",
+        title: "Total Order Cost",
+        metric: "cost",
+        model: "exchangeOrder",
+        icon: "mdi:currency-usd",
+      },
+      {
+        id: "total_fees_collected",
+        title: "Total Fees Collected",
+        metric: "fee",
+        model: "exchangeOrder",
+        icon: "mdi:cash",
+      },
+      {
+        id: "average_order_price",
+        title: "Average Order Price",
+        metric: "average",
+        model: "exchangeOrder",
+        icon: "mdi:calculator",
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // Row #6: Full-width line chart
   // ─────────────────────────────────────────────────────────────
   {
     type: "chart",
+    responsive: {
+      mobile: { cols: 1, rows: 1, span: 1 },
+      tablet: { cols: 1, rows: 1, span: 1 },
+      desktop: { cols: 1, rows: 1, span: 1 },
+    },
     items: [
       {
         id: "exchangeOrdersOverTime",
-        title: "Orders Over Time",
+        title: tCommon("orders_over_time"),
         type: "line",
         model: "exchangeOrder",
         metrics: ["total", "OPEN", "CLOSED", "CANCELED", "EXPIRED", "REJECTED"],
@@ -331,10 +424,15 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   {
     type: "chart",
+    responsive: {
+      mobile: { cols: 1, rows: 1, span: 1 },
+      tablet: { cols: 1, rows: 1, span: 1 },
+      desktop: { cols: 1, rows: 1, span: 1 },
+    },
     items: [
       {
         id: "buyVsSellOverTime",
-        title: "Buy vs. Sell Over Time",
+        title: t("buy_vs_sell_over_time"),
         type: "stackedArea",
         model: "exchangeOrder",
         metrics: ["buy", "sell"],
@@ -346,4 +444,5 @@ export const exchangeOrderAnalytics: AnalyticsConfig = [
       },
     ],
   },
-];
+] as AnalyticsConfig;
+}

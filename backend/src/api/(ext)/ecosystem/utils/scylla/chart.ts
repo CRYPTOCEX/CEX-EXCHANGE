@@ -1,5 +1,5 @@
 import client from "./client";
-import { subDays, subMonths, startOfWeek, endOfWeek, addDays } from "date-fns";
+import { subDays, subMonths, startOfWeek, endOfWeek, addDays, eachDayOfInterval, eachHourOfInterval, eachWeekOfInterval } from "date-fns";
 import { types } from "cassandra-driver";
 
 // ----- Type Definitions -----
@@ -185,6 +185,79 @@ function aggregateDataByPeriod(
 }
 
 /**
+ * Generate a complete timeline for the given period and fill in missing dates with zeros.
+ */
+function generateCompleteTimeline(
+  startDate: Date,
+  endDate: Date,
+  period: "hour" | "day" | "week",
+  aggregatedData: DataPoint[],
+  aggregations: AggregationInstruction[]
+): DataPoint[] {
+  let timePoints: Date[];
+
+  if (period === "hour") {
+    timePoints = eachHourOfInterval({ start: startDate, end: endDate });
+  } else if (period === "day") {
+    timePoints = eachDayOfInterval({ start: startDate, end: endDate });
+  } else {
+    // week
+    timePoints = eachWeekOfInterval({ start: startDate, end: endDate });
+  }
+
+  // Create a map of existing data by timestamp for quick lookup
+  // For hour and day periods, match by exact timestamp
+  // For week periods, match by week start
+  const dataMap = new Map<number, DataPoint>();
+  aggregatedData.forEach((dp) => {
+    let key: number;
+    if (period === "week") {
+      key = startOfWeek(dp.createdAt).getTime();
+    } else if (period === "hour") {
+      // Match by exact hour
+      key = new Date(dp.createdAt.getFullYear(), dp.createdAt.getMonth(), dp.createdAt.getDate(), dp.createdAt.getHours()).getTime();
+    } else {
+      // Match by exact day
+      key = new Date(dp.createdAt.getFullYear(), dp.createdAt.getMonth(), dp.createdAt.getDate()).getTime();
+    }
+
+    // If multiple data points match the same key, sum them up
+    const existing = dataMap.get(key);
+    if (existing) {
+      existing.total += dp.total;
+      aggregations.forEach((agg) => {
+        existing[agg.alias] = (existing[agg.alias] || 0) + (dp[agg.alias] || 0);
+      });
+    } else {
+      dataMap.set(key, { ...dp, createdAt: new Date(key) });
+    }
+  });
+
+  // Generate complete timeline with zeros for missing dates
+  return timePoints.map((date) => {
+    const timestamp = date.getTime();
+    const existingData = dataMap.get(timestamp);
+
+    if (existingData) {
+      return existingData;
+    }
+
+    // Create a zero-filled data point for missing dates
+    const zeroPoint: DataPoint = {
+      createdAt: date,
+      total: 0,
+    };
+
+    // Add zeros for all aggregation aliases
+    aggregations.forEach((agg) => {
+      zeroPoint[agg.alias] = 0;
+    });
+
+    return zeroPoint;
+  });
+}
+
+/**
  * Main function to get chart data for Scylla analytics.
  */
 export async function getChartData({
@@ -265,11 +338,20 @@ export async function getChartData({
     aggregations
   );
 
+  // Generate complete timeline with all dates in the range
+  const completeTimeline = generateCompleteTimeline(
+    startDate,
+    effectiveNow,
+    aggregationPeriod,
+    aggregatedData,
+    aggregations
+  );
+
   const result: ChartData = { kpis: [] };
 
   // Build KPI data.
   kpis.forEach((kpi) => {
-    if (!aggregatedData.length) {
+    if (!completeTimeline.length) {
       result.kpis.push({
         id: kpi.id,
         title: kpi.title,
@@ -280,18 +362,34 @@ export async function getChartData({
       });
       return;
     }
-    const latest = aggregatedData[aggregatedData.length - 1];
-    const previous = aggregatedData[aggregatedData.length - 2] || latest;
-    const value = Number(latest[kpi.metric] || 0);
-    const prevValue = Number(previous[kpi.metric] || 0);
+
+    // Calculate total value across the entire period
+    const value = completeTimeline.reduce((sum, row) => {
+      return sum + Number(row[kpi.metric] || 0);
+    }, 0);
+
+    // For change calculation, compare current period total vs previous period total
+    // Split timeline in half to get previous vs current period
+    const midpoint = Math.floor(completeTimeline.length / 2);
+    const firstHalf = completeTimeline.slice(0, midpoint);
+    const secondHalf = completeTimeline.slice(midpoint);
+
+    const prevValue = firstHalf.reduce((sum, row) => {
+      return sum + Number(row[kpi.metric] || 0);
+    }, 0);
+
+    const currentValue = secondHalf.reduce((sum, row) => {
+      return sum + Number(row[kpi.metric] || 0);
+    }, 0);
+
     let rawChange = 0;
     if (prevValue === 0) {
-      rawChange = value === 0 ? 0 : 100;
+      rawChange = currentValue === 0 ? 0 : 100;
     } else {
-      rawChange = ((value - prevValue) / prevValue) * 100;
+      rawChange = ((currentValue - prevValue) / prevValue) * 100;
     }
     const change = Math.round(rawChange * 100) / 100;
-    const trend = aggregatedData.map((row) => ({
+    const trend = completeTimeline.map((row) => ({
       date: row.createdAt.toISOString(),
       value: Number(row[kpi.metric] || 0),
     }));
@@ -308,16 +406,21 @@ export async function getChartData({
   // Build chart data.
   charts.forEach((chart) => {
     if (chart.type === "pie") {
-      const latest = aggregatedData[aggregatedData.length - 1] || {};
+      // For pie charts, sum up values across the entire period, not just the last data point
       result[chart.id] =
-        chart.config?.status?.map((st) => ({
-          id: String(st.value),
-          name: st.label,
-          value: latest[String(st.value)] ?? 0,
-          color: st.color,
-        })) || [];
+        chart.config?.status?.map((st) => {
+          const totalValue = completeTimeline.reduce((sum, row) => {
+            return sum + (Number(row[String(st.value)]) || 0);
+          }, 0);
+          return {
+            id: String(st.value),
+            name: st.label,
+            value: totalValue,
+            color: st.color,
+          };
+        }) || [];
     } else {
-      result[chart.id] = aggregatedData.map((row) => {
+      result[chart.id] = completeTimeline.map((row) => {
         const item: Record<string, any> = { date: row.createdAt.toISOString() };
         chart.metrics.forEach((metric) => {
           item[metric] = row[metric] ?? 0;

@@ -19,8 +19,8 @@ import { $fetch } from "@/lib/api";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "../../../history/columns";
-import { transactionAnalytics } from "../../../history/analytics";
+import { useColumns } from "../../../history/columns";
+import { useAnalytics } from "../../../history/analytics";
 import { useUserStore } from "@/store/user";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -39,6 +39,9 @@ interface walletAttributes {
 
 export default function WalletDetailClient() {
   const t = useTranslations("common");
+  const tFinance = useTranslations("finance");
+  const columns = useColumns();
+  const analytics = useAnalytics();
   const { currency, type } = useParams() as {
     currency: string;
     type: string;
@@ -170,7 +173,7 @@ export default function WalletDetailClient() {
             onClick={() => router.push("/finance/wallet")}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">{t("Back")}</span>
+            <span className="hidden sm:inline">{t("back")}</span>
           </Button>
           <Skeleton className="h-6 w-32 sm:h-8 sm:w-48" />
         </div>
@@ -228,13 +231,13 @@ export default function WalletDetailClient() {
             <Wallet className="h-6 w-6" />
           </div>
           <h2 className="text-xl sm:text-2xl font-bold mb-2">
-            {t("wallet_not_found")}
+            {tFinance("wallet_not_found")}
           </h2>
           <p className="text-muted-foreground mb-6">
-            {t("the_wallet_youre_to_it")}.
+            {tFinance("the_wallet_youre_to_it")}.
           </p>
           <Button onClick={() => router.push("/finance/wallet")}>
-            {t("go_to_wallets")}
+            {tFinance("go_to_wallets")}
           </Button>
         </div>
       </div>
@@ -341,10 +344,10 @@ export default function WalletDetailClient() {
           onClick={() => router.push("/finance/wallet")}
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">{t("Back")}</span>
+          <span className="hidden sm:inline">{t("back")}</span>
         </Button>
         <h1 className="text-xl sm:text-2xl font-bold">
-          {wallet.currency} {t(`wallet_type_${wallet.type.toLowerCase()}`)} {t("Wallet")}
+          {wallet.currency} {t(`wallet_type_${wallet.type.toLowerCase()}` as any)} {t("wallet")}
         </h1>
       </div>
 
@@ -386,7 +389,7 @@ export default function WalletDetailClient() {
                 className="flex-1 sm:flex-none"
               >
                 <ArrowDownToLine className="h-4 w-4 mr-1.5" />
-                <span>{t("Deposit")}</span>
+                <span>{t("deposit")}</span>
               </Button>
               <Button
                 size={isMobile ? "sm" : "default"}
@@ -394,7 +397,7 @@ export default function WalletDetailClient() {
                 className="flex-1 sm:flex-none"
               >
                 <ArrowUpFromLine className="h-4 w-4 mr-1.5" />
-                <span>{t("Withdraw")}</span>
+                <span>{t("withdraw")}</span>
               </Button>
               <Button
                 size={isMobile ? "sm" : "default"}
@@ -402,7 +405,7 @@ export default function WalletDetailClient() {
                 className="flex-1 sm:flex-none"
               >
                 <ArrowLeftRight className="h-4 w-4 mr-1.5" />
-                <span>{t("Transfer")}</span>
+                <span>{t("transfer")}</span>
               </Button>
             </div>
           </div>
@@ -438,7 +441,7 @@ export default function WalletDetailClient() {
                     </span>
                   </div>
                   <div className="text-xs sm:text-sm text-muted-foreground">
-                    <span>{t("network_balance")}</span>
+                    <span>{tFinance("network_balance")}</span>
                     <span className="font-medium">
                       {currentAddressData?.balance?.toFixed(8) || "0.00000000"}
                     </span>
@@ -459,13 +462,13 @@ export default function WalletDetailClient() {
           walletId: wallet?.id,
         }}
         userAnalytics={true}
-        pageSize={10}
+        pageSize={12}
         isParanoid={false}
         canView={true}
-        title="Transactions History"
+        title={t("transactions_history")}
         itemTitle="Transaction"
         columns={columns}
-        analytics={transactionAnalytics}
+        analytics={analytics}
       />
     </motion.div>
   );

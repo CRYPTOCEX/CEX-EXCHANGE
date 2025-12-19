@@ -4,8 +4,15 @@ import {
   baseStringSchema,
   baseBooleanSchema,
 } from "@b/utils/schema";
+interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
 
-export async function getUserID(id: string) {
+
+export async function getUserID(id: string, ctx?: LogContext) {
+  ctx?.step?.(`Getting user ID: ${id}`);
   const user = await models.user.findOne({
     where: { id },
   });

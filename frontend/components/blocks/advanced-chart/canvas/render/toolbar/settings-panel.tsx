@@ -16,7 +16,7 @@ import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 
 export const SettingsPanel: React.FC = () => {
-  const t = useTranslations("common");
+  const t = useTranslations("components_blocks");
   const {
     chartType,
     setChartType,
@@ -116,7 +116,7 @@ export const SettingsPanel: React.FC = () => {
           <h4 className={sectionHeaderClasses}>{t("display_options")}</h4>
           <div className="space-y-2">
             <ToggleOption
-              label="Show Grid"
+              label={t("show_grid")}
               icon={
                 <Grid
                   size={16}
@@ -129,7 +129,7 @@ export const SettingsPanel: React.FC = () => {
             />
 
             <ToggleOption
-              label="Show Volume"
+              label={t("show_volume")}
               icon={<BarChart3 size={16} className="text-blue-400" />}
               isActive={showVolume}
               onToggle={toggleVolume}

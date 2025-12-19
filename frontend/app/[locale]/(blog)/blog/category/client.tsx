@@ -9,15 +9,15 @@ import { motion } from "framer-motion";
 import {
   ArrowRight,
   Layers,
-  FolderOpen,
-  BookOpen,
   AlertCircle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
+import { PageHero } from "../components/page-hero";
+import { FloatingShapes, InteractivePattern } from "@/components/sections/shared";
 
 export function CategoriesClient() {
-  const t = useTranslations("blog");
+  const t = useTranslations("blog_blog");
+  const tCommon = useTranslations("common");
   const { categories, isLoading, fetchCategories, error } = useBlogStore();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   useEffect(() => {
@@ -25,30 +25,107 @@ export function CategoriesClient() {
   }, [fetchCategories]);
   if (isLoading && categories.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <Skeleton className="h-12 w-1/3 mx-auto mb-8" />
-        <Skeleton className="h-6 w-1/4 mx-auto mb-12" />
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({
-            length: 6,
-          }).map((_, i) => (
-            <Skeleton key={i} className="h-64 w-full rounded-xl" />
-          ))}
+      <div className="min-h-screen relative overflow-hidden bg-white dark:bg-zinc-950">
+        {/* Premium Background */}
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            background: `linear-gradient(180deg, transparent 0%, rgba(99, 102, 241, 0.03) 10%, rgba(139, 92, 246, 0.02) 30%, transparent 60%)`,
+          }}
+        />
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
+          }}
+        />
+
+        {/* PageHero Skeleton */}
+        <div className="relative z-10 container mx-auto px-4 py-16 text-center">
+          {/* Badge Skeleton */}
+          <div className="flex justify-center mb-6">
+            <Skeleton className="h-8 w-32 rounded-full" />
+          </div>
+          {/* Title Skeleton */}
+          <Skeleton className="h-14 w-96 mx-auto mb-4 rounded-xl" />
+          {/* Description Skeleton */}
+          <Skeleton className="h-6 w-2/3 mx-auto mb-2 rounded-lg" />
+          <Skeleton className="h-6 w-1/2 mx-auto rounded-lg" />
+        </div>
+
+        <div className="relative z-10 container mx-auto px-4 py-12">
+          {/* Featured Categories Section */}
+          <div className="mb-16">
+            {/* Section Header */}
+            <div className="flex items-center justify-between mb-8">
+              <Skeleton className="h-8 w-48 rounded-lg" />
+              <Skeleton className="h-6 w-32 rounded-lg" />
+            </div>
+
+            {/* Featured Cards Grid - 3 large cards with h-80 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={`featured-${i}`} className="h-80 w-full rounded-2xl" />
+              ))}
+            </div>
+          </div>
+
+          {/* All Categories Section */}
+          <div>
+            {/* Section Header */}
+            <Skeleton className="h-8 w-40 mb-8 rounded-lg" />
+
+            {/* All Categories Grid - smaller cards */}
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={`all-${i}`} className="flex flex-col h-full">
+                  {/* Image skeleton */}
+                  <Skeleton className="h-48 w-full rounded-t-xl" />
+                  {/* Content skeleton */}
+                  <div className="flex-1 p-6 bg-white dark:bg-zinc-800 rounded-b-xl border border-zinc-100 dark:border-zinc-700 border-t-0">
+                    <Skeleton className="h-5 w-3/4 mb-4 rounded-lg" />
+                    <Skeleton className="h-4 w-full mb-2 rounded-lg" />
+                    <Skeleton className="h-4 w-5/6 mb-6 rounded-lg" />
+                    <Skeleton className="h-4 w-24 rounded-lg" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
   }
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">
-            {t("Categories")}
-          </h1>
-          <div className="bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 p-4 rounded-lg inline-block border border-red-100 dark:border-red-900/50">
-            <AlertCircle className="h-5 w-5 inline-block mr-2" />
-            {error}
-          </div>
+      <div className="min-h-screen relative overflow-hidden bg-white dark:bg-zinc-950 pt-24">
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
+          }}
+        />
+        <FloatingShapes
+          count={6}
+          interactive={true}
+          theme={{ primary: "indigo", secondary: "purple" }}
+        />
+        <div className="relative z-10 container mx-auto px-4 pb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <div className="mb-8 inline-flex items-center justify-center p-8 bg-linear-to-br from-red-500/10 to-orange-500/10 rounded-3xl border border-red-200/50 dark:border-red-900/50">
+              <AlertCircle className="h-16 w-16 text-red-500 dark:text-red-400" />
+            </div>
+            <h1 className="text-3xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">
+              {t("categories")}
+            </h1>
+            <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl text-red-700 dark:text-red-400 p-6 rounded-2xl inline-block border border-red-200/50 dark:border-red-900/50 shadow-xl">
+              {error}
+            </div>
+          </motion.div>
         </div>
       </div>
     );
@@ -66,101 +143,46 @@ export function CategoriesClient() {
     return gradients[index % gradients.length];
   };
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-zinc-50/50 to-white dark:from-black dark:via-zinc-900/50 dark:to-black">
-      <div className="container mx-auto px-4 py-12">
-        {/* Hero Section */}
-        <motion.div
-          initial={{
-            opacity: 0,
-          }}
-          animate={{
-            opacity: 1,
-          }}
-          transition={{
-            duration: 0.6,
-          }}
-          className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-700 dark:to-purple-700 p-8 md:p-12 mb-16 shadow-xl"
-        >
-          {/* Background decorative elements */}
-          <div className="absolute inset-0 overflow-hidden opacity-20">
-            <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-white blur-3xl"></div>
-            <div className="absolute bottom-20 left-20 h-40 w-40 rounded-full bg-white blur-3xl"></div>
-          </div>
+    <div className="min-h-screen relative overflow-hidden bg-white dark:bg-zinc-950">
+      {/* Premium Background */}
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `linear-gradient(180deg, transparent 0%, rgba(99, 102, 241, 0.03) 10%, rgba(139, 92, 246, 0.02) 30%, transparent 60%)`,
+        }}
+      />
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
+        }}
+      />
+      <FloatingShapes
+        count={8}
+        interactive={true}
+        theme={{ primary: "indigo", secondary: "purple" }}
+      />
+      <InteractivePattern
+        config={{
+          enabled: true,
+          variant: "crosses",
+          opacity: 0.015,
+          size: 40,
+          interactive: true,
+        }}
+      />
 
-          {/* Decorative icons */}
-          <div className="absolute top-10 right-10 opacity-20 rotate-12">
-            <Layers className="h-24 w-24 text-white" />
-          </div>
-          <div className="absolute bottom-10 left-10 opacity-10 -rotate-12">
-            <FolderOpen className="h-16 w-16 text-white" />
-          </div>
+      {/* Hero Section */}
+      <PageHero
+        badge={{ icon: <Layers className="h-3.5 w-3.5" />, text: t("categories") }}
+        title={[
+          { text: "Browse by " },
+          { text: "Category", gradient: "from-indigo-600 to-purple-600" },
+        ]}
+        description={`${t("explore_our_content_organized_by_topics")}. ${t("discover_articles_tutorials_of_interest")}.`}
+      />
 
-          <div className="relative z-10 max-w-3xl">
-            <motion.h1
-              initial={{
-                opacity: 0,
-                y: 20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                duration: 0.6,
-                delay: 0.2,
-              }}
-              className="text-4xl md:text-5xl font-bold mb-4 text-white"
-            >
-              {t("browse_by_category")}
-            </motion.h1>
-            <motion.p
-              initial={{
-                opacity: 0,
-                y: 20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                duration: 0.6,
-                delay: 0.3,
-              }}
-              className="text-xl text-indigo-100 mb-8"
-            >
-              {t("explore_our_content_organized_by_topics")}.{" "}
-              {t("discover_articles_tutorials_of_interest")}.
-            </motion.p>
-
-            <motion.div
-              initial={{
-                opacity: 0,
-                y: 20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                duration: 0.6,
-                delay: 0.4,
-              }}
-            >
-              <Link href="/blog">
-                <Button
-                  size="lg"
-                  variant="glass"
-                  className="rounded-full group"
-                >
-                  <BookOpen className="mr-2 h-5 w-5" />
-                  {t("explore_all_articles")}
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Button>
-              </Link>
-            </motion.div>
-          </div>
-        </motion.div>
-
+      <div className="relative z-10 container mx-auto px-4 py-12">
         {/* Featured Categories */}
         <div className="mb-16">
           <div className="flex items-center justify-between mb-8">
@@ -238,7 +260,7 @@ export function CategoriesClient() {
                         href={`/blog/category/${category.slug}`}
                         className="inline-flex items-center rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition-colors duration-300"
                       >
-                        {t("Explore")}
+                        {t("explore")}
                         <ArrowRight className="ml-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                       </Link>
                     </div>
@@ -252,7 +274,7 @@ export function CategoriesClient() {
         {/* All Categories Grid */}
         <div>
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-8">
-            {t("all_categories")}
+            {tCommon("all_categories")}
           </h2>
 
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">

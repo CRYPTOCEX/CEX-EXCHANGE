@@ -11,6 +11,8 @@ interface PositionsSummaryProps {
 
 export function PositionsSummary({ positions }: PositionsSummaryProps) {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExtStaking = useTranslations("ext_staking");
   const summary = useMemo(() => {
     // Separate positions by status
     const activePositions = positions.filter((p) => p.status === "ACTIVE");
@@ -63,14 +65,13 @@ export function PositionsSummary({ positions }: PositionsSummaryProps) {
                 {summary.totalStaked.toFixed(2)}
               </p>
             </div>
-            <div className="bg-primary/10 p-2 rounded-full">
-              <Wallet className="h-5 w-5 text-primary" />
+            <div className="bg-violet-600/10 p-2 rounded-full">
+              <Wallet className="h-5 w-5 text-violet-600" />
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            {t("Across")}
-            {summary.activePositionsCount}
-            {t("active_positions")}
+            {tCommon("across")} {summary.activePositionsCount}{" "}
+            {tCommon("active_positions")}
           </p>
         </CardContent>
       </Card>
@@ -87,8 +88,8 @@ export function PositionsSummary({ positions }: PositionsSummaryProps) {
                 {summary.totalPendingRewards.toFixed(2)}
               </p>
             </div>
-            <div className="bg-yellow-500/10 p-2 rounded-full">
-              <CoinsIcon className="h-5 w-5 text-yellow-500" />
+            <div className="bg-indigo-600/10 p-2 rounded-full">
+              <CoinsIcon className="h-5 w-5 text-indigo-600" />
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
@@ -116,8 +117,8 @@ export function PositionsSummary({ positions }: PositionsSummaryProps) {
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            {summary.totalClaimedRewards.toFixed(2)}
-            {t("already_claimed")}
+            {summary.totalClaimedRewards.toFixed(2)}{" "}
+            {tExtStaking("already_claimed")}
           </p>
         </CardContent>
       </Card>
@@ -128,7 +129,7 @@ export function PositionsSummary({ positions }: PositionsSummaryProps) {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground mb-1">
-                {t("pending_withdrawals")}
+                {tExtStaking("pending_withdrawals")}
               </p>
               <p className="text-2xl font-bold">
                 {summary.pendingWithdrawalAmount.toFixed(2)}
@@ -139,10 +140,10 @@ export function PositionsSummary({ positions }: PositionsSummaryProps) {
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            {summary.pendingWithdrawalsCount}
-            {t("withdrawal")}
-            {summary.pendingWithdrawalsCount !== 1 ? "s" : ""}
-            {t("in_progress")}
+            {summary.pendingWithdrawalsCount}{" "}
+            {tCommon("withdrawal")}
+            {summary.pendingWithdrawalsCount !== 1 ? "s" : ""}{" "}
+            {tCommon("in_progress")}
           </p>
         </CardContent>
       </Card>

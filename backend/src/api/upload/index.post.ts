@@ -7,6 +7,7 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 import { sanitizeUserPath } from "@b/utils/validation";
+import { logger } from "@b/utils/console";
 
 /**
  * Generate a file URL for the uploaded file
@@ -29,6 +30,8 @@ export const metadata: OperationObject = {
   description: "Uploads a file to a specified directory",
   operationId: "uploadFile",
   tags: ["Upload"],
+  logModule: "UPLOAD",
+  logTitle: "Upload file",
   requiresAuth: true,
   requestBody: {
     required: true,
@@ -87,10 +90,12 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
   if (!user) throw new Error("User not found");
 
   const { dir, file: base64File, width, height, oldPath } = body;
+
+  ctx?.step("Validating upload request");
 
   if (!dir || !base64File) {
     throw new Error("No directory specified or no file provided");
@@ -124,6 +129,7 @@ export default async (data) => {
     throw new Error("File size exceeds maximum limit of 10MB");
   }
 
+  ctx?.step("Preparing upload directory");
   // Sanitize and resolve the upload directory
   const sanitizedDir = sanitizeUserPath(dir.replace(/-/g, "/"));
   const mediaDir = path.join(BASE_UPLOAD_DIR, sanitizedDir);
@@ -154,6 +160,7 @@ export default async (data) => {
   let filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
   let processedImage: Buffer = buffer;
 
+  ctx?.step("Processing file upload");
   if (mimeType.startsWith("image/") && !mimeType.includes("image/gif")) {
     processedImage = await sharp(buffer)
       .resize({ width, height, fit: "inside" })
@@ -173,13 +180,15 @@ export default async (data) => {
 
   // Handle old file deletion securely
   if (oldPath) {
+    ctx?.step("Removing old file");
     try {
       await removeOldImageSecurely(oldPath, sanitizedDir);
     } catch (error) {
-      console.error("Error removing old image:", error);
+      logger.error("UPLOAD", "Error removing old image", error);
     }
   }
 
+  ctx?.success(`File uploaded successfully: ${sanitizedDir.replace(/\\/g, "/")}/${filename}`);
   return {
     url: generateFileUrl(`${sanitizedDir.replace(/\\/g, "/")}/${filename}`),
   };
@@ -227,7 +236,7 @@ async function removeOldImageSecurely(oldPath, expectedDir) {
   } catch (error) {
     // Only log if not ENOENT (file not found)
     if (error.code !== "ENOENT") {
-      console.error("Error removing old image:", error);
+      logger.error("UPLOAD", "Error removing old image", error);
     }
   }
 }

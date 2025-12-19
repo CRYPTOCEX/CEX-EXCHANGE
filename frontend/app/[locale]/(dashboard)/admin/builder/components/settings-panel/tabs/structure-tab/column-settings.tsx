@@ -19,7 +19,7 @@ export const ColumnSettings = ({
   row,
   section,
 }: ColumnSettingsProps) => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const handleWidthChange = (width: number) => {
     const formattedWidth = Number.parseFloat(width.toFixed(2));
     useBuilderStore.getState().updateColumn(section.id, row.id, column.id, {
@@ -32,7 +32,7 @@ export const ColumnSettings = ({
     <div className="space-y-3">
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <Label className="text-xs">{t("width_(%)")}</Label>
+          <Label className="text-xs">{`${t("width")} (%)`}</Label>
           <span className="text-xs font-normal text-muted-foreground">
             {column?.width.toFixed(2)}%
           </span>

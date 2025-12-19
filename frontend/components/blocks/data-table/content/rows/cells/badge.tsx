@@ -69,7 +69,7 @@ const Badge = ({
   );
 };
 
-interface BadgeCellProps extends CellRendererProps<string> {
+interface BadgeCellProps extends CellRendererProps<any> {
   config?: BadgeConfig;
 }
 
@@ -107,15 +107,29 @@ export function BadgeCell({
     withDot: true,
   },
 }: BadgeCellProps) {
-  const { withDot = true } = config;
+  const { withDot = true, labels } = config;
   let variantKey: BadgeVariant;
+  let displayValue: string;
+
+  // Handle boolean values with optional custom labels
+  if (typeof value === "boolean") {
+    if (labels && typeof labels === "object") {
+      displayValue = value ? (labels.true || "Active") : (labels.false || "Inactive");
+    } else {
+      // Default labels for boolean values
+      displayValue = value ? "Active" : "Inactive";
+    }
+  } else {
+    // For non-boolean values, convert to string
+    displayValue = String(value);
+  }
 
   if (typeof config.variant === "function") {
     variantKey = config.variant(value);
   } else if (config.variant) {
     variantKey = config.variant;
   } else {
-    variantKey = getVariantForStatus(value);
+    variantKey = getVariantForStatus(displayValue);
   }
 
   // Fallback to default variant if the computed variant key is not found
@@ -127,7 +141,7 @@ export function BadgeCell({
         {withDot && (
           <span className={`mr-1.5 h-2 w-2 rounded-full ${variant.dot}`} />
         )}
-        {value}
+        {displayValue}
       </Badge>
     </div>
   );

@@ -23,7 +23,7 @@ import {
 import { useTranslations } from "next-intl";
 
 export function SafetyTab() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
   return (
     <Card>
       <CardHeader>
@@ -79,7 +79,7 @@ export function SafetyTab() {
               <p className="text-sm text-muted-foreground">
                 {t("never_agree_to_trade_outside_the_platform")}.{" "}
                 {t("our_escrow_system_and_sellers")}.{" "}
-                {t("trading_off-platform_removes_to_scams")}.
+                {t("trading_off_platform_removes_to_scams")}.
               </p>
             </div>
 
@@ -100,7 +100,7 @@ export function SafetyTab() {
               <div className="flex items-center gap-2 mb-3">
                 <MessageSquare className="h-5 w-5 text-primary" />
                 <h4 className="font-medium">
-                  {t("keep_communication_on-platform")}
+                  {t("keep_communication_on_platform")}
                 </h4>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -142,7 +142,7 @@ export function SafetyTab() {
 
             <Alert variant="destructive">
               <XCircle className="h-4 w-4" />
-              <AlertTitle>{t("off-platform_trading")}</AlertTitle>
+              <AlertTitle>{t("off_platform_trading")}</AlertTitle>
               <AlertDescription className="text-sm">
                 {t("never_agree_to_better_price")}.{" "}
                 {t("youll_lose_escrow_goes_wrong")}.
@@ -183,7 +183,7 @@ export function SafetyTab() {
             <ol className="space-y-2 pl-5 list-decimal">
               <li>{t("do_not_release_additional_payments")}</li>
               <li>{t("contact_our_support_the_platform")}</li>
-              <li>{t("provide_all_relevant_transaction_ids)")}</li>
+              <li>{t("provide_all_relevant_transaction_ids")}</li>
               <li>{t("do_not_engage_further_with_the_suspected_scammer")}</li>
             </ol>
             <p className="text-muted-foreground mt-2">

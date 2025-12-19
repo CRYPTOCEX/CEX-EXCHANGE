@@ -15,10 +15,10 @@ interface MarketItemProps {
   onSelect: (symbol: Symbol) => void;
   onToggleWatchlist: (
     symbol: string,
-    marketType: "spot" | "futures",
+    marketType: "spot" | "eco" | "futures",
     e: React.MouseEvent
   ) => void;
-  marketType: "spot" | "futures";
+  marketType: "spot" | "eco" | "futures";
   onSortVolume?: (e: React.MouseEvent) => void;
   onSortPrice?: (e: React.MouseEvent) => void;
 }
@@ -32,7 +32,8 @@ export function MarketItem({
   onSortVolume,
   onSortPrice,
 }: MarketItemProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tTradeComponents = useTranslations("trade_components");
   return (
     <div
       className={cn(
@@ -67,17 +68,17 @@ export function MarketItem({
               <div className="font-medium text-xs mr-2">{market.displaySymbol}</div>
               {market.isTrending && (
                 <div className="mr-1.5 px-1 py-0.5 text-[8px] rounded bg-emerald-100/70 dark:bg-emerald-900/70 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-700/50">
-                  {t("Trending")}
+                  {t("trending")}
                 </div>
               )}
               {market.isHot && !market.isTrending && (
                 <div className="mr-1.5 px-1 py-0.5 text-[8px] rounded bg-red-100/70 dark:bg-red-900/70 text-red-700 dark:text-red-400 border border-red-200/50 dark:border-red-700/50">
-                  {t("Hot")}
+                  {t("hot")}
                 </div>
               )}
               {market.isEco && (
                 <div className="mr-1.5 px-1 py-0.5 text-[8px] rounded bg-blue-100/70 dark:bg-blue-900/70 text-blue-700 dark:text-blue-400 border border-blue-200/50 dark:border-blue-700/50">
-                  {t("Eco")}
+                  {t("eco")}
                 </div>
               )}
               {market.type && (
@@ -159,7 +160,7 @@ export function MarketItem({
                         ? "text-emerald-600 dark:text-green-400 bg-emerald-50 dark:bg-emerald-900/20"
                         : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20"
                     )}
-                    title="Funding Rate"
+                    title={tTradeComponents("funding_rate")}
                   >
                     {market.fundingRate}
                   </div>
@@ -174,17 +175,17 @@ export function MarketItem({
               <div className="font-medium text-xs">{market.displaySymbol}</div>
               {market.isTrending && (
                 <div className="ml-1.5 px-1 py-0.5 text-[8px] rounded bg-emerald-100/70 dark:bg-emerald-900/70 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-700/50">
-                  {t("Trending")}
+                  {t("trending")}
                 </div>
               )}
               {market.isHot && !market.isTrending && (
                 <div className="ml-1.5 px-1 py-0.5 text-[8px] rounded bg-red-100/70 dark:bg-red-900/70 text-red-700 dark:text-red-400 border border-red-200/50 dark:border-red-700/50">
-                  {t("Hot")}
+                  {t("hot")}
                 </div>
               )}
               {market.isEco && (
                 <div className="ml-1.5 px-1 py-0.5 text-[8px] rounded bg-blue-100/70 dark:bg-blue-900/70 text-blue-700 dark:text-blue-400 border border-blue-200/50 dark:border-blue-700/50">
-                  {t("Eco")}
+                  {t("eco")}
                 </div>
               )}
               {market.type && (
@@ -264,7 +265,7 @@ export function MarketItem({
                     ? "text-emerald-600 dark:text-green-400 bg-emerald-50 dark:bg-emerald-900/20"
                     : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20"
                 )}
-                title="Funding Rate"
+                title={tTradeComponents("funding_rate")}
               >
                 {market.fundingRate}
               </div>

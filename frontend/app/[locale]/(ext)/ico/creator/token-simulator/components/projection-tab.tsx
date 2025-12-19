@@ -53,7 +53,8 @@ export function ProjectionTab({
   projectionMonths,
   onMarketParamsChange,
 }: ProjectionTabProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
   const [chartView, setChartView] = useState<
     "price" | "marketCap" | "combined"
   >("price");
@@ -113,16 +114,16 @@ export function ProjectionTab({
       return (
         <div className="bg-background/95 backdrop-blur-xs border rounded-md shadow-md p-4 text-sm">
           <p className="font-medium mb-2">
-            {t("Month")}
+            {tCommon("month")}
             {label}
           </p>
           <div className="space-y-2">
             <div className="flex justify-between gap-4">
-              <span className="text-muted-foreground">{t("price")}</span>
+              <span className="text-muted-foreground">{tCommon("price")}</span>
               <span className="font-medium">{formatCurrency(data.price)}</span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-muted-foreground">{t("market_cap")}</span>
+              <span className="text-muted-foreground">{tCommon("market_cap")}</span>
               <span className="font-medium">
                 {formatCurrency(data.marketCap)}
               </span>
@@ -136,7 +137,7 @@ export function ProjectionTab({
               </span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-muted-foreground">% {t("released")}</span>
+              <span className="text-muted-foreground">% {tCommon("released")}</span>
               <span className="font-medium">
                 {formatPercentage(data.percentReleased)}
               </span>
@@ -184,13 +185,13 @@ export function ProjectionTab({
           <div className="grid gap-6">
             <div className="space-y-3">
               <label className="text-sm font-medium flex items-center">
-                {t("monthly_growth_rate_(%)")}
+                {`${t("monthly_growth_rate")} (%)`}
                 <TooltipUI>
                   <TooltipTrigger asChild>
                     <HelpCircle className="h-4 w-4 ml-1 text-muted-foreground cursor-help" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="max-w-xs">{t("monthly_growth_rate_tooltip")}</p>
+                    <p className="max-w-xs">{t("monthly_growth_rate_tooltip")} {t("monthly_growth_rate_tooltip_positive")} {t("monthly_growth_rate_tooltip_range")}</p>
                   </TooltipContent>
                 </TooltipUI>
               </label>
@@ -222,7 +223,7 @@ export function ProjectionTab({
 
             <div className="space-y-3">
               <label className="text-sm font-medium flex items-center">
-                {t("volatility_(%)")}
+                {`${t("volatility")} (%)`}
                 <TooltipUI>
                   <TooltipTrigger asChild>
                     <HelpCircle className="h-4 w-4 ml-1 text-muted-foreground cursor-help" />
@@ -259,7 +260,7 @@ export function ProjectionTab({
 
           <div className="space-y-3">
             <label className="text-sm font-medium">
-              {t("projection_period_(months)")}
+              {t("projection_period_months")}
             </label>
             <div className="flex items-center gap-3">
               <Slider
@@ -328,7 +329,7 @@ export function ProjectionTab({
               }`}
               onClick={() => setChartView("price")}
             >
-              {t("Price")}
+              {tCommon("price")}
             </button>
             <button
               className={`px-3 py-1 text-sm rounded-md transition-colors ${
@@ -338,7 +339,7 @@ export function ProjectionTab({
               }`}
               onClick={() => setChartView("marketCap")}
             >
-              {t("market_cap")}
+              {tCommon("market_cap")}
             </button>
             <button
               className={`px-3 py-1 text-sm rounded-md transition-colors ${
@@ -348,7 +349,7 @@ export function ProjectionTab({
               }`}
               onClick={() => setChartView("combined")}
             >
-              {t("Combined")}
+              {t("combined")}
             </button>
           </div>
         </div>
@@ -546,7 +547,7 @@ export function ProjectionTab({
                 )}
               </p>
               <p className="text-xs text-muted-foreground">
-                {t("Month")}{" "}
+                {tCommon("month")}{" "}
                 {marketProjections.findIndex(
                   (d) =>
                     d.price ===
@@ -566,7 +567,7 @@ export function ProjectionTab({
                 )}
               </p>
               <p className="text-xs text-muted-foreground">
-                {t("Month")}{" "}
+                {tCommon("month")}{" "}
                 {marketProjections.findIndex(
                   (d) =>
                     d.marketCap ===

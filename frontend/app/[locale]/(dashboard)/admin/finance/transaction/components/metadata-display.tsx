@@ -22,7 +22,7 @@ export const parseMetadata = (
  * Displays metadata as pretty‑printed JSON.
  */
 export const MetadataDisplay = ({ metadata }: { metadata: string | null }) => {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const parsed = parseMetadata(metadata);
   if (!parsed)
     return (

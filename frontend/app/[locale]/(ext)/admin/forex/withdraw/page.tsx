@@ -1,8 +1,14 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "../../../../(dashboard)/admin/finance/deposit/log/columns";
-import { transactionAnalytics } from "../../../../(dashboard)/admin/finance/transaction/analytics";
+import { ArrowUpCircle } from "lucide-react";
+import { useColumns } from "../../../../(dashboard)/admin/finance/deposit/log/columns";
+import { useAnalytics } from "../../../../(dashboard)/admin/finance/transaction/analytics";
+import { useTranslations } from "next-intl";
+
 export default function DepositLogPage() {
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const analytics = useAnalytics();
   return (
     <DataTable
       apiEndpoint="/api/admin/forex/withdraw"
@@ -17,7 +23,7 @@ export default function DepositLogPage() {
         edit: "edit.forex.withdraw",
         delete: "delete.forex.withdraw",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={false}
       canEdit={true}
       editLink="/admin/forex/withdraw/[id]"
@@ -25,10 +31,16 @@ export default function DepositLogPage() {
       editCondition={(item) => ["PENDING", "PROCESSING"].includes(item.status)}
       canDelete={true}
       canView={true}
-      title="Forex Withdraw Management"
+      title={t("forex_withdraw_management")}
       itemTitle="Forex Withdraw"
       columns={columns}
-      analytics={transactionAnalytics}
+      analytics={analytics}
+      design={{
+        animation: "orbs",
+        primaryColor: "emerald",
+        secondaryColor: "teal",
+        icon: ArrowUpCircle,
+      }}
     />
   );
 }

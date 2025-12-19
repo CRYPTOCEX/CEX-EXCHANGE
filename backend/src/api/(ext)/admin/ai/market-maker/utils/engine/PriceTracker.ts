@@ -1,4 +1,4 @@
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import ExchangeManager from "@b/utils/exchange";
 import { RedisSingleton } from "@b/utils/redis";
 import { getLatestPrice, getPriceHistoryInRange } from "../scylla/queries";
@@ -50,9 +50,9 @@ export class PriceTracker {
       // Get initial price
       await this.fetchExternalPrice();
 
-      console.info(`[AI Market Maker] PriceTracker initialized for ${this.symbol}`);
+      logger.info("AI_MM", `PriceTracker initialized for ${this.symbol}`);
     } catch (error) {
-      logError("ai-market-maker-price-tracker-init", error, __filename);
+      logger.error("AI_MM", "PriceTracker initialization error", error);
       throw error;
     }
   }
@@ -116,7 +116,7 @@ export class PriceTracker {
             // Symbol not available on this exchange - use internal pricing only
             this.symbolAvailableOnExchange = false;
             this.exchangeCheckDone = true;
-            console.info(`[AI Market Maker] Symbol ${this.symbol} not available on exchange - using internal pricing only`);
+            logger.info("AI_MM", `Symbol ${this.symbol} not available on exchange - using internal pricing only`);
             return this.currentPrice;
           }
           this.exchangeCheckDone = true;
@@ -176,12 +176,12 @@ export class PriceTracker {
         // Mark symbol as not available on exchange - don't log as error
         this.symbolAvailableOnExchange = false;
         this.exchangeCheckDone = true;
-        console.info(`[AI Market Maker] Symbol ${this.symbol} not available on exchange - using internal pricing only`);
+        logger.info("AI_MM", `Symbol ${this.symbol} not available on exchange - using internal pricing only`);
         return this.currentPrice;
       }
 
       // Log other errors normally
-      logError("ai-market-maker-fetch-price", error, __filename);
+      logger.error("AI_MM", "External price fetch error", error);
 
       // Try to get from internal history
       const internal = await this.getInternalPrice();

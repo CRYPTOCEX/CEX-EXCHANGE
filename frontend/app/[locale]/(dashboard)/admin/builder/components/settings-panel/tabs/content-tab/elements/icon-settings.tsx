@@ -10,18 +10,19 @@ export function IconSettings({
   settings,
   onSettingChange,
 }: SettingsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <Label className="text-xs font-medium">{t("Icon")}</Label>
+        <Label className="text-xs font-medium">{t("icon")}</Label>
         <IconPicker
           selectedIcon={settings.iconName || "sparkles"}
           onSelectIcon={(iconName) => onSettingChange("iconName", iconName)}
         />
       </div>
       <div className="text-xs text-muted-foreground mt-2">
-        <p>{t("use_the_design_and_size")}.</p>
+        <p>{tDashboardAdmin("use_the_design_and_size")}.</p>
       </div>
     </div>
   );

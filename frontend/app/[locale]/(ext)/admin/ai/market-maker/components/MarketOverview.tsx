@@ -87,7 +87,9 @@ function StatRow({ label, value, highlight }: StatRowProps) {
 }
 
 export const MarketOverview: React.FC<MarketOverviewProps> = ({ data, liveEvents = [] }) => {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const pool = data.pool || {};
   const totalPnL = Number(pool.realizedPnL || 0) + Number(pool.unrealizedPnL || 0);
   const realizedPnL = Number(pool.realizedPnL || 0);
@@ -106,11 +108,11 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({ data, liveEvents
         <OverviewCard
           title={t("price_settings")}
           icon={Target}
-          gradient="from-blue-500 to-blue-600"
+          gradient="from-purple-500 to-purple-600"
         >
           <div className="space-y-1 divide-y divide-border">
             <StatRow
-              label={t("target_price")}
+              label={tExt("target_price")}
               value={`${Number(data.targetPrice || 0).toFixed(6)} ${quoteCurrency}`}
             />
             <StatRow
@@ -138,7 +140,7 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({ data, liveEvents
                 <>
                   <div className="relative h-3 bg-secondary rounded-full overflow-hidden">
                     <div
-                      className="absolute h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"
+                      className="absolute h-full bg-gradient-to-r from-purple-400 to-purple-600 rounded-full"
                       style={{
                         left: `${Math.max(0, 50 - lowPercent)}%`,
                         width: `${Math.min(100, rangePercent)}%`,
@@ -172,7 +174,7 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({ data, liveEvents
               {(() => {
                 const aggressionMap: Record<string, { level: number; color: string }> = {
                   CONSERVATIVE: { level: 30, color: "from-green-400 to-green-600" },
-                  MODERATE: { level: 60, color: "from-blue-400 to-blue-600" },
+                  MODERATE: { level: 60, color: "from-purple-400 to-purple-600" },
                   AGGRESSIVE: { level: 100, color: "from-red-400 to-red-600" },
                 };
                 const aggression = aggressionMap[data.aggressionLevel] || aggressionMap.MODERATE;
@@ -183,7 +185,7 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({ data, liveEvents
                       <span className={`text-sm font-bold ${
                         data.aggressionLevel === "CONSERVATIVE" ? "text-green-500 dark:text-green-400" :
                         data.aggressionLevel === "AGGRESSIVE" ? "text-red-500 dark:text-red-400" :
-                        "text-blue-500 dark:text-blue-400"
+                        "text-purple-500 dark:text-purple-400"
                       }`}>{data.aggressionLevel}</span>
                     </div>
                     <div className="relative h-2 bg-secondary rounded-full overflow-hidden">
@@ -201,7 +203,7 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({ data, liveEvents
             <div>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-muted-foreground">{t("real_liquidity")}</span>
-                <span className="text-sm font-bold text-blue-500 dark:text-blue-400">{data.realLiquidityPercent}%</span>
+                <span className="text-sm font-bold text-purple-500 dark:text-purple-400">{data.realLiquidityPercent}%</span>
               </div>
               <div className="relative h-2 bg-secondary rounded-full overflow-hidden">
                 <div
@@ -240,7 +242,7 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({ data, liveEvents
           <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-600/10 dark:from-purple-500/20 dark:to-purple-600/20">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t("total_value_locked")}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{tCommon("total_value_locked")}</p>
                 <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                   {Number(pool.totalValueLocked || 0).toLocaleString()} {quoteCurrency}
                 </p>
@@ -289,7 +291,7 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({ data, liveEvents
           <div className={`mt-4 p-4 rounded-xl ${totalPnL >= 0 ? "bg-green-500/10 dark:bg-green-500/20" : "bg-red-500/10 dark:bg-red-500/20"}`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t("total_p_l")}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{tCommon("total_p_l")}</p>
                 <p className={`text-2xl font-bold ${totalPnL >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                   {totalPnL >= 0 ? "+" : ""}{totalPnL.toFixed(2)} {quoteCurrency}
                 </p>
@@ -350,13 +352,13 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({ data, liveEvents
         <OverviewCard
           title={t("volume_stats")}
           icon={BarChart3}
-          gradient="from-blue-500 to-blue-600"
+          gradient="from-purple-500 to-purple-600"
         >
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 rounded-xl bg-blue-500/10 dark:bg-blue-500/20">
-                <p className="text-xs text-muted-foreground mb-1">{t("_24h_volume")}</p>
-                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+              <div className="p-3 rounded-xl bg-purple-500/10 dark:bg-purple-500/20">
+                <p className="text-xs text-muted-foreground mb-1">{`24h ${tCommon('volume')}`}</p>
+                <p className="text-lg font-bold text-purple-600 dark:text-purple-400">
                   {Number(data.currentDailyVolume || 0).toLocaleString()} {quoteCurrency}
                 </p>
               </div>
@@ -491,7 +493,7 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({ data, liveEvents
               <Clock className="w-5 h-5 text-white" />
             </div>
             <CardTitle className="text-base font-semibold text-foreground">
-              {t("recent_activity")}
+              {tCommon("recent_activity")}
             </CardTitle>
           </div>
         </CardHeader>
@@ -564,7 +566,7 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({ data, liveEvents
               <div className="p-4 rounded-full bg-secondary mb-4">
                 <Clock className="w-8 h-8 opacity-50" />
               </div>
-              <p className="font-medium">{t("no_recent_activity")}</p>
+              <p className="font-medium">{tExt("no_recent_activity")}</p>
               <p className="text-sm text-muted-foreground mt-1">{t("activity_will_appear_here_once_the")}</p>
             </div>
           )}

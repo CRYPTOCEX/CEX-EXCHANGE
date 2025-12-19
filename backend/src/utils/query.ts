@@ -10,6 +10,7 @@ import { createError } from "./error";
 import { models, sequelize } from "@b/db";
 import path from "path";
 import { sanitizePath } from "./validation";
+import { logger } from "@b/utils/console";
 
 // Mapping of operators remains unchanged.
 const operatorMap = {
@@ -269,7 +270,7 @@ export function parseFilterParam(
     try {
       filtersObject = JSON.parse(filterParam);
     } catch (error) {
-      console.error("Error parsing filter param:", error);
+      logger.debug("QUERY", "Error parsing filter param");
       return parsedFilters;
     }
   }
@@ -434,7 +435,7 @@ export async function updateStatus(
 
     return { message };
   } catch (error) {
-    console.error(error);
+    logger.error("QUERY", "Error updating status", error);
     throw createError({
       statusCode: 500,
       message: error.message,
@@ -681,7 +682,7 @@ export async function getRecords<T extends Model>(
 
     return data.map((item) => item.get({ plain: true })) as T[];
   } catch (error) {
-    console.error(`Error fetching ${modelName}:`, error);
+    logger.error("QUERY", `Error fetching ${modelName}`, error);
     throw new Error("Server error");
   }
 }
@@ -725,7 +726,7 @@ export async function updateRecord(
     for (const relation of relations) {
       const relatedModel = models[relation.model];
       if (!relatedModel) {
-        console.error(`Related model ${relation.model} not found.`);
+        logger.warn("QUERY", `Related model ${relation.model} not found`);
         continue;
       }
 
@@ -769,7 +770,7 @@ export async function updateRecord(
       return { message: `${modelName} updated successfully` };
     }
   } catch (error) {
-    console.error(`Error occurred, rolling back transaction. Error: ${error}`);
+    logger.error("QUERY", "Transaction rollback - update failed", error);
     await transaction.rollback();
     throw error;
   }
@@ -815,7 +816,7 @@ export async function storeRecord({
       for (const relation of relations) {
         const relatedModel = models[relation.model];
         if (!relatedModel) {
-          console.error(`Related model ${relation.model} not found.`);
+          logger.warn("QUERY", `Related model ${relation.model} not found`);
           continue;
         }
 
@@ -832,7 +833,7 @@ export async function storeRecord({
             );
           }
         } else {
-          console.error(`Relation data for ${relation.model} is not an array.`);
+          logger.warn("QUERY", `Relation data for ${relation.model} is not an array`);
         }
       }
     }
@@ -848,7 +849,7 @@ export async function storeRecord({
       return { message: `${model} created successfully` };
     }
   } catch (error) {
-    console.error(`Error occurred, rolling back transaction. Error: ${error}`);
+    logger.error("QUERY", "Transaction rollback - store failed", error);
     await transaction.rollback();
     throw error;
   }
@@ -991,7 +992,7 @@ export async function handleSingleDelete({
       return { message: `${capitalModel} deleted successfully.` };
     }
   } catch (error) {
-    console.error(error);
+    logger.error("QUERY", "Error in single delete", error);
     throw createError({
       statusCode: 500,
       message: error.message,
@@ -1056,7 +1057,7 @@ export async function handleBulkDelete({
       return { message: `${capitalModel} records deleted successfully.` };
     }
   } catch (error) {
-    console.error(error);
+    logger.error("QUERY", "Error in bulk delete", error);
     throw createError({
       statusCode: 500,
       message: error.message,

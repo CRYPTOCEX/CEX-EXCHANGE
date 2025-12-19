@@ -28,21 +28,15 @@
             scanBtn.addEventListener('click', scanUntranslatable);
         }
 
-        // Clean buttons
-        const cleanSelectedBtn = document.getElementById('clean-selected-untranslatable');
-        if (cleanSelectedBtn) {
-            cleanSelectedBtn.addEventListener('click', cleanSelected);
+        // Remove buttons (remove from locales AND revert TSX files)
+        const removeSelectedBtn = document.getElementById('remove-selected-untranslatable');
+        if (removeSelectedBtn) {
+            removeSelectedBtn.addEventListener('click', removeSelected);
         }
 
-        const cleanAllBtn = document.getElementById('clean-all-untranslatable');
-        if (cleanAllBtn) {
-            cleanAllBtn.addEventListener('click', cleanAll);
-        }
-
-        // Clear button
-        const clearBtn = document.getElementById('clear-untranslatable');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', clearResults);
+        const removeAllBtn = document.getElementById('remove-all-untranslatable');
+        if (removeAllBtn) {
+            removeAllBtn.addEventListener('click', removeAll);
         }
 
         // Select all checkbox
@@ -158,11 +152,12 @@
             untranslatableData = data.items || [];
             filteredData = [...untranslatableData];
             selectedItems.clear();
-            
+
             renderResults();
             renderStats(data.stats || {});
             renderTypeFilter();
-            
+            updateSelectionUI();
+
             UIUtils.showSuccess(`Found ${untranslatableData.length} untranslatable items`);
             
         } catch (error) {
@@ -319,16 +314,23 @@
         if (selectAllCheckbox) {
             const totalVisible = filteredData.length;
             const selectedVisible = filteredData.filter(item => selectedItems.has(item.key)).length;
-            
+
             selectAllCheckbox.checked = totalVisible > 0 && selectedVisible === totalVisible;
             selectAllCheckbox.indeterminate = selectedVisible > 0 && selectedVisible < totalVisible;
         }
-        
+
         // Update button states
         const hasSelection = selectedItems.size > 0;
-        const cleanSelectedBtn = document.getElementById('clean-selected-untranslatable');
-        if (cleanSelectedBtn) {
-            cleanSelectedBtn.disabled = !hasSelection;
+        const hasData = untranslatableData.length > 0;
+
+        const removeSelectedBtn = document.getElementById('remove-selected-untranslatable');
+        if (removeSelectedBtn) {
+            removeSelectedBtn.disabled = !hasSelection;
+        }
+
+        const removeAllBtn = document.getElementById('remove-all-untranslatable');
+        if (removeAllBtn) {
+            removeAllBtn.disabled = !hasData;
         }
     }
 
@@ -358,26 +360,125 @@
     async function performCleanup(items, description) {
         try {
             UIUtils.showInfo(`Cleaning ${description}...`);
-            
+
             const result = await apiClient.cleanUntranslatable(items);
-            
+
             let message = `Cleaned ${description} successfully`;
             if (result.results) {
                 const totalReplaced = Object.values(result.results.replaced || {})
                     .reduce((sum, count) => sum + count, 0);
                 message += ` (${totalReplaced} replacements made)`;
             }
-            
+
             UIUtils.showSuccess(message);
-            
+
             // Clear selection and refresh
             selectedItems.clear();
             clearResults();
-            
+
         } catch (error) {
             console.error('Error cleaning untranslatable texts:', error);
             UIUtils.showError('Failed to clean untranslatable texts');
         }
+    }
+
+    async function removeSelected() {
+        if (selectedItems.size === 0) {
+            UIUtils.showWarning('No items selected');
+            return;
+        }
+
+        if (!confirm(`Remove ${selectedItems.size} keys from all locales AND revert TSX files to literal strings?\n\nThis will:\n1. Replace t('key') calls with literal string values\n2. Delete the keys from all locale files`)) {
+            return;
+        }
+
+        const selectedData = untranslatableData.filter(item => selectedItems.has(item.key));
+        await performRemoval(selectedData, `${selectedItems.size} selected items`);
+    }
+
+    async function removeAll() {
+        if (untranslatableData.length === 0) {
+            UIUtils.showWarning('No items to remove');
+            return;
+        }
+
+        if (!confirm(`Remove all ${untranslatableData.length} untranslatable keys from locales AND revert TSX files?\n\nThis will:\n1. Replace t('key') calls with literal string values\n2. Delete the keys from all locale files`)) {
+            return;
+        }
+
+        await performRemoval(untranslatableData, 'all items');
+    }
+
+    async function performRemoval(items, description) {
+        try {
+            UIUtils.showInfo(`Removing ${description} and reverting TSX files...`);
+
+            const result = await apiClient.removeUntranslatable(items);
+
+            if (result.success) {
+                let message = `Removed ${description} successfully!`;
+                if (result.stats) {
+                    message = `
+                        <div class="space-y-2">
+                            <div class="font-semibold">Removal Complete!</div>
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div class="bg-red-100 rounded p-2">
+                                    <div class="text-2xl font-bold text-red-600">${result.stats.keysRemoved || 0}</div>
+                                    <div class="text-xs text-red-800">Keys Removed</div>
+                                </div>
+                                <div class="bg-blue-100 rounded p-2">
+                                    <div class="text-2xl font-bold text-blue-600">${result.stats.localesModified || 0}</div>
+                                    <div class="text-xs text-blue-800">Locales Modified</div>
+                                </div>
+                                <div class="bg-purple-100 rounded p-2">
+                                    <div class="text-2xl font-bold text-purple-600">${result.stats.tsxFilesModified || 0}</div>
+                                    <div class="text-xs text-purple-800">TSX Files Reverted</div>
+                                </div>
+                            </div>
+                            ${result.errors && result.errors.length > 0 ? `
+                                <div class="text-xs text-red-600 mt-2">${result.errors.length} errors occurred</div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
+                // Use innerHTML to show formatted result
+                const successDiv = document.getElementById('untranslatable-success') || createSuccessDiv();
+                if (successDiv) {
+                    successDiv.className = 'bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded mb-4';
+                    successDiv.innerHTML = message;
+                    successDiv.style.display = 'block';
+                }
+
+                // Clear selection and results
+                selectedItems.clear();
+                clearResults();
+            } else {
+                UIUtils.showError(result.error || 'Failed to remove untranslatable texts');
+            }
+
+        } catch (error) {
+            console.error('Error removing untranslatable texts:', error);
+            UIUtils.showError('Failed to remove untranslatable texts: ' + error.message);
+        }
+    }
+
+    function createSuccessDiv() {
+        const container = document.querySelector('.max-w-6xl');
+        if (!container) return null;
+
+        const div = document.createElement('div');
+        div.id = 'untranslatable-success';
+        div.className = 'bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded mb-4';
+        div.style.display = 'none';
+
+        // Insert after the info box
+        const infoBox = container.querySelector('.bg-orange-50');
+        if (infoBox && infoBox.parentNode) {
+            infoBox.parentNode.insertBefore(div, infoBox.nextSibling);
+        }
+
+        return div;
     }
 
     function clearResults() {
@@ -467,7 +568,11 @@
             single: 'bg-yellow-100 text-yellow-800',
             emoji: 'bg-pink-100 text-pink-800',
             special: 'bg-red-100 text-red-800',
-            whitespace: 'bg-gray-100 text-gray-800'
+            whitespace: 'bg-gray-100 text-gray-800',
+            history: 'bg-indigo-100 text-indigo-800',
+            literal: 'bg-cyan-100 text-cyan-800',
+            empty: 'bg-slate-100 text-slate-800',
+            error: 'bg-rose-100 text-rose-800'
         };
         return colors[type] || 'bg-gray-100 text-gray-800';
     }
@@ -476,9 +581,8 @@
     window.untranslatableManager = {
         initialize: initializeUntranslatableTab,
         scanUntranslatable,
-        cleanSelected,
-        cleanAll,
-        clearResults,
+        removeSelected,
+        removeAll,
         toggleItemSelection,
         togglePattern,
         deletePattern,

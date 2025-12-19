@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
     "Fetches all items in the user's wishlist, including product details, categories, and reviews.",
   operationId: "getEcommerceWishlist",
   tags: ["Ecommerce", "Wishlist"],
+  logModule: "ECOM",
+  logTitle: "Get Wishlist",
   responses: {
     200: {
       description: "Wishlist retrieved successfully",
@@ -38,7 +40,9 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
+
+    ctx?.step("Fetching Wishlist");
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -113,6 +117,9 @@ export default async (data: Handler) => {
         : 0,
       reviewsCount: product.ecommerceReviews?.length ?? 0,
     }));
+
+    ctx?.success("Get Wishlist fetched successfully");
+
 
     return JSON.parse(JSON.stringify(products));
   } catch (error) {

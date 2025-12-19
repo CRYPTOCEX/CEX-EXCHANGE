@@ -34,7 +34,8 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 
 export function AdminDashboardClient() {
-  const t = useTranslations("blog");
+  const t = useTranslations("blog_admin");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { dashboardData, fetchDashboardData, updateAuthorStatus } =
     useAdminBlogStore();
@@ -119,15 +120,15 @@ export function AdminDashboardClient() {
           className="space-y-8"
         >
           <TabsList className="grid w-full grid-cols-2 lg:w-fit">
-            <TabsTrigger value="overview">{t("Overview")}</TabsTrigger>
-            <TabsTrigger value="content">{t("Content")}</TabsTrigger>
+            <TabsTrigger value="overview">{tCommon("overview")}</TabsTrigger>
+            <TabsTrigger value="content">{tCommon("content")}</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-8">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <StatsCard
-                title="Published Posts"
+                title={t("published_posts")}
                 value={publishedPosts}
                 icon={<FileText className="h-5 w-5" />}
                 color="primary"
@@ -135,7 +136,7 @@ export function AdminDashboardClient() {
                 linkText="View all posts"
               />
               <StatsCard
-                title="Draft Posts"
+                title={t("draft_posts")}
                 value={draftPosts}
                 icon={<Bookmark className="h-5 w-5" />}
                 color="warning"
@@ -143,7 +144,7 @@ export function AdminDashboardClient() {
                 linkText="View drafts"
               />
               <StatsCard
-                title="Active Authors"
+                title={t("active_authors")}
                 value={approvedAuthors}
                 icon={<Users className="h-5 w-5" />}
                 color="success"
@@ -151,7 +152,7 @@ export function AdminDashboardClient() {
                 linkText="Manage authors"
               />
               <StatsCard
-                title="Pending Authors"
+                title={t("pending_authors")}
                 value={pendingAuthors}
                 icon={<Clock className="h-5 w-5" />}
                 color="purple"
@@ -175,7 +176,7 @@ export function AdminDashboardClient() {
                     </div>
                     <Link href="/admin/blog/post" className="gap-1 text-xs">
                       <Button variant="ghost" size="sm">
-                        {t("view_all")}
+                        {tCommon("view_all")}
                         <ChevronRight className="h-3 w-3" />
                       </Button>
                     </Link>
@@ -185,7 +186,7 @@ export function AdminDashboardClient() {
                   <div className="space-y-4">
                     {recentPosts.length === 0 ? (
                       <p className="text-center py-4 text-muted-foreground">
-                        {t("no_posts_found")}
+                        {tCommon("no_posts_found")}
                       </p>
                     ) : (
                       recentPosts.map((post) => (
@@ -261,7 +262,7 @@ export function AdminDashboardClient() {
                       className="gap-1 text-xs"
                     >
                       <Button variant="ghost" size="sm">
-                        {t("view_all")}
+                        {tCommon("view_all")}
                         <ChevronRight className="h-3 w-3" />
                       </Button>
                     </Link>
@@ -271,7 +272,7 @@ export function AdminDashboardClient() {
                   <div className="space-y-4">
                     {pendingAuthorsList.length === 0 ? (
                       <p className="text-center py-4 text-muted-foreground">
-                        {t("no_pending_applications")}
+                        {tCommon("no_pending_applications")}
                       </p>
                     ) : (
                       pendingAuthorsList.map((author) => {
@@ -310,7 +311,7 @@ export function AdminDashboardClient() {
                                   updateAuthorStatus(author.id, "APPROVED")
                                 }
                               >
-                                {t("Approve")}
+                                {tCommon("approve")}
                               </Button>
                               <Button
                                 size="sm"
@@ -320,7 +321,7 @@ export function AdminDashboardClient() {
                                   updateAuthorStatus(author.id, "REJECTED")
                                 }
                               >
-                                {t("Reject")}
+                                {tCommon("reject")}
                               </Button>
                             </div>
                           </div>
@@ -337,7 +338,7 @@ export function AdminDashboardClient() {
           <TabsContent value="content" className="space-y-8">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <StatsCard
-                title="Total Posts"
+                title={tCommon("total_posts")}
                 value={posts.publishedCount}
                 icon={<FileText className="h-5 w-5" />}
                 color="primary"
@@ -398,7 +399,7 @@ export function AdminDashboardClient() {
                       );
                     }) || (
                       <p className="w-full text-center py-4 text-muted-foreground">
-                        {t("no_categories_found")}
+                        {tCommon("no_categories_found")}
                       </p>
                     )}
                   </div>
@@ -409,7 +410,7 @@ export function AdminDashboardClient() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Tag className="h-5 w-5" />
-                    {t("popular_tags")}
+                    {tCommon("popular_tags")}
                   </CardTitle>
                   <CardDescription>
                     {t("most_used_content_tags")}
@@ -433,7 +434,7 @@ export function AdminDashboardClient() {
                       );
                     }) || (
                       <p className="w-full text-center py-4 text-muted-foreground">
-                        {t("no_tags_found")}
+                        {tCommon("no_tags_found")}
                       </p>
                     )}
                   </div>

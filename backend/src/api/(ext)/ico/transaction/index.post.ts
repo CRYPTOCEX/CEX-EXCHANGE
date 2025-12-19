@@ -9,6 +9,7 @@ import {
 import { createNotification } from "@b/utils/notifications";
 import { rateLimiters } from "@b/handler/Middleware";
 import { Op } from "sequelize";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Create a New ICO Investment",
@@ -17,6 +18,8 @@ export const metadata = {
   operationId: "createIcoInvestment",
   tags: ["ICO", "Investments"],
   requiresAuth: true,
+  logModule: "ICO_INVESTMENT",
+  logTitle: "Purchase ICO tokens",
   requestBody: {
     required: true,
     content: {
@@ -106,11 +109,13 @@ async function getInvestmentLimits() {
 export default async (data: Handler) => {
   // Apply rate limiting
   await rateLimiters.orderCreation(data);
-  
-  const { body, user } = data;
+
+  const { body, user, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Validating purchase request");
 
   const { offeringId, amount, walletAddress } = body;
   if (!offeringId || !amount || !walletAddress) {
@@ -124,8 +129,9 @@ export default async (data: Handler) => {
 
   // Start a transaction to ensure atomic operations
   const transaction = await sequelize.transaction();
-  
+
   try {
+    ctx?.step("Retrieving ICO offering details");
     // Retrieve the ICO offering with lock
     const offering = await models.icoTokenOffering.findByPk(offeringId, {
       include: [
@@ -143,6 +149,7 @@ export default async (data: Handler) => {
       throw createError({ statusCode: 404, message: "Offering not found" });
     }
 
+    ctx?.step("Validating offering status and eligibility");
     // Validate offering status
     if (offering.status !== 'ACTIVE') {
       throw createError({ 
@@ -169,12 +176,13 @@ export default async (data: Handler) => {
     // Validate wallet address
     const blockchain = offering.tokenDetail.blockchain;
     if (!validateWalletAddress(walletAddress, blockchain)) {
-      throw createError({ 
-        statusCode: 400, 
-        message: `Invalid ${blockchain} wallet address format` 
+      throw createError({
+        statusCode: 400,
+        message: `Invalid ${blockchain} wallet address format`
       });
     }
 
+    ctx?.step("Checking investment limits and user eligibility");
     // Get investment limits
     const limits = await getInvestmentLimits();
     
@@ -213,6 +221,7 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.step("Finding active phase and calculating token amount");
     // Find active phase
     const activePhase = await models.icoTokenOfferingPhase.findOne({
       where: { 
@@ -274,6 +283,7 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.step("Verifying wallet balance");
     // Lock and verify wallet balance
     const wallet = await models.wallet.findOne({
       where: {
@@ -302,12 +312,14 @@ export default async (data: Handler) => {
       });
     }
 
+    ctx?.step("Deducting payment from wallet");
     // Deduct the investment amount from the investor's wallet
     await wallet.update(
       { balance: wallet.balance - amount },
       { transaction }
     );
 
+    ctx?.step("Allocating tokens and creating transaction record");
     // Generate a unique transaction ID
     const transactionId = crypto.randomBytes(16).toString("hex");
 
@@ -332,6 +344,7 @@ export default async (data: Handler) => {
       { transaction }
     );
 
+    ctx?.step("Updating phase and offering statistics");
     // Update phase remaining tokens
     await activePhase.update(
       { remaining: activePhase.remaining - tokenAmountNormalized },
@@ -347,6 +360,7 @@ export default async (data: Handler) => {
       );
     }
 
+    ctx?.step("Creating wallet transaction and audit log");
     // Create wallet transaction record
     await models.transaction.create(
       {
@@ -383,6 +397,7 @@ export default async (data: Handler) => {
     // Commit the transaction after successful operations
     await transaction.commit();
 
+    ctx?.step("Sending email and in-app notifications");
     // --- Send Email Notifications ---
     // Buyer (investor) email notification
     if (user.email) {
@@ -393,7 +408,7 @@ export default async (data: Handler) => {
         TOKEN_AMOUNT: tokenAmountNormalized.toFixed(4),
         TOKEN_PRICE: tokenPrice.toFixed(4),
         TRANSACTION_ID: transactionId,
-      });
+      }, ctx);
     }
     
     // Seller (project owner) email notification
@@ -406,7 +421,7 @@ export default async (data: Handler) => {
         AMOUNT_INVESTED: amount.toFixed(2),
         TOKEN_AMOUNT: tokenAmountNormalized.toFixed(4),
         TRANSACTION_ID: transactionId,
-      });
+      }, ctx);
     }
 
     // --- Send In-App Notifications ---
@@ -427,9 +442,9 @@ export default async (data: Handler) => {
             primary: true,
           },
         ],
-      });
+      }, ctx);
     } catch (notifErr) {
-      console.error("Failed to create in-app notification for buyer", notifErr);
+      logger.error("ICO_TRANSACTION", "Failed to create in-app notification for buyer", notifErr);
     }
 
     // Notify the seller (creator)
@@ -449,10 +464,12 @@ export default async (data: Handler) => {
             primary: true,
           },
         ],
-      });
+      }, ctx);
     } catch (notifErr) {
-      console.error("Failed to create in-app notification for seller", notifErr);
+      logger.error("ICO_TRANSACTION", "Failed to create in-app notification for seller", notifErr);
     }
+
+    ctx?.success(`Purchased ${tokenAmountNormalized.toFixed(4)} tokens for ${amount} ${offering.purchaseWalletCurrency}`);
 
     // Return a successful response
     return {
@@ -462,6 +479,7 @@ export default async (data: Handler) => {
     };
   } catch (err: any) {
     await transaction.rollback();
+    ctx?.fail(err.message || "Failed to process ICO investment");
     throw err;
   }
 };

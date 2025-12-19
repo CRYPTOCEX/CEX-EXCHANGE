@@ -1,4 +1,5 @@
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Get default page content",
@@ -48,7 +49,9 @@ export const metadata = {
     },
   },
   requiresAuth: true,
-  permission: "view.page"
+  permission: "view.page",
+  logModule: "ADMIN_CONTENT",
+  logTitle: "Get Default Page Content"
 };
 
 // Default content for home page variables
@@ -209,7 +212,28 @@ const DEFAULT_HOME_VARIABLES = {
     enabled: true
   },
   mobileApp: {
-    enabled: true
+    enabled: true,
+    badge: "Download Our App",
+    title: "Trade on the Go",
+    subtitle: "Anytime, Anywhere",
+    description: "Experience seamless cryptocurrency trading with our powerful mobile app. Access all features from your pocket.",
+    features: [
+      { title: "Biometric Security", description: "Face ID & fingerprint login", icon: "Fingerprint", gradient: "from-emerald-500 to-teal-500" },
+      { title: "Instant Alerts", description: "Real-time price notifications", icon: "Bell", gradient: "from-blue-500 to-cyan-500" },
+      { title: "Live Charts", description: "Professional trading tools", icon: "ChartLine", gradient: "from-purple-500 to-pink-500" },
+      { title: "Multi-Wallet", description: "Manage all your assets", icon: "Wallet", gradient: "from-orange-500 to-red-500" }
+    ]
+  },
+  extensionSections: {
+    spot: { enabled: true, order: 0 },
+    binary: { enabled: true, order: 1 },
+    futures: { enabled: true, order: 2 },
+    ecosystem: { enabled: true, order: 3 },
+    staking: { enabled: true, order: 4 },
+    ico: { enabled: true, order: 5 },
+    ai: { enabled: true, order: 6 },
+    copyTrading: { enabled: true, order: 7 },
+    affiliate: { enabled: true, order: 8 }
   },
   seo: {
     title: "Professional Crypto Trading Platform",
@@ -246,14 +270,14 @@ const DEFAULT_LEGAL_CONTENT = {
   `
 };
 
-export default async (data) => {
-  const { params, query } = data;
+export default async (data: Handler) => {
+  const { params, query, ctx } = data;
   const { pageId } = params;
   const { pageSource = 'default' } = query;
 
   const validPageIds = ['home', 'about', 'privacy', 'terms', 'contact'];
   const validPageSources = ['default', 'builder'];
-  
+
   if (!validPageIds.includes(pageId)) {
     return {
       error: "Invalid page ID",
@@ -269,6 +293,7 @@ export default async (data) => {
   }
 
   try {
+    ctx?.step("Fetching page content");
     // Try to get existing page from database
     let page = await models.defaultPage.findOne({
       where: { pageId, pageSource }
@@ -302,7 +327,7 @@ export default async (data) => {
           status: 'active'
         });
       } catch (createError) {
-        console.error("Error creating default page:", createError.message);
+        logger.error("EDITOR", "Error creating default page", createError);
         
         // If creation fails, return a runtime default without saving to database
         return {
@@ -330,7 +355,7 @@ export default async (data) => {
       try {
         variables = JSON.parse(variables);
       } catch (e) {
-        console.error("Failed to parse variables string:", e.message);
+        logger.error("EDITOR", "Failed to parse variables string", e);
         variables = {};
       }
     }
@@ -347,12 +372,13 @@ export default async (data) => {
             .join('');
           variables = JSON.parse(jsonString);
         } catch (e) {
-          console.error("Failed to reconstruct variables from character indices:", e.message);
+          logger.error("EDITOR", "Failed to reconstruct variables from character indices", e);
           variables = {};
         }
       }
     }
 
+    ctx?.success("Page content retrieved successfully");
     return {
       id: page.id,
       pageId: page.pageId,
@@ -367,7 +393,7 @@ export default async (data) => {
     };
 
   } catch (error) {
-    console.error("Error retrieving page content:", error.message);
+    logger.error("EDITOR", "Error retrieving page content", error);
     
     // Always return a valid page structure instead of an error
     const isHomePage = pageId === 'home';

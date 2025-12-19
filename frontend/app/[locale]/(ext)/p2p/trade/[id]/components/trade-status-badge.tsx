@@ -32,8 +32,8 @@ export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
           label: "Awaiting Payment",
           variant: "outline" as const,
           icon: Clock,
-          color: "text-yellow-500",
-          bg: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+          color: "text-amber-700 dark:text-amber-400",
+          bg: `bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400`,
           tooltip: "Waiting for buyer to send payment",
         };
       case P2P_STATUS.PAYMENT_SENT:
@@ -41,8 +41,8 @@ export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
           label: "Payment Sent",
           variant: "outline" as const,
           icon: CheckCircle2,
-          color: "text-purple-500",
-          bg: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+          color: `text-blue-500`,
+          bg: `bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400`,
           tooltip:
             "Payment has been confirmed, waiting for seller to release funds",
         };
@@ -51,8 +51,8 @@ export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
           label: "Escrow Released",
           variant: "outline" as const,
           icon: CheckCircle2,
-          color: "text-blue-500",
-          bg: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+          color: "text-blue-700 dark:text-blue-400",
+          bg: `bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400`,
           tooltip: "Funds have been released from escrow",
         };
       case P2P_STATUS.COMPLETED:
@@ -60,8 +60,8 @@ export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
           label: "Completed",
           variant: "default" as const,
           icon: CheckCircle2,
-          color: "text-green-500",
-          bg: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+          color: "text-green-700 dark:text-green-400",
+          bg: `bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400`,
           tooltip: "Trade has been successfully completed",
         };
       case P2P_STATUS.DISPUTED:
@@ -69,8 +69,8 @@ export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
           label: "Disputed",
           variant: "destructive" as const,
           icon: ShieldAlert,
-          color: "text-red-500",
-          bg: "",
+          color: "text-red-700 dark:text-red-400",
+          bg: `bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400`,
           tooltip: "Trade is under dispute and being reviewed by admins",
         };
       case P2P_STATUS.CANCELLED:
@@ -78,7 +78,7 @@ export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
           label: "Cancelled",
           variant: "outline" as const,
           icon: Ban,
-          color: "text-gray-500",
+          color: "text-zinc-600 dark:text-zinc-400",
           bg: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
           tooltip: "Trade has been cancelled",
         };
@@ -87,7 +87,7 @@ export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
           label: "Expired",
           variant: "outline" as const,
           icon: TimerOff,
-          color: "text-gray-500",
+          color: "text-zinc-600 dark:text-zinc-400",
           bg: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
           tooltip: "Trade has expired due to timeout",
         };
@@ -96,7 +96,7 @@ export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
           label: "Unknown",
           variant: "outline" as const,
           icon: AlertCircle,
-          color: "text-gray-500",
+          color: "text-zinc-600 dark:text-zinc-400",
           bg: "",
           tooltip: "Unknown status",
         };

@@ -37,27 +37,28 @@ export default function AddLaunchPlanForm({
   };
 
   const handleSubmit = (values: LaunchPlanFormValues) => {
+    const features: IcoLaunchPlanFeatures = {
+      maxTeamMembers: parseInt(values.features.maxTeamMembers),
+      maxRoadmapItems: parseInt(values.features.maxRoadmapItems),
+      maxOfferingPhases: parseInt(values.features.maxOfferingPhases),
+      maxUpdatePosts: parseInt(values.features.maxUpdatePosts),
+      supportLevel: values.features.supportLevel as "basic" | "standard" | "premium",
+      marketingSupport: values.features.marketingSupport,
+      auditIncluded: values.features.auditIncluded,
+      customTokenomics: values.features.customTokenomics,
+      priorityListing: values.features.priorityListing,
+      kycRequired: values.features.kycRequired,
+    };
     onAdd({
       name: values.name,
       description: values.description,
       price: parseFloat(values.price),
-      walletType: values.walletType,
+      walletType: (values.walletType || "FIAT") as "FIAT" | "SPOT" | "ECO",
       currency: values.currency,
       recommended: values.recommended,
       status: values.status,
-      features: {
-        maxTeamMembers: parseInt(values.features.maxTeamMembers),
-        maxRoadmapItems: parseInt(values.features.maxRoadmapItems),
-        maxOfferingPhases: parseInt(values.features.maxOfferingPhases),
-        maxUpdatePosts: parseInt(values.features.maxUpdatePosts), // Added posts support
-        supportLevel: values.features.supportLevel,
-        marketingSupport: values.features.marketingSupport,
-        auditIncluded: values.features.auditIncluded,
-        customTokenomics: values.features.customTokenomics,
-        priorityListing: values.features.priorityListing,
-        kycRequired: values.features.kycRequired,
-      },
-      sortOrder: 999, // Default value (will be updated upon save/reorder)
+      features,
+      sortOrder: 999,
     });
   };
 

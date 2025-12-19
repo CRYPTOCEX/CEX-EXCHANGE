@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "getAggregatedEarnings",
   tags: ["Staking", "Admin", "Earnings"],
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Get Staking Earnings",
   parameters: [
     {
       index: 0,
@@ -79,14 +81,15 @@ export const metadata = {
   permission: "view.staking.earning",
 };
 
-export default async (data: { user?: any; query?: any }) => {
-  const { user, query } = data;
+export default async (data: { user?: any; query?: any, ctx }) => {
+  const { user, query, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   try {
+    ctx?.step("Fetching data");
     // Build common filter conditions for admin earnings.
     const adminWhere: any = {};
     const userWhere: any = {};
@@ -216,6 +219,7 @@ export default async (data: { user?: any; query?: any }) => {
       })
     );
 
+    ctx?.success("Staking earnings retrieved successfully");
     return {
       totals: { totalUserEarnings, totalAdminEarnings, totalEarnings },
       earningsByPool,

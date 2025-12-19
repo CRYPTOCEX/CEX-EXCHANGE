@@ -10,7 +10,7 @@ interface TradeAlertsProps {
 }
 
 export function TradeAlerts({ status, type }: TradeAlertsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
   if (status === "waiting_payment" && type === "buy") {
     return (
       <Alert className="mt-4 border-yellow-200 bg-yellow-50 text-yellow-800 dark:border-yellow-900/50 dark:bg-yellow-950/30 dark:text-yellow-200">

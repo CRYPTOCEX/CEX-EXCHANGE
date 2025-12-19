@@ -42,7 +42,8 @@ const scaleIn = {
 };
 
 export function TransferForm() {
-  const t = useTranslations("common");
+  const t = useTranslations("finance");
+  const tCommon = useTranslations("common");
   const {
     transferType,
     setTransferType,
@@ -242,12 +243,12 @@ export function TransferForm() {
                 <div className="space-y-4">
                   <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                     <ArrowRight className="h-4 w-4 rotate-180" />
-                    {t("From")} {fromType} {t("Wallet")}
+                    {tCommon("from")} {fromType} {tCommon("wallet")}
                   </h3>
                   <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-zinc-600 dark:text-zinc-400">
-                        {t("amount")}
+                        {tCommon("amount")}
                       </span>
                       <span className="font-medium">
                         {fromTransfer.amount} {fromCurrency}
@@ -255,7 +256,7 @@ export function TransferForm() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-zinc-600 dark:text-zinc-400">
-                        {t("status")}
+                        {tCommon("status")}
                       </span>
                       <Badge
                         variant={
@@ -293,12 +294,12 @@ export function TransferForm() {
                 <div className="space-y-4">
                   <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                     <ArrowRight className="h-4 w-4" />
-                    {t("To")} {toType} {t("Wallet")}
+                    {tCommon("to")} {toType} {tCommon("wallet")}
                   </h3>
                   <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-zinc-600 dark:text-zinc-400">
-                        {t("amount")}
+                        {tCommon("amount")}
                       </span>
                       <span className="font-medium text-green-600 dark:text-green-400">
                         {toTransfer.amount} {toCurrency}
@@ -306,7 +307,7 @@ export function TransferForm() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-zinc-600 dark:text-zinc-400">
-                        {t("status")}
+                        {tCommon("status")}
                       </span>
                       <Badge
                         variant={
@@ -348,15 +349,15 @@ export function TransferForm() {
                   <AlertDescription className="text-green-700 dark:text-green-300">
                     {t("successfully_transferred")}
                     {fromTransfer.amount} {fromCurrency}
-                    {t("from_your")}
+                    {tCommon("from_your")}
                     {fromType}
-                    {t("wallet")}
+                    {tCommon("wallet")}
                     {fromCurrency !== toCurrency
                       ? ` and received ${toTransfer.amount} ${toCurrency}`
                       : ""}
                     {t("in_your")}
                     {toType}
-                    {t("wallet")}
+                    {tCommon("wallet")}
                   </AlertDescription>
                 </Alert>
               </div>
@@ -511,7 +512,7 @@ export function TransferForm() {
                   <Alert className="border-amber-200 dark:border-amber-800">
                     <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                     <AlertTitle className="text-amber-900 dark:text-amber-100">
-                      {t("no_wallets_available")}
+                      {tCommon("no_wallets_available")}
                     </AlertTitle>
                     <AlertDescription className="text-amber-800 dark:text-amber-200">
                       {t("no_wallets_available_description")}
@@ -565,7 +566,7 @@ export function TransferForm() {
                   <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-semibold">
                     2
                   </span>
-                  {t("select_currency")}
+                  {tCommon("select_currency")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -633,7 +634,7 @@ export function TransferForm() {
               <CardContent className="space-y-4">
                 <div className="relative">
                   <Input
-                    placeholder="Enter recipient UUID"
+                    placeholder={t("enter_recipient_uuid")}
                     value={recipientUuid}
                     onChange={(e) => setRecipientUuid(e.target.value)}
                     className={`pr-10 ${
@@ -805,7 +806,7 @@ export function TransferForm() {
                 {/* Amount Input */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    {t("Amount")}
+                    {tCommon("amount")}
                   </label>
                   <div className="relative">
                     <Input
@@ -844,7 +845,7 @@ export function TransferForm() {
                   {availableBalance > 0 && (
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-zinc-600 dark:text-zinc-400">
-                        {t("available")}
+                        {tCommon("available")}
                         {availableBalance} {fromCurrency}
                       </span>
                       <Button
@@ -853,7 +854,7 @@ export function TransferForm() {
                         onClick={() => setAmount(availableBalance)}
                         className="h-auto p-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                       >
-                        {t("Max")}
+                        {tCommon("max")}
                       </Button>
                     </div>
                   )}
@@ -870,7 +871,7 @@ export function TransferForm() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-zinc-600 dark:text-zinc-400">
-                            {t("amount")}
+                            {tCommon("amount")}
                           </span>
                           <span className="font-medium">
                             {amount} {fromCurrency}
@@ -908,9 +909,9 @@ export function TransferForm() {
                       <AlertDescription className="text-blue-700 dark:text-blue-300">
                         {transferType === "wallet" ? (
                           <>
-                            {t("Transfer")}
+                            {tCommon("transfer")}
                             {amount} {fromCurrency}
-                            {t("from_your")}{" "}
+                            {tCommon("from_your")}{" "}
                             <Badge variant="secondary" className="mx-1">
                               {
                                 availableWalletTypes.find(
@@ -926,13 +927,13 @@ export function TransferForm() {
                                 )?.name
                               }
                             </Badge>
-                            {t("wallet")}
+                            {tCommon("wallet")}
                           </>
                         ) : (
                           <>
-                            {t("Send")}
+                            {t("send")}
                             {amount} {fromCurrency}
-                            {t("from_your")}{" "}
+                            {tCommon("from_your")}{" "}
                             <Badge variant="secondary" className="mx-1">
                               {
                                 availableWalletTypes.find(
@@ -984,7 +985,7 @@ export function TransferForm() {
             onClick={reset}
             className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
           >
-            {t("start_over")}
+            {tCommon("start_over")}
           </Button>
         </div>
       )}

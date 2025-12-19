@@ -95,7 +95,7 @@ interface AnalyticsData {
 type TimeframeOption = '7d' | '30d' | '90d' | '1y';
 
 export default function NFTAnalyticsDashboard() {
-  const t = useTranslations();
+  const t = useTranslations("ext_admin");
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -262,7 +262,7 @@ export default function NFTAnalyticsDashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-8">
+      <div className=" space-y-8">
         <div className="flex items-center justify-between">
           <div>
             <Skeleton className="h-9 w-[200px] mb-2" />
@@ -305,7 +305,7 @@ export default function NFTAnalyticsDashboard() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className=" flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
           <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
           <h3 className="text-lg font-semibold">Error loading NFT analytics</h3>
@@ -321,7 +321,7 @@ export default function NFTAnalyticsDashboard() {
   if (!data) return null;
 
   return (
-    <div className="space-y-8">
+    <div className=" space-y-8">
       {/* Header with Timeframe Selector */}
       <div className="flex items-center justify-between">
         <div>

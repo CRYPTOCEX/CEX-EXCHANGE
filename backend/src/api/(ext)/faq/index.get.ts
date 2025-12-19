@@ -8,6 +8,8 @@ export const metadata = {
     "Retrieves active FAQ entries with optional search, category filters and pagination.",
   operationId: "getPublicFAQs",
   tags: ["FAQ"],
+  logModule: "FAQ",
+  logTitle: "Get Public FAQs",
   parameters: [
     {
       index: 0,
@@ -78,16 +80,17 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
   const where: any = {};
-  
+
+  ctx?.step("Building query filters");
   // By default, only return active FAQs unless active=false is explicitly passed.
   if (query.active === "false") {
     where.status = false;
   } else {
     where.status = true;
   }
-  
+
   if (query.search) {
     const search = query.search.toLowerCase();
     where[Op.or] = [
@@ -95,11 +98,11 @@ export default async (data: Handler) => {
       { answer: { [Op.like]: `%${search}%` } },
     ];
   }
-  
+
   if (query.category) {
     where.category = query.category;
   }
-  
+
   try {
     // Pagination parameters
     const page = parseInt(query.page, 10) || 1;
@@ -108,6 +111,7 @@ export default async (data: Handler) => {
 
     // If pagination is requested
     if (query.page || query.limit) {
+      ctx?.step(`Fetching FAQs with pagination (page ${page}, limit ${perPage})`);
       const { count, rows } = await models.faq.findAndCountAll({
         where,
         order: [["order", "ASC"]],
@@ -115,6 +119,7 @@ export default async (data: Handler) => {
         limit: perPage,
       });
 
+      ctx?.success(`Retrieved ${rows.length} FAQs (total: ${count})`);
       return {
         items: rows,
         pagination: {
@@ -125,15 +130,18 @@ export default async (data: Handler) => {
         },
       };
     } else {
+      ctx?.step("Fetching all FAQs (no pagination)");
       // No pagination - return all results (backward compatibility)
       const faqs = await models.faq.findAll({
         where,
         order: [["order", "ASC"]],
       });
+      ctx?.success(`Retrieved ${faqs.length} FAQs`);
       return faqs;
     }
   } catch (error) {
     console.error("Error fetching public FAQs:", error);
+    ctx?.fail(error instanceof Error ? error.message : "Failed to fetch FAQs");
     throw createError({ statusCode: 500, message: "Failed to fetch FAQs" });
   }
 };

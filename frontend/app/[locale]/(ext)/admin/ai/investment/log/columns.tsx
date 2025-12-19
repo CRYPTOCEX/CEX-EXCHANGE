@@ -1,240 +1,318 @@
+"use client";
 import {
   Shield,
   User,
   ClipboardList,
   DollarSign,
   CalendarIcon,
+  Settings,
+  Wallet,
+  TrendingUp,
+  Clock,
 } from "lucide-react";
+import type { FormConfig } from "@/components/blocks/data-table/types/table";
 
-export const columns: ColumnDefinition[] = [
-  {
-    key: "id",
-    title: "ID",
-    type: "text",
-    icon: Shield,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "Unique investment identifier",
-    priority: 3,
-    expandedOnly: true,
-  },
-  {
-    key: "user",
-    title: "User",
-    type: "compound",
-    expandedTitle: (row) => `User: ${row.id}`,
-    icon: User,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "Investor",
-    render: {
+import { useTranslations } from "next-intl";
+export function useColumns(): ColumnDefinition[] {
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
+  return [
+    {
+      key: "user",
+      title: tCommon("user"),
       type: "compound",
-      config: {
-        image: {
-          key: "avatar",
-          fallback: "/img/placeholder.svg",
-          type: "image",
-          title: "Avatar",
-          description: "User's profile picture",
-          filterable: false,
-          sortable: false,
+      expandedTitle: (row) => `User: ${row.id}`,
+      icon: User,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("investor_who_created_this_ai_investment"),
+      render: {
+        type: "compound",
+        config: {
+          image: {
+            key: "avatar",
+            fallback: "/img/placeholder.svg",
+            type: "image",
+            title: tCommon("avatar"),
+            description: tCommon("users_profile_picture"),
+            filterable: false,
+            sortable: false,
+          },
+          primary: {
+            key: ["firstName", "lastName"],
+            title: [tCommon("first_name"), tCommon("last_name")],
+            icon: User,
+          },
+          secondary: {
+            key: "email",
+            title: tCommon("email"),
+          },
         },
-        primary: {
-          key: ["firstName", "lastName"],
-          title: ["First Name", "Last Name"],
-          icon: User,
-          editable: false,
-          usedInCreate: false,
-        },
-        secondary: {
-          key: "email",
-          title: "Email",
+      },
+      priority: 1,
+    },
+    {
+      key: "plan",
+      title: tCommon("plan"),
+      type: "custom",
+      icon: ClipboardList,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("ai_investment_plan_selected_by_the_user"),
+      render: (value: any, row: any) => {
+        const plan = row?.plan || value;
+        return plan ? plan.title : "N/A";
+      },
+      priority: 1,
+    },
+    {
+      key: "amount",
+      title: tCommon("amount"),
+      type: "number",
+      icon: DollarSign,
+      sortable: true,
+      searchable: false,
+      filterable: true,
+      description: tExtAdmin("total_amount_invested_in_this_ai_investment"),
+      priority: 1,
+    },
+    {
+      key: "status",
+      title: tCommon("status"),
+      type: "select",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("current_status_of_the_ai_investment"),
+      options: [
+        { value: "ACTIVE", label: tCommon("active") },
+        { value: "COMPLETED", label: tCommon("completed") },
+        { value: "CANCELLED", label: tCommon("cancelled") },
+        { value: "REJECTED", label: tCommon("rejected") },
+      ],
+      priority: 1,
+      render: {
+        type: "badge",
+        config: {
+          variant: (value: any) => {
+            switch (value) {
+              case "ACTIVE":
+                return "warning";
+              case "COMPLETED":
+                return "success";
+              case "CANCELLED":
+                return "secondary";
+              case "REJECTED":
+                return "destructive";
+              default:
+                return "secondary";
+            }
+          },
         },
       },
     },
-    priority: 1,
-  },
-  {
-    key: "plan",
-    title: "Plan",
-    type: "custom",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "Investment plan used",
-    render: (value: any, row: any) => {
-      const plan = row?.plan || value;
-      return plan ? plan.title : "N/A";
+    {
+      key: "profit",
+      title: tCommon("profit"),
+      type: "number",
+      icon: TrendingUp,
+      sortable: true,
+      searchable: false,
+      filterable: true,
+      description: tExtAdmin("total_profit_earned_from_this_ai_investment"),
+      priority: 1,
     },
-    priority: 1,
-  },
-  {
-    key: "duration",
-    title: "Duration",
-    type: "custom",
-    sortable: true,
-    searchable: false,
-    filterable: false,
-    description: "Investment duration details",
-    render: (value: any, row: any) => {
-      const duration = row?.duration || value;
-      if (!duration) return "N/A";
-      return `${duration.duration} ${duration.timeframe}`;
+    {
+      key: "symbol",
+      title: tCommon("symbol"),
+      type: "text",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("trading_market_or_pair_symbol_used"),
+      priority: 2,
     },
-    priority: 1,
-    expandedOnly: true,
-  },
-  {
-    key: "symbol",
-    title: "Symbol",
-    type: "text",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "Market or pair symbol",
-    priority: 1,
-  },
-  {
-    key: "type",
-    title: "Wallet Type",
-    type: "select",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: true,
+    {
+      key: "type",
+      title: tCommon("wallet_type"),
+      type: "select",
+      icon: Wallet,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("type_of_wallet_used_spot_or_eco_wallet"),
+      options: [
+        { value: "SPOT", label: tCommon("spot") },
+        { value: "ECO", label: tCommon("eco") },
+      ],
+      priority: 2,
+      render: {
+        type: "badge",
+        config: {
+          variant: (value) => {
+            switch (value) {
+              case "SPOT":
+                return "success";
+              case "ECO":
+                return "info";
+              default:
+                return "secondary";
+            }
+          },
+          withDot: false,
+        },
+      },
+    },
+    {
+      key: "result",
+      title: tCommon("result"),
+      type: "select",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("investment_outcome_win_loss_or_draw"),
+      options: [
+        { value: "WIN", label: tCommon("win") },
+        { value: "LOSS", label: tCommon("loss") },
+        { value: "DRAW", label: tCommon("draw") },
+      ],
+      priority: 2,
+      expandedOnly: true,
+      render: {
+        type: "badge",
+        config: {
+          variant: (value: any) => {
+            switch (value) {
+              case "WIN":
+                return "success";
+              case "LOSS":
+                return "destructive";
+              case "DRAW":
+                return "warning";
+              default:
+                return "secondary";
+            }
+          },
+          withDot: false,
+        },
+      },
+    },
+    {
+      key: "duration",
+      title: tCommon("duration"),
+      type: "custom",
+      icon: Clock,
+      sortable: true,
+      searchable: false,
+      filterable: false,
+      description: tExtAdmin("investment_duration_with_timeframe_e_g"),
+      render: (value: any, row: any) => {
+        const duration = row?.duration || value;
+        if (!duration) return "N/A";
+        return `${duration.duration} ${duration.timeframe}`;
+      },
+      priority: 2,
+      expandedOnly: true,
+    },
+    {
+      key: "createdAt",
+      title: tCommon("created_at"),
+      type: "date",
+      icon: CalendarIcon,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("date_and_time_when_the_ai_investment_was_created"),
+      render: { type: "date", format: "PPP" },
+      priority: 3,
+      expandedOnly: true,
+    },
+    {
+      key: "id",
+      title: tCommon("id"),
+      type: "text",
+      icon: Shield,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tExtAdmin("unique_system_identifier_for_this_ai"),
+      priority: 3,
+      expandedOnly: true,
+    },
+  ];
+}
 
-    description: "SPOT or ECO",
-    options: [
-      { value: "SPOT", label: "Spot" },
-      { value: "ECO", label: "Eco" },
-    ],
-    priority: 1,
-    render: {
-      type: "badge",
-      config: {
-        variant: (value) => {
-          switch (value) {
-            case "SPOT":
-              return "success";
-            case "ECO":
-              return "info";
-            default:
-              return "secondary";
-          }
-        },
-        withDot: false,
-      },
+export function useFormConfig(): FormConfig {
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
+  return {
+    create: {
+      title: tExtAdmin("create_new_investment_log"),
+      description: tExtAdmin("record_a_new_ai_investment_transaction"),
+      groups: [],
     },
-  },
-  {
-    key: "amount",
-    title: "Amount",
-    type: "number",
-    icon: DollarSign,
-    sortable: true,
-    searchable: false,
-    filterable: true,
-    description: "Invested amount",
-    priority: 1,
-  },
-  {
-    key: "profit",
-    title: "Profit",
-    type: "number",
-    icon: DollarSign,
-    sortable: true,
-    searchable: false,
-    filterable: true,
-    editable: true,
-
-    description: "Profit earned",
-    priority: 1,
-  },
-  {
-    key: "result",
-    title: "Result",
-    type: "select",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: true,
-
-    description: "WIN, LOSS, or DRAW",
-    options: [
-      { value: "WIN", label: "Win" },
-      { value: "LOSS", label: "Loss" },
-      { value: "DRAW", label: "Draw" },
-    ],
-    priority: 2,
-    expandedOnly: true,
-    render: {
-      type: "badge",
-      config: {
-        variant: (value: any) => {
-          switch (value) {
-            case "WIN":
-              return "success";
-            case "LOSS":
-              return "danger";
-            case "DRAW":
-              return "info";
-            default:
-              return "default";
-          }
+    edit: {
+      title: tExtAdmin("edit_investment_log"),
+      description: tExtAdmin("modify_ai_investment_log_details_results"),
+      groups: [
+        {
+          id: "investment-details",
+          title: tCommon("investment_details"),
+          icon: DollarSign,
+          priority: 1,
+          fields: [
+            {
+              key: "type",
+              required: true,
+              options: [
+                { value: "SPOT", label: tCommon("spot") },
+                { value: "ECO", label: tCommon("eco") },
+              ],
+            },
+          ],
         },
-        withDot: false,
-      },
-    },
-  },
-  {
-    key: "status",
-    title: "Status",
-    type: "select",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: true,
-    description: "ACTIVE, COMPLETED, CANCELLED, REJECTED",
-    options: [
-      { value: "ACTIVE", label: "Active" },
-      { value: "COMPLETED", label: "Completed" },
-      { value: "CANCELLED", label: "Cancelled" },
-      { value: "REJECTED", label: "Rejected" },
-    ],
-    priority: 1,
-    render: {
-      type: "badge",
-      config: {
-        variant: (value: any) => {
-          switch (value) {
-            case "ACTIVE":
-              return "primary";
-            case "COMPLETED":
-              return "success";
-            case "CANCELLED":
-              return "warning";
-            case "REJECTED":
-              return "danger";
-            default:
-              return "default";
-          }
+        {
+          id: "results",
+          title: tExtAdmin("investment_results"),
+          icon: TrendingUp,
+          priority: 2,
+          fields: [
+            {
+              key: "profit",
+              required: false,
+            },
+            {
+              key: "result",
+              required: false,
+              options: [
+                { value: "WIN", label: tCommon("win") },
+                { value: "LOSS", label: tCommon("loss") },
+                { value: "DRAW", label: tCommon("draw") },
+              ],
+            },
+          ],
         },
-      },
+        {
+          id: "status-control",
+          title: tExtAdmin("status_control"),
+          icon: Settings,
+          priority: 3,
+          fields: [
+            {
+              key: "status",
+              required: true,
+              options: [
+                { value: "ACTIVE", label: tCommon("active") },
+                { value: "COMPLETED", label: tCommon("completed") },
+                { value: "CANCELLED", label: tCommon("cancelled") },
+                { value: "REJECTED", label: tCommon("rejected") },
+              ],
+            },
+          ],
+        },
+      ],
     },
-  },
-  {
-    key: "createdAt",
-    title: "Created At",
-    type: "date",
-    icon: CalendarIcon,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "Log creation date",
-    render: { type: "date", format: "PPP" },
-    priority: 2,
-    expandedOnly: true,
-  },
-];
+  };
+}

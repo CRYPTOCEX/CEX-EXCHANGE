@@ -61,6 +61,8 @@ import { $fetch } from "@/lib/api";
 import { useRouter } from "@/i18n/routing";
 import { Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 // Define the analytics data interface
 interface AnalyticsData {
@@ -76,6 +78,8 @@ interface AnalyticsData {
   }[];
 }
 export default function LevelsClient() {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { toast } = useToast();
   const {
@@ -505,13 +509,14 @@ export default function LevelsClient() {
     return "bg-red-500";
   };
   return (
-    <div className="space-y-6">
+    <div className={`container ${PAGE_PADDING}`}>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">KYC Verification Levels</h1>
           <p className="text-muted-foreground mt-1">
-            Manage your KYC verification tiers and requirements
+            {t("manage_your_kyc_and_requirements")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -520,7 +525,7 @@ export default function LevelsClient() {
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white dark:text-white"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Create Level
+            {t("create_level")}
           </Button>
         </div>
       </div>
@@ -532,7 +537,7 @@ export default function LevelsClient() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Total Levels
+                  {t("total_levels")}
                 </p>
                 <h3 className="text-3xl font-bold mt-1">{stats.total}</h3>
               </div>
@@ -543,7 +548,7 @@ export default function LevelsClient() {
             <div className="mt-4">
               <Progress value={100} className="h-1" />
               <p className="text-xs text-muted-foreground mt-2">
-                {stats.active} active, {stats.draft} draft
+                {stats.active} {tCommon("active")}, {stats.draft} draft
               </p>
             </div>
           </CardContent>
@@ -554,7 +559,7 @@ export default function LevelsClient() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Verified Users
+                  {t("verified_users")}
                 </p>
                 <h3 className="text-3xl font-bold mt-1">
                   {analyticsData?.verifiedUsers || 0}
@@ -582,7 +587,7 @@ export default function LevelsClient() {
                         100
                     )
                   : 0}
-                % completion rate
+                {tCommon("completion_rate")}
               </p>
             </div>
           </CardContent>
@@ -593,7 +598,7 @@ export default function LevelsClient() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Pending Verifications
+                  {tCommon("pending_verifications")}
                 </p>
                 <h3 className="text-3xl font-bold mt-1">
                   {analyticsData?.pendingVerifications || 0}
@@ -616,7 +621,7 @@ export default function LevelsClient() {
                 indicatorClassName="bg-yellow-500"
               />
               <p className="text-xs text-muted-foreground mt-2">
-                Awaiting review
+                {t("awaiting_review")}
               </p>
             </div>
           </CardContent>
@@ -627,7 +632,7 @@ export default function LevelsClient() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Total Fields
+                  {t("total_fields")}
                 </p>
                 <h3 className="text-3xl font-bold mt-1">{stats.totalFields}</h3>
               </div>
@@ -644,7 +649,7 @@ export default function LevelsClient() {
                 indicatorClassName="bg-purple-500"
               />
               <p className="text-xs text-muted-foreground mt-2">
-                Avg. {stats.averageFields} fields per level
+                {t("avg_1")} {stats.averageFields} {t("fields_per_level")}
               </p>
             </div>
           </CardContent>
@@ -654,9 +659,9 @@ export default function LevelsClient() {
       {/* Verification Funnel */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Verification Funnel</CardTitle>
+          <CardTitle>{t("verification_funnel")}</CardTitle>
           <CardDescription>
-            User progression through verification levels
+            {t("user_progression_through_verification_levels")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -688,7 +693,7 @@ export default function LevelsClient() {
                           </span>
                         </div>
                         <span className="text-sm text-muted-foreground">
-                          {level.usersVerified} users ({level.completionRate}%)
+                          {level.usersVerified} {tCommon("users")}{level.completionRate}%)
                         </span>
                       </div>
                       <Progress
@@ -701,7 +706,7 @@ export default function LevelsClient() {
                 })
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  No verification data available
+                  {t("no_verification_data_available")}
                 </div>
               )}
             </div>
@@ -716,7 +721,7 @@ export default function LevelsClient() {
           <div className="relative w-full md:w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search levels..."
+              placeholder={t("search_levels_ellipsis")}
               className="pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -734,16 +739,16 @@ export default function LevelsClient() {
             </Button>
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-[180px] h-9">
-                <SelectValue placeholder="Sort by" />
+                <SelectValue placeholder={tCommon("sort_by")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="level">Level Number</SelectItem>
+                <SelectItem value="level">{t("level_number")}</SelectItem>
                 <SelectItem value="name">Name</SelectItem>
                 <SelectItem value="status">Status</SelectItem>
-                <SelectItem value="updated">Last Updated</SelectItem>
-                <SelectItem value="fields">Number of Fields</SelectItem>
-                <SelectItem value="completion">Completion Rate</SelectItem>
-                <SelectItem value="users">Users Verified</SelectItem>
+                <SelectItem value="updated">{tCommon('last_updated')}</SelectItem>
+                <SelectItem value="fields">{t("number_of_fields")}</SelectItem>
+                <SelectItem value="completion">{tCommon("completion_rate")}</SelectItem>
+                <SelectItem value="users">{t("users_verified")}</SelectItem>
               </SelectContent>
             </Select>
             <Button
@@ -808,10 +813,10 @@ export default function LevelsClient() {
                         onValueChange={setFilterStatus}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder={tCommon("select_status")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All Statuses</SelectItem>
+                          <SelectItem value="all">{tCommon("all_statuses")}</SelectItem>
                           <SelectItem value="active">Active</SelectItem>
                           <SelectItem value="draft">Draft</SelectItem>
                           <SelectItem value="inactive">Inactive</SelectItem>
@@ -819,7 +824,7 @@ export default function LevelsClient() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Level Range</Label>
+                      <Label>{t("level_range")}</Label>
                       <div className="flex items-center gap-2">
                         <Input
                           type="number"
@@ -860,7 +865,7 @@ export default function LevelsClient() {
                           setSearchTerm("");
                         }}
                       >
-                        Reset Filters
+                        {tCommon("reset_filters")}
                       </Button>
                     </div>
                   </div>
@@ -974,7 +979,7 @@ export default function LevelsClient() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center p-6">
               <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No Levels Found</h3>
+              <h3 className="text-lg font-medium">{t("no_levels_found")}</h3>
               <p className="text-sm text-muted-foreground text-center mt-2">
                 {searchTerm ||
                 filterStatus !== "all" ||
@@ -996,7 +1001,7 @@ export default function LevelsClient() {
                     setSearchTerm("");
                   }}
                 >
-                  Clear Filters
+                  {tCommon("clear_filters")}
                 </Button>
               )}
             </CardContent>
@@ -1055,7 +1060,7 @@ export default function LevelsClient() {
                       <div className="mt-4 space-y-3">
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-muted-foreground">
-                            Completion Rate
+                            {tCommon("completion_rate")}
                           </span>
                           <span
                             className={getCompletionRateColor(
@@ -1074,7 +1079,7 @@ export default function LevelsClient() {
                         />
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-muted-foreground">
-                            Users Verified
+                            {t("users_verified")}
                           </span>
                           <span>{level.usersVerified || 0}</span>
                         </div>
@@ -1208,9 +1213,9 @@ export default function LevelsClient() {
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>
-                                  Completion rate: {level.completionRate || 0}%
+                                  {tCommon("completion_rate")}: {level.completionRate || 0}%
                                 </p>
-                                <p>{level.usersVerified || 0} users verified</p>
+                                <p>{level.usersVerified || 0} {t("users_verified")}</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -1266,16 +1271,14 @@ export default function LevelsClient() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Card className="w-full max-w-md mx-4">
             <CardHeader>
-              <CardTitle>Confirm Deletion</CardTitle>
+              <CardTitle>{tCommon("confirm_deletion")}</CardTitle>
               <CardDescription>
-                Are you sure you want to delete this level? This action cannot
-                be undone.
+                {t("are_you_sure_you_want_to_delete_this_level")} {tCommon("this_action_cannot_be_undone")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                All data associated with this level will be permanently removed.
-                Users who have completed this level may need to be re-verified.
+                {t("all_data_associated_with_this_level")} {t("users_who_have_completed_this_level")}
               </p>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
@@ -1310,7 +1313,7 @@ export default function LevelsClient() {
                     : "Deletion"}
               </CardTitle>
               <CardDescription>
-                Are you sure you want to{" "}
+                {tCommon("are_you_sure_you_want_to")}{" "}
                 {pendingBulkAction === "activate"
                   ? "activate"
                   : pendingBulkAction === "deactivate"
@@ -1325,21 +1328,17 @@ export default function LevelsClient() {
             <CardContent>
               {pendingBulkAction === "activate" && (
                 <p className="text-sm text-muted-foreground">
-                  Activating these levels will make them available for users to
-                  complete.
+                  {t("activating_these_levels_will_make_them")}
                 </p>
               )}
               {pendingBulkAction === "deactivate" && (
                 <p className="text-sm text-muted-foreground">
-                  Deactivating these levels will hide them from users. Any
-                  ongoing verifications may be affected.
+                  {t("deactivating_these_levels_will_hide_them")} {t("any_ongoing_verifications_may_be_affected_1")}
                 </p>
               )}
               {pendingBulkAction === "delete" && (
                 <p className="text-sm text-muted-foreground">
-                  All data associated with these levels will be permanently
-                  removed. Users who have completed these levels may need to be
-                  re-verified.
+                  {t("all_data_associated_with_these_levels")} {t("users_who_have_completed_these_levels")}
                 </p>
               )}
             </CardContent>
@@ -1364,7 +1363,7 @@ export default function LevelsClient() {
                 {isBulkActionLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Processing...
+                    {tCommon('processing')}
                   </>
                 ) : pendingBulkAction === "activate" ? (
                   "Activate"
@@ -1378,6 +1377,7 @@ export default function LevelsClient() {
           </Card>
         </div>
       )}
+    </div>
     </div>
   );
 }

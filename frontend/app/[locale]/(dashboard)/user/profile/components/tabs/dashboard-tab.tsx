@@ -36,7 +36,9 @@ interface DashboardTabProps {
 export const DashboardTab = memo(function DashboardTab({
   onTabChange,
 }: DashboardTabProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardUser = useTranslations("dashboard_user");
+  const tDashboard = useTranslations("dashboard");
   const { user, securityScore } = useUserStore();
   const { toast } = useToast();
   const [activity] = useState<any[]>([]);
@@ -113,7 +115,7 @@ export const DashboardTab = memo(function DashboardTab({
   return (
     <div className="space-y-6 w-full">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold">{t("Dashboard")}</h2>
+        <h2 className="text-3xl font-bold">{t("dashboard")}</h2>
       </div>
 
       {/* Account summary card */}
@@ -122,10 +124,10 @@ export const DashboardTab = memo(function DashboardTab({
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h3 className="text-xl font-semibold text-foreground">
-                {t("your_account_summary")}
+                {tDashboardUser("your_account_summary")}
               </h3>
               <p className="text-muted-foreground mt-1">
-                {t("account_status")}{" "}
+                {tDashboard("account_status")}{" "}
                 <span className="text-green-600 dark:text-green-400 font-medium">
                   {user.status || "Active"}
                 </span>{" "}
@@ -146,7 +148,7 @@ export const DashboardTab = memo(function DashboardTab({
       {/* Stats grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          title="Security Score"
+          title={t("security_score")}
           value={`${securityScore}/100`}
           description={getSecurityScoreText()}
           icon={Shield}
@@ -159,7 +161,7 @@ export const DashboardTab = memo(function DashboardTab({
           }
         />
         <StatCard
-          title="Account Age"
+          title={t("account_age")}
           value={`${Math.floor((new Date().getTime() - new Date(user.createdAt || Date.now()).getTime()) / (1000 * 60 * 60 * 24))} days`}
           icon={Calendar}
           color="blue"
@@ -177,9 +179,9 @@ export const DashboardTab = memo(function DashboardTab({
       {/* Additional stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          title="Login Activity"
+          title={tDashboardUser("login_activity")}
           value="4"
-          description="Logins this month"
+          description={tDashboardUser("logins_this_month")}
           icon={Activity}
           color="blue"
           trend={{ value: 33, label: "vs last month" }}
@@ -196,7 +198,7 @@ export const DashboardTab = memo(function DashboardTab({
           color="green"
         />
         <StatCard
-          title="Wallet Status"
+          title={t("wallet_status")}
           value={user.walletAddress ? "Connected" : "Not Connected"}
           description={
             user.walletAddress ? "Ethereum wallet" : "Connect your wallet"
@@ -303,7 +305,7 @@ export const DashboardTab = memo(function DashboardTab({
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{t("your_security_score_security_features")}</p>
+                      <p>{tDashboardUser("your_security_score_security_features")}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -322,7 +324,7 @@ export const DashboardTab = memo(function DashboardTab({
                       )}
                     </div>
                     <span className="text-sm font-medium text-foreground">
-                      {t("two-factor_authentication")}
+                      {t("two_factor_authentication")}
                     </span>
                   </div>
                   {!user.twoFactor?.enabled && (
@@ -332,7 +334,7 @@ export const DashboardTab = memo(function DashboardTab({
                       className="h-8 px-3 text-xs shadow-sm"
                       onClick={handleNavigateToSecurity}
                     >
-                      {t("Enable")}
+                      {t("enable")}
                     </Button>
                   )}
                 </div>
@@ -359,7 +361,7 @@ export const DashboardTab = memo(function DashboardTab({
                       className="h-8 px-3 text-xs shadow-sm"
                       onClick={handleVerifyEmail}
                     >
-                      {t("Verify")}
+                      {t("verify")}
                     </Button>
                   )}
                 </div>
@@ -386,7 +388,7 @@ export const DashboardTab = memo(function DashboardTab({
                       className="h-8 px-3 text-xs shadow-sm"
                       onClick={handleVerifyPhone}
                     >
-                      {t("Verify")}
+                      {t("verify")}
                     </Button>
                   )}
                 </div>

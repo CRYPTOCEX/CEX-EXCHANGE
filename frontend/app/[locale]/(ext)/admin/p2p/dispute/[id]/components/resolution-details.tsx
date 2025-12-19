@@ -58,7 +58,7 @@ function parseResolution(resolution: any): { outcome?: string; notes?: string; r
 }
 
 export function ResolutionDetails({ dispute }: ResolutionDetailsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const resolution = parseResolution(dispute.resolution);
 
   return (

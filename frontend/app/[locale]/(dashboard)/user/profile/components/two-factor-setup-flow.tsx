@@ -33,7 +33,8 @@ export function TwoFactorSetupFlow({
   onCancel,
   onComplete,
 }: TwoFactorSetupFlowProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
   const { user, setUser } = useUserStore();
   const { toast } = useToast();
   const [step, setStep] = useState<TwoFactorSetupStep>("select");
@@ -321,17 +322,17 @@ export function TwoFactorSetupFlow({
           <div
             className={`text-sm font-medium ${step === "setup" ? "text-primary" : "text-zinc-500 dark:text-zinc-400"}`}
           >
-            {t("Setup")}
+            {t("setup")}
           </div>
           <div
             className={`text-sm font-medium ${step === "verify" ? "text-primary" : "text-zinc-500 dark:text-zinc-400"}`}
           >
-            {t("Verify")}
+            {tCommon("verify")}
           </div>
           <div
             className={`text-sm font-medium ${step === "success" ? "text-primary" : "text-zinc-500 dark:text-zinc-400"}`}
           >
-            {t("Complete")}
+            {tCommon("complete")}
           </div>
         </div>
         <div className="relative w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
@@ -363,7 +364,7 @@ export function TwoFactorSetupFlow({
               : "Choose Authentication Method"}
           </h2>
           <p className="text-muted-foreground">
-            {t("select_your_preferred_two-factor_authentication")}
+            {t("select_your_preferred_two_factor_authentication")}
           </p>
         </div>
 
@@ -454,13 +455,13 @@ export function TwoFactorSetupFlow({
         <div className="flex justify-between pt-4">
           <Button variant="outline" onClick={onCancel}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {t("Back")}
+            {tCommon("back")}
           </Button>
           <Button onClick={handleSelectMethod} disabled={!method || isLoading}>
             {isLoading ? (
               <>
                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                {t("Loading")}.
+                {tCommon("loading")}.
               </>
             ) : (
               "Continue"
@@ -558,13 +559,13 @@ export function TwoFactorSetupFlow({
           <div className="flex justify-between pt-4">
             <Button variant="outline" onClick={() => setStep("select")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              {t("Back")}
+              {tCommon("back")}
             </Button>
             <Button onClick={handleSetupComplete} disabled={isLoading}>
               {isLoading ? (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  {t("Loading")}.
+                  {tCommon("loading")}.
                 </>
               ) : (
                 "Continue"
@@ -589,7 +590,7 @@ export function TwoFactorSetupFlow({
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="phone">{t("phone_number")}</Label>
+              <Label htmlFor="phone">{tCommon("phone_number")}</Label>
               <Input
                 id="phone"
                 type="tel"
@@ -613,13 +614,13 @@ export function TwoFactorSetupFlow({
           <div className="flex justify-between pt-4">
             <Button variant="outline" onClick={() => setStep("select")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              {t("Back")}
+              {tCommon("back")}
             </Button>
             <Button onClick={handleSetupComplete} disabled={isLoading}>
               {isLoading ? (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  {t("Loading")}.
+                  {tCommon("loading")}.
                 </>
               ) : (
                 "Send Verification Code"
@@ -681,7 +682,7 @@ export function TwoFactorSetupFlow({
             ) : method === "EMAIL" ? (
               <div className="space-y-2">
                 <p>
-                  {t("weve_sent_a_verification_code_to_your")} email.{" "}
+                  {t("weve_sent_a_verification_code_to_your")} {t("email_1")}{" "}
                   {t("it_may_take_a_moment_to_arrive")}.
                 </p>
                 <p>
@@ -699,7 +700,7 @@ export function TwoFactorSetupFlow({
                       {isResendingCode ? (
                         <>
                           <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                          {t("Resending")}...
+                          {tCommon("resending")}...
                         </>
                       ) : (
                         "Resend code"
@@ -732,7 +733,7 @@ export function TwoFactorSetupFlow({
                       {isResendingCode ? (
                         <>
                           <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                          {t("Resending")}.
+                          {tCommon("resending")}.
                         </>
                       ) : (
                         "Resend code"
@@ -748,7 +749,7 @@ export function TwoFactorSetupFlow({
         <div className="flex justify-between pt-4">
           <Button variant="outline" onClick={() => setStep("setup")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {t("Back")}
+            {tCommon("back")}
           </Button>
           <Button
             onClick={handleVerify}
@@ -757,7 +758,7 @@ export function TwoFactorSetupFlow({
             {isVerifying ? (
               <>
                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                {t("Verifying")}.
+                {tCommon("verifying")}.
               </>
             ) : (
               "Verify"
@@ -775,15 +776,15 @@ export function TwoFactorSetupFlow({
           <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900 mb-4">
             <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
           </div>
-          <h2 className="text-2xl font-bold">{t("setup_complete")}</h2>
+          <h2 className="text-2xl font-bold">{tCommon("setup_complete")}</h2>
           <p className="text-muted-foreground">
-            {t("two-factor_authentication_has_successfully_enabled")}
+            {t("two_factor_authentication_has_successfully_enabled")}
           </p>
         </div>
 
         <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md p-4">
           <p className="text-sm text-green-800 dark:text-green-200">
-            {t("your_account_is_two-factor_authentication")}.{" "}
+            {t("your_account_is_two_factor_authentication")}.{" "}
             {t("youll_need_to_log_in")}.
           </p>
         </div>
@@ -818,7 +819,7 @@ export function TwoFactorSetupFlow({
         </div>
 
         <div className="flex justify-end pt-4">
-          <Button onClick={handleComplete}>{t("Finish")}</Button>
+          <Button onClick={handleComplete}>{t("finish")}</Button>
         </div>
       </div>
     );
@@ -838,7 +839,7 @@ export function TwoFactorSetupFlow({
 
       <div className="flex items-center mb-6">
         <h1 className="text-2xl font-bold">
-          {t("two-factor_authentication_setup")}
+          {t("two_factor_authentication_setup")}
         </h1>
       </div>
 

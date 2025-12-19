@@ -1,5 +1,6 @@
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 import { logP2PAdminAction } from "../../../../p2p/utils/ownership";
 
 export const metadata = {
@@ -8,6 +9,8 @@ export const metadata = {
   operationId: "cancelAdminP2PTrade",
   tags: ["Admin", "Trades", "P2P"],
   requiresAuth: true,
+  logModule: "ADMIN_P2P",
+  logTitle: "Cancel P2P trade",
   parameters: [
     {
       index: 0,
@@ -43,7 +46,7 @@ export const metadata = {
 };
 
 export default async (data) => {
-  const { params, body, user } = data;
+  const { params, body, user, ctx } = data;
   const { id } = params;
   const { reason } = body;
 
@@ -57,6 +60,7 @@ export default async (data) => {
   const transaction = await sequelize.transaction();
 
   try {
+    ctx?.step("Fetching trade");
     const trade = await models.p2pTrade.findByPk(id, {
       include: [{
         model: models.p2pOffer,
@@ -69,12 +73,15 @@ export default async (data) => {
 
     if (!trade) {
       await transaction.rollback();
+      ctx?.fail("Trade not found");
       throw createError({ statusCode: 404, message: "Trade not found" });
     }
 
+    ctx?.step("Validating trade status");
     // Check if trade can be cancelled
     if (["COMPLETED", "CANCELLED", "EXPIRED"].includes(trade.status)) {
       await transaction.rollback();
+      ctx?.fail(`Cannot cancel trade with status: ${trade.status}`);
       throw createError({
         statusCode: 400,
         message: `Cannot cancel trade with status: ${trade.status}`
@@ -84,6 +91,7 @@ export default async (data) => {
     const sanitizedReason = reason ? sanitizeInput(reason) : "Cancelled by admin";
     const previousStatus = trade.status;
 
+    ctx?.step("Processing fund unlocking and offer restoration");
     // Handle fund unlocking and offer restoration based on offer type
     // - For SELL offers: Funds were locked at offer creation, stay locked until offer is deleted
     //                    Only restore offer amount, don't unlock wallet inOrder
@@ -115,41 +123,23 @@ export default async (data) => {
                 transaction
               });
 
-              console.log(`[Admin P2P Cancel] Released ${safeUnlockAmount} ${trade.offer.currency} for seller ${trade.sellerId} (BUY offer)`, {
-                tradeAmount: trade.amount,
-                previousInOrder: sellerWallet.inOrder,
-                newInOrder,
-              });
+              logger.info("P2P_ADMIN_CANCEL", `Released ${safeUnlockAmount} ${trade.offer.currency} for seller ${trade.sellerId} (BUY offer)`);
 
               // Log warning if amounts don't match
               if (safeUnlockAmount < trade.amount) {
-                console.warn('[Admin P2P Cancel] WARNING: Partial unlock - inOrder was less than trade amount:', {
-                  tradeId: trade.id,
-                  tradeAmount: trade.amount,
-                  availableInOrder: sellerWallet.inOrder,
-                  actualUnlocked: safeUnlockAmount,
-                });
+                logger.warn("P2P_ADMIN_CANCEL", `Partial unlock for trade ${trade.id}: ${safeUnlockAmount}/${trade.amount}`);
               }
             } else {
-              console.warn('[Admin P2P Cancel] WARNING: No funds to unlock - inOrder is already 0:', {
-                tradeId: trade.id,
-                tradeAmount: trade.amount,
-                currentInOrder: sellerWallet.inOrder,
-              });
+              logger.warn("P2P_ADMIN_CANCEL", `No funds to unlock for trade ${trade.id} - inOrder is already 0`);
             }
           }
         } catch (walletError) {
-          console.error(`[Admin P2P Cancel] Failed to release wallet funds:`, walletError);
+          logger.error("P2P_ADMIN_CANCEL", `Failed to release wallet funds: ${walletError}`);
           // Continue with cancellation even if fund release fails
         }
       } else {
         // For SELL offers: Don't unlock wallet inOrder, funds stay locked for the offer
-        console.log('[Admin P2P Cancel] SELL offer - funds remain locked for offer:', {
-          tradeId: trade.id,
-          offerId: trade.offerId,
-          amount: trade.amount,
-          currency: trade.offer.currency,
-        });
+        logger.info("P2P_ADMIN_CANCEL", `SELL offer - funds remain locked for offer ${trade.offerId}`);
       }
 
       // Restore offer amount if applicable (for both SELL and BUY offers)
@@ -177,21 +167,9 @@ export default async (data) => {
               },
             }, { transaction });
 
-            console.log('[Admin P2P Cancel] Restored offer amount:', {
-              offerId: offer.id,
-              offerType: offer.type,
-              tradeAmount: trade.amount,
-              previousTotal: amountConfig.total,
-              newTotal: safeTotal,
-              originalTotal,
-            });
+            logger.info("P2P_ADMIN_CANCEL", `Restored offer ${offer.id} amount: ${amountConfig.total} -> ${safeTotal}`);
           } else {
-            console.log('[Admin P2P Cancel] Skipped restoration - at or above limit:', {
-              offerId: offer.id,
-              currentTotal: amountConfig.total,
-              proposedTotal,
-              maxAllowed: originalTotal,
-            });
+            logger.debug("P2P_ADMIN_CANCEL", `Skipped offer ${offer.id} restoration - at or above limit`);
           }
         }
       }
@@ -218,6 +196,7 @@ export default async (data) => {
       createdAt: new Date().toISOString(),
     });
 
+    ctx?.step("Updating trade status");
     // Update trade
     await trade.update({
       status: "CANCELLED",
@@ -227,6 +206,7 @@ export default async (data) => {
       cancelledAt: new Date(),
     }, { transaction });
 
+    ctx?.step("Logging activity");
     // Log activity
     await models.p2pActivityLog.create({
       userId: user.id,
@@ -261,6 +241,7 @@ export default async (data) => {
 
     await transaction.commit();
 
+    ctx?.step("Sending notifications");
     // Send notifications
     notifyTradeEvent(trade.id, "TRADE_CANCELLED", {
       buyerId: trade.buyerId,
@@ -270,7 +251,7 @@ export default async (data) => {
       cancelledBy: user.id,
       reason: sanitizedReason,
       adminCancelled: true,
-    }).catch(console.error);
+    }).catch((err) => logger.error("P2P_ADMIN_CANCEL", `Notification error: ${err}`));
 
     // Broadcast WebSocket event
     broadcastP2PTradeEvent(trade.id, {
@@ -285,6 +266,7 @@ export default async (data) => {
       },
     });
 
+    ctx?.success("Trade cancelled successfully");
     return {
       message: "Trade cancelled successfully.",
       trade: {
@@ -298,6 +280,7 @@ export default async (data) => {
     if (err.statusCode) {
       throw err;
     }
+    ctx?.fail("Failed to cancel trade");
     throw createError({
       statusCode: 500,
       message: "Internal Server Error: " + err.message,

@@ -7,6 +7,8 @@ export const metadata = {
   operationId: "getAffiliateReferral",
   tags: ["Affiliate", "Referral"],
   requiresAuth: true,
+  logModule: "AFFILIATE",
+  logTitle: "Get affiliate referral details",
   parameters: [
     { name: "id", in: "path", required: true, schema: { type: "string" } },
   ],
@@ -20,7 +22,8 @@ export const metadata = {
 
 export default async function handler(data: Handler) {
   // Authenticate user
-  const { user, params } = data;
+  const { user, params, ctx } = data;
+
   if (!user) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -31,6 +34,7 @@ export default async function handler(data: Handler) {
     throw createError({ statusCode: 400, message: "Referral ID is required" });
   }
 
+  ctx?.step(`Fetching referral details for ID: ${referralId}`);
   // Fetch the referral, ensuring it belongs to the current user
   const referral = await models.mlmReferral.findOne({
     where: { id: referralId, referrerId: user.id },
@@ -46,6 +50,7 @@ export default async function handler(data: Handler) {
     throw createError({ statusCode: 404, message: "Referral not found" });
   }
 
+  ctx?.step("Computing earnings summary");
   // Compute earnings summary
   const totalEarnings = (await models.mlmReferralReward.sum("reward", {
     where: { referrerId: user.id },
@@ -70,6 +75,7 @@ export default async function handler(data: Handler) {
       : null,
   };
 
+  ctx?.step("Building activity timeline");
   // Build activity timeline: invite + rewards
   const timeline: Array<{ type: string; title: string; date: Date }> = [];
   timeline.push({
@@ -89,6 +95,7 @@ export default async function handler(data: Handler) {
     });
   }
 
+  ctx?.success(`Retrieved details for referral ${referralId} with ${timeline.length} timeline events`);
   return {
     referral,
     earnings,

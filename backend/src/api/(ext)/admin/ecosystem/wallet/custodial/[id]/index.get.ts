@@ -7,9 +7,10 @@ import { notFoundMetadataResponse, serverErrorResponse } from "@b/utils/query";
 import { ethers } from "ethers";
 
 export const metadata: OperationObject = {
-  summary: "View Ecosystem Custodial Wallet Balances and Tokens",
+  summary: "Get custodial wallet balances and tokens",
+  description: "Retrieves the native token balance and all ERC-20 token balances for a specific ecosystem custodial wallet by interacting with its smart contract.",
   operationId: "viewEcosystemCustodialWallet",
-  tags: ["Admin", "Ecosystem Custodial Wallets"],
+  tags: ["Admin", "Ecosystem", "Wallet"],
   parameters: [
     {
       index: 0,
@@ -24,8 +25,7 @@ export const metadata: OperationObject = {
   ],
   responses: {
     200: {
-      description:
-        "Ecosystem custodial wallet balances and tokens retrieved successfully",
+      description: "Custodial wallet balances retrieved successfully",
       content: {
         "application/json": {
           schema: {
@@ -73,11 +73,14 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.ecosystem.custodial.wallet",
+  demoMask: ["tokenBalances.tokenAddress"],
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
   const { id } = params;
+
+  ctx?.step("Fetching custodial wallet balances");
 
   try {
     const custodialWallet = await models.ecosystemCustodialWallet.findByPk(id);

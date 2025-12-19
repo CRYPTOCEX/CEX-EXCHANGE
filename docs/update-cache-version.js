@@ -3,6 +3,7 @@
 /**
  * Cache Version Update Utility
  * Updates cache version numbers in HTML, JS, and CSS files
+ * Also scans content folder for patch notes and updates known versions
  * Run this script before deploying docs to ensure cache busting
  */
 
@@ -13,6 +14,90 @@ const path = require('path');
 const newVersion = `1.0.${Date.now().toString().slice(-6)}`;
 
 console.log(`🔄 Updating cache version to: ${newVersion}`);
+
+// ========================================
+// Scan patch notes and update known versions
+// ========================================
+
+function scanPatchNotes() {
+    const contentDir = path.join(__dirname, 'content');
+    const knownVersions = {};
+
+    // Get all extension directories
+    const extensions = fs.readdirSync(contentDir).filter(item => {
+        const itemPath = path.join(contentDir, item);
+        return fs.statSync(itemPath).isDirectory();
+    });
+
+    console.log(`\n📂 Scanning ${extensions.length} extension directories for patch notes...`);
+
+    for (const ext of extensions) {
+        const patchNotesDir = path.join(contentDir, ext, 'patch-notes');
+
+        if (!fs.existsSync(patchNotesDir)) {
+            continue;
+        }
+
+        const files = fs.readdirSync(patchNotesDir).filter(file => file.endsWith('.md'));
+        const versions = files.map(file => file.replace('.md', '')).sort((a, b) => {
+            // Semantic version sort
+            const aParts = a.split('.').map(Number);
+            const bParts = b.split('.').map(Number);
+            for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+                const aPart = aParts[i] || 0;
+                const bPart = bParts[i] || 0;
+                if (aPart !== bPart) return aPart - bPart;
+            }
+            return 0;
+        });
+
+        if (versions.length > 0) {
+            knownVersions[ext] = versions;
+            console.log(`   ✅ ${ext}: ${versions.length} versions found`);
+        }
+    }
+
+    return knownVersions;
+}
+
+function updatePatchNotesKnownVersions(knownVersions) {
+    const patchNotesPath = path.join(__dirname, 'assets', 'patch-notes.js');
+
+    if (!fs.existsSync(patchNotesPath)) {
+        console.log('⚠️  patch-notes.js not found');
+        return false;
+    }
+
+    let content = fs.readFileSync(patchNotesPath, 'utf8');
+
+    // Build the new knownVersions object string
+    const versionEntries = Object.entries(knownVersions)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([ext, versions]) => {
+            const formattedVersions = versions.map(v => `"${v}"`).join(', ');
+            return `      "${ext}": [${formattedVersions}]`;
+        })
+        .join(',\n');
+
+    const newKnownVersionsBlock = `const knownVersions = {\n${versionEntries},\n    };`;
+
+    // Find and replace the knownVersions object in getKnownVersionsForType
+    const knownVersionsRegex = /const knownVersions = \{[\s\S]*?\};/;
+
+    if (knownVersionsRegex.test(content)) {
+        content = content.replace(knownVersionsRegex, newKnownVersionsBlock);
+        fs.writeFileSync(patchNotesPath, content, 'utf8');
+        console.log(`💾 Updated known versions in patch-notes.js`);
+        return true;
+    } else {
+        console.log('⚠️  Could not find knownVersions block in patch-notes.js');
+        return false;
+    }
+}
+
+// Scan and update patch notes versions
+const knownVersions = scanPatchNotes();
+updatePatchNotesKnownVersions(knownVersions);
 
 // Files to update
 const filesToUpdate = [

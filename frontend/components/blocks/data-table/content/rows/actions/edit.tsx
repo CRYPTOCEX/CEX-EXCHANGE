@@ -18,7 +18,8 @@ interface EditActionProps {
 
 export function EditAction({ row, onSelect, canEditAction }: EditActionProps) {
   const t = useTranslations("common");
-  const handleEdit = useTableStore((state) => state.handleEdit);
+  const goToEdit = useTableStore((state) => state.goToEdit);
+  const setSelectedRow = useTableStore((state) => state.setSelectedRow);
   const tableConfig = useTableStore((state) => state.tableConfig);
   const router = useRouter();
 
@@ -30,7 +31,9 @@ export function EditAction({ row, onSelect, canEditAction }: EditActionProps) {
         const editUrl = processEndpointLink(tableConfig.editLink, row);
         router.push(editUrl);
       } else {
-        handleEdit(row);
+        // Use view-based edit
+        setSelectedRow(row);
+        goToEdit(row.id);
       }
     }
   };
@@ -49,7 +52,7 @@ export function EditAction({ row, onSelect, canEditAction }: EditActionProps) {
       )}
     >
       <Pencil className="mr-2 h-4 w-4" />
-      {t("Edit")}
+      {t("edit")}
     </DropdownMenuItem>
   );
 

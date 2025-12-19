@@ -5,15 +5,19 @@ import {
 } from "../../utils";
 import {
   unauthorizedResponse,
-  notFoundMetadataResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+  notFoundResponse,
+} from "@b/utils/schema/errors";
 import { createError } from "@b/utils/error";
 
 export const metadata: OperationObject = {
-  summary: "Update AI Market Maker configuration",
-  operationId: "updateAiMarketMaker",
-  tags: ["Admin", "AI Market Maker", "Market Maker"],
+  summary: "Update AI Market Maker market configuration",
+  operationId: "updateAiMarketMakerMarket",
+  tags: ["Admin", "AI Market Maker", "Market"],
+  description:
+    "Updates the configuration parameters of an AI Market Maker market. Validates price ranges to ensure target price remains within bounds, real liquidity percentage stays between 0-100, and tracks all changes in the history log for audit purposes. Returns the updated market maker with pool and ecosystem market details.",
+  logModule: "ADMIN_MM",
+  logTitle: "Update Market Maker Configuration",
   parameters: [
     {
       index: 0,
@@ -35,7 +39,7 @@ export const metadata: OperationObject = {
   responses: {
     200: aiMarketMakerStoreSchema,
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("AI Market Maker"),
+    404: notFoundResponse("AI Market Maker Market"),
     500: serverErrorResponse,
   },
   requiresAuth: true,
@@ -43,8 +47,9 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, body } = data;
+  const { params, body, ctx } = data;
 
+  ctx?.step("Fetch market maker from database");
   const marketMaker = await models.aiMarketMaker.findByPk(params.id, {
     include: [{ model: models.aiMarketMakerPool, as: "pool" }],
   });
@@ -64,6 +69,7 @@ export default async (data: Handler) => {
     realLiquidityPercent,
   } = body;
 
+  ctx?.step("Validate price parameters");
   // Validate price range if updating
   const newLow = priceRangeLow ?? marketMaker.priceRangeLow;
   const newHigh = priceRangeHigh ?? marketMaker.priceRangeHigh;
@@ -84,6 +90,7 @@ export default async (data: Handler) => {
     }
   }
 
+  ctx?.step("Track configuration changes");
   // Track changes for history
   const changes: Record<string, { old: any; new: any }> = {};
 
@@ -103,6 +110,7 @@ export default async (data: Handler) => {
     changes.realLiquidityPercent = { old: marketMaker.realLiquidityPercent, new: realLiquidityPercent };
   }
 
+  ctx?.step("Update market maker configuration");
   // Update the market maker
   await marketMaker.update({
     ...(targetPrice !== undefined && { targetPrice }),
@@ -115,6 +123,7 @@ export default async (data: Handler) => {
     ...(realLiquidityPercent !== undefined && { realLiquidityPercent }),
   });
 
+  ctx?.step("Create history record for changes");
   // Log changes if any
   if (Object.keys(changes).length > 0) {
     const pool = marketMaker.pool as any;
@@ -127,6 +136,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.success("Market maker configuration updated successfully");
   // Return updated market maker
   return models.aiMarketMaker.findByPk(params.id, {
     include: [

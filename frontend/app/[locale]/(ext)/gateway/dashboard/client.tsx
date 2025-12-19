@@ -6,7 +6,7 @@ import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import GatewayDashboardLoading from "./loading";
 import {
   CreditCard,
   DollarSign,
@@ -30,6 +30,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import $fetch from "@/lib/api";
 import { useMerchantMode } from "../context/merchant-mode";
+import { GatewayDashboardHero } from "./components/dashboard-hero";
+import { PremiumStats } from "./components/premium-stats";
 
 interface MerchantDashboard {
   merchant: {
@@ -171,7 +173,9 @@ const formatTimeAgo = (dateString: string) => {
 };
 
 export default function MerchantDashboardClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_gateway");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { mode, isTestMode } = useMerchantMode();
   const [dashboard, setDashboard] = useState<MerchantDashboard | null>(null);
   const [loading, setLoading] = useState(true);
@@ -204,22 +208,12 @@ export default function MerchantDashboardClient() {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-10 w-64" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
-        <Skeleton className="h-64" />
-      </div>
-    );
+    return <GatewayDashboardLoading />;
   }
 
   if (needsRegistration) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 pt-20">
         <div className="p-6 rounded-full bg-primary/10">
           <CreditCard className="h-16 w-16 text-primary" />
         </div>
@@ -240,7 +234,7 @@ export default function MerchantDashboardClient() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
         <AlertCircle className="h-16 w-16 text-destructive" />
-        <h2 className="text-xl font-semibold">{t("error_loading_dashboard_1")}</h2>
+        <h2 className="text-xl font-semibold">{tCommon('error_loading_dashboard')}</h2>
         <p className="text-muted-foreground">{error}</p>
         <Button onClick={fetchDashboard}>
           <RefreshCcw className="h-4 w-4 mr-2" />
@@ -252,36 +246,53 @@ export default function MerchantDashboardClient() {
 
   const totalBalance = dashboard?.balances.reduce((sum, b) => sum + b.available, 0) || 0;
 
+  // Calculate stats for hero
+  const totalPayments = dashboard?.stats.last30Days.paymentCount || 0;
+  const totalRevenue = dashboard?.stats.last30Days.totalNet || 0;
+  const pendingAmount = dashboard?.balances.reduce((sum, b) => sum + b.pending, 0) || 0;
+  const successRate = totalPayments > 0
+    ? Math.round(((totalPayments - (dashboard?.stats.pendingRefunds || 0)) / totalPayments) * 100)
+    : 0;
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">{dashboard?.merchant.name}</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <Badge
-              variant="outline"
-              className={`${statusColors[dashboard?.merchant.status || "PENDING"]} text-white`}
-            >
-              {dashboard?.merchant.status}
-            </Badge>
+    <div className="w-full">
+      {/* Hero Section */}
+      <GatewayDashboardHero
+        totalPayments={totalPayments}
+        totalRevenue={totalRevenue}
+        pendingAmount={pendingAmount}
+        successRate={successRate}
+        merchantStatus={dashboard?.merchant.status || "PENDING"}
+        rightContent={
+          <div className="flex gap-2">
+            <Link href="/gateway/settings">
+              <Button variant="outline">
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </Link>
+            <Link href="/gateway/settings?tab=api-keys">
+              <Button variant="outline">
+                <Key className="h-4 w-4 mr-2" />
+                API Keys
+              </Button>
+            </Link>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/gateway/settings">
-            <Button variant="outline">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
-          </Link>
-          <Link href="/gateway/settings?tab=api-keys">
-            <Button variant="outline">
-              <Key className="h-4 w-4 mr-2" />
-              API Keys
-            </Button>
-          </Link>
-        </div>
-      </div>
+        }
+        bottomSlot={
+          <PremiumStats
+            availableBalance={totalBalance}
+            currencyCount={dashboard?.balances.length || 0}
+            payments30d={dashboard?.stats.last30Days.paymentCount || 0}
+            totalAmount30d={dashboard?.stats.last30Days.totalAmount || 0}
+            netRevenue30d={dashboard?.stats.last30Days.totalNet || 0}
+            fees30d={dashboard?.stats.last30Days.totalFees || 0}
+            pendingRefunds={dashboard?.stats.pendingRefunds || 0}
+          />
+        }
+      />
+
+      <div className="container mx-auto space-y-6 pb-6 pt-8">
 
       {/* Status Warning */}
       {dashboard?.merchant.status === "PENDING" && (
@@ -300,84 +311,17 @@ export default function MerchantDashboardClient() {
         </Card>
       )}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("available_balance")}
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${totalBalance.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">
-              Across {dashboard?.balances.length || 0} currencies
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("payments_30d")}
-            </CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {dashboard?.stats.last30Days.paymentCount || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              ${dashboard?.stats.last30Days.totalAmount.toFixed(2) || "0.00"} total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("net_revenue_30d")}
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${dashboard?.stats.last30Days.totalNet.toFixed(2) || "0.00"}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              ${dashboard?.stats.last30Days.totalFees.toFixed(2) || "0.00"} fees
-              {(dashboard?.stats.last30Days.totalRefunded || 0) > 0 && (
-                <>, ${dashboard?.stats.last30Days.totalRefunded.toFixed(2)} refunded</>
-              )}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("pending_refunds")}
-            </CardTitle>
-            <RefreshCcw className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{dashboard?.stats.pendingRefunds || 0}</div>
-            <p className="text-xs text-muted-foreground">{t("awaiting_processing")}</p>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Recent Payments */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>{t("recent_payments")}</CardTitle>
+            <CardTitle>{tExt("recent_payments")}</CardTitle>
             <CardDescription>{t("your_latest_payment_transactions")}</CardDescription>
           </div>
           <Link href="/gateway/payment">
             <Button variant="outline" size="sm">
-              {t("view_all")}
+              {tCommon("view_all")}
               <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
           </Link>
@@ -465,7 +409,7 @@ export default function MerchantDashboardClient() {
                       {/* Fee & Time */}
                       <div className="text-right shrink-0">
                         <p className="text-sm font-medium text-muted-foreground">
-                          {t("fee_1")}{payment.feeAmount?.toFixed(2) || "0.00"}
+                          {tExt("fee_1")}{payment.feeAmount?.toFixed(2) || "0.00"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {formatTimeAgo(payment.createdAt)}
@@ -484,7 +428,7 @@ export default function MerchantDashboardClient() {
               <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-4">
                 <CreditCard className="h-12 w-12 opacity-50" />
               </div>
-              <p className="font-medium">{t("no_payments_yet")}</p>
+              <p className="font-medium">{tExt("no_payments_yet")}</p>
               <p className="text-sm mt-1">
                 {t("payments_will_appear_here_once_you")}
               </p>
@@ -493,55 +437,6 @@ export default function MerchantDashboardClient() {
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
-          <Link href="/gateway/settings?tab=api-keys">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <Key className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">API Keys</p>
-                  <p className="text-sm text-muted-foreground">{t("manage_your_api_credentials")}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
-
-        <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
-          <Link href="/gateway/settings?tab=webhooks">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <RefreshCcw className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">Webhooks</p>
-                  <p className="text-sm text-muted-foreground">{t("configure_webhook_endpoints")}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
-
-        <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
-          <Link href="/gateway/docs">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <FileText className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">Documentation</p>
-                  <p className="text-sm text-muted-foreground">{t("integration_guides_api_docs")}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
       </div>
     </div>
   );

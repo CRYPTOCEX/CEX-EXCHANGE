@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { XCircle as XCircleIcon, CheckCircle2, Play, Pause, AlertTriangle } from "lucide-react";
+import {
+  XCircle as XCircleIcon,
+  CheckCircle2,
+  Play,
+  Pause,
+  AlertTriangle,
+  Tag,
+} from "lucide-react";
 import DataTable from "@/components/blocks/data-table";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,14 +25,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { adminOffersStore } from "@/store/p2p/admin-offers-store";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import { offersAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
-import OfferDetailsDrawer from "./offer-details-drawer";
 
 export default function AdminOffersPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { toast } = useToast();
+  const columns = useColumns();
+  const formConfig = useFormConfig();
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     type: "", // "disable" | "flag" | "approve" | "reject"
@@ -33,27 +43,20 @@ export default function AdminOffersPage() {
     offerName: "",
   });
 
-  // Drawer states for view
-  const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
   // Refresh callback for actions
-  const [refreshCallback, setRefreshCallback] = useState<(() => void) | undefined>(undefined);
+  const [refreshCallback, setRefreshCallback] = useState<
+    (() => void) | undefined
+  >(undefined);
 
   // Get action functions from your admin offers store.
-  const { approveOffer, rejectOffer, flagOffer, disableOffer, pauseOffer, activateOffer } =
-    adminOffersStore();
-
-  // Open offer details in drawer
-  const openOfferDrawer = (offerId: string) => {
-    setSelectedOfferId(offerId);
-    setIsDrawerOpen(true);
-  };
-
-  const closeDrawer = () => {
-    setIsDrawerOpen(false);
-    setSelectedOfferId(null);
-  };
+  const {
+    approveOffer,
+    rejectOffer,
+    flagOffer,
+    disableOffer,
+    pauseOffer,
+    activateOffer,
+  } = adminOffersStore();
 
   // Action handler: sets up the confirmation dialog.
   const handleAction = (
@@ -149,11 +152,15 @@ export default function AdminOffersPage() {
         {/* If offer is pending approval, show approve and reject */}
         {(status === "PENDING_APPROVAL" || status === "PENDING") && (
           <>
-            <DropdownMenuItem onClick={() => handleAction("approve", row, refresh)}>
+            <DropdownMenuItem
+              onClick={() => handleAction("approve", row, refresh)}
+            >
               <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
               {t("approve_offer")}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAction("reject", row, refresh)}>
+            <DropdownMenuItem
+              onClick={() => handleAction("reject", row, refresh)}
+            >
               <XCircleIcon className="mr-2 h-4 w-4 text-red-500" />
               {t("reject_offer")}
             </DropdownMenuItem>
@@ -169,20 +176,28 @@ export default function AdminOffersPage() {
           </DropdownMenuItem>
         )}
 
-        {(status === "PAUSED" || status === "DISABLED" || status === "REJECTED") && (
-          <DropdownMenuItem onClick={() => handleAction("activate", row, refresh)}>
+        {(status === "PAUSED" ||
+          status === "DISABLED" ||
+          status === "REJECTED") && (
+          <DropdownMenuItem
+            onClick={() => handleAction("activate", row, refresh)}
+          >
             <Play className="mr-2 h-4 w-4 text-green-500" />
             {t("activate_offer")}
           </DropdownMenuItem>
         )}
 
         {/* Flag action - for non-pending offers */}
-        {status !== "PENDING_APPROVAL" && status !== "PENDING" && status !== "FLAGGED" && (
-          <DropdownMenuItem onClick={() => handleAction("flag", row, refresh)}>
-            <AlertTriangle className="mr-2 h-4 w-4 text-orange-500" />
-            {t("flag_offer")}
-          </DropdownMenuItem>
-        )}
+        {status !== "PENDING_APPROVAL" &&
+          status !== "PENDING" &&
+          status !== "FLAGGED" && (
+            <DropdownMenuItem
+              onClick={() => handleAction("flag", row, refresh)}
+            >
+              <AlertTriangle className="mr-2 h-4 w-4 text-orange-500" />
+              {t("flag_offer")}
+            </DropdownMenuItem>
+          )}
 
         <DropdownMenuSeparator />
 
@@ -212,19 +227,27 @@ export default function AdminOffersPage() {
           edit: "edit.p2p.offer",
           delete: "delete.p2p.offer",
         }}
-        pageSize={10}
+        pageSize={12}
         canCreate={false}
         canEdit={true}
-        editLink="/admin/p2p/offer/[id]"
+        editLink="/admin/p2p/offer/[id]/edit"
         canDelete={true}
         canView={true}
-        onViewClick={(row) => openOfferDrawer(row.id)}
-        title="Offers"
+        viewLink="/admin/p2p/offer/[id]"
+        title={t("p2p_offer_management")}
+        description={t("manage_and_monitor_peer_to_peer_trading_offers")}
         itemTitle="Offer"
         columns={columns}
+        formConfig={formConfig}
         analytics={offersAnalytics}
         isParanoid={true}
         extraRowActions={extraRowActions}
+        design={{
+          animation: "orbs",
+          primaryColor: 'blue',
+          secondaryColor: 'violet',
+          icon: Tag,
+        }}
       />
 
       {/* Confirmation Dialog for extra action */}
@@ -235,9 +258,9 @@ export default function AdminOffersPage() {
         <DialogContent className="dark:border-slate-700 dark:bg-slate-900">
           <DialogHeader>
             <DialogTitle>
-              {t("Confirm")}
+              {tCommon("confirm")}
               {confirmDialog.type}
-              {t("Offer")}
+              {tExt("offer")}
             </DialogTitle>
             <DialogDescription>
               {confirmDialog.type === "disable" &&
@@ -256,8 +279,7 @@ export default function AdminOffersPage() {
           </DialogHeader>
           <div className="py-4">
             <p>
-              {t("are_you_sure_you_want_to")}{" "}
-              {confirmDialog.type}{" "}
+              {tCommon("are_you_sure_you_want_to")} {confirmDialog.type}{" "}
               {t("the_offer")} <strong>{confirmDialog.offerName}</strong>?
             </p>
           </div>
@@ -268,19 +290,13 @@ export default function AdminOffersPage() {
                 setConfirmDialog({ ...confirmDialog, open: false })
               }
             >
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
-            <Button onClick={confirmAction}>{t("Confirm")}</Button>
+            <Button onClick={confirmAction}>{tCommon("confirm")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Offer Details Drawer */}
-      <OfferDetailsDrawer
-        isOpen={isDrawerOpen}
-        onClose={closeDrawer}
-        offerId={selectedOfferId}
-      />
     </>
   );
 }

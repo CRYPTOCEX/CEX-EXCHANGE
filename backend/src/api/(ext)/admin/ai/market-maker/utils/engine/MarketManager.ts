@@ -1,6 +1,6 @@
 import { models } from "@b/db";
-import { logError } from "@b/utils/logger";
 import { Op } from "sequelize";
+import { logger } from "@b/utils/console";
 import type { MarketMakerEngine } from "./MarketMakerEngine";
 import { MarketInstance, MarketStatus } from "./MarketInstance";
 import { CacheManager } from "@b/utils/cache";
@@ -29,8 +29,9 @@ export class MarketManager {
 
   /**
    * Load all active market makers from database
+   * @returns Number of active market makers loaded
    */
-  public async loadActiveMarkets(): Promise<void> {
+  public async loadActiveMarkets(): Promise<number> {
     try {
       const activeMarkers = await models.aiMarketMaker.findAll({
         where: {
@@ -48,13 +49,13 @@ export class MarketManager {
         ],
       });
 
-      console.info(`[AI Market Maker] Found ${activeMarkers.length} active market makers`);
-
       for (const maker of activeMarkers) {
         await this.startMarket(maker.id);
       }
+
+      return activeMarkers.length;
     } catch (error) {
-      logError("ai-market-maker-market-manager", error, __filename);
+      logger.error("AI_MM", "Market manager initialization error", error);
       throw error;
     }
   }
@@ -71,14 +72,14 @@ export class MarketManager {
 
       // Check if already running
       if (this.markets.has(marketMakerId)) {
-        console.warn(`[AI Market Maker] Market ${marketMakerId} is already running`);
+        logger.warn("AI_MM", `Market ${marketMakerId} is already running`);
         return true;
       }
 
       // Check max concurrent markets
       const config = this.engine.getConfig();
       if (this.markets.size >= config.maxConcurrentMarkets) {
-        console.warn(`[AI Market Maker] Max concurrent markets (${config.maxConcurrentMarkets}) reached`);
+        logger.warn("AI_MM", `Max concurrent markets (${config.maxConcurrentMarkets}) reached`);
         return false;
       }
 
@@ -106,12 +107,12 @@ export class MarketManager {
       }
 
       if (!maker) {
-        console.error(`[AI Market Maker] Market maker ${marketMakerId} not found`);
+        logger.error("AI_MM", `Market maker ${marketMakerId} not found`);
         return false;
       }
 
       if (!maker.market) {
-        console.error(`[AI Market Maker] Ecosystem market not found for ${marketMakerId}`);
+        logger.error("AI_MM", `Ecosystem market not found for ${marketMakerId}`);
         return false;
       }
 
@@ -122,10 +123,7 @@ export class MarketManager {
 
       if (minLiquidity > 0 && quoteBalance < minLiquidity) {
         const marketSymbol = `${maker.market.currency}/${maker.market.pair}`;
-        console.error(
-          `[AI Market Maker] Market ${marketSymbol} does not meet minimum liquidity requirement. ` +
-            `Required: ${minLiquidity} ${maker.market.pair}, Pool quote balance: ${quoteBalance} ${maker.market.pair}`
-        );
+        logger.error("AI_MM", `Market ${marketSymbol} does not meet minimum liquidity requirement. Required: ${minLiquidity} ${maker.market.pair}, Pool quote balance: ${quoteBalance} ${maker.market.pair}`);
         return false;
       }
 
@@ -138,7 +136,7 @@ export class MarketManager {
       // Construct symbol from currency/pair
       const marketSymbol = `${maker.market.currency}/${maker.market.pair}`;
 
-      console.info(`[AI Market Maker] Started market: ${marketSymbol || marketMakerId}`);
+      logger.info("AI_MM", `Started market: ${marketSymbol || marketMakerId}`);
 
       // Log history with actual price and pool value
       const poolValue = maker.pool?.totalValueLocked || 0;
@@ -150,7 +148,7 @@ export class MarketManager {
 
       return true;
     } catch (error) {
-      logError("ai-market-maker-start-market", error, __filename);
+      logger.error("AI_MM", "Market start error", error);
       return false;
     }
   }
@@ -162,7 +160,7 @@ export class MarketManager {
     try {
       const instance = this.markets.get(marketMakerId);
       if (!instance) {
-        console.warn(`[AI Market Maker] Market ${marketMakerId} is not running`);
+        logger.warn("AI_MM", `Market ${marketMakerId} is not running`);
         return true;
       }
 
@@ -180,7 +178,7 @@ export class MarketManager {
         { where: { id: marketMakerId } }
       );
 
-      console.info(`[AI Market Maker] Stopped market: ${marketMakerId}`);
+      logger.info("AI_MM", `Stopped market: ${marketMakerId}`);
 
       // Log history
       await this.logMarketHistory(marketMakerId, "STOP", {
@@ -189,7 +187,7 @@ export class MarketManager {
 
       return true;
     } catch (error) {
-      logError("ai-market-maker-stop-market", error, __filename);
+      logger.error("AI_MM", "Market stop error", error);
       return false;
     }
   }
@@ -201,7 +199,7 @@ export class MarketManager {
     try {
       const instance = this.markets.get(marketMakerId);
       if (!instance) {
-        console.warn(`[AI Market Maker] Market ${marketMakerId} is not running`);
+        logger.warn("AI_MM", `Market ${marketMakerId} is not running`);
         return false;
       }
 
@@ -213,7 +211,7 @@ export class MarketManager {
         { where: { id: marketMakerId } }
       );
 
-      console.info(`[AI Market Maker] Paused market: ${marketMakerId}`);
+      logger.info("AI_MM", `Paused market: ${marketMakerId}`);
 
       // Log history
       await this.logMarketHistory(marketMakerId, "PAUSE", {
@@ -222,7 +220,7 @@ export class MarketManager {
 
       return true;
     } catch (error) {
-      logError("ai-market-maker-pause-market", error, __filename);
+      logger.error("AI_MM", "Market pause error", error);
       return false;
     }
   }
@@ -246,14 +244,14 @@ export class MarketManager {
         { where: { id: marketMakerId } }
       );
 
-      console.info(`[AI Market Maker] Resumed market: ${marketMakerId}`);
+      logger.info("AI_MM", `Resumed market: ${marketMakerId}`);
 
       // Log history
       await this.logMarketHistory(marketMakerId, "RESUME", {});
 
       return true;
     } catch (error) {
-      logError("ai-market-maker-resume-market", error, __filename);
+      logger.error("AI_MM", "Market resume error", error);
       return false;
     }
   }
@@ -262,7 +260,7 @@ export class MarketManager {
    * Stop all markets
    */
   public async stopAllMarkets(): Promise<void> {
-    console.info(`[AI Market Maker] Stopping all ${this.markets.size} markets...`);
+    logger.info("AI_MM", `Stopping all ${this.markets.size} markets...`);
 
     const stopPromises = Array.from(this.markets.keys()).map((id) =>
       this.stopMarket(id)
@@ -275,13 +273,13 @@ export class MarketManager {
    * Emergency stop all markets immediately
    */
   public async emergencyStopAllMarkets(): Promise<void> {
-    console.error(`[AI Market Maker] Emergency stopping all markets!`);
+    logger.error("AI_MM", `Emergency stopping all markets!`);
 
     for (const [id, instance] of this.markets) {
       try {
         await instance.emergencyStop();
       } catch (error) {
-        console.error(`[AI Market Maker] Error emergency stopping market ${id}:`, error);
+        logger.error("AI_MM", `Error emergency stopping market ${id}: ${error}`);
       }
     }
 
@@ -326,7 +324,7 @@ export class MarketManager {
         return instance
           .process()
           .catch((error) => {
-            logError(`ai-market-maker-process-${id}`, error, __filename);
+            logger.error("AI_MM", `Market process error for ${id}`, error);
           })
           .finally(() => {
             this.processingMarkets.delete(id);
@@ -392,7 +390,7 @@ export class MarketManager {
    * Used after daily volume resets to pick up new values
    */
   public async refreshAllMarkets(): Promise<void> {
-    console.info("[AI Market Maker] Refreshing all market configurations...");
+    logger.info("AI_MM", "Refreshing all market configurations...");
 
     for (const [marketMakerId, instance] of this.markets) {
       try {
@@ -408,10 +406,10 @@ export class MarketManager {
         if (makerData) {
           // Update the instance's configuration
           instance.updateConfig(makerData);
-          console.info(`[AI Market Maker] Refreshed config for market ${marketMakerId}`);
+          logger.info("AI_MM", `Refreshed config for market ${marketMakerId}`);
         }
       } catch (error) {
-        logError(`ai-market-maker-refresh-market-${marketMakerId}`, error, __filename);
+        logger.error("AI_MM", `Market refresh error for ${marketMakerId}`, error);
       }
     }
   }

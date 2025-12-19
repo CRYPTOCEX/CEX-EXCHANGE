@@ -26,7 +26,9 @@ interface ReferralTreeProps {
 }
 
 export function ReferralTree({ networkData, mlmSystem }: ReferralTreeProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_affiliate");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const networkContainer = useRef<HTMLDivElement | null>(null);
   const [selectedUser, setSelectedUser] = useState<TreeNode | null>(null);
   const [isTransformed, setIsTransformed] = useState(false);
@@ -164,7 +166,7 @@ export function ReferralTree({ networkData, mlmSystem }: ReferralTreeProps) {
       )
       .html((d) => {
         const statusClass =
-          d.data.status === "ACTIVE" ? "bg-green-500" : "bg-amber-500";
+          d.data.status === "ACTIVE" ? "bg-green-500" : `bg-yellow-500`;
 
         return `
             <div class="relative w-full h-full">
@@ -341,7 +343,7 @@ export function ReferralTree({ networkData, mlmSystem }: ReferralTreeProps) {
                   <div className="flex items-center justify-center gap-1 mt-1 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     <span>
-                      {t("Joined")}
+                      {tCommon("joined")}
                       {selectedUser.joinDate}
                     </span>
                   </div>
@@ -358,7 +360,7 @@ export function ReferralTree({ networkData, mlmSystem }: ReferralTreeProps) {
                       <div className="flex flex-col items-center">
                         <DollarSign className="h-5 w-5 text-primary mb-1" />
                         <p className="text-xs text-muted-foreground">
-                          {t("Earnings")}
+                          {tExt("earnings")}
                         </p>
                         <p className="text-lg font-bold">
                           ${selectedUser.earnings?.toFixed(2)}
@@ -368,10 +370,10 @@ export function ReferralTree({ networkData, mlmSystem }: ReferralTreeProps) {
                   </Card>
 
                   {selectedUser.teamSize !== undefined && (
-                    <Card className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 border-blue-500/20">
+                    <Card className="bg-linear-to-br from-blue-600/5 to-blue-600/10 border-blue-600/20">
                       <div className="p-3">
                         <div className="flex flex-col items-center">
-                          <Users className="h-5 w-5 text-blue-500 mb-1" />
+                          <Users className="h-5 w-5 text-blue-600 mb-1" />
                           <p className="text-xs text-muted-foreground">
                             {t("team_size")}
                           </p>
@@ -390,7 +392,7 @@ export function ReferralTree({ networkData, mlmSystem }: ReferralTreeProps) {
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">
-                      {t("Performance")}
+                      {tExt("performance")}
                     </span>
                     <Badge
                       variant={
@@ -407,8 +409,8 @@ export function ReferralTree({ networkData, mlmSystem }: ReferralTreeProps) {
                       selectedUser.performance > 80
                         ? "bg-green-500"
                         : selectedUser.performance > 50
-                          ? "bg-blue-500"
-                          : "bg-amber-500"
+                          ? "bg-blue-600"
+                          : `bg-yellow-500`
                     }
                   />
                   <p className="text-xs text-muted-foreground">
@@ -430,7 +432,7 @@ export function ReferralTree({ networkData, mlmSystem }: ReferralTreeProps) {
                   </Button>
                   <Button variant="outline" className="w-full gap-2">
                     <ArrowUpRight className="h-4 w-4" />
-                    {t("view_full_profile")}
+                    {tCommon('view_full_profile_1')}
                   </Button>
                 </div>
               )}

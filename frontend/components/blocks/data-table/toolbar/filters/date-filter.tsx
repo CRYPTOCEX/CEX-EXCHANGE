@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { Calendar, DateRange } from "@/components/ui/calendar-custom";
 import { FilterWrapper } from "./filter-wrapper";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface DateFilterProps {
   label: string;
@@ -29,6 +30,7 @@ export function DateFilter({
   description,
   onChange,
 }: DateFilterProps) {
+  const t = useTranslations("components_blocks");
   const [range, setRange] = React.useState<DateRange>({
     from: null,
     to: null,
@@ -57,12 +59,12 @@ export function DateFilter({
   // Label text
   const renderButtonLabel = () => {
     const { from, to } = range;
-    if (!from) return "Pick a date range";
+    if (!from) return t("pick_a_date_range");
     if (from && !to) return format(from, "LLL dd, yyyy");
     if (from && to) {
       return `${format(from, "LLL dd, yyyy")} - ${format(to, "LLL dd, yyyy")}`;
     }
-    return "Pick a date range";
+    return t("pick_a_date_range");
   };
 
   return (

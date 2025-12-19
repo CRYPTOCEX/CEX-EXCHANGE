@@ -34,9 +34,12 @@ import {
   PhoneIcon as WhatsApp,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { GeneratorHero } from "./components/generator-hero";
 
 export default function ReferralGeneratorClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_affiliate");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [baseLink, setBaseLink] = useState(
     "https://yourplatform.com/ref/user123"
   );
@@ -78,16 +81,16 @@ export default function ReferralGeneratorClient() {
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(generatedLink || baseLink)}&color=${qrColor.substring(1)}`;
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">
-        {t("referral_link_generator")}
-      </h1>
+    <div className="w-full">
+      {/* Hero Section */}
+      <GeneratorHero />
 
+      <div className="container mx-auto pb-6 pt-8">
       <Tabs defaultValue="generator" className="mb-8">
         <TabsList className="mb-4">
-          <TabsTrigger value="generator">{t("Generator")}</TabsTrigger>
-          <TabsTrigger value="qrcode">{t("qr_code")}</TabsTrigger>
-          <TabsTrigger value="share">{t("Share")}</TabsTrigger>
+          <TabsTrigger value="generator">{t("generator")}</TabsTrigger>
+          <TabsTrigger value="qrcode">{tCommon("qr_code")}</TabsTrigger>
+          <TabsTrigger value="share">{tExt("share")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="generator">
@@ -112,7 +115,7 @@ export default function ReferralGeneratorClient() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="campaign">
-                    {t("campaign_name_(optional)")}
+                    {t("campaign_name_optional")}
                   </Label>
                   <Input
                     id="campaign"
@@ -127,21 +130,21 @@ export default function ReferralGeneratorClient() {
 
                 <div className="space-y-2">
                   <Label htmlFor="source">
-                    {t("traffic_source_(optional)")}
+                    {t("traffic_source_optional")}
                   </Label>
                   <Select value={source} onValueChange={setSource}>
                     <SelectTrigger id="source">
-                      <SelectValue placeholder="Select source" />
+                      <SelectValue placeholder={t("select_source")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">{t("None")}</SelectItem>
+                      <SelectItem value="none">{tCommon("none")}</SelectItem>
                       <SelectItem value="social">
-                        {t("social_media")}
+                        {tCommon("social_media")}
                       </SelectItem>
-                      <SelectItem value="email">{t("Email")}</SelectItem>
-                      <SelectItem value="blog">{t("Blog")}</SelectItem>
-                      <SelectItem value="ad">{t("Advertisement")}</SelectItem>
-                      <SelectItem value="direct">{t("Direct")}</SelectItem>
+                      <SelectItem value="email">{tCommon("email")}</SelectItem>
+                      <SelectItem value="blog">{tCommon("blog")}</SelectItem>
+                      <SelectItem value="ad">{t("advertisement")}</SelectItem>
+                      <SelectItem value="direct">{tExt("direct")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
@@ -152,11 +155,11 @@ export default function ReferralGeneratorClient() {
 
               <div className="space-y-2">
                 <Label htmlFor="customParam">
-                  {t("custom_parameter_(optional)")}
+                  {t("custom_parameter_optional")}
                 </Label>
                 <Input
                   id="customParam"
-                  placeholder="Any custom tracking value"
+                  placeholder={t("any_custom_tracking_value")}
                   value={customParam}
                   onChange={(e) => setCustomParam(e.target.value)}
                 />
@@ -176,7 +179,7 @@ export default function ReferralGeneratorClient() {
                   setGeneratedLink("");
                 }}
               >
-                {t("Reset")}
+                {tExt("reset")}
               </Button>
               <Button type="button" onClick={generateLink}>
                 {t("generate_link")}
@@ -227,20 +230,20 @@ export default function ReferralGeneratorClient() {
                     <Label htmlFor="qrSize">{t("qr_code_size")}</Label>
                     <Select value={qrSize} onValueChange={setQrSize}>
                       <SelectTrigger id="qrSize">
-                        <SelectValue placeholder="Select size" />
+                        <SelectValue placeholder={t("select_size")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="100">
-                          {t("small_(100x100)")}
+                          {tCommon("small")} (100x100)
                         </SelectItem>
                         <SelectItem value="200">
-                          {t("medium_(200x200)")}
+                          {tCommon("medium")} (200x200)
                         </SelectItem>
                         <SelectItem value="300">
-                          {t("large_(300x300)")}
+                          {tCommon("large")} (300x300)
                         </SelectItem>
                         <SelectItem value="400">
-                          {t("extra_large_(400x400)")}
+                          {t("extra_large_400x400")} (400x400)
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -333,7 +336,7 @@ export default function ReferralGeneratorClient() {
                     className="flex flex-col h-auto py-4"
                   >
                     <Facebook className="h-6 w-6 mb-2 text-[#1877F2]" />
-                    <span>{t("Facebook")}</span>
+                    <span>{t("facebook")}</span>
                   </Button>
 
                   <Button
@@ -341,7 +344,7 @@ export default function ReferralGeneratorClient() {
                     className="flex flex-col h-auto py-4"
                   >
                     <WhatsApp className="h-6 w-6 mb-2 text-[#25D366]" />
-                    <span>{t("WhatsApp")}</span>
+                    <span>{t("whatsapp")}</span>
                   </Button>
 
                   <Button
@@ -349,7 +352,7 @@ export default function ReferralGeneratorClient() {
                     className="flex flex-col h-auto py-4"
                   >
                     <Linkedin className="h-6 w-6 mb-2 text-[#0077B5]" />
-                    <span>{t("LinkedIn")}</span>
+                    <span>{tExt("linkedin")}</span>
                   </Button>
 
                   <Button
@@ -357,7 +360,7 @@ export default function ReferralGeneratorClient() {
                     className="flex flex-col h-auto py-4"
                   >
                     <Mail className="h-6 w-6 mb-2 text-primary" />
-                    <span>{t("Email")}</span>
+                    <span>{tCommon("email")}</span>
                   </Button>
 
                   <Button
@@ -365,7 +368,7 @@ export default function ReferralGeneratorClient() {
                     className="flex flex-col h-auto py-4"
                   >
                     <LinkIcon className="h-6 w-6 mb-2 text-primary" />
-                    <span>{t("copy_link")}</span>
+                    <span>{tExt("copy_link")}</span>
                   </Button>
 
                   <Button
@@ -373,7 +376,7 @@ export default function ReferralGeneratorClient() {
                     className="flex flex-col h-auto py-4"
                   >
                     <QrCode className="h-6 w-6 mb-2 text-primary" />
-                    <span>{t("qr_code")}</span>
+                    <span>{tCommon("qr_code")}</span>
                   </Button>
 
                   <Button
@@ -406,7 +409,7 @@ export default function ReferralGeneratorClient() {
                 <div className="bg-muted p-3 rounded-md text-sm">
                   {t("ive_been_using_get_rewards")}
                   {generatedLink || baseLink}
-                  {t("#affiliate_#rewards")}
+                  {t("affiliate_rewards")}
                 </div>
                 <Button
                   variant="outline"
@@ -455,6 +458,7 @@ export default function ReferralGeneratorClient() {
           </Card>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }

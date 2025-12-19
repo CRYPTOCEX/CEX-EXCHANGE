@@ -104,10 +104,21 @@ export const metadata: OperationObject = {
     },
   },
   permission: "view.blog.post",
+  demoMask: ["author.user.email"],
+  logModule: "ADMIN_BLOG",
+  logTitle: "Get blog post by ID",
 };
 
 export default async (data: Handler) => {
-  return await getPost(data.params.id);
+  const { params, ctx } = data;
+
+  ctx?.step("Validating blog post ID");
+
+  ctx?.step("Fetching blog post with relations");
+  const result = await getPost(params.id);
+
+  ctx?.success("Blog post retrieved successfully");
+  return result;
 };
 
 export async function getPost(id: string): Promise<any | null> {

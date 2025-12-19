@@ -132,8 +132,8 @@ function getEventStyle(eventType: string) {
   if (type.includes("ADMIN") || type.includes("RESOLVED")) {
     return {
       icon: Shield,
-      color: "text-purple-600",
-      bgColor: "border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950",
+      color: "text-blue-600",
+      bgColor: "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950",
     };
   }
 
@@ -155,6 +155,7 @@ function getEventStyle(eventType: string) {
 
 export function TradeTimeline({ events }: TradeTimelineProps) {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   if (!events || events.length === 0) {
@@ -163,7 +164,7 @@ export function TradeTimeline({ events }: TradeTimelineProps) {
         <h3 className="font-medium mb-4">{t("trade_timeline")}</h3>
         <div className="flex flex-col items-center justify-center h-[200px] text-center">
           <Clock className="h-10 w-10 text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">{t("no_timeline_events_yet")}</p>
+          <p className="text-sm text-muted-foreground">{tCommon("no_timeline_events_yet")}</p>
         </div>
       </Card>
     );
@@ -181,7 +182,7 @@ export function TradeTimeline({ events }: TradeTimelineProps) {
         <h3 className="font-medium mb-4">{t("trade_timeline")}</h3>
         <div className="flex flex-col items-center justify-center h-[200px] text-center">
           <Clock className="h-10 w-10 text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">{t("no_timeline_events_yet")}</p>
+          <p className="text-sm text-muted-foreground">{tCommon("no_timeline_events_yet")}</p>
         </div>
       </Card>
     );

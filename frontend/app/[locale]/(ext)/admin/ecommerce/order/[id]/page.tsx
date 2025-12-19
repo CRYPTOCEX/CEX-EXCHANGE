@@ -1,13 +1,10 @@
 "use client";
 
 import OrderDetailClient from "./client";
+import { use } from "react";
 
-export default function Page({ params }) {
-  const { id } = params.id;
-  
-  return (
-    <div className="px-4 py-6 sm:px-0">
-      <OrderDetailClient orderId={id} />
-    </div>
-  );
+export default function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+
+  return <OrderDetailClient orderId={id} />;
 }

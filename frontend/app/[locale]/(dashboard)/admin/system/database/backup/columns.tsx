@@ -1,56 +1,74 @@
 "use client";
-
+import { Database, CalendarIcon, FileText, FolderOpen } from "lucide-react";
+import type { FormConfig } from "@/components/blocks/data-table/types/table";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
-import { ArchiveRestoreIcon as Restore } from "lucide-react";
-export type Backup = {
+import { format } from "date-fns";
+
+import { useTranslations } from "next-intl";
+
+interface Backup {
   filename: string;
   path: string;
   createdAt: string;
-};
-export const columns = (
-  setRestoreFile: (filename: string) => void
-): ColumnDef<Backup>[] => [
-  {
-    accessorKey: "filename",
-    header: "Filename",
-    enableSorting: true,
-  },
-  {
-    accessorKey: "path",
-    header: "Path",
-    enableSorting: true,
-  },
-  {
-    accessorKey: "createdAt",
-    header: () => {
-      return <div className="text-right">Created At</div>;
+}
+
+export function useColumns(): ColumnDef<Backup>[] {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
+  return [
+    {
+      accessorKey: "filename",
+      header: t("filename"),
+      cell: ({ row }) => row.getValue("filename"),
     },
-    enableSorting: true,
-    cell: ({ row }) => {
-      const date = new Date(row.original.createdAt);
-      return <div className="text-right">{date.toLocaleString()}</div>;
+    {
+      accessorKey: "path",
+      header: t("path"),
+      cell: ({ row }) => row.getValue("path"),
     },
-  },
-  {
-    id: "actions",
-    header: () => {
-      return <div className="text-right">Actions</div>;
+    {
+      accessorKey: "createdAt",
+      header: tCommon("created_at"),
+      cell: ({ row }) => {
+        const date = row.getValue("createdAt") as string;
+        return format(new Date(date), "PPP p");
+      },
     },
-    cell: ({ row }) => {
-      return (
-        <div className="flex justify-end">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setRestoreFile(row.original.filename)}
-            className="flex items-center gap-1"
-          >
-            <Restore className="h-4 w-4" />
-            Restore
-          </Button>
-        </div>
-      );
+  ];
+}
+
+export function useFormConfig(): FormConfig {
+  const t = useTranslations("dashboard_admin");
+  return {
+    create: {
+      title: t("create_backup"),
+      description: t("initialize_a_new_database_backup_job"),
+      groups: [
+        {
+          id: "backup-info",
+          title: t("backup_information"),
+          icon: Database,
+          priority: 1,
+          fields: [],
+        },
+      ],
     },
-  },
-];
+    edit: {
+      title: t("backup_details"),
+      description: t("view_database_backup_information"),
+      groups: [
+        {
+          id: "backup-info",
+          title: t("backup_information"),
+          icon: Database,
+          priority: 1,
+          fields: [
+            { key: "filename", required: true },
+            { key: "path", required: true },
+            { key: "createdAt", required: true },
+          ],
+        },
+      ],
+    },
+  };
+}

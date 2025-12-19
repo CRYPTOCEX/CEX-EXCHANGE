@@ -9,6 +9,8 @@ export const metadata: OperationObject = {
   summary: "Updates a specific user by UUID",
   operationId: "updateUserByUuid",
   tags: ["Admin", "CRM", "User"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Update user",
   parameters: [
     {
       index: 0,
@@ -33,7 +35,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, body, user } = data;
+  const { params, body, user, ctx } = data;
   const { id } = params;
   const {
     firstName,
@@ -48,6 +50,7 @@ export default async (data: Handler) => {
     profile,
   } = body;
 
+  ctx?.step("Validating user authorization");
   if (!user?.id) {
     throw createError({
       statusCode: 401,
@@ -60,6 +63,7 @@ export default async (data: Handler) => {
     include: [{ model: models.role, as: "role" }],
   });
 
+  ctx?.step("Fetching target user");
   const existingUser = await models.user.findOne({
     where: { id },
     include: [{ model: models.role, as: "role" }],
@@ -78,6 +82,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Updating user details");
   await models.user.update(
     {
       firstName,
@@ -96,12 +101,14 @@ export default async (data: Handler) => {
   );
 
   if (twoFactor) {
+    ctx?.step("Disabling two-factor authentication");
     await models.twoFactor.update(
       { enabled: false },
       { where: { userId: id } }
     );
   }
 
+  ctx?.success();
   return {
     message: "User updated successfully",
   };

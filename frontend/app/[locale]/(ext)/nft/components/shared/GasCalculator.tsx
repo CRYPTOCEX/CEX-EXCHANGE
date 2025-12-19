@@ -114,7 +114,8 @@ export function GasCalculator({
   className = "",
   showHistory = false 
 }: GasCalculatorProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("ext_nft");
+  const tCommon = useTranslations("common");
   const [gasEstimate, setGasEstimate] = useState<GasEstimate | null>(null);
   const [selectedSpeed, setSelectedSpeed] = useState<"slow" | "standard" | "fast">("standard");
   const [loading, setLoading] = useState(true);
@@ -134,7 +135,8 @@ export function GasCalculator({
       setLoading(true);
       setError(null);
 
-      const response = await $fetch(`/api/nft/gas/estimate`, {
+      const response = await $fetch({
+        url: `/api/nft/gas/estimate`,
         params: {
           chain,
           type: transactionType
@@ -210,12 +212,12 @@ export function GasCalculator({
       <div className="p-4 border-b border-blue-200 dark:border-blue-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Fuel className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <Fuel className={`w-5 h-5 text-purple-600 dark:text-purple-400`} />
             <h3 className="font-semibold">{t("gas_fee_estimate")}</h3>
           </div>
           <button
             onClick={() => setShowDetails(!showDetails)}
-            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            className={`text-sm text-purple-600 dark:text-purple-400 hover:underline`}
           >
             {showDetails ? "Hide" : "Show"} Details
           </button>
@@ -238,8 +240,8 @@ export function GasCalculator({
                 onClick={() => setSelectedSpeed(speed)}
                 className={`p-3 rounded-lg border transition-all ${
                   isSelected
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30"
-                    : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
+                    ? `border-purple-500 bg-purple-50 dark:bg-purple-900/30`
+                    : `border-gray-200 dark:border-gray-700 hover:border-purple-300`
                 }`}
               >
                 <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
@@ -253,7 +255,7 @@ export function GasCalculator({
                 <div className="text-xs text-gray-600 dark:text-gray-400">
                   {estimate?.time}
                 </div>
-                <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">
+                <div className={`text-sm font-medium text-purple-600 dark:text-purple-400 mt-1`}>
                   ${estimate?.usd.toFixed(2)}
                 </div>
               </button>
@@ -269,7 +271,7 @@ export function GasCalculator({
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   {t("estimated_cost")}
                 </div>
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                <div className={`text-2xl font-bold text-purple-600 dark:text-purple-400`}>
                   ${currentEstimate.usd.toFixed(2)}
                 </div>
               </div>
@@ -305,7 +307,7 @@ export function GasCalculator({
                 <span>{gasEstimate.priorityFee?.toFixed(1) || "0"} Gwei</span>
               </div>
               <div className="flex justify-between font-medium pt-1 border-t border-gray-200 dark:border-gray-700">
-                <span>{t("total")}</span>
+                <span>{tCommon("total")}</span>
                 <span>{currentEstimate?.gwei.toFixed(1)} Gwei</span>
               </div>
             </div>
@@ -315,7 +317,7 @@ export function GasCalculator({
 
       {/* Detailed Explanation */}
       {showDetails && (
-        <div className="p-4 border-t border-blue-200 dark:border-blue-800 space-y-3">
+        <div className={`p-4 border-t border-purple-200 dark:border-purple-800 space-y-3`}>
           <div>
             <h4 className="font-medium mb-2 flex items-center gap-2">
               <Info className="w-4 h-4" />
@@ -331,7 +333,7 @@ export function GasCalculator({
             <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
               {explanation.factors.map((factor, index) => (
                 <li key={index} className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-0.5">•</span>
+                  <span className={`text-purple-500 mt-0.5`}>•</span>
                   <span>{factor}</span>
                 </li>
               ))}
@@ -364,7 +366,7 @@ export function GasCalculator({
             <div className="flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5" />
               <div className="text-sm">
-                <strong>{t("note")}</strong> {t("gas_fees_are_paid_to_network")} {t("actual_fees_may_vary_based_on_network_conditions")}
+                <strong>{tCommon("note")}</strong> {t("gas_fees_are_paid_to_network")} {t("actual_fees_may_vary_based_on_network_conditions")}
               </div>
             </div>
           </div>
@@ -373,11 +375,11 @@ export function GasCalculator({
 
       {/* Historical Gas Trend */}
       {showHistory && historicalGas.length > 0 && (
-        <div className="p-4 border-t border-blue-200 dark:border-blue-800">
+        <div className={`p-4 border-t border-purple-200 dark:border-purple-800`}>
           <h4 className="font-medium mb-2">{t("gas_trend_24h")}</h4>
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-600 dark:text-gray-400">
-              {t("average")} {(historicalGas.reduce((a, b) => a + b, 0) / historicalGas.length).toFixed(1)} Gwei
+              {tCommon("average")} {(historicalGas.reduce((a, b) => a + b, 0) / historicalGas.length).toFixed(1)} Gwei
             </span>
             <span className={`flex items-center gap-1 ${
               historicalGas[historicalGas.length - 1] > historicalGas[0]

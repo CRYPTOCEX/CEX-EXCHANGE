@@ -1,13 +1,13 @@
 "use client";
 import React from "react";
 import { useTranslations } from "next-intl";
-
 export function TokenDetails({
   details,
 }: {
   details: icoTokenDetailAttributes | null;
 }) {
   const t = useTranslations("ext");
+  const tExtIco = useTranslations("ext_ico");
   if (!details) return null;
   return (
     <div className="space-y-4">
@@ -21,26 +21,26 @@ export function TokenDetails({
         <div>
           <p className="text-sm font-medium">{t("total_supply")}</p>
           <p className="text-sm text-muted-foreground">
-            {details.totalSupply.toLocaleString()}
+            {(details.totalSupply ?? 0).toLocaleString()}
           </p>
         </div>
         <div>
-          <p className="text-sm font-medium">{t("tokens_for_sale")}</p>
+          <p className="text-sm font-medium">{tExtIco("tokens_for_sale")}</p>
           <p className="text-sm text-muted-foreground">
-            {details.tokensForSale.toLocaleString()}
+            {(details.tokensForSale ?? 0).toLocaleString()}
             (
             {details.salePercentage}
             %)
           </p>
         </div>
         <div>
-          <p className="text-sm font-medium">{t("Blockchain")}</p>
+          <p className="text-sm font-medium">{t("blockchain")}</p>
           <p className="text-sm text-muted-foreground">{details.blockchain}</p>
         </div>
       </div>
 
       <div>
-        <p className="text-sm font-medium">{t("project_description")}</p>
+        <p className="text-sm font-medium">{tExtIco("project_description")}</p>
         <p className="text-sm text-muted-foreground whitespace-pre-line">
           {details.description}
         </p>
@@ -61,15 +61,15 @@ export function TokenDetails({
 
       {details.links && (
         <div>
-          <p className="text-sm font-medium">{t("Links")}</p>
+          <p className="text-sm font-medium">{tExtIco("links")}</p>
           <ul className="list-disc list-inside text-sm">
             {Object.entries(details.links).map(([key, value]) => (
               <li key={key}>
                 <a
-                  href={value}
+                  href={String(value)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:underline"
+                  className={"text-teal-600 dark:text-teal-400 hover:underline"}
                 >
                   {key.charAt(0).toUpperCase() + key.slice(1)}
                 </a>

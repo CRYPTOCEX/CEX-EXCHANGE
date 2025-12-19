@@ -2,15 +2,19 @@ import { updateRecord, updateRecordResponses } from "@b/utils/query";
 import { ecosystemUtxoUpdateSchema } from "../utils";
 
 export const metadata: OperationObject = {
-  summary: "Updates a specific ecosystem UTXO",
+  summary: "Update ecosystem UTXO",
   operationId: "updateEcosystemUtxo",
-  tags: ["Admin", "Ecosystem", "UTXOs"],
+  tags: ["Admin", "Ecosystem", "UTXO"],
+  description:
+    "Updates a specific ecosystem Unspent Transaction Output (UTXO). Allows modification of wallet association, transaction ID, output index, amount, script, and operational status. Used to maintain accurate UTXO records for blockchain transaction management.",
+  logModule: "ADMIN_ECO",
+  logTitle: "Update UTXO",
   parameters: [
     {
       index: 0,
       name: "id",
       in: "path",
-      description: "ID of the UTXO to update",
+      description: "Unique identifier of the UTXO to update",
       required: true,
       schema: {
         type: "string",
@@ -18,7 +22,8 @@ export const metadata: OperationObject = {
     },
   ],
   requestBody: {
-    description: "New data for the UTXO",
+    description:
+      "Updated UTXO data including wallet ID, transaction ID, index, amount, script, and status",
     content: {
       "application/json": {
         schema: ecosystemUtxoUpdateSchema,
@@ -31,11 +36,12 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { walletId, transactionId, index, amount, script, status } = body;
 
-  return await updateRecord("ecosystemUtxo", id, {
+  ctx?.step("Updating UTXO record");
+  const result = await updateRecord("ecosystemUtxo", id, {
     walletId,
     transactionId,
     index,
@@ -43,4 +49,7 @@ export default async (data) => {
     script,
     status,
   });
+
+  ctx?.success("UTXO updated successfully");
+  return result;
 };

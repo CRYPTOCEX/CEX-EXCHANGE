@@ -1,5 +1,6 @@
 import { models } from "@b/db";
 import { Op, literal, fn } from "sequelize";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Get ICO Offering by ID",
@@ -7,6 +8,8 @@ export const metadata = {
     "Retrieves detailed ICO token offering data by its unique identifier. The response includes related phases, token details, team members, and roadmap items. Additionally, it calculates the current and next phases based on the offering's start date and the durations of its phases.",
   operationId: "getIcoOfferingById",
   tags: ["ICO", "Offerings"],
+  logModule: "ICO",
+  logTitle: "Get ICO Offer",
   parameters: [
     {
       name: "id",
@@ -120,8 +123,10 @@ export const metadata = {
   },
 };
 
-export default async (data: { params?: any }): Promise<any> => {
+export default async (data: { params?: any; ctx?: any }): Promise<any> => {
   try {
+    const { ctx } = data;
+    ctx?.step("Fetching get ico offer");
     // Validate input early
     const { id } = data.params || {};
     if (!id) {
@@ -150,7 +155,9 @@ export default async (data: { params?: any }): Promise<any> => {
     });
 
     if (!offering) {
-      return { error: "Offering not found" };
+      ctx?.success("Get ICO Offer retrieved successfully");
+
+  return { error: "Offering not found" };
     }
 
     // Kick off the aggregation query concurrently
@@ -245,7 +252,7 @@ export default async (data: { params?: any }): Promise<any> => {
 
     return transformedOffering;
   } catch (error) {
-    console.error("Error in getIcoOfferingById:", error);
+    logger.error("ICO_OFFER", "Error retrieving ICO offering by ID", error);
     throw error;
   }
 };

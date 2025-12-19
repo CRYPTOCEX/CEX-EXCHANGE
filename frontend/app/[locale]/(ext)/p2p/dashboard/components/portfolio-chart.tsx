@@ -30,7 +30,8 @@ interface PortfolioChartProps {
 }
 
 export function PortfolioChart({ portfolio, isLoading }: PortfolioChartProps) {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   if (isLoading) {
     return (
       <Card className="border-0 shadow-xl overflow-hidden">
@@ -64,21 +65,21 @@ export function PortfolioChart({ portfolio, isLoading }: PortfolioChartProps) {
       <CardHeader className="pb-0 pt-6">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-2xl">{t("your_portfolio")}</CardTitle>
+            <CardTitle className="text-2xl">{tCommon("your_portfolio")}</CardTitle>
             <CardDescription className="text-base mt-1">
-              {t("your_portfolio_has_grown_by")}{" "}
+              {tCommon("your_portfolio_has_grown_by")}{" "}
               <span className="text-green-500 font-medium">
                 {portfolio?.changePercentage || 0}%
               </span>{" "}
-              {t("in_the_last_week")}
+              {tCommon("in_the_last_week")}
             </CardDescription>
           </div>
           <Tabs defaultValue="1w" className="w-[240px]">
             <TabsList className="grid grid-cols-4">
               <TabsTrigger value="1d">1D</TabsTrigger>
-              <TabsTrigger value="1w">{t("1W")}</TabsTrigger>
-              <TabsTrigger value="1m">{t("1M")}</TabsTrigger>
-              <TabsTrigger value="1y">{t("1Y")}</TabsTrigger>
+              <TabsTrigger value="1w">{tExt("n_1w")}</TabsTrigger>
+              <TabsTrigger value="1m">{tExt("n_1m")}</TabsTrigger>
+              <TabsTrigger value="1y">{tExt("n_1y")}</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -129,6 +130,7 @@ export function PortfolioChart({ portfolio, isLoading }: PortfolioChartProps) {
 
 function PortfolioChartVisualization({ chartData }: { chartData: any[] }) {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   // Check if chart data is empty or invalid
   const hasValidData =
     chartData &&
@@ -148,7 +150,7 @@ function PortfolioChartVisualization({ chartData }: { chartData: any[] }) {
         <Link className="mt-6" href="/p2p/offer">
           <Button>
             <PlusCircle className="mr-2 h-4 w-4" />
-            {t("start_trading")}
+            {tCommon("start_trading")}
           </Button>
         </Link>
       </div>
@@ -204,7 +206,7 @@ function PortfolioChartVisualization({ chartData }: { chartData: any[] }) {
       {/* Tooltip */}
       <div className="absolute right-12 top-5 p-3 bg-background/80 backdrop-blur-sm border border-border rounded-lg text-sm flex flex-col shadow-lg">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-muted-foreground">{t("Current")}</span>
+          <span className="text-muted-foreground">{tCommon("current")}</span>
           <span className="font-semibold">
             ${chartData && chartData.length > 0
               ? chartData[chartData.length - 1]?.value?.toLocaleString() || "0"
@@ -230,11 +232,12 @@ function PortfolioChartVisualization({ chartData }: { chartData: any[] }) {
 
 export function EmptyPortfolio() {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
     <div className="flex flex-col items-center justify-center text-center p-8">
       <LineChart className="h-16 w-16 text-muted-foreground/40 mb-4" />
       <h3 className="text-xl font-medium mb-2">
-        {t("your_portfolio_is_empty")}
+        {tCommon("your_portfolio_is_empty")}
       </h3>
       <p className="text-muted-foreground max-w-md mb-6">
         {t("start_by_adding_portfolio_grow")}.
@@ -243,11 +246,11 @@ export function EmptyPortfolio() {
         <Link href="/finance/wallet/deposit">
           <Button>
             <PlusCircle className="mr-2 h-4 w-4" />
-            {t("add_funds")}
+            {tCommon("add_funds")}
           </Button>
         </Link>
         <Link href="/p2p/offer">
-          <Button variant="outline">{t("start_trading")}</Button>
+          <Button variant="outline">{tCommon("start_trading")}</Button>
         </Link>
       </div>
     </div>

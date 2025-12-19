@@ -9,6 +9,8 @@ export const metadata = {
     "and calculates total raised and raise growth from all transactions except those with a 'REJECTED' status.",
   operationId: "getCreatorStatsStats",
   tags: ["ICO", "Creator", "Stats"],
+  logModule: "ICO",
+  logTitle: "Get Creator Stats",
   requiresAuth: true,
   responses: {
     200: {
@@ -48,10 +50,13 @@ interface Handler {
 }
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data as any;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Fetching creator stats");
   const userId = user.id;
   const now = new Date();
   const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -259,6 +264,8 @@ export default async (data: Handler) => {
   const successRateGrowth = previousSuccessRate
     ? currentSuccessRate - previousSuccessRate
     : 0;
+
+  ctx?.success("Get Creator Stats retrieved successfully");
 
   return {
     totalOfferings,

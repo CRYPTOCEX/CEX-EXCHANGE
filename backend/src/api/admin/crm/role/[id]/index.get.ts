@@ -38,12 +38,17 @@ export const metadata: OperationObject = {
     },
   },
   requiresAuth: true,
+  logModule: "ADMIN_CRM",
+  logTitle: "Get Role",
 };
 
-export default async (data) => {
+export default async (data: Handler) => {
+  const { params, ctx } = data;
+
+  ctx?.step("Fetching role");
   const role = await models.role.findOne({
     where: {
-      id: data.params.id,
+      id: params.id,
     },
     include: [
       {
@@ -60,6 +65,7 @@ export default async (data) => {
     throw new Error("Role not found");
   }
 
+  ctx?.success("Role retrieved successfully");
   // Convert the Sequelize model instance to a plain object
   return role.get({ plain: true });
 };

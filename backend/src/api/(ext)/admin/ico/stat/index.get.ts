@@ -8,6 +8,8 @@ export const metadata = {
   operationId: "getAdminStats",
   tags: ["ICO", "Admin", "Stats"],
   requiresAuth: true,
+  logModule: "ADMIN_ICO",
+  logTitle: "Get ICO Stats",
   responses: {
     200: {
       description: "Admin stats retrieved successfully.",
@@ -63,7 +65,8 @@ interface Handler {
 }
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data as any;
+  ctx?.step("Validate user authentication");
   if (!user?.id) {
     throw createError({
       statusCode: 401,
@@ -286,6 +289,7 @@ export default async (data: Handler) => {
     timestamp: activity.createdAt,
   }));
 
+  ctx?.success("Get ICO Stats retrieved successfully");
   return {
     totalOfferings,
     pendingOfferings,

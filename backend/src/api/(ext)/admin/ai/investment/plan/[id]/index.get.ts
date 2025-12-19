@@ -8,10 +8,11 @@ import { baseAIInvestmentPlanSchema } from "../utils";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
-  summary:
-    "Retrieves detailed information of a specific AI Investment Plan by ID",
-  operationId: "getAIInvestmentPlanById",
-  tags: ["Admin", "AI Investment Plans"],
+  summary: "Retrieves a specific AI Investment Plan",
+  operationId: "getAiInvestmentPlanById",
+  tags: ["Admin", "AI Investment", "Plan"],
+  description:
+    "Fetches detailed information for a specific AI Investment Plan including all associated investments and available durations. Returns comprehensive plan data with profit ranges, investment limits, and trending status.",
   parameters: [
     {
       index: 0,
@@ -24,12 +25,12 @@ export const metadata: OperationObject = {
   ],
   responses: {
     200: {
-      description: "AI Investment Plan details",
+      description: "AI Investment Plan details with associated investments and durations",
       content: {
         "application/json": {
           schema: {
             type: "object",
-            properties: baseAIInvestmentPlanSchema, // Define this schema in your utils if it's not already defined
+            properties: baseAIInvestmentPlanSchema,
           },
         },
       },
@@ -40,12 +41,15 @@ export const metadata: OperationObject = {
   },
   permission: "view.ai.investment.plan",
   requiresAuth: true,
+  logModule: "ADMIN_AI",
+  logTitle: "Get investment plan",
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("aiInvestmentPlan", params.id, [
+  ctx?.step(`Fetching plan ${params.id}`);
+  const result = await getRecord("aiInvestmentPlan", params.id, [
     {
       model: models.aiInvestment,
       as: "investments",
@@ -58,4 +62,7 @@ export default async (data) => {
       attributes: ["id", "duration", "timeframe"],
     },
   ]);
+
+  ctx?.success("Plan retrieved");
+  return result;
 };

@@ -12,6 +12,7 @@ import PrecisionStep from "@/app/[locale]/(ext)/admin/ecosystem/market/component
 import LimitsStep from "@/app/[locale]/(ext)/admin/ecosystem/market/components/step-4";
 import Stepper from "@/components/ui/stepper";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 /* ----------------- Types and Initial Values ----------------- */
 export type Metadata = {
@@ -56,7 +57,8 @@ const initialFormValues: MarketForm = {
 };
 const TOTAL_STEPS = 4;
 const CreateEcosystemMarket = () => {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [formData, setFormData] = useState<MarketForm>(initialFormValues);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -141,7 +143,7 @@ const CreateEcosystemMarket = () => {
   ];
   return (
     <div
-      className="p-5"
+      className={`container ${PAGE_PADDING}`}
       onKeyDown={(e) => {
         if (e.key === "Enter" && step < TOTAL_STEPS) {
           e.preventDefault();
@@ -156,7 +158,7 @@ const CreateEcosystemMarket = () => {
               icon="akar-icons:arrow-left"
               className="mr-2 cursor-pointer"
             />
-            {t("Back")}
+            {tCommon("back")}
           </Button>
         </Link>
       </div>
@@ -169,6 +171,8 @@ const CreateEcosystemMarket = () => {
         onNext={nextStep}
         onSubmit={handleFinalSubmit}
         isSubmitting={isSubmitting}
+        showStepDescription={true}
+        showProgress={false}
       >
         {step === 1 && (
           <BasicInfoStep

@@ -8,12 +8,15 @@ import {
 import { Op } from "sequelize";
 import { getWalletSafe } from "@b/api/finance/wallet/utils";
 import { parseAmountConfig } from "@b/api/(ext)/p2p/utils/json-parser";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Delete a P2P offer",
   description: "Deletes a P2P offer. Only the owner can delete their offer.",
   operationId: "deleteP2POffer",
   tags: ["P2P", "Offers"],
+  logModule: "P2P_OFFER",
+  logTitle: "Delete P2P offer",
   parameters: [
     {
       name: "id",
@@ -40,11 +43,12 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
   if (!user?.id) throw createError(401, "Unauthorized");
 
   const { id } = params;
 
+  ctx?.step("Finding and validating offer");
   const transaction = await sequelize.transaction();
 
   try {
@@ -85,6 +89,7 @@ export default async (data: Handler) => {
       );
     }
 
+    ctx?.step("Checking for funds to unlock");
     // For SELL offers, unlock the funds that were locked when offer was created
     // This applies to ALL wallet types including FIAT
     if (offer.type === "SELL") {
@@ -93,7 +98,8 @@ export default async (data: Handler) => {
       const lockedAmount = amountConfig.total;
 
       if (lockedAmount > 0) {
-        const wallet = await getWalletSafe(user.id, offer.walletType, offer.currency);
+        ctx?.step(`Unlocking ${lockedAmount} ${offer.currency} from wallet`);
+        const wallet = await getWalletSafe(user.id, offer.walletType, offer.currency, false, ctx);
 
         if (wallet && wallet.inOrder >= lockedAmount) {
           // Store old value before update for logging
@@ -110,26 +116,18 @@ export default async (data: Handler) => {
             }
           );
 
-          console.log('[P2P Offer Delete] Unlocked funds:', {
-            userId: user.id,
-            walletId: wallet.id,
-            walletType: offer.walletType,
-            currency: offer.currency,
-            amount: lockedAmount,
-            previousInOrder: previousInOrder,
-            newInOrder: previousInOrder - lockedAmount,
-            note: offer.walletType === "FIAT"
-              ? "FIAT balance unlocked on platform"
-              : "Crypto balance unlocked from escrow"
-          });
+          logger.info("P2P_OFFER", `Unlocked funds: ${lockedAmount} ${offer.currency} for user ${user.id} (${offer.walletType})`);
         }
       }
     }
 
+    ctx?.step("Deleting offer");
     // Delete the offer
     await offer.destroy({ transaction });
 
     await transaction.commit();
+
+    ctx?.success(`Deleted ${offer.type} offer for ${offer.currency}`);
 
     return {
       message: "Offer deleted successfully",
@@ -142,7 +140,7 @@ export default async (data: Handler) => {
         // Transaction may already be finished, ignore rollback errors
       }
     }
-    console.error("Error deleting P2P offer:", error);
+    logger.error("P2P_OFFER", "Error deleting P2P offer", error);
     throw error;
   }
 };

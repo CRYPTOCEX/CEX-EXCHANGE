@@ -7,6 +7,8 @@ export const metadata: OperationObject = {
   summary: "Gets chart data for user analytics (all in POST body)",
   operationId: "getAnalyticsData",
   tags: ["User", "CRM", "User", "Analytics"],
+  logModule: "USER",
+  logTitle: "Get analytics data",
   requestBody: {
     required: true,
     content: {
@@ -104,14 +106,16 @@ export const metadata: OperationObject = {
 };
 
 export default async function handler(data: Handler) {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
   if (!user) {
+    ctx?.fail("User not authenticated");
     throw createError(401, "Unauthorized access");
   }
 
   const { model, modelConfig, timeframe, charts, kpis } = body;
 
   if (!model) {
+    ctx?.fail("Model parameter missing");
     throw createError(400, "Missing model parameter");
   }
 
@@ -119,14 +123,19 @@ export default async function handler(data: Handler) {
   const additionalFilter = { userId: user.id, ...(modelConfig || {}) };
 
   if (!models[model]) {
+    ctx?.fail("Invalid model specified");
     throw createError(400, "Invalid or missing model");
   }
 
-  return getMysqlChartData({
+  ctx?.step(`Retrieving analytics data for model: ${model}`);
+  const result = await getMysqlChartData({
     model: models[model],
     timeframe,
     charts,
     kpis,
     where: additionalFilter,
   });
+
+  ctx?.success("Analytics data retrieved successfully");
+  return result;
 }

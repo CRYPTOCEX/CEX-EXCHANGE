@@ -1,7 +1,12 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { PiggyBank } from "lucide-react";
+import { useColumns, useFormConfig } from "./columns";
+import { useTranslations } from "next-intl";
 export default function InvestmentPlanPage() {
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
   return (
     <DataTable
       apiEndpoint="/api/admin/finance/investment/plan"
@@ -13,14 +18,20 @@ export default function InvestmentPlanPage() {
         edit: "edit.investment.plan",
         delete: "delete.investment.plan",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate
       canEdit
       canDelete
       canView
-      title="Investment Plan Management"
+      title={t("investment_plan_management")}
+      description={t("manage_investment_plans_and_packages")}
       itemTitle="Investment Plan"
       columns={columns}
+      formConfig={formConfig}
+      design={{
+        animation: "orbs",
+        icon: PiggyBank,
+      }}
     />
   );
 }

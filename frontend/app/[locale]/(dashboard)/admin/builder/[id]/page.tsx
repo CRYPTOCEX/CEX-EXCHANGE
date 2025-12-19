@@ -172,7 +172,7 @@ const convertLegacyContent = (legacySections: LegacySection[]): Section[] => {
 };
 
 export default function BuilderPage() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const { toast } = useToast();
   const router = useRouter();
   const params = useParams();

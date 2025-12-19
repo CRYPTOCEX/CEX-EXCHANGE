@@ -4,7 +4,8 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 
-import { 
+import { logger } from "@b/utils/console";
+import {
   makeKlarnaRequest,
   KLARNA_STATUS_MAPPING,
   KlarnaError,
@@ -178,7 +179,7 @@ export default async (data: Handler) => {
         "GET"
       );
     } catch (error) {
-      console.error(`Failed to retrieve Klarna order ${order_id}:`, error);
+      logger.error("KLARNA", `Failed to retrieve Klarna order ${order_id}`, error);
       apiError = error instanceof KlarnaError ? error.message : "API request failed";
     }
 
@@ -211,8 +212,8 @@ export default async (data: Handler) => {
             where: { id: transaction.id },
           }
         );
-        
-        console.log(`Updated transaction ${transaction.id} status from ${transaction.status} to ${mappedStatus}`);
+
+        logger.info("KLARNA", `Updated transaction ${transaction.id} status from ${transaction.status} to ${mappedStatus}`);
       } else {
         // Just update metadata
         await models.transaction.update(
@@ -243,7 +244,7 @@ export default async (data: Handler) => {
 
     } else {
       // API failed, return local status
-      console.log(`Using local status for order ${order_id} due to API error: ${apiError}`);
+      logger.warn("KLARNA", `Using local status for order ${order_id} due to API error: ${apiError}`);
 
       return {
         order_id,

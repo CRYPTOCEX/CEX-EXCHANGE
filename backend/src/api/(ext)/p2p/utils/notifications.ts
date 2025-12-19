@@ -1,5 +1,15 @@
 import { models } from "@b/db";
 import { messageBroker } from "@b/handler/Websocket";
+import { logger } from "@b/utils/console";
+
+/**
+ * LogContext interface for operation logging
+ */
+export interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
 
 interface TradeEventData {
   buyerId: string;
@@ -15,9 +25,12 @@ interface TradeEventData {
 export async function notifyTradeEvent(
   tradeId: string,
   event: string,
-  data: TradeEventData
+  data: TradeEventData,
+  ctx?: LogContext
 ): Promise<void> {
   try {
+    ctx?.step?.(`Notifying trade event: ${event} for trade ${tradeId}`);
+
     // Find the trade with related users
     const trade = await models.p2pTrade.findByPk(tradeId, {
       include: [
@@ -27,11 +40,15 @@ export async function notifyTradeEvent(
     });
 
     if (!trade) {
-      console.error(`Trade ${tradeId} not found for notification`);
+      ctx?.fail?.(`Trade ${tradeId} not found`);
+      logger.error("P2P_NOTIF", `Trade ${tradeId} not found for notification`);
       return;
     }
 
+    ctx?.step?.("Determining notification recipients");
     const recipients = await getRecipientsForEvent(trade, event, data);
+
+    ctx?.step?.(`Sending notifications to ${recipients.length} recipient(s)`);
 
     // Create in-app notifications for each recipient
     for (const recipient of recipients) {
@@ -53,14 +70,18 @@ export async function notifyTradeEvent(
           payload: plainRecord,
         });
 
+        ctx?.step?.(`Notification sent to user ${recipient.userId}`);
+
         // TODO: Email service integration - when email service is configured, send email notifications
       } catch (notifError) {
-        console.error(`Failed to create notification for user ${recipient.userId}:`, notifError);
+        logger.error("P2P_NOTIF", `Failed to create notification for user ${recipient.userId}`, notifError);
       }
     }
 
+    ctx?.success?.(`Trade event notifications sent successfully for ${event}`);
   } catch (error) {
-    console.error(`Failed to send trade notification for ${event}:`, error);
+    ctx?.fail?.((error as Error).message || `Failed to send trade notification for ${event}`);
+    logger.error("P2P_NOTIF", `Failed to send trade notification for ${event}`, error);
   }
 }
 
@@ -248,9 +269,12 @@ async function getRecipientsForEvent(
  */
 export async function notifyAdmins(
   event: string,
-  data: any
+  data: any,
+  ctx?: LogContext
 ): Promise<void> {
   try {
+    ctx?.step?.(`Notifying admins about ${event}`);
+
     // Get admin users with P2P permissions
     const admins = await models.user.findAll({
       include: [{
@@ -264,9 +288,12 @@ export async function notifyAdmins(
     });
 
     if (!admins || admins.length === 0) {
-      console.warn("No admin users found for P2P notifications");
+      ctx?.fail?.("No admin users found");
+      logger.warn("P2P_NOTIF", "No admin users found for P2P notifications");
       return;
     }
+
+    ctx?.step?.(`Found ${admins.length} admin(s) to notify`);
 
     // Determine notification content based on event type
     let title = "";
@@ -305,6 +332,7 @@ export async function notifyAdmins(
     }
 
     // Create notifications for all admins and push via WebSocket
+    ctx?.step?.("Creating admin notifications");
     for (const admin of admins) {
       try {
         const notification = await models.notification.create({
@@ -323,14 +351,17 @@ export async function notifyAdmins(
           method: "create",
           payload: plainRecord,
         });
+        ctx?.step?.(`Notification sent to admin ${admin.id}`);
       } catch (adminNotifError) {
-        console.error(`Failed to create admin notification for ${admin.id}:`, adminNotifError);
+        logger.error("P2P_NOTIF", `Failed to create admin notification for ${admin.id}`, adminNotifError);
       }
     }
 
-    console.log(`Sent P2P admin notifications (${event}) to ${admins.length} admin(s)`);
+    ctx?.success?.(`Sent P2P admin notifications (${event}) to ${admins.length} admin(s)`);
+    logger.debug("P2P_NOTIF", `Sent P2P admin notifications (${event}) to ${admins.length} admin(s)`);
   } catch (error) {
-    console.error("Failed to notify admins:", error);
+    ctx?.fail?.((error as Error).message || "Failed to notify admins");
+    logger.error("P2P_NOTIF", "Failed to notify admins", error);
   }
 }
 
@@ -340,9 +371,12 @@ export async function notifyAdmins(
 export async function notifyOfferEvent(
   offerId: string,
   event: string,
-  data: any
+  data: any,
+  ctx?: LogContext
 ): Promise<void> {
   try {
+    ctx?.step?.(`Notifying offer event: ${event} for offer ${offerId}`);
+
     const offer = await models.p2pOffer.findByPk(offerId, {
       include: [{
         model: models.user,
@@ -352,7 +386,8 @@ export async function notifyOfferEvent(
     });
 
     if (!offer || !offer.user) {
-      console.error(`Offer ${offerId} or owner not found for notification`);
+      ctx?.fail?.(`Offer ${offerId} or owner not found`);
+      logger.error("P2P_NOTIF", `Offer ${offerId} or owner not found for notification`);
       return;
     }
 
@@ -394,6 +429,7 @@ export async function notifyOfferEvent(
     }
 
     // Create notification for offer owner
+    ctx?.step?.("Creating offer notification");
     const notification = await models.notification.create({
       userId: offer.user.id,
       type: "alert",
@@ -411,9 +447,11 @@ export async function notifyOfferEvent(
       payload: plainRecord,
     });
 
-    console.log(`Sent offer notification (${event}) to user ${offer.user.id}`);
+    ctx?.success?.(`Sent offer notification (${event}) to user ${offer.user.id}`);
+    logger.debug("P2P_NOTIF", `Sent offer notification (${event}) to user ${offer.user.id}`);
   } catch (error) {
-    console.error("Failed to send offer notification:", error);
+    ctx?.fail?.((error as Error).message || "Failed to send offer notification");
+    logger.error("P2P_NOTIF", "Failed to send offer notification", error);
   }
 }
 
@@ -494,8 +532,8 @@ export async function notifyReputationEvent(
       payload: plainRecord,
     });
 
-    console.log(`Sent reputation notification (${event}) to user ${userId}`);
+    logger.debug("P2P_NOTIF", `Sent reputation notification (${event}) to user ${userId}`);
   } catch (error) {
-    console.error("Failed to send reputation notification:", error);
+    logger.error("P2P_NOTIF", "Failed to send reputation notification", error);
   }
 }

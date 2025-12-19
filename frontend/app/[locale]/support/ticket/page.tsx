@@ -116,6 +116,7 @@ const getImportanceColor = (importance: string) => {
 };
 export default function SupportPage() {
   const t = useTranslations("common");
+  const tSupportTicket = useTranslations("support_ticket");
   const { hasKyc, canAccessFeature } = useUserStore();
   const { settings } = useConfigStore();
   const [allTickets, setAllTickets] = useState<SupportTicket[]>([]);
@@ -289,7 +290,7 @@ export default function SupportPage() {
   }
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/20 dark:from-zinc-950 dark:via-blue-950/10 dark:to-indigo-950/10">
-      <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 max-w-7xl">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 container">
         {/* Enhanced Header */}
         <div className="mb-6 sm:mb-8">
           <div className="relative overflow-hidden bg-gradient-to-r from-white via-blue-50/50 to-indigo-50/30 dark:from-zinc-900 dark:via-blue-950/20 dark:to-indigo-950/10 rounded-2xl border border-gray-200/50 dark:border-zinc-800/50 p-4 sm:p-6 lg:p-8 shadow-xl backdrop-blur-sm">
@@ -305,7 +306,7 @@ export default function SupportPage() {
                       {t("support_center")}
                     </h1>
                     <p className="text-gray-600 dark:text-zinc-400 text-sm sm:text-base lg:text-lg">
-                      {t("manage_your_support_tickets_and_get_expert_help")}
+                      {tSupportTicket("manage_your_support_tickets_and_get_expert_help")}
                     </p>
                   </div>
                 </div>
@@ -313,7 +314,7 @@ export default function SupportPage() {
                   <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span className="font-medium">
-                      {t("24/7_support_available")}
+                      {tSupportTicket("n_24_7_support_available")}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
@@ -339,7 +340,7 @@ export default function SupportPage() {
                   <DialogTrigger asChild>
                     <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                       <Plus className="h-4 w-4 mr-2" />
-                      {t("new_ticket")}
+                      {tSupportTicket("new_ticket")}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[500px] bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800">
@@ -348,7 +349,7 @@ export default function SupportPage() {
                         {t("create_support_ticket")}
                       </DialogTitle>
                       <DialogDescription className="text-gray-600 dark:text-zinc-400">
-                        {t("describe_your_issue_as_possible")}.
+                        {tSupportTicket("describe_your_issue_as_possible")}.
                       </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
@@ -357,7 +358,7 @@ export default function SupportPage() {
                           htmlFor="subject"
                           className="text-gray-900 dark:text-zinc-100"
                         >
-                          {t("Subject")}
+                          {t("subject")}
                         </Label>
                         <Input
                           id="subject"
@@ -368,7 +369,7 @@ export default function SupportPage() {
                               subject: e.target.value,
                             }))
                           }
-                          placeholder="Brief description of your issue"
+                          placeholder={tSupportTicket("brief_description_of_your_issue")}
                           className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700"
                         />
                       </div>
@@ -377,7 +378,7 @@ export default function SupportPage() {
                           htmlFor="importance"
                           className="text-gray-900 dark:text-zinc-100"
                         >
-                          {t("Priority")}
+                          {t("priority")}
                         </Label>
                         <Select
                           value={newTicket.importance}
@@ -393,13 +394,13 @@ export default function SupportPage() {
                           </SelectTrigger>
                           <SelectContent className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
                             <SelectItem value="LOW">
-                              {t("low_-_general_inquiry")}
+                              {tSupportTicket("low_general_inquiry")}
                             </SelectItem>
                             <SelectItem value="MEDIUM">
-                              {t("medium_-_affects_workflow")}
+                              {tSupportTicket("medium_affects_workflow")}
                             </SelectItem>
                             <SelectItem value="HIGH">
-                              {t("high_-_critical_issue")}
+                              {tSupportTicket("high_critical_issue")}
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -409,7 +410,7 @@ export default function SupportPage() {
                           htmlFor="tags"
                           className="text-gray-900 dark:text-zinc-100"
                         >
-                          {t("tags_(comma-separated)")}
+                          {tSupportTicket("tags_comma_separated")} ({t("comma_separated")})
                         </Label>
                         <Input
                           id="tags"
@@ -420,7 +421,7 @@ export default function SupportPage() {
                               tags: e.target.value,
                             }))
                           }
-                          placeholder="e.g., billing, account, feature-request"
+                          placeholder={tSupportTicket("e_g_billing_account_feature_request")}
                           className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700"
                         />
                       </div>
@@ -429,7 +430,7 @@ export default function SupportPage() {
                           htmlFor="message"
                           className="text-gray-900 dark:text-zinc-100"
                         >
-                          {t("Description")}
+                          {t("description")}
                         </Label>
                         <Textarea
                           id="message"
@@ -440,7 +441,7 @@ export default function SupportPage() {
                               message: e.target.value,
                             }))
                           }
-                          placeholder="Please provide details about your issue..."
+                          placeholder={tSupportTicket("please_provide_details_about_your_issue_ellipsis")}
                           className="min-h-[100px] bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700"
                         />
                       </div>
@@ -451,7 +452,7 @@ export default function SupportPage() {
                         onClick={() => setIsCreateDialogOpen(false)}
                         className="border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-zinc-100"
                       >
-                        {t("Cancel")}
+                        {t("cancel")}
                       </Button>
                       <Button
                         onClick={handleCreateTicket}
@@ -460,7 +461,7 @@ export default function SupportPage() {
                           !newTicket.subject.trim() || !newTicket.message.trim()
                         }
                       >
-                        {t("create_ticket")}
+                        {tSupportTicket("create_ticket")}
                       </Button>
                     </div>
                   </DialogContent>
@@ -524,7 +525,7 @@ export default function SupportPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-green-100 text-sm font-medium">
-                    {t("Resolved")}
+                    {t("resolved")}
                   </p>
                   <p className="text-3xl font-bold">{stats.closed}</p>
                   <div className="flex items-center gap-1 mt-2">
@@ -577,7 +578,7 @@ export default function SupportPage() {
                 <div className="relative">
                   <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 h-4 w-4 sm:h-5 sm:w-5" />
                   <Input
-                    placeholder="Search tickets by subject, tags, or content..."
+                    placeholder={tSupportTicket("search_tickets_by_subject_tags_or_content_ellipsis")}
                     value={searchQuery}
                     onChange={(e) =>
                       handleFilterChange("search", e.target.value)
@@ -593,14 +594,14 @@ export default function SupportPage() {
                 >
                   <SelectTrigger className="w-full sm:w-48 h-10 sm:h-12 bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 rounded-xl text-sm sm:text-base">
                     <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Filter by status" />
+                    <SelectValue placeholder={t("filter_by_status")} />
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
                     <SelectItem value="all">{t("all_status")}</SelectItem>
-                    <SelectItem value="PENDING">{t("Pending")}</SelectItem>
-                    <SelectItem value="OPEN">{t("Open")}</SelectItem>
-                    <SelectItem value="REPLIED">{t("Replied")}</SelectItem>
-                    <SelectItem value="CLOSED">{t("Closed")}</SelectItem>
+                    <SelectItem value="PENDING">{t("pending")}</SelectItem>
+                    <SelectItem value="OPEN">{t("open")}</SelectItem>
+                    <SelectItem value="REPLIED">{t("replied")}</SelectItem>
+                    <SelectItem value="CLOSED">{t("closed")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select
@@ -610,13 +611,13 @@ export default function SupportPage() {
                   }
                 >
                   <SelectTrigger className="w-full sm:w-48 h-10 sm:h-12 bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 rounded-xl text-sm sm:text-base">
-                    <SelectValue placeholder="Filter by priority" />
+                    <SelectValue placeholder={tSupportTicket("filter_by_priority")} />
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
-                    <SelectItem value="all">{t("all_priority")}</SelectItem>
-                    <SelectItem value="HIGH">{t("High")}</SelectItem>
-                    <SelectItem value="MEDIUM">{t("Medium")}</SelectItem>
-                    <SelectItem value="LOW">{t("Low")}</SelectItem>
+                    <SelectItem value="all">{tSupportTicket("all_priority")}</SelectItem>
+                    <SelectItem value="HIGH">{t("high")}</SelectItem>
+                    <SelectItem value="MEDIUM">{t("medium")}</SelectItem>
+                    <SelectItem value="LOW">{t("low")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -628,7 +629,7 @@ export default function SupportPage() {
         {filteredTickets.length > 0 && (
           <div className="mb-6">
             <p className="text-sm text-gray-600 dark:text-zinc-400">
-              {t("Showing")} {startIndex + 1} {t("to")}{" "}
+              {t("showing")} {startIndex + 1} {t("to")}{" "}
               {Math.min(endIndex, filteredTickets.length)} {t("of")}{" "}
               {filteredTickets.length}{" "}
               {filteredTickets.length === 1 ? "ticket" : "tickets"}
@@ -681,7 +682,7 @@ export default function SupportPage() {
                             <div className="flex items-center gap-2">
                               <Users className="h-4 w-4 text-green-500" />
                               <span className="text-green-600 dark:text-green-400 font-medium">
-                                {t("agent_assigned")}
+                                {tSupportTicket("agent_assigned")}
                               </span>
                             </div>
                           </>
@@ -690,7 +691,7 @@ export default function SupportPage() {
                           <>
                             <span className="hidden sm:inline">•</span>
                             <span className="text-blue-600 dark:text-blue-400">
-                              {t("response")} {ticket.responseTime} min
+                              {tSupportTicket("response")} {ticket.responseTime} min
                             </span>
                           </>
                         )}
@@ -744,7 +745,7 @@ export default function SupportPage() {
                         {ticket.status === "OPEN" && (
                           <span className="text-green-600 dark:text-green-400 font-medium flex items-center gap-2">
                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                            {t("Active")}
+                            {t("active")}
                           </span>
                         )}
                         {ticket.satisfaction && (
@@ -774,7 +775,7 @@ export default function SupportPage() {
                         }}
                         className="border-gray-200 dark:border-zinc-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-green-950 dark:hover:to-emerald-950 text-gray-900 dark:text-zinc-100 hover:border-green-300 dark:hover:border-green-700 transition-all duration-300 group-hover:shadow-lg text-sm sm:text-base h-9 sm:h-10 px-3 sm:px-4"
                       >
-                        {t("open_live_chat")}
+                        {tSupportTicket("open_live_chat")}
                         <MessageCircle className="h-4 w-4 ml-2" />
                       </Button>
                     ) : (
@@ -801,7 +802,7 @@ export default function SupportPage() {
                   <MessageCircle className="h-12 w-12 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-zinc-100">
-                  {t("no_tickets_found")}
+                  {tSupportTicket("no_tickets_found")}
                 </h3>
                 <p className="text-gray-600 dark:text-zinc-400 text-center mb-8 max-w-md">
                   {searchQuery ||
@@ -816,7 +817,7 @@ export default function SupportPage() {
                   size="lg"
                 >
                   <Plus className="h-5 w-5 mr-2" />
-                  {t("create_your_first_ticket")}
+                  {tSupportTicket("create_your_first_ticket")}
                 </Button>
               </CardContent>
             </Card>

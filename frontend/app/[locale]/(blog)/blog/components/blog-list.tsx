@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
 export function BlogList() {
-  const t = useTranslations("blog");
+  const t = useTranslations("common");
   const searchParams = useSearchParams();
   const category = searchParams.get("category");
   const tag = searchParams.get("tag");

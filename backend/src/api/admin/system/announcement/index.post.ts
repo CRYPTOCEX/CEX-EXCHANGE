@@ -20,12 +20,17 @@ export const metadata = {
   responses: storeRecordResponses(announcementSchema, "Announcement"),
   requiresAuth: true,
   permission: "create.announcement",
+  logModule: "ADMIN_SYS",
+  logTitle: "Create announcement",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { type, title, message, link, status } = body;
 
+  ctx?.step("Validating announcement data");
+
+  ctx?.step("Creating announcement");
   const announcement = await storeRecord({
     model: "announcement",
     data: {
@@ -38,11 +43,13 @@ export default async (data: Handler) => {
     returnResponse: true,
   });
 
+  ctx?.step("Broadcasting announcement creation");
   handleBroadcastMessage({
     type: "announcements",
     method: "create",
     data: announcement.record,
   });
 
+  ctx?.success("Announcement created successfully");
   return announcement.message;
 };

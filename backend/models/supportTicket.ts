@@ -1,5 +1,6 @@
 import * as Sequelize from "sequelize";
 import { DataTypes, Model } from "sequelize";
+import { logger } from "@b/utils/console";
 
 export default class supportTicket extends Model<any, any> {
   id!: string;
@@ -71,8 +72,7 @@ export default class supportTicket extends Model<any, any> {
                 const parsed = JSON.parse(value);
                 return Array.isArray(parsed) ? parsed : [];
               } catch (e) {
-                console.error(`Failed to parse messages JSON for ticket ${this.id}:`, e);
-                console.error('Problematic value:', value);
+                logger.error("TICKET", `Failed to parse messages JSON for ticket ${this.id}`, e);
                 return [];
               }
             }
@@ -95,13 +95,13 @@ export default class supportTicket extends Model<any, any> {
               } else if (val === null || val === undefined) {
                 this.setDataValue("messages", val);
               } else {
-                console.error(`Invalid messages format for ticket ${this.id}:`, val);
+                logger.error("TICKET", `Invalid messages format for ticket ${this.id}`);
                 throw new Error(
                   "messages must be an array of message objects or null/undefined"
                 );
               }
             } catch (error) {
-              console.error(`Error setting messages for ticket ${this.id}:`, error);
+              logger.error("TICKET", `Error setting messages for ticket ${this.id}`, error);
               throw error;
             }
           },
@@ -136,8 +136,7 @@ export default class supportTicket extends Model<any, any> {
                 const parsed = JSON.parse(value);
                 return Array.isArray(parsed) ? parsed : [];
               } catch (e) {
-                console.error(`Failed to parse tags JSON for ticket ${this.id}:`, e);
-                console.error('Problematic tags value:', value);
+                logger.error("TICKET", `Failed to parse tags JSON for ticket ${this.id}`, e);
                 return [];
               }
             }
@@ -154,13 +153,13 @@ export default class supportTicket extends Model<any, any> {
               } else if (val === null || val === undefined) {
                 this.setDataValue("tags", val);
               } else {
-                console.error(`Invalid tags format for ticket ${this.id}:`, val);
+                logger.error("TICKET", `Invalid tags format for ticket ${this.id}`);
                 throw new Error(
                   "tags must be an array of strings or null/undefined"
                 );
               }
             } catch (error) {
-              console.error(`Error setting tags for ticket ${this.id}:`, error);
+              logger.error("TICKET", `Error setting tags for ticket ${this.id}`, error);
               throw error;
             }
           },

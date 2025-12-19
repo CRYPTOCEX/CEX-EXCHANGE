@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 // State & Utils
 import { useTableStore } from "../../../store";
@@ -21,6 +22,13 @@ import { EditAction } from "./edit";
 import { DeleteAction } from "./delete";
 import { RestoreAction } from "./restore";
 import { PermanentDeleteAction } from "./permanent-delete";
+
+// Premium button animation variants
+const buttonVariants = {
+  idle: { scale: 1, rotate: 0 },
+  hover: { scale: 1.1 },
+  tap: { scale: 0.9, rotate: 90 },
+};
 
 interface RowActionsProps {
   row: any;
@@ -79,9 +87,21 @@ export function RowActions({ row }: RowActionsProps) {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
+        <motion.div
+          variants={buttonVariants}
+          initial="idle"
+          whileHover="hover"
+          whileTap="tap"
+          animate={open ? { rotate: 90 } : { rotate: 0 }}
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <Button
+            variant="ghost"
+            className="h-8 w-8 p-0 transition-colors duration-200"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </motion.div>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent

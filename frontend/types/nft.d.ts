@@ -58,6 +58,14 @@ interface NftCollection {
     owners?: number;
     listed?: number;
   };
+  metrics?: {
+    uniqueOwners?: number;
+    totalVolume?: number;
+    recentVolume?: number;
+    recentSales?: number;
+    floorPrice?: number;
+    itemCount?: number;
+  };
 }
 
 // NFT Token Types
@@ -98,10 +106,20 @@ interface NftToken {
     firstName: string;
     lastName: string;
     avatar?: string;
+    displayName?: string;
+    user?: {
+      firstName?: string;
+      lastName?: string;
+      avatar?: string;
+    };
   };
   currentListing?: NftListing;
   lastSale?: NftSale;
   isFavorited?: boolean;
+  rank?: number | string;
+  priceHistory?: any[];
+  offers?: any[];
+  activeListing?: any;
 }
 
 interface NftAttribute {

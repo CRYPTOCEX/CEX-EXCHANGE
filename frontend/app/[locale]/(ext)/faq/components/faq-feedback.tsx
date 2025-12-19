@@ -10,10 +10,14 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { useToast } from "@/hooks/use-toast";
 
-// FAQFeedbackProps interface is now imported from global types
+interface FaqFeedbackProps {
+  faqId: string;
+}
 
 export function FaqFeedback({ faqId }: FaqFeedbackProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_faq");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { user } = useUserStore();
   const router = useRouter();
   const { toast } = useToast();
@@ -28,7 +32,7 @@ export function FaqFeedback({ faqId }: FaqFeedbackProps) {
     // Check if user is logged in before allowing rating
     if (!user?.id) {
       toast({
-        title: t("authentication_required"),
+        title: tCommon("authentication_required"),
         description: t("please_login_to_submit_feedback"),
         variant: "destructive",
         action: (
@@ -37,7 +41,7 @@ export function FaqFeedback({ faqId }: FaqFeedbackProps) {
             size="sm"
             onClick={() => router.push("/login")}
           >
-            {t("login")}
+            {tExt("login")}
           </Button>
         ),
       });
@@ -54,7 +58,7 @@ export function FaqFeedback({ faqId }: FaqFeedbackProps) {
     // Double-check authentication
     if (!user?.id) {
       toast({
-        title: t("authentication_required"),
+        title: tCommon("authentication_required"),
         description: t("please_login_to_submit_feedback"),
         variant: "destructive",
       });
@@ -77,7 +81,7 @@ export function FaqFeedback({ faqId }: FaqFeedbackProps) {
       });
     } catch (error) {
       toast({
-        title: t("error"),
+        title: "Error",
         description: t("failed_to_submit_feedback"),
         variant: "destructive",
       });
@@ -113,7 +117,7 @@ export function FaqFeedback({ faqId }: FaqFeedbackProps) {
           title={!user ? t("login_required") : ""}
         >
           <ThumbsUp className="h-4 w-4 mr-1" />
-          {t("Yes")}
+          {tCommon("yes")}
         </Button>
 
         <Button
@@ -124,14 +128,14 @@ export function FaqFeedback({ faqId }: FaqFeedbackProps) {
           title={!user ? t("login_required") : ""}
         >
           <ThumbsDown className="h-4 w-4 mr-1" />
-          {t("No")}
+          {tCommon("no")}
         </Button>
       </div>
 
       {showCommentField && (
         <div className="space-y-3">
           <Textarea
-            placeholder="Tell us more about your experience (optional)"
+            placeholder={t("tell_us_more_about_your_experience_optional")}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             disabled={isLoading}

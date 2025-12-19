@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
   operationId: "getAllMarketTickers",
   tags: ["Exchange", "Markets"],
   description: "Retrieves ticker information for all available market pairs.",
+  logModule: "EXCHANGE",
+  logTitle: "Get Market Tickers",
   responses: {
     200: {
       description: "All market tickers information",
@@ -32,7 +34,10 @@ export const metadata: OperationObject = {
   },
 };
 
-export default async () => {
+export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step("Retrieving tickers from cache");
   const cachedData = await redis.get("exchange:tickers");
 
   if (!cachedData) {
@@ -40,6 +45,8 @@ export default async () => {
   }
 
   const tickers = JSON.parse(cachedData || "{}");
+  const tickerCount = Object.keys(tickers).length;
 
+  ctx?.success(`Retrieved ${tickerCount} market tickers`);
   return tickers;
 };

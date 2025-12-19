@@ -1,13 +1,21 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  notFoundResponse,
+  badRequestResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Add Note to a P2P Dispute",
-  description: "Adds a note to an existing dispute.",
+  summary: "Add admin note to P2P dispute",
+  description: "Adds an internal admin note to a P2P dispute activity log. Notes are timestamped and attributed to the admin user for tracking purposes.",
   operationId: "addNoteToAdminP2PDispute",
-  tags: ["Admin", "Disputes", "P2P"],
+  tags: ["Admin", "P2P", "Dispute"],
   requiresAuth: true,
   permissions: ["p2p.dispute.note.add"],
+  logModule: "ADMIN_P2P",
+  logTitle: "Add note to dispute",
   parameters: [
     {
       index: 0,
@@ -35,19 +43,20 @@ export const metadata = {
   },
   responses: {
     200: { description: "Note added successfully." },
-    401: { description: "Unauthorized." },
-    404: { description: "Dispute not found." },
-    500: { description: "Internal Server Error." },
+    401: unauthorizedResponse,
+    404: notFoundResponse("Resource"),
+    500: serverErrorResponse,
   },
   permission: "edit.p2p.dispute",
 };
 
 export default async (data) => {
-  const { params, body, user } = data;
+  const { params, body, user, ctx } = data;
   const { id } = params;
   const { note } = body;
 
   try {
+    ctx?.step("Fetching dispute");
     const dispute = await models.p2pDispute.findByPk(id, {
       include: [
         {
@@ -83,9 +92,12 @@ export default async (data) => {
         },
       ],
     });
-    if (!dispute)
+    if (!dispute) {
+      ctx?.fail("Dispute not found");
       throw createError({ statusCode: 404, message: "Dispute not found" });
+    }
 
+    ctx?.step("Adding note to activity log");
     let existingNotes = dispute.activityLog;
     if (!Array.isArray(existingNotes)) {
       existingNotes = [];
@@ -102,6 +114,7 @@ export default async (data) => {
       adminName,
     });
 
+    ctx?.step("Updating dispute");
     // Use update to ensure Sequelize detects the change to JSON field
     await dispute.update({ activityLog: existingNotes });
 
@@ -140,6 +153,7 @@ export default async (data) => {
       timestamp: e.createdAt || e.timestamp,
     })) : [];
 
+    ctx?.success("Note added successfully");
     return {
       ...plainDispute,
       messages,
@@ -150,6 +164,7 @@ export default async (data) => {
     if (err.statusCode) {
       throw err;
     }
+    ctx?.fail("Failed to add note");
     throw createError({
       statusCode: 500,
       message: "Internal Server Error: " + err.message,

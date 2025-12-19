@@ -12,21 +12,20 @@ import {
 import { ecosystemCustodialWalletSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary:
-    "Lists all ecosystem custodial wallets with pagination and optional filtering",
+  summary: "List all ecosystem custodial wallets",
+  description: "Retrieves a paginated list of ecosystem custodial wallets with optional filtering and sorting. Each wallet includes its address, chain, network, status, and associated master wallet information.",
   operationId: "listEcosystemCustodialWallets",
-  tags: ["Admin", "Ecosystem", "Custodial Wallets"],
+  tags: ["Admin", "Ecosystem", "Wallet"],
   parameters: crudParameters,
   responses: {
     200: {
-      description:
-        "List of ecosystem custodial wallets with details about the master wallet",
+      description: "Ecosystem custodial wallets retrieved successfully",
       content: {
         "application/json": {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -45,12 +44,15 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.ecosystem.custodial.wallet",
+  demoMask: ["items.address", "items.masterWallet.address"],
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching custodial wallets list");
+
+  const result = await getFiltered({
     model: models.ecosystemCustodialWallet,
     query,
     sortField: query.sortField || "chain",
@@ -62,4 +64,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success(`Retrieved ${result.items.length} custodial wallets`);
+  return result;
 };

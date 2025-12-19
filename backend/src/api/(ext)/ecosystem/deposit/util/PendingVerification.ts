@@ -12,6 +12,7 @@ import {
   initializeHttpProvider,
   initializeWebSocketProvider,
 } from "./ProviderManager";
+import { logger } from "@b/utils/console";
 
 // Track verification attempts to prevent excessive retries
 const verificationAttempts = new Map<string, number>();
@@ -41,9 +42,7 @@ export async function verifyPendingTransactions() {
     const txHashes = Object.keys(pendingTransactions);
     processingStats.total = txHashes.length;
 
-    console.log(
-      `[INFO] Starting verification of ${txHashes.length} pending transactions`
-    );
+    logger.info("DEPOSIT", `Starting verification of ${txHashes.length} pending transactions`);
 
     // Limit concurrency for large batch of txs
     const concurrency = 5;
@@ -55,7 +54,7 @@ export async function verifyPendingTransactions() {
     for (const chunk of chunks) {
       const verificationPromises = chunk.map(async (txHash) => {
         if (processingTransactions.has(txHash)) {
-          console.log(`[SKIP] Transaction ${txHash} already being processed.`);
+          logger.debug("DEPOSIT", `Transaction ${txHash} already being processed, skipping`);
           processingStats.skipped++;
           return;
         }
@@ -63,9 +62,7 @@ export async function verifyPendingTransactions() {
         try {
           const txDetails = pendingTransactions[txHash];
           if (!txDetails) {
-            console.error(
-              `[ERROR] Transaction ${txHash} not found in pending list.`
-            );
+            logger.error("DEPOSIT", `Transaction ${txHash} not found in pending list`);
             processingStats.failed++;
             return;
           }
@@ -75,9 +72,7 @@ export async function verifyPendingTransactions() {
           const attempts = verificationAttempts.get(attemptKey) || 0;
 
           if (attempts >= MAX_VERIFICATION_ATTEMPTS) {
-            console.warn(
-              `[WARN] Max verification attempts reached for ${txHash}, removing from pending`
-            );
+            logger.warn("DEPOSIT", `Max verification attempts reached for ${txHash}, removing from pending`);
             delete pendingTransactions[txHash];
             verificationAttempts.delete(attemptKey);
             await offloadToRedis("pendingTransactions", pendingTransactions);
@@ -99,9 +94,7 @@ export async function verifyPendingTransactions() {
             updatedTxDetails = txDetails;
 
             if (isConfirmed) {
-              console.log(
-                `[SUCCESS] ${chain} transaction ${txHash} already confirmed`
-              );
+              logger.success("DEPOSIT", `${chain} transaction ${txHash} already confirmed`);
             }
           } else if (["BTC", "LTC", "DOGE", "DASH"].includes(chain)) {
             // UTXO chain verification with enhanced error handling
@@ -115,16 +108,12 @@ export async function verifyPendingTransactions() {
               };
 
               if (isConfirmed) {
-                console.log(`[SUCCESS] UTXO transaction ${txHash} confirmed`);
+                logger.success("DEPOSIT", `UTXO transaction ${txHash} confirmed`);
               } else {
-                console.log(
-                  `[PENDING] UTXO transaction ${txHash} still pending confirmation`
-                );
+                logger.debug("DEPOSIT", `UTXO transaction ${txHash} still pending confirmation`);
               }
             } catch (error) {
-              console.error(
-                `[ERROR] UTXO verification failed for ${txHash}: ${error.message}`
-              );
+              logger.error("DEPOSIT", `UTXO verification failed for ${txHash}: ${error.message}`);
               verificationAttempts.set(attemptKey, attempts + 1);
               processingStats.failed++;
               return;
@@ -140,9 +129,7 @@ export async function verifyPendingTransactions() {
             }
 
             if (!provider) {
-              console.error(
-                `[ERROR] Provider not available for chain ${chain}`
-              );
+              logger.error("DEPOSIT", `Provider not available for chain ${chain}`);
               verificationAttempts.set(attemptKey, attempts + 1);
               processingStats.failed++;
               return;
@@ -151,9 +138,7 @@ export async function verifyPendingTransactions() {
             try {
               const receipt = await provider.getTransactionReceipt(txHash);
               if (!receipt) {
-                console.log(
-                  `[PENDING] Transaction ${txHash} on ${chain} not yet confirmed.`
-                );
+                logger.debug("DEPOSIT", `Transaction ${txHash} on ${chain} not yet confirmed`);
                 verificationAttempts.set(attemptKey, attempts + 1);
                 return;
               }
@@ -171,18 +156,12 @@ export async function verifyPendingTransactions() {
               };
 
               if (isConfirmed) {
-                console.log(
-                  `[SUCCESS] EVM transaction ${txHash} on ${chain} confirmed in block ${receipt.blockNumber}`
-                );
+                logger.success("DEPOSIT", `EVM transaction ${txHash} on ${chain} confirmed in block ${receipt.blockNumber}`);
               } else {
-                console.log(
-                  `[FAILED] EVM transaction ${txHash} on ${chain} failed`
-                );
+                logger.warn("DEPOSIT", `EVM transaction ${txHash} on ${chain} failed`);
               }
             } catch (error) {
-              console.error(
-                `[ERROR] Error fetching receipt for ${txHash} on ${chain}: ${error.message}`
-              );
+              logger.error("DEPOSIT", `Error fetching receipt for ${txHash} on ${chain}: ${error.message}`);
               verificationAttempts.set(attemptKey, attempts + 1);
               processingStats.failed++;
               return;
@@ -191,15 +170,11 @@ export async function verifyPendingTransactions() {
 
           if (isConfirmed && updatedTxDetails) {
             try {
-              console.log(
-                `[INFO] Processing confirmed transaction ${txHash} for deposit handling`
-              );
+              logger.info("DEPOSIT", `Processing confirmed transaction ${txHash} for deposit handling`);
 
               const response = await handleEcosystemDeposit(updatedTxDetails);
               if (!response.transaction) {
-                console.log(
-                  `[INFO] Transaction ${txHash} already processed or invalid. Removing from pending.`
-                );
+                logger.info("DEPOSIT", `Transaction ${txHash} already processed or invalid, removing from pending`);
                 delete pendingTransactions[txHash];
                 verificationAttempts.delete(attemptKey);
                 await offloadToRedis(
@@ -240,13 +215,9 @@ export async function verifyPendingTransactions() {
                     },
                   }
                 );
-                console.log(
-                  `[SUCCESS] WebSocket broadcast sent for transaction ${txHash}`
-                );
+                logger.success("DEPOSIT", `WebSocket broadcast sent for transaction ${txHash}`);
               } catch (broadcastError) {
-                console.error(
-                  `[ERROR] WebSocket broadcast failed for ${txHash}: ${broadcastError.message}`
-                );
+                logger.error("DEPOSIT", `WebSocket broadcast failed for ${txHash}: ${broadcastError.message}`);
                 // Don't fail the entire processing for broadcast errors
               }
 
@@ -254,13 +225,9 @@ export async function verifyPendingTransactions() {
               if (txDetails.contractType === "NO_PERMIT" && txDetails.to) {
                 try {
                   await unlockAddress(txDetails.to);
-                  console.log(
-                    `[SUCCESS] Address ${txDetails.to} unlocked for NO_PERMIT transaction ${txHash}`
-                  );
+                  logger.success("DEPOSIT", `Address ${txDetails.to} unlocked for NO_PERMIT transaction ${txHash}`);
                 } catch (unlockError) {
-                  console.error(
-                    `[ERROR] Failed to unlock address ${txDetails.to}: ${unlockError.message}`
-                  );
+                  logger.error("DEPOSIT", `Failed to unlock address ${txDetails.to}: ${unlockError.message}`);
                   // Don't fail the transaction processing for unlock errors
                 }
               }
@@ -283,13 +250,9 @@ export async function verifyPendingTransactions() {
                       },
                     ],
                   });
-                  console.log(
-                    `[SUCCESS] Notification created for user ${response.wallet.userId}`
-                  );
+                  logger.success("DEPOSIT", `Notification created for user ${response.wallet.userId}`);
                 } catch (notificationError) {
-                  console.error(
-                    `[ERROR] Failed to create notification: ${notificationError.message}`
-                  );
+                  logger.error("DEPOSIT", `Failed to create notification: ${notificationError.message}`);
                   // Don't fail the transaction processing for notification errors
                 }
               }
@@ -299,13 +262,9 @@ export async function verifyPendingTransactions() {
               await offloadToRedis("pendingTransactions", pendingTransactions);
               processingStats.processed++;
 
-              console.log(
-                `[SUCCESS] Transaction ${txHash} fully processed and removed from pending`
-              );
+              logger.success("DEPOSIT", `Transaction ${txHash} fully processed and removed from pending`);
             } catch (error) {
-              console.error(
-                `[ERROR] Error handling deposit for ${txHash}: ${error.message}`
-              );
+              logger.error("DEPOSIT", `Error handling deposit for ${txHash}: ${error.message}`);
               if (error.message.includes("already processed")) {
                 delete pendingTransactions[txHash];
                 verificationAttempts.delete(attemptKey);
@@ -324,9 +283,7 @@ export async function verifyPendingTransactions() {
             verificationAttempts.set(attemptKey, attempts + 1);
           }
         } catch (error) {
-          console.error(
-            `[ERROR] Error verifying transaction ${txHash}: ${error.message}`
-          );
+          logger.error("DEPOSIT", `Error verifying transaction ${txHash}: ${error.message}`);
           const attemptKey = `${txHash}:${pendingTransactions[txHash]?.chain || "unknown"}`;
           const attempts = verificationAttempts.get(attemptKey) || 0;
           verificationAttempts.set(attemptKey, attempts + 1);
@@ -340,13 +297,9 @@ export async function verifyPendingTransactions() {
     }
 
     // Log processing summary
-    console.log(
-      `[SUMMARY] Verification completed - Total: ${processingStats.total}, Processed: ${processingStats.processed}, Failed: ${processingStats.failed}, Skipped: ${processingStats.skipped}`
-    );
+    logger.info("DEPOSIT", `Verification completed - Total: ${processingStats.total}, Processed: ${processingStats.processed}, Failed: ${processingStats.failed}, Skipped: ${processingStats.skipped}`);
   } catch (error) {
-    console.error(
-      `[ERROR] Error in verifyPendingTransactions: ${error.message}`
-    );
+    logger.error("DEPOSIT", `Error in verifyPendingTransactions: ${error.message}`);
   } finally {
     // Cleanup old verification attempts
     cleanupVerificationAttempts();

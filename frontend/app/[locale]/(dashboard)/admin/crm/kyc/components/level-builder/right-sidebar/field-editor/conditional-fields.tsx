@@ -27,7 +27,8 @@ export function ConditionalFields({
   allFields,
   onUpdate,
 }: ConditionalFieldsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const availableConditionalFields = getAvailableConditionalFields(
     allFields,
     field
@@ -138,7 +139,7 @@ export function ConditionalFields({
                   id="conditional-field"
                   className="bg-white border-gray-300 text-gray-900 focus:ring-primary dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
                 >
-                  <SelectValue placeholder="Select field" />
+                  <SelectValue placeholder={t("select_field")} />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-gray-200 dark:bg-zinc-900 dark:border-zinc-700">
                   {availableConditionalFields.map((field) => (
@@ -159,7 +160,7 @@ export function ConditionalFields({
                 htmlFor="conditional-operator"
                 className="text-xs text-gray-500 dark:text-zinc-400"
               >
-                {t("Operator")}
+                {t("operator")}
               </Label>
               <Select
                 value={field.conditional.operator}
@@ -171,14 +172,14 @@ export function ConditionalFields({
                   id="conditional-operator"
                   className="bg-white border-gray-300 text-gray-900 focus:ring-primary dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
                 >
-                  <SelectValue placeholder="Select operator" />
+                  <SelectValue placeholder={tCommon("select_operator")} />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-gray-200 dark:bg-zinc-900 dark:border-zinc-700">
                   <SelectItem
                     value="EQUALS"
                     className="text-gray-900 focus:bg-gray-100 dark:text-white dark:focus:bg-zinc-800"
                   >
-                    {t("Equals")}
+                    {tCommon("equals")}
                   </SelectItem>
                   <SelectItem
                     value="NOT_EQUALS"
@@ -190,7 +191,7 @@ export function ConditionalFields({
                     value="CONTAINS"
                     className="text-gray-900 focus:bg-gray-100 dark:text-white dark:focus:bg-zinc-800"
                   >
-                    {t("Contains")}
+                    {tCommon("contains")}
                   </SelectItem>
                   <SelectItem
                     value="NOT_CONTAINS"
@@ -219,7 +220,7 @@ export function ConditionalFields({
                 htmlFor="conditional-value"
                 className="text-xs text-gray-500 dark:text-zinc-400"
               >
-                {t("Value")}
+                {tCommon("value")}
               </Label>
               {(() => {
                 const dependentField = availableConditionalFields.find(
@@ -243,7 +244,7 @@ export function ConditionalFields({
                         id="conditional-value"
                         className="bg-white border-gray-300 text-gray-900 focus:ring-primary dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
                       >
-                        <SelectValue placeholder="Select value" />
+                        <SelectValue placeholder={t("select_value")} />
                       </SelectTrigger>
                       <SelectContent className="bg-white border-gray-200 dark:bg-zinc-900 dark:border-zinc-700">
                         {dependentField.options?.map((option) => (
@@ -279,7 +280,7 @@ export function ConditionalFields({
                       onChange={(e) =>
                         handleUpdateConditional("value", e.target.value)
                       }
-                      placeholder="Enter numeric value"
+                      placeholder={t("enter_numeric_value")}
                       className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
                     />
                   );
@@ -291,7 +292,7 @@ export function ConditionalFields({
                       onChange={(e) =>
                         handleUpdateConditional("value", e.target.value)
                       }
-                      placeholder="Enter value"
+                      placeholder={t("enter_value")}
                       className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
                     />
                   );

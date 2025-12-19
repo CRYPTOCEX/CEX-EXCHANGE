@@ -19,7 +19,7 @@ export function PermanentDeleteAction({
   row,
   onSelect,
 }: PermanentDeleteActionProps) {
-  const t = useTranslations("common");
+  const tCommon = useTranslations("common");
   const permissions = useTableStore((state) => state.permissions);
   const user = useUserStore((state) => state.user);
   const handlePermanentDelete = useTableStore(
@@ -59,7 +59,7 @@ export function PermanentDeleteAction({
           )}
         >
           <AlertTriangle className="mr-2 h-4 w-4" />
-          {t("permanent_delete")}
+          {tCommon("permanent_delete")}
         </DropdownMenuItem>
       </div>
     </TooltipWrapper>

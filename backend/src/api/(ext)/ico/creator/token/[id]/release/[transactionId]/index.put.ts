@@ -25,6 +25,8 @@ export const metadata = {
   operationId: "submitTokenReleaseHash",
   tags: ["ICO", "Token", "Release"],
   requiresAuth: true,
+  logModule: "ICO_RELEASE",
+  logTitle: "Submit token release",
   parameters: [
     {
       index: 0,

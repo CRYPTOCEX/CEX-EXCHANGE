@@ -8,6 +8,8 @@ export const metadata: OperationObject = {
   summary: "Bulk deletes API keys by IDs",
   operationId: "bulkDeleteApiKeys",
   tags: ["Admin", "API Keys"],
+  logModule: "ADMIN_API",
+  logTitle: "Bulk delete APIs",
   parameters: commonBulkDeleteParams("API Keys"),
   requestBody: {
     required: true,
@@ -33,11 +35,16 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step("Validating API key IDs");
+  ctx?.step(`Deleting ${ids.length} API keys`);
+  const result = await handleBulkDelete({
     model: "apiKey",
     ids,
     query,
   });
+  ctx?.success();
+  return result;
 };

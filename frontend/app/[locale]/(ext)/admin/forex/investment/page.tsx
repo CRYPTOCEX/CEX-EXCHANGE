@@ -1,8 +1,17 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { forexInvestmentAnalytics } from "./analytics";
+import { TrendingUp } from "lucide-react";
+import { useColumns, useFormConfig } from "./columns";
+import { useAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
+
 export default function ForexInvestmentPage() {
+  const t = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+  const analytics = useAnalytics();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/forex/investment"
@@ -14,14 +23,22 @@ export default function ForexInvestmentPage() {
         edit: "edit.forex.investment",
         delete: "delete.forex.investment",
       }}
-      pageSize={10}
+      pageSize={12}
       canEdit
       canDelete
       canView
-      title="Forex Investments"
+      title={t("forex_investments")}
+      description={tExtAdmin("monitor_and_manage_all_active_forex")}
       itemTitle="Investment"
       columns={columns}
-      analytics={forexInvestmentAnalytics}
+      formConfig={formConfig}
+      analytics={analytics}
+      design={{
+        animation: "orbs",
+        primaryColor: "emerald",
+        secondaryColor: "teal",
+        icon: TrendingUp,
+      }}
     />
   );
 }

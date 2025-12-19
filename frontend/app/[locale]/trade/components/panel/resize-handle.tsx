@@ -27,7 +27,7 @@ export const ResizeHandle = memo(function ResizeHandle({
   id: providedId,
   panelType,
 }: ResizeHandleProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("trade_components");
   const generatedId = useId();
   const id = providedId || generatedId;
   const { direction, startResize, resizing, resetPanelSizes } = usePanelGroup();
@@ -290,7 +290,7 @@ export const ResizeHandle = memo(function ResizeHandle({
             marginTop: direction === "horizontal" ? "0" : "8px",
           }}
         >
-          {t("double-click_to_reset")}
+          {t("double_click_to_reset")}
         </div>
       )}
     </div>

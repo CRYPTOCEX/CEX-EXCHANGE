@@ -6,6 +6,8 @@ export const metadata = {
   description: "Retrieves all available ICO launch plans.",
   operationId: "getIcoLaunchPlans",
   tags: ["ICO", "Launch Plans"],
+  logModule: "ICO",
+  logTitle: "Get ICO Plans",
   responses: {
     200: {
       description: "ICO launch plans fetched successfully.",
@@ -40,6 +42,8 @@ export const metadata = {
 
 export default async (data: Handler) => {
   try {
+    const { ctx } = data;
+    ctx?.step("Fetching get ico plans");
     const plans = await models.icoLaunchPlan.findAll({
       where: { status: true },
     });

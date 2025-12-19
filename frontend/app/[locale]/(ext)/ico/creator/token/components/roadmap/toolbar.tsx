@@ -57,7 +57,9 @@ export default function RoadmapToolbar({
   completedItems,
   upcomingItems,
 }: RoadmapToolbarProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtIco = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <Tabs
@@ -68,23 +70,23 @@ export default function RoadmapToolbar({
         <TabsList className="grid grid-cols-3 w-full">
           <TabsTrigger value="all" className="flex items-center gap-1">
             <BarChart className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("all_items")}</span>
-            <span className="sm:hidden">{t("All")}</span>
+            <span className="hidden sm:inline">{tExtIco("all_items")}</span>
+            <span className="sm:hidden">{tCommon("all")}</span>
             <Badge variant="outline" className="ml-1">
               {totalItems}
             </Badge>
           </TabsTrigger>
           <TabsTrigger value="completed" className="flex items-center gap-1">
-            <span className="hidden sm:inline">{t("Completed")}</span>
-            <span className="sm:hidden">{t("Done")}</span>
+            <span className="hidden sm:inline">{tCommon("completed")}</span>
+            <span className="sm:hidden">{tCommon("done")}</span>
             <Badge variant="outline" className="ml-1">
               {completedItems}
             </Badge>
           </TabsTrigger>
           <TabsTrigger value="upcoming" className="flex items-center gap-1">
             <Calendar className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("Upcoming")}</span>
-            <span className="sm:hidden">{t("Next")}</span>
+            <span className="hidden sm:inline">{tCommon("upcoming")}</span>
+            <span className="sm:hidden">{tCommon("next")}</span>
             <Badge variant="outline" className="ml-1">
               {upcomingItems}
             </Badge>
@@ -96,7 +98,7 @@ export default function RoadmapToolbar({
         <div className="relative w-full sm:w-auto">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search roadmap items..."
+            placeholder={tExtIco("search_roadmap_items_ellipsis")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-8 w-full"
@@ -126,7 +128,7 @@ export default function RoadmapToolbar({
                   <BarChart className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>{t("card_view")}</TooltipContent>
+              <TooltipContent>{tCommon("card_view")}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -142,7 +144,7 @@ export default function RoadmapToolbar({
                   <Calendar className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>{t("timeline_view")}</TooltipContent>
+              <TooltipContent>{tExtIco("timeline_view")}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -153,7 +155,7 @@ export default function RoadmapToolbar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{t("sort_by")}</DropdownMenuLabel>
+              <DropdownMenuLabel>{tCommon("sort_by")}</DropdownMenuLabel>
               <DropdownMenuRadioGroup
                 value={sortOrder}
                 onValueChange={(value) =>
@@ -162,15 +164,15 @@ export default function RoadmapToolbar({
               >
                 <DropdownMenuRadioItem value="newest">
                   <SortDesc className="h-4 w-4 mr-2" />
-                  {t("newest_first")}
+                  {tCommon("newest_first")}
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="oldest">
                   <SortAsc className="h-4 w-4 mr-2" />
-                  {t("oldest_first")}
+                  {tCommon("oldest_first")}
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="title">
                   <Filter className="h-4 w-4 mr-2" />
-                  {t("title_(a-z)")}
+                  {tCommon("title")} (A-Z)
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>

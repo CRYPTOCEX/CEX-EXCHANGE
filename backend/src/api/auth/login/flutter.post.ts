@@ -16,6 +16,8 @@ export const metadata: OperationObject = {
   operationId: "loginUser",
   tags: ["Auth"],
   requiresAuth: false,
+  logModule: "LOGIN",
+  logTitle: "Flutter app login",
   requestBody: {
     required: true,
     content: {
@@ -82,22 +84,48 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { email, password } = data.body;
+  const { body, ctx } = data;
+  const { email, password } = body;
 
-  const user = await findUserByEmail(email);
-  await handleEmailVerification(user);
+  try {
+    ctx?.step("Validating login credentials");
+    if (!email || !password) {
+      ctx?.fail("Email and password are required");
+      throw createError({
+        statusCode: 400,
+        message: "Email and password are required",
+      });
+    }
 
-  await validatePassword(user, password);
-  await handleLoginAttempts(user);
+    ctx?.step(`Looking up user: ${email}`);
+    const user = await findUserByEmail(email);
 
-  if (await isTwoFactorRequired(user)) {
-    return await handleTwoFactorAuthentication(user);
+    ctx?.step("Checking email verification status");
+    await handleEmailVerification(user);
+
+    ctx?.step("Verifying password");
+    await validatePassword(user, password);
+
+    ctx?.step("Checking login attempts");
+    await handleLoginAttempts(user);
+
+    if (await isTwoFactorRequired(user)) {
+      ctx?.step("2FA required, sending verification code", "warn");
+      return await handleTwoFactorAuthentication(user);
+    }
+
+    ctx?.step("Generating session tokens");
+    const result = await returnUserWithTokens({
+      user,
+      message: "You have been logged in successfully",
+    });
+
+    ctx?.success(`User ${email} logged in successfully (Flutter)`);
+    return result;
+  } catch (error) {
+    ctx?.fail(error.message || "Login failed");
+    throw error;
   }
-
-  return await returnUserWithTokens({
-    user,
-    message: "You have been logged in successfully",
-  });
 };
 
 // Helper Functions

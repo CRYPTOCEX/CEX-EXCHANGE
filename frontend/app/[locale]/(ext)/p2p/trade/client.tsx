@@ -28,7 +28,8 @@ const defaultFilters: TradeFilters = {
 };
 
 export default function TradeDashboardClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExt = useTranslations("ext");
   const {
     tradeDashboardData,
     isLoadingTradeDashboardData,
@@ -194,14 +195,11 @@ export default function TradeDashboardClient() {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col container">
-      <main className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-8">
-        {/* Header Section */}
-        <DashboardHeader
-          isRefreshing={isRefreshing}
-          onRefresh={handleRefresh}
-        />
+    <div className="flex min-h-screen w-full flex-col bg-gradient-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+      {/* Hero section - Using HeroSection component */}
+      <DashboardHeader />
 
+      <main className="container mx-auto py-12 space-y-8">
         {/* Stats Overview */}
         <StatsOverview
           tradeStats={tradeStats}
@@ -223,14 +221,14 @@ export default function TradeDashboardClient() {
             <Tabs defaultValue="active">
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="active">
-                  {t("Active")}
+                  {t("active")}
                   <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
                     {filteredActiveTrades?.length || 0}
                   </span>
                 </TabsTrigger>
-                <TabsTrigger value="pending">{t("Pending")}</TabsTrigger>
+                <TabsTrigger value="pending">{t("pending")}</TabsTrigger>
                 <TabsTrigger value="completed">
-                  {t("Completed")}
+                  {t("completed")}
                   {filteredCompletedTrades && filteredCompletedTrades.length > 0 && (
                     <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-muted text-xs text-muted-foreground">
                       {filteredCompletedTrades.length}
@@ -238,7 +236,7 @@ export default function TradeDashboardClient() {
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="disputed">
-                  {t("Disputed")}
+                  {tExt("disputed")}
                   {filteredDisputedTrades && filteredDisputedTrades.length > 0 && (
                     <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive text-xs text-destructive-foreground">
                       {filteredDisputedTrades.length}

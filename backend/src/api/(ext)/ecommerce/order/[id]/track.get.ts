@@ -11,6 +11,8 @@ export const metadata: OperationObject = {
   description: "Retrieves tracking information for a specific order including shipping status and timeline.",
   operationId: "trackEcommerceOrder",
   tags: ["Ecommerce", "Orders"],
+  logModule: "ECOM",
+  logTitle: "Track Order",
   requiresAuth: true,
   parameters: [
     {
@@ -67,12 +69,15 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { id } = params;
+
+  ctx?.step("Processing request");
 
   const order = await models.ecommerceOrder.findOne({
     where: { id, userId: user.id },
@@ -159,6 +164,7 @@ export default async (data: Handler) => {
     }
   }
 
+  ctx?.success(`Retrieved tracking information for order ${id}`);
   return {
     orderId: orderData.id,
     status: orderData.status,

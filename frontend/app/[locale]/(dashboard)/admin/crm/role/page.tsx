@@ -1,7 +1,12 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { UserCog } from "lucide-react";
+import { useColumns, useFormConfig } from "./columns";
+import { useTranslations } from "next-intl";
 export default function RolesPage() {
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
   return (
     <DataTable
       apiEndpoint="/api/admin/crm/role"
@@ -13,15 +18,21 @@ export default function RolesPage() {
         edit: "edit.role",
         delete: "delete.role",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={true}
       canEdit={true}
       canDelete={true}
       isParanoid={false}
       canView={true}
-      title="Role Management"
+      title={t("role_management")}
+      description={t("manage_user_roles_and_permission_assignments")}
       itemTitle="Role"
       columns={columns}
+      formConfig={formConfig}
+      design={{
+        animation: "orbs",
+        icon: UserCog,
+      }}
     />
   );
 }

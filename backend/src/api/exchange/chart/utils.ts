@@ -4,6 +4,7 @@ import path from "path";
 import zlib from "zlib";
 import { RedisSingleton } from "@b/utils/redis";
 import { baseNumberSchema } from "@b/utils/schema";
+import { logger } from "@b/utils/console";
 
 const redis = RedisSingleton.getInstance();
 const cacheDirPath = path.resolve(process.cwd(), "data", "chart");
@@ -100,7 +101,7 @@ export async function getCachedOHLCV(
               setTimeout(() => reject(new Error('Redis SET timeout')), 3000)
             )
           ]).catch(() => {
-            console.warn(`Failed to cache data in Redis for ${cacheKey}`);
+            logger.warn("CHART", `Failed to cache data in Redis for ${cacheKey}`);
           });
           cachedData = JSON.stringify(dataFromFile);
         } else {
@@ -119,7 +120,7 @@ export async function getCachedOHLCV(
 
     return intervalCache.slice(startIndex, endIndex + 1);
   } catch (error) {
-    console.error(`Error getting cached OHLCV for ${cacheKey}:`, error);
+    logger.error("CHART", `Error getting cached OHLCV for ${cacheKey}: ${error}`);
     return [];
   }
 }
@@ -132,7 +133,7 @@ async function loadCacheFromFileWithLock(
   try {
     return await loadCacheFromFile(symbol, interval);
   } catch (error) {
-    console.error(`Error loading cache from file for ${cacheKey}:`, error);
+    logger.error("CHART", `Error loading cache from file for ${cacheKey}: ${error}`);
     return [];
   }
 }
@@ -200,7 +201,7 @@ async function performCacheSave(
       try {
         intervalCache = JSON.parse(cachedData);
       } catch (error) {
-        console.warn(`Failed to parse cached data for ${cacheKey}, using empty array`);
+        logger.warn("CHART", `Failed to parse cached data for ${cacheKey}, using empty array`);
         intervalCache = [];
       }
     }
@@ -214,7 +215,7 @@ async function performCacheSave(
         setTimeout(() => reject(new Error('Redis SET timeout')), 3000)
       )
     ]).catch((error) => {
-      console.warn(`Failed to save cache to Redis for ${cacheKey}:`, error);
+      logger.warn("CHART", `Failed to save cache to Redis for ${cacheKey}: ${error}`);
     });
 
     // Save to file with timeout
@@ -224,10 +225,10 @@ async function performCacheSave(
         setTimeout(() => reject(new Error('File save timeout')), 5000)
       )
     ]).catch((error) => {
-      console.warn(`Failed to save cache to file for ${cacheKey}:`, error);
+      logger.warn("CHART", `Failed to save cache to file for ${cacheKey}: ${error}`);
     });
   } catch (error) {
-    console.error(`Error in performCacheSave for ${cacheKey}:`, error);
+    logger.error("CHART", `Error in performCacheSave for ${cacheKey}: ${error}`);
     throw error;
   }
 }

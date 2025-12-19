@@ -33,20 +33,30 @@ export const metadata = {
   responses: commonBulkDeleteResponses("Transactions"),
   requiresAuth: true,
   permission: "delete.transaction",
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk delete deposit logs",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
+
+  ctx?.step("Fetching deposit log records");
+  ctx?.step("Deleting associated admin profits");
   // Delete associated admin profits if they exist
   await models.adminProfit.destroy({
     where: {
       transactionId: ids,
     },
   });
-  return handleBulkDelete({
+
+  ctx?.step(`Deleting ${ids.length} deposit log(s)`);
+  const result = await handleBulkDelete({
     model: "transaction",
     ids,
     query,
   });
+
+  ctx?.success("Deposit logs deleted successfully");
+  return result;
 };

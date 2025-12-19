@@ -9,6 +9,8 @@ export const metadata = {
     "Generates historical performance data and calculates metrics for the user's ICO portfolio based on real transactions and token offering data. The timeframe (e.g. '1W', '1M', '3M', '1Y', 'ALL') specifies the period to compute over. Additionally, a metric for rejected investments is provided.",
   operationId: "getPortfolioPerformanceData",
   tags: ["ICO", "Portfolio", "Performance"],
+  logModule: "ICO",
+  logTitle: "Get Portfolio Performance",
   requiresAuth: true,
   parameters: [
     {
@@ -88,7 +90,9 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+
+  ctx?.step("Fetching get portfolio performance");
   if (!user?.id) throw new Error("Unauthorized");
 
   // Determine timeframe in days.
@@ -122,7 +126,8 @@ export default async (data: Handler) => {
   const performanceData = await getUserPortfolioHistory(
     user.id,
     startDate,
-    endDate
+    endDate,
+    ctx
   );
   if (!performanceData || performanceData.length === 0) {
     throw new Error("No performance data available");
@@ -180,7 +185,7 @@ export default async (data: Handler) => {
 
   // Calculate allocation by token from the final holdings.
   // The getAllocationByToken function aggregates all "RELEASED" transactions up to endDate.
-  const { allocationByToken } = await getAllocationByToken(user.id, endDate);
+  const { allocationByToken } = await getAllocationByToken(user.id, endDate, ctx);
 
   // --- New: Calculate rejected invested funds ---
   const rejectedTransactions = await models.icoTransaction.findAll({
@@ -209,6 +214,8 @@ export default async (data: Handler) => {
     },
     rejectedInvested, // New metric for rejected investments.
   };
+
+  ctx?.success("Get Portfolio Performance retrieved successfully");
 
   return { performanceData, metrics };
 };

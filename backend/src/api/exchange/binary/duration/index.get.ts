@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
   operationId: "listBinaryDurations",
   tags: ["Exchange", "Binary"],
   description: "Retrieves a list of available durations for binary options.",
+  logModule: "EXCHANGE",
+  logTitle: "Get Binary Durations",
   responses: {
     200: {
       description: "A list of binary durations",
@@ -35,9 +37,13 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step("Fetching binary durations");
   const durations = await models.binaryDuration.findAll({
     order: [["duration", "ASC"]], // Adjust order/column name as needed.
   });
 
+  ctx?.success(`Retrieved ${durations.length} binary durations`);
   return durations;
 };

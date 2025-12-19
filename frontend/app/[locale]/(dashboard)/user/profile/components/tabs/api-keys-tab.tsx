@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   Shield,
   Loader2,
+  BookOpen,
 } from "lucide-react";
 import {
   Card,
@@ -45,7 +46,11 @@ import { formatDate } from "@/lib/utils";
 import { useUserStore } from "@/store/user";
 import { useConfigStore } from "@/store/config";
 import KycRequiredNotice from "@/components/blocks/kyc/kyc-required-notice";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 export function ApiKeysTab() {
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
   const { hasKyc, canAccessFeature } = useUserStore();
   const { settings } = useConfigStore();
   const { toast } = useToast();
@@ -283,16 +288,25 @@ export function ApiKeysTab() {
         {apiKeys.length < 10 && (
           <Button onClick={() => setIsCreatingApiKey(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Create API Key
+            {tCommon("create_api_key")}
           </Button>
         )}
       </div>
 
       <Card className="bg-white dark:bg-zinc-900 border-0 dark:border-zinc-800 shadow-sm">
         <CardHeader>
-          <CardTitle className="dark:text-zinc-100">Your API Keys</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="dark:text-zinc-100">{tCommon("your_api_keys")}</CardTitle>
+            <Link
+              href="/api-docs"
+              className="flex items-center gap-1.5 text-sm text-primary hover:underline"
+            >
+              <BookOpen className="h-4 w-4" />
+              API Documentation
+            </Link>
+          </div>
           <CardDescription className="dark:text-zinc-400">
-            Manage API keys for programmatic access to your account
+            {t("manage_api_keys_your_account")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -300,7 +314,7 @@ export function ApiKeysTab() {
             <div className="flex flex-col items-center justify-center py-10">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               <p className="text-sm text-muted-foreground dark:text-zinc-400 mt-2">
-                Loading API Keys...
+                {t("loading_api_keys_ellipsis")}
               </p>
             </div>
           ) : apiKeys.length > 0 ? (
@@ -331,14 +345,14 @@ export function ApiKeysTab() {
                             onClick={() => handleEditApiKey(apiKey)}
                           >
                             <Settings className="h-4 w-4 mr-2" />
-                            Edit API Key
+                            {tCommon("edit_api_key")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-red-600"
                             onClick={() => confirmDeleteApiKey(apiKey)}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Key
+                            {t("delete_key")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -351,7 +365,7 @@ export function ApiKeysTab() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="text-muted-foreground dark:text-zinc-400">
-                          Created:{" "}
+                          {tCommon("created")}:{" "}
                         </span>
                         {apiKey.createdAt
                           ? formatDate(apiKey.createdAt)
@@ -360,7 +374,7 @@ export function ApiKeysTab() {
 
                       <div>
                         <span className="text-muted-foreground dark:text-zinc-400">
-                          Permissions:{" "}
+                          {tCommon("permissions")}:{" "}
                         </span>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {apiKey.permissions?.map((permission: string) => (
@@ -394,7 +408,7 @@ export function ApiKeysTab() {
                             ))}
                           </div>
                         ) : (
-                          <span className="text-sm">No restrictions</span>
+                          <span className="text-sm">{t("no_restrictions")}</span>
                         )}
                       </div>
                     </div>
@@ -408,14 +422,14 @@ export function ApiKeysTab() {
                 <Key className="h-6 w-6 text-gray-500 dark:text-zinc-400" />
               </div>
               <h3 className="text-lg font-medium dark:text-zinc-100">
-                No API Keys
+                {t("no_api_keys")}
               </h3>
               <p className="text-muted-foreground dark:text-zinc-400 mt-1 mb-4">
-                You haven't created any API keys yet
+                {t("you_havent_created_any_api_keys_yet")}
               </p>
               <Button onClick={() => setIsCreatingApiKey(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Create API Key
+                {tCommon("create_api_key")}
               </Button>
             </div>
           )}
@@ -423,7 +437,7 @@ export function ApiKeysTab() {
           {isCreatingApiKey && (
             <div className="border dark:border-zinc-700 rounded-lg p-4 space-y-4">
               <h3 className="font-medium dark:text-zinc-100">
-                Create New API Key
+                {tCommon("create_new_api_key")}
               </h3>
 
               <div className="space-y-2">
@@ -432,7 +446,7 @@ export function ApiKeysTab() {
                 </Label>
                 <Input
                   id="apiKeyName"
-                  placeholder="e.g., Trading Bot"
+                  placeholder={t("e_g_trading_bot")}
                   value={newApiKeyName}
                   onChange={(e) => setNewApiKeyName(e.target.value)}
                 />
@@ -492,7 +506,7 @@ export function ApiKeysTab() {
                       IP Restrictions
                     </Label>
                     <p className="text-sm text-muted-foreground dark:text-zinc-400">
-                      Limit API key usage to specific IP addresses
+                      {t("limit_api_key_usage_to_specific_ip_addresses")}
                     </p>
                   </div>
                   <Switch
@@ -505,7 +519,7 @@ export function ApiKeysTab() {
                 {enableIpRestrictions && (
                   <div className="space-y-2">
                     <Input
-                      placeholder="e.g., 192.168.1.1, 10.0.0.1"
+                      placeholder={t("e_g_192_168_1_1_10_0_0_1")}
                       value={newApiKeyIpRestrictions}
                       onChange={(e) => {
                         setNewApiKeyIpRestrictions(e.target.value);
@@ -520,12 +534,10 @@ export function ApiKeysTab() {
                         <Shield className="h-4 w-4 text-blue-500 dark:text-blue-400 mt-0.5" />
                         <div className="text-xs text-blue-700 dark:text-blue-300">
                           <p className="font-medium">
-                            Recommended Security Practice
+                            {t("recommended_security_practice")}
                           </p>
                           <p>
-                            Restricting API keys to specific IP addresses
-                            significantly enhances security. Use your current IP
-                            address or the server IP that will use this key.
+                            {t("restricting_api_keys_to_specific_ip")} {t("use_your_current_ip_address_or")}
                           </p>
                         </div>
                       </div>
@@ -551,7 +563,7 @@ export function ApiKeysTab() {
                 <Button onClick={handleCreateApiKey} disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
-                      <span className="mr-2">Creating...</span>
+                      <span className="mr-2">{tCommon("creating_ellipsis")}</span>
                       <span className="animate-spin">⟳</span>
                     </>
                   ) : (
@@ -571,9 +583,7 @@ export function ApiKeysTab() {
           API Key Security
         </AlertTitle>
         <AlertDescription className="text-amber-700 dark:text-amber-300">
-          Keep your API keys secure. They provide programmatic access to your
-          account. Never share your API keys or include them in client-side
-          code.
+          {t("keep_your_api_keys_secure_1")} {t("they_provide_programmatic_access_to_your_account_1")} {t("never_share_your_api_keys_or")}
         </AlertDescription>
       </Alert>
 
@@ -583,8 +593,7 @@ export function ApiKeysTab() {
           <DialogHeader>
             <DialogTitle>API Key Created</DialogTitle>
             <DialogDescription>
-              Your new API key has been created. Please copy it now as you won't
-              be able to see it again.
+              {t("your_new_api_key_has_been_created_1")} {t("please_copy_it_now_as_you")}
             </DialogDescription>
           </DialogHeader>
           <div className="bg-gray-50 dark:bg-zinc-800 p-3 rounded-md font-mono text-sm break-all dark:text-zinc-300">
@@ -602,10 +611,10 @@ export function ApiKeysTab() {
               }}
             >
               <Copy className="h-4 w-4 mr-2" />
-              Copy to Clipboard
+              {t("copy_to_clipboard")}
             </Button>
             <Button onClick={() => setShowNewApiKey(false)}>
-              I've Saved My API Key
+              {t("ive_saved_my_api_key")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -623,9 +632,9 @@ export function ApiKeysTab() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit API Key</DialogTitle>
+            <DialogTitle>{tCommon("edit_api_key")}</DialogTitle>
             <DialogDescription>
-              Update permissions and IP restrictions for this API key.
+              {t("update_permissions_and_ip_restrictions_for")}
             </DialogDescription>
           </DialogHeader>
 
@@ -691,7 +700,7 @@ export function ApiKeysTab() {
                     IP Restrictions
                   </Label>
                   <p className="text-sm text-muted-foreground dark:text-zinc-400">
-                    Limit API key usage to specific IP addresses
+                    {t("limit_api_key_usage_to_specific_ip_addresses")}
                   </p>
                 </div>
                 <Switch
@@ -704,7 +713,7 @@ export function ApiKeysTab() {
               {editEnableIpRestrictions && (
                 <div className="space-y-2">
                   <Input
-                    placeholder="e.g., 192.168.1.1, 10.0.0.1"
+                    placeholder={t("e_g_192_168_1_1_10_0_0_1")}
                     value={editKeyIpRestrictions}
                     onChange={(e) => {
                       setEditKeyIpRestrictions(e.target.value);
@@ -719,12 +728,10 @@ export function ApiKeysTab() {
                       <Shield className="h-4 w-4 text-blue-500 dark:text-blue-400 mt-0.5" />
                       <div className="text-xs text-blue-700 dark:text-blue-300">
                         <p className="font-medium">
-                          Recommended Security Practice
+                          {t("recommended_security_practice")}
                         </p>
                         <p>
-                          Restricting API keys to specific IP addresses
-                          significantly enhances security. Use your current IP
-                          address or the server IP that will use this key.
+                          {t("restricting_api_keys_to_specific_ip")} {t("use_your_current_ip_address_or")}
                         </p>
                       </div>
                     </div>
@@ -738,7 +745,7 @@ export function ApiKeysTab() {
             <Button variant="outline" onClick={() => setIsEditingApiKey(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSaveApiKeyEdit}>Save Changes</Button>
+            <Button onClick={handleSaveApiKeyEdit}>{tCommon("save_changes")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -752,11 +759,10 @@ export function ApiKeysTab() {
           <DialogHeader>
             <DialogTitle className="text-red-600 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
-              Delete API Key
+              {t("delete_api_key")}
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this API key? This action cannot
-              be undone.
+              {t("are_you_sure_you_want_to_delete_this_api_key")} {tCommon("this_action_cannot_be_undone")}
             </DialogDescription>
           </DialogHeader>
 
@@ -770,13 +776,13 @@ export function ApiKeysTab() {
               </div>
               <div className="text-sm text-gray-600 dark:text-zinc-400">
                 <div>
-                  Created:{" "}
+                  {tCommon("created")}:{" "}
                   {deletingApiKey.createdAt
                     ? formatDate(deletingApiKey.createdAt)
                     : "N/A"}
                 </div>
                 <div className="mt-1">
-                  Permissions: {deletingApiKey.permissions.join(", ")}
+                  {tCommon("permissions")}: {deletingApiKey.permissions.join(", ")}
                 </div>
               </div>
             </div>
@@ -786,9 +792,7 @@ export function ApiKeysTab() {
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Warning</AlertTitle>
             <AlertDescription>
-              Deleting this API key will immediately revoke access for any
-              applications or services using it. Make sure you have updated any
-              dependent systems before proceeding.
+              {t("deleting_this_api_key_will_immediately")} {t("make_sure_you_have_updated_any")}
             </AlertDescription>
           </Alert>
 
@@ -809,7 +813,7 @@ export function ApiKeysTab() {
             >
               {isDeleting ? (
                 <>
-                  <span className="mr-2">Deleting...</span>
+                  <span className="mr-2">{tCommon("deleting_ellipsis")}</span>
                   <span className="animate-spin">⟳</span>
                 </>
               ) : (

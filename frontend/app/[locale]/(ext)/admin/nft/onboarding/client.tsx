@@ -92,7 +92,7 @@ export default function NFTAdminOnboardingClient() {
       const data = response?.data || response;
 
       if (data && data.completedTasks) {
-        const realCompleted = new Set(data.completedTasks);
+        const realCompleted = new Set<string>(data.completedTasks as string[]);
 
         // Use only backend data - all tasks are now auto-detectable
         // No need to merge localStorage since we removed manual testing tasks
@@ -439,7 +439,7 @@ export default function NFTAdminOnboardingClient() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className=" space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

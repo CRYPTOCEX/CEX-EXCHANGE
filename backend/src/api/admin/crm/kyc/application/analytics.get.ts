@@ -7,6 +7,8 @@ export const metadata = {
     "Fetches analytics data for KYC applications including total applications, pending, approved, rejected, additional info required, completion rate, and average processing time.",
   operationId: "getKycApplicationsAnalyticsData",
   tags: ["KYC", "Analytics"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Get KYC applications analytics",
   responses: {
     200: {
       description: "KYC applications analytics data retrieved successfully.",
@@ -33,8 +35,11 @@ export const metadata = {
   permission: "view.kyc.application",
 };
 
-export default async (_data: { query?: any }): Promise<any> => {
+export default async (data: Handler): Promise<any> => {
+  const { ctx } = data;
+
   try {
+    ctx?.step("Fetching all KYC applications");
     // Fetch all KYC applications
     const applications = await models.kycApplication.findAll();
 
@@ -68,6 +73,7 @@ export default async (_data: { query?: any }): Promise<any> => {
     const averageProcessingTime =
       reviewedApps.length > 0 ? totalProcessingTime / reviewedApps.length : 0;
 
+    ctx?.success("KYC applications analytics generated successfully");
     return {
       total,
       pending,

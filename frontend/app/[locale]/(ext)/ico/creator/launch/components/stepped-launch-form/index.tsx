@@ -33,7 +33,6 @@ import { useUserStore } from "@/store/user";
 import { useConfigStore } from "@/store/config";
 import KycRequiredNotice from "@/components/blocks/kyc/kyc-required-notice";
 import { useTranslations } from "next-intl";
-
 export const INITIAL_FORM_DATA: FormData = {
   name: "",
   symbol: "",
@@ -140,7 +139,7 @@ export function SteppedLaunchForm({
   onAdminSubmit?: (formData: FormData) => Promise<void>;
   isAdminSubmitting?: boolean;
 }) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   const { hasKyc, canAccessFeature } = useUserStore();
   const { settings } = useConfigStore();
 
@@ -697,13 +696,13 @@ export function SteppedLaunchForm({
               </CardDescription>
             </div>
             <div className="text-sm text-muted-foreground">
-              {t("Step")} {currentStep + 1} {t("of")} {STEPS.length}
+              {t("step")} {currentStep + 1} {t("of")} {STEPS.length}
             </div>
           </div>
           <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-300 ${
-                hasStepErrors(currentStep) ? "bg-red-500" : "bg-primary"
+                hasStepErrors(currentStep) ? "bg-red-500" : "bg-teal-600"
               }`}
               style={{
                 width: `${((currentStep + 1) / STEPS.length) * 100}%`,
@@ -717,9 +716,9 @@ export function SteppedLaunchForm({
                 key={index}
                 className={`flex flex-col items-center text-xs ${
                   index === currentStep
-                    ? "text-primary font-medium"
+                    ? "text-teal-600 font-medium"
                     : index < currentStep
-                    ? "text-green-600"
+                    ? "text-cyan-500"
                     : "text-muted-foreground"
                 }`}
               >
@@ -728,9 +727,9 @@ export function SteppedLaunchForm({
                     index === currentStep
                       ? hasStepErrors(currentStep)
                         ? "border-red-500 bg-red-50 text-red-500"
-                        : "border-primary bg-primary/10 text-primary"
+                        : "border-teal-600 bg-teal-600/10 text-teal-600"
                       : index < currentStep
-                      ? "border-green-600 bg-green-50 text-green-600"
+                      ? "border-cyan-500 bg-cyan-500/10 text-cyan-500"
                       : "border-muted-foreground/30 text-muted-foreground"
                   }`}
                 >
@@ -760,7 +759,7 @@ export function SteppedLaunchForm({
             disabled={currentStep === 0}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            {t("Back")}
+            {t("back")}
           </Button>
           {currentStep === STEPS.length - 1 ? (
             <Button
@@ -777,7 +776,7 @@ export function SteppedLaunchForm({
             </Button>
           ) : (
             <Button onClick={handleNext}>
-              {t("Next")}
+              {t("next")}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           )}

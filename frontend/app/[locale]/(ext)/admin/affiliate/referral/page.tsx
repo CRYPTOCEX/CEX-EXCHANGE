@@ -1,13 +1,19 @@
 "use client";
 import { useState } from "react";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { mlmReferralAnalytics } from "./analytics";
+import { useColumns, useFormConfig } from "./columns";
+import { useAnalytics } from "./analytics";
 import { AffiliateReferralModal } from "./components/affiliate-referral-modal";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Eye, UserPlus } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function AffiliateReferralPage() {
+  const t = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+  const analytics = useAnalytics();
   const [selectedAffiliateId, setSelectedAffiliateId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -39,25 +45,33 @@ export default function AffiliateReferralPage() {
           edit: "edit.affiliate.referral",
           delete: "delete.affiliate.referral",
         }}
-        pageSize={10}
+        pageSize={12}
         canCreate
         canEdit
         canDelete
         canView={true}
-        title="Affiliate Referrals"
-        itemTitle="Referral"
+        title={t("affiliate_referrals")}
+        description={tExtAdmin("track_and_manage_user_referral_relationships")}
+        itemTitle="Affiliate Referral"
         columns={columns}
-        analytics={mlmReferralAnalytics}
+        formConfig={formConfig}
+        analytics={analytics}
+        design={{
+          animation: "orbs",
+          primaryColor: "blue",
+          secondaryColor: "amber",
+          icon: UserPlus,
+        }}
         expandedButtons={(row) => {
           return (
-            <Button 
+            <Button
               variant="outline"
               size="sm"
               onClick={() => handleViewAffiliate(row.id)}
               className="gap-2"
             >
               <Eye className="h-4 w-4" />
-              View Details
+              {t("view_details")}
             </Button>
           );
         }}

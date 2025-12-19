@@ -6,7 +6,6 @@ interface apiKeyAttributes {
   permissions: string[]; // Permissions as an array of strings
   ipRestriction: boolean;
   ipWhitelist: string[]; // IP Whitelist as an array of strings
-  type: string;
   createdAt?: Date;
   deletedAt?: Date;
   updatedAt?: Date;

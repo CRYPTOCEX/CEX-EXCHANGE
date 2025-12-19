@@ -40,7 +40,10 @@ interface StakingPositionDetailsProps {
 const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
   row,
 }) => {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const updatePosition = useStakingAdminPositionsStore(
     (state) => state.updatePosition
   );
@@ -87,9 +90,9 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
     <>
       <Tabs defaultValue="overview" className="mt-4">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">{t("Overview")}</TabsTrigger>
-          <TabsTrigger value="earnings">{t("earnings_history")}</TabsTrigger>
-          <TabsTrigger value="notes">{t("admin_notes")}</TabsTrigger>
+          <TabsTrigger value="overview">{tCommon("overview")}</TabsTrigger>
+          <TabsTrigger value="earnings">{tExt("earnings_history")}</TabsTrigger>
+          <TabsTrigger value="notes">{tCommon("admin_notes")}</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4 mt-4">
           <div className="flex items-center gap-4">
@@ -107,20 +110,20 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
                   switch (row.status) {
                     case "ACTIVE":
                       return (
-                        <Badge className="bg-green-500">{t("Active")}</Badge>
+                        <Badge className="bg-green-500">{tCommon("active")}</Badge>
                       );
                     case "COMPLETED":
                       return (
-                        <Badge className="bg-blue-500">{t("Completed")}</Badge>
+                        <Badge className="bg-blue-500">{tCommon("completed")}</Badge>
                       );
                     case "CANCELLED":
                       return (
-                        <Badge variant="secondary">{t("Cancelled")}</Badge>
+                        <Badge variant="secondary">{tCommon("cancelled")}</Badge>
                       );
                     case "PENDING_WITHDRAWAL":
                       return (
                         <Badge className="bg-amber-500">
-                          {t("pending_withdrawal")}
+                          {tExt("pending_withdrawal")}
                         </Badge>
                       );
                     default:
@@ -133,7 +136,7 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
           <div className="grid grid-cols-2 gap-4 mt-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">{t("Amount")}</CardTitle>
+                <CardTitle className="text-sm">{tCommon("amount")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -143,7 +146,7 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">{t("total_rewards")}</CardTitle>
+                <CardTitle className="text-sm">{tExt("total_rewards")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-500">
@@ -155,7 +158,7 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">{t("start_date")}</CardTitle>
+                <CardTitle className="text-sm">{tExt("start_date")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-lg font-medium">
@@ -165,7 +168,7 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">{t("end_date")}</CardTitle>
+                <CardTitle className="text-sm">{tCommon("end_date")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-lg font-medium">
@@ -179,12 +182,12 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
               <CardHeader className="pb-2 bg-amber-50">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Clock className="h-4 w-4 text-amber-500" />
-                  {t("withdrawal_request")}
+                  {tExtAdmin("withdrawal_request")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
                 <p className="text-sm mb-4">
-                  {t("this_user_has_requested_to_withdraw_their_funds_on")}{" "}
+                  {tExtAdmin("this_user_has_requested_to_withdraw_their_funds_on")}{" "}
                   {row.withdrawalRequestDate &&
                     new Date(row.withdrawalRequestDate).toLocaleDateString()}
                 </p>
@@ -205,7 +208,7 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
                     ) : (
                       <XCircle className="mr-2 h-4 w-4" />
                     )}
-                    {t("reject_withdrawal")}
+                    {tExtAdmin("reject_withdrawal")}
                   </Button>
                   <Button
                     size="sm"
@@ -222,7 +225,7 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
                     ) : (
                       <CheckCircle2 className="mr-2 h-4 w-4" />
                     )}
-                    {t("approve_withdrawal")}
+                    {tExtAdmin("approve_withdrawal")}
                   </Button>
                 </div>
               </CardContent>
@@ -232,19 +235,19 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
         <TabsContent value="earnings" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t("earnings_history")}</CardTitle>
+              <CardTitle>{tExt("earnings_history")}</CardTitle>
               <CardDescription>
-                {t("record_of_all_earnings_for_this_position")}
+                {tExtAdmin("record_of_all_earnings_for_this_position")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("Date")}</TableHead>
-                    <TableHead>{t("Amount")}</TableHead>
-                    <TableHead>{t("Type")}</TableHead>
-                    <TableHead>{t("Description")}</TableHead>
+                    <TableHead>{tCommon("date")}</TableHead>
+                    <TableHead>{tCommon("amount")}</TableHead>
+                    <TableHead>{tCommon("type")}</TableHead>
+                    <TableHead>{tCommon("description")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -283,16 +286,16 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
         <TabsContent value="notes" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t("admin_notes")}</CardTitle>
+              <CardTitle>{tCommon("admin_notes")}</CardTitle>
               <CardDescription>
-                {t("internal_notes_about_this_position")}
+                {tExtAdmin("internal_notes_about_this_position")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Textarea
                 value={adminNotes}
                 onChange={(e) => setAdminNotes(e.target.value)}
-                placeholder="Add notes about this position..."
+                placeholder={tExtAdmin("add_notes_about_this_position_ellipsis")}
                 className="w-full min-h-[200px] p-3 rounded-md border resize-none focus:outline-none focus:ring-2 focus:ring-primary"
               />
               <div className="mt-2 flex justify-end">
@@ -309,7 +312,7 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
                   }}
                   disabled={isLoading}
                 >
-                  {t("save_admin_note")}
+                  {tExtAdmin("save_admin_note")}
                 </Button>
               </div>
             </CardContent>
@@ -326,9 +329,9 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
                 : "Reject Withdrawal"}
             </DialogTitle>
             <DialogDescription>
-              {t("are_you_sure_you_want_to")}{" "}
+              {tCommon("are_you_sure_you_want_to")}{" "}
               {confirmAction === "approve" ? "approve" : "reject"}
-              {t("the_withdrawal_request_for_this_position")}
+              {tExtAdmin("the_withdrawal_request_for_this_position")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -336,7 +339,7 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
               variant="outline"
               onClick={() => setConfirmDialogOpen(false)}
             >
-              {t("Cancel")}
+              {tCommon("cancel")}
             </Button>
             <Button onClick={handleConfirm} disabled={isProcessing}>
               {isProcessing ? (
@@ -346,7 +349,7 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
               ) : (
                 <XCircle className="mr-2 h-4 w-4" />
               )}
-              {t("Confirm")}
+              {tCommon("confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

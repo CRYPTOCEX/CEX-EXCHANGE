@@ -4,11 +4,17 @@ import { storeRecord, storeRecordResponses } from "@b/utils/query";
 import { ecosystemUtxoStoreSchema, ecosystemUtxoUpdateSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary: "Stores a new Ecosystem UTXO",
-  operationId: "storeEcosystemUtxo",
-  tags: ["Admin", "Ecosystem UTXOs"],
+  summary: "Create ecosystem UTXO",
+  operationId: "createEcosystemUtxo",
+  tags: ["Admin", "Ecosystem", "UTXO"],
+  description:
+    "Creates a new ecosystem Unspent Transaction Output (UTXO) record. A UTXO represents an unspent output from a blockchain transaction that can be used as input for new transactions. Requires wallet ID, transaction ID, output index, amount, script, and operational status.",
+  logModule: "ADMIN_ECO",
+  logTitle: "Create UTXO",
   requestBody: {
     required: true,
+    description:
+      "UTXO data including wallet ID, transaction ID, index, amount, script, and status",
     content: {
       "application/json": {
         schema: ecosystemUtxoUpdateSchema,
@@ -21,10 +27,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { walletId, transactionId, index, amount, script, status } = body;
 
-  return await storeRecord({
+  ctx?.step("Creating UTXO record");
+  const result = await storeRecord({
     model: "ecosystemUtxo",
     data: {
       walletId,
@@ -35,4 +42,7 @@ export default async (data: Handler) => {
       status,
     },
   });
+
+  ctx?.success("UTXO created successfully");
+  return result;
 };

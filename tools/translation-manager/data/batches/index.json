@@ -1,0 +1,324 @@
+{
+  "createdAt": "2025-12-10T13:00:29.379Z",
+  "totalKeys": 787,
+  "totalBatches": 79,
+  "batchSize": 10,
+  "batches": [
+    {
+      "file": "batch_001.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_002.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_003.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_004.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_005.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_006.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_007.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_008.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_009.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_010.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_011.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_012.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_013.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_014.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_015.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_016.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_017.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_018.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_019.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_020.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_021.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_022.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_023.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_024.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_025.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_026.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_027.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_028.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_029.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_030.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_031.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_032.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_033.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_034.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_035.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_036.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_037.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_038.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_039.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_040.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_041.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_042.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_043.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_044.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_045.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_046.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_047.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_048.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_049.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_050.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_051.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_052.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_053.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_054.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_055.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_056.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_057.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_058.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_059.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_060.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_061.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_062.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_063.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_064.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_065.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_066.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_067.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_068.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_069.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_070.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_071.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_072.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_073.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_074.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_075.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_076.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_077.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_078.json",
+      "status": "imported"
+    },
+    {
+      "file": "batch_079.json",
+      "status": "imported"
+    }
+  ]
+}

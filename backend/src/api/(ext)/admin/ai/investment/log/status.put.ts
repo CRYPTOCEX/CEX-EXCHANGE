@@ -30,10 +30,17 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("AI Investment"),
   requiresAuth: true,
   permission: "edit.ai.investment",
+  logModule: "ADMIN_AI",
+  logTitle: "Bulk update AI investment status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("aiInvestment", ids, status);
+
+  ctx?.step(`Updating status to ${status} for ${ids.length} investment(s)`);
+  const result = await updateStatus("aiInvestment", ids, status);
+
+  ctx?.success(`Status updated for ${ids.length} investment(s)`);
+  return result;
 };

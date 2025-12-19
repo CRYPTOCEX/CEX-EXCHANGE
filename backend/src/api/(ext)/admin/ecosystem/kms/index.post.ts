@@ -1,12 +1,20 @@
 import { createError } from "@b/utils/error";
 import { setEncryptionKey } from "@b/utils/encrypt";
+import {
+  badRequestResponse,
+  serverErrorResponse,
+  unauthorizedResponse,
+  successMessageResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata: OperationObject = {
-  summary: "Sets a new passphrase for the Hardware Security Module (HSM)",
+  summary: "Set Hardware Security Module (HSM) passphrase",
   description:
-    "This endpoint allows admin users to set or update the passphrase for HSM operations.",
-  operationId: "setPassphrase",
+    "Sets or updates the passphrase for Hardware Security Module (HSM) operations used in the ecosystem. This passphrase is used for encrypting sensitive data such as private keys and wallet information. Only administrators with ecosystem access can perform this action.",
+  operationId: "setEcosystemKmsPassphrase",
   tags: ["Admin", "Ecosystem", "KMS"],
+  logModule: "ADMIN_ECO",
+  logTitle: "Set HSM passphrase",
   requestBody: {
     required: true,
     content: {
@@ -16,7 +24,7 @@ export const metadata: OperationObject = {
           properties: {
             passphrase: {
               type: "string",
-              description: "The passphrase to set for the HSM",
+              description: "The passphrase to set for the HSM encryption operations (required)",
             },
           },
           required: ["passphrase"],
@@ -25,44 +33,30 @@ export const metadata: OperationObject = {
     },
   },
   responses: {
-    200: {
-      description: "Passphrase set successfully",
-      content: {
-        "application/json": {
-          schema: {
-            type: "object",
-            properties: {
-              message: { type: "string", description: "Success message" },
-            },
-          },
-        },
-      },
-    },
-    400: {
-      description: "Invalid request or passphrase not provided",
-    },
-    401: {
-      description: "Unauthorized, only admin users can perform this action",
-    },
-    500: {
-      description: "Internal server error or encryption key setting failed",
-    },
+    200: successMessageResponse("Encryption key set successfully"),
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    500: serverErrorResponse,
   },
+  requiresAuth: true,
   permission: "access.ecosystem",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
 
   const { passphrase } = body;
   if (!passphrase) {
     throw createError({ statusCode: 400, message: "Passphrase is required" });
   }
 
+  ctx?.step("Setting encryption key");
   const success = await setEncryptionKey(passphrase);
   if (success) {
+    ctx?.success("Encryption key set successfully");
     return { message: "Encryption key set successfully." };
   } else {
+    ctx?.fail("Failed to set encryption key");
     throw new Error("Failed to set encryption key");
   }
 };

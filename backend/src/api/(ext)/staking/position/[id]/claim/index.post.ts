@@ -1,4 +1,5 @@
 import { CacheManager } from "@b/utils/cache";
+import { logger } from "@b/utils/console";
 
 // Safe import functions for ecosystem utilities
 let ecosystemTokenUtils: any = null;
@@ -29,7 +30,7 @@ async function safeImportEcosystemUtils() {
 import { createNotification } from "@b/utils/notifications";
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
-import { Op } from "sequelize";
+import { literal, Op } from "sequelize";
 
 export const metadata = {
   summary: "Claim Staking Position Earnings",
@@ -37,6 +38,8 @@ export const metadata = {
   operationId: "claimStakingPositionEarnings",
   tags: ["Staking", "Positions", "Earnings"],
   requiresAuth: true,
+  logModule: "STAKING",
+  logTitle: "Claim earnings",
   rateLimit: {
     windowMs: 3600000, // 1 hour
     max: 10 // 10 claims per hour
@@ -104,13 +107,14 @@ export const metadata = {
  * @throws {500} Internal Server Error - Transaction failed
  */
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { id } = params;
-  
+
+  ctx?.step("Validating claim request");
   // Validate position ID
   if (!id || typeof id !== "string") {
     throw createError({ statusCode: 400, message: "Valid position ID is required" });
@@ -120,7 +124,7 @@ export default async (data: Handler) => {
   const recentClaims = await models.stakingEarningRecord.count({
     where: {
       positionId: {
-        [Op.in]: sequelize.literal(`(
+        [Op.in]: literal(`(
           SELECT id FROM staking_position WHERE userId = '${user.id}'
         )`)
       },
@@ -138,6 +142,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Retrieving staking position");
   // Get the position
   const position = await models.stakingPosition.findOne({
     where: { id },
@@ -153,6 +158,7 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 404, message: "Position not found" });
   }
 
+  ctx?.step("Verifying position ownership");
   // Verify ownership
   if (position.userId !== user.id) {
     throw createError({
@@ -161,6 +167,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Retrieving unclaimed earnings");
   // Get unclaimed earnings
   const unclaimedEarnings = await models.stakingEarningRecord.findAll({
     where: {
@@ -173,12 +180,14 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 400, message: "No earnings to claim" });
   }
 
+  ctx?.step("Calculating total claim amount");
   // Calculate total amount to claim
   const totalClaimAmount = unclaimedEarnings.reduce(
     (sum, record) => sum + record.amount,
     0
   );
 
+  ctx?.step("Retrieving or creating user wallet");
   let wallet = await models.wallet.findOne({
     where: {
       userId: user.id,
@@ -211,7 +220,7 @@ export default async (data: Handler) => {
             position.pool.symbol
           );
         } catch (error) {
-          console.error("Failed to create or retrieve wallet", error);
+          logger.error("STAKING", "Failed to create or retrieve wallet", error);
           throw createError({
             statusCode: 500,
             message:
@@ -237,10 +246,12 @@ export default async (data: Handler) => {
     }
   }
 
+  ctx?.step("Processing earnings claim");
   // Start a transaction
   const transaction = await sequelize.transaction();
 
   try {
+    ctx?.step("Marking earnings as claimed");
     // Update all earnings as claimed
     await Promise.all(
       unclaimedEarnings.map((earning) =>
@@ -257,12 +268,14 @@ export default async (data: Handler) => {
       )
     );
 
+    ctx?.step("Crediting wallet with claimed earnings");
     // Credit the wallet with the claimed earnings
     await wallet.increment('balance', {
       by: totalClaimAmount,
       transaction
     });
 
+    ctx?.step("Creating transaction record");
     // Create wallet transaction record for audit trail
     await models.transaction.create({
       userId: user.id,
@@ -278,6 +291,7 @@ export default async (data: Handler) => {
       })
     }, { transaction });
 
+    ctx?.step("Creating claim notification");
     // Create updated notification using the new format
     await createNotification({
       userId: user.id,
@@ -293,9 +307,11 @@ export default async (data: Handler) => {
           primary: true,
         },
       ],
-    });
+    }, ctx);
 
     await transaction.commit();
+
+    ctx?.success(`Claimed ${totalClaimAmount} ${position.pool.symbol} in staking rewards`);
 
     return {
       success: true,
@@ -303,6 +319,7 @@ export default async (data: Handler) => {
     };
   } catch (error) {
     await transaction.rollback();
+    ctx?.fail(error.message || "Failed to claim earnings");
     throw error;
   }
 };

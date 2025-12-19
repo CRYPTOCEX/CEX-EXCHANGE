@@ -1,3 +1,5 @@
+import { logger } from "@b/utils/console";
+
 /**
  * CircuitBreaker - Emergency stop mechanism
  *
@@ -36,7 +38,7 @@ export class CircuitBreaker {
       this.tripHistory = this.tripHistory.slice(-10);
     }
 
-    console.error(`[AI Market Maker] Circuit breaker TRIPPED: ${reason}`);
+    logger.error("AI_MM", `Circuit breaker TRIPPED: ${reason}`);
   }
 
   /**
@@ -47,7 +49,7 @@ export class CircuitBreaker {
     this.tripReason = "";
     this.tripTime = null;
 
-    console.info("[AI Market Maker] Circuit breaker reset");
+    logger.info("AI_MM", "Circuit breaker reset");
   }
 
   /**
@@ -58,7 +60,7 @@ export class CircuitBreaker {
     if (this.tripped && this.tripTime) {
       const elapsed = Date.now() - this.tripTime.getTime();
       if (elapsed >= this.cooldownPeriodMs) {
-        console.info("[AI Market Maker] Circuit breaker auto-reset after cooldown");
+        logger.info("AI_MM", "Circuit breaker auto-reset after cooldown");
         this.reset();
       }
     }

@@ -6,83 +6,111 @@ import {
   handleBinaryMlmReferralRegister,
   handleUnilevelMlmReferralRegister,
 } from "@b/utils/affiliate";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  badRequestResponse,
+  notFoundResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata: OperationObject = {
-  summary: "Updates a specific MLM Referral",
-  operationId: "updateMlmReferral",
-  tags: ["Admin", "MLM Referrals"],
+  summary: "Updates a specific affiliate referral",
+  description:
+    "Updates an existing affiliate referral record. When referrer or referred user changes, the MLM node structure (binary/unilevel) is automatically rebuilt to maintain network integrity.",
+  operationId: "updateAffiliateReferral",
+  tags: ["Admin", "Affiliate", "Referral"],
   parameters: [
     {
       name: "id",
       in: "path",
-      description: "ID of the MLM Referral to update",
+      description: "ID of the affiliate referral to update",
       required: true,
       schema: {
         type: "string",
+        format: "uuid",
       },
     },
   ],
   requestBody: {
-    description: "New data for the MLM Referral",
+    description: "New data for the affiliate referral",
     content: {
       "application/json": {
         schema: mlmReferralUpdateSchema,
       },
     },
   },
-  responses: updateRecordResponses("MLM Referral"),
+  responses: {
+    200: {
+      description: "Affiliate referral updated successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              message: {
+                type: "string",
+                description: "Success message",
+              },
+            },
+          },
+        },
+      },
+    },
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    404: notFoundResponse("Affiliate Referral"),
+    500: serverErrorResponse,
+  },
   requiresAuth: true,
   permission: "edit.affiliate.referral",
+  logModule: "ADMIN_AFFILIATE",
+  logTitle: "Update affiliate referral",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status, referrerId, referredId } = body;
 
-  // Basic validation: referrer and referred cannot be the same.
+  ctx?.step("Validating referral update data");
   if (referrerId === referredId) {
     throw new Error("Referrer and referred user cannot be the same");
   }
 
-  // Validate that both users exist.
+  ctx?.step("Verifying users exist");
   const referrer = await models.user.findOne({ where: { id: referrerId } });
   if (!referrer) throw new Error("Referrer not found");
 
   const referred = await models.user.findOne({ where: { id: referredId } });
   if (!referred) throw new Error("Referred user not found");
 
-  // Fetch the existing referral record.
+  ctx?.step("Fetching existing referral record");
   const existingReferral = await models.mlmReferral.findOne({ where: { id } });
   if (!existingReferral) throw new Error("Referral record not found");
 
-  // Get MLM settings.
+  ctx?.step("Loading MLM system settings");
   const cacheManager = CacheManager.getInstance();
   const settings = await cacheManager.getSettings();
   const mlmSystem = settings.has("mlmSystem")
     ? settings.get("mlmSystem")
     : null;
 
-  // If the system is not DIRECT and the referral relationship is changing,
-  // update the MLM node accordingly.
   if (
     mlmSystem !== "DIRECT" &&
     (existingReferral.referrerId !== referrerId ||
       existingReferral.referredId !== referredId)
   ) {
     if (mlmSystem === "BINARY") {
-      // Remove any existing binary node for this referral.
+      ctx?.step("Updating binary node structure");
       await models.mlmBinaryNode.destroy({ where: { referralId: id } });
-      // Create a new binary node (with cycle detection inside the handler).
       await handleBinaryMlmReferralRegister(
         referrerId,
         { id, referredId },
         models.mlmBinaryNode
       );
     } else if (mlmSystem === "UNILEVEL") {
-      // Remove any existing unilevel node for this referral.
+      ctx?.step("Updating unilevel node structure");
       await models.mlmUnilevelNode.destroy({ where: { referralId: id } });
-      // Create a new unilevel node.
       await handleUnilevelMlmReferralRegister(
         referrerId,
         { id, referredId },
@@ -91,12 +119,13 @@ export default async (data: Handler) => {
     }
   }
 
-  // Finally, update the referral record.
+  ctx?.step("Updating referral record");
   const updatedReferral = await updateRecord("mlmReferral", id, {
     status,
     referrerId,
     referredId,
   });
 
+  ctx?.success("Referral updated successfully");
   return updatedReferral;
 };

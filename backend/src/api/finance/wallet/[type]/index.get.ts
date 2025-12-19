@@ -49,12 +49,14 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, user } = data;
+  const { params, user, ctx } = data;
 
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
   const walletType = params.type;
+
+  ctx?.step(`Fetching ${walletType} wallets`);
 
   // Check if spot wallets are disabled
   if (walletType === "SPOT") {
@@ -104,5 +106,6 @@ export default async (data: Handler) => {
     };
   });
 
+  ctx?.success(`Retrieved ${walletsWithAvailableBalance.length} ${walletType} wallets`);
   return walletsWithAvailableBalance;
 };

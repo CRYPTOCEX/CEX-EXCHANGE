@@ -4,6 +4,7 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 
+import { logger } from "@b/utils/console";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
@@ -145,7 +146,7 @@ export default async (data: Handler) => {
       },
     };
   } catch (error) {
-    console.error("Adyen payment status check error:", error);
+    logger.error("ADYEN", "Payment status check error", error);
     throw new Error(`Failed to check payment status: ${error.message}`);
   }
 }; 

@@ -1,6 +1,7 @@
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
 import { createNotification } from "@b/utils/notifications";
+import { logger } from "@b/utils/console";
 
 // Define the schema inline since we can't import from another endpoint
 const offeringCreationSchema = {
@@ -47,10 +48,12 @@ export const metadata = {
     500: { description: "Internal Server Error" },
   },
   permission: "create.ico.offer",
+  logModule: "ADMIN_ICO",
+  logTitle: "Admin Create ICO Offering",
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
 
   if (!user) {
     throw createError({
@@ -81,6 +84,7 @@ export default async (data: Handler) => {
     submittedAt = new Date().toISOString(),
   } = body;
 
+  ctx?.step("Validating launch plan");
   // 3. Validate selected plan
   const launchPlan = await models.icoLaunchPlan.findOne({
     where: { id: selectedPlan },
@@ -92,6 +96,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Validating token type");
   // 4. Find token type by ID
   if (!tokenType) {
     throw createError({
@@ -122,6 +127,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Parsing and validating plan features");
   let planFeatures;
   try {
     planFeatures = JSON.parse(launchPlan.features);
@@ -152,6 +158,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Creating ICO offering with all details");
   // 6. Transaction: Create records (no wallet check)
   const transaction = await sequelize.transaction();
   try {
@@ -270,6 +277,7 @@ export default async (data: Handler) => {
 
     await transaction.commit();
 
+    ctx?.step("Sending notification to user");
     // Optional: Notify user
     try {
       await createNotification({
@@ -280,14 +288,12 @@ export default async (data: Handler) => {
         message: `An ICO offering "${offering.name}" has been created for you by the admin.`,
         details: "Check your dashboard for more details.",
         link: `/ico/creator/token/${offering.id}`,
-      });
+      }, ctx);
     } catch (notifErr) {
-      console.error(
-        "Failed to notify user for admin-created offering",
-        notifErr
-      );
+      logger.error("ADMIN_ICO_OFFER", "Failed to notify user for admin-created offering", notifErr);
     }
 
+    ctx?.success("ICO offering created successfully");
     return {
       message: "Offering created successfully.",
       offeringId: offering.id,
@@ -296,12 +302,7 @@ export default async (data: Handler) => {
     await transaction.rollback();
 
     // Log the full error details for debugging
-    console.error("ICO Creation Error:", {
-      message: err.message,
-      name: err.name,
-      errors: err.errors,
-      original: err.original,
-    });
+    logger.error("ADMIN_ICO_OFFER", "ICO creation failed", err);
 
     // Handle unique constraint violations
     if (err.name === "SequelizeUniqueConstraintError") {

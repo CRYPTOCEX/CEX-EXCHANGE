@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "upgradeOfferingPlan",
   tags: ["ICO", "Creator", "Plan"],
   requiresAuth: true,
+  logModule: "ICO_PLAN",
+  logTitle: "Upgrade offering plan",
   parameters: [
     {
       index: 0,
@@ -43,8 +45,8 @@ export const metadata = {
   },
 };
 
-export default async (data: { user?: any; params?: any; body?: any }) => {
-  const { user, params, body } = data;
+export default async (data: { user?: any; params?: any; body?: any; ctx?: any }) => {
+  const { user, params, body, ctx } = data;
   const offeringId = params.id;
   const { planId } = body;
 
@@ -58,6 +60,8 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     });
   }
 
+  ctx?.step("Validating plan upgrade request");
+
   // Ensure the offering belongs to the current creator.
   const offering = await models.icoTokenOffering.findOne({
     where: { id: offeringId, userId: user.id },
@@ -66,9 +70,11 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     throw createError({ statusCode: 404, message: "Offering not found" });
   }
 
+  ctx?.step("Updating offering plan");
   // Update the offering with the new plan.
   await offering.update({ planId });
 
+  ctx?.step("Sending notification");
   // Create a detailed notification regarding the plan upgrade.
   try {
     await createNotification({
@@ -93,5 +99,6 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     // Decide if you want to fail the request here or log and continue.
   }
 
+  ctx?.success(`Upgraded plan for offering "${offering.name}"`);
   return { message: "Plan upgraded successfully" };
 };

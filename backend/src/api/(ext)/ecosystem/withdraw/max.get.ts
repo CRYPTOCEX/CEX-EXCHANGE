@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
   operationId: "getMaxWithdrawable",
   tags: ["Wallet", "Withdrawal"],
   requiresAuth: true,
+  logModule: "ECOSYSTEM",
+  logTitle: "Calculate maximum withdrawal amount",
   parameters: [
     {
       name: "currency",
@@ -77,14 +79,16 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { query, user } = data;
+  const { query, user, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { currency, chain } = query;
 
+  ctx?.step("Validating request parameters");
   if (!currency || !chain) {
+    ctx?.fail("Missing currency or chain parameter");
     throw createError({
       statusCode: 400,
       message: "Currency and chain parameters are required",
@@ -92,27 +96,32 @@ export default async (data: Handler) => {
   }
 
   try {
+    ctx?.step(`Finding wallet for ${currency}`);
     // Find the user's wallet
     const userWallet = await models.wallet.findOne({
       where: { userId: user.id, currency: currency as string, type: "ECO" },
     });
 
     if (!userWallet) {
+      ctx?.fail(`Wallet not found for ${currency}`);
       throw createError({
         statusCode: 404,
         message: "Wallet not found",
       });
     }
 
+    ctx?.step(`Fetching token configuration for ${currency} on ${chain}`);
     // Fetch token settings
     const token = await getEcosystemToken(chain as string, currency as string);
     if (!token) {
+      ctx?.fail(`Token not found for ${currency} on ${chain}`);
       throw createError({
         statusCode: 404,
         message: "Token not found",
       });
     }
 
+    ctx?.step("Calculating available balance");
     // For withdrawals, use wallet_data balance (what's available on this specific chain)
     // instead of wallet.balance (total across all chains)
     let availableBalance = userWallet.balance;
@@ -146,6 +155,7 @@ export default async (data: Handler) => {
       }
     }
 
+    ctx?.step("Calculating platform fees");
     // Calculate platform fee
     let platformFee = 0;
     if (token.fee) {
@@ -272,12 +282,14 @@ export default async (data: Handler) => {
     // Ensure maxAmount is not negative
     maxAmount = Math.max(0, maxAmount);
 
+    ctx?.step("Formatting result");
     // Round to token precision
     const precision = token.precision ?? token.decimals ?? 8;
     maxAmount = parseFloat(maxAmount.toFixed(precision));
     platformFee = parseFloat(platformFee.toFixed(precision));
     estimatedNetworkFee = parseFloat(estimatedNetworkFee.toFixed(precision));
 
+    ctx?.success(`Max withdrawable: ${maxAmount} ${currency} (platform fee: ${platformFee}, network fee: ${estimatedNetworkFee})`);
     return {
       maxAmount,
       platformFee,
@@ -287,6 +299,7 @@ export default async (data: Handler) => {
     };
   } catch (error) {
     console.error(`[MAX_WITHDRAW] Error:`, error);
+    ctx?.fail(`Failed to calculate max withdrawal: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: `Failed to calculate maximum withdrawable amount: ${error.message}`,

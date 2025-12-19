@@ -33,7 +33,7 @@ export function ChartContainer({
   isMobile = false,
   onPriceUpdate,
 }: ChartContainerProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("binary_components");
   
   // State management with proper initialization
   const [currentPrice, setCurrentPrice] = useState<number>(0);
@@ -252,7 +252,7 @@ export function ChartContainer({
         <div className="absolute inset-0 bg-[#131722] flex items-center justify-center">
           <div className="flex flex-col items-center gap-2">
             <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-            <span className="text-sm text-zinc-400">Initializing chart...</span>
+            <span className="text-sm text-zinc-400">{t("initializing_chart_ellipsis")}</span>
           </div>
         </div>
       )}

@@ -8,6 +8,8 @@ export const metadata = {
   operationId: "reviewP2PTrade",
   tags: ["P2P", "Trade"],
   requiresAuth: true,
+  logModule: "P2P_REVIEW",
+  logTitle: "Submit review",
   parameters: [
     {
       index: 0,
@@ -42,13 +44,14 @@ export const metadata = {
   },
 };
 
-export default async (data: { params?: any; body: any; user?: any }) => {
+export default async (data: { params?: any; body: any; user?: any; ctx?: any }) => {
   const { id } = data.params || {};
   const { rating, feedback } = data.body;
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
+  ctx?.step("Finding trade and validating review");
   const trade = await models.p2pTrade.findOne({
     where: {
       id,
@@ -60,6 +63,7 @@ export default async (data: { params?: any; body: any; user?: any }) => {
   }
 
   try {
+    ctx?.step("Creating review record");
     await models.p2pReview.create({
       reviewerId: user.id,
       revieweeId: trade.sellerId, // adjust based on user role
@@ -67,6 +71,8 @@ export default async (data: { params?: any; body: any; user?: any }) => {
       rating,
       comment: feedback,
     });
+
+    ctx?.success(`Submitted review for trade ${trade.id.slice(0, 8)}... (rating: ${rating})`);
     return { message: "Review submitted successfully." };
   } catch (err: any) {
     throw createError({

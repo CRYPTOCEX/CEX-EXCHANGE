@@ -1,9 +1,9 @@
 import { crudParameters, paginationSchema } from "@b/utils/constants";
 import {
   unauthorizedResponse,
-  notFoundMetadataResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+  notFoundResponse,
+} from "@b/utils/schema/errors";
 import { orderSchema } from "./utils";
 
 // Safe import for ecosystem modules
@@ -15,10 +15,12 @@ try {
   // Ecosystem extension not available
 }
 
-export const metadata = {
-  summary: "List all futures orders",
+export const metadata: OperationObject = {
+  summary: "Lists all futures orders with pagination and filtering",
   operationId: "listFuturesOrders",
-  tags: ["Admin", "Futures Orders"],
+  tags: ["Admin", "Futures", "Order"],
+  description:
+    "Retrieves a paginated list of all futures orders from ScyllaDB with support for filtering, sorting, and search. Returns order details including type, status, side, price, amount, fees, and associated user information.",
   parameters: crudParameters,
   responses: {
     200: {
@@ -32,32 +34,26 @@ export const metadata = {
                 type: "array",
                 items: { type: "object", properties: orderSchema },
               },
-              pagination: {
-                type: "object",
-                properties: {
-                  totalItems: { type: "number" },
-                  currentPage: { type: "number" },
-                  perPage: { type: "number" },
-                  totalPages: { type: "number" },
-                },
-              },
+              pagination: paginationSchema,
             },
           },
         },
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("Futures Orders"),
+    404: notFoundResponse("Futures Orders"),
     500: serverErrorResponse,
   },
-  permission: "view.futures.order",
   requiresAuth: true,
+  permission: "view.futures.order",
+  logModule: "ADMIN_FUTURES",
+  logTitle: "List futures orders",
 };
 
 const keyspace = process.env.SCYLLA_FUTURES_KEYSPACE || "futures";
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
   if (!getFiltered) {
     return {
@@ -66,6 +62,7 @@ export default async (data: Handler) => {
     };
   }
 
+  ctx?.step("Fetching futures orders");
   const table = "orders";
   const partitionKeys = ["userId"];
 
@@ -93,5 +90,6 @@ export default async (data: Handler) => {
     nonStringLikeColumns: ["userId"],
   });
 
+  ctx?.success(`Retrieved ${result.items.length} futures orders`);
   return result;
 };

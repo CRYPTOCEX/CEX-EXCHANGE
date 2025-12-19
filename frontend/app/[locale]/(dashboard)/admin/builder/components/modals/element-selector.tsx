@@ -24,7 +24,7 @@ export function ElementSelector({
   category = "all",
   onSelectElement,
 }: ElementSelectorProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   // Get filtered elements based on category and search term
   const getFilteredElements = (categoryFilter = category) => {
     let elements: any[] = [];

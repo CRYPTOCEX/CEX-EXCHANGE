@@ -1,13 +1,23 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { createNotification } from "@b/utils/notifications";
+import {
+  badRequestResponse,
+  unauthorizedResponse,
+  notFoundResponse,
+  serverErrorResponse,
+  commonFields,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Add External Pool Performance",
-  description: "Creates a new external pool performance record.",
-  operationId: "addExternalPoolPerformance",
-  tags: ["Staking", "Admin", "Performance"],
+  summary: "Create External Pool Performance Record",
+  operationId: "createExternalPoolPerformance",
+  description:
+    "Creates a new performance record for an external staking pool. Records daily or periodic performance metrics including APR achieved, total amount staked, profit generated, and operational notes. Used for tracking and analyzing external pool performance over time.",
+  tags: ["Admin", "Staking", "Performance"],
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Add Pool Performance",
   requestBody: {
     description: "External pool performance data",
     required: true,
@@ -16,12 +26,34 @@ export const metadata = {
         schema: {
           type: "object",
           properties: {
-            poolId: { type: "string" },
-            date: { type: "string", format: "date-time" },
-            apr: { type: "number" },
-            totalStaked: { type: "number" },
-            profit: { type: "number" },
-            notes: { type: "string" },
+            poolId: {
+              type: "string",
+              format: "uuid",
+              description: "ID of the staking pool",
+            },
+            date: {
+              type: "string",
+              format: "date-time",
+              description: "Date of the performance record",
+            },
+            apr: {
+              type: "number",
+              minimum: 0,
+              description: "Annual Percentage Rate achieved",
+            },
+            totalStaked: {
+              type: "number",
+              minimum: 0,
+              description: "Total amount staked in the pool",
+            },
+            profit: {
+              type: "number",
+              description: "Profit generated (can be negative)",
+            },
+            notes: {
+              type: "string",
+              description: "Additional notes or observations",
+            },
           },
           required: ["poolId", "date", "apr", "totalStaked", "profit"],
         },
@@ -35,20 +67,33 @@ export const metadata = {
         "application/json": {
           schema: {
             type: "object",
+            properties: {
+              ...commonFields,
+              poolId: { type: "string", format: "uuid" },
+              date: { type: "string", format: "date-time" },
+              apr: { type: "number" },
+              totalStaked: { type: "number" },
+              profit: { type: "number" },
+              notes: { type: "string" },
+              pool: {
+                type: "object",
+                description: "Associated staking pool details",
+              },
+            },
           },
         },
       },
     },
-    400: { description: "Bad Request" },
-    401: { description: "Unauthorized" },
-    404: { description: "Pool not found" },
-    500: { description: "Internal Server Error" },
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    404: notFoundResponse("Staking Pool"),
+    500: serverErrorResponse,
   },
   permission: "create.staking.performance",
 };
 
-export default async (data: { user?: any; body?: any }) => {
-  const { user, body } = data;
+export default async (data: { user?: any; body?: any; ctx?: any }) => {
+  const { user, body, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -74,12 +119,14 @@ export default async (data: { user?: any; body?: any }) => {
   }
 
   try {
+    ctx?.step("Check if pool exists");
     // Check if the pool exists
     const pool = await models.stakingPool.findByPk(poolId);
     if (!pool) {
       throw createError({ statusCode: 404, message: "Pool not found" });
     }
 
+    ctx?.step("Create performance record");
     // Create the performance record
     const performance = await models.stakingExternalPoolPerformance.create({
       poolId,
@@ -90,6 +137,7 @@ export default async (data: { user?: any; body?: any }) => {
       notes,
     });
 
+    ctx?.step("Fetch created performance with pool");
     // Fetch the created record with its pool
     const createdPerformance =
       await models.stakingExternalPoolPerformance.findOne({
@@ -119,7 +167,7 @@ export default async (data: { user?: any; body?: any }) => {
             primary: true,
           },
         ],
-      });
+      }, ctx);
     } catch (notifErr) {
       console.error(
         "Failed to create notification for performance record",
@@ -128,6 +176,7 @@ export default async (data: { user?: any; body?: any }) => {
       // Continue execution even if notification fails
     }
 
+    ctx?.success("Pool performance record created successfully");
     return createdPerformance;
   } catch (error) {
     if (error.statusCode === 404) {

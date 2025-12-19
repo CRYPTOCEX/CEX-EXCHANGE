@@ -8,6 +8,8 @@ export const metadata = {
   operationId: "createStakingPool",
   tags: ["Staking", "Admin", "Pools"],
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Create Staking Pool",
   requestBody: {
     description: "Staking pool data",
     required: true,
@@ -83,8 +85,8 @@ export const metadata = {
   permission: "create.staking.pool",
 };
 
-export default async (data: { user?: any; body?: any }) => {
-  const { user, body } = data;
+export default async (data: { user?: any; body?: any; ctx?: any }) => {
+  const { user, body, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -95,6 +97,7 @@ export default async (data: { user?: any; body?: any }) => {
   }
 
   try {
+    ctx?.step("Get highest order value");
     // Get the highest order value to place the new pool at the end
     const highestOrderPool = await models.stakingPool.findOne({
       attributes: ["order"],
@@ -104,6 +107,7 @@ export default async (data: { user?: any; body?: any }) => {
 
     const nextOrder = highestOrderPool ? highestOrderPool.order + 1 : 1;
 
+    ctx?.step("Create staking pool");
     // Create the new pool
     const newPool = await models.stakingPool.create({
       ...body,
@@ -127,7 +131,7 @@ export default async (data: { user?: any; body?: any }) => {
             primary: true,
           },
         ],
-      });
+      }, ctx);
     } catch (notifErr) {
       console.error(
         "Failed to create notification for pool creation",
@@ -135,6 +139,7 @@ export default async (data: { user?: any; body?: any }) => {
       );
     }
 
+    ctx?.success("Staking pool created successfully");
     return newPool;
   } catch (error) {
     console.error("Error creating staking pool:", error);

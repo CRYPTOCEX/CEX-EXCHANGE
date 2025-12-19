@@ -21,6 +21,8 @@ export const metadata: OperationObject = {
   description: "Submits a new trading order for the logged-in user.",
   operationId: "createOrder",
   tags: ["Trading", "Orders"],
+  logModule: "ECO_ORDER",
+  logTitle: "Create trading order",
   requestBody: {
     required: true,
     content: {
@@ -71,21 +73,24 @@ async function getBestPriceFromOrderBook(
 }
 
 export default async (data: any) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { currency, pair, amount, price, type, side } = body;
 
+  ctx?.step("Validating order request");
   // Basic validations
   if (!amount || Number(amount) <= 0) {
+    ctx?.fail("Invalid amount");
     throw createError({
       statusCode: 422,
       message: "Amount must be greater than zero.",
     });
   }
   if (!type) {
+    ctx?.fail("Order type missing");
     throw createError({
       statusCode: 422,
       message: "Order type (limit/market) is required.",
@@ -93,6 +98,7 @@ export default async (data: any) => {
   }
 
   if (!currency || !pair) {
+    ctx?.fail("Invalid currency or pair");
     throw createError({
       statusCode: 422,
       message: "Invalid currency/pair symbol.",
@@ -102,22 +108,26 @@ export default async (data: any) => {
   const symbol = `${currency}/${pair}`;
 
   try {
+    ctx?.step("Fetching market configuration");
     const market = (await models.ecosystemMarket.findOne({
       where: { currency, pair },
     })) as any;
 
     if (!market || !market.metadata) {
+      ctx?.fail("Market not found");
       throw createError({
         statusCode: 422,
         message: "Market data not found or incomplete.",
       });
     }
 
+    ctx?.step("Validating market metadata");
     if (
       !market.metadata.precision ||
       !market.metadata.precision.amount ||
       !market.metadata.precision.price
     ) {
+      ctx?.fail("Market metadata incomplete");
       throw createError({
         statusCode: 422,
         message: "Market metadata missing precision details.",
@@ -125,6 +135,7 @@ export default async (data: any) => {
     }
 
     if (!market.metadata.maker || !market.metadata.taker) {
+      ctx?.fail("Market fee rates missing");
       throw createError({
         statusCode: 422,
         message: "Market metadata missing fee rates.",
@@ -171,8 +182,10 @@ export default async (data: any) => {
     let effectivePrice = price;
     // Market order: derive price from orderbook
     if (type.toLowerCase() === "market") {
+      ctx?.step("Determining market price from order book");
       const bestPrice = await getBestPriceFromOrderBook(symbol, side);
       if (!bestPrice) {
+        ctx?.fail("No market price available");
         throw createError({
           statusCode: 422,
           message: "Cannot execute market order: no price available.",
@@ -202,6 +215,7 @@ export default async (data: any) => {
           : market.metadata.precision.price
       ) || 8;
 
+    ctx?.step("Determining maker/taker fee structure");
     // CORRECTED FEE LOGIC: Determine maker/taker based on whether order will immediately match
     // Market orders ALWAYS take liquidity (taker)
     // Limit orders: check if they cross the spread (taker) or rest on book (maker)
@@ -232,6 +246,7 @@ export default async (data: any) => {
       : Number(market.metadata.maker);
 
     if (isNaN(feeRate) || feeRate < 0) {
+      ctx?.fail("Invalid fee rate");
       throw createError({
         statusCode: 422,
         message: "Invalid fee rate from market metadata.",
@@ -239,12 +254,14 @@ export default async (data: any) => {
     }
 
     if (!effectivePrice || isNaN(effectivePrice)) {
+      ctx?.fail("Invalid price");
       throw createError({
         statusCode: 422,
         message: "No valid price determined for the order.",
       });
     }
 
+    ctx?.step("Calculating order cost and fees");
     const feeCalculated = (amount * effectivePrice * feeRate) / 100;
     const fee = parseFloat(feeCalculated.toFixed(precision));
     const costCalculated =
@@ -272,14 +289,17 @@ export default async (data: any) => {
       });
     }
 
+    ctx?.step("Retrieving user wallets");
     const [currencyWallet, pairWallet] = await Promise.all([
       getWalletByUserIdAndCurrency(user.id, currency),
       getWalletByUserIdAndCurrency(user.id, pair),
     ]);
 
+    ctx?.step("Verifying wallet balance");
     if (side.toUpperCase() === "SELL") {
       const spendableBalance = parseFloat(currencyWallet.balance.toString()) - (parseFloat(currencyWallet.inOrder?.toString() || "0"));
       if (!currencyWallet || spendableBalance < amount) {
+        ctx?.fail(`Insufficient ${currency} balance`);
         throw createError({
           statusCode: 400,
           message: `Insufficient balance. You need ${amount} ${currency}`,
@@ -289,6 +309,7 @@ export default async (data: any) => {
       // BUY
       const spendableBalance = parseFloat(pairWallet.balance.toString()) - (parseFloat(pairWallet.inOrder?.toString() || "0"));
       if (!pairWallet || spendableBalance < cost) {
+        ctx?.fail(`Insufficient ${pair} balance`);
         throw createError({
           statusCode: 400,
           message: `Insufficient balance. You need ${cost} ${pair}`,
@@ -296,6 +317,7 @@ export default async (data: any) => {
       }
     }
 
+    ctx?.step("Checking for self-matching orders");
     // SELF-MATCH PREVENTION LOGIC
     const userOpenOrders = await getOrders(user.id, symbol, true);
     // For a SELL order, check if there's any BUY order at >= effectivePrice
@@ -304,6 +326,7 @@ export default async (data: any) => {
         (o) => o.side === "BUY" && o.price >= effectivePrice
       );
       if (conflictingBuy) {
+        ctx?.fail("Self-matching order detected");
         throw createError({
           statusCode: 400,
           message: `You already have a BUY order at ${conflictingBuy.price} or higher, cannot place SELL at ${effectivePrice} or lower.`,
@@ -317,6 +340,7 @@ export default async (data: any) => {
         (o) => o.side === "SELL" && o.price <= effectivePrice
       );
       if (conflictingSell) {
+        ctx?.fail("Self-matching order detected");
         throw createError({
           statusCode: 400,
           message: `You already have a SELL order at ${conflictingSell.price} or lower, cannot place BUY at ${effectivePrice} or higher.`,
@@ -325,6 +349,7 @@ export default async (data: any) => {
     }
     // END SELF-MATCH PREVENTION
 
+    ctx?.step("Creating order in database");
     // Create the order
     const newOrder = await createOrder({
       userId: user.id,
@@ -349,6 +374,7 @@ export default async (data: any) => {
       average: 0,
     };
 
+    ctx?.step("Updating wallet balance");
     // Atomicity: Update wallet after order creation
     try {
       if (side.toUpperCase() === "BUY") {
@@ -357,24 +383,47 @@ export default async (data: any) => {
         await updateWalletBalance(currencyWallet, order.amount, "subtract");
       }
     } catch (e) {
+      ctx?.step("Rolling back order due to wallet update failure");
       await rollbackOrderCreation(newOrder.id, user.id, newOrder.createdAt);
+      ctx?.fail("Failed to update wallet balance");
       throw createError({
         statusCode: 500,
         message: "Failed to update wallet balance. Order rolled back.",
       });
     }
 
+    ctx?.step("Broadcasting order to WebSocket subscribers");
     // Broadcast the new order to WebSocket subscribers
     await handleOrderBroadcast({
       ...newOrder,
       status: "OPEN",
     });
 
+    // Trigger copy trading if user is a leader (async, non-blocking)
+    try {
+      const { triggerCopyTrading } = await import("@b/utils/safe-imports");
+      triggerCopyTrading(
+        newOrder.id,
+        user.id,
+        symbol,
+        side.toUpperCase() as "BUY" | "SELL",
+        type.toUpperCase() as "MARKET" | "LIMIT",
+        amount,
+        effectivePrice
+      ).catch(() => {
+        // Silently catch errors - copy trading failures shouldn't affect order creation
+      });
+    } catch (importError) {
+      // Safe import failed, copy trading not available
+    }
+
+    ctx?.success(`Created ${side} order for ${amount} ${currency} at ${effectivePrice} ${pair}`);
     return {
       message: "Order created successfully",
       order: order,
     };
   } catch (error) {
+    ctx?.fail(`Order creation failed: ${error.message}`);
     throw createError({
       statusCode: error.statusCode || 400,
       message: `Failed to create order: ${error.message}`,

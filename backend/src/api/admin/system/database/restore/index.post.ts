@@ -4,6 +4,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { createConnection } from "mysql2/promise";
 import { sanitizePath } from "@b/utils/validation";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Restores the database from a backup file",
@@ -50,6 +51,8 @@ export const metadata = {
     },
   },
   permission: "access.database",
+  logModule: "ADMIN_SYS",
+  logTitle: "Database restore",
 };
 
 const checkEnvVariables = () => {
@@ -88,7 +91,7 @@ const executeSqlStatements = async (connection, sqlStatements) => {
       await connection.query(statement);
     } catch (error) {
       if (error.code === "ECONNRESET") {
-        console.error("Connection was reset. Retrying...", error);
+        logger.error("DATABASE", "Connection was reset. Retrying...", error);
         await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
         await executeSqlStatements(connection, [statement]); // Retry the failed statement
       } else {
@@ -112,7 +115,10 @@ const dropAndRecreateDatabase = async (connection, dbName) => {
 };
 
 export default async (data: Handler) => {
+  const { ctx } = data;
+
   try {
+    ctx?.step("Validating database configuration");
     checkEnvVariables();
     const { backupFile } = data.body;
     const { DB_NAME } = process.env;
@@ -121,6 +127,7 @@ export default async (data: Handler) => {
       throw new Error("Backup file path is required");
     }
 
+    ctx?.step("Validating backup file");
     // Sanitize the backup file path to prevent LFI
     const sanitizedBackupFile = sanitizePath(backupFile);
     const backupPath = path.resolve(
@@ -132,13 +139,21 @@ export default async (data: Handler) => {
     // Ensure the backup file exists
     await fs.access(backupPath);
 
+    ctx?.step("Reading backup file");
     const sql = await fs.readFile(backupPath, "utf8");
     const sqlStatements = splitSqlFile(sql);
+
+    ctx?.step("Connecting to database");
     const connection = await getDbConnection();
 
     try {
+      ctx?.step("Dropping and recreating database");
       await dropAndRecreateDatabase(connection, DB_NAME);
+
+      ctx?.step(`Executing ${sqlStatements.length} SQL statements`);
       await executeSqlStatements(connection, sqlStatements);
+
+      ctx?.success("Database restored successfully");
       return {
         message: "Database restored successfully",
       };
@@ -146,6 +161,7 @@ export default async (data: Handler) => {
       await connection.end();
     }
   } catch (error) {
+    ctx?.fail(`Database restore failed: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: `Error restoring database: ${error.message}`,

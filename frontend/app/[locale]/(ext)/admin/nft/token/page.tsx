@@ -1,11 +1,15 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import { nftTokenAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
+import { Gem } from "lucide-react";
 
 export default function NFTsPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/token"
@@ -17,7 +21,7 @@ export default function NFTsPage() {
         edit: "edit.nft.token",
         delete: "delete.nft.token",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={false}
       canEdit={true}
       canDelete={true}
@@ -25,9 +29,16 @@ export default function NFTsPage() {
       isParanoid={true}
       title="NFTs"
       itemTitle="NFT"
-      description={t("manage_individual_nfts_review_content_and")}
+      description={t("view_and_manage_individual_nft_items")}
       columns={columns}
+      formConfig={formConfig}
       analytics={nftTokenAnalytics}
+      design={{
+        animation: "orbs",
+        primaryColor: "purple",
+        secondaryColor: "pink",
+        icon: Gem,
+      }}
     />
   );
 } 

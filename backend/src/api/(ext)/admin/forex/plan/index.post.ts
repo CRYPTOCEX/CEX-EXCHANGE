@@ -4,9 +4,10 @@ import { storeRecord, storeRecordResponses } from "@b/utils/query";
 import { forexPlanStoreSchema, forexPlanUpdateSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary: "Stores a new Forex Plan",
-  operationId: "storeForexPlan",
-  tags: ["Admin", "Forex Plans"],
+  summary: "Creates a new Forex plan",
+  description: "Creates a new Forex trading plan with profit ranges, investment limits, currency, wallet type, and available durations.",
+  operationId: "createForexPlan",
+  tags: ["Admin", "Forex", "Plan"],
   requestBody: {
     required: true,
     content: {
@@ -18,10 +19,12 @@ export const metadata: OperationObject = {
   responses: storeRecordResponses(forexPlanStoreSchema, "Forex Plan"),
   requiresAuth: true,
   permission: "create.forex.plan",
+  logModule: "ADMIN_FOREX",
+  logTitle: "Create forex plan",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const {
     name,
     title,
@@ -42,6 +45,8 @@ export default async (data: Handler) => {
     walletType,
   } = body;
 
+  ctx?.step("Validating forex plan data");
+
   const relations = durations
     ? [
         {
@@ -56,7 +61,8 @@ export default async (data: Handler) => {
       ]
     : [];
 
-  return await storeRecord({
+  ctx?.step("Creating forex plan");
+  const result = await storeRecord({
     model: "forexPlan",
     data: {
       name,
@@ -78,4 +84,7 @@ export default async (data: Handler) => {
     },
     relations,
   });
+
+  ctx?.success("Forex plan created successfully");
+  return result;
 };

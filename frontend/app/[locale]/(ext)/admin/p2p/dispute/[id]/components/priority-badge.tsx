@@ -8,7 +8,7 @@ interface PriorityBadgeProps {
 }
 
 export function PriorityBadge({ priority }: PriorityBadgeProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   switch (priority) {
     case "high":
       return <Badge variant="destructive">{t("high_priority")}</Badge>;

@@ -12,6 +12,8 @@ export const metadata: OperationObject = {
   description: "Fetches details of a specific token in the ecosystem.",
   operationId: "getEcosystemToken",
   tags: ["Ecosystem", "Tokens"],
+  logModule: "ECOSYSTEM",
+  logTitle: "Get ecosystem token details",
   parameters: [
     {
       name: "chain",
@@ -45,7 +47,12 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
   const { chain, currency } = params;
-  return await getEcosystemToken(chain, currency);
+
+  ctx?.step(`Fetching token ${currency} on ${chain}`);
+  const token = await getEcosystemToken(chain, currency);
+
+  ctx?.success(`Retrieved token ${currency} on ${chain}`);
+  return token;
 };

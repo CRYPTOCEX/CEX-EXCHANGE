@@ -12,7 +12,7 @@ interface ErrorDisplayProps {
 }
 
 export function ErrorDisplay({ error, clearError }: ErrorDisplayProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const router = useRouter();
 
   return (
@@ -34,7 +34,7 @@ export function ErrorDisplay({ error, clearError }: ErrorDisplayProps) {
           onClick={clearError}
           className="absolute right-2 top-2"
         >
-          {t("Dismiss")}
+          {t("dismiss")}
         </Button>
       </Alert>
     </div>

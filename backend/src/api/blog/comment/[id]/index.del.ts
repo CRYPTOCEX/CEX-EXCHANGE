@@ -8,6 +8,8 @@ export const metadata: OperationObject = {
   description: "This endpoint deletes a blog comment.",
   operationId: "deleteComment",
   tags: ["Blog"],
+  logModule: "BLOG",
+  logTitle: "Delete comment",
   requiresAuth: true,
   parameters: [
     {
@@ -26,7 +28,13 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  return deleteComment(data.params.id);
+  const { ctx } = data;
+
+  ctx?.step("Deleting comment");
+  const result = await deleteComment(data.params.id);
+
+  ctx?.success(`Comment ${data.params.id} deleted successfully`);
+  return result;
 };
 
 export async function deleteComment(id: string): Promise<any> {

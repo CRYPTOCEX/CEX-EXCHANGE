@@ -61,7 +61,9 @@ export default function LaunchPlanForm({
   onCancel,
   isActive = true,
 }: LaunchPlanFormProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   // Keep a stable copy of the clean values.
   const [cleanValues] = useState<LaunchPlanFormValues>(initialValues);
   const [formValues, setFormValues] =
@@ -172,19 +174,19 @@ export default function LaunchPlanForm({
         <CardContent>
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="mb-4">
-              <TabsTrigger value="basic">{t("basic_info")}</TabsTrigger>
+              <TabsTrigger value="basic">{tCommon("basic_info")}</TabsTrigger>
               <TabsTrigger value="features">
-                {t("features_&_limits")}
+                {t("features_limits")}
               </TabsTrigger>
-              <TabsTrigger value="advanced">{t("Advanced")}</TabsTrigger>
+              <TabsTrigger value="advanced">{tCommon("advanced")}</TabsTrigger>
             </TabsList>
             <TabsContent value="basic" className="space-y-4">
               <Input
                 id="name"
-                label="Plan Name"
+                label={tCommon("plan_name")}
                 value={formValues.name}
                 onChange={(e) => handleChange("name", e.target.value)}
-                placeholder="e.g. Basic, Standard, Premium"
+                placeholder={t("e_g_basic_standard_premium")}
                 required
               />
               <Textarea
@@ -192,7 +194,7 @@ export default function LaunchPlanForm({
                 label="Description"
                 value={formValues.description}
                 onChange={(e) => handleChange("description", e.target.value)}
-                placeholder="Brief description of the plan"
+                placeholder={t("brief_description_of_the_plan")}
                 required
               />
               <div className="grid grid-cols-2 gap-4">
@@ -211,8 +213,8 @@ export default function LaunchPlanForm({
                   onValueChange={(value) => handleChange("walletType", value)}
                   required
                 >
-                  <SelectTrigger id="walletType" title="Wallet Type">
-                    <SelectValue placeholder="Select wallet type" />
+                  <SelectTrigger id="walletType" title={tCommon("wallet_type")}>
+                    <SelectValue placeholder={tCommon("select_wallet_type")} />
                   </SelectTrigger>
                   <SelectContent>
                     {walletTypeOptions.map((option) => (
@@ -230,7 +232,7 @@ export default function LaunchPlanForm({
                 disabled={!formValues.walletType}
               >
                 <SelectTrigger id="currency" title="Currency">
-                  <SelectValue placeholder="Select currency" />
+                  <SelectValue placeholder={tCommon("select_currency")} />
                 </SelectTrigger>
                 <SelectContent>
                   {currencyOptions.map((option) => (
@@ -256,7 +258,7 @@ export default function LaunchPlanForm({
                   checked={formValues.status}
                   onCheckedChange={(value) => handleChange("status", value)}
                 />
-                <Label htmlFor="status">{t("Status")}</Label>
+                <Label htmlFor="status">{tCommon("status")}</Label>
               </div>
             </TabsContent>
             <TabsContent value="features" className="space-y-4">
@@ -265,7 +267,7 @@ export default function LaunchPlanForm({
                   id="maxTeamMembers"
                   type="number"
                   min="1"
-                  label="Max Team Members"
+                  label={t("max_team_members")}
                   value={formValues.features.maxTeamMembers}
                   onChange={(e) =>
                     handleFeatureChange("maxTeamMembers", e.target.value)
@@ -276,7 +278,7 @@ export default function LaunchPlanForm({
                   id="maxRoadmapItems"
                   type="number"
                   min="1"
-                  label="Max Roadmap Items"
+                  label={t("max_roadmap_items")}
                   value={formValues.features.maxRoadmapItems}
                   onChange={(e) =>
                     handleFeatureChange("maxRoadmapItems", e.target.value)
@@ -287,7 +289,7 @@ export default function LaunchPlanForm({
                   id="maxOfferingPhases"
                   type="number"
                   min="1"
-                  label="Max Offering Phases"
+                  label={t("max_offering_phases")}
                   value={formValues.features.maxOfferingPhases}
                   onChange={(e) =>
                     handleFeatureChange("maxOfferingPhases", e.target.value)
@@ -298,7 +300,7 @@ export default function LaunchPlanForm({
                   id="maxUpdatePosts"
                   type="number"
                   min="1"
-                  label="Max Update Posts"
+                  label={t("max_update_posts")}
                   value={formValues.features.maxUpdatePosts}
                   onChange={(e) =>
                     handleFeatureChange("maxUpdatePosts", e.target.value)
@@ -313,18 +315,18 @@ export default function LaunchPlanForm({
                 }
                 required
               >
-                <SelectTrigger id="supportLevel" title="Support Level">
-                  <SelectValue placeholder="Select support level" />
+                <SelectTrigger id="supportLevel" title={t("support_level")}>
+                  <SelectValue placeholder={t("select_support_level")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="basic">
-                    {t("basic_(email_only)")}
+                    {tCommon("basic")} ({t("email_only")})
                   </SelectItem>
                   <SelectItem value="standard">
-                    {t("standard_(email_+_chat)")}
+                    {tCommon('standard')} ({t("email_chat")})
                   </SelectItem>
                   <SelectItem value="premium">
-                    {t("premium_(email_+_chat_+_dedicated_manager)")}
+                    {t("premium_email_chat_dedicated_manager")} ({t("email_chat_dedicated_manager")})
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -338,7 +340,7 @@ export default function LaunchPlanForm({
                     }
                   />
                   <Label htmlFor="marketingSupport">
-                    {t("marketing_support")}
+                    {tExt("marketing_support")}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -350,7 +352,7 @@ export default function LaunchPlanForm({
                     }
                   />
                   <Label htmlFor="auditIncluded">
-                    {t("security_audit_included")}
+                    {tExt("security_audit_included")}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -362,7 +364,7 @@ export default function LaunchPlanForm({
                     }
                   />
                   <Label htmlFor="customTokenomics">
-                    {t("custom_tokenomics")}
+                    {tExt("custom_tokenomics")}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -374,7 +376,7 @@ export default function LaunchPlanForm({
                     }
                   />
                   <Label htmlFor="priorityListing">
-                    {t("priority_listing")}
+                    {tExt("priority_listing")}
                   </Label>
                 </div>
               </div>
@@ -398,9 +400,9 @@ export default function LaunchPlanForm({
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button type="button" variant="outline" onClick={handleCancel}>
-            {t("Cancel")}
+            {tCommon("cancel")}
           </Button>
-          <Button type="submit">{t("save_changes")}</Button>
+          <Button type="submit">{tCommon("save_changes")}</Button>
         </CardFooter>
       </form>
     </Card>

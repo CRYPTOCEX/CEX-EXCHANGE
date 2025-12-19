@@ -9,6 +9,7 @@ import {
 import { models } from "@b/db";
 import path from "path";
 import { getLicenseConfig } from "@b/config/license";
+import { logger } from "@b/utils/console";
 
 // Secure admin error utility
 function adminError(
@@ -17,9 +18,9 @@ function adminError(
 ) {
   if (details) {
     // Only log server-side, never return to user
-    console.error("[ADMIN SYSTEM ERROR]", message, details);
+    logger.error("ADMIN", message, details);
   } else {
-    console.error("[ADMIN SYSTEM ERROR]", message);
+    logger.error("ADMIN", message);
   }
   return new Error(message);
 }
@@ -132,8 +133,9 @@ export async function fetchPublicIp(): Promise<string | null> {
     });
     return data.ip;
   } catch (error) {
-    console.error(
-      `[ADMIN SYSTEM ERROR] Error fetching public IP: ${(error as Error).message}`
+    logger.error(
+      "ADMIN",
+      `Error fetching public IP: ${(error as Error).message}`
     );
     return null;
   }
@@ -448,7 +450,7 @@ export async function fetchAllProductsUpdates(): Promise<ApiResponse> {
     );
     return response;
   } catch (error) {
-    console.error("Failed to fetch all products updates:", error);
+    logger.error("ADMIN", "Failed to fetch all products updates", error);
     return { status: false, message: "Failed to fetch updates", products: [] };
   }
 }

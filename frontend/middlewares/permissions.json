@@ -392,6 +392,18 @@
     "permission": "access.futures.position"
   },
   {
+    "path": "/admin/gateway/merchant",
+    "permission": "access.gateway.merchant"
+  },
+  {
+    "path": "/admin/gateway/payment",
+    "permission": "access.gateway.payment"
+  },
+  {
+    "path": "/admin/gateway/settings",
+    "permission": "access.gateway.settings"
+  },
+  {
     "path": "/admin/ico",
     "permission": "access.ico"
   },
@@ -582,10 +594,6 @@
   {
     "path": "/admin/system/extension/[id]",
     "permission": "access.extension"
-  },
-  {
-    "path": "/admin/system/log",
-    "permission": "access.system.log"
   },
   {
     "path": "/admin/system/notification/template",

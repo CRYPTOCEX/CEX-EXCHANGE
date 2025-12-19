@@ -2,12 +2,16 @@
 
 import React from "react";
 import DataTable from "@/components/blocks/data-table";
-import { disputeColumns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import { disputeAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
+import { Shield } from "lucide-react";
 
 export default function AdminDisputesClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/p2p/dispute"
@@ -19,17 +23,25 @@ export default function AdminDisputesClient() {
         edit: "edit.p2p.dispute",
         delete: "delete.p2p.dispute",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={false}
       canEdit={false}
       canDelete={false}
       canView={true}
       viewLink="/admin/p2p/dispute/[id]"
-      title={t("p2p_disputes")}
+      title={t("p2p_dispute_management")}
+      description={t("handle_and_resolve_p2p_trade_disputes")}
       itemTitle="Dispute"
-      columns={disputeColumns}
+      columns={columns}
+      formConfig={formConfig}
       analytics={disputeAnalytics}
       isParanoid={true}
+      design={{
+        animation: "orbs",
+        primaryColor: 'blue',
+        secondaryColor: 'violet',
+        icon: Shield,
+      }}
     />
   );
 }

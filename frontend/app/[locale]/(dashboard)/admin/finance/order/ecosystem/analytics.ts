@@ -1,296 +1,259 @@
+"use client";
 import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+import { useTranslations } from "next-intl";
 
-export const ecosystemOrderAnalytics: AnalyticsConfig = [
-  // ─────────────────────────────────────────────────────────────
-  // Row 1: Status KPIs and Status Pie Chart
-  // ─────────────────────────────────────────────────────────────
-  [
-    {
-      type: "kpi",
-      layout: { cols: 2, rows: 2 }, // 4 KPI cards in total
-      items: [
-        {
-          id: "total_orders",
-          title: "Total Orders",
-          metric: "total",
-          model: "orders",
-          icon: "mdi:finance",
-        },
-        {
-          id: "open_orders",
-          title: "Open Orders",
-          metric: "OPEN",
-          model: "orders",
-          aggregation: { field: "status", value: "OPEN" },
-          icon: "mdi:door-open",
-        },
-        {
-          id: "closed_orders",
-          title: "Closed Orders",
-          metric: "CLOSED",
-          model: "orders",
-          aggregation: { field: "status", value: "CLOSED" },
-          icon: "mdi:door-closed",
-        },
-        {
-          id: "cancelled_orders",
-          title: "Cancelled Orders",
-          metric: "CANCELLED",
-          model: "orders",
-          aggregation: { field: "status", value: "CANCELLED" },
-          icon: "mdi:cancel",
-        },
-      ],
-    },
-    {
-      type: "chart",
-      items: [
-        {
-          id: "orderStatusDistribution",
-          title: "Status Distribution",
-          type: "pie",
-          model: "orders",
-          metrics: ["OPEN", "CLOSED", "CANCELLED"],
-          config: {
-            field: "status",
-            status: [
-              {
-                value: "OPEN",
-                label: "Open",
-                color: "blue",
-                icon: "mdi:door-open",
-              },
-              {
-                value: "CLOSED",
-                label: "Closed",
-                color: "green",
-                icon: "mdi:door-closed",
-              },
-              {
-                value: "CANCELLED",
-                label: "Cancelled",
-                color: "amber",
-                icon: "mdi:cancel",
-              },
-            ],
-          },
-        },
-      ],
-    },
-  ],
+export function useAnalytics() {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
 
-  // ─────────────────────────────────────────────────────────────
-  // Row 2: Side KPIs and Side Pie Chart
-  // ─────────────────────────────────────────────────────────────
-  [
-    {
-      type: "kpi",
-      layout: { cols: 1, rows: 2 },
-      items: [
-        {
-          id: "buy_orders",
-          title: "Buy Orders",
-          metric: "BUY",
-          model: "orders",
-          aggregation: { field: "side", value: "BUY" },
-          icon: "mdi:cart-arrow-down",
-        },
-        {
-          id: "sell_orders",
-          title: "Sell Orders",
-          metric: "SELL",
-          model: "orders",
-          aggregation: { field: "side", value: "SELL" },
-          icon: "mdi:cart-arrow-up",
-        },
-      ],
-    },
-    {
-      type: "chart",
-      items: [
-        {
-          id: "orderSideDistribution",
-          title: "Side Distribution",
-          type: "pie",
-          model: "orders",
-          metrics: ["BUY", "SELL"],
-          config: {
-            field: "side",
-            status: [
-              {
-                value: "BUY",
-                label: "Buy",
-                color: "green",
-                icon: "mdi:cart-arrow-down",
-              },
-              {
-                value: "SELL",
-                label: "Sell",
-                color: "red",
-                icon: "mdi:cart-arrow-up",
-              },
-            ],
-          },
-        },
-      ],
-    },
-  ],
-
-  // ─────────────────────────────────────────────────────────────
-  // Row 3: Order Type KPIs and Order Type Pie Chart
-  // ─────────────────────────────────────────────────────────────
-  [
-    {
-      type: "kpi",
-      layout: { cols: 1, rows: 2 },
-      items: [
-        {
-          id: "market_orders",
-          title: "Market Orders",
-          metric: "MARKET",
-          model: "orders",
-          aggregation: { field: "type", value: "MARKET" },
-          icon: "mdi:chart-line",
-        },
-        {
-          id: "limit_orders",
-          title: "Limit Orders",
-          metric: "LIMIT",
-          model: "orders",
-          aggregation: { field: "type", value: "LIMIT" },
-          icon: "mdi:chart-bell-curve",
-        },
-      ],
-    },
-    {
-      type: "chart",
-      items: [
-        {
-          id: "orderTypeDistribution",
-          title: "Order Type Distribution",
-          type: "pie",
-          model: "orders",
-          metrics: ["MARKET", "LIMIT"],
-          config: {
-            field: "type",
-            status: [
-              {
-                value: "MARKET",
-                label: "Market",
-                color: "blue",
-                icon: "mdi:chart-line",
-              },
-              {
-                value: "LIMIT",
-                label: "Limit",
-                color: "green",
-                icon: "mdi:chart-bell-curve",
-              },
-            ],
-          },
-        },
-      ],
-    },
-  ],
-
-  // ─────────────────────────────────────────────────────────────
-  // Row 4: Time-In-Force KPIs and Pie Chart
-  // ─────────────────────────────────────────────────────────────
-  [
-    {
-      type: "kpi",
-      layout: { cols: 1, rows: 2 },
-      items: [
-        {
-          id: "gtc_orders",
-          title: "GTC Orders",
-          metric: "GTC",
-          model: "orders",
-          aggregation: { field: "timeInForce", value: "GTC" },
-          icon: "mdi:timer-sand",
-        },
-        {
-          id: "ioc_orders",
-          title: "IOC Orders",
-          metric: "IOC",
-          model: "orders",
-          aggregation: { field: "timeInForce", value: "IOC" },
-          icon: "mdi:timer-sand-full",
-        },
-      ],
-    },
-    {
-      type: "chart",
-      items: [
-        {
-          id: "orderTimeInForceDistribution",
-          title: "Time-In-Force Distribution",
-          type: "pie",
-          model: "orders",
-          metrics: ["GTC", "IOC"],
-          config: {
-            field: "timeInForce",
-            status: [
-              {
-                value: "GTC",
-                label: "GTC",
-                color: "blue",
-                icon: "mdi:timer-sand",
-              },
-              {
-                value: "IOC",
-                label: "IOC",
-                color: "green",
-                icon: "mdi:timer-sand-full",
-              },
-            ],
-          },
-        },
-      ],
-    },
-  ],
-
-  // ─────────────────────────────────────────────────────────────
-  // Row 5: Orders Over Time (Line Chart)
-  // ─────────────────────────────────────────────────────────────
-  {
-    type: "chart",
-    items: [
+  return [
+    // Row 1: Order Status KPIs + Pie Chart
+    [
       {
-        id: "ordersOverTime",
-        title: "Orders Over Time",
-        type: "line",
-        model: "orders",
-        metrics: ["total", "OPEN", "CLOSED", "CANCELLED"],
-        timeframes: ["24h", "7d", "30d", "3m", "6m", "y"],
-        labels: {
-          total: "Total",
-          OPEN: "Open",
-          CLOSED: "Closed",
-          CANCELLED: "Cancelled",
+        type: "kpi" as const,
+        // Legacy layout (fallback)
+        layout: { cols: 2, rows: 2 },
+        // New responsive layout
+        responsive: {
+          mobile: {
+            cols: 1, // Single column on mobile
+            rows: 4, // 4 rows for 4 KPIs
+          },
+          tablet: {
+            cols: 2, // 2 columns on tablet
+            rows: 2, // 2 rows for 4 KPIs
+          },
+          desktop: {
+            cols: 2, // 2 columns on desktop
+            rows: 2, // 2 rows for 4 KPIs
+          },
         },
+        items: [
+          {
+            id: "total_orders",
+            title: tCommon("total_orders"),
+            metric: "total",
+            model: "orders",
+            icon: "mdi:format-list-bulleted",
+          },
+          {
+            id: "open_orders",
+            title: tCommon("open"),
+            metric: "OPEN",
+            model: "orders",
+            aggregation: { field: "status", value: "OPEN" },
+            icon: "mdi:clock-outline",
+          },
+          {
+            id: "closed_orders",
+            title: tCommon("closed"),
+            metric: "CLOSED",
+            model: "orders",
+            aggregation: { field: "status", value: "CLOSED" },
+            icon: "mdi:check-circle",
+          },
+          {
+            id: "cancelled_orders",
+            title: tCommon("cancelled"),
+            metric: "CANCELLED",
+            model: "orders",
+            aggregation: { field: "status", value: "CANCELLED" },
+            icon: "mdi:close-circle",
+          },
+        ],
+      },
+      {
+        type: "chart" as const,
+        responsive: {
+          mobile: {
+            cols: 1, // Full width on mobile
+            order: 2, // Show after KPIs on mobile
+          },
+          tablet: {
+            cols: 1, // Full width on tablet
+          },
+          desktop: {
+            cols: 1, // Takes up 1 column in the 2-column grid
+          },
+        },
+        items: [
+          {
+            id: "orderStatusDistribution",
+            title: tCommon("order_status_distribution"),
+            type: "pie" as const,
+            model: "orders",
+            metrics: ["OPEN", "CLOSED", "CANCELLED"],
+            config: {
+              field: "status",
+              status: [
+                {
+                  value: "OPEN",
+                  label: tCommon("open"),
+                  color: "blue",
+                  icon: "mdi:clock-outline",
+                },
+                {
+                  value: "CLOSED",
+                  label: tCommon("closed"),
+                  color: "green",
+                  icon: "mdi:check-circle",
+                },
+                {
+                  value: "CANCELLED",
+                  label: tCommon("cancelled"),
+                  color: "red",
+                  icon: "mdi:close-circle",
+                },
+              ],
+            },
+          },
+        ],
       },
     ],
-  },
-
-  // ─────────────────────────────────────────────────────────────
-  // Row 6: Buy vs Sell Over Time (Stacked Area Chart)
-  // ─────────────────────────────────────────────────────────────
-  {
-    type: "chart",
-    items: [
+    // Row 2: Order Side KPIs + Pie Chart
+    [
       {
-        id: "buyVsSellOverTime",
-        title: "Buy vs Sell Over Time",
-        type: "stackedArea",
-        model: "orders",
-        metrics: ["BUY", "SELL"],
-        timeframes: ["24h", "7d", "30d", "3m", "6m", "y"],
-        labels: {
-          BUY: "Buy",
-          SELL: "Sell",
+        type: "kpi" as const,
+        layout: { cols: 2, rows: 1 },
+        responsive: {
+          mobile: {
+            cols: 1, // Single column on mobile
+            rows: 2, // 2 rows for 2 KPIs
+          },
+          tablet: {
+            cols: 2, // 2 columns on tablet
+            rows: 1, // 1 row for 2 KPIs
+          },
+          desktop: {
+            cols: 2, // 2 columns on desktop
+            rows: 1,
+          },
         },
+        items: [
+          {
+            id: "buy_orders",
+            title: tCommon("buy"),
+            metric: "BUY",
+            model: "orders",
+            aggregation: { field: "side", value: "BUY" },
+            icon: "mdi:trending-up",
+          },
+          {
+            id: "sell_orders",
+            title: tCommon("sell"),
+            metric: "SELL",
+            model: "orders",
+            aggregation: { field: "side", value: "SELL" },
+            icon: "mdi:trending-down",
+          },
+        ],
+      },
+      {
+        type: "chart" as const,
+        responsive: {
+          mobile: {
+            cols: 1,
+            order: 2,
+          },
+          tablet: {
+            cols: 1,
+          },
+          desktop: {
+            cols: 1,
+          },
+        },
+        items: [
+          {
+            id: "orderSideDistribution",
+            title: t("order_side_distribution"),
+            type: "pie" as const,
+            model: "orders",
+            metrics: ["BUY", "SELL"],
+            config: {
+              field: "side",
+              status: [
+                {
+                  value: "BUY",
+                  label: tCommon("buy"),
+                  color: "green",
+                  icon: "mdi:trending-up",
+                },
+                {
+                  value: "SELL",
+                  label: tCommon("sell"),
+                  color: "red",
+                  icon: "mdi:trending-down",
+                },
+              ],
+            },
+          },
+        ],
       },
     ],
-  },
-];
+    // Row 3: Financial Metrics – KPI Grid
+    {
+      type: "kpi" as const,
+      layout: { cols: 3, rows: 1 },
+      responsive: {
+        mobile: { cols: 1, rows: 3 },
+        tablet: { cols: 3, rows: 1 },
+        desktop: { cols: 3, rows: 1 },
+      },
+      items: [
+        {
+          id: "total_volume",
+          title: "Total Volume",
+          metric: "amount",
+          model: "orders",
+          icon: "mdi:cash-multiple",
+        },
+        {
+          id: "total_fees",
+          title: "Total Fees",
+          metric: "fee",
+          model: "orders",
+          icon: "mdi:cash",
+        },
+        {
+          id: "average_order_size",
+          title: "Average Order Size",
+          metric: "average",
+          model: "orders",
+          icon: "mdi:calculator",
+        },
+      ],
+    },
+
+    // Row 4: Orders Over Time (Line Chart) - Full Width
+    {
+      type: "chart" as const,
+      responsive: {
+        mobile: {
+          cols: 1, // Full width on all devices
+        },
+        tablet: {
+          cols: 1,
+        },
+        desktop: {
+          cols: 1,
+        },
+      },
+      items: [
+        {
+          id: "ordersOverTime",
+          title: tCommon("orders_over_time"),
+          type: "line" as const,
+          model: "orders",
+          metrics: ["total", "OPEN", "CLOSED", "CANCELLED"],
+          timeframes: ["24h", "7d", "30d", "3m", "6m", "y"],
+          labels: {
+            total: "Total",
+            OPEN: tCommon("open"),
+            CLOSED: tCommon("closed"),
+            CANCELLED: tCommon("cancelled"),
+          },
+        },
+      ],
+    },
+  ] as AnalyticsConfig;
+}

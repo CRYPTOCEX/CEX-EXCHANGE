@@ -28,10 +28,15 @@ export const metadata = {
     }
   },
   requiresAuth: true,
-  permission: "view.page"
+  permission: "view.page",
+  logModule: "ADMIN_CONTENT",
+  logTitle: "List Default Editor Pages"
 };
 
 export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step("Fetching default editor pages");
   // Return the default pages that can be edited
   const defaultPages = [
     {
@@ -86,5 +91,6 @@ export default async (data: Handler) => {
     },
   ];
 
+  ctx?.success("Default editor pages retrieved successfully");
   return defaultPages;
 }; 

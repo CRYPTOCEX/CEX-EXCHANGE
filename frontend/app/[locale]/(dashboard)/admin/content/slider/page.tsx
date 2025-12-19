@@ -1,11 +1,17 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { sliderAnalytics } from "./analytics";
+import { Layers } from "lucide-react";
+import { useColumns, useFormConfig } from "./columns";
+import { useAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
 export default function SliderPage() {
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+  const analytics = useAnalytics();
   return (
     <DataTable
-      apiEndpoint="/api/admin/slider"
+      apiEndpoint="/api/admin/content/slider"
       model="slider"
       permissions={{
         access: "access.slider",
@@ -14,15 +20,21 @@ export default function SliderPage() {
         edit: "edit.slider",
         delete: "delete.slider",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate
       canEdit
       canDelete
       canView
-      title="Slider Management"
+      title={t("slider_management")}
+      description={t("manage_homepage_sliders_and_promotional_banners")}
       itemTitle="Slider"
       columns={columns}
-      analytics={sliderAnalytics}
+      formConfig={formConfig}
+      analytics={analytics}
+      design={{
+        animation: "orbs",
+        icon: Layers,
+      }}
     />
   );
 }

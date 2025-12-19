@@ -12,6 +12,8 @@ export const metadata: OperationObject = {
   operationId: "getKycLevels",
   tags: ["KYC Level"],
   requiresAuth: true,
+  logModule: "ADMIN_CRM",
+  logTitle: "Get KYC level options",
   responses: {
     200: {
       description: "KYC levels retrieved successfully",
@@ -37,15 +39,18 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) throw createError(401, "Unauthorized");
 
   try {
+    ctx?.step("Fetching KYC level options");
     const kycLevels = await models.kycLevel.findAll();
     const formatted = kycLevels.map((kycLevel) => ({
       id: kycLevel.id,
       name: kycLevel.name,
     }));
+
+    ctx?.success("KYC level options retrieved successfully");
     return formatted;
   } catch (error) {
     throw createError(500, "An error occurred while fetching KYC levels");

@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "deleteRoadmapItem",
   tags: ["ICO", "Creator", "Roadmap"],
   requiresAuth: true,
+  logModule: "ICO",
+  logTitle: "Delete ICO Roadmap Item",
   parameters: [
     {
       index: 0,
@@ -35,12 +37,16 @@ export const metadata = {
   },
 };
 
-export default async (data: { user?: any; params?: any }) => {
-  const { user, params } = data;
+export default async (data: { user?: any; params?: any; ctx?: any }) => {
+  const { user, params, ctx } = data;
   const { id, roadmapId } = params;
+
+  ctx?.step?.("Validating user authentication");
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step?.("Validating request parameters");
   if (!id || !roadmapId) {
     throw createError({
       statusCode: 400,
@@ -48,6 +54,7 @@ export default async (data: { user?: any; params?: any }) => {
     });
   }
 
+  ctx?.step?.("Fetching roadmap item from database");
   const roadmapItem = await models.icoRoadmapItem.findOne({
     where: { id: roadmapId, offeringId: id },
   });
@@ -58,9 +65,11 @@ export default async (data: { user?: any; params?: any }) => {
   // Store the title for the notification
   const deletedTitle = roadmapItem.title;
 
+  ctx?.step?.("Deleting roadmap item");
   await roadmapItem.destroy();
 
   // Create a notification informing the user about the deletion.
+  ctx?.step?.("Creating deletion notification");
   try {
     await createNotification({
       userId: user.id,
@@ -82,5 +91,6 @@ export default async (data: { user?: any; params?: any }) => {
     console.error("Failed to create deletion notification", notifErr);
   }
 
+  ctx?.success?.("Roadmap item deleted successfully");
   return { message: "Roadmap item deleted successfully" };
 };

@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "getStakingPools",
   tags: ["Staking", "Admin", "Pools"],
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Get All Staking Pools",
   parameters: [
     {
       index: 0,
@@ -77,14 +79,15 @@ export const metadata = {
   permission: "view.staking.pool",
 };
 
-export default async (data: { user?: any; query?: any }) => {
-  const { user, query } = data;
+export default async (data: { user?: any; query?: any, ctx }) => {
+  const { user, query, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   try {
+    ctx?.step("Fetching data");
     // Build filter conditions
     const where: any = {};
 
@@ -154,6 +157,7 @@ export default async (data: { user?: any; query?: any }) => {
       order: [["order", "ASC"]],
     });
 
+    ctx?.success("Operation completed successfully");
     return pools;
   } catch (error) {
     console.error("Error fetching staking pools:", error);

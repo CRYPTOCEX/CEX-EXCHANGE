@@ -1,15 +1,23 @@
-import { updateRecord, updateRecordResponses } from "@b/utils/query";
+import { updateRecord } from "@b/utils/query";
 import { mlmReferralRewardUpdateSchema } from "../utils";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  badRequestResponse,
+  notFoundResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata: OperationObject = {
-  summary: "Updates a specific MLM Referral Reward",
-  operationId: "updateMlmReferralReward",
-  tags: ["Admin", "MLM Referral Rewards"],
+  summary: "Update a specific affiliate reward",
+  operationId: "updateAffiliateReward",
+  tags: ["Admin", "Affiliate", "Reward"],
+  description:
+    "Updates the reward amount and claimed status for a specific affiliate referral reward.",
   parameters: [
     {
       name: "id",
       in: "path",
-      description: "ID of the MLM Referral Reward to update",
+      description: "ID of the affiliate reward to update",
       required: true,
       schema: {
         type: "string",
@@ -17,25 +25,55 @@ export const metadata: OperationObject = {
     },
   ],
   requestBody: {
-    description: "New data for the MLM Referral Reward",
+    required: true,
+    description: "Updated reward data",
     content: {
       "application/json": {
         schema: mlmReferralRewardUpdateSchema,
       },
     },
   },
-  responses: updateRecordResponses("MLM Referral Reward"),
+  responses: {
+    200: {
+      description: "Affiliate reward updated successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              message: {
+                type: "string",
+                description: "Success message",
+              },
+            },
+          },
+        },
+      },
+    },
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    404: notFoundResponse("Affiliate Reward"),
+    500: serverErrorResponse,
+  },
   requiresAuth: true,
   permission: "edit.affiliate.reward",
+  logModule: "ADMIN_AFFILIATE",
+  logTitle: "Update affiliate reward",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
+
+  ctx?.step("Validating update data");
   const updatedFields = {
     reward: body.reward,
     isClaimed: body.isClaimed,
   };
 
-  return await updateRecord("mlmReferralReward", id, updatedFields);
+  ctx?.step(`Updating reward with ID: ${id}`);
+  const result = await updateRecord("mlmReferralReward", id, updatedFields);
+
+  ctx?.success("Reward updated successfully");
+  return result;
 };

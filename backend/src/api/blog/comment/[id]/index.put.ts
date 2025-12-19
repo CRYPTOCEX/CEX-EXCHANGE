@@ -10,6 +10,8 @@ export const metadata: OperationObject = {
   description: "This endpoint updates an existing blog comment.",
   operationId: "updateComment",
   tags: ["Blog"],
+  logModule: "BLOG",
+  logTitle: "Update comment",
   requiresAuth: true,
   parameters: [
     {
@@ -43,10 +45,17 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  return updateComment(data.params.id, data.body.comment);
+  const { ctx } = data;
+
+  ctx?.step("Updating comment");
+  const result = await updateComment(data.params.id, data.body.comment, ctx);
+
+  ctx?.success(`Comment ${data.params.id} updated successfully`);
+  return result;
 };
 
-export async function updateComment(id: string, data: any): Promise<any> {
+export async function updateComment(id: string, data: any, ctx?: any): Promise<any> {
+  ctx?.step("Validating comment status");
   // only allow updating the comment if its approved or pending
   const comment = await models.comment.findByPk(id);
   if (!comment) {
@@ -56,6 +65,7 @@ export async function updateComment(id: string, data: any): Promise<any> {
     throw createError(400, "Comment cannot be updated after rejection");
   }
 
+  ctx?.step("Checking moderation settings");
   const cacheManager = CacheManager.getInstance();
   const settings = await cacheManager.getSettings();
   const moderateCommentsRaw = settings.has("moderateComments")
@@ -66,6 +76,7 @@ export async function updateComment(id: string, data: any): Promise<any> {
       ? moderateCommentsRaw
       : Boolean(moderateCommentsRaw);
 
+  ctx?.step("Saving comment update");
   await comment.update(
     {
       content: data.comment,

@@ -110,7 +110,8 @@ const parseMessages = (messagesData: any): ChatMessage[] => {
 };
 
 export default function LiveChat() {
-  const t = useTranslations("common");
+  const t = useTranslations("support_ticket");
+  const tCommon = useTranslations("common");
   const { user } = useUserStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -654,7 +655,7 @@ export default function LiveChat() {
                   </CardTitle>
                   {session?.status === "WAITING" && session.queuePosition && (
                     <p className="text-xs text-blue-100">
-                      {t("position_#")}
+                      {`${tCommon("position")} #`}
                       {session.queuePosition}
                       {session.estimatedWaitTime &&
                         ` • ~${session.estimatedWaitTime}min wait`}
@@ -663,7 +664,7 @@ export default function LiveChat() {
                   {session?.status === "CONNECTED" && (
                     <div className="text-xs text-blue-100 flex items-center gap-1">
                       <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      {t("Online")}
+                      {tCommon("online")}
                     </div>
                   )}
                 </div>
@@ -711,7 +712,7 @@ export default function LiveChat() {
                     <MessageCircle className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-zinc-100">
-                    {t("start_live_chat")}
+                    {tCommon("start_live_chat")}
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-zinc-400 mb-6 max-w-sm">
                     {t("connect_instantly_with_our_expert_support_team")}.{" "}
@@ -935,7 +936,7 @@ export default function LiveChat() {
                         </div>
                         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-zinc-400">
                           <span>
-                            {t("press_enter_to_send_shift+enter_for_new_line")}
+                            {t("press_enter_to_send_shift_enter_for_new_line")}
                           </span>
                           <div className="flex items-center gap-2">
                             <div
@@ -965,7 +966,7 @@ export default function LiveChat() {
                           onClick={() => setIsOpen(false)}
                           className="border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-zinc-100"
                         >
-                          {t("Close")}
+                          {tCommon("close")}
                         </Button>
                       </div>
                     )}

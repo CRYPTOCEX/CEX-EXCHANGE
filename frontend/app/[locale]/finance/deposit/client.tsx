@@ -59,16 +59,16 @@ interface DepositFormProps {
 }
 
 // Manual Deposit Form Component
-const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack, t, extractFeeValue }: {
+const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack, extractFeeValue }: {
   method: any;
   currency: string;
   amount: number;
   onSubmit: (values: any) => Promise<void>;
   loading: boolean;
   onBack: () => void;
-  t: any;
   extractFeeValue: (feeData: any, currency: string) => number;
 }) => {
+  const t = useTranslations("common");
   const [customFields, setCustomFields] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -136,6 +136,7 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
   };
 
   const renderCustomField = (field: any) => {
+    const tCommon = useTranslations("common");
     const value = customFields[field.name] || "";
     const error = errors[field.name];
 
@@ -190,14 +191,14 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
                   className="w-64 h-64 object-contain"
                 />
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center">
-                  Scan this QR code to complete your payment
+                  {tCommon("scan_this_qr_code_to_complete_your_payment")}
                 </p>
               </div>
             ) : (
               <div className="flex items-center justify-center p-8 border border-dashed border-zinc-300 dark:border-zinc-600 rounded-lg bg-zinc-50 dark:bg-zinc-800/50">
                 <div className="text-center">
                   <QrCode className="h-12 w-12 text-zinc-400 dark:text-zinc-600 mx-auto mb-2" />
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">No QR code available</p>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">{tCommon("no_qr_code_available")}</p>
                 </div>
               </div>
             )}
@@ -231,7 +232,7 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
           <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-semibold">
             5
           </span>
-          Complete Deposit
+          {t("complete_deposit")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -256,7 +257,7 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
         <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
           <div className="flex justify-between items-center">
             <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              Deposit Amount:
+              {t("deposit_amount")}:
             </span>
             <span className="font-semibold text-zinc-900 dark:text-zinc-100">
               {amount} {currency}
@@ -267,7 +268,7 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
           {(method.fixedFee || method.percentageFee) && (
             <div className="flex justify-between items-center mt-2">
               <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                Fee:
+                {t("fee")}:
               </span>
               <span className="text-sm text-zinc-700 dark:text-zinc-300">
                 {(() => {
@@ -288,7 +289,7 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
         {method.customFields && (
           <div className="space-y-4">
             <h4 className="font-medium text-zinc-900 dark:text-zinc-100">
-              Additional Information
+              {t("additional_information")}
             </h4>
             {(() => {
               try {
@@ -297,7 +298,7 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
               } catch (error) {
                 return (
                   <p className="text-sm text-red-500">
-                    Error loading form fields. Please contact support.
+                    {t("error_loading_form_fields_please_contact_support")}
                   </p>
                 );
               }
@@ -323,7 +324,7 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
             {loading ? (
               <>
                 <Loader className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
+                {t('processing')}
               </>
             ) : (
               "Submit Deposit"
@@ -337,6 +338,13 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
 
 export function DepositForm() {
   const t = useTranslations("common");
+  const tComponentsBlocks = useTranslations("components_blocks");
+  const tExt = useTranslations("ext");
+  const tExtAdmin = useTranslations("ext_admin");
+  const tExtCopyTrading = useTranslations("ext_copy-trading");
+  const tExtGateway = useTranslations("ext_gateway");
+  const tExtNft = useTranslations("ext_nft");
+  const tFinance = useTranslations("finance");
   const searchParams = useSearchParams();
   const initialType = searchParams?.get("type");
   const initialCurrency = searchParams?.get("currency");
@@ -557,9 +565,9 @@ export function DepositForm() {
           if (confirmations < requiredConfirmations && selectedWalletType?.value === "ECO") {
             toast.info(
               <div>
-                <div>Transaction detected!</div>
+                <div>{t("transaction_detected")}</div>
                 <div className="text-sm mt-1">
-                  Confirmations: {confirmations}/{requiredConfirmations}
+                  {t("confirmations")}: {confirmations}/{requiredConfirmations}
                 </div>
                 {txHash && (
                   <a
@@ -568,7 +576,7 @@ export function DepositForm() {
                     rel="noopener noreferrer"
                     className="text-xs text-blue-400 hover:underline mt-1 inline-block"
                   >
-                    View on blockchain →
+                    {t("view_on_blockchain")}
                   </a>
                 )}
               </div>,
@@ -1396,7 +1404,7 @@ export function DepositForm() {
             >
               {t("pay_with_paypal")}
               <span className="ml-2 text-sm">
-                (min {minAmount} {selectedCurrency})
+                {tExtAdmin("min_1")} {minAmount} {selectedCurrency})
               </span>
             </Button>
           </div>
@@ -1598,10 +1606,10 @@ export function DepositForm() {
             <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
           </div>
           <h1 className="text-3xl font-bold text-green-600 dark:text-green-400">
-            Deposit Request Submitted
+            {t("deposit_request_submitted")}
           </h1>
           <p className="text-zinc-600 dark:text-zinc-400">
-            Your deposit request has been submitted successfully and is being processed.
+            {t("your_deposit_request_has_been_submitted")}
           </p>
         </motion.div>
 
@@ -1610,13 +1618,13 @@ export function DepositForm() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
                 <CheckCircle className="h-5 w-5 text-green-500" />
-                Transaction Details
+                {t("transaction_details")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-zinc-600 dark:text-zinc-400">Transaction ID</span>
+                  <span className="text-zinc-600 dark:text-zinc-400">{t("transaction_id")}</span>
                   <span className="font-mono text-xs text-zinc-900 dark:text-zinc-100">
                     {deposit.transaction?.id || deposit.id}
                   </span>
@@ -1653,12 +1661,12 @@ export function DepositForm() {
 
               {/* Next Steps */}
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Next Steps:</h4>
+                <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">{t("next_steps")}:</h4>
                 <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                  <li>• Our team will review your deposit request</li>
-                  <li>• You will receive an email confirmation shortly</li>
-                  <li>• Processing typically takes 1-3 business days</li>
-                  <li>• You can track the status in your transaction history</li>
+                  <li>{t("our_team_will_review_your_deposit_request")}</li>
+                  <li>{t("you_will_receive_an_email_confirmation_shortly")}</li>
+                  <li>{t("processing_typically_takes_1_3_business_days")}</li>
+                  <li>{t("you_can_track_the_status_in")}</li>
                 </ul>
               </div>
 
@@ -1669,13 +1677,13 @@ export function DepositForm() {
                   onClick={() => window.location.href = '/finance/history'}
                   className="flex-1"
                 >
-                  View Transactions
+                  {tExt("view_transactions")}
                 </Button>
                 <Button
                   onClick={reset}
                   className="flex-1"
                 >
-                  Make Another Deposit
+                  {t("make_another_deposit")}
                 </Button>
               </div>
             </CardContent>
@@ -1771,7 +1779,7 @@ export function DepositForm() {
                 )}
                 {deposit.blockNumber && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-zinc-600 dark:text-zinc-400">{t("block_number")}</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">{tExtAdmin("block_number")}</span>
                     <span className="font-medium text-blue-600 dark:text-blue-400">
                       {deposit.blockNumber}
                     </span>
@@ -1872,7 +1880,7 @@ export function DepositForm() {
                 setDeposit(null);
               }}
             >
-              {t("Cancel")}
+              {t("cancel")}
             </Button>
           </div>
         </motion.div>
@@ -1887,7 +1895,7 @@ export function DepositForm() {
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-          {t("deposit_funds")}
+          {tExt("deposit_funds")}
         </h1>
         <p className="text-zinc-600 dark:text-zinc-400">
           {t("add_funds_to_your_wallet_quickly_and_securely")}
@@ -1920,7 +1928,7 @@ export function DepositForm() {
                       {loading ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500 mr-2"></div>
-                          {t("Retrying")}.
+                          {tComponentsBlocks("retrying")}.
                         </>
                       ) : (
                         <>
@@ -1982,7 +1990,7 @@ export function DepositForm() {
                         {t("no_wallets_available")}
                       </AlertTitle>
                       <AlertDescription className="text-amber-800 dark:text-amber-200">
-                        {t("no_wallets_available_description")}
+                        {tFinance("no_wallets_available_description")}
                       </AlertDescription>
                     </Alert>
                   );
@@ -2058,7 +2066,7 @@ export function DepositForm() {
                   {/* Results Info */}
                   {currencySearch && (
                     <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                      {filteredCurrencies.length} {t("results_found")} for "{currencySearch}"
+                      {filteredCurrencies.length} {tExtNft("results_found")} {tExt("for")}{currencySearch}"
                     </div>
                   )}
 
@@ -2291,7 +2299,7 @@ export function DepositForm() {
                                         return `${fixedFee} + ${percentageFee}% ${t("fee")}`;
                                       } catch (error) {
                                         console.error('Fee extraction error:', error, gateway);
-                                        return `${t("fee")} ${t("not_available")}`;
+                                        return `${t("fee")} ${tExtGateway("not_available")}`;
                                       }
                                     })()}
                                   </Badge>
@@ -2303,7 +2311,7 @@ export function DepositForm() {
                                         return `${minAmount} - ${maxAmount || "∞"} ${selectedCurrency}`;
                                       } catch (error) {
                                         console.error('Amount extraction error:', error, gateway);
-                                        return `${t("amount_range")} ${t("not_available")}`;
+                                        return `${tExtAdmin("amount_range")} ${tExtGateway("not_available")}`;
                                       }
                                     })()}
                                   </Badge>
@@ -2376,7 +2384,7 @@ export function DepositForm() {
                                         return `${fixedFee} + ${percentageFee}% ${t("fee")}`;
                                       } catch (error) {
                                         console.error('Fee extraction error:', error, method);
-                                        return `${t("fee")} ${t("not_available")}`;
+                                        return `${t("fee")} ${tExtGateway("not_available")}`;
                                       }
                                     })()}
                                   </Badge>
@@ -2388,7 +2396,7 @@ export function DepositForm() {
                                         return `${minAmount} - ${maxAmount || "∞"} ${selectedCurrency}`;
                                       } catch (error) {
                                         console.error('Amount extraction error:', error, method);
-                                        return `${t("amount_range")} ${t("not_available")}`;
+                                        return `${tExtAdmin("amount_range")} ${tExtGateway("not_available")}`;
                                       }
                                     })()}
                                   </Badge>
@@ -2463,10 +2471,10 @@ export function DepositForm() {
                                       {t("min_amount")}
                                     </span>
                                     <span className="font-medium">
-                                      {(() => {
-                                        const minAmount = chain.limits?.withdraw?.min || chain.limits?.deposit?.min;
-                                        return typeof minAmount === 'object' ? '0' : (minAmount || '0');
-                                      })()} {selectedCurrency}
+                                      {extractAmountValue(
+                                        chain.limits?.withdraw?.min || chain.limits?.deposit?.min,
+                                        selectedCurrency
+                                      )} {selectedCurrency}
                                     </span>
                                   </div>
                                 )}
@@ -2493,7 +2501,7 @@ export function DepositForm() {
                   <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-semibold">
                     4
                   </span>
-                  {t("enter_amount")}
+                  {tExtAdmin("enter_amount")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -2519,7 +2527,7 @@ export function DepositForm() {
                     selectedDepositMethod.limits?.withdraw?.min ||
                     selectedDepositMethod.limits?.deposit?.min) && (
                     <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      {t("minimum")} {extractAmountValue(
+                      {tExtCopyTrading("minimum")} {extractAmountValue(
                         selectedDepositMethod.minAmount ||
                         selectedDepositMethod.limits?.withdraw?.min ||
                         selectedDepositMethod.limits?.deposit?.min, 
@@ -2578,10 +2586,10 @@ export function DepositForm() {
                             </div>
                             <div>
                               <h3 className="text-lg font-semibold text-yellow-900 dark:text-yellow-100">
-                                Transaction Pending
+                                {t("transaction_pending")}
                               </h3>
                               <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                                Waiting for blockchain confirmations
+                                {t("waiting_for_blockchain_confirmations")}
                               </p>
                             </div>
                           </div>
@@ -2626,13 +2634,13 @@ export function DepositForm() {
                       <div className="bg-zinc-50 dark:bg-zinc-800 rounded-xl p-6 space-y-4">
                         <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                           <DollarSign className="w-5 h-5 text-green-500" />
-                          Transaction Details
+                          {t("transaction_details")}
                         </h4>
 
                         <div className="space-y-3">
                           {/* Transaction Hash */}
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-zinc-600 dark:text-zinc-400">Transaction Hash</span>
+                            <span className="text-sm text-zinc-600 dark:text-zinc-400">{t("transaction_hash")}</span>
                             <div className="flex items-center gap-2">
                               <span className="font-mono text-sm text-zinc-900 dark:text-zinc-100 max-w-[200px] truncate">
                                 {deposit.transactionHash}
@@ -2667,7 +2675,7 @@ export function DepositForm() {
                           {/* Fee */}
                           {deposit.fee !== undefined && (
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-zinc-600 dark:text-zinc-400">Network Fee</span>
+                              <span className="text-sm text-zinc-600 dark:text-zinc-400">{t("network_fee")}</span>
                               <span className="text-sm text-zinc-900 dark:text-zinc-100">
                                 {deposit.fee} {selectedCurrency}
                               </span>
@@ -2685,7 +2693,7 @@ export function DepositForm() {
                               className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
                             >
                               <QrCode className="w-4 h-4" />
-                              View on Blockchain Explorer
+                              {tExtAdmin("view_on_blockchain_explorer")}
                               <ChevronRight className="w-4 h-4" />
                             </a>
                           </div>
@@ -2697,12 +2705,12 @@ export function DepositForm() {
                         <div className="flex items-start gap-3">
                           <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                           <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
-                            <p className="font-medium">What happens next?</p>
+                            <p className="font-medium">{t("what_happens_next")}</p>
                             <ul className="space-y-1">
-                              <li>• Your transaction is being verified on the {deposit.chain || selectedDepositMethod?.chain} blockchain</li>
-                              <li>• Once {deposit.requiredConfirmations || getRequiredConfirmations(selectedDepositMethod?.chain)} confirmations are reached, your funds will be credited</li>
-                              <li>• This usually takes {getEstimatedTime(selectedDepositMethod?.chain)} depending on network congestion</li>
-                              <li>• You can safely leave this page - we'll notify you when complete</li>
+                              <li>{t("your_transaction_is_being_verified_on_the")} {deposit.chain || selectedDepositMethod?.chain} blockchain</li>
+                              <li>{t("once")} {deposit.requiredConfirmations || getRequiredConfirmations(selectedDepositMethod?.chain)} {t("confirmations_are_reached_your_funds_will")}</li>
+                              <li>{t("this_usually_takes")} {getEstimatedTime(selectedDepositMethod?.chain)} {t("depending_on_network_congestion")}</li>
+                              <li>{t("you_can_safely_leave_this_page")}</li>
                             </ul>
                           </div>
                         </div>
@@ -2717,7 +2725,7 @@ export function DepositForm() {
                       <div className="space-y-4">
                         <div className="text-center">
                           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                            Scan QR Code
+                            {t("scan_qr_code")}
                           </h3>
                           <div className="flex justify-center">
                             <div className="bg-white p-6 rounded-2xl shadow-lg border">
@@ -2732,7 +2740,7 @@ export function DepositForm() {
                             </div>
                           </div>
                           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-3">
-                            Scan with your crypto wallet app
+                            {t("scan_with_your_crypto_wallet_app")}
                           </p>
                         </div>
                       </div>
@@ -2741,7 +2749,7 @@ export function DepositForm() {
                       <div className="space-y-4">
                         <div>
                           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                            Deposit Address
+                            {t("deposit_address")}
                           </h3>
 
                           {/* Address Display */}
@@ -2775,7 +2783,7 @@ export function DepositForm() {
                               </div>
                               {depositAddress?.balance !== undefined && (
                                 <div>
-                                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Current Balance</span>
+                                  <span className="text-sm text-zinc-600 dark:text-zinc-400">{t("current_balance")}</span>
                                   <div className="font-medium text-zinc-900 dark:text-zinc-100">
                                     {depositAddress.balance} {selectedCurrency}
                                   </div>
@@ -2795,37 +2803,37 @@ export function DepositForm() {
                     <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
                     <div>
                       <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-3">
-                        Important Information
+                        {t("important_information")}
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-yellow-800 dark:text-yellow-200">
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 bg-yellow-600 dark:bg-yellow-400 rounded-full"></div>
-                            <span>Only send <strong>{selectedCurrency}</strong> to this address</span>
+                            <span>{t("only_send")} <strong>{selectedCurrency}</strong> {t("to_this_address")}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 bg-yellow-600 dark:bg-yellow-400 rounded-full"></div>
-                            <span>Network: <strong>{depositAddress?.network || selectedDepositMethod?.chain}</strong></span>
+                            <span>{t("network")}: <strong>{depositAddress?.network || selectedDepositMethod?.chain}</strong></span>
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 bg-yellow-600 dark:bg-yellow-400 rounded-full"></div>
-                            <span>Minimum: <strong>{selectedDepositMethod?.limits?.deposit?.min || 1} {selectedCurrency}</strong></span>
+                            <span>{tExtCopyTrading("minimum")}: <strong>{extractAmountValue(selectedDepositMethod?.limits?.deposit?.min, selectedCurrency)} {selectedCurrency}</strong></span>
                           </div>
                         </div>
                         <div className="space-y-2">
                           {shouldShowCountdown() && (
                             <div className="flex items-center gap-2">
                               <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                              <span>This address expires in <strong>30 minutes</strong></span>
+                              <span>{t("this_address_expires_in")} <strong>{`30 ${t('minutes')}`}</strong></span>
                             </div>
                           )}
                           <div className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 bg-yellow-600 dark:bg-yellow-400 rounded-full"></div>
-                            <span>Deposits are credited after network confirmation</span>
+                            <span>{t("deposits_are_credited_after_network_confirmation")}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 bg-yellow-600 dark:bg-yellow-400 rounded-full"></div>
-                            <span>Do not send from exchange accounts</span>
+                            <span>{t("do_not_send_from_exchange_accounts")}</span>
                           </div>
                         </div>
                       </div>
@@ -2838,7 +2846,7 @@ export function DepositForm() {
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center justify-center gap-4">
                       <div className="text-center">
-                        <div className="text-sm text-blue-700 dark:text-blue-300 mb-2">Time Remaining</div>
+                        <div className="text-sm text-blue-700 dark:text-blue-300 mb-2">{tExt("time_remaining")}</div>
                         <Countdown
                           initialTimeInSeconds={depositStartTime ? Math.max(0, DEPOSIT_TIME_LIMIT - Math.floor((Date.now() - depositStartTime) / 1000)) : DEPOSIT_TIME_LIMIT}
                           onExpire={handleCountdownExpire}
@@ -2865,7 +2873,7 @@ export function DepositForm() {
                           {t("transaction_hash_required")}
                         </h4>
                         <div className="text-sm text-red-800 dark:text-red-200 space-y-1">
-                          <p><strong>{t("critical")}</strong> {t("your_deposit_will_transaction_hash")}</p>
+                          <p><strong>{tExtAdmin("critical")}</strong> {t("your_deposit_will_transaction_hash")}</p>
                           <p>{t("this_is_mandatory_for_all_spot_deposits")}</p>
                         </div>
                       </div>
@@ -2914,7 +2922,7 @@ export function DepositForm() {
                             {loading ? (
                               <>
                                 <Loader className="w-4 h-4 mr-2 animate-spin" />
-                                {t("Submitting")}
+                                {t("submitting")}
                               </>
                             ) : (
                               <>
@@ -2954,14 +2962,14 @@ export function DepositForm() {
                     disabled={transactionSent}
                   >
                     <ChevronLeft className="w-4 h-4 mr-2" />
-                    Back to Networks
+                    {t("back_to_networks")}
                   </Button>
                   <Button
                     onClick={reset}
                     className="flex-1 h-12"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
-                    New Deposit
+                    {t("new_deposit")}
                   </Button>
                 </div>
               </CardContent>
@@ -3052,7 +3060,7 @@ export function DepositForm() {
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center justify-center gap-4">
                       <div className="text-center">
-                        <div className="text-sm text-blue-700 dark:text-blue-300 mb-2">Time Remaining</div>
+                        <div className="text-sm text-blue-700 dark:text-blue-300 mb-2">{tExt("time_remaining")}</div>
                         <Countdown
                           initialTimeInSeconds={depositStartTime ? Math.max(0, DEPOSIT_TIME_LIMIT - Math.floor((Date.now() - depositStartTime) / 1000)) : DEPOSIT_TIME_LIMIT}
                           onExpire={handleCountdownExpire}
@@ -3077,7 +3085,7 @@ export function DepositForm() {
                     className="flex-1 h-12"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
-                    New Deposit
+                    {t("new_deposit")}
                   </Button>
                 </div>
               </CardContent>
@@ -3097,7 +3105,6 @@ export function DepositForm() {
               onSubmit={handleFiatDeposit}
               loading={loading}
               onBack={() => setStep(4)}
-              t={t}
               extractFeeValue={extractFeeValue}
             />
           </motion.div>
@@ -3116,39 +3123,39 @@ export function DepositForm() {
                   </div>
                 </div>
                 <CardTitle className="text-green-600 dark:text-green-400">
-                  Deposit Request Submitted
+                  {t("deposit_request_submitted")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center text-sm text-zinc-600 dark:text-zinc-400">
-                  Your deposit request has been submitted successfully and is being processed.
+                  {t("your_deposit_request_has_been_submitted")}
                 </div>
                 
                 {/* Transaction Details */}
                 <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4 space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Transaction ID:</span>
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">{t("transaction_id")}:</span>
                     <span className="text-sm font-mono text-zinc-900 dark:text-zinc-100">
                       {deposit.transaction?.id || deposit.id}
                     </span>
                   </div>
                   
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Amount:</span>
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">{t("amount")}:</span>
                     <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                       {deposit.transaction?.amount || deposit.amount} {deposit.currency || selectedCurrency}
                     </span>
                   </div>
                   
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Method:</span>
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">{t("method")}:</span>
                     <span className="text-sm text-zinc-900 dark:text-zinc-100">
                       {deposit.method || selectedDepositMethod?.name}
                     </span>
                   </div>
                   
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Status:</span>
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">{t("status")}:</span>
                     <span className="text-sm px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded">
                       {deposit.transaction?.status || deposit.status || "PENDING"}
                     </span>
@@ -3156,7 +3163,7 @@ export function DepositForm() {
                   
                   {deposit.transaction?.fee && (
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-zinc-600 dark:text-zinc-400">Fee:</span>
+                      <span className="text-sm text-zinc-600 dark:text-zinc-400">{t("fee")}:</span>
                       <span className="text-sm text-zinc-900 dark:text-zinc-100">
                         {deposit.transaction.fee} {deposit.currency || selectedCurrency}
                       </span>
@@ -3166,12 +3173,12 @@ export function DepositForm() {
 
                 {/* Next Steps */}
                 <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Next Steps:</h4>
+                  <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">{t("next_steps")}:</h4>
                   <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                    <li>• Our team will review your deposit request</li>
-                    <li>• You will receive an email confirmation shortly</li>
-                    <li>• Processing typically takes 1-3 business days</li>
-                    <li>• You can track the status in your transaction history</li>
+                    <li>{t("our_team_will_review_your_deposit_request")}</li>
+                    <li>{t("you_will_receive_an_email_confirmation_shortly")}</li>
+                    <li>{t("processing_typically_takes_1_3_business_days")}</li>
+                    <li>{t("you_can_track_the_status_in")}</li>
                   </ul>
                 </div>
 
@@ -3182,13 +3189,13 @@ export function DepositForm() {
                     onClick={() => window.location.href = '/finance/history'}
                     className="flex-1"
                   >
-                    View Transactions
+                    {tExt("view_transactions")}
                   </Button>
                   <Button
                     onClick={reset}
                     className="flex-1"
                   >
-                    Make Another Deposit
+                    {t("make_another_deposit")}
                   </Button>
                 </div>
               </CardContent>
@@ -3222,7 +3229,7 @@ export function DepositForm() {
               {t("deposit_failed")}
             </h1>
             <p className="text-zinc-600 dark:text-zinc-400">
-              An error occurred while loading the deposit form. Please refresh the page.
+              {t("an_error_occurred_while_loading_the")}
             </p>
           </div>
           <div className="flex gap-4 justify-center">

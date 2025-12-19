@@ -245,6 +245,7 @@ export function Stepper({
   showStepDescription = "hover",
   className,
 }: StepperProps) {
+  const t = useTranslations("common");
   const progress = (currentStep / totalSteps) * 100;
   const animationVariants = getAnimationVariants(animation, direction);
 
@@ -596,13 +597,7 @@ export function Stepper({
           colorScheme === "rose" && isCompleted && "bg-rose-500 text-white"
         )}
       >
-        {isCompleted ? (
-          <Check size={16} />
-        ) : isActive ? (
-          <CircleDot size={16} />
-        ) : (
-          stepNumber
-        )}
+        {isCompleted ? <Check size={16} /> : stepNumber}
       </div>
     );
   };
@@ -612,83 +607,86 @@ export function Stepper({
       return (
         <div
           className={cn(
-            "w-full max-w-4xl mx-auto mb-8",
+            "w-full max-w-4xl mx-auto mb-8 mt-8",
             stepperVariants({ colorScheme, size })
           )}
         >
           {showProgress && (
             <ProgressBar progress={progress} colorScheme={colorScheme} />
           )}
-          <div className="flex items-start justify-between">
+          <div className="flex items-start">
             {stepLabels.map((step, index) => {
               const isActive = index + 1 === currentStep;
               const isCompleted = index + 1 < currentStep;
               const isClickable =
                 allowStepClick &&
                 (index + 1 < currentStep || index + 1 === currentStep + 1);
+              const isLastStep = index === stepLabels.length - 1;
 
               return (
-                <div
-                  key={index}
-                  className={cn(
-                    "flex flex-col items-center space-y-2 relative group",
-                    index < stepLabels.length - 1 && "flex-1",
-                    isClickable && "cursor-pointer"
-                  )}
-                  onClick={() => handleStepClick(index)}
-                  role={isClickable ? "button" : undefined}
-                  tabIndex={isClickable ? 0 : undefined}
-                >
-                  {renderStepIndicator(index)}
+                <React.Fragment key={index}>
+                  <div
+                    className={cn(
+                      "flex flex-col items-center space-y-2 relative group",
+                      isClickable && "cursor-pointer"
+                    )}
+                    onClick={() => handleStepClick(index)}
+                    role={isClickable ? "button" : undefined}
+                    tabIndex={isClickable ? 0 : undefined}
+                  >
+                    {renderStepIndicator(index)}
 
-                  {index < stepLabels.length - 1 && variant !== "minimal" && (
-                    <div className="absolute top-5 left-[calc(50%+20px)] w-[calc(100%-40px)] h-[2px]">
+                    {variant !== "icon" && (
                       <div
                         className={cn(
-                          "w-full h-full",
-                          connectorVariants({
-                            connectorStyle,
-                            colorScheme,
-                          })
+                          "text-center transition-all duration-200",
+                          isActive ? "text-foreground" : "text-muted-foreground",
+                          "mt-2"
                         )}
-                      />
-                      <motion.div
-                        className={cn(
-                          "absolute top-0 left-0 h-full",
-                          colorScheme === "default" && "bg-primary",
-                          colorScheme === "blue" && "bg-blue-600",
-                          colorScheme === "green" && "bg-green-600",
-                          colorScheme === "purple" && "bg-purple-600",
-                          colorScheme === "amber" && "bg-amber-600",
-                          colorScheme === "rose" && "bg-rose-600"
+                      >
+                        <p className="font-medium text-sm">{step.label}</p>
+                        {showStepDescription === true && (
+                          <p className="text-xs mt-1">{step.description}</p>
                         )}
-                        initial={{ width: isCompleted ? "100%" : "0%" }}
-                        animate={{ width: isCompleted ? "100%" : "0%" }}
-                        transition={{ duration: 0.5 }}
-                      />
-                    </div>
-                  )}
+                        {showStepDescription === "hover" && (
+                          <p className="text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            {step.description}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
-                  {variant !== "icon" && (
-                    <div
-                      className={cn(
-                        "text-center transition-all duration-200",
-                        isActive ? "text-foreground" : "text-muted-foreground",
-                        "mt-2"
-                      )}
-                    >
-                      <p className="font-medium text-sm">{step.label}</p>
-                      {showStepDescription === true && (
-                        <p className="text-xs mt-1">{step.description}</p>
-                      )}
-                      {showStepDescription === "hover" && (
-                        <p className="text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                          {step.description}
-                        </p>
-                      )}
+                  {!isLastStep && variant !== "minimal" && (
+                    <div className="flex-1 flex items-start pt-5 px-2">
+                      <div className="w-full h-[2px] relative">
+                        <div
+                          className={cn(
+                            "w-full h-full",
+                            connectorVariants({
+                              connectorStyle,
+                              colorScheme,
+                            })
+                          )}
+                        />
+                        <motion.div
+                          className={cn(
+                            "absolute top-0 left-0 h-full",
+                            colorScheme === "default" && "bg-primary",
+                            colorScheme === "blue" && "bg-blue-600",
+                            colorScheme === "green" && "bg-green-600",
+                            colorScheme === "purple" && "bg-purple-600",
+                            colorScheme === "amber" && "bg-amber-600",
+                            colorScheme === "rose" && "bg-rose-600"
+                          )}
+                          initial={{ width: isCompleted ? "100%" : "0%" }}
+                          animate={{ width: isCompleted ? "100%" : "0%" }}
+                          transition={{ duration: 0.5 }}
+                        />
+                      </div>
                     </div>
                   )}
-                </div>
+                </React.Fragment>
               );
             })}
           </div>
@@ -778,7 +776,6 @@ export function Stepper({
   };
 
   const renderNavigation = () => {
-    const t = useTranslations("common");
     if (isDone) return;
     const backButtonVariant = colorScheme === "default" ? "outline" : "outline";
     const nextButtonVariant = colorScheme === "default" ? "default" : "default";
@@ -797,7 +794,7 @@ export function Stepper({
             data-outline={backButtonVariant === "outline"}
           >
             <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:translate-x-[-2px]" />
-            {t("Back")}
+            {t("back")}
           </Button>
         ) : (
           <div />
@@ -812,7 +809,7 @@ export function Stepper({
               buttonVariants({ colorScheme })
             )}
           >
-            {t("Next")}
+            {t("next")}
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-[2px]" />
           </Button>
         ) : (
@@ -824,11 +821,11 @@ export function Stepper({
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t("Processing")}.
+                {t("processing")}.
               </>
             ) : (
               <>
-                {t("Submit")}
+                {t("submit")}
                 <Check className="ml-2 h-4 w-4" />
               </>
             )}

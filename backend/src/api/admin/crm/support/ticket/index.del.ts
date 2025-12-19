@@ -32,18 +32,22 @@ export const metadata: OperationObject = {
   responses: commonBulkDeleteResponses("Support Tickets"),
   requiresAuth: true,
   permission: "delete.support.ticket",
+  logModule: "ADMIN_SUP",
+  logTitle: "Bulk delete tickets",
 };
 
 export default async (data) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body.ids;
 
+  ctx?.step("Deleting tickets");
   await handleBulkDelete({
     model: "supportTicket",
     ids,
     query,
   });
 
+  ctx?.success("Tickets deleted successfully");
   return {
     message: "Tickets deleted successfully",
   };

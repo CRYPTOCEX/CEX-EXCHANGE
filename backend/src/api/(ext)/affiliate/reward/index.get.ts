@@ -44,15 +44,18 @@ export const metadata: OperationObject = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "AFFILIATE",
+  logTitle: "List affiliate rewards",
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
-  // Call the generic fetch function
-  return getFiltered({
+  ctx?.step("Fetching affiliate rewards with pagination and filtering");
+  const result = await getFiltered({
     model: models.mlmReferralReward,
     query,
     where: { referrerId: user.id },
@@ -71,4 +74,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} affiliate rewards`);
+  return result;
 };

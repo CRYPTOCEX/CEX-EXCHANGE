@@ -6,6 +6,8 @@ export const metadata = {
   description: "Retrieves all active blockchain configurations for users.",
   operationId: "getActiveBlockchainConfigs",
   tags: ["ICO", "Blockchain"],
+  logModule: "ICO",
+  logTitle: "Get active blockchains",
   responses: {
     200: {
       description: "Active blockchain configurations retrieved successfully.",
@@ -20,8 +22,13 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step("Fetching active blockchain configurations");
   const activeBlockchains = await models.icoBlockchain.findAll({
     where: { status: true },
   });
+
+  ctx?.success(`Retrieved ${activeBlockchains.length} active blockchains`);
   return activeBlockchains;
 };

@@ -44,15 +44,17 @@ const siteHostname = getSiteHostname();
 
 const nextConfig = {
   reactStrictMode: true,
+
+  typescript: {
+    ignoreBuildErrors: true
+  },
+  
   poweredByHeader: false,
   trailingSlash: false,
   transpilePackages: ["lucide-react", "framer-motion"],
   // Mark packages that use worker_threads as server external
   serverExternalPackages: ['ioredis', 'sharp', 'pino', 'pino-pretty'],
-  typescript: {
-    // Disable type checking during build
-    ignoreBuildErrors: true,
-  },
+
   // Turbopack configuration
   turbopack: {
     resolveAlias: {
@@ -204,6 +206,10 @@ const nextConfig = {
     // Number of pages that should be kept simultaneously without being disposed
     pagesBufferLength: 2,
   },
+  // Development-specific optimizations
+  ...(process.env.NODE_ENV === 'development' && {
+    productionBrowserSourceMaps: false,
+  }),
 };
 
 module.exports = withNextIntl(nextConfig);

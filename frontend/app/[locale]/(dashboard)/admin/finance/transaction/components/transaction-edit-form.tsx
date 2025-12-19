@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { useTranslations } from "next-intl";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -35,6 +36,8 @@ export const TransactionEditForm: React.FC<TransactionEditFormProps> = ({
   disabled,
   errors,
 }) => {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   return (
     <Card className="p-6 rounded-lg shadow-md border border-zinc-200 dark:border-zinc-700">
       <div className="grid gap-6">
@@ -101,7 +104,7 @@ export const TransactionEditForm: React.FC<TransactionEditFormProps> = ({
 
         <div className="space-y-2">
           <Label htmlFor="referenceId" className="text-sm font-medium">
-            Reference ID <span className="text-red-500">*</span>
+            {tCommon("reference_id")} <span className="text-red-500">*</span>
           </Label>
           <Input
             id="referenceId"
@@ -109,7 +112,7 @@ export const TransactionEditForm: React.FC<TransactionEditFormProps> = ({
             value={referenceId}
             onChange={onReferenceIdChange}
             disabled={disabled}
-            placeholder="Enter payment reference ID"
+            placeholder={t("enter_payment_reference_id")}
             className={errors?.referenceId ? "border-red-500 focus:ring-red-500" : ""}
           />
           {errors?.referenceId && (
@@ -118,7 +121,7 @@ export const TransactionEditForm: React.FC<TransactionEditFormProps> = ({
             </p>
           )}
           <p className="text-xs text-muted-foreground">
-            Required when completing the transaction
+            {t("required_when_completing_the_transaction")}
           </p>
         </div>
       </div>

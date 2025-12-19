@@ -42,7 +42,7 @@ export const metadata = {
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
   const { productId } = params;
   const exchange = await models.exchange.findOne({
     where: { productId },
@@ -52,7 +52,7 @@ export default async (data) => {
     return data.response.notFound("Exchange not found");
   }
 
-  const result = await ExchangeManager.testExchangeCredentials(exchange.name);
+  const result = await ExchangeManager.testExchangeCredentials(exchange.name, ctx);
 
   return {
     exchange,

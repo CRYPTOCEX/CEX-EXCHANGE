@@ -1,83 +1,123 @@
+"use client";
 import {
   CalendarIcon,
   DollarSign,
   ClipboardCheck,
-  Clock,
+  CheckCircle,
   FileText,
   Wallet as WalletIcon,
+  Coins,
+  ExternalLink,
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { Icon } from "@iconify/react";
-import { useTranslations } from "next-intl";
 
-export const columns: ColumnDefinition[] = [
-  {
-    key: "id",
-    title: "ID",
-    type: "text",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    icon: ClipboardCheck,
-    description: "Unique identifier for the transaction",
-    priority: 2,
-    expandedOnly: true,
-  },
+import { useTranslations } from "next-intl";
+export function useColumns() {
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
+  const tExtAdmin = useTranslations("ext_admin");
+  return [
   {
     key: "offering.name",
-    title: "Offering",
+    title: tExt("offering"),
     sortKey: "offering.name",
     type: "text",
     sortable: true,
     searchable: true,
     filterable: true,
     icon: FileText,
-    description: "Name of the ICO offering",
-  },
-  {
-    key: "walletAddress",
-    title: "Wallet Address",
-    type: "text",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    icon: WalletIcon,
-    description: "Wallet address used for the transaction",
-    expandedOnly: true,
+    priority: 1,
+    description: t("name_of_the_ico_offering_you_participated_in"),
   },
   {
     key: "amount",
-    title: "Amount",
+    title: tCommon("amount"),
     type: "number",
-    icon: DollarSign,
+    icon: Coins,
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "Number of tokens purchased",
+    priority: 1,
+    description: t("total_number_of_tokens_you_purchased"),
   },
   {
     key: "price",
-    title: "Price",
+    title: tExtAdmin("price_per_token"),
     type: "number",
     icon: DollarSign,
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "Price per token at purchase",
+    priority: 2,
+    description: t("price_you_paid_per_token_in_usd"),
+  },
+  {
+    key: "status",
+    title: tCommon("status"),
+    type: "select",
+    icon: CheckCircle,
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    priority: 1,
+    description: t("current_processing_status_of_your_token_purchase"),
+    render: {
+      type: "badge",
+      config: {
+        withDot: true,
+        variant: (value: string) => {
+          switch (value.toUpperCase()) {
+            case "RELEASED":
+              return "success";
+            case "PENDING":
+              return "warning";
+            case "VERIFICATION":
+              return "info";
+            case "REJECTED":
+              return "destructive";
+            default:
+              return "default";
+          }
+        },
+      },
+    },
+    options: [
+      { value: "PENDING", label: tCommon("pending") },
+      { value: "VERIFICATION", label: tExt("verification") },
+      { value: "RELEASED", label: tCommon("released") },
+      { value: "REJECTED", label: tCommon("rejected") },
+    ],
+  },
+  {
+    key: "createdAt",
+    title: t("purchase_date"),
+    type: "date",
+    icon: CalendarIcon,
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    priority: 2,
+    description: t("date_and_time_when_you_made_this_purchase"),
+    render: {
+      type: "date",
+      format: "PPP",
+    },
   },
   {
     key: "releaseUrl",
-    title: "Release URL",
+    title: t("release_document"),
     type: "text",
     sortable: true,
     searchable: true,
     filterable: true,
-    icon: FileText,
-    description: "URL of the release document",
+    icon: ExternalLink,
+    priority: 3,
+    description: t("link_to_your_token_release_document"),
     render: {
       type: "custom",
       render: (value: string) => {
-        const t = useTranslations("ext");
         if (!value) {
           return <span className="text-muted-foreground">N/A</span>;
         }
@@ -87,7 +127,7 @@ export const columns: ColumnDefinition[] = [
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-blue-500 hover:underline transition-colors duration-200"
-            aria-label="View release document"
+            aria-label={t("view_release_document")}
           >
             <Icon icon="fa-solid:external-link-alt" />
             {(() => {
@@ -105,54 +145,26 @@ export const columns: ColumnDefinition[] = [
     },
   },
   {
-    key: "status",
-    title: "Status",
-    type: "select",
-    icon: Clock,
+    key: "walletAddress",
+    title: tCommon("wallet_address"),
+    type: "text",
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "Transaction status",
-    render: {
-      type: "badge",
-      config: {
-        withDot: true,
-        variant: (value: string) => {
-          switch (value.toUpperCase()) {
-            case "PENDING":
-              return "warning";
-            case "VERIFICATION":
-              return "info";
-            case "RELEASED":
-              return "success";
-            case "REJECTED":
-              return "destructive";
-            default:
-              return "default";
-          }
-        },
-      },
-    },
-    options: [
-      { value: "PENDING", label: "Pending" },
-      { value: "VERIFICATION", label: "Verification" },
-      { value: "RELEASED", label: "Released" },
-      { value: "REJECTED", label: "Rejected" },
-    ],
+    icon: WalletIcon,
+    description: t("your_cryptocurrency_wallet_address_used_for"),
+    expandedOnly: true,
   },
   {
-    key: "createdAt",
-    title: "Created At",
-    type: "date",
-    icon: CalendarIcon,
+    key: "id",
+    title: tCommon("transaction_id"),
+    type: "text",
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "Date when the transaction was created",
-    render: {
-      type: "date",
-      format: "PPP",
-    },
-    priority: 3,
+    icon: ClipboardCheck,
+    description: tCommon("unique_identifier_for_your_transaction_record"),
+    expandedOnly: true,
   },
-];
+] as ColumnDefinition[];
+}

@@ -1,14 +1,18 @@
+"use client";
+
 import {
   Shield,
   User,
   DollarSign,
   ClipboardList,
   CalendarIcon,
+  ArrowDownCircle,
+  Wallet,
+  Hash,
 } from "lucide-react";
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useTranslations } from "next-intl";
-
 // Mapping for friendly labels
 const metadataLabels: Record<string, string> = {
   fromWallet: "From Wallet",
@@ -17,15 +21,15 @@ const metadataLabels: Record<string, string> = {
   toCurrency: "To Currency",
 };
 
-export function renderTransactionMetadata(value: any) {
-  const t = useTranslations("dashboard");
+export function RenderTransactionMetadata({ value }: { value: any }) {
+  const tCommon = useTranslations("common");
   if (!value) return "N/A";
 
   let parsed: Record<string, any>;
   try {
     parsed = typeof value === "string" ? JSON.parse(value) : value;
   } catch (error) {
-    return <span className="text-red-500">{t("invalid_metadata")}</span>;
+    return <span className="text-red-500">{tCommon("invalid_metadata")}</span>;
   }
 
   const entries = Object.entries(parsed);
@@ -34,7 +38,7 @@ export function renderTransactionMetadata(value: any) {
   return (
     <Card className="bg-muted/10">
       <CardHeader>
-        <CardTitle className="text-xs font-semibold">{t("Metadata")}</CardTitle>
+        <CardTitle className="text-xs font-semibold">Metadata</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-1">
@@ -50,28 +54,31 @@ export function renderTransactionMetadata(value: any) {
   );
 }
 
-export const columns: ColumnDefinition[] = [
+export function useColumns() {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
+  return [
   {
     key: "id",
-    title: "ID",
+    title: tCommon("id"),
     type: "text",
     icon: Shield,
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "Unique identifier for the transaction",
+    description: t("unique_identifier_for_the_transaction"),
     priority: 3,
     expandedOnly: true,
   },
   {
     key: "user",
-    title: "User",
+    title: tCommon("user"),
     type: "compound",
     icon: User,
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "User associated with the transaction",
+    description: t("user_associated_with_the_transaction"),
     render: {
       type: "compound",
       config: {
@@ -79,25 +86,25 @@ export const columns: ColumnDefinition[] = [
           key: "avatar",
           fallback: "/img/placeholder.svg",
           type: "image",
-          title: "Avatar",
-          description: "User avatar",
-          editable: false,
-          usedInCreate: false,
+          title: tCommon("avatar"),
+          description: tCommon("user_avatar"),
+          filterable: false,
+          sortable: false,
         },
         primary: {
           key: ["firstName", "lastName"],
-          title: ["First Name", "Last Name"],
-          description: ["User's first name", "User's last name"],
-          editable: false,
-          usedInCreate: false,
+          title: [tCommon("first_name"), tCommon("last_name")],
+          description: [tCommon('users_first_name'), tCommon('users_last_name')],
+          sortable: true,
+          sortKey: "firstName",
           icon: User,
         },
         secondary: {
           key: "email",
-          title: "Email",
+          title: tCommon("email"),
+          description: t("users_email_address"),
           icon: ClipboardList,
-          editable: false,
-          usedInCreate: false,
+          sortable: true,
         },
       },
     },
@@ -105,53 +112,56 @@ export const columns: ColumnDefinition[] = [
   },
   {
     key: "wallet",
-    title: "Wallet",
+    title: tCommon("wallet"),
     type: "custom",
-    icon: DollarSign,
+    icon: Wallet,
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "Associated wallet",
-    render: (value: any, row: any) => {
-      const wallet = row?.wallet || value;
-      if (!wallet) return "N/A";
-      // If wallet has 'currency' and 'type', show them in a formatted string.
-      if (wallet.currency && wallet.type) {
-        return `${wallet.currency} (${wallet.type})`;
-      }
-      // Otherwise fallback to wallet.name or wallet.id
-      return wallet.name || wallet.id || "N/A";
+    description: t("associated_wallet_for_the_deposit"),
+    render: {
+      type: "custom",
+      render: (value: any, row: any) => {
+        const wallet = row?.wallet || value;
+        if (!wallet) return "N/A";
+        // If wallet has 'currency' and 'type', show them in a formatted string.
+        if (wallet.currency && wallet.type) {
+          return `${wallet.currency} (${wallet.type})`;
+        }
+        // Otherwise fallback to wallet.name or wallet.id
+        return wallet.name || wallet.id || "N/A";
+      },
     },
     priority: 2,
   },
   {
     key: "status",
-    title: "Status",
+    title: tCommon("status"),
     type: "select",
-    icon: ClipboardList,
+    icon: ArrowDownCircle,
     sortable: true,
     searchable: true,
     filterable: true,
-    editable: true,
-    description: "Transaction status",
+    description: t("current_status_of_the_deposit_transaction"),
     options: [
-      { value: "PENDING", label: "Pending" },
-      { value: "COMPLETED", label: "Completed" },
-      { value: "FAILED", label: "Failed" },
-      { value: "CANCELLED", label: "Cancelled" },
-      { value: "EXPIRED", label: "Expired" },
-      { value: "REJECTED", label: "Rejected" },
-      { value: "REFUNDED", label: "Refunded" },
-      { value: "FROZEN", label: "Frozen" },
-      { value: "PROCESSING", label: "Processing" },
-      { value: "TIMEOUT", label: "Timeout" },
+      { value: "PENDING", label: tCommon("pending") },
+      { value: "COMPLETED", label: tCommon("completed") },
+      { value: "FAILED", label: tCommon("failed") },
+      { value: "CANCELLED", label: tCommon("cancelled") },
+      { value: "EXPIRED", label: tCommon("expired") },
+      { value: "REJECTED", label: tCommon("rejected") },
+      { value: "REFUNDED", label: tCommon("refunded") },
+      { value: "FROZEN", label: tCommon("frozen") },
+      { value: "PROCESSING", label: tCommon("processing") },
+      { value: "TIMEOUT", label: tCommon("timeout") },
     ],
     priority: 1,
     render: {
       type: "badge",
       config: {
+        withDot: true,
         variant: (value: string) => {
-          switch (value) {
+          switch (value?.toUpperCase()) {
             case "PENDING":
               return "warning";
             case "COMPLETED":
@@ -181,13 +191,13 @@ export const columns: ColumnDefinition[] = [
   },
   {
     key: "amount",
-    title: "Amount",
+    title: tCommon("amount"),
     type: "number",
     icon: DollarSign,
     sortable: true,
     searchable: false,
     filterable: true,
-    description: "Transaction amount",
+    description: t("deposit_amount_in_the_wallets_currency"),
     priority: 1,
     render: {
       type: "custom",
@@ -201,13 +211,13 @@ export const columns: ColumnDefinition[] = [
   },
   {
     key: "fee",
-    title: "Fee",
+    title: tCommon("fee"),
     type: "number",
     icon: DollarSign,
     sortable: true,
     searchable: false,
     filterable: true,
-    description: "Transaction fee",
+    description: t("processing_fee_charged_for_the_deposit"),
     priority: 2,
     expandedOnly: true,
     render: {
@@ -222,68 +232,69 @@ export const columns: ColumnDefinition[] = [
   },
   {
     key: "description",
-    title: "Description",
+    title: tCommon("description"),
     type: "text",
     icon: ClipboardList,
     sortable: false,
     searchable: true,
     filterable: false,
-    description: "Additional information",
+    description: t("additional_notes_or_information_about_the_deposit"),
     priority: 2,
     expandedOnly: true,
   },
   {
     key: "referenceId",
-    title: "Reference ID",
+    title: tCommon("reference_id"),
     type: "text",
-    icon: ClipboardList,
+    icon: Hash,
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "Reference identifier (for spot trading)",
+    description: t("external_reference_identifier_for_spot_trading"),
     priority: 2,
     expandedOnly: true,
   },
   {
     key: "trxId",
-    title: "Transaction Hash",
+    title: tCommon("transaction_hash"),
     type: "text",
-    icon: ClipboardList,
+    icon: Hash,
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "Blockchain transaction hash (for ecosystem)",
+    description: t("blockchain_transaction_hash_for_crypto_deposits"),
     priority: 2,
     expandedOnly: true,
   },
   {
     key: "createdAt",
-    title: "Created At",
+    title: tCommon("created_at"),
     type: "date",
     icon: CalendarIcon,
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "Creation date",
+    description: t("date_and_time_when_the_deposit_was_created"),
     priority: 2,
     expandedOnly: true,
     render: { type: "date", format: "PPP", fullDate: true },
   },
   {
     key: "metadata",
-    title: "Metadata",
+    title: tCommon("metadata"),
     type: "custom",
     icon: ClipboardList,
     sortable: false,
     searchable: false,
     filterable: false,
-    description: "Transaction metadata",
+    description: t("additional_transaction_metadata_and_details"),
     render: {
       type: "custom",
-      render: (value: any) => renderTransactionMetadata(value),
+      render: (value: any) => <RenderTransactionMetadata value={value} />,
       title: false,
     },
-    priority: 2,
+    priority: 3,
     expandedOnly: true,
   },
-];
+] as ColumnDefinition[];
+}

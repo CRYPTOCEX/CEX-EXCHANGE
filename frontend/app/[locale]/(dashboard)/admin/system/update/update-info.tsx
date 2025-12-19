@@ -14,7 +14,8 @@ interface UpdateInfoProps {
 }
 
 export function UpdateInfo({ type }: UpdateInfoProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const {
     updateData: systemUpdateData,
     isUpdateChecking: systemIsUpdateChecking,
@@ -89,7 +90,7 @@ export function UpdateInfo({ type }: UpdateInfoProps) {
           </Alert>
           <Card>
             <CardContent className="p-5 space-y-5">
-              <h3 className="text-xl font-semibold">{t("update_notes")}</h3>
+              <h3 className="text-xl font-semibold">{tCommon("update_notes")}</h3>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
                 {t("there_are_no_updates_available_for")}{" "}
                 {type === "system" ? "your system" : "this extension"}
@@ -121,7 +122,7 @@ export function UpdateInfo({ type }: UpdateInfoProps) {
       {updateData.status && updateData.changelog && (
         <Card>
           <CardContent className="p-5 space-y-5">
-            <h3 className="text-xl font-semibold">{t("update_notes")}</h3>
+            <h3 className="text-xl font-semibold">{tCommon("update_notes")}</h3>
             <div className="overflow-auto max-h-96">
               {isMarkdownContent(updateData.changelog) ? (
                 <MarkdownRenderer 

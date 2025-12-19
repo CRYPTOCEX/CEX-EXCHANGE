@@ -2,9 +2,12 @@
 
 import { useSettings } from "@/hooks/use-settings";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export function SettingsStatus() {
-  const { isLoading, settingsError, settingsFetched, _dev } = useSettings();
+  const t = useTranslations("components");
+  const tCommon = useTranslations("common");
+  const { isLoading, settingsError, settingsFetched } = useSettings();
   const [isDevelopment, setIsDevelopment] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -37,29 +40,24 @@ export function SettingsStatus() {
           {isLoading && (
             <>
               <div className="animate-spin h-3 w-3 border border-zinc-500 border-t-yellow-500 rounded-full" />
-              <span className="text-yellow-400">Loading settings...</span>
+              <span className="text-yellow-400">{tCommon("loading_settings_ellipsis")}</span>
             </>
           )}
 
           {settingsError && (
             <>
               <div className="h-3 w-3 bg-red-500 rounded-full animate-pulse" />
-              <span className="text-red-400">Settings error</span>
+              <span className="text-red-400">{t("settings_error")}</span>
             </>
           )}
 
           {!settingsFetched && !isLoading && (
             <>
               <div className="h-3 w-3 bg-orange-500 rounded-full" />
-              <span className="text-orange-400">Using fallback menu</span>
+              <span className="text-orange-400">{t("using_fallback_menu")}</span>
             </>
           )}
 
-          {_dev && (
-            <span className="text-zinc-400 text-xs ml-2">
-              ({_dev.retryCount}/{_dev.maxRetries})
-            </span>
-          )}
         </div>
 
         {settingsError && (
@@ -67,7 +65,7 @@ export function SettingsStatus() {
         )}
 
         <div className="mt-2 text-xs text-zinc-500">
-          Press Ctrl+Shift+R to retry
+          {t("press_ctrl_shift_r_to_retry")}
         </div>
       </div>
     </div>

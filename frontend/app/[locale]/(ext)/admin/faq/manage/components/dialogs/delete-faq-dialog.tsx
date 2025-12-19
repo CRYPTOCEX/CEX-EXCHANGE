@@ -24,7 +24,8 @@ export function DeleteFAQDialog({
   onOpenChange,
   onConfirm,
 }: DeleteFAQDialogProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   const { toast } = useToast();
   const { deleteFAQ } = useFAQAdminStore();
   const handleDelete = async () => {
@@ -46,18 +47,18 @@ export function DeleteFAQDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{t("delete_faq")}</AlertDialogTitle>
+          <AlertDialogTitle>{tExtAdmin("delete_faq")}</AlertDialogTitle>
           <AlertDialogDescription>
             {" "}
-            {t("this_will_permanently_delete_the_faq")} {faq.question} .<br />
+            {tExtAdmin("this_will_permanently_delete_the_faq")} {faq.question} .<br />
             <br /> {t("this_action_cannot_be_undone")}.{" "}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
           <AlertDialogAction onClick={handleDelete} variant="destructive">
             {" "}
-            {t("Delete")}{" "}
+            {t("delete")}{" "}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

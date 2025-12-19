@@ -16,12 +16,12 @@ export default function PanelHeader({
   onDuplicate,
   onDelete,
 }: PanelHeaderProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
   return (
     <div className="flex items-center justify-between p-3 border-b dark:border-zinc-800">
       <h3 className="font-medium text-sm capitalize dark:text-zinc-300">
         {elementType}
-        {t("Settings")}
+        {t("settings")}
       </h3>
       <div className="flex items-center space-x-1">
         <Button

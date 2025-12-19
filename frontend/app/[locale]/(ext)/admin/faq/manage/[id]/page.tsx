@@ -3,12 +3,15 @@
 import { Suspense } from "react";
 import FAQFormPage from "./client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 export default function FAQEditPage() {
   return (
-    <Suspense fallback={<FAQFormSkeleton />}>
-      <FAQFormPage />
-    </Suspense>
+    <div className={`container ${PAGE_PADDING}`}>
+      <Suspense fallback={<FAQFormSkeleton />}>
+        <FAQFormPage />
+      </Suspense>
+    </div>
   );
 }
 function FAQFormSkeleton() {

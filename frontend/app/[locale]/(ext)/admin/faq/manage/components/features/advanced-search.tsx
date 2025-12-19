@@ -68,7 +68,7 @@ export function AdvancedSearch({
   showFilters,
   onToggleFilters,
 }: AdvancedSearchProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   const [filters, setFilters] = useState<SearchFilters>({
     query: "",
     category: undefined,
@@ -129,7 +129,7 @@ export function AdvancedSearch({
     <div className="flex flex-col sm:flex-row gap-4">
       <div className="relative flex-1">
         <Input
-          placeholder="Search FAQs..."
+          placeholder={t("search_faqs_ellipsis")}
           className="pl-8"
           value={filters.query}
           onChange={(e) => setFilters({ ...filters, query: e.target.value })}
@@ -156,7 +156,7 @@ export function AdvancedSearch({
           onClick={() => onToggleFilters(!showFilters)}
         >
           <SlidersHorizontal className="h-4 w-4" />
-          <span>{t("Filters")}</span>
+          <span>{t("filters")}</span>
           {activeFiltersCount > 0 && (
             <Badge variant="secondary" className="ml-1 h-5 px-1.5">
               {activeFiltersCount}
@@ -164,12 +164,12 @@ export function AdvancedSearch({
           )}
         </Button>
 
-        <Button size="default" onClick={handleSearch}>{t("Search")}</Button>
+        <Button size="default" onClick={handleSearch}>{t("search")}</Button>
 
         {(filters.query || activeFiltersCount > 0) && (
           <Button variant="ghost" size="default" onClick={handleClear}>
             <X className="h-4 w-4 mr-2" />
-            {t("Clear")}
+            {t("clear")}
           </Button>
         )}
       </div>
@@ -190,6 +190,8 @@ export function AdvancedSearchFilters({
   onFiltersChange: (filters: SearchFilters) => void;
 }) {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   const [filters, setFilters] = useState<SearchFilters>({
     query: "",
     category: undefined,
@@ -237,16 +239,16 @@ export function AdvancedSearchFilters({
           transition={{ duration: 0.2 }}
         >
           <div className="space-y-2">
-            <Label>{t("Category")}</Label>
+            <Label>{tCommon("category")}</Label>
             <Select
               value={filters.category || "all"}
               onValueChange={handleCategoryChange}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="All Categories" />
+                <SelectValue placeholder={tCommon("all_categories")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("all_categories")}</SelectItem>
+                <SelectItem value="all">{tCommon("all_categories")}</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
@@ -257,7 +259,7 @@ export function AdvancedSearchFilters({
           </div>
 
           <div className="space-y-2">
-            <Label>{t("Tags")}</Label>
+            <Label>{tCommon("tags")}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -275,9 +277,9 @@ export function AdvancedSearchFilters({
               </PopoverTrigger>
               <PopoverContent className="w-full p-0" align="start">
                 <Command>
-                  <CommandInput placeholder="Search tags..." />
+                  <CommandInput placeholder={tCommon("search_tags_ellipsis")} />
                   <CommandList>
-                    <CommandEmpty>{t("no_tags_found")}.</CommandEmpty>
+                    <CommandEmpty>{tCommon("no_tags_found")}.</CommandEmpty>
                     <CommandGroup>
                       {tags.map((tag) => (
                         <CommandItem
@@ -334,29 +336,29 @@ export function AdvancedSearchFilters({
           </div>
 
           <div className="space-y-2">
-            <Label>{t("Status")}</Label>
+            <Label>{tCommon("status")}</Label>
             <Select
               value={filters.status || "all"}
               onValueChange={handleStatusChange}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="All Status" />
+                <SelectValue placeholder={tCommon("all_status")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("all_status")}</SelectItem>
+                <SelectItem value="all">{tCommon("all_status")}</SelectItem>
                 <SelectItem
                   value="active"
                   className="flex items-center gap-2"
                 >
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  <span>{t("Active")}</span>
+                  <span>{tCommon("active")}</span>
                 </SelectItem>
                 <SelectItem
                   value="inactive"
                   className="flex items-center gap-2"
                 >
                   <XCircle className="h-4 w-4 text-red-500" />
-                  <span>{t("Inactive")}</span>
+                  <span>{tCommon("inactive")}</span>
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -367,11 +369,11 @@ export function AdvancedSearchFilters({
             <div className="flex items-center gap-2">
               <Button variant="outline" className="w-full justify-start">
                 <Calendar className="mr-2 h-4 w-4" />
-                <span>{t("select_dates")}</span>
+                <span>{tExtAdmin("select_dates")}</span>
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              {t("filter_by_creation_or_update_date")}
+              {tExtAdmin("filter_by_creation_or_update_date")}
             </p>
           </div>
         </motion.div>

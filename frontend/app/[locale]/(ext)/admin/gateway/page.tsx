@@ -36,6 +36,7 @@ import {
 import $fetch from "@/lib/api";
 import { useAdminGatewayMode } from "./context/admin-gateway-mode";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 interface DashboardStats {
   mode: "LIVE" | "TEST";
@@ -147,7 +148,9 @@ const WALLET_COLORS: Record<string, string> = {
 };
 
 export default function GatewayAdminDashboard() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { mode } = useAdminGatewayMode();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -207,7 +210,7 @@ export default function GatewayAdminDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className={`container ${PAGE_PADDING} pt-20 space-y-6`}>
       <div>
         <h1 className="text-2xl font-bold">{t("payment_gateway")}</h1>
         <p className="text-muted-foreground">
@@ -229,7 +232,7 @@ export default function GatewayAdminDashboard() {
               {stats?.merchants.total || 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              {stats?.merchants.active || 0} {t("Active")},{" "}
+              {stats?.merchants.active || 0} {tCommon("active")},{" "}
               {stats?.merchants.pending || 0} pending
             </p>
           </CardContent>
@@ -247,7 +250,7 @@ export default function GatewayAdminDashboard() {
               {stats?.payments.total || 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              {stats?.payments.completed || 0} {t("Completed")},{" "}
+              {stats?.payments.completed || 0} {tCommon("completed")},{" "}
               {stats?.payments.pending || 0} pending
             </p>
           </CardContent>
@@ -355,14 +358,14 @@ export default function GatewayAdminDashboard() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>{t("recent_payments")}</CardTitle>
+            <CardTitle>{tExt("recent_payments")}</CardTitle>
             <CardDescription>
               {t("latest_payment_transactions_across_all_merchants")}
             </CardDescription>
           </div>
           <Link href="/admin/gateway/payment">
             <Button variant="outline" size="sm">
-              {t("view_all")}
+              {tCommon("view_all")}
               <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
           </Link>
@@ -476,7 +479,7 @@ export default function GatewayAdminDashboard() {
                       {/* Fee & Time */}
                       <div className="text-right shrink-0">
                         <p className="text-sm font-medium text-muted-foreground">
-                          {t("fee_1")}{payment.feeAmount?.toFixed(2) || "0.00"}
+                          {tExt("fee_1")}{payment.feeAmount?.toFixed(2) || "0.00"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {formatTimeAgo(payment.createdAt)}
@@ -495,7 +498,7 @@ export default function GatewayAdminDashboard() {
               <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-4">
                 <CreditCard className="h-12 w-12 opacity-50" />
               </div>
-              <p className="font-medium">{t("no_payments_yet")}</p>
+              <p className="font-medium">{tExt("no_payments_yet")}</p>
               <p className="text-sm mt-1">
                 {t("payments_will_appear_here_once_merchants")}
               </p>

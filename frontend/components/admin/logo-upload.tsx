@@ -11,8 +11,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, Image, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { logoUploader, getLogoUrls, getAvailableLogoVariants } from "@/utils/logo-upload";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "next-intl";
 
 export default function LogoUpload() {
+  const t = useTranslations("components");
+  const tCommon = useTranslations("common");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [logoType, setLogoType] = useState<"logo" | "logo-text">("logo");
   const [isUploading, setIsUploading] = useState(false);
@@ -116,17 +119,16 @@ export default function LogoUpload() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Image className="h-5 w-5" />
-            Logo Upload
+            {t("logo_upload")}
           </CardTitle>
           <CardDescription>
-            Upload new logos to update all logo variants across the platform. 
-            The system will automatically generate all required sizes and formats.
+            {t("upload_new_logos_to_update_all")} {t("the_system_will_automatically_generate_all")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Logo Type Selection */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Logo Type</Label>
+            <Label className="text-base font-medium">{t("logo_type")}</Label>
             <RadioGroup
               value={logoType}
               onValueChange={(value) => setLogoType(value as "logo" | "logo-text")}
@@ -149,7 +151,7 @@ export default function LogoUpload() {
           {/* File Upload */}
           <div className="space-y-3">
             <Label htmlFor="logo-file" className="text-base font-medium">
-              Select Logo File
+              {t("select_logo_file")}
             </Label>
             <Input
               id="logo-file"
@@ -160,7 +162,7 @@ export default function LogoUpload() {
               className="cursor-pointer"
             />
             <p className="text-sm text-muted-foreground">
-              Accepted formats: PNG, JPG, JPEG, WebP, SVG. Maximum size: 5MB.
+              {t("accepted_formats_png_jpg_jpeg_webp")}
             </p>
           </div>
 
@@ -172,7 +174,7 @@ export default function LogoUpload() {
                 <div className="flex items-center justify-center">
                   <img
                     src={previewUrl}
-                    alt="Logo preview"
+                    alt={t("logo_preview")}
                     className="max-w-xs max-h-32 object-contain"
                   />
                 </div>
@@ -199,7 +201,7 @@ export default function LogoUpload() {
               {uploadResult.success && uploadResult.updatedFiles && (
                 <div className="mt-2">
                   <p className="text-sm font-medium text-green-800 mb-1">
-                    Updated files ({uploadResult.updatedFiles.length}):
+                    {t("updated_files")}{uploadResult.updatedFiles.length}):
                   </p>
                   <div className="flex flex-wrap gap-1">
                     {uploadResult.updatedFiles.slice(0, 10).map((file, index) => (
@@ -228,12 +230,12 @@ export default function LogoUpload() {
               {isUploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Uploading...
+                  {tCommon("uploading_ellipsis")}
                 </>
               ) : (
                 <>
                   <Upload className="mr-2 h-4 w-4" />
-                  Upload Logo
+                  {t("upload_logo")}
                 </>
               )}
             </Button>
@@ -253,9 +255,9 @@ export default function LogoUpload() {
       {/* Current Logos Preview */}
       <Card>
         <CardHeader>
-          <CardTitle>Current Logos</CardTitle>
+          <CardTitle>{t("current_logos")}</CardTitle>
           <CardDescription>
-            Preview of the current logos that will be updated when you upload new ones.
+            {t("preview_of_the_current_logos_that")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -264,27 +266,27 @@ export default function LogoUpload() {
               <div className="border rounded-lg p-4 bg-muted/20 aspect-square flex items-center justify-center">
                 <img
                   src={logoUrls.logo}
-                  alt="Main logo"
+                  alt={t("main_logo")}
                   className="max-w-full max-h-full object-contain"
                   onError={(e) => {
                     e.currentTarget.src = logoUrls.logoPng;
                   }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Main Logo</p>
+              <p className="text-xs text-muted-foreground">{t("main_logo")}</p>
             </div>
             <div className="text-center space-y-2">
               <div className="border rounded-lg p-4 bg-muted/20 aspect-square flex items-center justify-center">
                 <img
                   src={logoUrls.logoText}
-                  alt="Logo with text"
+                  alt={t("logo_with_text")}
                   className="max-w-full max-h-full object-contain"
                   onError={(e) => {
                     e.currentTarget.src = logoUrls.logoTextPng;
                   }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Logo with Text</p>
+              <p className="text-xs text-muted-foreground">{t("logo_with_text")}</p>
             </div>
             <div className="text-center space-y-2">
               <div className="border rounded-lg p-4 bg-muted/20 aspect-square flex items-center justify-center">
@@ -300,11 +302,11 @@ export default function LogoUpload() {
               <div className="border rounded-lg p-4 bg-muted/20 aspect-square flex items-center justify-center">
                 <img
                   src={logoUrls.appleTouchIcon}
-                  alt="Apple touch icon"
+                  alt={t("apple_touch_icon")}
                   className="max-w-full max-h-full object-contain"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Apple Touch Icon</p>
+              <p className="text-xs text-muted-foreground">{t("apple_touch_icon")}</p>
             </div>
           </div>
         </CardContent>

@@ -39,16 +39,20 @@ export const metadata: OperationObject = {
     404: notFoundMetadataResponse("AI Investment"),
     500: serverErrorResponse,
   },
+  logModule: "AI",
+  logTitle: "Get AI investment by ID",
   requiresAuth: true,
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
   const { id } = params;
 
+  ctx?.step("Fetching investment details");
   const investment = await models.aiInvestment.findByPk(id, {
     include: [
       {
@@ -73,8 +77,12 @@ export default async (data: Handler) => {
       "createdAt",
     ],
   });
+
+  ctx?.step("Verifying investment exists");
   if (!investment) {
     throw createError({ statusCode: 404, message: "Investment not found" });
   }
+
+  ctx?.success(`Retrieved investment ${id} for symbol ${investment.symbol}`);
   return investment;
 };

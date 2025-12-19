@@ -1,8 +1,16 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { mlmReferralRewardAnalytics } from "./analytics";
+import { useColumns, useFormConfig } from "./columns";
+import { useAnalytics } from "./analytics";
+import { Gift } from "lucide-react";
+import { useTranslations } from "next-intl";
+
 export default function AffiliateRewardPage() {
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
+  const analytics = useAnalytics();
+
   return (
     <DataTable
       apiEndpoint="/api/admin/affiliate/reward"
@@ -14,14 +22,22 @@ export default function AffiliateRewardPage() {
         edit: "edit.affiliate.reward",
         delete: "delete.affiliate.reward",
       }}
-      pageSize={10}
+      pageSize={12}
       canEdit
       canDelete
       canView
-      title="Affiliate Rewards"
-      itemTitle="Reward"
+      title={t("referral_rewards")}
+      description={t("manage_affiliate_reward_payouts_and_commission")}
+      itemTitle="Referral Reward"
       columns={columns}
-      analytics={mlmReferralRewardAnalytics}
+      formConfig={formConfig}
+      analytics={analytics}
+      design={{
+        animation: "orbs",
+        primaryColor: "blue",
+        secondaryColor: "amber",
+        icon: Gift,
+      }}
     />
   );
 }

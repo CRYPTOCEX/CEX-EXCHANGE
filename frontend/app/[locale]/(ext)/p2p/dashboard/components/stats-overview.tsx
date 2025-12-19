@@ -69,7 +69,7 @@ export function StatsOverview({ stats, isLoading }: StatsOverviewProps) {
             change: "0 pending completion",
             changeType: "neutral",
             icon: "bar-chart",
-            gradient: "from-violet-500 to-violet-700",
+            gradient: `from-blue-500 to-blue-700`,
           },
           {
             title: "Success Rate",
@@ -122,7 +122,7 @@ function StatCard({ stat, index }: StatCardProps) {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4, delay: index * 0.1 }}
     >
-      <Card className="overflow-hidden border-0 shadow-lg">
+      <Card className="overflow-hidden border border-zinc-200 dark:border-zinc-700/50 shadow-lg bg-white dark:bg-zinc-900">
         <div className={`h-1.5 w-full bg-gradient-to-r ${stat.gradient}`} />
         <CardHeader className="flex flex-row items-center justify-between py-5">
           <CardTitle className="text-base font-medium">{stat.title}</CardTitle>

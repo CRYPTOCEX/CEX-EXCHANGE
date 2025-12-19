@@ -31,6 +31,8 @@ export const metadata: OperationObject = {
   description: "Submits a new futures trading order for the logged-in user.",
   operationId: "createFuturesOrder",
   tags: ["Futures", "Orders"],
+  logModule: "FUTURES",
+  logTitle: "Create futures order",
   requestBody: {
     required: true,
     content: {
@@ -82,8 +84,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
+
+  ctx?.step?.("Validating user authentication");
   if (!user?.id) {
+    ctx?.fail?.("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
@@ -99,24 +104,30 @@ export default async (data: Handler) => {
     takeProfitPrice,
   } = body;
 
+  ctx?.step?.("Validating request parameters");
   if (!currency || !pair) {
+    ctx?.fail?.("Invalid symbol");
     throw new Error("Invalid symbol");
   }
   const symbol = `${currency}/${pair}`;
 
   try {
+    ctx?.step?.(`Fetching futures market for ${symbol}`);
     const market = (await models.futuresMarket.findOne({
       where: { currency, pair },
     })) as any;
 
     if (!market) {
+      ctx?.fail?.("Futures market data not found");
       throw new Error("Futures market data not found");
     }
 
     if (!market.metadata) {
+      ctx?.fail?.("Futures market metadata not found");
       throw new Error("Futures market metadata not found");
     }
 
+    ctx?.step?.("Validating order parameters against market limits");
     const minAmount = Number(market.metadata?.limits?.amount?.min || 0);
     const maxAmount = Number(market.metadata?.limits?.amount?.max || 0);
     const minPrice = Number(market.metadata?.limits?.price?.min || 0);
@@ -165,17 +176,22 @@ export default async (data: Handler) => {
       throw new Error(`Cost is too high. Maximum is ${maxCost} ${pair}`);
     }
 
-    const pairWallet = await getWalletSafe(user.id, "FUTURES", pair);
-    
+    ctx?.step?.(`Fetching ${pair} wallet`);
+    const pairWallet = await getWalletSafe(user.id, "FUTURES", pair, false, ctx);
+
     if (!pairWallet) {
+      ctx?.fail?.(`Wallet not found for ${pair}`);
       throw new Error(`Insufficient balance. You need ${cost + fee} ${pair}`);
     }
 
+    ctx?.step?.("Checking wallet balance");
     // Check for sufficient balance
     if (pairWallet.balance < cost + fee) {
+      ctx?.fail?.(`Insufficient balance: ${pairWallet.balance} < ${cost + fee}`);
       throw new Error(`Insufficient balance. You need ${cost + fee} ${pair}`);
     }
 
+    ctx?.step?.("Checking for existing counter orders");
     const existingOrders = await getOrdersByUserId(user.id);
 
     for (const existingOrder of existingOrders) {
@@ -188,6 +204,7 @@ export default async (data: Handler) => {
         existingOrder.status === "OPEN" &&
         fromBigInt(existingOrder.remaining) === amount
       ) {
+        ctx?.step?.("Counter order detected, cancelling existing order");
         // Cancel the existing order and return the balance to the user's wallet
         await cancelOrderByUuid(
           existingOrder.userId,
@@ -199,6 +216,7 @@ export default async (data: Handler) => {
           existingOrder.remaining
         );
 
+        ctx?.step?.("Refunding balance to wallet");
         // Return the balance to the user's wallet
         const refundAmount = fromBigIntMultiply(
           existingOrder.remaining + existingOrder.fee,
@@ -207,6 +225,7 @@ export default async (data: Handler) => {
 
         await updateWalletBalance(pairWallet, refundAmount, "add");
 
+        ctx?.success?.("Counter order closed existing position");
         return {
           message:
             "Counter order detected and existing position closed successfully",
@@ -214,6 +233,7 @@ export default async (data: Handler) => {
       }
     }
 
+    ctx?.step?.(`Creating new ${side} order for ${amount} ${currency} at ${price} ${pair}`);
     const newOrder = await createOrder({
       userId: user.id,
       symbol,
@@ -231,6 +251,7 @@ export default async (data: Handler) => {
         : undefined,
     });
 
+    ctx?.step?.("Formatting order response");
     const order = {
       ...newOrder,
       amount: fromBigInt(newOrder.amount),
@@ -249,15 +270,18 @@ export default async (data: Handler) => {
       average: 0,
     };
 
+    ctx?.step?.(`Deducting ${cost + fee} ${pair} from wallet`);
     // Subtract the cost and fee from the pair wallet
     await updateWalletBalance(pairWallet, cost + fee, "subtract");
 
+    ctx?.success?.(`Futures order created successfully (ID: ${newOrder.id})`);
     return {
       message: "Futures order created successfully",
       order,
     };
   } catch (error) {
     console.error("Error creating futures order:", error); // Log the error
+    ctx?.fail?.(`Failed to create order: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: `Failed to create futures order: ${error.message}`,

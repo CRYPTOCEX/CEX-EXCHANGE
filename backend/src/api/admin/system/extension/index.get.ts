@@ -6,6 +6,7 @@ import {
 import { models } from "@b/db";
 import { Op } from "sequelize";
 import { fetchAllProductsUpdates } from "@b/api/admin/system/utils";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary:
@@ -77,11 +78,16 @@ export const metadata = {
   },
   requiresAuth: true,
   permission: "view.extension",
+  logModule: "ADMIN_SYSTEM",
+  logTitle: "Get Extensions",
 };
 
 
 
 export default async (data: Handler) => {
+  const { ctx } = data;
+
+  ctx?.step("Fetching extensions");
   const extensions = await models.extension.findAll({
     where: { [Op.not]: { name: "swap" } },
     attributes: {
@@ -94,7 +100,7 @@ export default async (data: Handler) => {
   try {
     licenseUpdates = await fetchAllProductsUpdates();
   } catch (error) {
-    console.error('Failed to fetch license updates:', error);
+    logger.error("EXTENSION", "Failed to fetch license updates", error);
   }
 
   // Map license updates to extensions
@@ -140,5 +146,6 @@ export default async (data: Handler) => {
     return extensionData;
   });
 
+  ctx?.success("Extensions retrieved successfully");
   return extensionsWithUpdates;
 };

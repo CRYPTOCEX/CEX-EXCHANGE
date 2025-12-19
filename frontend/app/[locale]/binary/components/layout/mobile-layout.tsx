@@ -103,7 +103,7 @@ export default function MobileLayout({
   onDarkModeChange = () => {},
   handleMarketSelect,
 }: MobileLayoutProps) {
-  const t = useTranslations("common");
+  const tCommon = useTranslations("common");
 
   // Handle viewport height changes for mobile browsers
   useEffect(() => {
@@ -232,14 +232,14 @@ export default function MobileLayout({
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 px-5 rounded-md flex items-center justify-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <ArrowUp size={18} />
-                <span>{t("RISE")}</span>
+                <span>{tCommon("rise")}</span>
               </button>
               <button
                 onClick={() => setActivePanel("order")}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-5 rounded-md flex items-center justify-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <ArrowDown size={18} />
-                <span>{t("FALL")}</span>
+                <span>{tCommon("fall")}</span>
               </button>
             </div>
           </div>

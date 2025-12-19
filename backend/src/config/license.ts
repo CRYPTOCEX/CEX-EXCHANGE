@@ -7,7 +7,7 @@ export const LICENSE_CONFIG = {
   // Extension to Product ID mappings
   EXTENSION_MAPPINGS: {
     "ai_investment": "B96677A0",
-    "ecosystem": "EB4AADC3", 
+    "ecosystem": "EB4AADC3",
     "forex": "F8C1C44E",
     "ico": "61433370",
     "staking": "5868429E",
@@ -21,7 +21,8 @@ export const LICENSE_CONFIG = {
     "futures": "A94B6354",
     "nft": "C472374E",
     "gateway": "B80789E1",
-    "ai_market_maker": "AI7RAD1NG"
+    "ai_market_maker": "AI7RAD1NG",
+    "copy_trading": "0B418556"
   }
 };
 

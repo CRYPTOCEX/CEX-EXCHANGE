@@ -32,6 +32,8 @@ interface NotificationsState {
   stats: NotificationStats;
   lastFetched: number | null;
   cacheExpiry: number; // in milliseconds
+  notificationsFetched: boolean;
+  isFetching: boolean; // Guard against concurrent fetches
 
   fetchNotifications: () => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
@@ -115,10 +117,19 @@ export const useNotificationsStore = create<NotificationsState>()(
       },
       lastFetched: null,
       cacheExpiry: 30 * 1000, // 30 seconds for more frequent updates
+      notificationsFetched: false,
+      isFetching: false,
 
     fetchNotifications: async () => {
       const now = Date.now();
-      const { lastFetched, cacheExpiry, notifications } = get();
+      const { lastFetched, cacheExpiry, notifications, isFetching } = get();
+
+      // Guard against concurrent fetches (prevents double calls from StrictMode)
+      if (isFetching) {
+        return;
+      }
+
+      // Check cache expiry
       if (
         lastFetched &&
         now - lastFetched < cacheExpiry &&
@@ -126,8 +137,9 @@ export const useNotificationsStore = create<NotificationsState>()(
       ) {
         return;
       }
+
       try {
-        set({ isLoading: true, error: null });
+        set({ isLoading: true, isFetching: true, error: null });
         const { data, error } = await $fetch({
           url: "/api/user/notification",
           silent: true,
@@ -168,10 +180,13 @@ export const useNotificationsStore = create<NotificationsState>()(
             stats: computeStats(parsedNotifications),
             lastFetched: Date.now(),
             isLoading: false,
+            isFetching: false,
+            notificationsFetched: true,
           });
         } else {
           set({
             isLoading: false,
+            isFetching: false,
             error: error || "Failed to fetch notifications",
           });
         }
@@ -179,6 +194,7 @@ export const useNotificationsStore = create<NotificationsState>()(
         console.error("Error fetching notifications:", error);
         set({
           isLoading: false,
+          isFetching: false,
           error:
             error instanceof Error
               ? error.message

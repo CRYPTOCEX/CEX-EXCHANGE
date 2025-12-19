@@ -66,11 +66,18 @@ export const metadata = {
     },
   },
   requiresAuth: true,
+  logModule: "ADMIN_SYS",
+  logTitle: "Download product update",
 };
 
 export default async (data) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { productId, updateId, version, product, type } = body;
 
-  return downloadUpdate(productId, updateId, version, product, type);
+  ctx?.step(`Downloading update ${version} for ${product}`);
+
+  const result = await downloadUpdate(productId, updateId, version, product, type);
+
+  ctx?.success(`Update ${version} downloaded successfully`);
+  return result;
 };

@@ -1,3 +1,5 @@
+import { logger } from "@b/utils/console";
+
 /**
  * Robust JSON parser that handles:
  * 1. Already parsed objects
@@ -51,10 +53,7 @@ export function safeParseJSON<T = any>(value: any, defaultValue: T | null = null
 
     return parsed as T;
   } catch (error) {
-    console.warn('[JSON Parser] Failed to parse value:', {
-      value: typeof value === 'string' ? value.substring(0, 100) : value,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    logger.warn("JSON", `Failed to parse value: ${error instanceof Error ? error.message : 'Unknown error'}`);
     return defaultValue;
   }
 }

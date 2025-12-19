@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
     "Initiates a new investment based on the specified plan and amount. This process involves updating the user's wallet balance and creating transaction records.",
   operationId: "createInvestment",
   tags: ["Finance", "Investment"],
+  logModule: "FINANCE",
+  logTitle: "Create investment",
   parameters: [],
   requestBody: {
     description: "Data required to create a new investment",
@@ -52,21 +54,29 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
-  if (!user?.id)
+  const { user, body, ctx } = data;
+
+  if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
   const { type, planId, amount, durationId } = body;
 
+  ctx?.step("Fetching user account");
   const userPk = await models.user.findByPk(user.id);
   if (!userPk) {
+    ctx?.fail("User account not found");
     throw new Error("User not found");
   }
 
+  ctx?.step("Validating investment type");
   if (!type || typeof type !== "string") {
+    ctx?.fail(`Invalid investment type: ${type}`);
     throw new Error("Invalid investment type");
   }
 
+  ctx?.step(`Initializing ${type} investment models`);
   let model, planModel, durationModel, trxType, mailType;
   switch (type.toLowerCase()) {
     case "general":
@@ -85,29 +95,38 @@ export default async (data: Handler) => {
       break;
   }
   if (!model) {
+    ctx?.fail(`Invalid investment type: ${type}`);
     throw new Error("Invalid investment type");
   }
 
+  ctx?.step("Fetching investment plan");
   const plan = await planModel.findByPk(planId);
   if (!plan) {
+    ctx?.fail(`Investment plan not found: ${planId}`);
     throw new Error("Investment plan not found");
   }
 
+  ctx?.step("Fetching investment duration");
   const duration = await durationModel.findByPk(durationId);
   if (!duration) {
+    ctx?.fail(`Investment duration not found: ${durationId}`);
     throw new Error("Investment duration not found");
   }
 
+  ctx?.step(`Fetching ${plan.currency} ${plan.walletType} wallet`);
   const wallet = await getWallet(user.id, plan.walletType, plan.currency);
 
+  ctx?.step("Verifying wallet balance");
   if (wallet.balance < amount) {
+    ctx?.fail(`Insufficient balance: ${wallet.balance} < ${amount}`);
     throw new Error("Insufficient balance");
   }
 
+  ctx?.step("Calculating ROI");
   const roi = (plan.profitPercentage / 100) * amount;
-
   const newBalance = wallet.balance - amount;
 
+  ctx?.step("Creating investment record and transaction");
   const newInvestment = await sequelize.transaction(async (transaction) => {
     await models.wallet.update(
       { balance: newBalance },
@@ -133,13 +152,13 @@ export default async (data: Handler) => {
         { transaction }
       );
     } catch (error) {
+      ctx?.fail("Already invested in this plan");
       throw createError({
         statusCode: 400,
         message: "Already invested in this plan",
       });
     }
 
-    // Assuming transaction model exists and is for logging financial transactions
     await models.transaction.create(
       {
         userId: user.id,
@@ -157,7 +176,7 @@ export default async (data: Handler) => {
     return newInvestment;
   });
 
-  // Re-fetch the investment with related data after creation for email
+  ctx?.step("Fetching investment details for email notification");
   const investmentForEmail = await model.findByPk(newInvestment.id, {
     include: [
       {
@@ -177,17 +196,21 @@ export default async (data: Handler) => {
   });
 
   if (investmentForEmail) {
+    ctx?.step("Sending investment confirmation email");
     await sendInvestmentEmail(
       userPk,
       plan,
       duration,
       investmentForEmail,
-      mailType
+      mailType,
+      ctx
     );
   } else {
+    ctx?.fail("Failed to fetch investment for email");
     throw new Error("Failed to fetch the newly created investment for email.");
   }
 
+  ctx?.success(`${type} investment created: ${amount} ${plan.currency} for ${duration.duration} ${duration.timeframe}`);
   return {
     message: "Investment created successfully",
   };

@@ -27,15 +27,16 @@ export function OfferingStatusChart({
   stats,
   isLoading,
 }: OfferingStatusChartProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   const totalOfferings = stats?.totalOfferings || 0;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("offering_status")}</CardTitle>
+        <CardTitle>{tExtAdmin("offering_status")}</CardTitle>
         <CardDescription>
-          {t("distribution_of_offerings_by_status")}
+          {tExtAdmin("distribution_of_offerings_by_status")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -50,7 +51,7 @@ export function OfferingStatusChart({
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <div className="text-sm">{t("Active")}</div>
+                <div className="text-sm">{t("active")}</div>
                 <div className="text-sm font-medium">
                   {stats?.activeOfferings || 0}
                 </div>
@@ -70,7 +71,7 @@ export function OfferingStatusChart({
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <div className="text-sm">{t("Pending")}</div>
+                <div className="text-sm">{t("pending")}</div>
                 <div className="text-sm font-medium">
                   {stats?.pendingOfferings || 0}
                 </div>
@@ -91,7 +92,7 @@ export function OfferingStatusChart({
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <div className="text-sm">{t("Completed")}</div>
+                <div className="text-sm">{t("completed")}</div>
                 <div className="text-sm font-medium">
                   {stats?.completedOfferings || 0}
                 </div>
@@ -112,7 +113,7 @@ export function OfferingStatusChart({
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <div className="text-sm">{t("Rejected")}</div>
+                <div className="text-sm">{t("rejected")}</div>
                 <div className="text-sm font-medium">
                   {stats?.rejectedOfferings || 0}
                 </div>

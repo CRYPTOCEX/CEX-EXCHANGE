@@ -20,13 +20,14 @@ export function Spacing({
   togglePaddingLink,
   toggleMarginLink,
 }: SpacingProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-3 p-4 max-w-full">
       {/* Padding Controls */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label className="text-xs">{t("Padding")}</Label>
+          <Label className="text-xs">{t("padding")}</Label>
           <div className="flex gap-1">
             <Button
               variant="ghost"
@@ -70,29 +71,29 @@ export function Spacing({
           <div className="absolute inset-x-0 top-0 h-6 bg-blue-100/30 flex items-center justify-center">
             <span className="text-xs text-blue-600">
               {settings?.paddingTop || 0}
-              {t("px")}
+              {tCommon("px")}
             </span>
           </div>
           <div className="absolute inset-y-0 right-0 w-6 bg-blue-100/30 flex items-center justify-center">
             <span className="text-xs text-blue-600 transform rotate-90">
               {settings?.paddingRight || 0}
-              {t("px")}
+              {tCommon("px")}
             </span>
           </div>
           <div className="absolute inset-x-0 bottom-0 h-6 bg-blue-100/30 flex items-center justify-center">
             <span className="text-xs text-blue-600">
               {settings?.paddingBottom || 0}
-              {t("px")}
+              {tCommon("px")}
             </span>
           </div>
           <div className="absolute inset-y-0 left-0 w-6 bg-blue-100/30 flex items-center justify-center">
             <span className="text-xs text-blue-600 transform -rotate-90">
               {settings?.paddingLeft || 0}
-              {t("px")}
+              {tCommon("px")}
             </span>
           </div>
           <div className="h-full w-full border-2 border-dashed border-gray-300 flex items-center justify-center">
-            <span className="text-xs text-gray-500">{t("Content")}</span>
+            <span className="text-xs text-gray-500">{tCommon("content")}</span>
           </div>
         </div>
 
@@ -100,7 +101,7 @@ export function Spacing({
         <div className="grid grid-cols-2 gap-x-2 gap-y-1">
           <div className="flex items-center">
             <span className="text-xs w-8 text-muted-foreground">
-              {t("Top")}
+              {tCommon("top")}
             </span>
             <SliderWithInput
               value={settings?.paddingTop || 0}
@@ -111,7 +112,7 @@ export function Spacing({
           </div>
           <div className="flex items-center">
             <span className="text-xs w-8 text-muted-foreground">
-              {t("Right")}
+              {t("right")}
             </span>
             <SliderWithInput
               value={settings?.paddingRight || 0}
@@ -122,7 +123,7 @@ export function Spacing({
           </div>
           <div className="flex items-center">
             <span className="text-xs w-8 text-muted-foreground">
-              {t("Bottom")}
+              {t("bottom")}
             </span>
             <SliderWithInput
               value={settings?.paddingBottom || 0}
@@ -133,7 +134,7 @@ export function Spacing({
           </div>
           <div className="flex items-center">
             <span className="text-xs w-8 text-muted-foreground">
-              {t("Left")}
+              {t("left")}
             </span>
             <SliderWithInput
               value={settings?.paddingLeft || 0}
@@ -157,7 +158,7 @@ export function Spacing({
               onSettingChange("paddingLeft", 0);
             }}
           >
-            {t("None")}
+            {tCommon("none")}
           </Button>
           <Button
             variant="outline"
@@ -170,7 +171,7 @@ export function Spacing({
               onSettingChange("paddingLeft", 16);
             }}
           >
-            {t("Small")}
+            {tCommon("small")}
           </Button>
           <Button
             variant="outline"
@@ -183,7 +184,7 @@ export function Spacing({
               onSettingChange("paddingLeft", 32);
             }}
           >
-            {t("Medium")}
+            {tCommon("medium")}
           </Button>
           <Button
             variant="outline"
@@ -196,7 +197,7 @@ export function Spacing({
               onSettingChange("paddingLeft", 64);
             }}
           >
-            {t("Large")}
+            {tCommon("large")}
           </Button>
         </div>
       </div>
@@ -204,7 +205,7 @@ export function Spacing({
       {/* Margin Controls */}
       <div className="space-y-2 mt-4">
         <div className="flex items-center justify-between">
-          <Label className="text-xs">{t("Margin")}</Label>
+          <Label className="text-xs">{tCommon("margin")}</Label>
           <div className="flex gap-1">
             <Button
               variant="ghost"
@@ -248,29 +249,29 @@ export function Spacing({
           <div className="absolute inset-x-0 top-0 h-6 bg-green-100/30 flex items-center justify-center">
             <span className="text-xs text-green-600">
               {settings?.marginTop || 0}
-              {t("px")}
+              {tCommon("px")}
             </span>
           </div>
           <div className="absolute inset-y-0 right-0 w-6 bg-green-100/30 flex items-center justify-center">
             <span className="text-xs text-green-600 transform rotate-90">
               {settings?.marginRight || 0}
-              {t("px")}
+              {tCommon("px")}
             </span>
           </div>
           <div className="absolute inset-x-0 bottom-0 h-6 bg-green-100/30 flex items-center justify-center">
             <span className="text-xs text-green-600">
               {settings?.marginBottom || 0}
-              {t("px")}
+              {tCommon("px")}
             </span>
           </div>
           <div className="absolute inset-y-0 left-0 w-6 bg-green-100/30 flex items-center justify-center">
             <span className="text-xs text-green-600 transform -rotate-90">
               {settings?.marginLeft || 0}
-              {t("px")}
+              {tCommon("px")}
             </span>
           </div>
           <div className="h-full w-full border-2 border-dashed border-gray-300 flex items-center justify-center">
-            <span className="text-xs text-gray-500">{t("Element")}</span>
+            <span className="text-xs text-gray-500">{tCommon("element")}</span>
           </div>
         </div>
 
@@ -278,7 +279,7 @@ export function Spacing({
         <div className="grid grid-cols-2 gap-x-2 gap-y-1">
           <div className="flex items-center">
             <span className="text-xs w-8 text-muted-foreground">
-              {t("Top")}
+              {tCommon("top")}
             </span>
             <SliderWithInput
               value={settings?.marginTop || 0}
@@ -289,7 +290,7 @@ export function Spacing({
           </div>
           <div className="flex items-center">
             <span className="text-xs w-8 text-muted-foreground">
-              {t("Right")}
+              {t("right")}
             </span>
             <SliderWithInput
               value={settings?.marginRight || 0}
@@ -300,7 +301,7 @@ export function Spacing({
           </div>
           <div className="flex items-center">
             <span className="text-xs w-8 text-muted-foreground">
-              {t("Bottom")}
+              {t("bottom")}
             </span>
             <SliderWithInput
               value={settings?.marginBottom || 0}
@@ -311,7 +312,7 @@ export function Spacing({
           </div>
           <div className="flex items-center">
             <span className="text-xs w-8 text-muted-foreground">
-              {t("Left")}
+              {t("left")}
             </span>
             <SliderWithInput
               value={settings?.marginLeft || 0}
@@ -335,7 +336,7 @@ export function Spacing({
               onSettingChange("marginLeft", 0);
             }}
           >
-            {t("None")}
+            {tCommon("none")}
           </Button>
           <Button
             variant="outline"
@@ -348,7 +349,7 @@ export function Spacing({
               onSettingChange("marginLeft", 8);
             }}
           >
-            {t("Small")}
+            {tCommon("small")}
           </Button>
           <Button
             variant="outline"
@@ -361,7 +362,7 @@ export function Spacing({
               onSettingChange("marginLeft", 16);
             }}
           >
-            {t("Medium")}
+            {tCommon("medium")}
           </Button>
           <Button
             variant="outline"
@@ -374,7 +375,7 @@ export function Spacing({
               onSettingChange("marginLeft", 32);
             }}
           >
-            {t("Large")}
+            {tCommon("large")}
           </Button>
         </div>
       </div>

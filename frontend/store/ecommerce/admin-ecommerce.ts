@@ -1,9 +1,7 @@
 import { create } from "zustand";
-import type { ecommerceProductAttributes } from "@/types/ecommerce/product";
-import type { ecommerceCategoryAttributes } from "@/types/ecommerce/category";
-import type { ecommerceOrderAttributes } from "@/types/ecommerce/order";
-import type { ecommerceCustomerAttributes } from "@/types/ecommerce/customer";
 import { $fetch } from "@/lib/api";
+
+// Types are declared globally in @/types/ecommerce/*.d.ts
 import { format } from "date-fns";
 
 interface TopProduct {

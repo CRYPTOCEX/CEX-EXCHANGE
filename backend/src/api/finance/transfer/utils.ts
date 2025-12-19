@@ -4,6 +4,7 @@ import {
   sendOutgoingTransferEmail,
 } from "@b/utils/emails";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 export async function updatePrivateLedger(
   walletId: string,
@@ -231,6 +232,6 @@ export async function sendTransferEmails(
       transaction.toTransfer.id
     );
   } catch (error) {
-    console.log("Error sending transfer email: ", error);
+    logger.error("FINANCE", "Error sending transfer email", error);
   }
 }

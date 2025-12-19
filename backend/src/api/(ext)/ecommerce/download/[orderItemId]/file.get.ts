@@ -15,6 +15,8 @@ export const metadata: OperationObject = {
   description: "Streams the actual file content for purchased digital products",
   operationId: "streamDigitalProductFile",
   tags: ["Ecommerce", "Downloads"],
+  logModule: "ECOM",
+  logTitle: "Download File",
   requiresAuth: true,
   parameters: [
     {
@@ -45,14 +47,19 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler & { res?: any }) => {
+  const { ctx } = data;
+
   // Apply rate limiting
   await rateLimiters.download(data);
-  
+
   const { user, params } = data;
   const { res } = data as any; // res is provided by the framework at runtime
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Download File");
 
   const { orderItemId } = params;
 

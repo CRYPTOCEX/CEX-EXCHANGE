@@ -8,6 +8,8 @@ export const metadata = {
   operationId: "updateStakingPool",
   tags: ["Staking", "Admin", "Pools"],
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Update Staking Pool",
   parameters: [
     {
       index: 0,
@@ -79,8 +81,8 @@ export const metadata = {
   permission: "edit.staking.pool",
 };
 
-export default async (data: { user?: any; params?: any; body?: any }) => {
-  const { user, params, body } = data;
+export default async (data: { user?: any; params?: any; body?: any; ctx?: any }) => {
+  const { user, params, body, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -96,6 +98,7 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
   }
 
   try {
+    ctx?.step("Find pool to update");
     // Find the pool to update
     const pool = await models.stakingPool.findOne({
       where: { id: poolId },
@@ -105,9 +108,11 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
       throw createError({ statusCode: 404, message: "Pool not found" });
     }
 
+    ctx?.step("Update pool");
     // Update the pool
     await pool.update(body);
 
+    ctx?.step("Reload pool with associations");
     // Reload the pool with associations
     const updatedPool = await models.stakingPool.findOne({
       where: { id: poolId },
@@ -147,12 +152,13 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
             primary: true,
           },
         ],
-      });
+      }, ctx);
     } catch (notifErr) {
       console.error("Failed to create notification for pool update", notifErr);
       // Continue execution even if notification fails
     }
 
+    ctx?.success("Staking pool updated successfully");
     return updatedPool;
   } catch (error) {
     if (error.statusCode === 404) {

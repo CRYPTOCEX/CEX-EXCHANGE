@@ -15,6 +15,8 @@ export const metadata: OperationObject = {
   operationId: "listKycApplications",
   tags: ["Admin", "CRM", "KYC"],
   parameters: crudParameters,
+  logModule: "ADMIN_CRM",
+  logTitle: "List KYC applications",
   responses: {
     200: {
       description:
@@ -43,12 +45,14 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.kyc.application",
+  demoMask: ["items.user.email"],
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching KYC applications");
+  const result = await getFiltered({
     model: models.kycApplication,
     query,
     sortField: query.sortField || "createdAt",
@@ -78,4 +82,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success("KYC applications retrieved successfully");
+  return result;
 };

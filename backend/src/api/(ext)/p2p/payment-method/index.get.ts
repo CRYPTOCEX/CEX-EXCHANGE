@@ -1,6 +1,7 @@
 import { models } from "@b/db";
 import { serverErrorResponse } from "@b/utils/query";
 import { Op } from "sequelize";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "List Payment Methods",
@@ -8,6 +9,8 @@ export const metadata = {
     "Retrieves a list of available payment methods using the payment methods model.",
   operationId: "listPaymentMethods",
   tags: ["P2P", "Payment Method"],
+  logModule: "P2P",
+  logTitle: "List payment methods",
   responses: {
     200: { description: "Payment methods retrieved successfully." },
     500: serverErrorResponse,
@@ -15,9 +18,10 @@ export const metadata = {
   requiresAuth: true,
 };
 
-export default async (data: { user?: any }) => {
-  const { user } = data;
+export default async (data: { user?: any; ctx?: any }) => {
+  const { user, ctx } = data;
 
+  ctx?.step("Fetching payment methods");
   try {
     // Fetch global/system methods
     const globalMethods = await models.p2pPaymentMethod.findAll({
@@ -127,7 +131,8 @@ export default async (data: { user?: any }) => {
       hasActiveTrade: false,
     }));
 
-    console.log(`[P2P Payment Methods] Found ${globalMethods.length} global/system and ${userMethods.length} custom methods for user ${user?.id || 'anonymous'}`);
+    logger.info("P2P_PAYMENT_METHOD", `Found ${globalMethods.length} global/system and ${userMethods.length} custom methods for user ${user?.id || 'anonymous'}`);
+    ctx?.success(`Retrieved ${globalMethods.length} global and ${userMethods.length} custom methods`);
 
     // Return separated lists
     return {
@@ -135,7 +140,8 @@ export default async (data: { user?: any }) => {
       custom: userMethods,
     };
   } catch (err: any) {
-    console.error('[P2P Payment Methods] Error:', err);
+    logger.error("P2P_PAYMENT_METHOD", "Error fetching payment methods", err);
+    ctx?.fail(err.message || "Failed to fetch payment methods");
     throw new Error("Internal Server Error: " + err.message);
   }
 };

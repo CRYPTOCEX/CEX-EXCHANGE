@@ -10,6 +10,8 @@ export const metadata = {
   operationId: "updateStakingPosition",
   tags: ["Staking", "Admin", "Positions"],
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Update Staking Position",
   parameters: [
     {
       index: 0,
@@ -74,8 +76,8 @@ export const metadata = {
   permission: "edit.staking.position",
 };
 
-export default async (data: { user?: any; params?: any; body?: any }) => {
-  const { user, params, body } = data;
+export default async (data: { user?: any; params?: any; body?: any; ctx?: any }) => {
+  const { user, params, body, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -91,6 +93,7 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
   }
 
   try {
+    ctx?.step("Find position to update");
     // Find the position to update
     const position = await models.stakingPosition.findOne({
       where: { id: positionId },
@@ -110,6 +113,7 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     const isCompletingPosition =
       position.status !== "COMPLETED" && body.status === "COMPLETED";
 
+    ctx?.step("Update position");
     // Update the position
     await position.update({
       ...body,
@@ -120,6 +124,7 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
           : body.completedAt,
     });
 
+    ctx?.step("Reload position with associations");
     // Reload the position with associations
     const updatedPosition = await models.stakingPosition.findOne({
       where: { id: positionId },
@@ -136,6 +141,7 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
       ],
     });
 
+    ctx?.step("Calculate additional properties");
     // Calculate additional properties
     const pendingRewardsResult = await models.stakingEarningRecord.findOne({
       attributes: [[fn("SUM", col("amount")), "pendingRewards"]],
@@ -211,7 +217,7 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
             primary: true,
           },
         ],
-      });
+      }, ctx);
     } catch (notifErr) {
       console.error(
         "Failed to create notification for position update",
@@ -220,6 +226,7 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
       // Continue execution even if notification fails
     }
 
+    ctx?.success("Staking position updated successfully");
     // Return position with computed properties
     return {
       ...updatedPosition.toJSON(),

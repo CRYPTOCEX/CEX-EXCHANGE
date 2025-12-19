@@ -36,7 +36,9 @@ interface PoolDetailsTabProps {
 }
 
 export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const getPoolById = useStakingAdminPoolsStore((state) => state.getPoolById);
   const error = useStakingAdminPoolsStore((state) => state.error);
   const isLoading = useStakingAdminPoolsStore((state) => state.isLoading);
@@ -92,26 +94,26 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
             <CardTitle className="text-sm font-medium flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <Percent className="h-4 w-4 text-primary" />
-                {t("APR")}
+                {tCommon("apr")}
               </span>
               <Badge variant="outline" className="bg-primary/10 text-primary">
                 {pool.earningFrequency}
               </Badge>
             </CardTitle>
-            <CardDescription>{t("annual_percentage_rate")}</CardDescription>
+            <CardDescription>{tCommon("annual_percentage_rate")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-1">
               <div className="text-3xl font-bold">{pool.apr}%</div>
-              <div className="text-sm text-muted-foreground">{t("APR")}</div>
+              <div className="text-sm text-muted-foreground">{tCommon("apr")}</div>
             </div>
             <div className="mt-2 flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{t("admin_fee")}</span>
+              <span className="text-muted-foreground">{tExt("admin_fee")}</span>
               <span className="font-medium">{pool.adminFeePercentage}%</span>
             </div>
             <Separator className="my-2" />
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{t("Earnings")}</span>
+              <span className="text-muted-foreground">{tExt("earnings")}</span>
               <span className="font-medium">{pool.earningFrequency}</span>
             </div>
           </CardContent>
@@ -122,7 +124,7 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
             <CardTitle className="text-sm font-medium flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-blue-500" />
-                {t("lock_period")}
+                {tCommon("lock_period")}
               </span>
               <Badge variant="outline" className="bg-blue-500/10 text-blue-500">
                 {t("fixed_term")}
@@ -133,18 +135,18 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
           <CardContent>
             <div className="flex items-baseline gap-1">
               <div className="text-3xl font-bold">{pool.lockPeriod}</div>
-              <div className="text-sm text-muted-foreground">{t("days")}</div>
+              <div className="text-sm text-muted-foreground">{tCommon("days")}</div>
             </div>
             <div className="mt-2 flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                {t("early_withdrawal_fee")}
+                {tExt("early_withdrawal_fee")}
               </span>
               <span className="font-medium">{pool.earlyWithdrawalFee}%</span>
             </div>
             <Separator className="my-2" />
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                {t("Auto-compound")}
+                {tCommon("auto_compound")}
               </span>
               <span
                 className={cn(
@@ -169,7 +171,7 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
                 variant="outline"
                 className="bg-green-500/10 text-green-500"
               >
-                {t("Limits")}
+                {tCommon("limits")}
               </Badge>
             </CardTitle>
             <CardDescription>{t("min_and_max_stake_amounts")}</CardDescription>
@@ -178,7 +180,7 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
             <div className="space-y-3">
               <div>
                 <div className="text-sm text-muted-foreground mb-1">
-                  {t("minimum_stake")}
+                  {tExt("minimum_stake")}
                 </div>
                 <div className="text-xl font-semibold">
                   {pool.minStake} {pool.symbol}
@@ -187,7 +189,7 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
               <Separator />
               <div>
                 <div className="text-sm text-muted-foreground mb-1">
-                  {t("maximum_stake")}
+                  {tExt("maximum_stake")}
                 </div>
                 <div className="text-xl font-semibold">
                   {pool.maxStake ?? "Unlimited"}{" "}
@@ -203,13 +205,13 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
             <CardTitle className="text-sm font-medium flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <Coins className="h-4 w-4 text-amber-500" />
-                {t("pool_capacity")}
+                {tExt("pool_capacity")}
               </span>
               <Badge
                 variant="outline"
                 className="bg-amber-500/10 text-amber-500"
               >
-                {t("Utilization")}
+                {t("utilization")}
               </Badge>
             </CardTitle>
             <CardDescription>{t("current_pool_utilization")}</CardDescription>
@@ -236,13 +238,13 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
             />
             <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
               <div>
-                <div className="text-muted-foreground">{t("total_staked")}</div>
+                <div className="text-muted-foreground">{tExt("total_staked")}</div>
                 <div className="font-medium">
                   {pool.totalStaked} {pool.symbol}
                 </div>
               </div>
               <div>
-                <div className="text-muted-foreground">{t("Available")}</div>
+                <div className="text-muted-foreground">{tCommon("available")}</div>
                 <div className="font-medium">
                   {pool.availableToStake - (pool.totalStaked ?? 0)}{" "}
                   {pool.symbol}
@@ -286,7 +288,7 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
                   <Calendar className="h-4 w-4" />
                 </div>
                 <div>
-                  <div className="font-medium">{t("Created")}</div>
+                  <div className="font-medium">{tCommon("created")}</div>
                   <div className="text-sm text-muted-foreground">
                     {pool.createdAt
                       ? new Date(pool.createdAt).toLocaleDateString("en-US", {
@@ -306,7 +308,7 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
                   <Clock className="h-4 w-4" />
                 </div>
                 <div>
-                  <div className="font-medium">{t("last_updated")}</div>
+                  <div className="font-medium">{tCommon("last_updated")}</div>
                   <div className="text-sm text-muted-foreground">
                     {pool.updatedAt
                       ? new Date(pool.updatedAt).toLocaleDateString("en-US", {
@@ -335,12 +337,12 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
                   <Shield className="h-4 w-4" />
                 </div>
                 <div>
-                  <div className="font-medium">{t("current_status")}</div>
+                  <div className="font-medium">{tExt("current_status")}</div>
                   <div className="text-sm text-muted-foreground capitalize">
                     {pool.status.toLowerCase().replace("_", " ")}
                     {pool.isPromoted && (
                       <Badge className="ml-2 bg-amber-500/10 text-amber-500 border-amber-500/30">
-                        {t("Promoted")}
+                        {t("promoted")}
                       </Badge>
                     )}
                   </div>
@@ -367,11 +369,10 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
                   {t("earning_details")}
                 </h4>
                 <p className="text-sm text-green-600/80 dark:text-green-400/80">
-                  {t("earn")} {pool.apr}% {t("apr_paid_out")} {pool.earningFrequency.toLowerCase()}
-                  {t("in")}
-                  {pool.symbol}
+                  {tExt("earn")} {pool.apr}% {t("apr_paid_out")}{" "}
+                  {pool.earningFrequency.toLowerCase()} {tCommon("in")} {pool.symbol}
                   {pool.autoCompound &&
-                    " Earnings are automatically compounded to maximize returns."}
+                    ". Earnings are automatically compounded to maximize returns."}
                 </p>
               </div>
 
@@ -390,13 +391,13 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
                 <Separator />
                 <div className="flex justify-between items-center">
                   <div className="text-sm font-medium">
-                    {t("Auto-Compound")}
+                    {tCommon("auto_compound")}
                   </div>
                   <div>{pool.autoCompound ? "Yes" : "No"}</div>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center">
-                  <div className="text-sm font-medium">{t("admin_fee")}</div>
+                  <div className="text-sm font-medium">{tExt("admin_fee")}</div>
                   <div>{pool.adminFeePercentage}%</div>
                 </div>
               </div>
@@ -415,7 +416,7 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
             <div className="space-y-4">
               <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-100 dark:border-amber-900/30">
                 <h4 className="font-medium text-amber-700 dark:text-amber-400 mb-1">
-                  {t("important_notice")}
+                  {tCommon("important_notice")}
                 </h4>
                 <p className="text-sm text-amber-600/80 dark:text-amber-400/80">
                   {t("market_volatility_may_staked_assets")}.{" "}
@@ -443,12 +444,11 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
                     <Clock className="h-4 w-4" />
                   </div>
                   <div>
-                    <div className="font-medium">{t("lock-up_period")}</div>
+                    <div className="font-medium">{t("lock_up_period")}</div>
                     <div className="text-sm text-muted-foreground">
-                      {t("funds_are_locked_for")}
-                      {pool.lockPeriod}
-                      {t("days")}. {t("early_withdrawal_incurs_a")}
-                      {pool.earlyWithdrawalFee}% {t("penalty_fee")}.
+                      {t("funds_are_locked_for")} {pool.lockPeriod} {tCommon("days")}.{" "}
+                      {t("early_withdrawal_incurs_a")} {pool.earlyWithdrawalFee}%{" "}
+                      {t("penalty_fee")}.
                     </div>
                   </div>
                 </div>
@@ -477,7 +477,7 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
-            {t("terms_&_conditions")}
+            {tExt("terms_conditions")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -486,28 +486,23 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
               <h4 className="text-sm font-medium mb-2">{t("pool_terms")}</h4>
               <ul className="text-sm text-muted-foreground space-y-2 pl-5 list-disc">
                 <li>
-                  {t("minimum_stake_amount")}
-                  {pool.minStake} {pool.symbol}
+                  {t("minimum_stake_amount")}: {pool.minStake} {pool.symbol}
                 </li>
                 <li>
-                  {t("maximum_stake_amount")}
-                  {pool.maxStake ?? "Unlimited"}{" "}
+                  {t("maximum_stake_amount")}: {pool.maxStake ?? "Unlimited"}{" "}
                   {pool.maxStake ? pool.symbol : ""}
                 </li>
                 <li>
-                  {t("lock_period")}
-                  {pool.lockPeriod}
-                  {t("days")}
+                  {tCommon("lock_period")}: {pool.lockPeriod} {tCommon("days")}
                 </li>
                 <li>
-                  {t("early_withdrawal_fee")}
-                  {pool.earlyWithdrawalFee}%
+                  {tExt("early_withdrawal_fee")}: {pool.earlyWithdrawalFee}%
                 </li>
                 <li>
-                  {t("admin_fee")} {pool.adminFeePercentage}% {t("of_earnings")}
+                  {tExt("admin_fee")}: {pool.adminFeePercentage}% {tExt("of_earnings")}
                 </li>
                 <li>
-                  {t("earnings_are_distributed")}
+                  {t("earnings_are_distributed")}{" "}
                   {pool.earningFrequency.toLowerCase()}
                 </li>
                 {pool.autoCompound && (

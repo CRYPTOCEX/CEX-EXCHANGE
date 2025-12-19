@@ -8,6 +8,8 @@ export const metadata: OperationObject = {
   description: "This endpoint updates an existing blog post.",
   operationId: "updatePost",
   tags: ["Content", "Author", "Post"],
+  logModule: "BLOG",
+  logTitle: "Update blog post",
   requiresAuth: true,
   parameters: [
     {
@@ -87,13 +89,14 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { params, body, user } = data;
+  const { params, body, user, ctx } = data;
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
   const { id } = params;
   const { content, tags, categoryId, description, title, status, image } = body;
 
+  ctx?.step("Verifying author credentials");
   const author = await models.author.findOne({
     where: { userId: user.id },
   });
@@ -103,6 +106,7 @@ export default async (data) => {
 
   return await sequelize
     .transaction(async (transaction) => {
+      ctx?.step("Finding existing post");
       // Check if the post exists
       const existingPost = await models.post.findOne({
         where: { id, authorId: author.id },
@@ -115,6 +119,7 @@ export default async (data) => {
           "Post not found or you don't have permission to edit it."
         );
 
+      ctx?.step("Updating post content");
       // Update the post fields
       existingPost.title = title;
       existingPost.content = content;
@@ -127,6 +132,7 @@ export default async (data) => {
 
       // Update the category if provided
       if (categoryId) {
+        ctx?.step("Updating post category");
         const category = await models.category.findByPk(categoryId, {
           transaction,
         });
@@ -137,14 +143,17 @@ export default async (data) => {
 
       // Update tags if provided
       if (tags) {
+        ctx?.step("Updating post tags");
         await updateTags(existingPost, tags, transaction);
       }
 
+      ctx?.success(`Blog post updated: "${title}" (${id}) by author ${author.id}`);
       return {
         message: "Post updated successfully",
       };
     })
     .catch((error) => {
+      ctx?.fail("Failed to update blog post");
       throw error;
     });
 };

@@ -33,7 +33,8 @@ export function NotificationsTimeline({
   notifications,
   isLoading,
 }: NotificationsTimelineProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardUser = useTranslations("dashboard_user");
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const { markAsRead, markAsUnread, deleteNotification } =
     useNotificationsStore();
@@ -314,12 +315,12 @@ export function NotificationsTimeline({
                                 {notification.read ? (
                                   <>
                                     <EyeOff className="h-3 w-3 mr-1" />
-                                    {t("mark_unread")}
+                                    {tDashboardUser("mark_unread")}
                                   </>
                                 ) : (
                                   <>
                                     <Check className="h-3 w-3 mr-1" />
-                                    {t("mark_read")}
+                                    {tDashboardUser("mark_read")}
                                   </>
                                 )}
                               </Button>
@@ -334,7 +335,7 @@ export function NotificationsTimeline({
                                   }
                                 >
                                   <ExternalLink className="h-3 w-3 mr-1" />
-                                  {t("Open")}
+                                  {t("open")}
                                 </Button>
                               )}
 
@@ -347,7 +348,7 @@ export function NotificationsTimeline({
                                 }
                               >
                                 <Trash className="h-3 w-3 mr-1" />
-                                {t("Delete")}
+                                {t("delete")}
                               </Button>
                             </div>
                           </div>

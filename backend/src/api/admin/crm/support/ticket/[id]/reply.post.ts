@@ -2,6 +2,7 @@ import { models } from "@b/db";
 import { messageBroker } from "@b/handler/Websocket";
 import { createError } from "@b/utils/error";
 import { updateRecordResponses } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Admin reply to a support ticket",
@@ -40,15 +41,17 @@ export const metadata: OperationObject = {
     },
   },
   responses: updateRecordResponses("Support Ticket"),
+  logModule: "ADMIN_SUP",
+  logTitle: "Reply to ticket",
 };
 
 export default async (data: Handler) => {
-  const { params, user, body } = data;
+  const { params, user, body, ctx } = data;
   const { id } = params;
 
   if (!user?.id) throw createError(401, "Unauthorized");
 
-  // Fetch the ticket and validate existence
+  ctx?.step("Fetching ticket");
   const ticket = await models.supportTicket.findByPk(id, {
     include: [
       {
@@ -63,22 +66,27 @@ export default async (data: Handler) => {
       },
     ],
   });
-  
-  if (!ticket) throw createError(404, "Ticket not found");
+
+  if (!ticket) {
+    ctx?.fail("Ticket not found");
+    throw createError(404, "Ticket not found");
+  }
 
   if (ticket.status === "CLOSED") {
+    ctx?.fail("Cannot reply to closed ticket");
     throw createError(403, "Cannot reply to a closed ticket");
   }
 
   const { type, time, userId, text, attachment } = body;
   if (!type || !time || !userId || !text) {
+    ctx?.fail("Invalid message structure");
     throw createError(400, "Invalid message structure");
   }
 
   // Admin messages should always be of type "agent"
   const messageType = "agent";
-  
-  // Get admin user info for the message
+
+  ctx?.step("Fetching admin user info");
   const adminUser = await models.user.findByPk(user.id);
   const senderName = adminUser && (adminUser.firstName || adminUser.lastName)
     ? [adminUser.firstName, adminUser.lastName].filter(Boolean).join(" ")
@@ -87,12 +95,13 @@ export default async (data: Handler) => {
   // Assign agent if ticket has no agent yet
   let isFirstAgentReply = false;
   if (!ticket.agentId) {
+    ctx?.step("Auto-assigning agent");
     ticket.agentId = user.id;
     ticket.agentName = senderName;
     isFirstAgentReply = true;
   }
 
-  // Get current messages and add new one
+  ctx?.step("Preparing reply message");
   let currentMessages: any[] = [];
   if (ticket.messages) {
     if (Array.isArray(ticket.messages)) {
@@ -102,12 +111,12 @@ export default async (data: Handler) => {
         const parsed = JSON.parse(ticket.messages);
         currentMessages = Array.isArray(parsed) ? parsed : [];
       } catch (e) {
-        console.error('Failed to parse messages JSON:', e);
+        logger.error("SUPPORT", "Failed to parse messages JSON", e);
         currentMessages = [];
       }
     }
   }
-  
+
   // Include complete agent profile data
   const agentProfile = {
     id: user.id,
@@ -125,7 +134,7 @@ export default async (data: Handler) => {
     agentProfile, // Include full agent profile
     ...(attachment ? { attachment } : {}),
   };
-  
+
   currentMessages.push(newMessage);
 
   // If this is the first agent reply, set responseTime (in minutes)
@@ -137,7 +146,7 @@ export default async (data: Handler) => {
     );
   }
 
-  // Update ticket with new messages and status
+  ctx?.step("Updating ticket");
   await ticket.update({
     messages: currentMessages,
     status: "REPLIED",
@@ -145,7 +154,7 @@ export default async (data: Handler) => {
     ...(ticket.responseTime && { responseTime: ticket.responseTime }),
   });
 
-  // Get the ticket user ID for targeted broadcast
+  ctx?.step("Broadcasting to clients");
   const ticketUserId = ticket.userId;
 
   // Broadcast to clients subscribed to this specific ticket (both admin and user)
@@ -167,8 +176,9 @@ export default async (data: Handler) => {
   // Note: Removed direct message to user since subscription-based broadcast handles it
   // All subscribed clients (both admin and user) will receive the message
 
-  return { 
-    message: "Reply sent successfully", 
-    data: ticket.get({ plain: true }) 
+  ctx?.success("Reply sent successfully");
+  return {
+    message: "Reply sent successfully",
+    data: ticket.get({ plain: true })
   };
 };

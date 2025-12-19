@@ -57,7 +57,8 @@ const MOCK_MARKET_DATA = {
 // Memoized market item component
 const MarketItemComponent = memo(
   ({ item, linkBaseUrl }: { item: MarketItem; linkBaseUrl: string }) => {
-    const t = useTranslations("dashboard");
+    const t = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
     const changeColor = useMemo(
       () => (item.change >= 0 ? "text-green-500" : "text-red-500"),
       [item.change]
@@ -99,7 +100,7 @@ const MarketItemComponent = memo(
           </div>
           <div className="flex flex-col items-end min-w-[80px]">
             <span className="font-medium text-sm">
-              {'$'}
+              $
               {formattedPrice}
             </span>
             <span className={`text-xs ${changeColor}`}>{formattedChange}</span>
@@ -115,7 +116,8 @@ MarketItemComponent.displayName = "MarketItemComponent";
 // Main component with optimizations
 export const TrendingMarketsElement = memo<TrendingMarketsProps>(
   ({ element }) => {
-    const t = useTranslations("dashboard");
+    const tCommon = useTranslations("common");
+    const tDashboardAdmin = useTranslations("dashboard_admin");
     const settings = element.settings || {};
 
     // Memoized settings
@@ -240,7 +242,7 @@ export const TrendingMarketsElement = memo<TrendingMarketsProps>(
         return (
           <div className="flex items-center justify-center py-4">
             <div className="text-gray-500 text-sm">
-              {t("loading_market_data")}.
+              {tCommon("loading_market_data")}.
             </div>
           </div>
         );
@@ -374,7 +376,7 @@ export const TrendingMarketsElement = memo<TrendingMarketsProps>(
       >
         <div className="px-4 py-3 border-b border-gray-200 dark:border-zinc-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {t("trending_markets")}
+            {tDashboardAdmin("trending_markets")}
           </h3>
         </div>
         <div className="px-4 py-2">{renderContent}</div>

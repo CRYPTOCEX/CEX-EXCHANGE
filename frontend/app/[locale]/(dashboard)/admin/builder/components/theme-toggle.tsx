@@ -22,7 +22,7 @@ export function ThemeToggle({
   size = "icon",
   showTooltip = true,
 }: ThemeToggleProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
   const { setTheme, theme } = useTheme();
 
   const toggleTheme = () => {

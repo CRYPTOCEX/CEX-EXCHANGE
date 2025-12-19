@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function StakingPoolDetailLoading() {
   return (
-    <div className="container py-8 space-y-8">
+    <div className="container pt-20 py-8 space-y-8">
       <div className="flex items-center gap-4">
         <Skeleton className="h-12 w-12 rounded-full" />
         <div>

@@ -5,12 +5,20 @@ import {
   commonBulkDeleteResponses,
   handleBulkDelete,
 } from "@b/utils/query";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  notFoundResponse,
+  badRequestResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata: OperationObject = {
-  summary: "Bulk deletes e-commerce categories by IDs",
+  summary: "Bulk deletes ecommerce categories",
+  description:
+    "Permanently deletes multiple ecommerce categories by their IDs. This operation cannot be undone. All related data will be affected according to the cascade rules defined in the database.",
   operationId: "bulkDeleteEcommerceCategories",
-  tags: ["Admin", "Ecommerce", "Categories"],
-  parameters: commonBulkDeleteParams("E-commerce Categories"),
+  tags: ["Admin", "Ecommerce", "Category"],
+  parameters: commonBulkDeleteParams("Ecommerce categories"),
   requestBody: {
     required: true,
     content: {
@@ -21,7 +29,7 @@ export const metadata: OperationObject = {
             ids: {
               type: "array",
               items: { type: "string" },
-              description: "Array of e-commerce category IDs to delete",
+              description: "Array of ecommerce category IDs to delete",
             },
           },
           required: ["ids"],
@@ -29,17 +37,47 @@ export const metadata: OperationObject = {
       },
     },
   },
-  responses: commonBulkDeleteResponses("E-commerce Categories"),
+  responses: {
+    200: {
+      description: "Categories deleted successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              message: {
+                type: "string",
+                description: "Success message",
+              },
+            },
+          },
+        },
+      },
+    },
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    404: notFoundResponse("Ecommerce category"),
+    500: serverErrorResponse,
+  },
   requiresAuth: true,
   permission: "delete.ecommerce.category",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Bulk delete categories",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step(`Validating ${ids.length} category IDs`);
+  ctx?.step("Performing bulk delete operation");
+
+  const result = await handleBulkDelete({
     model: "ecommerceCategory",
     ids,
     query,
   });
+
+  ctx?.success(`Successfully deleted ${ids.length} categories`);
+  return result;
 };

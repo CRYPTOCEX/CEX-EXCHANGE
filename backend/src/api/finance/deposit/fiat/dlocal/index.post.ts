@@ -4,16 +4,17 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 
-import { 
-  getDLocalConfig, 
-  makeDLocalRequest, 
-  validateCurrency, 
+import {
+  getDLocalConfig,
+  makeDLocalRequest,
+  validateCurrency,
   COUNTRY_DOCUMENT_REQUIREMENTS,
   DLocalPaymentRequest,
   DLocalPaymentResponse,
   DLocalError
 } from "./utils";
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 
 const publicUrl = process.env.NEXT_PUBLIC_SITE_URL;
 const isProduction = process.env.NODE_ENV === "production";
@@ -24,6 +25,8 @@ export const metadata: OperationObject = {
     "Initiates a dLocal payment process for emerging markets. Supports multiple payment methods including cards, bank transfers, cash payments, and digital wallets across 60+ countries.",
   operationId: "createDLocalPayment",
   tags: ["Finance", "Deposit"],
+  logModule: "DLOCAL_DEPOSIT",
+  logTitle: "Create dLocal payment",
   requestBody: {
     description: "Payment information including customer details and document ID for compliance",
     content: {
@@ -148,7 +151,8 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user) throw new Error("User not authenticated");
 
   const { 
@@ -166,11 +170,13 @@ export default async (data: Handler) => {
   }
 
   // Get gateway configuration
+  ctx?.step("Fetching payment gateway configuration");
   const gateway = await models.depositGateway.findOne({
     where: { alias: "dlocal", status: true },
   });
 
   if (!gateway) {
+    ctx?.fail("Payment gateway not found");
     throw new Error("dLocal gateway not found or disabled");
   }
 
@@ -196,7 +202,8 @@ export default async (data: Handler) => {
 
   try {
     // Create transaction record
-    const transaction = await models.transaction.create({
+    ctx?.step("Creating transaction record");
+      const transaction = await models.transaction.create({
       uuid: orderId,
       userId: user.id,
       type: "DEPOSIT",
@@ -259,7 +266,7 @@ export default async (data: Handler) => {
     });
 
     // Log the payment creation
-    console.log(`dLocal payment created: ${paymentResponse.id} for user ${user.id}`);
+    logger.info("DLOCAL", `Payment created: ${paymentResponse.id} for user ${user.id}`);
 
     return {
       id: paymentResponse.id,
@@ -274,7 +281,7 @@ export default async (data: Handler) => {
     };
 
   } catch (error) {
-    console.error("dLocal payment creation error:", error);
+    logger.error("DLOCAL", "Payment creation error", error);
 
     // Update transaction status to failed if it exists
     if (orderId) {
@@ -290,7 +297,7 @@ export default async (data: Handler) => {
           { where: { uuid: orderId } }
         );
       } catch (updateError) {
-        console.error("Failed to update transaction status:", updateError);
+        logger.error("DLOCAL", "Failed to update transaction status", updateError);
       }
     }
 

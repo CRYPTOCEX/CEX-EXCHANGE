@@ -111,7 +111,7 @@ export default function SectionRenderer({
   section,
   isPreview = false,
 }: SectionRendererProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const { theme } = useTheme();
 
   // Early validation to prevent null/undefined errors

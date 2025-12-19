@@ -1,9 +1,7 @@
-import React from "react";
-import { Link } from "@/i18n/routing";
-import ErrorBlock from "@/components/error-block";
+'use client';
 
-const PageNotFound = () => {
-  return <ErrorBlock />;
-};
+import Error from 'next/error';
 
-export default PageNotFound;
+export default function NotFound() {
+  return <Error statusCode={404} />;
+}

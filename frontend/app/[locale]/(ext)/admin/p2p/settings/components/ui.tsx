@@ -15,7 +15,7 @@ export default function P2PUISettingsSection({
   settings = {},
   onUpdate,
 }: P2PUISettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const safeSettings = {
     ShowRecentTrades: settings.ShowRecentTrades ?? true,
     ShowMarketTrends: settings.ShowMarketTrends ?? true,

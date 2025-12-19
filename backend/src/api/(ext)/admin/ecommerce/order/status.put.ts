@@ -32,12 +32,15 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Ecommerce Order"),
   requiresAuth: true,
   permission: "edit.ecommerce.order",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Bulk update order status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
 
+  ctx?.step(`Finding ${ids.length} orders`);
   const orders = await models.ecommerceOrder.findAll({
     where: { id: ids },
   });
@@ -46,6 +49,7 @@ export default async (data: Handler) => {
     throw new Error("Orders not found");
   }
 
+  ctx?.step("Validating order statuses and updating");
   await sequelize.transaction(async (t) => {
     for (const order of orders) {
       if (order.status !== "PENDING") {
@@ -75,11 +79,14 @@ export default async (data: Handler) => {
       }
     }
 
+    ctx?.step("Sending status update emails");
     await Promise.all(
       orders.map(async (order) => {
         const user = await models.user.findByPk(order.userId);
-        await sendOrderStatusUpdateEmail(user, order, status);
+        await sendOrderStatusUpdateEmail(user, order, status, ctx);
       })
     );
   });
+
+  ctx?.success(`Successfully updated status for ${ids.length} orders`);
 };

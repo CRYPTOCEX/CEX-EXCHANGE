@@ -3,6 +3,11 @@ const router = express.Router();
 const fs = require('fs').promises;
 const path = require('path');
 
+// Import shared utilities for consistent key generation across all routes
+const {
+    generateTranslationKey
+} = require('../services/namespace-utils');
+
 function createJsxRoutes(getTsxFiles) {
     // Scan for unnecessary JSX expression wrappers like {'text'}
     router.get('/scan', async (req, res) => {
@@ -27,10 +32,81 @@ function createJsxRoutes(getTsxFiles) {
                     while ((match = jsxExpressionPattern.exec(content)) !== null) {
                         const fullMatch = match[0]; // e.g., {'text'}
                         const value = match[1]; // e.g., text
-                        
+
                         // Skip empty strings or strings with only whitespace
                         if (!value || !value.trim()) continue;
-                        
+
+                        // Skip values that should not be flagged as unnecessary JSX wrappers
+                        const shouldSkipValue = (str, context) => {
+                            const trimmed = str.trim();
+
+                            // Skip CSS class names - strings that look like Tailwind/CSS classes
+                            // CSS classes typically: contain dashes, colons, slashes, or are common utility patterns
+                            if (/-/.test(trimmed) && !/^[A-Za-z]+-[A-Za-z]+$/.test(trimmed)) return true; // has dashes (except compound words)
+                            if (/:/.test(trimmed)) return true; // has colons (like hover:, sm:, etc.)
+                            if (/\//.test(trimmed)) return true; // has slashes (like w-1/2)
+                            if (/^\d+(\.\d+)?$/.test(trimmed)) return true; // pure numbers
+                            if (/^(flex|grid|block|inline|hidden|absolute|relative|fixed|sticky)$/.test(trimmed)) return true;
+                            if (/^(text|bg|border|rounded|shadow|p|m|w|h|min|max|gap|space)/.test(trimmed)) return true;
+                            if (/^(items|justify|self|place|content|order|col|row|span)/.test(trimmed)) return true;
+                            if (/^(font|tracking|leading|underline|line|decoration|truncate)/.test(trimmed)) return true;
+                            if (/^(transition|duration|ease|delay|animate|transform|scale|rotate|translate|skew)/.test(trimmed)) return true;
+                            if (/^(opacity|visible|invisible|overflow|z|cursor|pointer|select|resize)/.test(trimmed)) return true;
+                            if (/^(top|right|bottom|left|inset)/.test(trimmed)) return true;
+                            if (/^(dark|light|sm|md|lg|xl|2xl)\b/.test(trimmed)) return true; // responsive/theme prefixes
+
+                            // Skip common component prop values (variant, size, etc.)
+                            const commonPropValues = [
+                                // Button/component variants
+                                'default', 'destructive', 'outline', 'secondary', 'ghost', 'link', 'glass',
+                                'primary', 'success', 'warning', 'danger', 'info', 'error',
+                                // Sizes
+                                'xs', 'sm', 'md', 'lg', 'xl', 'icon', 'full',
+                                // Shapes
+                                'rounded', 'square', 'circle', 'pill',
+                                // Positions/alignments
+                                'start', 'end', 'center', 'left', 'right', 'top', 'bottom',
+                                'horizontal', 'vertical',
+                                // States
+                                'active', 'inactive', 'disabled', 'loading', 'pending',
+                                // Other common prop values
+                                'none', 'auto', 'inherit', 'initial'
+                            ];
+                            if (commonPropValues.includes(trimmed.toLowerCase())) return true;
+
+                            // Skip if it looks like a prop assignment: propName={"value"}
+                            // Check the context to see if there's an = sign before the {
+                            if (context && /=\s*\{["']/.test(context)) return true;
+
+                            // Skip punctuation-only strings (intentional JSX text separators)
+                            if (/^[.\s,;:!?]+$/.test(trimmed)) return true;
+
+                            // Skip strings that start or end with spaces (intentional text fragments for concatenation)
+                            if (str.startsWith(' ') || str.endsWith(' ')) return true;
+
+                            // Skip strings that look like JS code fragments (contains operators, parentheses patterns)
+                            if (/[\(\)]\s*&&|\|\|/.test(trimmed)) return true;
+                            if (/\.(startsWith|endsWith|includes|match|test)\(/.test(trimmed)) return true;
+
+                            // Skip multi-word CSS utility strings (space-separated classes)
+                            if (/\s/.test(trimmed)) {
+                                const words = trimmed.split(/\s+/);
+                                const cssIndicators = words.filter(w =>
+                                    /-/.test(w) || /^(flex|grid|text|bg|p|m|w|h|rounded|border|shadow|hidden|block|inline)/.test(w)
+                                );
+                                if (cssIndicators.length > 0) return true;
+                            }
+
+                            return false;
+                        };
+
+                        // Get surrounding context for better detection
+                        const contextStart = Math.max(0, match.index - 20);
+                        const contextEnd = Math.min(content.length, match.index + fullMatch.length + 10);
+                        const surroundingContext = content.substring(contextStart, contextEnd);
+
+                        if (shouldSkipValue(value, surroundingContext)) continue;
+
                         // Debug: log first few findings
                         if (totalFound < 5) {
                             console.log(`[JSX SCAN] Found: ${fullMatch} in file ${filePath.split('/').pop()}`);
@@ -190,14 +266,6 @@ function createJsxRoutes(getTsxFiles) {
     });
 
     return router;
-}
-
-function generateKeyFromText(text) {
-    return text
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, '')
-        .replace(/\s+/g, '.')
-        .substring(0, 50);
 }
 
 module.exports = createJsxRoutes;

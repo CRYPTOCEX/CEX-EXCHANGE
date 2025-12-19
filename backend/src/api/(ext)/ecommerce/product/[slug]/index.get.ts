@@ -14,6 +14,9 @@ export const metadata: OperationObject = {
     "Fetches a single ecommerce product by its slug, including details such as category and reviews.",
   operationId: "getEcommerceProductBySlug",
   tags: ["Ecommerce", "Products"],
+  requiresAuth: false,
+  logModule: "ECOM",
+  logTitle: "Get Product",
   parameters: [
     {
       index: 0,
@@ -42,7 +45,9 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
+
+  ctx?.step("Fetching Product");
 
   let included: any = [];
   if (user?.id) {
@@ -105,6 +110,8 @@ export default async (data: Handler) => {
     };
 
     // Return the processed product
+    ctx?.success("Get Product fetched successfully");
+
     return JSON.parse(JSON.stringify(processedProduct));
   } catch (error) {
     throw createError({

@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
     "Fetches an order containing the given productId for the authenticated user, to verify purchase.",
   operationId: "getEcommerceOrderByProductId",
   tags: ["Ecommerce", "Orders"],
+  logModule: "ECOM",
+  logTitle: "Get Product Orders",
   requiresAuth: true,
   parameters: [
     {
@@ -43,9 +45,12 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
+
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
+
+  ctx?.step("Fetching Product Orders");
 
   const order = (await models.ecommerceOrder.findOne({
     where: { userId: user.id },
@@ -90,6 +95,9 @@ export default async (data: Handler) => {
       message: "Order not found for this product",
     });
   }
+
+  ctx?.success("Get Product Orders fetched successfully");
+
 
   return order.get({ plain: true });
 };

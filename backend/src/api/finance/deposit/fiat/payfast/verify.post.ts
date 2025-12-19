@@ -1,6 +1,7 @@
 import { models, sequelize } from '@b/db'
 import { createError } from '@b/utils/error'
 import { sendFiatTransactionEmail } from '@b/utils/emails'
+import { logger } from '@b/utils/console'
 import {
   validatePayFastConfig,
   validateSignature,
@@ -16,6 +17,8 @@ export const metadata = {
   operationId: 'verifyPayFastPayment',
   tags: ['Finance', 'Deposit', 'PayFast'],
   requiresAuth: true,
+  logModule: "PAYFAST_DEPOSIT",
+  logTitle: "Verify PayFast payment",
   requestBody: {
     required: true,
     content: {
@@ -223,7 +226,7 @@ export default async (data: Handler) => {
             newBalance
           )
         } catch (emailError) {
-          console.error('Failed to send confirmation email:', emailError)
+          logger.error('PAYFAST', 'Failed to send confirmation email', emailError)
           // Don't fail the transaction for email errors
         }
       }
@@ -251,8 +254,8 @@ export default async (data: Handler) => {
     }
 
   } catch (error) {
-    console.error('PayFast verification error:', error)
-    
+    logger.error('PAYFAST', 'Verification error', error)
+
     throw createError({
       statusCode: error.statusCode || 500,
       message: error.message || 'Failed to verify PayFast payment',

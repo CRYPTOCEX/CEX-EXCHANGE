@@ -1,1406 +1,1011 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useRouter } from "@/i18n/routing";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
+import React, { useEffect, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Save,
-  ArrowLeft,
-  AlertTriangle,
-  DollarSign,
   Shield,
-  CreditCard,
-  MapPin,
-  Settings,
+  User,
+  Clock,
+  DollarSign,
   TrendingUp,
-  Loader2,
-  Trash2,
+  Wallet,
+  CreditCard,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  Edit3,
+  Flag,
+  Ban,
+  FileText,
+  Activity,
+  MessageSquare,
+  Hash,
+  Calendar,
+  MapPin,
+  Globe,
+  Percent,
+  ArrowLeft,
+  RefreshCw,
+  Copy,
+  Check,
+  Play,
+  Pause,
 } from "lucide-react";
-import { toast } from "sonner";
-import { $fetch } from "@/lib/api";
-import { useTranslations } from "next-intl";
-import { adminOffersStore } from "@/store/p2p/admin-offers-store";
-import { CountrySelect } from "@/components/ui/country-select";
-import { StateSelect } from "@/components/ui/state-select";
-import { CitySelect } from "@/components/ui/city-select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { $fetch } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import { adminOffersStore } from "@/store/p2p/admin-offers-store";
+import { useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/routing";
+import { format } from "date-fns";
 
-interface OfferEditClientProps {
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+} as const;
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring" as const,
+      stiffness: 300,
+      damping: 24,
+    },
+  },
+};
+
+interface OfferViewClientProps {
   id: string;
 }
 
-// Helper function to parse JSON safely
-const safeJsonParse = (jsonString: any, defaultValue = {}) => {
-  try {
-    if (typeof jsonString === 'object') return jsonString;
-    return jsonString ? JSON.parse(jsonString) : defaultValue;
-  } catch (error) {
-    console.error("Error parsing JSON:", error);
-    return defaultValue;
+const getStatusColor = (status: string) => {
+  switch (status?.toUpperCase()) {
+    case "ACTIVE":
+      return "bg-linear-to-r from-green-50 to-emerald-50 text-green-700 border-green-200 dark:from-green-950 dark:to-emerald-950 dark:text-green-400 dark:border-green-800";
+    case "PENDING":
+    case "PENDING_APPROVAL":
+      return "bg-linear-to-r from-yellow-50 to-amber-50 text-yellow-700 border-yellow-200 dark:from-yellow-950 dark:to-amber-950 dark:text-yellow-400 dark:border-yellow-800";
+    case "COMPLETED":
+      return "bg-linear-to-r from-blue-50 to-cyan-50 text-blue-700 border-blue-200 dark:from-blue-950 dark:to-cyan-950 dark:text-blue-400 dark:border-blue-800";
+    case "DISABLED":
+    case "REJECTED":
+      return "bg-linear-to-r from-red-50 to-rose-50 text-red-700 border-red-200 dark:from-red-950 dark:to-rose-950 dark:text-red-400 dark:border-red-800";
+    case "PAUSED":
+      return "bg-linear-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200 dark:from-amber-950 dark:to-orange-950 dark:text-amber-400 dark:border-amber-800";
+    case "FLAGGED":
+      return "bg-linear-to-r from-orange-50 to-red-50 text-orange-700 border-orange-200 dark:from-orange-950 dark:to-red-950 dark:text-orange-400 dark:border-orange-800";
+    default:
+      return "bg-linear-to-r from-zinc-50 to-slate-50 text-zinc-700 border-zinc-200 dark:from-zinc-800 dark:to-slate-800 dark:text-zinc-400 dark:border-zinc-700";
   }
 };
 
-export default function OfferEditClient({ id }: OfferEditClientProps) {
-  const t = useTranslations("ext");
-  const router = useRouter();
-  const { updateOffer } = adminOffersStore();
+const getOfferTypeColor = (type: string) => {
+  return type?.toUpperCase() === "BUY"
+    ? "bg-linear-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
+    : "bg-linear-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-500/25";
+};
 
-  const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [activeTab, setActiveTab] = useState("basic");
-  const [globalPaymentMethods, setGlobalPaymentMethods] = useState<any[]>([]);
-  const [customPaymentMethods, setCustomPaymentMethods] = useState<any[]>([]);
-  const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<string[]>([]);
-  const [availableCurrencies, setAvailableCurrencies] = useState<{value: string, label: string}[]>([]);
-  const [loadingCurrencies, setLoadingCurrencies] = useState(false);
-
-  // Ensure consistent hydration
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Validation errors state
-  const [validationErrors, setValidationErrors] = useState<{
-    basic?: string[];
-    pricing?: string[];
-    payment?: string[];
-    location?: string[];
-    requirements?: string[];
-    settings?: string[];
-  }>({});
-
-  // Form state - comprehensive with all fields
-  const [formData, setFormData] = useState({
-    // Basic Settings
-    type: "BUY" as "BUY" | "SELL",
-    currency: "USDT",
-    walletType: "SPOT" as "SPOT" | "FIAT" | "ECO",
-    status: "ACTIVE",
-
-    // Amount Configuration
-    amountConfig: {
-      total: 0,
-      min: 0,
-      max: 0,
-    },
-
-    // Price Configuration
-    priceConfig: {
-      model: "fixed" as "fixed" | "dynamic",
-      value: 0,
-      marketPrice: 0,
-      finalPrice: 0,
-      margin: 0,
-    },
-
-    // Trade Settings
-    tradeSettings: {
-      autoCancel: 15,
-      kycRequired: false,
-      visibility: "PUBLIC" as "PUBLIC" | "PRIVATE",
-      termsOfTrade: "",
-      additionalNotes: "",
-      autoReplyMessage: "",
-    },
-
-    // Location Settings
-    locationSettings: {
-      country: "",
-      region: "",
-      city: "",
-      restrictions: [] as string[],
-    },
-
-    // User Requirements
-    userRequirements: {
-      minCompletedTrades: 0,
-      minSuccessRate: 0,
-      minAccountAge: 0,
-      trustedOnly: false,
-      verifiedOnly: false,
-    },
-
-    // Payment Methods
-    paymentMethodIds: [] as string[],
-
-    // Admin Notes
-    adminNotes: "",
-  });
-
-  // Fetch currencies based on wallet type
-  const fetchCurrenciesForWalletType = async (walletType: string) => {
-    if (!walletType) return;
-
-    setLoadingCurrencies(true);
-    try {
-      const response = await fetch("/api/finance/currency/valid");
-      if (!response.ok) {
-        throw new Error("Failed to fetch currencies");
-      }
-
-      const data = await response.json();
-      // If wallet type is ECO, use FUNDING currencies
-      const mappedWalletType = walletType === "ECO" ? "FUNDING" : walletType;
-      const walletCurrencies = data[mappedWalletType] || [];
-
-      setAvailableCurrencies(walletCurrencies);
-    } catch (err) {
-      console.error("Error fetching currencies:", err);
-      setAvailableCurrencies([]);
-    } finally {
-      setLoadingCurrencies(false);
-    }
-  };
-
-  // Load currencies when wallet type changes
-  useEffect(() => {
-    if (formData.walletType) {
-      fetchCurrenciesForWalletType(formData.walletType);
-    }
-  }, [formData.walletType]);
-
-  // Load payment methods
-  useEffect(() => {
-    async function loadPaymentMethods() {
-      try {
-        const { data: methodsData } = await $fetch({
-          url: "/api/p2p/payment-method",
-          method: "GET",
-          silent: true,
-        });
-        if (methodsData) {
-          // Handle new API response format: { global: [...], custom: [...] }
-          if (typeof methodsData === "object" && "global" in methodsData) {
-            setGlobalPaymentMethods(methodsData.global || []);
-            setCustomPaymentMethods(methodsData.custom || []);
-          } else if (Array.isArray(methodsData)) {
-            // Legacy format: flat array - separate by isCustom flag
-            setGlobalPaymentMethods(methodsData.filter((m: any) => !m.isCustom && !m.userId));
-            setCustomPaymentMethods(methodsData.filter((m: any) => m.isCustom || m.userId));
-          }
-        }
-      } catch (err) {
-        console.error("Error loading payment methods:", err);
-      }
-    }
-    loadPaymentMethods();
-  }, []);
-
-  // Get all payment methods combined
-  const allPaymentMethods = [...globalPaymentMethods, ...customPaymentMethods];
-
-  // Function to process offer data
-  const processOfferData = (offerData: any) => {
-    if (!offerData) {
-      return;
-    }
-
-    // Parse all JSON fields
-    const amountConfig = safeJsonParse(offerData.amountConfig, {});
-    const priceConfig = safeJsonParse(offerData.priceConfig, {});
-    const tradeSettings = safeJsonParse(offerData.tradeSettings, {});
-    const locationSettings = safeJsonParse(offerData.locationSettings, {});
-    const userRequirements = safeJsonParse(offerData.userRequirements, {});
-
-    // Extract payment method IDs
-    const paymentMethodIds = Array.isArray(offerData.paymentMethods)
-      ? offerData.paymentMethods.map((pm: any) => pm.id)
-      : [];
-
-    setSelectedPaymentMethods(paymentMethodIds);
-
-    // Set form data
-    setFormData({
-      type: offerData.type || "BUY",
-      currency: offerData.currency || "USDT",
-      walletType: offerData.walletType || "SPOT",
-      status: offerData.status || "ACTIVE",
-
-      amountConfig: {
-        total: Number(amountConfig.total) || 0,
-        min: Number(amountConfig.min) || 0,
-        max: Number(amountConfig.max) || 0,
-      },
-
-      priceConfig: {
-        model: ((priceConfig.model || "fixed").toLowerCase() === "market" ? "dynamic" : (priceConfig.model || "fixed").toLowerCase()) as "fixed" | "dynamic",
-        value: Number(priceConfig.value) || Number(priceConfig.fixedPrice) || 0,
-        marketPrice: Number(priceConfig.marketPrice) || 0,
-        finalPrice: Number(priceConfig.finalPrice) || 0,
-        margin: Number(priceConfig.margin) || Number(priceConfig.dynamicOffset) || 0,
-      },
-
-      tradeSettings: {
-        autoCancel: Number(tradeSettings.autoCancel) || 15,
-        kycRequired: Boolean(tradeSettings.kycRequired),
-        visibility: tradeSettings.visibility || "PUBLIC",
-        termsOfTrade: String(tradeSettings.termsOfTrade || ""),
-        additionalNotes: String(tradeSettings.additionalNotes || ""),
-        autoReplyMessage: String(tradeSettings.autoReplyMessage || ""),
-      },
-
-      locationSettings: {
-        country: String(locationSettings.country || ""),
-        region: String(locationSettings.region || ""),
-        city: String(locationSettings.city || ""),
-        restrictions: Array.isArray(locationSettings.restrictions)
-          ? locationSettings.restrictions
-          : [],
-      },
-
-      userRequirements: {
-        minCompletedTrades: Number(userRequirements.minCompletedTrades) || 0,
-        minSuccessRate: Number(userRequirements.minSuccessRate) || 0,
-        minAccountAge: Number(userRequirements.minAccountAge) || 0,
-        trustedOnly: Boolean(userRequirements.trustedOnly),
-        verifiedOnly: Boolean(userRequirements.verifiedOnly),
-      },
-
-      paymentMethodIds: paymentMethodIds,
-      adminNotes: offerData.adminNotes || "",
-    });
-  };
-
-  // Load offer data on mount
-  useEffect(() => {
-    loadOfferData();
-  }, [id]);
-
-  const loadOfferData = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await $fetch({
-        url: `/api/admin/p2p/offer/${id}`,
-        method: "GET",
-        silent: true,
-      });
-
-      if (error) {
-        throw new Error(error);
-      }
-
-      if (data) {
-        processOfferData(data);
-      }
-    } catch (err: any) {
-      console.error("Error loading offer:", err);
-      toast.error(err.message || "Failed to load offer details");
-      router.push("/admin/p2p/offer");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Validate form data
-  const validateForm = () => {
-    const errors: typeof validationErrors = {};
-    let hasErrors = false;
-
-    // Basic validation
-    const basicErrors: string[] = [];
-    if (!formData.currency) {
-      basicErrors.push("Currency is required");
-    }
-    if (!formData.type) {
-      basicErrors.push("Trade type is required");
-    }
-    if (!formData.walletType) {
-      basicErrors.push("Wallet type is required");
-    }
-    if (basicErrors.length > 0) {
-      errors.basic = basicErrors;
-      hasErrors = true;
-    }
-
-    // Pricing validation
-    const pricingErrors: string[] = [];
-    if (formData.amountConfig.total <= 0) {
-      pricingErrors.push("Total amount must be greater than 0");
-    }
-    if (formData.amountConfig.min < 0) {
-      pricingErrors.push("Minimum amount cannot be negative");
-    }
-    if (formData.amountConfig.max < 0) {
-      pricingErrors.push("Maximum amount cannot be negative");
-    }
-    if (formData.amountConfig.min > formData.amountConfig.max && formData.amountConfig.max > 0) {
-      pricingErrors.push("Minimum amount cannot be greater than maximum amount");
-    }
-    if (formData.priceConfig.value <= 0 && formData.priceConfig.model === "fixed") {
-      pricingErrors.push("Price must be greater than 0 for fixed pricing");
-    }
-    if (pricingErrors.length > 0) {
-      errors.pricing = pricingErrors;
-      hasErrors = true;
-    }
-
-    // Payment validation
-    const paymentErrors: string[] = [];
-    if (selectedPaymentMethods.length === 0) {
-      paymentErrors.push("At least one payment method is required");
-    }
-    if (paymentErrors.length > 0) {
-      errors.payment = paymentErrors;
-      hasErrors = true;
-    }
-
-    // Settings validation
-    const settingsErrors: string[] = [];
-    if (formData.tradeSettings.autoCancel <= 0) {
-      settingsErrors.push("Auto-cancel time must be greater than 0");
-    }
-    if (settingsErrors.length > 0) {
-      errors.settings = settingsErrors;
-      hasErrors = true;
-    }
-
-    setValidationErrors(errors);
-    return !hasErrors;
-  };
-
-  const handleSubmit = async () => {
-    // Clear previous errors
-    setValidationErrors({});
-
-    // Validate form
-    if (!validateForm()) {
-      // Find first tab with errors
-      const tabsWithErrors = Object.keys(validationErrors);
-      if (tabsWithErrors.length > 0) {
-        setActiveTab(tabsWithErrors[0]);
-      }
-
-      toast.error("Please fix the errors before saving");
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      // Prepare data for API
-      const submitData = {
-        type: formData.type,
-        currency: formData.currency,
-        walletType: formData.walletType,
-        status: formData.status,
-        amountConfig: JSON.stringify(formData.amountConfig),
-        priceConfig: JSON.stringify(formData.priceConfig),
-        tradeSettings: JSON.stringify(formData.tradeSettings),
-        locationSettings: JSON.stringify(formData.locationSettings),
-        userRequirements: JSON.stringify(formData.userRequirements),
-        paymentMethodIds: selectedPaymentMethods,
-        adminNotes: formData.adminNotes,
+const getStatusInfo = (status: string) => {
+  switch (status?.toUpperCase()) {
+    case "ACTIVE":
+      return {
+        label: "Active",
+        icon: <CheckCircle2 className="h-4 w-4" />,
+        color: "text-green-600 dark:text-green-400",
+        bgColor: "bg-green-50 dark:bg-green-950/30",
+        borderColor: "border-green-200 dark:border-green-800/50",
+        gradient: "from-green-500 to-emerald-600",
       };
+    case "PENDING":
+    case "PENDING_APPROVAL":
+      return {
+        label: "Pending",
+        icon: <Clock className="h-4 w-4" />,
+        color: "text-amber-600 dark:text-amber-400",
+        bgColor: "bg-amber-50 dark:bg-amber-950/30",
+        borderColor: "border-amber-200 dark:border-amber-800/50",
+        gradient: "from-amber-500 to-orange-600",
+      };
+    case "DISABLED":
+    case "REJECTED":
+      return {
+        label: status === "DISABLED" ? "Disabled" : "Rejected",
+        icon: <XCircle className="h-4 w-4" />,
+        color: "text-red-600 dark:text-red-400",
+        bgColor: "bg-red-50 dark:bg-red-950/30",
+        borderColor: "border-red-200 dark:border-red-800/50",
+        gradient: "from-red-500 to-rose-600",
+      };
+    case "PAUSED":
+      return {
+        label: "Paused",
+        icon: <Pause className="h-4 w-4" />,
+        color: "text-amber-600 dark:text-amber-400",
+        bgColor: "bg-amber-50 dark:bg-amber-950/30",
+        borderColor: "border-amber-200 dark:border-amber-800/50",
+        gradient: "from-amber-500 to-orange-600",
+      };
+    case "FLAGGED":
+      return {
+        label: "Flagged",
+        icon: <Flag className="h-4 w-4" />,
+        color: "text-orange-600 dark:text-orange-400",
+        bgColor: "bg-orange-50 dark:bg-orange-950/30",
+        borderColor: "border-orange-200 dark:border-orange-800/50",
+        gradient: "from-orange-500 to-red-600",
+      };
+    default:
+      return {
+        label: status || "Unknown",
+        icon: <AlertCircle className="h-4 w-4" />,
+        color: "text-zinc-600 dark:text-zinc-400",
+        bgColor: "bg-zinc-50 dark:bg-zinc-950/30",
+        borderColor: "border-zinc-200 dark:border-zinc-800/50",
+        gradient: "from-zinc-500 to-zinc-600",
+      };
+  }
+};
 
-      const response = await updateOffer(id, submitData);
+export default function OfferViewClient({ id }: OfferViewClientProps) {
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const { toast } = useToast();
+  const router = useRouter();
+  const {
+    offer,
+    isLoadingOffer,
+    offerError,
+    getOfferById,
+    approveOffer,
+    rejectOffer,
+    flagOffer,
+    disableOffer,
+    pauseOffer,
+    activateOffer,
+    addNote
+  } = adminOffersStore();
 
-      toast.success(response?.message || "Offer updated successfully");
-      router.push("/admin/p2p/offer");
-    } catch (err: any) {
-      console.error("Error updating offer:", err);
-      toast.error(err?.message || "Failed to update offer");
-    } finally {
-      setSaving(false);
+  const [activeTab, setActiveTab] = useState("details");
+  const [actionDialog, setActionDialog] = useState({
+    open: false,
+    type: "",
+    reason: "",
+    notes: "",
+  });
+  const [newNote, setNewNote] = useState("");
+  const [isAddingNote, setIsAddingNote] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (id) {
+      getOfferById(id);
     }
+  }, [id, getOfferById]);
+
+  const copyToClipboard = (text: string, fieldId: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(fieldId);
+    setTimeout(() => setCopiedField(null), 2000);
   };
 
-  const handleDelete = async () => {
-    setDeleting(true);
-    try {
-      const { error } = await $fetch({
-        url: `/api/admin/p2p/offer/${id}`,
-        method: "DELETE",
-      });
+  const handleAction = async () => {
+    if (!id) return;
 
-      if (error) {
-        throw new Error(error);
+    try {
+      switch (actionDialog.type) {
+        case "approve":
+          await approveOffer(id, actionDialog.notes);
+          toast({
+            title: "Offer Approved",
+            description: "The offer has been approved successfully.",
+          });
+          break;
+        case "reject":
+          await rejectOffer(id, actionDialog.reason);
+          toast({
+            title: "Offer Rejected",
+            description: "The offer has been rejected.",
+          });
+          break;
+        case "flag":
+          await flagOffer(id, actionDialog.reason);
+          toast({
+            title: "Offer Flagged",
+            description: "The offer has been flagged for review.",
+          });
+          break;
+        case "disable":
+          await disableOffer(id, actionDialog.reason);
+          toast({
+            title: "Offer Disabled",
+            description: "The offer has been disabled.",
+          });
+          break;
+        case "pause":
+          await pauseOffer(id);
+          toast({
+            title: "Offer Paused",
+            description: "The offer has been paused.",
+          });
+          break;
+        case "activate":
+          await activateOffer(id);
+          toast({
+            title: "Offer Activated",
+            description: "The offer has been activated.",
+          });
+          break;
       }
 
-      toast.success("Offer deleted successfully");
-      router.push("/admin/p2p/offer");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete offer");
-    } finally {
-      setDeleting(false);
+      setActionDialog({ open: false, type: "", reason: "", notes: "" });
+      getOfferById(id);
+    } catch (error) {
+      toast({
+        title: "Action Failed",
+        description: error instanceof Error ? error.message : "An error occurred",
+        variant: "destructive",
+      });
     }
   };
 
-  const togglePaymentMethod = (methodId: string) => {
-    setSelectedPaymentMethods(prev =>
-      prev.includes(methodId)
-        ? prev.filter(id => id !== methodId)
-        : [...prev, methodId]
-    );
+  const handleAddNote = async () => {
+    if (!id || !newNote.trim()) return;
+
+    setIsAddingNote(true);
+    try {
+      await addNote(id, newNote);
+      setNewNote("");
+      toast({
+        title: "Note Added",
+        description: "Your note has been added successfully.",
+      });
+      getOfferById(id);
+    } catch (error) {
+      toast({
+        title: "Failed to Add Note",
+        description: error instanceof Error ? error.message : "An error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingNote(false);
+    }
   };
 
-  // Show loading state - wait for mount to avoid hydration mismatch
-  if (!mounted || loading) {
+  // Loading state
+  if (isLoadingOffer) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <motion.div
+          className="flex flex-col items-center gap-4"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <motion.div
+            className="relative"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          >
+            <div className="w-12 h-12 rounded-full border-2 border-blue-500/20" />
+            <div className="absolute inset-0 w-12 h-12 rounded-full border-2 border-transparent border-t-blue-500" />
+          </motion.div>
+          <p className="text-sm text-muted-foreground">
+            {tCommon("loading")}...
+          </p>
+        </motion.div>
       </div>
     );
   }
 
+  // Error state
+  if (offerError || !offer) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center p-6">
+        <motion.div
+          className="flex flex-col items-center gap-4 text-center max-w-md"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="h-16 w-16 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center">
+            <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+          </div>
+          <h2 className="text-lg font-semibold">
+            {offerError || tExt("offer_not_found")}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {t("the_requested_offer_could_not_be_found")}
+          </p>
+          <div className="flex gap-2">
+            <Link href="/admin/p2p/offer">
+              <Button variant="outline">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                {t("back_to_offers")}
+              </Button>
+            </Link>
+            {offerError && (
+              <Button onClick={() => getOfferById(id)}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                {tCommon("retry")}
+              </Button>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  const statusInfo = getStatusInfo(offer.status);
+  const userName = `${offer.user?.firstName || ""} ${offer.user?.lastName || ""}`.trim() || "User";
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.push("/admin/p2p/offer")}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Edit P2P Offer</h1>
-            <p className="text-sm text-muted-foreground">
-              Modify the offer details, pricing, payment methods, and requirements
-            </p>
+    <motion.div
+      className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Premium Header */}
+      <motion.div variants={itemVariants} className="sticky top-0 z-50">
+        <div className="bg-linear-to-r from-blue-600 via-violet-600 to-blue-700 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900">
+          {/* Background effects */}
+          <div className="absolute inset-0 overflow-hidden">
+            <motion.div
+              className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-violet-500/10 blur-3xl"
+              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-blue-500/10 blur-3xl"
+              animate={{ scale: [1.2, 1, 1.2], opacity: [0.3, 0.5, 0.3] }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 1,
+              }}
+            />
+          </div>
+
+          <div className="relative container mx-auto px-4 md:px-6 py-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              {/* Left side */}
+              <div className="flex items-center gap-4">
+                <Link href="/admin/p2p/offer">
+                  <motion.div
+                    whileHover={{ scale: 1.1, x: -2 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-white/80 hover:text-white hover:bg-white/10"
+                    >
+                      <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                  </motion.div>
+                </Link>
+
+                <div className="flex items-center gap-4">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  >
+                    <div className="h-12 w-12 rounded-xl bg-linear-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-lg">
+                      <DollarSign className="h-6 w-6 text-white" />
+                    </div>
+                  </motion.div>
+
+                  <div>
+                    <h1 className="text-xl md:text-2xl font-bold text-white">
+                      {offer.type} {offer.currency} {tExt("offer")}
+                    </h1>
+                    <div className="flex items-center gap-3 text-slate-300 text-sm">
+                      <span className="font-mono">
+                        #{offer.id.slice(0, 8)}
+                      </span>
+                      <span>•</span>
+                      <span>
+                        {format(new Date(offer.createdAt), "PPP")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right side - Status & Actions */}
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge className={`${getOfferTypeColor(offer.type)} text-xs`}>
+                  {offer.type}
+                </Badge>
+                <Badge className={`${getStatusColor(offer.status)} text-xs`} variant="outline">
+                  {offer.status}
+                </Badge>
+
+                {/* Action Buttons */}
+                {(offer.status === "PENDING" || offer.status === "PENDING_APPROVAL") && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-white/80 hover:text-white hover:bg-white/10"
+                      onClick={() => setActionDialog({ open: true, type: "approve", reason: "", notes: "" })}
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-1 text-green-400" />
+                      Approve
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-white/80 hover:text-white hover:bg-white/10"
+                      onClick={() => setActionDialog({ open: true, type: "reject", reason: "", notes: "" })}
+                    >
+                      <XCircle className="h-4 w-4 mr-1 text-red-400" />
+                      Reject
+                    </Button>
+                  </>
+                )}
+                {offer.status === "ACTIVE" && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-white/80 hover:text-white hover:bg-white/10"
+                      onClick={() => setActionDialog({ open: true, type: "pause", reason: "", notes: "" })}
+                    >
+                      <Pause className="h-4 w-4 mr-1 text-amber-400" />
+                      Pause
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-white/80 hover:text-white hover:bg-white/10"
+                      onClick={() => setActionDialog({ open: true, type: "flag", reason: "", notes: "" })}
+                    >
+                      <Flag className="h-4 w-4 mr-1 text-orange-400" />
+                      Flag
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-white/80 hover:text-white hover:bg-white/10"
+                      onClick={() => setActionDialog({ open: true, type: "disable", reason: "", notes: "" })}
+                    >
+                      <Ban className="h-4 w-4 mr-1 text-red-400" />
+                      Disable
+                    </Button>
+                  </>
+                )}
+                {(offer.status === "PAUSED" || offer.status === "DISABLED" || offer.status === "REJECTED") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-white/80 hover:text-white hover:bg-white/10"
+                    onClick={() => setActionDialog({ open: true, type: "activate", reason: "", notes: "" })}
+                  >
+                    <Play className="h-4 w-4 mr-1 text-green-400" />
+                    Activate
+                  </Button>
+                )}
+
+                <Link href={`/admin/p2p/offer/${id}/edit`}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-white/80 hover:text-white hover:bg-white/10"
+                  >
+                    <Edit3 className="h-4 w-4 mr-2" />
+                    {tCommon("edit")}
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Quick Info Row */}
+            <motion.div
+              className="flex flex-wrap items-center gap-4 md:gap-6 mt-4 pt-4 border-t border-white/10"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="flex items-center gap-2 text-slate-300">
+                <DollarSign className="h-4 w-4 text-blue-400" />
+                <span className="text-sm">
+                  {tCommon("price")}{" "}
+                  <span className="text-white font-medium">
+                    {offer.price} {offer.fiatCurrency}
+                  </span>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-slate-300">
+                <Wallet className="h-4 w-4" />
+                <span className="text-sm">
+                  {tCommon("available")}{" "}
+                  <span className="text-white font-medium">
+                    {offer.availableAmount} {offer.currency}
+                  </span>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-slate-300">
+                <User className="h-4 w-4" />
+                <span className="text-sm">{userName}</span>
+              </div>
+            </motion.div>
           </div>
         </div>
-        <div className="flex gap-2">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" disabled={deleting}>
-                {deleting ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <Trash2 className="h-4 w-4 mr-2" />
-                )}
-                Delete
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Offer?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete this
-                  offer and all associated data.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          <Button onClick={handleSubmit} disabled={saving}>
-            {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <Save className="h-4 w-4 mr-2" />
-            )}
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
-      </div>
+      </motion.div>
 
-      {/* Error Summary */}
-      {Object.keys(validationErrors).length > 0 && (
-        <Alert className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/20">
-          <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-          <AlertDescription className="text-orange-900 dark:text-orange-200">
-            <div className="font-semibold mb-2">Please fix the following errors:</div>
-            <ul className="list-disc list-inside space-y-1">
-              {Object.entries(validationErrors).map(([tab, errors]) => (
-                <li key={tab}>
-                  <span className="font-medium capitalize">{tab} tab:</span> {errors.length} error{errors.length > 1 ? 's' : ''}
-                </li>
-              ))}
-            </ul>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Tabs Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6 mb-6">
-          <TabsTrigger value="basic" className="relative">
-            Basic
-            {validationErrors.basic && validationErrors.basic.length > 0 && (
-              <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="pricing" className="relative">
-            Pricing
-            {validationErrors.pricing && validationErrors.pricing.length > 0 && (
-              <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="payment" className="relative">
-            Payment
-            {validationErrors.payment && validationErrors.payment.length > 0 && (
-              <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="location" className="relative">
-            Location
-            {validationErrors.location && validationErrors.location.length > 0 && (
-              <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="requirements" className="relative">
-            Requirements
-            {validationErrors.requirements && validationErrors.requirements.length > 0 && (
-              <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="relative">
-            Settings
-            {validationErrors.settings && validationErrors.settings.length > 0 && (
-              <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-            )}
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Basic Information Tab */}
-        <TabsContent value="basic" className="space-y-6">
-          {validationErrors.basic && validationErrors.basic.length > 0 && (
-            <Alert className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/20">
-              <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-              <AlertDescription className="text-orange-900 dark:text-orange-200">
-                <ul className="list-disc list-inside">
-                  {validationErrors.basic.map((error, index) => (
-                    <li key={index}>{error}</li>
-                  ))}
-                </ul>
-              </AlertDescription>
-            </Alert>
-          )}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
-                Basic Information
-              </CardTitle>
-              <CardDescription>
-                Core settings for this P2P offer
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Trade Type <span className="text-red-500">*</span></Label>
-                  <RadioGroup
-                    value={formData.type}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, type: value as "BUY" | "SELL" })
-                    }
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="BUY" id="buy" />
-                      <Label htmlFor="buy">Buy</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="SELL" id="sell" />
-                      <Label htmlFor="sell">Sell</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Status</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, status: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ACTIVE">Active</SelectItem>
-                      <SelectItem value="PENDING_APPROVAL">Pending Approval</SelectItem>
-                      <SelectItem value="PAUSED">Paused</SelectItem>
-                      <SelectItem value="DISABLED">Disabled</SelectItem>
-                      <SelectItem value="FLAGGED">Flagged</SelectItem>
-                      <SelectItem value="REJECTED">Rejected</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 md:px-6 py-6">
+        {/* Status Banner */}
+        <motion.div variants={itemVariants} className="mb-6">
+          <div
+            className={`relative overflow-hidden rounded-xl p-5 border ${statusInfo.bgColor} ${statusInfo.borderColor}`}
+          >
+            <div
+              className={`absolute top-0 right-0 w-32 h-32 rounded-full opacity-20 -translate-y-1/2 translate-x-1/4 bg-linear-to-br ${statusInfo.gradient}`}
+            />
+            <div className="relative flex items-center gap-4">
+              <div
+                className={`h-12 w-12 rounded-xl flex items-center justify-center bg-linear-to-br shadow-lg ${statusInfo.gradient}`}
+              >
+                <div className="text-white scale-125">{statusInfo.icon}</div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Currency <span className="text-red-500">*</span></Label>
-                  <Select
-                    value={formData.currency}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, currency: value })
-                    }
-                    disabled={loadingCurrencies}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={loadingCurrencies ? "Loading..." : "Select currency"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableCurrencies.length > 0 ? (
-                        availableCurrencies.map((currency) => (
-                          <SelectItem key={currency.value} value={currency.value}>
-                            {currency.label}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="" disabled>
-                          No currencies available
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  {availableCurrencies.length === 0 && !loadingCurrencies && (
-                    <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                      No currencies available for this wallet type
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Wallet Type <span className="text-red-500">*</span></Label>
-                  <Select
-                    value={formData.walletType}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, walletType: value as any })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SPOT">Spot</SelectItem>
-                      <SelectItem value="FIAT">Fiat</SelectItem>
-                      <SelectItem value="ECO">Eco</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Pricing Tab */}
-        <TabsContent value="pricing" className="space-y-6">
-          {validationErrors.pricing && validationErrors.pricing.length > 0 && (
-            <Alert className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/20">
-              <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-              <AlertDescription className="text-orange-900 dark:text-orange-200">
-                <ul className="list-disc list-inside">
-                  {validationErrors.pricing.map((error, index) => (
-                    <li key={index}>{error}</li>
-                  ))}
-                </ul>
-              </AlertDescription>
-            </Alert>
-          )}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Pricing & Amount
-              </CardTitle>
-              <CardDescription>
-                Configure pricing model and amount limits
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Pricing Model</Label>
-                <RadioGroup
-                  value={formData.priceConfig.model}
-                  onValueChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      priceConfig: { ...formData.priceConfig, model: value as "fixed" | "dynamic" }
-                    })
-                  }
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="fixed" id="fixed" />
-                    <Label htmlFor="fixed">Fixed Price</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="dynamic" id="dynamic" />
-                    <Label htmlFor="dynamic">Dynamic (Market-based)</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              <div className={`grid gap-4 ${formData.priceConfig.model === "dynamic" ? "grid-cols-2" : "grid-cols-1"}`}>
-                <div className="space-y-2">
-                  <Label>Price</Label>
-                  <Input
-                    type="number"
-                    value={formData.priceConfig.value}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        priceConfig: {
-                          ...formData.priceConfig,
-                          value: parseFloat(e.target.value) || 0
-                        }
-                      })
-                    }
-                  />
-                </div>
-
-                {formData.priceConfig.model === "dynamic" && (
-                  <div className="space-y-2">
-                    <Label>Margin (%)</Label>
-                    <Input
-                      type="number"
-                      value={formData.priceConfig.margin}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          priceConfig: {
-                            ...formData.priceConfig,
-                            margin: parseFloat(e.target.value) || 0
-                          }
-                        })
-                      }
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Percentage above/below market price
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h4 className="font-medium">Amount Limits</h4>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>Total Available <span className="text-red-500">*</span></Label>
-                    <Input
-                      type="number"
-                      value={formData.amountConfig.total}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          amountConfig: {
-                            ...formData.amountConfig,
-                            total: parseFloat(e.target.value) || 0
-                          }
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Minimum Order</Label>
-                    <Input
-                      type="number"
-                      value={formData.amountConfig.min}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          amountConfig: {
-                            ...formData.amountConfig,
-                            min: parseFloat(e.target.value) || 0
-                          }
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Maximum Order</Label>
-                    <Input
-                      type="number"
-                      value={formData.amountConfig.max}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          amountConfig: {
-                            ...formData.amountConfig,
-                            max: parseFloat(e.target.value) || 0
-                          }
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Payment Methods Tab */}
-        <TabsContent value="payment" className="space-y-6">
-          {validationErrors.payment && validationErrors.payment.length > 0 && (
-            <Alert className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/20">
-              <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-              <AlertDescription className="text-orange-900 dark:text-orange-200">
-                <ul className="list-disc list-inside">
-                  {validationErrors.payment.map((error, index) => (
-                    <li key={index}>{error}</li>
-                  ))}
-                </ul>
-              </AlertDescription>
-            </Alert>
-          )}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                {t("payment_methods")} <span className="text-red-500">*</span>
-              </CardTitle>
-              <CardDescription>
-                {t("select_the_payment_methods")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Global Payment Methods */}
-              {globalPaymentMethods.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-sm font-medium text-muted-foreground">{t("Global")} {t("payment_methods")}</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {globalPaymentMethods.map((method) => (
-                      <div
-                        key={method.id}
-                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                          selectedPaymentMethods.includes(method.id)
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/50"
-                        }`}
-                        onClick={() => togglePaymentMethod(method.id)}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="shrink-0">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-sm font-medium">
-                                {method?.name?.charAt?.(0) || "?"}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">
-                              {method?.name || "Unknown"}
-                            </p>
-                            {method?.processingTime && (
-                              <p className="text-xs text-muted-foreground">
-                                {method.processingTime}
-                              </p>
-                            )}
-                          </div>
-                          {selectedPaymentMethods.includes(method.id) && (
-                            <div className="shrink-0">
-                              <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                                <span className="text-xs text-primary-foreground">✓</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        {method.description && (
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {method.description}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Custom Payment Methods */}
-              {customPaymentMethods.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-sm font-medium text-muted-foreground">{t("your_custom_payment_methods")}</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {customPaymentMethods.map((method) => (
-                      <div
-                        key={method.id}
-                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                          selectedPaymentMethods.includes(method.id)
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/50"
-                        }`}
-                        onClick={() => togglePaymentMethod(method.id)}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="shrink-0">
-                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                              <span className="text-sm font-medium">
-                                {method?.name?.charAt?.(0) || "?"}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-sm font-medium truncate">
-                                {method?.name || "Unknown"}
-                              </p>
-                              <Badge variant="outline" className="text-xs shrink-0">
-                                {t("Custom")}
-                              </Badge>
-                            </div>
-                            {method?.processingTime && (
-                              <p className="text-xs text-muted-foreground">
-                                {method.processingTime}
-                              </p>
-                            )}
-                          </div>
-                          {selectedPaymentMethods.includes(method.id) && (
-                            <div className="shrink-0">
-                              <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                                <span className="text-xs text-primary-foreground">✓</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        {method.description && (
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {method.description}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {allPaymentMethods.length === 0 && (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">
-                    {t("no_payment_methods_available")}
-                  </p>
-                </div>
-              )}
-
-              {selectedPaymentMethods.length === 0 && allPaymentMethods.length > 0 && (
-                <Alert>
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    {t("please_select_at_least_one_payment_method")}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <div className="text-sm text-muted-foreground">
-                <p>{t("selected")}: {selectedPaymentMethods.length} {t("payment_methods")}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Location Tab */}
-        <TabsContent value="location" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                {t("location_settings")}
-              </CardTitle>
-              <CardDescription>
-                Configure geographic settings for this offer
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <Label>{t("Country")}</Label>
-                  <CountrySelect
-                    value={formData.locationSettings.country}
-                    onValueChange={(value) => {
-                      // When country changes, reset region and city
-                      setFormData({
-                        ...formData,
-                        locationSettings: {
-                          ...formData.locationSettings,
-                          country: value,
-                          region: "",
-                          city: "",
-                        }
-                      });
-                    }}
-                    placeholder={t("select_country")}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>{t("region/state")}</Label>
-                  <StateSelect
-                    value={formData.locationSettings.region}
-                    onValueChange={(value) => {
-                      // When region changes, reset city
-                      setFormData({
-                        ...formData,
-                        locationSettings: {
-                          ...formData.locationSettings,
-                          region: value,
-                          city: "",
-                        }
-                      });
-                    }}
-                    countryCode={formData.locationSettings.country}
-                    placeholder={t("select_state")}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>{t("City")}</Label>
-                  <CitySelect
-                    value={formData.locationSettings.city}
-                    onValueChange={(value) =>
-                      setFormData({
-                        ...formData,
-                        locationSettings: {
-                          ...formData.locationSettings,
-                          city: value
-                        }
-                      })
-                    }
-                    countryCode={formData.locationSettings.country}
-                    stateName={formData.locationSettings.region}
-                    placeholder={t("select_city")}
-                  />
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-2">
-                <Label>{t("restricted_countries")} ({t("admin_only")})</Label>
-                <Textarea
-                  value={formData.locationSettings.restrictions.join(", ")}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      locationSettings: {
-                        ...formData.locationSettings,
-                        restrictions: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
-                      }
-                    })
-                  }
-                  placeholder="Enter country codes separated by commas (e.g., US, CN, RU)"
-                  rows={3}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Users from these countries will not be able to trade with this offer
+              <div>
+                <h3 className={`font-bold text-lg ${statusInfo.color}`}>
+                  {statusInfo.label}
+                </h3>
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm">
+                  {offer.status === "ACTIVE"
+                    ? t("this_offer_is_currently_active_and_visible")
+                    : offer.status === "PENDING" || offer.status === "PENDING_APPROVAL"
+                      ? t("this_offer_is_awaiting_approval")
+                      : offer.status === "DISABLED"
+                        ? t("this_offer_has_been_disabled")
+                        : offer.status === "REJECTED"
+                          ? t("this_offer_has_been_rejected")
+                          : offer.status === "PAUSED"
+                            ? t("this_offer_is_currently_paused")
+                            : offer.status === "FLAGGED"
+                              ? t("this_offer_has_been_flagged_for_review")
+                              : t("offer_status_description")}
                 </p>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </div>
+        </motion.div>
 
-        {/* User Requirements Tab */}
-        <TabsContent value="requirements" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                User Requirements
-              </CardTitle>
-              <CardDescription>
-                Set minimum requirements for users who can trade with this offer
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Minimum Completed Trades</Label>
-                  <Input
-                    type="number"
-                    value={formData.userRequirements.minCompletedTrades}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        userRequirements: {
-                          ...formData.userRequirements,
-                          minCompletedTrades: parseInt(e.target.value) || 0
-                        }
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Minimum Success Rate (%)</Label>
-                  <Input
-                    type="number"
-                    value={formData.userRequirements.minSuccessRate}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        userRequirements: {
-                          ...formData.userRequirements,
-                          minSuccessRate: parseInt(e.target.value) || 0
-                        }
-                      })
-                    }
-                    max="100"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Minimum Account Age (days)</Label>
-                <Input
-                  type="number"
-                  value={formData.userRequirements.minAccountAge}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      userRequirements: {
-                        ...formData.userRequirements,
-                        minAccountAge: parseInt(e.target.value) || 0
-                      }
-                    })
-                  }
-                />
-              </div>
-
-              <Separator />
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label>Trusted Users Only</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Only users marked as trusted can trade
-                    </p>
-                  </div>
-                  <Switch
-                    checked={formData.userRequirements.trustedOnly}
-                    onCheckedChange={(checked) =>
-                      setFormData({
-                        ...formData,
-                        userRequirements: {
-                          ...formData.userRequirements,
-                          trustedOnly: checked
-                        }
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label>Verified Users Only</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Only KYC verified users can trade
-                    </p>
-                  </div>
-                  <Switch
-                    checked={formData.userRequirements.verifiedOnly}
-                    onCheckedChange={(checked) =>
-                      setFormData({
-                        ...formData,
-                        userRequirements: {
-                          ...formData.userRequirements,
-                          verifiedOnly: checked
-                        }
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-6">
-          {validationErrors.settings && validationErrors.settings.length > 0 && (
-            <Alert className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/20">
-              <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-              <AlertDescription className="text-orange-900 dark:text-orange-200">
-                <ul className="list-disc list-inside">
-                  {validationErrors.settings.map((error, index) => (
-                    <li key={index}>{error}</li>
-                  ))}
-                </ul>
-              </AlertDescription>
-            </Alert>
-          )}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Trade Settings
-              </CardTitle>
-              <CardDescription>
-                Configure trade behavior and messaging
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Auto-Cancel Time (minutes)</Label>
-                  <Input
-                    type="number"
-                    value={formData.tradeSettings.autoCancel}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        tradeSettings: {
-                          ...formData.tradeSettings,
-                          autoCancel: parseInt(e.target.value) || 15
-                        }
-                      })
-                    }
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Unpaid orders will be cancelled after this time
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Visibility</Label>
-                  <RadioGroup
-                    value={formData.tradeSettings.visibility}
-                    onValueChange={(value) =>
-                      setFormData({
-                        ...formData,
-                        tradeSettings: {
-                          ...formData.tradeSettings,
-                          visibility: value as any
-                        }
-                      })
-                    }
+        {/* Main Content Area */}
+        <motion.div variants={itemVariants}>
+          <Card className="shadow-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <div className="px-6 pt-4 pb-2">
+                <TabsList className="grid grid-cols-4 w-full h-12">
+                  <TabsTrigger
+                    value="details"
+                    className="flex items-center justify-center gap-2 h-full"
                   >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="PUBLIC" id="public" />
-                      <Label htmlFor="public">Public</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="PRIVATE" id="private" />
-                      <Label htmlFor="private">Private</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
+                    <FileText className="h-4 w-4" />
+                    <span>{tCommon("details")}</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="user"
+                    className="flex items-center justify-center gap-2 h-full"
+                  >
+                    <User className="h-4 w-4" />
+                    <span>{t("user_info")}</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="activity"
+                    className="flex items-center justify-center gap-2 h-full"
+                  >
+                    <Activity className="h-4 w-4" />
+                    <span>Activity</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="notes"
+                    className="flex items-center justify-center gap-2 h-full"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Notes</span>
+                  </TabsTrigger>
+                </TabsList>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label>KYC Required</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Users must complete KYC to trade
-                  </p>
-                </div>
-                <Switch
-                  checked={formData.tradeSettings.kycRequired}
-                  onCheckedChange={(checked) =>
-                    setFormData({
-                      ...formData,
-                      tradeSettings: {
-                        ...formData.tradeSettings,
-                        kycRequired: checked
-                      }
-                    })
-                  }
-                />
-              </div>
+              <CardContent className="px-6 pb-6 pt-4">
+                {/* Details Tab */}
+                <TabsContent value="details" className="mt-0 space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Offer Information */}
+                    <Card className="border-0 bg-white/80 dark:bg-zinc-800/80 shadow-lg backdrop-blur-sm rounded-2xl">
+                      <CardHeader>
+                        <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                          <DollarSign className="h-5 w-5 text-blue-500" />
+                          {tExt("offer_information")}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Type</p>
+                            <p className="font-semibold">{offer.type}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Currency</p>
+                            <p className="font-semibold">{offer.currency}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Price</p>
+                            <p className="font-semibold">{offer.price} {offer.fiatCurrency}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{tExt("market_diff")}</p>
+                            <p className="font-semibold flex items-center gap-1">
+                              {(offer.margin ?? 0) > 0 ? (
+                                <TrendingUp className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <TrendingUp className="h-4 w-4 text-red-500 rotate-180" />
+                              )}
+                              {Math.abs(offer.margin ?? 0)}%
+                            </p>
+                          </div>
+                        </div>
+                        <Separator />
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("amount_range")}</p>
+                            <p className="font-semibold">
+                              {offer.minAmount} - {offer.maxAmount} {offer.currency}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{tExt("available_amount")}</p>
+                            <div className="flex items-center gap-2">
+                              <Progress
+                                value={((offer.availableAmount ?? 0) / (offer.maxAmount ?? 1)) * 100}
+                                className="flex-1"
+                              />
+                              <span className="text-sm font-medium">
+                                {offer.availableAmount} {offer.currency}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-              <Separator />
+                    {/* Payment Methods */}
+                    <Card className="border-0 bg-white/80 dark:bg-zinc-800/80 shadow-lg backdrop-blur-sm rounded-2xl">
+                      <CardHeader>
+                        <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                          <CreditCard className="h-5 w-5 text-blue-500" />
+                          {tExt("payment_methods")}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {offer.paymentMethods?.map((method: any) => (
+                          <div key={method.id} className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                            <div className="w-10 h-10 bg-white dark:bg-zinc-700 rounded-lg flex items-center justify-center">
+                              {method.icon ? (
+                                <img src={method.icon} alt={method.name} className="w-6 h-6" />
+                              ) : (
+                                <CreditCard className="h-5 w-5 text-zinc-400" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium">{method.name}</p>
+                              {method.details && (
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                  {Object.entries(method.details).map(([key, value]) => (
+                                    <span key={key}>{key}: {String(value)} </span>
+                                  ))}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        {(!offer.paymentMethods || offer.paymentMethods.length === 0) && (
+                          <p className="text-center text-zinc-500 dark:text-zinc-400 py-4">
+                            {tCommon("no_payment_methods")}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Terms of Trade</Label>
-                  <Textarea
-                    value={formData.tradeSettings.termsOfTrade}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        tradeSettings: {
-                          ...formData.tradeSettings,
-                          termsOfTrade: e.target.value
-                        }
-                      })
-                    }
-                    placeholder="Enter your trading terms and conditions"
-                    rows={4}
-                  />
-                </div>
+                    {/* Trading Terms */}
+                    <Card className="border-0 bg-white/80 dark:bg-zinc-800/80 shadow-lg backdrop-blur-sm rounded-2xl">
+                      <CardHeader>
+                        <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                          <FileText className="h-5 w-5 text-blue-500" />
+                          {tCommon('trade_terms')}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("payment_time_limit")}</p>
+                          <p className="font-semibold">{offer.paymentTimeLimit || 15} minutes</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("auto_reply_message")}</p>
+                          <p className="text-sm p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                            {offer.autoReplyMessage || "No auto-reply message set"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">{tExt("terms_conditions")}</p>
+                          <p className="text-sm p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                            {offer.terms || "Standard platform terms apply"}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                <div className="space-y-2">
-                  <Label>Auto-Reply Message</Label>
-                  <Textarea
-                    value={formData.tradeSettings.autoReplyMessage}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        tradeSettings: {
-                          ...formData.tradeSettings,
-                          autoReplyMessage: e.target.value
-                        }
-                      })
-                    }
-                    placeholder="Message sent automatically when trade starts"
-                    rows={3}
-                  />
-                </div>
+                    {/* Statistics */}
+                    <Card className="border-0 bg-white/80 dark:bg-zinc-800/80 shadow-lg backdrop-blur-sm rounded-2xl">
+                      <CardHeader>
+                        <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                          <Activity className="h-5 w-5 text-blue-500" />
+                          Statistics
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                              {offer.stats?.totalTrades || 0}
+                            </p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{tExt("total_trades")}</p>
+                          </div>
+                          <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                              {offer.stats?.completedTrades || 0}
+                            </p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Completed</p>
+                          </div>
+                          <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                            <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                              {offer.stats?.avgCompletionTime || 0}m
+                            </p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("avg_time")}</p>
+                          </div>
+                          <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                              {offer.stats?.successRate || 0}%
+                            </p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{tCommon("success_rate")}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
 
-                <div className="space-y-2">
-                  <Label>Additional Notes</Label>
-                  <Textarea
-                    value={formData.tradeSettings.additionalNotes}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        tradeSettings: {
-                          ...formData.tradeSettings,
-                          additionalNotes: e.target.value
-                        }
-                      })
-                    }
-                    placeholder="Any additional information for traders"
-                    rows={3}
-                  />
-                </div>
-              </div>
+                {/* User Tab */}
+                <TabsContent value="user" className="mt-0 space-y-6">
+                  <Card className="border-0 bg-white/80 dark:bg-zinc-800/80 shadow-lg backdrop-blur-sm rounded-2xl">
+                    <CardHeader>
+                      <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                        <User className="h-5 w-5 text-blue-500" />
+                        {tCommon("user_information")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-16 w-16 border-4 border-white shadow-lg">
+                          <AvatarImage src={offer.user?.avatar} />
+                          <AvatarFallback className="bg-linear-to-r from-blue-500 to-violet-500 text-white text-lg">
+                            {offer.user?.firstName?.charAt(0) || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg">
+                            {userName}
+                          </h3>
+                          <p className="text-sm text-zinc-600 dark:text-zinc-400">{offer.user?.email}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="outline" className="text-xs">
+                              KYC {offer.user?.kycStatus || "PENDING"}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {tCommon("member_since")} {new Date(offer.user?.createdAt || Date.now()).getFullYear()}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
 
-              <Separator />
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                          <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                            {offer.user?.stats?.totalOffers || 0}
+                          </p>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("total_offers")}</p>
+                        </div>
+                        <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                          <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                            {offer.user?.stats?.completedTrades || 0}
+                          </p>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">{tExt("completed_trades")}</p>
+                        </div>
+                        <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                          <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
+                            {offer.user?.stats?.rating || 0}★
+                          </p>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">Rating</p>
+                        </div>
+                        <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                          <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                            {offer.user?.stats?.disputes || 0}
+                          </p>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">Disputes</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-              <div className="space-y-2">
-                <Label>Admin Notes (Internal)</Label>
-                <Textarea
-                  value={formData.adminNotes}
-                  onChange={(e) =>
-                    setFormData({ ...formData, adminNotes: e.target.value })
-                  }
-                  placeholder="Internal notes about this offer (not visible to users)"
-                  rows={3}
-                  className="bg-yellow-50 dark:bg-yellow-950/20"
-                />
-              </div>
-            </CardContent>
+                {/* Activity Tab */}
+                <TabsContent value="activity" className="mt-0 space-y-6">
+                  <Card className="border-0 bg-white/80 dark:bg-zinc-800/80 shadow-lg backdrop-blur-sm rounded-2xl">
+                    <CardHeader>
+                      <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                        <Activity className="h-5 w-5 text-blue-500" />
+                        {t("activity_log")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {offer.activityLog?.map((activity: any, index: number) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{activity.type}</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                              {activity.notes || "No description"}
+                            </p>
+                            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                              {new Date(activity.createdAt).toLocaleString()}
+                              {activity.adminName && ` by ${activity.adminName}`}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                      {(!offer.activityLog || offer.activityLog.length === 0) && (
+                        <p className="text-center text-zinc-500 dark:text-zinc-400 py-8">
+                          {t("no_activity_recorded_yet")}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Notes Tab */}
+                <TabsContent value="notes" className="mt-0 space-y-6">
+                  <Card className="border-0 bg-white/80 dark:bg-zinc-800/80 shadow-lg backdrop-blur-sm rounded-2xl">
+                    <CardHeader>
+                      <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                        <MessageSquare className="h-5 w-5 text-blue-500" />
+                        {tCommon("admin_notes")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {offer.adminNotes && (
+                        <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                          <p className="text-sm">{offer.adminNotes}</p>
+                        </div>
+                      )}
+
+                      <div className="space-y-3">
+                        <Textarea
+                          value={newNote}
+                          onChange={(e) => setNewNote(e.target.value)}
+                          placeholder={t("add_a_note_about_this_offer_ellipsis")}
+                          className="min-h-[100px]"
+                        />
+                        <Button
+                          onClick={handleAddNote}
+                          disabled={!newNote.trim() || isAddingNote}
+                          className="w-full"
+                        >
+                          {isAddingNote ? "Adding..." : "Add Note"}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </CardContent>
+            </Tabs>
           </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+        </motion.div>
+      </div>
+
+      {/* Action Dialog */}
+      <Dialog open={actionDialog.open} onOpenChange={(open) => !open && setActionDialog({ open: false, type: "", reason: "", notes: "" })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {actionDialog.type === "approve" && "Approve Offer"}
+              {actionDialog.type === "reject" && "Reject Offer"}
+              {actionDialog.type === "flag" && "Flag Offer"}
+              {actionDialog.type === "disable" && "Disable Offer"}
+              {actionDialog.type === "pause" && "Pause Offer"}
+              {actionDialog.type === "activate" && "Activate Offer"}
+            </DialogTitle>
+            <DialogDescription>
+              {actionDialog.type === "approve" && "Are you sure you want to approve this offer? It will become active on the platform."}
+              {actionDialog.type === "reject" && "Please provide a reason for rejecting this offer."}
+              {actionDialog.type === "flag" && "Please provide a reason for flagging this offer for review."}
+              {actionDialog.type === "disable" && "Please provide a reason for disabling this offer."}
+              {actionDialog.type === "pause" && "Are you sure you want to pause this offer? It can be reactivated later."}
+              {actionDialog.type === "activate" && "Are you sure you want to activate this offer?"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {actionDialog.type === "approve" ? (
+              <div>
+                <Label htmlFor="notes">{t("notes_optional")}</Label>
+                <Textarea
+                  id="notes"
+                  value={actionDialog.notes}
+                  onChange={(e) => setActionDialog({ ...actionDialog, notes: e.target.value })}
+                  placeholder={t("add_any_notes_about_the_approval_ellipsis")}
+                />
+              </div>
+            ) : actionDialog.type !== "pause" && actionDialog.type !== "activate" ? (
+              <div>
+                <Label htmlFor="reason">Reason</Label>
+                <Textarea
+                  id="reason"
+                  value={actionDialog.reason}
+                  onChange={(e) => setActionDialog({ ...actionDialog, reason: e.target.value })}
+                  placeholder={t("enter_the_reason_ellipsis")}
+                  required
+                />
+              </div>
+            ) : null}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setActionDialog({ open: false, type: "", reason: "", notes: "" })}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAction}
+              disabled={actionDialog.type !== "approve" && actionDialog.type !== "pause" && actionDialog.type !== "activate" && !actionDialog.reason.trim()}
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </motion.div>
   );
 }

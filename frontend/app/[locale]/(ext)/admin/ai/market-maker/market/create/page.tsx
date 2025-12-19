@@ -10,6 +10,8 @@ import { useRouter } from "@/i18n/routing";
 import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
 import { useTranslations } from "next-intl";
+import { HeroSection } from "@/components/ui/hero-section";
+import { Sparkles } from "lucide-react";
 
 interface EcosystemMarket {
   id: string;
@@ -37,7 +39,9 @@ const steps = [
 ];
 
 export default function CreateAiMarketPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const router = useRouter();
 
   const [currentStep, setCurrentStep] = useState<Step>(1);
@@ -180,8 +184,8 @@ export default function CreateAiMarketPage() {
           aggressionLevel: getAggressionEnum(Number(formData.aggressionLevel)),
           realLiquidityPercent: Number(formData.realLiquidityPercent),
           maxDailyVolume: Number(formData.maxDailyVolume),
-          
-          
+
+
         },
       });
 
@@ -202,7 +206,7 @@ export default function CreateAiMarketPage() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-cyan-500 to-purple-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Icon icon="mdi:chart-line" className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-foreground">
@@ -217,17 +221,17 @@ export default function CreateAiMarketPage() {
               <div className="flex flex-col items-center justify-center py-12">
                 <Icon
                   icon="mdi:loading"
-                  className="w-12 h-12 text-primary animate-spin mb-4"
+                  className="w-12 h-12 text-cyan-500 animate-spin mb-4"
                 />
                 <p className="text-muted-foreground">{t("loading_markets_ellipsis")}</p>
               </div>
             ) : ecosystemMarkets.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-16 h-16 rounded-full bg-muted dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
-                  <Icon icon="mdi:alert-circle-outline" className="w-8 h-8 text-muted-foreground dark:text-slate-400" />
+                <div className="w-16 h-16 rounded-full bg-linear-to-br from-cyan-500/10 to-purple-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Icon icon="mdi:alert-circle-outline" className="w-8 h-8 text-cyan-500" />
                 </div>
                 <h4 className="text-lg font-semibold text-foreground mb-2">
-                  {t("no_markets_available")}
+                  {tExt("no_markets_available")}
                 </h4>
                 <p className="text-muted-foreground mb-4">
                   {t("create_an_ecosystem_market_first_to")}
@@ -235,6 +239,7 @@ export default function CreateAiMarketPage() {
                 <Button
                   variant="outline"
                   onClick={() => router.push("/admin/ecosystem/market")}
+                  className="border-cyan-500/30 hover:border-cyan-500/50"
                 >
                   {t("go_to_ecosystem_markets")}
                 </Button>
@@ -252,8 +257,8 @@ export default function CreateAiMarketPage() {
                         hasAiMarketMaker
                           ? "opacity-60 cursor-not-allowed"
                           : isSelected
-                            ? "ring-2 ring-primary shadow-lg cursor-pointer"
-                            : "hover:shadow-lg border-2 border-transparent hover:border-primary/30 cursor-pointer"
+                            ? "ring-2 ring-cyan-500 shadow-lg cursor-pointer border-cyan-500/50"
+                            : "hover:shadow-lg border-2 border-transparent hover:border-cyan-500/30 cursor-pointer"
                       }`}
                       onClick={() => handleMarketSelect(market.id)}
                     >
@@ -263,20 +268,20 @@ export default function CreateAiMarketPage() {
                             <div
                               className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
                                 hasAiMarketMaker
-                                  ? "bg-muted dark:bg-slate-800"
+                                  ? "bg-muted"
                                   : isSelected
-                                    ? "bg-blue-600"
-                                    : "bg-muted dark:bg-slate-800 group-hover:bg-blue-500/10"
+                                    ? "bg-linear-to-br from-cyan-500 to-purple-600"
+                                    : "bg-muted group-hover:bg-cyan-500/10"
                               }`}
                             >
                               <Icon
                                 icon={hasAiMarketMaker ? "mdi:robot" : "mdi:bitcoin"}
                                 className={`w-6 h-6 ${
                                   hasAiMarketMaker
-                                    ? "text-muted-foreground dark:text-slate-500"
+                                    ? "text-muted-foreground"
                                     : isSelected
                                       ? "text-white"
-                                      : "text-muted-foreground dark:text-slate-400 group-hover:text-blue-500"
+                                      : "text-muted-foreground group-hover:text-cyan-500"
                                 }`}
                               />
                             </div>
@@ -296,7 +301,7 @@ export default function CreateAiMarketPage() {
                               hasAiMarketMaker
                                 ? "border-muted-foreground/30 bg-muted"
                                 : isSelected
-                                  ? "border-primary bg-primary"
+                                  ? "border-cyan-500 bg-cyan-500"
                                   : "border-border"
                             }`}
                           >
@@ -310,7 +315,7 @@ export default function CreateAiMarketPage() {
                         {market.metadata?.price && !hasAiMarketMaker && (
                           <div className="mt-4 pt-4 border-t">
                             <div className="flex items-center justify-between">
-                              <span className="text-xs text-muted-foreground">{t("current_price")}</span>
+                              <span className="text-xs text-muted-foreground">{tCommon("current_price")}</span>
                               <span className="text-sm font-semibold text-foreground">
                                 {Number(market.metadata.price).toFixed(6)} {market.pair}
                               </span>
@@ -338,7 +343,7 @@ export default function CreateAiMarketPage() {
         return (
           <div className="max-w-xl mx-auto space-y-6">
             <div className="text-center mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Icon icon="mdi:currency-usd" className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-foreground">
@@ -349,11 +354,11 @@ export default function CreateAiMarketPage() {
               </p>
             </div>
 
-            <Card>
+            <Card className="border-cyan-500/20">
               <CardContent className="p-6 space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-muted-foreground mb-2">
-                    {t("target_price")}{selectedMarket?.pair || "Quote Currency"})
+                    {tExt("target_price")}{selectedMarket?.pair || "Quote Currency"})
                   </label>
                   <Input
                     type="number"
@@ -364,7 +369,7 @@ export default function CreateAiMarketPage() {
                   />
                   {selectedMarket?.metadata?.price && (
                     <p className="text-xs text-muted-foreground mt-2">
-                      {t("current_market_price")} {Number(selectedMarket.metadata.price).toFixed(6)} {selectedMarket?.pair}
+                      {tExt("current_market_price")} {Number(selectedMarket.metadata.price).toFixed(6)} {selectedMarket?.pair}
                     </p>
                   )}
                 </div>
@@ -372,7 +377,7 @@ export default function CreateAiMarketPage() {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <label className="text-sm font-medium text-muted-foreground">
-                      {t("price_range")}
+                      {tExt("price_range")}
                     </label>
                     <span className="text-lg font-bold text-foreground">
                       ±{formData.priceRangePercent}%
@@ -387,31 +392,31 @@ export default function CreateAiMarketPage() {
                     className="mb-2"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>{t("_1_tight")}</span>
+                    <span>{t("n_1_tight")} ({t("tight")})</span>
                     <span>±25%</span>
-                    <span>{t("_50_wide")}</span>
+                    <span>{t("n_50_wide")} ({t("wide")})</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {formData.targetPrice && (
-              <div className="p-5 bg-gradient-to-r from-blue-500/10 to-blue-500/5 rounded-2xl border border-blue-500/20">
+              <div className="p-5 bg-linear-to-r from-cyan-500/10 to-purple-500/5 rounded-2xl border border-cyan-500/20">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
-                    <Icon icon="mdi:information" className="w-5 h-5 text-blue-500" />
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center shrink-0">
+                    <Icon icon="mdi:information" className="w-5 h-5 text-cyan-500" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-blue-600 dark:text-blue-400 mb-1">
+                    <h4 className="font-semibold text-cyan-600 dark:text-cyan-400 mb-1">
                       {t("trading_range_preview")}
                     </h4>
-                    <p className="text-sm text-blue-600 dark:text-blue-400">
+                    <p className="text-sm text-cyan-600 dark:text-cyan-400">
                       {t("bots_will_trade_within")}{" "}
                       <span className="font-semibold">±{formData.priceRangePercent}%</span>{" "}
                       {t("of_the_target_price")}
                     </p>
-                    <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 mt-2">
-                      {t("range")} {(Number(formData.targetPrice) * (1 - Number(formData.priceRangePercent) / 100)).toFixed(6)} - {(Number(formData.targetPrice) * (1 + Number(formData.priceRangePercent) / 100)).toFixed(6)} {selectedMarket?.pair || ""}
+                    <p className="text-sm font-semibold text-cyan-700 dark:text-cyan-300 mt-2">
+                      {tCommon("range")} {(Number(formData.targetPrice) * (1 - Number(formData.priceRangePercent) / 100)).toFixed(6)} - {(Number(formData.targetPrice) * (1 + Number(formData.priceRangePercent) / 100)).toFixed(6)} {selectedMarket?.pair || ""}
                     </p>
                   </div>
                 </div>
@@ -424,7 +429,7 @@ export default function CreateAiMarketPage() {
         return (
           <div className="max-w-xl mx-auto space-y-6">
             <div className="text-center mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Icon icon="mdi:tune" className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-foreground">
@@ -435,14 +440,14 @@ export default function CreateAiMarketPage() {
               </p>
             </div>
 
-            <Card>
+            <Card className="border-purple-500/20">
               <CardContent className="p-6 space-y-8">
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <label className="text-sm font-medium text-muted-foreground">
                       {t("aggression_level")}
                     </label>
-                    <span className="text-2xl font-bold text-primary">
+                    <span className="text-2xl font-bold text-purple-500">
                       {formData.aggressionLevel}/10
                     </span>
                   </div>
@@ -459,7 +464,7 @@ export default function CreateAiMarketPage() {
                     <span>Moderate</span>
                     <span>Aggressive</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-3 p-3 bg-muted/50 dark:bg-slate-800/50 rounded-lg">
+                  <p className="text-xs text-muted-foreground mt-3 p-3 bg-muted/50 rounded-lg">
                     {t("higher_aggression_more_bots_higher_frequency")}
                   </p>
                 </div>
@@ -469,7 +474,7 @@ export default function CreateAiMarketPage() {
                     <label className="text-sm font-medium text-muted-foreground">
                       {t("real_liquidity")}
                     </label>
-                    <span className="text-2xl font-bold text-blue-500">
+                    <span className="text-2xl font-bold text-cyan-500">
                       {formData.realLiquidityPercent}%
                     </span>
                   </div>
@@ -486,7 +491,7 @@ export default function CreateAiMarketPage() {
                     <span>Mixed</span>
                     <span>{t("fully_real")}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-3 p-3 bg-muted/50 dark:bg-slate-800/50 rounded-lg">
+                  <p className="text-xs text-muted-foreground mt-3 p-3 bg-muted/50 rounded-lg">
                     {t("percentage_of_orders_placed_as_real")}
                   </p>
                 </div>
@@ -512,7 +517,7 @@ export default function CreateAiMarketPage() {
         return (
           <div className="max-w-2xl mx-auto space-y-6">
             <div className="text-center mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Icon icon="mdi:check-circle" className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-foreground">
@@ -524,12 +529,12 @@ export default function CreateAiMarketPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="overflow-hidden">
-                <div className="h-1 bg-blue-600" />
+              <Card className="overflow-hidden border-cyan-500/20">
+                <div className="h-1 bg-linear-to-r from-cyan-500 to-cyan-600" />
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Icon icon="mdi:chart-line" className="w-5 h-5 text-primary" />
+                    <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                      <Icon icon="mdi:chart-line" className="w-5 h-5 text-cyan-500" />
                     </div>
                     <h4 className="font-semibold text-foreground">Market</h4>
                   </div>
@@ -544,8 +549,8 @@ export default function CreateAiMarketPage() {
                 </CardContent>
               </Card>
 
-              <Card className="overflow-hidden">
-                <div className="h-1 bg-gradient-to-r from-green-500 to-green-600" />
+              <Card className="overflow-hidden border-green-500/20">
+                <div className="h-1 bg-linear-to-r from-green-500 to-green-600" />
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
@@ -570,8 +575,8 @@ export default function CreateAiMarketPage() {
                 </CardContent>
               </Card>
 
-              <Card className="overflow-hidden">
-                <div className="h-1 bg-gradient-to-r from-purple-500 to-purple-600" />
+              <Card className="overflow-hidden border-purple-500/20">
+                <div className="h-1 bg-linear-to-r from-purple-500 to-purple-600" />
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
@@ -604,7 +609,7 @@ export default function CreateAiMarketPage() {
 
             </div>
 
-            <div className="p-5 bg-gradient-to-r from-green-500/10 to-green-500/5 rounded-2xl border border-green-500/20">
+            <div className="p-5 bg-linear-to-r from-green-500/10 to-green-500/5 rounded-2xl border border-green-500/20">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
                   <Icon icon="mdi:rocket-launch" className="w-5 h-5 text-green-500" />
@@ -625,121 +630,158 @@ export default function CreateAiMarketPage() {
   };
 
   return (
-    <>
-      {/* Hero Header - Full width */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 dark:from-slate-900 dark:via-slate-950 dark:to-black text-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push("/admin/ai/market-maker/market")}
-                className="border-white/30 text-white hover:bg-white/10"
-              >
-                <Icon icon="mdi:arrow-left" className="w-5 h-5" />
-              </Button>
-              <div>
-                <h1 className="text-3xl font-bold">{t("create_ai_market_maker")}</h1>
-                <p className="text-white/80">{t("set_up_a_new_ai_powered_market_maker")}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-linear-to-b from-background via-muted/20 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+      {/* Hero Section with AI Theme */}
+      <HeroSection
+        badge={{
+          icon: <Sparkles className="h-3.5 w-3.5" />,
+          text: t("create_new"),
+          gradient: "from-cyan-100 to-purple-100 dark:from-cyan-950 dark:to-purple-950",
+          iconColor: "text-cyan-500",
+          textColor: "text-cyan-600 dark:text-cyan-400",
+        }}
+        title={[
+          { text: "Create AI " },
+          {
+            text: "Market Maker",
+            gradient:
+              "from-cyan-600 via-purple-500 to-cyan-600 dark:from-cyan-400 dark:via-purple-400 dark:to-cyan-400",
+          },
+        ]}
+        description={t("set_up_a_new_ai_powered_market_maker")}
+        paddingTop="pt-24"
+        paddingBottom="pb-12"
+        layout="split"
+        rightContentAlign="center"
+        background={{
+          orbs: [
+            {
+              color: "#06b6d4",
+              position: { top: "-10rem", right: "-10rem" },
+              size: "20rem",
+            },
+            {
+              color: "#a855f7",
+              position: { bottom: "-5rem", left: "-5rem" },
+              size: "15rem",
+            },
+          ],
+        }}
+        particles={{
+          count: 6,
+          type: "floating",
+          colors: ["#06b6d4", "#a855f7"],
+          size: 8,
+        }}
+        rightContent={
+          <Button
+            variant="outline"
+            onClick={() => router.push("/admin/ai/market-maker/market")}
+            className="border-cyan-500/30 hover:border-cyan-500/50 hover:bg-cyan-500/5"
+          >
+            <Icon icon="mdi:arrow-left" className="w-5 h-5 mr-2" />
+            {tCommon("back_to_markets")}
+          </Button>
+        }
+      />
 
       {/* Main Content Container */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-5xl">
         {/* Progress Steps */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          {steps.map((step, index) => (
-            <React.Fragment key={step.number}>
-              <div className="flex flex-col items-center flex-1">
-                <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                    currentStep >= step.number
-                      ? "bg-blue-600 shadow-lg"
-                      : "bg-muted dark:bg-slate-800"
-                  }`}
-                >
-                  {currentStep > step.number ? (
-                    <Icon icon="mdi:check" className="w-6 h-6 text-white" />
-                  ) : (
-                    <Icon
-                      icon={step.icon}
-                      className={`w-6 h-6 ${
-                        currentStep >= step.number ? "text-white" : "text-muted-foreground dark:text-slate-400"
-                      }`}
-                    />
-                  )}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            {steps.map((step, index) => (
+              <React.Fragment key={step.number}>
+                <div className="flex flex-col items-center flex-1">
+                  <div
+                    className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                      currentStep >= step.number
+                        ? "bg-linear-to-br from-cyan-500 to-purple-600 shadow-lg"
+                        : "bg-muted"
+                    }`}
+                  >
+                    {currentStep > step.number ? (
+                      <Icon icon="mdi:check" className="w-6 h-6 text-white" />
+                    ) : (
+                      <Icon
+                        icon={step.icon}
+                        className={`w-6 h-6 ${
+                          currentStep >= step.number ? "text-white" : "text-muted-foreground"
+                        }`}
+                      />
+                    )}
+                  </div>
+                  <span
+                    className={`text-sm font-medium mt-2 hidden sm:block ${
+                      currentStep >= step.number
+                        ? "text-cyan-600 dark:text-cyan-400"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {step.title}
+                  </span>
+                  <span className="text-xs text-muted-foreground hidden md:block">
+                    {step.description}
+                  </span>
                 </div>
-                <span
-                  className={`text-sm font-medium mt-2 hidden sm:block ${
-                    currentStep >= step.number
-                      ? "text-blue-600 dark:text-blue-400"
-                      : "text-muted-foreground dark:text-slate-400"
-                  }`}
-                >
-                  {step.title}
-                </span>
-                <span className="text-xs text-muted-foreground dark:text-slate-500 hidden md:block">
-                  {step.description}
-                </span>
-              </div>
-              {index < steps.length - 1 && (
-                <div
-                  className={`flex-1 h-1 mx-2 rounded-full transition-all duration-300 ${
-                    currentStep > step.number
-                      ? "bg-blue-600"
-                      : "bg-muted dark:bg-slate-700"
-                  }`}
-                />
+                {index < steps.length - 1 && (
+                  <div
+                    className={`flex-1 h-1 mx-2 rounded-full transition-all duration-300 ${
+                      currentStep > step.number
+                        ? "bg-linear-to-r from-cyan-500 to-purple-600"
+                        : "bg-muted"
+                    }`}
+                  />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+
+        {/* Step Content */}
+        <Card className="mb-6 border-cyan-500/20">
+          <CardContent className="p-8">{renderStep()}</CardContent>
+        </Card>
+
+        {/* Navigation */}
+        <div className="flex justify-between">
+          <Button
+            variant="outline"
+            onClick={handlePrev}
+            disabled={currentStep === 1}
+            size="lg"
+            className="border-cyan-500/30 hover:border-cyan-500/50"
+          >
+            <Icon icon="mdi:arrow-left" className="w-5 h-5 mr-2" />
+            Previous
+          </Button>
+
+          {currentStep < 4 ? (
+            <Button
+              onClick={handleNext}
+              size="lg"
+              className="bg-linear-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700"
+            >
+              {t("next_step")}
+              <Icon icon="mdi:arrow-right" className="w-5 h-5 ml-2" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={loading}
+              size="lg"
+              className="bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+            >
+              {loading ? (
+                <Icon icon="mdi:loading" className="w-5 h-5 mr-2 animate-spin" />
+              ) : (
+                <Icon icon="mdi:rocket-launch" className="w-5 h-5 mr-2" />
               )}
-            </React.Fragment>
-          ))}
+              {loading ? "Creating..." : "Create Market Maker"}
+            </Button>
+          )}
         </div>
       </div>
-
-      {/* Step Content */}
-      <Card className="mb-6">
-        <CardContent className="p-8">{renderStep()}</CardContent>
-      </Card>
-
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={handlePrev}
-          disabled={currentStep === 1}
-          size="lg"
-        >
-          <Icon icon="mdi:arrow-left" className="w-5 h-5 mr-2" />
-          Previous
-        </Button>
-
-        {currentStep < 4 ? (
-          <Button onClick={handleNext} size="lg">
-            {t("next_step")}
-            <Icon icon="mdi:arrow-right" className="w-5 h-5 ml-2" />
-          </Button>
-        ) : (
-          <Button
-            onClick={handleSubmit}
-            disabled={loading}
-            size="lg"
-            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
-          >
-            {loading ? (
-              <Icon icon="mdi:loading" className="w-5 h-5 mr-2 animate-spin" />
-            ) : (
-              <Icon icon="mdi:rocket-launch" className="w-5 h-5 mr-2" />
-            )}
-            {loading ? "Creating..." : "Create Market Maker"}
-          </Button>
-        )}
-      </div>
-      </div>
-    </>
+    </div>
   );
 }

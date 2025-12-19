@@ -79,11 +79,13 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Fetching user staking positions");
   // Parse pagination parameters
   const page = parseInt(query.page as string) || 1;
   const limit = Math.min(parseInt(query.limit as string) || 20, 100);
@@ -170,6 +172,7 @@ export default async (data: Handler) => {
     })
   );
 
+  ctx?.success(`Retrieved ${enhancedPositions.length} staking positions`);
   return {
     data: enhancedPositions,
     pagination: {

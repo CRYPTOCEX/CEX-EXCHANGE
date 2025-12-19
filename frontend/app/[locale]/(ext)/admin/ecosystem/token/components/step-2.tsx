@@ -35,7 +35,9 @@ const StepChainAndInfo: React.FC<StepChainAndInfoProps> = ({
   chainOptions,
   onWalletCheck,
 }) => {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { control, register, watch, setValue } = useFormContext<DeployFormData>();
   const mode = watch("mode");
   const chain = watch("chain");
@@ -126,7 +128,7 @@ const StepChainAndInfo: React.FC<StepChainAndInfoProps> = ({
   return (
     <Card className="p-5 space-y-3">
       <h2 className="text-lg font-semibold">
-        {t("blockchain_&_basic_information")}
+        {t("blockchain_basic_information")}
       </h2>
       <div className="space-y-3">
         {/* Chain Selection using shadcn Select with Controller */}
@@ -287,7 +289,7 @@ const StepChainAndInfo: React.FC<StepChainAndInfoProps> = ({
                   </a>
                 ) : (
                   <Button onClick={fetchWalletInfo} color="default" size="sm">
-                    {t("Refresh")}
+                    {tExt("refresh")}
                   </Button>
                 )}
               </div>
@@ -298,21 +300,21 @@ const StepChainAndInfo: React.FC<StepChainAndInfoProps> = ({
                 </h3>
                 <div className="text-sm">
                   <p>
-                    <strong>{t("address")}:</strong> {walletInfo.wallet.address}
+                    <strong>{tCommon("address")}:</strong> {walletInfo.wallet.address}
                   </p>
                   <p>
-                    <strong>{t("balance")}:</strong> {walletInfo.wallet.balance}{" "}
+                    <strong>{tCommon("balance")}:</strong> {walletInfo.wallet.balance}{" "}
                     {walletInfo.wallet.currency}
                   </p>
                 </div>
                 {walletInfo.tokenDeploymentCost === null ? (
                   <p className="text-sm">
-                    <strong>{t("deployment_cost")}:</strong>{" "}
+                    <strong>{tExt("deployment_cost")}:</strong>{" "}
                     {t("not_available_for_this_chain")}
                   </p>
                 ) : (
                   <p className="text-sm">
-                    <strong>{t("deployment_cost")}:</strong>{" "}
+                    <strong>{tExt("deployment_cost")}:</strong>{" "}
                     {walletInfo.tokenDeploymentCost}{" "}
                     {walletInfo.wallet.currency}
                   </p>
@@ -337,7 +339,7 @@ const StepChainAndInfo: React.FC<StepChainAndInfoProps> = ({
                         walletInfo.wallet.balance
                       ).toFixed(4)}{" "}
                       {walletInfo.wallet.currency}{" "}
-                      {t("more")}.
+                      {tCommon("more")}.
                     </p>
                     <Button onClick={fetchWalletInfo} color="default" size="sm">
                       {t("refresh_wallet_info")}

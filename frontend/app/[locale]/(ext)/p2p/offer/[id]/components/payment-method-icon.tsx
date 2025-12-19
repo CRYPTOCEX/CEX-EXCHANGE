@@ -29,7 +29,7 @@ export function PaymentMethodIcon({
       return <Wallet className={`text-green-500 ${className}`} />;
     case "mobile":
     case "mobile-money":
-      return <Smartphone className={`text-purple-500 ${className}`} />;
+      return <Smartphone className={`text-violet-500 ${className}`} />;
     case "cash":
       return <DollarSign className={`text-yellow-500 ${className}`} />;
     case "credit-card":

@@ -6,6 +6,7 @@ import { chainProviders, initializeHttpProvider } from "../ProviderManager";
 import { getEcosystemToken } from "@b/api/(ext)/ecosystem/utils/tokens";
 import { chainConfigs } from "@b/api/(ext)/ecosystem/utils/chains";
 import { processTransaction } from "../DepositUtils";
+import { logger } from "@b/utils/console";
 
 interface MOOptions {
   wallet: walletAttributes;
@@ -48,9 +49,7 @@ export class MODeposits implements IDepositMonitor {
       }
     }
 
-    console.log(
-      `Using polling for ${this.chain} ERC-20 deposits on address ${this.address}`
-    );
+    logger.info("MO_DEPOSIT", `Using polling for ${this.chain} ERC-20 deposits on address ${this.address}`);
     const token = await getEcosystemToken(this.chain, this.currency);
     if (!token)
       throw new Error(
@@ -80,9 +79,7 @@ export class MODeposits implements IDepositMonitor {
     try {
       lastBlock = await provider.getBlockNumber();
     } catch (err) {
-      console.error(
-        `Failed to get initial block number for ${pollingKey}: ${(err as Error).message}`
-      );
+      logger.error("MO_DEPOSIT", `Failed to get initial block number for ${pollingKey}`, err);
       // Without initial block, we cannot start safely
       throw err;
     }
@@ -98,9 +95,7 @@ export class MODeposits implements IDepositMonitor {
             fromBlock + this.maxBlocksPerPoll - 1
           );
 
-          console.log(
-            `Polling ${pollingKey} from block ${fromBlock} to ${toBlock}`
-          );
+          logger.debug("MO_DEPOSIT", `Polling ${pollingKey} from block ${fromBlock} to ${toBlock}`);
 
           const logs = await provider.getLogs({
             ...filter,
@@ -112,9 +107,7 @@ export class MODeposits implements IDepositMonitor {
           this.backoffAttempts = 0;
 
           for (const log of logs) {
-            console.log(
-              `New event detected on ${pollingKey}: TxHash=${log.transactionHash}`
-            );
+            logger.info("MO_DEPOSIT", `New event detected on ${pollingKey}: TxHash=${log.transactionHash}`);
 
             const success = await processTransaction(
               this.contractType,
@@ -128,11 +121,9 @@ export class MODeposits implements IDepositMonitor {
             );
 
             if (success) {
-              console.log(`Deposit recorded for ${pollingKey}.`);
+              logger.success("MO_DEPOSIT", `Deposit recorded for ${pollingKey}.`);
               if (this.stopOnFirstDeposit) {
-                console.log(
-                  `Stop on first deposit enabled. Stopping polling for ${pollingKey}`
-                );
+                logger.info("MO_DEPOSIT", `Stop on first deposit enabled. Stopping polling for ${pollingKey}`);
                 this.stopPolling();
                 return;
               }
@@ -143,16 +134,11 @@ export class MODeposits implements IDepositMonitor {
           lastBlock = toBlock;
         }
       } catch (error) {
-        console.error(
-          `Error during event polling for ${pollingKey}:`,
-          (error as Error).message
-        );
+        logger.error("MO_DEPOSIT", `Error during event polling for ${pollingKey}`, error);
 
         this.backoffAttempts++;
         if (this.backoffAttempts > this.maxBackoffAttempts) {
-          console.error(
-            `Max backoff attempts reached for ${pollingKey}. Stopping polling.`
-          );
+          logger.error("MO_DEPOSIT", `Max backoff attempts reached for ${pollingKey}. Stopping polling.`);
           this.stopPolling();
           return;
         }
@@ -160,9 +146,7 @@ export class MODeposits implements IDepositMonitor {
         // Exponential backoff: increase polling interval temporarily
         const backoffTime =
           this.pollingIntervalMs * Math.pow(2, this.backoffAttempts);
-        console.warn(
-          `Backing off polling for ${pollingKey}. Next poll in ${backoffTime}ms`
-        );
+        logger.warn("MO_DEPOSIT", `Backing off polling for ${pollingKey}. Next poll in ${backoffTime}ms`);
         if (this.intervalId) {
           clearInterval(this.intervalId);
           this.intervalId = null;
@@ -179,7 +163,7 @@ export class MODeposits implements IDepositMonitor {
 
   public stopPolling() {
     if (this.intervalId) {
-      console.log(`Stopping polling for ${this.chain}:${this.address}`);
+      logger.info("MO_DEPOSIT", `Stopping polling for ${this.chain}:${this.address}`);
       clearInterval(this.intervalId);
       this.intervalId = null;
     }

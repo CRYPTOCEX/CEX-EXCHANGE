@@ -30,7 +30,8 @@ interface InvestmentPlanClientProps {
 export default function InvestmentPlanClient({
   planId,
 }: InvestmentPlanClientProps) {
-  const t = useTranslations("common");
+  const tCommon = useTranslations("common");
+  const tInvestment = useTranslations("investment");
   const {
     plans,
     plansLoading,
@@ -132,7 +133,7 @@ export default function InvestmentPlanClient({
 
   if (plansLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950">
+      <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950 pt-16">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto">
             <Skeleton className="h-8 w-32 mb-8" />
@@ -148,22 +149,22 @@ export default function InvestmentPlanClient({
 
   if (!plan) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950">
+      <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950 pt-16">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto text-center">
             <div className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
               <AlertCircle className="w-8 h-8 text-zinc-400" />
             </div>
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-              {t("plan_not_found")}
+              {tInvestment("plan_not_found")}
             </h1>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-              {t("the_investment_plan_been_removed")}.
+              {tInvestment("the_investment_plan_been_removed")}.
             </p>
             <Link href="/investment/plan">
               <Button>
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                {t("back_to_plans")}
+                {tInvestment("back_to_plans")}
               </Button>
             </Link>
           </div>
@@ -173,7 +174,7 @@ export default function InvestmentPlanClient({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950">
+    <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950 pt-16">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
           {/* Back Button */}
@@ -186,7 +187,7 @@ export default function InvestmentPlanClient({
             <Link href="/investment/plan">
               <Button variant="outline" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                {t("back_to_plans")}
+                {tInvestment("back_to_plans")}
               </Button>
             </Link>
           </motion.div>
@@ -205,7 +206,7 @@ export default function InvestmentPlanClient({
                     {plan.trending && (
                       <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
                         <TrendingUp className="w-3 h-3 mr-1" />
-                        {t("Trending")}
+                        {tCommon("trending")}
                       </Badge>
                     )}
                   </div>
@@ -220,7 +221,7 @@ export default function InvestmentPlanClient({
                       <div className="flex items-center gap-2 mb-2">
                         <TrendingUp className="w-4 h-4 text-green-600" />
                         <span className="text-sm font-medium text-green-700 dark:text-green-300">
-                          {t("expected_return")}
+                          {tCommon("expected_return")}
                         </span>
                       </div>
                       <div className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -232,7 +233,7 @@ export default function InvestmentPlanClient({
                       <div className="flex items-center gap-2 mb-2">
                         <DollarSign className="w-4 h-4 text-blue-600" />
                         <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                          {t("Currency")}
+                          {tCommon("currency")}
                         </span>
                       </div>
                       <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
@@ -244,7 +245,7 @@ export default function InvestmentPlanClient({
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                        {t("minimum_investment")}
+                        {tCommon("minimum_investment")}
                       </span>
                       <span className="font-semibold">
                         {formatCurrency(plan.minAmount, plan.currency)}
@@ -252,7 +253,7 @@ export default function InvestmentPlanClient({
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                        {t("maximum_investment")}
+                        {tCommon("maximum_investment")}
                       </span>
                       <span className="font-semibold">
                         {formatCurrency(plan.maxAmount, plan.currency)}
@@ -260,7 +261,7 @@ export default function InvestmentPlanClient({
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                        {t("wallet_type")}
+                        {tCommon("wallet_type")}
                       </span>
                       <span className="font-semibold">{plan.walletType}</span>
                     </div>
@@ -269,7 +270,7 @@ export default function InvestmentPlanClient({
                   <div className="flex items-center gap-2 p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                     <Shield className="w-5 h-5 text-blue-600" />
                     <span className="text-sm text-zinc-600 dark:text-zinc-300">
-                      {t("your_investment_is_security_guarantee")}
+                      {tInvestment("your_investment_is_security_guarantee")}
                     </span>
                   </div>
                 </CardContent>
@@ -286,7 +287,7 @@ export default function InvestmentPlanClient({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Target className="w-5 h-5" />
-                    {t("make_investment")}
+                    {tInvestment("make_investment")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -299,7 +300,7 @@ export default function InvestmentPlanClient({
 
                   <div className="space-y-2">
                     <Label htmlFor="amount">
-                      {t("investment_amount_(")}
+                      {tCommon("investment_amount")}
                       {plan.currency}
                       )
                     </Label>
@@ -314,14 +315,14 @@ export default function InvestmentPlanClient({
                       step="0.01"
                     />
                     <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                      {t("range")}
+                      {tCommon("range")}
                       {formatCurrency(plan.minAmount, plan.currency)} -{" "}
                       {formatCurrency(plan.maxAmount, plan.currency)}
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{t("investment_duration")}</Label>
+                    <Label>{tCommon("investment_duration")}</Label>
                     {plan.durations && Array.isArray(plan.durations) && plan.durations.length > 0 ? (
                       <div className="grid grid-cols-1 gap-2">
                         {plan.durations.map((duration) => (
@@ -347,11 +348,11 @@ export default function InvestmentPlanClient({
                         <div className="flex items-center gap-2 mb-2">
                           <AlertCircle className="w-4 h-4 text-orange-600" />
                           <span className="text-sm font-medium text-orange-700 dark:text-orange-300">
-                            {t("no_durations_available")}
+                            {tInvestment("no_durations_available")}
                           </span>
                         </div>
                         <p className="text-xs text-orange-600 dark:text-orange-400">
-                          {t("this_investment_plan_configured_yet")}.
+                          {tInvestment("this_investment_plan_configured_yet")}.
                         </p>
                       </div>
                     )}
@@ -362,20 +363,20 @@ export default function InvestmentPlanClient({
                       <div className="flex items-center gap-2 mb-2">
                         <CheckCircle className="w-4 h-4 text-green-600" />
                         <span className="text-sm font-medium text-green-700 dark:text-green-300">
-                          {t("expected_profit")}
+                          {tCommon("expected_profit")}
                         </span>
                       </div>
                       <div className="text-lg font-bold text-green-600 dark:text-green-400">
                         {formatCurrency(
-                          (parseFloat(amount) * plan.profitPercentage) / 100,
+                          (parseFloat(amount) * (plan.profitPercentage ?? 0)) / 100,
                           plan.currency
                         )}
                       </div>
                       <div className="text-xs text-green-600 dark:text-green-400">
-                        {t("total_return")}
+                        {tCommon("total_return")}
                         {formatCurrency(
                           parseFloat(amount) +
-                            (parseFloat(amount) * plan.profitPercentage) / 100,
+                            (parseFloat(amount) * (plan.profitPercentage ?? 0)) / 100,
                           plan.currency
                         )}
                       </div>
@@ -402,8 +403,8 @@ export default function InvestmentPlanClient({
                   </Button>
 
                   <div className="text-xs text-zinc-500 dark:text-zinc-400 text-center">
-                    {t("by_investing_you_and_conditions")}.{" "}
-                    {t("your_investment_will_be_processed_immediately")}.
+                    {tInvestment("by_investing_you_and_conditions")}.{" "}
+                    {tInvestment("your_investment_will_be_processed_immediately")}.
                   </div>
                 </CardContent>
               </Card>

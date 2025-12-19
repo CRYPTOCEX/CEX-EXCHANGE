@@ -150,8 +150,8 @@ export default function MarketSelectorModal({
             <h3
               className={`text-lg font-medium ${isDarkTheme ? "text-white" : "text-gray-800"}`}
             >
-              <span className="text-[#F7941D] font-bold">{t("Add")}</span>
-              {t("Market")}
+              <span className="text-[#F7941D] font-bold">{t("add")}</span>
+              {t("market")}
             </h3>
             <button
               onClick={onClose}
@@ -174,7 +174,7 @@ export default function MarketSelectorModal({
               />
               <input
                 type="text"
-                placeholder="Search markets..."
+                placeholder={t("search_markets_ellipsis")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={`${isDarkTheme ? "bg-zinc-900 border-zinc-800 text-white placeholder-zinc-500" : "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"} border rounded-md pl-10 pr-3 py-2.5 w-full text-sm focus:outline-none focus:ring-1 focus:ring-[#F7941D] transition-all`}
@@ -190,7 +190,7 @@ export default function MarketSelectorModal({
               onClick={() => setActiveTab("all")}
               className={`flex-1 py-3 text-sm font-medium ${activeTab === "all" ? (isDarkTheme ? "text-[#F7941D] border-b-2 border-[#F7941D]" : "text-[#F7941D] border-b-2 border-[#F7941D]") : isDarkTheme ? "text-zinc-400 hover:text-zinc-300" : "text-gray-500 hover:text-gray-700"} transition-colors`}
             >
-              {t("All")}
+              {t("all")}
             </button>
             <button
               onClick={() => setActiveTab("trending")}
@@ -217,7 +217,7 @@ export default function MarketSelectorModal({
                   strokeLinejoin="round"
                 />
               </svg>
-              {t("Trending")}
+              {t("trending")}
             </button>
             <button
               onClick={() => setActiveTab("hot")}
@@ -238,14 +238,14 @@ export default function MarketSelectorModal({
                   fill="currentColor"
                 />
               </svg>
-              {t("Hot")}
+              {t("hot")}
             </button>
             <button
               onClick={() => setActiveTab("favorites")}
               className={`flex-1 py-3 text-sm font-medium ${activeTab === "favorites" ? (isDarkTheme ? "text-[#F7941D] border-b-2 border-[#F7941D]" : "text-[#F7941D] border-b-2 border-[#F7941D]") : isDarkTheme ? "text-zinc-400 hover:text-zinc-300" : "text-gray-500 hover:text-gray-700"} transition-colors flex items-center justify-center`}
             >
               <Star className="w-4 h-4 mr-1" />
-              {t("Favorites")}
+              {t("favorites")}
             </button>
           </div>
 
@@ -316,7 +316,7 @@ export default function MarketSelectorModal({
                               <div
                                 className={`text-xs ${isDarkTheme ? "text-zinc-400" : "text-gray-500"}`}
                               >
-                                {t("Binary")}
+                                {t("binary")}
                               </div>
                             </div>
                           </div>
@@ -416,7 +416,7 @@ export default function MarketSelectorModal({
                               <div
                                 className={`text-xs ${isDarkTheme ? "text-zinc-400" : "text-gray-500"}`}
                               >
-                                {t("Binary")}
+                                {t("binary")}
                               </div>
                             </div>
                           </div>
@@ -449,7 +449,7 @@ export default function MarketSelectorModal({
                               <div
                                 className={`text-xs ${isDarkTheme ? "text-zinc-400" : "text-gray-500"}`}
                               >
-                                {t("Loading")}.
+                                {t("loading")}.
                               </div>
                             )}
                             <button

@@ -1,7 +1,7 @@
 import ExchangeManager from "@b/utils/exchange";
 import { hasClients, messageBroker } from "@b/handler/Websocket";
 import { models } from "@b/db";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import { Op } from "sequelize";
 import { RedisSingleton } from "@b/utils/redis";
 import {
@@ -252,7 +252,7 @@ class TickerHandler {
 
           await new Promise((resolve) => setTimeout(resolve, 1000));
         } catch (error) {
-          logError("exchange", error, __filename);
+          logger.error("EXCHANGE", "Error in ticker loop", error);
           const result = await handleExchangeError(error, ExchangeManager);
           if (typeof result === "number") {
             this.unblockTime = result;
@@ -262,7 +262,7 @@ class TickerHandler {
         }
       }
     } catch (error) {
-      logError("exchange", error, __filename);
+      logger.error("EXCHANGE", "Error in ticker handler", error);
     } finally {
       this.setHandlerRunning(false);
     }

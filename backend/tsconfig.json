@@ -23,6 +23,6 @@
     "typeRoots": ["./types", "./node_modules/@types"],
     "types": ["node","jest"]
   },
-  "include": ["**/*.ts", "**/*.tsx", "types/**/*.d.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts", "models/**/*.ts", "types/**/*.d.ts", "utils/**/*.ts", "*.ts"],
+  "exclude": ["node_modules", "dist", "../frontend/**/*", "../node_modules/**/*"]
 }

@@ -7,7 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
 export function WalletOverview() {
-  const t = useTranslations("common");
+  const t = useTranslations("finance");
+  const tCommon = useTranslations("common");
   const {
     fiatWallets = [],
     spotWallets = [],
@@ -139,7 +140,7 @@ export function WalletOverview() {
         </ResponsiveContainer>
         <div className="absolute inset-0 flex items-center justify-center flex-col">
           <span className="text-xs sm:text-sm text-muted-foreground">
-            {t("Total")}
+            {tCommon("total")}
           </span>
           <span className="text-base sm:text-xl font-bold">{totalBalance}</span>
         </div>

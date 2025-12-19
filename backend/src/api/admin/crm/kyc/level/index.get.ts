@@ -12,6 +12,8 @@ export const metadata: OperationObject = {
   operationId: "listKycTemplates",
   tags: ["Admin", "CRM", "KYC Template"],
   parameters: crudParameters,
+  logModule: "ADMIN_CRM",
+  logTitle: "List KYC levels",
   responses: {
     200: {
       description: "Paginated list of KYC templates with detailed information",
@@ -53,12 +55,16 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching KYC levels");
+  const result = await getFiltered({
     model: models.kycLevel,
     query,
     sortField: query.sortField || "createdAt",
     timestamps: false,
   });
+
+  ctx?.success("KYC levels retrieved successfully");
+  return result;
 };

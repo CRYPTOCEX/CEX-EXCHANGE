@@ -1,0 +1,217 @@
+/**
+ * Bicrypto Gateway Checkout Styles
+ */
+
+/* Wallet selector container */
+.bicrypto-wallet-selector {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+/* Wallet option styling */
+.bicrypto-wallet-option {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+}
+
+.bicrypto-wallet-option:last-child {
+    margin-bottom: 0;
+}
+
+.bicrypto-wallet-option:hover {
+    border-color: #666;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.bicrypto-wallet-option.selected {
+    border-color: #0073aa;
+    background-color: #f7fbff;
+    box-shadow: 0 0 0 1px #0073aa;
+}
+
+.bicrypto-wallet-option input[type="radio"] {
+    margin-right: 15px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Wallet info */
+.bicrypto-wallet-info {
+    flex: 1;
+}
+
+.bicrypto-wallet-name {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
+    color: #333;
+}
+
+.bicrypto-wallet-balance {
+    color: #666;
+    font-size: 13px;
+}
+
+/* Wallet type badges */
+.bicrypto-wallet-type-badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bicrypto-wallet-type-FIAT {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1565c0;
+}
+
+.bicrypto-wallet-type-SPOT {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    color: #ef6c00;
+}
+
+.bicrypto-wallet-type-ECO {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    color: #2e7d32;
+}
+
+/* Loading state */
+.bicrypto-loading {
+    text-align: center;
+    padding: 30px;
+}
+
+.bicrypto-loading-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #0073aa;
+    border-radius: 50%;
+    animation: bicrypto-spin 1s linear infinite;
+}
+
+.bicrypto-loading-text {
+    margin-top: 15px;
+    color: #666;
+    font-size: 14px;
+}
+
+@keyframes bicrypto-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error message */
+.bicrypto-error {
+    padding: 15px;
+    background: #fef0f0;
+    border-left: 4px solid #dc3545;
+    color: #721c24;
+    margin: 15px 0;
+    border-radius: 4px;
+}
+
+.bicrypto-error-icon {
+    margin-right: 8px;
+}
+
+/* Test mode notice */
+.bicrypto-test-mode-notice {
+    background: linear-gradient(135deg, #fff8e1 0%, #fff3cd 100%);
+    border-left: 4px solid #ffc107;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.bicrypto-test-mode-notice strong {
+    color: #856404;
+}
+
+/* Payment info section */
+.bicrypto-payment-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.bicrypto-payment-info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.bicrypto-payment-info-row:last-child {
+    border-bottom: none;
+}
+
+.bicrypto-payment-info-label {
+    font-weight: 500;
+    color: #666;
+}
+
+.bicrypto-payment-info-value {
+    font-weight: 600;
+    color: #333;
+}
+
+/* Secure payment badge */
+.bicrypto-secure-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-top: 15px;
+    font-size: 12px;
+    color: #666;
+}
+
+.bicrypto-secure-badge svg {
+    width: 16px;
+    height: 16px;
+    color: #28a745;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .bicrypto-wallet-option {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .bicrypto-wallet-type-badge {
+        width: 100%;
+        text-align: center;
+        margin-top: 5px;
+    }
+}
+
+/* WooCommerce Blocks compatibility */
+.wc-block-components-payment-method-label .bicrypto-icon {
+    height: 24px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.wc-block-checkout__payment-method .bicrypto-wallet-selector {
+    margin-top: 10px;
+}

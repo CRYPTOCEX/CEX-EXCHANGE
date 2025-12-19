@@ -16,7 +16,7 @@ export default function ContentTab({
   onSettingChange,
   onElementUpdate,
 }: ContentTabProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   // If no element is selected, show a message
   if (!element) {
     return (

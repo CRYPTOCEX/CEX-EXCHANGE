@@ -5,6 +5,7 @@ import fs from "fs/promises";
 import path from "path";
 import { InlineDataPart, FileDataPart } from "@google/generative-ai";
 import { RedisSingleton } from "@b/utils/redis";
+import { logger } from "@b/utils/console";
 
 // Metadata for the endpoint
 export const metadata = {
@@ -13,6 +14,8 @@ export const metadata = {
     "Submits a KYC application for verification using the specified verification service.",
   operationId: "verifyKycApplication",
   tags: ["KYC", "Verification Services", "Applications"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Verify KYC application",
   parameters: [
     {
       index: 0,
@@ -101,13 +104,13 @@ export const metadata = {
   requiresAuth: true,
 };
 
-export default async (data: {
-  params: { id: string };
-  body: any;
-}): Promise<any> => {
+export default async (data: Handler): Promise<any> => {
+  const { params, body, ctx } = data;
+
   try {
-    const { id } = data.params; // Verification service ID from path
-    const { applicationId } = data.body;
+    const { id } = params; // Verification service ID from path
+    const { applicationId } = body;
+
     if (!applicationId) {
       throw createError({
         statusCode: 400,
@@ -115,6 +118,7 @@ export default async (data: {
       });
     }
 
+    ctx?.step(`Fetching KYC application ${applicationId}`);
     // Retrieve the application along with its associated level and nested verification service.
     const application = await models.kycApplication.findByPk(applicationId, {
       include: [
@@ -155,6 +159,7 @@ export default async (data: {
       });
     }
 
+    ctx?.step(`Initiating verification with ${service.type}`);
     let verificationResponse;
     if (service.type === "SUMSUB") {
       verificationResponse = await verifyWithSumSub(application, level);
@@ -167,6 +172,7 @@ export default async (data: {
       });
     }
 
+    ctx?.step("Saving verification result");
     const verificationResult = await models.kycVerificationResult.create({
       applicationId,
       serviceId: service.id,
@@ -187,6 +193,7 @@ export default async (data: {
             ? "REJECTED"
             : "PENDING";
 
+    ctx?.step(`Updating application status to ${newApplicationStatus}`);
     await application.update({
       status: newApplicationStatus,
       updatedAt: new Date(),
@@ -199,11 +206,12 @@ export default async (data: {
         const redis = RedisSingleton.getInstance();
         await redis.del(`user:${application.userId}:profile`);
       } catch (error) {
-        console.error("Error clearing user cache after KYC approval:", error);
+        logger.error("KYC", "Error clearing user cache after KYC approval", error);
         // Don't fail the request if cache clearing fails
       }
     }
 
+    ctx?.success(`Verification completed with status: ${verificationResponse.status}`);
     return {
       id: verificationResult.id,
       applicationId,
@@ -216,12 +224,9 @@ export default async (data: {
       createdAt: verificationResult.createdAt,
     };
   } catch (error: any) {
-    console.error("Error in verifyKycApplication:", error);
+    logger.error("KYC", "Error in verifyKycApplication", error);
     if (error.response) {
-      console.error("API Response Error:", {
-        status: error.response.status,
-        data: error.response.data,
-      });
+      logger.error("KYC", `API Response Error: status=${error.response.status}, data=${JSON.stringify(error.response.data)}`);
     }
     throw createError({
       statusCode: error.statusCode || 500,
@@ -297,7 +302,7 @@ async function verifyWithGemini(application: any, level: any) {
         // Optionally include a text part indicating the document type.
         parts.push(`This is the ${fieldLabel}.`);
       } catch (error) {
-        console.warn(`Failed to process document ${docKey}: ${error}`);
+        logger.warn("KYC", `Failed to process document ${docKey}: ${error}`);
       }
     }
 
@@ -313,9 +318,7 @@ async function verifyWithGemini(application: any, level: any) {
     try {
       parsedResult = JSON.parse(aiResponseClean);
     } catch (e) {
-      console.warn(
-        "Failed to parse Gemini response as JSON, falling back to basic analysis"
-      );
+      logger.warn("KYC", "Failed to parse Gemini response as JSON, falling back to basic analysis");
     }
     const finalResult = parsedResult || analyzeAIResponse(aiResponseClean);
 
@@ -342,7 +345,7 @@ async function verifyWithGemini(application: any, level: any) {
       documentVerifications,
     };
   } catch (error: any) {
-    console.error("Gemini verification error:", error);
+    logger.error("KYC", "Gemini verification error", error);
     let errorMessage = "An error occurred during Gemini verification";
     const errorDetails = error.message || "";
     if (error.status === 400) {
@@ -394,7 +397,7 @@ async function convertImageToBase64(imageUrl: string): Promise<string> {
       const data = await fs.readFile(filePath);
       return data.toString("base64");
     } catch (error) {
-      console.error("Error reading local file:", error);
+      logger.error("KYC", "Error reading local file", error);
       throw new Error("Failed to process local image for verification");
     }
   }
@@ -403,7 +406,7 @@ async function convertImageToBase64(imageUrl: string): Promise<string> {
     const arrayBuffer = await response.arrayBuffer();
     return Buffer.from(arrayBuffer).toString("base64");
   } catch (error) {
-    console.error("Error converting image to base64:", error);
+    logger.error("KYC", "Error converting image to base64", error);
     throw new Error("Failed to process image for verification");
   }
 }
@@ -709,7 +712,7 @@ async function verifyWithSumSub(application: any, level: any) {
       },
     };
   } catch (error: any) {
-    console.error("SumSub verification error:", error);
+    logger.error("KYC", "SumSub verification error", error);
     return {
       status: "FAILED",
       score: null,

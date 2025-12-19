@@ -12,13 +12,22 @@ export const metadata: OperationObject = {
   responses: deleteRecordResponses("E-commerce order"),
   permission: "delete.ecommerce.order",
   requiresAuth: true,
+  logModule: "ADMIN_ECOM",
+  logTitle: "Delete order",
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
-  return handleSingleDelete({
+  const { params, query, ctx } = data;
+
+  ctx?.step("Validating order ID");
+  ctx?.step(`Deleting order: ${params.id}`);
+
+  const result = await handleSingleDelete({
     model: "ecommerceOrder",
     id: params.id,
     query,
   });
+
+  ctx?.success("Order deleted successfully");
+  return result;
 };

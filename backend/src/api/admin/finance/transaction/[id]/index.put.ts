@@ -32,10 +32,12 @@ export const metadata = {
   responses: updateRecordResponses("Transaction"),
   requiresAuth: true,
   permission: "edit.transaction",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Transaction",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status, amount, fee, description, referenceId } = body;
 

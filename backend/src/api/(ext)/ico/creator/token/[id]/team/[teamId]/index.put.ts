@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "updateTeamMember",
   tags: ["ICO", "Creator", "Team"],
   requiresAuth: true,
+  logModule: "ICO_TEAM",
+  logTitle: "Update team member",
   parameters: [
     {
       index: 0,
@@ -58,8 +60,8 @@ export const metadata = {
   },
 };
 
-export default async (data: { user?: any; params?: any; body?: any }) => {
-  const { user, params, body } = data;
+export default async (data: { user?: any; params?: any; body?: any; ctx?: any }) => {
+  const { user, params, body, ctx } = data;
   const { id, teamId } = params;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -71,6 +73,8 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     });
   }
 
+  ctx?.step("Validating team member update request");
+
   const teamMember = await models.icoTeamMember.findOne({
     where: { id: teamId, offeringId: id },
   });
@@ -80,8 +84,11 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
 
   // Capture the old name before updating
   const oldName = teamMember.name;
+
+  ctx?.step("Updating team member record");
   await teamMember.update(body);
 
+  ctx?.step("Sending notification");
   // Create a notification for the update.
   try {
     await createNotification({
@@ -107,5 +114,6 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     );
   }
 
+  ctx?.success(`Updated team member "${body.name}"`);
   return { message: "Team member updated successfully" };
 };

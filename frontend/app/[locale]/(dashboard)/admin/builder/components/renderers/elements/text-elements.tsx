@@ -326,7 +326,6 @@ export const QuoteElement = memo(
     onTextChange?: (e: React.FormEvent<HTMLDivElement>) => void;
     isEditMode?: boolean;
   }) => {
-    const t = useTranslations("dashboard");
     const settings = element.settings || {};
     const textAlign = settings.textAlign || "center";
     const author = settings.author || "Author";
@@ -354,7 +353,7 @@ export const QuoteElement = memo(
         <figcaption
           className={cn("mt-2 text-sm text-gray-600", textAlignClass)}
         >
-          {'—'}
+          —
           <span className="font-medium">{author}</span>
           {','} <cite className="text-gray-500">{source}</cite>
         </figcaption>
@@ -374,7 +373,7 @@ export const IconElementComponent = memo(
     onTextChange?: (e: React.FormEvent<HTMLDivElement>) => void;
     isEditMode?: boolean;
   }) => {
-    const t = useTranslations("dashboard");
+    const tCommon = useTranslations("common");
     const settings = element.settings || {};
     const iconName = settings.iconName || "star";
     const size = settings.size || 24;
@@ -384,7 +383,7 @@ export const IconElementComponent = memo(
     if (!IconComponent) {
       return (
         <div className="flex justify-center items-center py-2 w-full">
-          <span>{t("icon_not_found")}</span>
+          <span>{tCommon("icon_not_found")}</span>
         </div>
       );
     }

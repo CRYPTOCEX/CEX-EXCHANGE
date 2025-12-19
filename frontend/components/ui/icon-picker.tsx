@@ -100,7 +100,8 @@ const ICON_CATEGORIES = {
 };
 
 export function IconPicker({ selectedIcon, onSelectIcon }: IconPickerProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components");
+  const tCommon = useTranslations("common");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("popular");
   const [allIcons, setAllIcons] = useState<string[]>([]);
@@ -190,7 +191,7 @@ export function IconPicker({ selectedIcon, onSelectIcon }: IconPickerProps) {
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search icons..."
+              placeholder={t("search_icons_ellipsis")}
               className="pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -203,25 +204,25 @@ export function IconPicker({ selectedIcon, onSelectIcon }: IconPickerProps) {
             <ScrollArea className="w-full">
               <TabsList className="w-full justify-start h-8 bg-transparent">
                 <TabsTrigger value="popular" className="text-xs h-7 px-2">
-                  {t("Popular")}
+                  {tCommon("popular")}
                 </TabsTrigger>
                 <TabsTrigger value="interface" className="text-xs h-7 px-2">
-                  {t("Interface")}
+                  {t("interface")}
                 </TabsTrigger>
                 <TabsTrigger value="arrows" className="text-xs h-7 px-2">
-                  {t("Arrows")}
+                  {t("arrows")}
                 </TabsTrigger>
                 <TabsTrigger value="media" className="text-xs h-7 px-2">
-                  {t("Media")}
+                  {tCommon("media")}
                 </TabsTrigger>
                 <TabsTrigger value="shapes" className="text-xs h-7 px-2">
-                  {t("Shapes")}
+                  {t("shapes")}
                 </TabsTrigger>
                 <TabsTrigger value="ecommerce" className="text-xs h-7 px-2">
-                  {t("Commerce")}
+                  {t("commerce")}
                 </TabsTrigger>
                 <TabsTrigger value="search" className="text-xs h-7 px-2">
-                  {t("All")}
+                  {tCommon("all")}
                 </TabsTrigger>
               </TabsList>
             </ScrollArea>

@@ -1,17 +1,20 @@
-import { 
-  verifyWebhookSignature, 
-  getDLocalConfig, 
+import {
+  verifyWebhookSignature,
+  getDLocalConfig,
   DLOCAL_STATUS_MAPPING,
-  DLocalWebhookPayload 
+  DLocalWebhookPayload
 } from "./utils";
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "dLocal webhook handler",
   description: "Handles payment notifications from dLocal with HMAC signature verification",
   operationId: "dLocalWebhook",
   tags: ["Finance", "Webhook"],
+  logModule: "WEBHOOK",
+  logTitle: "dLocal webhook",
   requestBody: {
     description: "dLocal webhook payload",
     content: {
@@ -67,7 +70,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, headers } = data;
+  const { body, headers, ctx } = data;
 
   try {
     // Get dLocal configuration
@@ -92,13 +95,13 @@ export default async (data: Handler) => {
     );
 
     if (!isValidSignature) {
-      console.error("dLocal webhook signature verification failed");
+      logger.error("DLOCAL", "Webhook signature verification failed");
       throw new Error("Invalid webhook signature");
     }
 
     const payload: DLocalWebhookPayload = body;
-    
-    console.log(`dLocal webhook received for payment ${payload.id}, order ${payload.order_id}, status: ${payload.status}`);
+
+    logger.info("DLOCAL", `Webhook received for payment ${payload.id}, order ${payload.order_id}, status: ${payload.status}`);
 
     // Find the transaction by order ID
     const transaction = await models.transaction.findOne({
@@ -118,7 +121,7 @@ export default async (data: Handler) => {
     });
 
     if (!transaction) {
-      console.error(`Transaction not found for order ID: ${payload.order_id}`);
+      logger.error("DLOCAL", `Transaction not found for order ID: ${payload.order_id}`);
       throw new Error("Transaction not found");
     }
 
@@ -151,7 +154,8 @@ export default async (data: Handler) => {
       let wallet = user.wallets?.find((w) => w.currency === currency);
       
       if (!wallet) {
-        wallet = await models.wallet.create({
+      ctx?.step("Creating new wallet");
+      wallet = await models.wallet.create({
           userId: user.id,
           currency: currency,
           type: "FIAT",
@@ -168,7 +172,7 @@ export default async (data: Handler) => {
         balance: Number(wallet.balance) + Number(depositAmount),
       });
 
-      console.log(`Wallet updated for user ${user.id}: +${depositAmount} ${currency}`);
+      logger.success("DLOCAL", `Wallet updated for user ${user.id}: +${depositAmount} ${currency}`);
 
       // Send email notification
       try {
@@ -182,19 +186,19 @@ export default async (data: Handler) => {
         });
 
         // TODO: Email service integration - when email service is configured, send email here
-        console.log(`Email notification queued for ${user.email} - successful deposit of ${depositAmount} ${currency}`);
+        logger.info("DLOCAL", `Email notification queued for ${user.email} - successful deposit of ${depositAmount} ${currency}`);
       } catch (emailError) {
-        console.error("Failed to send email notification:", emailError);
+        logger.error("DLOCAL", "Failed to send email notification", emailError);
       }
 
       // Log the successful deposit
-      console.log(`dLocal deposit completed: ${payload.id}, amount: ${depositAmount} ${currency}, user: ${user.id}`);
+      logger.success("DLOCAL", `Deposit completed: ${payload.id}, amount: ${depositAmount} ${currency}, user: ${user.id}`);
     }
 
     // Handle failed payment
     if (["REJECTED", "CANCELLED", "EXPIRED"].includes(payload.status)) {
-      console.log(`dLocal payment failed: ${payload.id}, status: ${payload.status}, detail: ${payload.status_detail}`);
-      
+      logger.warn("DLOCAL", `Payment failed: ${payload.id}, status: ${payload.status}, detail: ${payload.status_detail}`);
+
       // Send failure notification
       try {
         await models.notification.create({
@@ -207,15 +211,15 @@ export default async (data: Handler) => {
         });
 
         // TODO: Email service integration - when email service is configured, send email here
-        console.log(`Failure notification queued for ${transaction.user.email} - deposit ${payload.id} failed`);
+        logger.info("DLOCAL", `Failure notification queued for ${transaction.user.email} - deposit ${payload.id} failed`);
       } catch (emailError) {
-        console.error("Failed to send failure notification:", emailError);
+        logger.error("DLOCAL", "Failed to send failure notification", emailError);
       }
     }
 
     // Handle refunds
     if (["REFUNDED", "PARTIALLY_REFUNDED"].includes(payload.status) && previousStatus === "COMPLETED") {
-      console.log(`dLocal payment refunded: ${payload.id}, status: ${payload.status}`);
+      logger.info("DLOCAL", `Payment refunded: ${payload.id}, status: ${payload.status}`);
 
       const user = transaction.user;
       const currency = payload.currency;
@@ -232,7 +236,7 @@ export default async (data: Handler) => {
           balance: Math.max(0, newBalance), // Don't allow negative balance
         });
 
-        console.log(`Wallet updated for user ${user.id}: -${refundAmount} ${currency} (refund)`);
+        logger.info("DLOCAL", `Wallet updated for user ${user.id}: -${refundAmount} ${currency} (refund)`);
 
         // Notify user about refund
         try {
@@ -245,7 +249,7 @@ export default async (data: Handler) => {
             read: false,
           });
         } catch (notifError) {
-          console.error("Failed to send refund notification:", notifError);
+          logger.error("DLOCAL", "Failed to send refund notification", notifError);
         }
 
         // Notify admins about refund
@@ -274,16 +278,16 @@ export default async (data: Handler) => {
             await models.notification.bulkCreate(adminNotifications);
           }
         } catch (adminNotifError) {
-          console.error("Failed to send admin refund notification:", adminNotifError);
+          logger.error("DLOCAL", "Failed to send admin refund notification", adminNotifError);
         }
       } else {
-        console.error(`Wallet not found for refund: user ${user.id}, currency ${currency}`);
+        logger.error("DLOCAL", `Wallet not found for refund: user ${user.id}, currency ${currency}`);
       }
     }
 
     // Handle chargebacks
     if (payload.status === "CHARGEBACK" && previousStatus === "COMPLETED") {
-      console.log(`dLocal payment chargeback: ${payload.id}`);
+      logger.warn("DLOCAL", `Payment chargeback: ${payload.id}`);
 
       const user = transaction.user;
       const currency = payload.currency;
@@ -300,7 +304,7 @@ export default async (data: Handler) => {
           balance: Math.max(0, newBalance), // Don't allow negative balance
         });
 
-        console.log(`Wallet updated for user ${user.id}: -${chargebackAmount} ${currency} (chargeback)`);
+        logger.warn("DLOCAL", `Wallet updated for user ${user.id}: -${chargebackAmount} ${currency} (chargeback)`);
 
         // Notify user about chargeback
         try {
@@ -313,7 +317,7 @@ export default async (data: Handler) => {
             read: false,
           });
         } catch (notifError) {
-          console.error("Failed to send chargeback notification:", notifError);
+          logger.error("DLOCAL", "Failed to send chargeback notification", notifError);
         }
 
         // Notify admins about chargeback - critical issue
@@ -342,12 +346,12 @@ export default async (data: Handler) => {
             await models.notification.bulkCreate(adminNotifications);
           }
 
-          console.log(`Admin chargeback notifications sent for payment ${payload.id}`);
+          logger.warn("DLOCAL", `Admin chargeback notifications sent for payment ${payload.id}`);
         } catch (adminNotifError) {
-          console.error("Failed to send admin chargeback notification:", adminNotifError);
+          logger.error("DLOCAL", "Failed to send admin chargeback notification", adminNotifError);
         }
       } else {
-        console.error(`Wallet not found for chargeback: user ${user.id}, currency ${currency}`);
+        logger.error("DLOCAL", `Wallet not found for chargeback: user ${user.id}, currency ${currency}`);
 
         // Critical: notify admins even if wallet not found
         try {
@@ -375,7 +379,7 @@ export default async (data: Handler) => {
             await models.notification.bulkCreate(adminNotifications);
           }
         } catch (adminNotifError) {
-          console.error("Failed to send critical admin notification:", adminNotifError);
+          logger.error("DLOCAL", "Failed to send critical admin notification", adminNotifError);
         }
       }
     }
@@ -386,8 +390,8 @@ export default async (data: Handler) => {
     };
 
   } catch (error) {
-    console.error("dLocal webhook processing error:", error);
-    
+    logger.error("DLOCAL", "Webhook processing error", error);
+
     // Return error response
     throw new Error(error.message || "Webhook processing failed");
   }

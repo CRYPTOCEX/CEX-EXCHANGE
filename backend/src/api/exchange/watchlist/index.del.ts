@@ -21,10 +21,20 @@ export const metadata: OperationObject = {
 
   responses: deleteRecordResponses("Watchlist"),
   requiresAuth: true,
+  logModule: "EXCHANGE",
+  logTitle: "Remove watchlist item",
 };
 
 export default async (data: Handler) => {
-  return await deleteWatchlist(Number(data.params.id));
+  const { ctx } = data;
+
+  ctx?.step(`Fetching watchlist item details`);
+  const item = await models.exchangeWatchlist.findByPk(Number(data.params.id));
+
+  ctx?.step(`Removing watchlist item`);
+  await deleteWatchlist(Number(data.params.id));
+
+  ctx?.success(`Removed watchlist item${item ? `: ${item.symbol}` : ''}`);
 };
 
 export async function deleteWatchlist(id: number): Promise<void> {

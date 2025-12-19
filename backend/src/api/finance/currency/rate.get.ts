@@ -18,6 +18,8 @@ export const metadata: OperationObject = {
     "Returns the exchange rate between two currencies given their wallet types.",
   operationId: "getExchangeRate",
   tags: ["Finance", "Currency"],
+  logModule: "FINANCE",
+  logTitle: "Get currency exchange rate",
   parameters: [
     {
       name: "fromCurrency",
@@ -82,17 +84,24 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
-  if (!user?.id) throw createError(401, "Unauthorized");
+  const { user, query, ctx } = data;
+
+  if (!user?.id) {
+    ctx?.fail("User not authenticated");
+    throw createError(401, "Unauthorized");
+  }
 
   const { fromCurrency, fromType, toCurrency, toType } = query;
 
+  ctx?.step("Validating exchange rate parameters");
   if (!fromCurrency || !fromType || !toCurrency || !toType) {
+    ctx?.fail("Missing required query parameters");
     throw createError(400, "Missing required query parameters");
   }
 
   // If currencies and types are the same, rate is 1
   if (fromCurrency === toCurrency && fromType === toType) {
+    ctx?.success(`Exchange rate for ${fromCurrency} to ${toCurrency} (same currency): 1`);
     return {
       status: true,
       message: "Exchange rate retrieved successfully",
@@ -100,7 +109,7 @@ export default async (data: Handler) => {
     };
   }
 
-  // Get price in USD for fromCurrency
+  ctx?.step(`Fetching USD price for ${fromCurrency} (${fromType})`);
   let fromPriceUSD;
   switch (fromType) {
     case "FIAT":
@@ -113,10 +122,11 @@ export default async (data: Handler) => {
       fromPriceUSD = await getEcoPriceInUSD(fromCurrency);
       break;
     default:
+      ctx?.fail(`Invalid source wallet type: ${fromType}`);
       throw createError(400, `Invalid fromType: ${fromType}`);
   }
 
-  // Get price in USD for toCurrency
+  ctx?.step(`Fetching USD price for ${toCurrency} (${toType})`);
   let toPriceUSD;
   switch (toType) {
     case "FIAT":
@@ -129,11 +139,13 @@ export default async (data: Handler) => {
       toPriceUSD = await getEcoPriceInUSD(toCurrency);
       break;
     default:
+      ctx?.fail(`Invalid target wallet type: ${toType}`);
       throw createError(400, `Invalid toType: ${toType}`);
   }
 
-  // Calculate exchange rate: rate = toPriceUSD / fromPriceUSD
+  ctx?.step("Calculating exchange rate");
   const rate = toPriceUSD / fromPriceUSD;
 
+  ctx?.success(`Exchange rate calculated: ${fromCurrency} to ${toCurrency} = ${rate}`);
   return rate;
 };

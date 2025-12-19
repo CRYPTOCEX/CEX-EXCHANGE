@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useTranslations } from "next-intl";
 interface ChangePageDialogProps {
   currentPage: PageLink;
   availablePages: PageLink[];
@@ -36,6 +37,7 @@ export function ChangePageDialog({
   onConfirm,
   isSubmitting = false,
 }: ChangePageDialogProps) {
+  const t = useTranslations("ext_admin");
   const [selectedPagePath, setSelectedPagePath] = useState<string>("");
 
   // Filter out the current page from available options
@@ -54,10 +56,9 @@ export function ChangePageDialog({
     >
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Move FAQs to Another Page</DialogTitle>
+          <DialogTitle>{t("move_faqs_to_another_page")}</DialogTitle>
           <DialogDescription>
-            Move all {faqCount} FAQs from <strong>{currentPage.name}</strong> to
-            another page.
+            {t("move_all")} {faqCount} FAQs from <strong>{currentPage.name}</strong> {t("to_another_page_1")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -71,7 +72,7 @@ export function ChangePageDialog({
               disabled={isSubmitting}
             >
               <SelectTrigger id="page" className="col-span-3">
-                <SelectValue placeholder="Select a page" />
+                <SelectValue placeholder={t("select_a_page")} />
               </SelectTrigger>
               <SelectContent>
                 {otherPages.map((page) => {

@@ -14,15 +14,17 @@ interface PoolCardProps {
 }
 
 export function PoolCard({ pool, onEdit, onDelete }: PoolCardProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "ACTIVE":
-        return <Badge className="bg-green-500">{t("Active")}</Badge>;
+        return <Badge className="bg-green-500">{tCommon("active")}</Badge>;
       case "INACTIVE":
-        return <Badge variant="secondary">{t("Inactive")}</Badge>;
+        return <Badge variant="secondary">{tCommon("inactive")}</Badge>;
       case "COMING_SOON":
-        return <Badge className="bg-blue-500">{t("coming_soon")}</Badge>;
+        return <Badge className="bg-blue-500">{tCommon("coming_soon")}</Badge>;
       default:
         return null;
     }
@@ -44,12 +46,12 @@ export function PoolCard({ pool, onEdit, onDelete }: PoolCardProps) {
                   variant="outline"
                   className="bg-amber-500/10 text-amber-500 border-amber-500/20"
                 >
-                  {t("Promoted")}
+                  {tExtAdmin("promoted")}
                 </Badge>
               )}
             </div>
             <div className="text-sm text-muted-foreground mt-1">
-              {pool.symbol} • {t("lock_period")} {pool.lockPeriod} {t("days")}
+              {pool.symbol} • {tCommon("lock_period")} {pool.lockPeriod} {tCommon("days")}
             </div>
             <p className="text-sm mt-2 line-clamp-2">{pool.description}</p>
           </div>
@@ -58,14 +60,14 @@ export function PoolCard({ pool, onEdit, onDelete }: PoolCardProps) {
         <div className="bg-muted/30 p-6 flex flex-row md:flex-col justify-between md:w-1/3 border-t md:border-t-0 md:border-l">
           <div>
             <div className="text-sm font-medium text-muted-foreground">
-              {t("APR")}
+              {tCommon("apr")}
             </div>
             <div className="text-2xl font-bold text-primary">{pool.apr}%</div>
           </div>
           <div className="flex flex-col md:flex-row gap-2 mt-auto">
             <Link href={`/admin/staking/${pool.id}`} className="w-full">
               <Button variant="outline" size="sm" className="w-full">
-                {t("View")}
+                {tCommon("view")}
               </Button>
             </Link>
             {onEdit && onDelete && (

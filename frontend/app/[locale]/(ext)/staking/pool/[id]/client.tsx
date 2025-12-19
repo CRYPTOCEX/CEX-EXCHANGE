@@ -9,7 +9,11 @@ import {
   TrendingUp,
   AlertTriangle,
   Info,
+  Sparkles,
+  Coins,
 } from "lucide-react";
+import { HeroSection } from "@/components/ui/hero-section";
+import { StatsGroup } from "@/components/ui/stats-group";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,11 +29,14 @@ import { userStakingStore } from "@/store/staking/user";
 import StakeForm from "./components/stake-form";
 import { useParams } from "next/navigation";
 import { Lightbox } from "@/components/ui/lightbox";
-import PoolLoading from "./loading";
+import PoolDetailLoading from "./loading";
+import PoolDetailErrorState from "./error-state";
 import { useTranslations } from "next-intl";
 
 export default function PoolDetailPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_staking");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { id } = useParams() as { id: string };
 
   // Subscribe to the store's state
@@ -50,51 +57,27 @@ export default function PoolDetailPage() {
     };
   }, [id, getPoolById]);
 
-  if (isLoading) {
-    return <PoolLoading />;
+  // Show loading state while fetching or if pool is not yet loaded
+  if (isLoading || (!pool && !error)) {
+    return <PoolDetailLoading />;
   }
 
+  // Show error state if there's an error
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="text-red-600">Error Loading Pool</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Link href="/staking/pool">
-              <Button variant="outline">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Pools
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+      <PoolDetailErrorState
+        error={error}
+        onRetry={() => getPoolById(id)}
+      />
     );
   }
 
+  // Show "not found" error only if we're not loading and there's no pool
   if (!pool) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle>Pool Not Found</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-4">
-              The staking pool you're looking for doesn't exist or has been removed.
-            </p>
-            <Link href="/staking/pool">
-              <Button variant="outline">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Pools
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+      <PoolDetailErrorState
+        error="The staking pool you're looking for doesn't exist or has been removed."
+      />
     );
   }
 
@@ -103,48 +86,114 @@ export default function PoolDetailPage() {
   const percentageStaked = ((pool.totalStaked ?? 0) / totalAvailable) * 100;
 
   return (
-    <div className="">
-      <div className="mb-8">
-        <div className="flex flex-col md:flex-row justify-start items-center gap-4">
-          <Link href="/staking/pool">
-            <Button variant="outline" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="flex items-center">
-            <div className="w-16 h-16 rounded-full bg-primary/10 mr-4 flex items-center justify-center">
-              {pool.icon ? (
-                <Lightbox
-                  src={pool.icon || "/img/placeholder.svg"}
-                  alt={pool.name}
-                  className="w-14 h-14 rounded-full"
-                />
-              ) : (
-                <span className="font-bold text-primary text-xl">
-                  {pool.symbol.substring(0, 1)}
-                </span>
-              )}
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">{pool.name}</h1>
-              <p className="text-muted-foreground">
-                {pool.symbol}
-                •
-                {pool.apr}
-                % APR
-              </p>
+    <div className="min-h-screen bg-linear-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+      {/* Hero Section */}
+      <HeroSection
+        badge={{
+          icon: <Sparkles className="h-3.5 w-3.5" />,
+          text: pool.symbol,
+          gradient: `from-violet-500/10 to-indigo-500/10`,
+          iconColor: `text-violet-500`,
+          textColor: `text-violet-600 dark:text-violet-400`,
+        }}
+        title={[
+          { text: pool.name },
+        ]}
+        description={pool.description || t("earn_rewards_by_staking")}
+        descriptionAsHtml={!!pool.description}
+        paddingTop="pt-24"
+        paddingBottom="pb-12"
+        layout="split"
+        rightContent={
+          <div className="flex flex-col gap-3">
+            <Link href="/staking/pool">
+              <Button variant="outline" size="sm" className="border-violet-500/30 hover:bg-violet-500/10">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {tExt("back_to_pools")}
+              </Button>
+            </Link>
+            <div className="flex items-center gap-4 px-6 py-4 rounded-xl bg-white/50 dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-200/50 dark:border-zinc-700/50">
+              <div className="w-12 h-12 rounded-full bg-linear-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center border border-violet-500/20">
+                {pool.icon ? (
+                  <Lightbox
+                    src={pool.icon || "/img/placeholder.svg"}
+                    alt={pool.name}
+                    className="w-10 h-10 rounded-full"
+                  />
+                ) : (
+                  <span className="font-bold text-violet-500 text-lg">
+                    {pool.symbol?.substring(0, 1) || "?"}
+                  </span>
+                )}
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-violet-600 dark:text-violet-400">
+                  {pool.apr}%
+                </div>
+                <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                  {tCommon("apr")}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        }
+        background={{
+          orbs: [
+            {
+              color: "#8b5cf6",
+              position: { top: "-10rem", right: "-10rem" },
+              size: "20rem",
+            },
+            {
+              color: "#6366f1",
+              position: { bottom: "-5rem", left: "-5rem" },
+              size: "15rem",
+            },
+          ],
+        }}
+        particles={{
+          count: 6,
+          type: "floating",
+          colors: ["#8b5cf6", "#6366f1"],
+          size: 8,
+        }}
+      >
+        <StatsGroup
+          stats={[
+            {
+              icon: Coins,
+              label: tExt("total_staked"),
+              value: `${(pool.totalStaked || 0).toLocaleString()} ${pool.token}`,
+              iconColor: `text-violet-500`,
+              iconBgColor: `bg-violet-500/10`,
+            },
+            {
+              icon: Clock,
+              label: tCommon("lock_period"),
+              value: `${pool.lockPeriod} ${tCommon("days")}`,
+              iconColor: `text-indigo-500`,
+              iconBgColor: `bg-indigo-500/10`,
+            },
+            {
+              icon: Shield,
+              label: tExt("minimum_stake"),
+              value: `${pool.minStake} ${pool.token}`,
+              iconColor: `text-violet-500`,
+              iconBgColor: `bg-violet-500/10`,
+            },
+          ]}
+        />
+      </HeroSection>
+
+      <div className="container mx-auto py-8">
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <Tabs defaultValue="overview">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="overview">{t("Overview")}</TabsTrigger>
-              <TabsTrigger value="details">{t("Details")}</TabsTrigger>
-              <TabsTrigger value="risks">{t("risks_&_rewards")}</TabsTrigger>
+              <TabsTrigger value="overview">{tCommon("overview")}</TabsTrigger>
+              <TabsTrigger value="details">{tCommon("details")}</TabsTrigger>
+              <TabsTrigger value="risks">{t("risks_rewards")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="mt-6">
@@ -160,24 +209,23 @@ export default function PoolDetailPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="flex flex-col">
                         <span className="text-muted-foreground text-sm">
-                          {t("annual_percentage_rate")}
+                          {tCommon("annual_percentage_rate")}
                         </span>
-                        <span className="text-2xl font-bold text-green-500">
+                        <span className="text-2xl font-bold text-violet-600 dark:text-violet-400">
                           {pool.apr}%
                         </span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-muted-foreground text-sm">
-                          {t("lock_period")}
+                          {tCommon("lock_period")}
                         </span>
                         <span className="text-2xl font-bold">
-                          {pool.lockPeriod}
-                          {t("days")}
+                          {pool.lockPeriod} {tCommon("days")}
                         </span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-muted-foreground text-sm">
-                          {t("early_withdrawal_fee")}
+                          {tExt("early_withdrawal_fee")}
                         </span>
                         <span className="text-2xl font-bold">
                           {pool.earlyWithdrawalFee}%
@@ -190,7 +238,7 @@ export default function PoolDetailPage() {
                     <div className="space-y-4">
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">
-                          {t("minimum_stake")}
+                          {tExt("minimum_stake")}
                         </span>
                         <span>
                           {pool.minStake} {pool.symbol}
@@ -199,7 +247,7 @@ export default function PoolDetailPage() {
                       {pool.maxStake && (
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">
-                            {t("maximum_stake")}
+                            {tExt("maximum_stake")}
                           </span>
                           <span>
                             {pool.maxStake} {pool.symbol}
@@ -216,13 +264,13 @@ export default function PoolDetailPage() {
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">
-                          {t("Auto-Compound")}
+                          {tCommon("auto_compound")}
                         </span>
                         <span>{pool.autoCompound ? "Yes" : "No"}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">
-                          {t("admin_fee")}
+                          {tExt("admin_fee")}
                         </span>
                         <span>{pool.adminFeePercentage}%</span>
                       </div>
@@ -233,7 +281,7 @@ export default function PoolDetailPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">
-                          {t("total_staked")}
+                          {tExt("total_staked")}
                         </span>
                         <span>
                           {(pool.totalStaked ?? 0).toLocaleString()}{" "}
@@ -243,8 +291,7 @@ export default function PoolDetailPage() {
                       <Progress value={percentageStaked} className="h-2" />
                       <div className="flex justify-between text-xs text-muted-foreground">
                         <span>
-                          0
-                          {pool.symbol}
+                          0 {pool.symbol}
                         </span>
                         <span>
                           {totalAvailable.toLocaleString()} {pool.symbol}
@@ -254,35 +301,41 @@ export default function PoolDetailPage() {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle>{t("Description")}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div
-                      className="prose dark:prose-invert"
-                      dangerouslySetInnerHTML={{ __html: pool.description }}
-                    />
-                  </CardContent>
-                </Card>
+                {pool.description && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle>{tCommon("description")}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div
+                        className="prose dark:prose-invert"
+                        dangerouslySetInnerHTML={{ __html: pool.description }}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
 
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle>{t("profit_source")}</CardTitle>
-                    <CardDescription>
-                      {t("how_this_staking_pool_generates_returns")}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{pool.profitSource}</p>
-                    <div className="mt-4">
-                      <h4 className="font-semibold mb-2">
-                        {t("fund_allocation")}
-                      </h4>
-                      <p>{pool.fundAllocation}</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                {(pool.profitSource || pool.fundAllocation) && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle>{tExt("profit_source")}</CardTitle>
+                      <CardDescription>
+                        {t("how_this_staking_pool_generates_returns")}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {pool.profitSource && <p>{pool.profitSource}</p>}
+                      {pool.fundAllocation && (
+                        <div className="mt-4">
+                          <h4 className="font-semibold mb-2">
+                            {tExt("fund_allocation")}
+                          </h4>
+                          <p>{pool.fundAllocation}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </TabsContent>
 
@@ -290,7 +343,7 @@ export default function PoolDetailPage() {
               <div className="space-y-6">
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle>{t("staking_details")}</CardTitle>
+                    <CardTitle>{tExt("staking_details")}</CardTitle>
                     <CardDescription>
                       {t("detailed_information_about_the_staking_process")}
                     </CardDescription>
@@ -298,44 +351,42 @@ export default function PoolDetailPage() {
                   <CardContent>
                     <div className="space-y-6">
                       <div className="flex items-start">
-                        <Shield className="h-5 w-5 mr-3 mt-0.5 text-primary" />
+                        <Shield className="h-5 w-5 mr-3 mt-0.5 text-violet-500" />
                         <div>
                           <h3 className="font-semibold mb-1">
                             {t("security_measures")}
                           </h3>
                           <p className="text-muted-foreground">
                             {t("your_staked_assets_security_audits")}.{" "}
-                            {t("we_implement_industry-leading_your_investment")}
+                            {t("we_implement_industry_leading_your_investment")}
                             .
                           </p>
                         </div>
                       </div>
 
                       <div className="flex items-start">
-                        <Clock className="h-5 w-5 mr-3 mt-0.5 text-primary" />
+                        <Clock className="h-5 w-5 mr-3 mt-0.5 text-indigo-500" />
                         <div>
                           <h3 className="font-semibold mb-1">
-                            {t("lock_period")}
+                            {tCommon("lock_period")}
                           </h3>
                           <p className="text-muted-foreground">
-                            {t("your_assets_will_be_locked_for")}
-                            {pool.lockPeriod}{" "}
-                            {t("days_from_the_time_of_staking")}.{" "}
-                            {t("early_withdrawal_is_possible_but_subject_to_a")}
-                            {pool.earlyWithdrawalFee}% {t("fee")}.
+                            {t("your_assets_will_be_locked_for")} ({pool.lockPeriod}{" "}
+                            {t("days_from_the_time_of_staking")}).{" "}
+                            {t("early_withdrawal_is_possible_but_subject_to_a")}{" "}
+                            {pool.earlyWithdrawalFee}% {tCommon("fee")}.
                           </p>
                         </div>
                       </div>
 
                       <div className="flex items-start">
-                        <TrendingUp className="h-5 w-5 mr-3 mt-0.5 text-primary" />
+                        <TrendingUp className="h-5 w-5 mr-3 mt-0.5 text-violet-600" />
                         <div>
                           <h3 className="font-semibold mb-1">
                             {t("rewards_distribution")}
                           </h3>
                           <p className="text-muted-foreground">
-                            {t("rewards_are_distributed")}
-                            {pool.earningFrequency}
+                            {t("rewards_are_distributed")} {pool.earningFrequency}{" "}
                             {t("and_are_calculated_pools_apr")}.{" "}
                             {pool.autoCompound
                               ? "Rewards are automatically compounded to maximize your returns."
@@ -344,33 +395,41 @@ export default function PoolDetailPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-start">
-                        <Info className="h-5 w-5 mr-3 mt-0.5 text-primary" />
-                        <div>
-                          <h3 className="font-semibold mb-1">
-                            {t("external_pool")}
-                          </h3>
-                          <p className="text-muted-foreground">
-                            {t("this_staking_pool_generate_yield")}.{" "}
-                            {t("you_can_view_the_external_pool_details_at")}{" "}
-                            <a
-                              href={pool.externalPoolUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline"
-                            >
-                              {new URL(pool.externalPoolUrl).hostname}
-                            </a>
-                          </p>
+                      {pool.externalPoolUrl && (
+                        <div className="flex items-start">
+                          <Info className="h-5 w-5 mr-3 mt-0.5 text-indigo-500" />
+                          <div>
+                            <h3 className="font-semibold mb-1">
+                              {tExt("external_pool")}
+                            </h3>
+                            <p className="text-muted-foreground">
+                              {t("this_staking_pool_generate_yield")}.{" "}
+                              {t("you_can_view_the_external_pool_details_at")}{" "}
+                              <a
+                                href={pool.externalPoolUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-violet-600 dark:text-violet-400 hover:underline"
+                              >
+                                {(() => {
+                                  try {
+                                    return new URL(pool.externalPoolUrl).hostname;
+                                  } catch {
+                                    return pool.externalPoolUrl;
+                                  }
+                                })()}
+                              </a>
+                            </p>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle>{t("fee_structure")}</CardTitle>
+                    <CardTitle>{tCommon("fee_structure")}</CardTitle>
                     <CardDescription>
                       {t("breakdown_of_fees_associated_with_this_pool")}
                     </CardDescription>
@@ -378,13 +437,13 @@ export default function PoolDetailPage() {
                   <CardContent>
                     <div className="space-y-4">
                       <div className="flex justify-between">
-                        <span>{t("admin_fee")}</span>
+                        <span>{tExt("admin_fee")}</span>
                         <span>
-                          {pool.adminFeePercentage}% {t("of_earnings")}
+                          {pool.adminFeePercentage}% {tExt("of_earnings")}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>{t("early_withdrawal_fee")}</span>
+                        <span>{tExt("early_withdrawal_fee")}</span>
                         <span>
                           {pool.earlyWithdrawalFee}% {t("of_staked_amount")}
                         </span>
@@ -394,7 +453,7 @@ export default function PoolDetailPage() {
                         <span>0%</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>{t("withdrawal_fee_(after_lock_period)")}</span>
+                        <span>{t("withdrawal_fee_after_lock_period")} ({t("after_lock_period")})</span>
                         <span>0%</span>
                       </div>
                     </div>
@@ -409,7 +468,7 @@ export default function PoolDetailPage() {
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-center">
                       <AlertTriangle className="h-5 w-5 mr-2 text-amber-500" />
-                      {t("Risks")}
+                      {tExt("risks")}
                     </CardTitle>
                     <CardDescription>
                       {t("potential_risks_associated_with_this_staking_pool")}
@@ -451,8 +510,8 @@ export default function PoolDetailPage() {
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-center">
-                      <TrendingUp className="h-5 w-5 mr-2 text-green-500" />
-                      {t("Rewards")}
+                      <TrendingUp className="h-5 w-5 mr-2 text-violet-500" />
+                      {tExt("rewards")}
                     </CardTitle>
                     <CardDescription>
                       {t("benefits_of_staking_in_this_pool")}
@@ -461,33 +520,35 @@ export default function PoolDetailPage() {
                   <CardContent>
                     <p className="mb-4">{pool.rewards}</p>
                     <div className="space-y-4">
-                      <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <h4 className="font-semibold mb-2 text-green-800 dark:text-green-400">
+                      <div className="p-4 bg-violet-50 dark:bg-violet-950/20 rounded-lg border border-violet-200 dark:border-violet-800">
+                        <h4 className="font-semibold mb-2 text-violet-800 dark:text-violet-400">
                           {t("competitive_apr")}
                         </h4>
-                        <p className="text-green-700 dark:text-green-300 text-sm">
-                          {t("earn")} {pool.apr}% {t("apr_on_your_staked")} {pool.symbol}
+                        <p className="text-violet-700 dark:text-${'violet'}-300 text-sm">
+                          {tExt("earn")} {pool.apr}% {t("apr_on_your_staked")} {pool.symbol}
                           {t("which_is_financial_instruments")}.
                         </p>
                       </div>
-                      <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <h4 className="font-semibold mb-2 text-green-800 dark:text-green-400">
-                          {pool.earningFrequency.charAt(0).toUpperCase() +
-                            pool.earningFrequency.slice(1)}{" "}
-                          {t("Rewards")}
-                        </h4>
-                        <p className="text-green-700 dark:text-green-300 text-sm">
-                          {t("receive_rewards")}
-                          {pool.earningFrequency}
-                          {t("to_watch_your_investment_grow")}.
-                        </p>
-                      </div>
-                      {pool.autoCompound && (
-                        <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                          <h4 className="font-semibold mb-2 text-green-800 dark:text-green-400">
-                            {t("Auto-Compounding")}
+                      {pool.earningFrequency && (
+                        <div className="p-4 bg-indigo-50 dark:bg-indigo-950/20 rounded-lg border border-${'indigo'}-200 dark:border-indigo-800">
+                          <h4 className="font-semibold mb-2 text-indigo-800 dark:text-indigo-400">
+                            {pool.earningFrequency.charAt(0).toUpperCase() +
+                              pool.earningFrequency.slice(1)}{" "}
+                            {tExt("rewards")}
                           </h4>
-                          <p className="text-green-700 dark:text-green-300 text-sm">
+                          <p className="text-indigo-700 dark:text-${'indigo'}-300 text-sm">
+                            {t("receive_rewards")}
+                            {pool.earningFrequency}
+                            {t("to_watch_your_investment_grow")}.
+                          </p>
+                        </div>
+                      )}
+                      {pool.autoCompound && (
+                        <div className="p-4 bg-violet-50 dark:bg-violet-950/20 rounded-lg border border-violet-200 dark:border-violet-800">
+                          <h4 className="font-semibold mb-2 text-violet-800 dark:text-violet-400">
+                            {t("auto_compounding")}
+                          </h4>
+                          <p className="text-violet-700 dark:text-${'violet'}-300 text-sm">
                             {t("your_rewards_are_compound_interest")}.
                           </p>
                         </div>
@@ -505,6 +566,7 @@ export default function PoolDetailPage() {
             <StakeForm pool={pool} />
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ export default function P2PSecuritySettingsSection({
   settings = {},
   onUpdate,
 }: P2PSecuritySettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const safeSettings = {
     EnableDisputeSystem: settings.EnableDisputeSystem ?? true,
     EnableRatingSystem: settings.EnableRatingSystem ?? true,

@@ -2,15 +2,20 @@ import { models } from "@b/db";
 import { targetPriceUpdateSchema } from "../../utils";
 import {
   unauthorizedResponse,
-  notFoundMetadataResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+  notFoundResponse,
+  badRequestResponse,
+} from "@b/utils/schema/errors";
 import { createError } from "@b/utils/error";
 
 export const metadata: OperationObject = {
-  summary: "Update AI Market Maker target price",
-  operationId: "updateAiMarketMakerTargetPrice",
-  tags: ["Admin", "AI Market Maker", "Market Maker"],
+  summary: "Update AI Market Maker market target price",
+  operationId: "updateAiMarketMakerMarketTargetPrice",
+  tags: ["Admin", "AI Market Maker", "Market"],
+  description:
+    "Updates the target price for an AI Market Maker market. Validates that the new target price falls within the configured price range, calculates percentage change from previous target, warns about large price changes (>5%), and logs the change to history with pool value at time of action.",
+  logModule: "ADMIN_MM",
+  logTitle: "Update Market Maker Target Price",
   parameters: [
     {
       index: 0,
@@ -45,8 +50,9 @@ export const metadata: OperationObject = {
         },
       },
     },
+    400: badRequestResponse,
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("AI Market Maker"),
+    404: notFoundResponse("AI Market Maker Market"),
     500: serverErrorResponse,
   },
   requiresAuth: true,
@@ -54,9 +60,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, body } = data;
+  const { params, body, ctx } = data;
   const { targetPrice } = body;
 
+  ctx?.step("Fetch market maker from database");
   const marketMaker = await models.aiMarketMaker.findByPk(params.id, {
     include: [{ model: models.aiMarketMakerPool, as: "pool" }],
   });
@@ -65,6 +72,7 @@ export default async (data: Handler) => {
     throw createError(404, "AI Market Maker not found");
   }
 
+  ctx?.step("Validate target price");
   // Validate target price is within range
   if (
     targetPrice < Number(marketMaker.priceRangeLow) ||
@@ -83,9 +91,11 @@ export default async (data: Handler) => {
   // Warn if large change (but still allow)
   const isLargeChange = Math.abs(percentChange) > 5;
 
+  ctx?.step("Update target price");
   // Update target price
   await marketMaker.update({ targetPrice });
 
+  ctx?.step("Create history record for target price change");
   // Log change
   const pool = marketMaker.pool as any;
   await models.aiMarketMakerHistory.create({
@@ -101,6 +111,7 @@ export default async (data: Handler) => {
     poolValueAtAction: pool?.totalValueLocked || 0,
   });
 
+  ctx?.success("Target price updated successfully");
   return {
     message: "Target price updated successfully",
     previousTarget,

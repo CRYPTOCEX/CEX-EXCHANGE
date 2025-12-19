@@ -76,7 +76,9 @@ const EXPIRY_OPTIONS = [
 ];
 
 export default function MakeOfferModal({ isOpen, onClose, token }: MakeOfferModalProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_nft");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { makeOffer, loading } = useNftStore();
   const { settings } = useConfigStore();
 
@@ -84,6 +86,7 @@ export default function MakeOfferModal({ isOpen, onClose, token }: MakeOfferModa
   const offersEnabled = settings?.nftEnableOffers ?? true;
 
   const form = useForm<OfferForm>({
+    // @ts-ignore - Complex Zod type inference causing build issues
     resolver: zodResolver(offerSchema),
     defaultValues: {
       currency: "ETH",
@@ -141,7 +144,7 @@ export default function MakeOfferModal({ isOpen, onClose, token }: MakeOfferModa
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>{t("offers_disabled")}</AlertTitle>
               <AlertDescription>
-                {t("making_offers_is_currently_disabled_by")} {t("please_contact_support_for_more_information")}
+                {t("making_offers_is_currently_disabled_by")} {tExt("please_contact_support_for_more_information")}
               </AlertDescription>
             </Alert>
           ) : (
@@ -173,7 +176,7 @@ export default function MakeOfferModal({ isOpen, onClose, token }: MakeOfferModa
             <div className="bg-muted/50 rounded-lg p-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  {t("current_price")}
+                  {tCommon("current_price")}
                 </span>
                 <span className="font-medium">
                   {token.currentListing.price} {token.currentListing.currency}
@@ -205,7 +208,7 @@ export default function MakeOfferModal({ isOpen, onClose, token }: MakeOfferModa
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("offer_amount")}</FormLabel>
+                      <FormLabel>{tCommon("offer_amount")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -225,7 +228,7 @@ export default function MakeOfferModal({ isOpen, onClose, token }: MakeOfferModa
                   name="currency"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("Currency")}</FormLabel>
+                      <FormLabel>{tCommon("currency")}</FormLabel>
                       <Select value={field.value} onValueChange={field.onChange}>
                         <FormControl>
                           <SelectTrigger>
@@ -300,7 +303,7 @@ export default function MakeOfferModal({ isOpen, onClose, token }: MakeOfferModa
                             {field.value ? (
                               format(field.value, "PPP")
                             ) : (
-                              <span>{t("pick_a_date")}</span>
+                              <span>{tExt("pick_a_date")}</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -327,7 +330,7 @@ export default function MakeOfferModal({ isOpen, onClose, token }: MakeOfferModa
                 name="message"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("Message")} ({t("Optional")})</FormLabel>
+                    <FormLabel>{tCommon("message")} ({tCommon("optional")})</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder={t("add_a_personal_message_to_the_seller")}
@@ -345,13 +348,13 @@ export default function MakeOfferModal({ isOpen, onClose, token }: MakeOfferModa
                 <h4 className="font-medium text-sm">{t("offer_summary")}</h4>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t("offer_amount")}</span>
+                    <span className="text-muted-foreground">{tCommon("offer_amount")}</span>
                     <span className="font-medium">
                       {watchedAmount || 0} {watchedCurrency}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t("Expires")}</span>
+                    <span className="text-muted-foreground">{t("expires")}</span>
                     <span>
                       {form.watch("expiresAt") 
                         ? format(form.watch("expiresAt"), "MMM dd, yyyy")
@@ -372,7 +375,7 @@ export default function MakeOfferModal({ isOpen, onClose, token }: MakeOfferModa
               {/* Actions */}
               <div className="flex gap-3 pt-2">
                 <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
-                  {t("Cancel")}
+                  {tCommon("cancel")}
                 </Button>
                 <Button type="submit" disabled={loading || watchedAmount <= 0} className="flex-1">
                   {loading ? t("making_offer") : t("make_offer")}

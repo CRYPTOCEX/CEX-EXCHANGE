@@ -17,7 +17,7 @@ export default function DurationSelector({
   durations,
   selectedDurationId,
 }: DurationSelectorProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   const setSelectedDuration = useAiInvestmentStore(
     (state) => state.setSelectedDuration
   );

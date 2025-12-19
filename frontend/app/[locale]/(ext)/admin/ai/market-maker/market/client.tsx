@@ -1,13 +1,15 @@
 "use client";
 
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import { useTranslations } from "next-intl";
+import { BarChart3 } from "lucide-react";
 
 export default function AiTradingMarketClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const columns = useColumns();
+  const formConfig = useFormConfig();
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <DataTable
       apiEndpoint="/api/admin/ai/market-maker/market"
       model="aiMarketMaker"
@@ -18,7 +20,7 @@ export default function AiTradingMarketClient() {
         edit: "edit.ai.trading.market",
         delete: "delete.ai.trading.market",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={true}
       createLink="/admin/ai/market-maker/market/create"
       canEdit={true}
@@ -28,10 +30,16 @@ export default function AiTradingMarketClient() {
       viewLink="/admin/ai/market-maker/market/[id]"
       isParanoid={false}
       title="AI Market Makers"
+      description={t("manage_ai_powered_market_making_configurations")}
       itemTitle="Market Maker"
-      description={t("manage_ai_powered_market_makers_for")}
       columns={columns}
+      formConfig={formConfig}
+      design={{
+        animation: "orbs",
+        primaryColor: "cyan",
+        secondaryColor: "purple",
+        icon: BarChart3,
+      }}
     />
-    </div>
   );
 }

@@ -6,12 +6,15 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Get current user's P2P offers",
   description: "Retrieves all offers created by the authenticated user, including ACTIVE and PAUSED offers",
   operationId: "getUserP2POffers",
   tags: ["P2P", "Offers"],
+  logModule: "P2P",
+  logTitle: "Get user's offers",
   requiresAuth: true,
   responses: {
     200: {
@@ -33,10 +36,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) throw createError(401, "Unauthorized");
 
-  try {
+  ctx?.step("Fetching user's P2P offers");
+  try{
     const offers = await models.p2pOffer.findAll({
       where: {
         userId: user.id,
@@ -64,9 +68,11 @@ export default async (data: Handler) => {
       return plain;
     });
 
+    ctx?.success(`Retrieved ${processedOffers.length} user offers`);
     return processedOffers;
   } catch (error: any) {
-    console.error("Error fetching user P2P offers:", error);
+    logger.error("P2P_OFFER", "Error fetching user P2P offers", error);
+    ctx?.fail(error.message || "Failed to fetch user offers");
     throw createError(500, "Failed to fetch user offers");
   }
 };

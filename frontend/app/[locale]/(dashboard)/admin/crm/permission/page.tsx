@@ -1,7 +1,11 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
+import { Shield } from "lucide-react";
+import { useColumns } from "./columns";
+import { useTranslations } from "next-intl";
 export default function PermissionsPage() {
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
   return (
     <DataTable
       apiEndpoint="/api/admin/crm/permission"
@@ -13,15 +17,20 @@ export default function PermissionsPage() {
         edit: "edit.permission",
         delete: "delete.permission",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={false}
       canEdit={false}
       canDelete={false}
       canView={false}
       isParanoid={false}
-      title="Permission Management"
+      title={t("permission_management")}
+      description={t("manage_system_permissions_and_access_control")}
       itemTitle="Permission"
       columns={columns}
+      design={{
+        animation: "orbs",
+        icon: Shield,
+      }}
     />
   );
 }

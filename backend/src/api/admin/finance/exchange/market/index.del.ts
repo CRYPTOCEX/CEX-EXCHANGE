@@ -32,14 +32,21 @@ export const metadata = {
   responses: commonBulkDeleteResponses("Exchange Markets"),
   requiresAuth: true,
   permission: "delete.exchange.market",
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk Delete Exchange Markets",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step("Executing bulk delete");
+  const result = await handleBulkDelete({
     model: "exchangeMarket",
     ids,
     query,
   });
+
+  ctx?.success();
+  return result;
 };

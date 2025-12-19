@@ -27,7 +27,8 @@ export default function TradingFormPanel({
   isEco = false,
   onOrderSubmit,
 }: TradingFormPanelProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("trade_components");
+  const tCommon = useTranslations("common");
   const [buyMode, setBuyMode] = useState(true);
   const [orderType, setOrderType] = useState<"limit" | "market" | "stop">(
     "limit"
@@ -347,10 +348,10 @@ export default function TradingFormPanel({
         <div className="px-3 py-1.5 bg-emerald-500/10 border-b border-emerald-500/20 flex items-center">
           <Leaf className="h-3.5 w-3.5 text-emerald-500 mr-1.5" />
           <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-            {t("eco_market")}
+            {tCommon("eco_market")}
           </span>
           <Badge className="ml-auto bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
-            {t("low_fee")}
+            {tCommon("low_fee")}
           </Badge>
         </div>
       )}
@@ -377,7 +378,7 @@ export default function TradingFormPanel({
           )}
         >
           <Sparkles className="h-3 w-3 mr-1" />
-          {t("ai_investment")}
+          {tCommon("ai_investment")}
         </button>
       </div>
 
@@ -402,9 +403,9 @@ export default function TradingFormPanel({
           }
         >
           <TabsList className="w-full grid grid-cols-3 rounded-none">
-            <TabTrigger value="limit">{t("Limit")}</TabTrigger>
-            <TabTrigger value="market">{t("Market")}</TabTrigger>
-            <TabTrigger value="stop">{t("Stop")}</TabTrigger>
+            <TabTrigger value="limit">{tCommon("limit")}</TabTrigger>
+            <TabTrigger value="market">{tCommon("market")}</TabTrigger>
+            <TabTrigger value="stop">{tCommon("stop")}</TabTrigger>
           </TabsList>
 
           <TabContent value="limit" className="p-2 space-y-2 min-h-[400px]">

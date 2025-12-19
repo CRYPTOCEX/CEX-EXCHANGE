@@ -12,7 +12,8 @@ import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
 export default function NFTActivityClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const [activities, setActivities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -140,7 +141,7 @@ export default function NFTActivityClient() {
     (filters.search ? 1 : 0);
 
   return (
-    <div className="relative min-h-screen">
+    <div className=" relative min-h-screen">
       {/* Hero Background */}
       <div className="absolute inset-0 h-[200px] bg-gradient-to-b from-muted/50 via-muted/20 to-transparent">
         <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,white)] dark:bg-grid-black/10" />
@@ -230,7 +231,7 @@ export default function NFTActivityClient() {
                     </div>
                     <h3 className="text-lg font-semibold mb-2">{t("error_loading_activities")}</h3>
                     <p className="text-muted-foreground max-w-sm mb-4">{error}</p>
-                    <Button onClick={handleRefresh}>{t("try_again")}</Button>
+                    <Button onClick={handleRefresh}>{tCommon("try_again")}</Button>
                   </div>
                 ) : (
                   <ActivityList

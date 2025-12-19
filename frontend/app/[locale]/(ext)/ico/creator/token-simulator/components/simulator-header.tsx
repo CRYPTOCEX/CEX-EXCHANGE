@@ -10,7 +10,7 @@ interface SimulatorHeaderProps {
 }
 
 export function SimulatorHeader({ onExport }: SimulatorHeaderProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
@@ -22,7 +22,7 @@ export function SimulatorHeader({ onExport }: SimulatorHeaderProps) {
       <div className="flex gap-2">
         <Button variant="outline" size="sm" onClick={onExport}>
           <Download className="h-4 w-4 mr-1" />
-          {t("Export")}
+          {t("export")}
         </Button>
       </div>
     </div>

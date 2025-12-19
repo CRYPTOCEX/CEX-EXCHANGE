@@ -24,6 +24,8 @@ import { useTranslations } from "next-intl";
 
 export default function InvestmentDashboardClient() {
   const t = useTranslations("common");
+  const tInvestment = useTranslations("investment");
+  const tCommon = useTranslations("common");
   const { investments, investmentsLoading, fetchUserInvestments } =
     useInvestmentStore();
   const { user } = useUserStore();
@@ -133,7 +135,7 @@ export default function InvestmentDashboardClient() {
   ).length;
   if (investmentsLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950">
+      <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950 pt-16">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-6xl mx-auto">
             <Skeleton className="h-12 w-64 mb-8" />
@@ -156,7 +158,7 @@ export default function InvestmentDashboardClient() {
     );
   }
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950">
+    <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950 pt-16">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -177,17 +179,17 @@ export default function InvestmentDashboardClient() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div>
                 <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                  {t("investment_dashboard")}
+                  {tInvestment("investment_dashboard")}
                 </h1>
                 <p className="text-zinc-600 dark:text-zinc-300">
-                  {t("track_your_portfolio_your_investments")}
+                  {tInvestment("track_your_portfolio_your_investments")}
                 </p>
               </div>
 
               <Link href="/investment/plan">
                 <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group mt-4 md:mt-0">
                   <Plus className="w-4 h-4 mr-2" />
-                  {t("new_investment")}
+                  {tCommon("new_investment")}
                   <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
@@ -213,7 +215,7 @@ export default function InvestmentDashboardClient() {
             <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border-blue-200 dark:border-blue-800">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                  {t("total_portfolio_value")}
+                  {tInvestment("total_portfolio_value")}
                 </CardTitle>
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
                   <DollarSign className="w-4 h-4 text-white" />
@@ -225,7 +227,7 @@ export default function InvestmentDashboardClient() {
                 </div>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400">
                   {totalProfit >= 0 ? "+" : ""}
-                  {formatCurrency(totalProfit)} {t("profit")}
+                  {formatCurrency(totalProfit)} {tCommon("profit")}
                 </p>
               </CardContent>
             </Card>
@@ -233,7 +235,7 @@ export default function InvestmentDashboardClient() {
             <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">
-                  {t("total_invested")}
+                  {tCommon("total_invested")}
                 </CardTitle>
                 <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-4 h-4 text-white" />
@@ -244,7 +246,7 @@ export default function InvestmentDashboardClient() {
                   {formatCurrency(totalInvested)}
                 </div>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                  {t("Across")} {safeInvestments.length} {t("investments")}
+                  {tCommon("across")} {safeInvestments.length} {tCommon("investments")}
                 </p>
               </CardContent>
             </Card>
@@ -252,7 +254,7 @@ export default function InvestmentDashboardClient() {
             <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">
-                  {t("active_investments")}
+                  {tCommon("active_investments")}
                 </CardTitle>
                 <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                   <Activity className="w-4 h-4 text-white" />
@@ -263,7 +265,7 @@ export default function InvestmentDashboardClient() {
                   {activeInvestments}
                 </div>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                  {t("currently_running")}
+                  {tCommon("currently_running")}
                 </p>
               </CardContent>
             </Card>
@@ -271,7 +273,7 @@ export default function InvestmentDashboardClient() {
             <Card className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-orange-200 dark:border-orange-800">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300">
-                  {t("Completed")}
+                  {tCommon("completed")}
                 </CardTitle>
                 <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
                   <Target className="w-4 h-4 text-white" />
@@ -282,7 +284,7 @@ export default function InvestmentDashboardClient() {
                   {completedInvestments}
                 </div>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                  {t("successfully_finished")}
+                  {tInvestment("successfully_finished")}
                 </p>
               </CardContent>
             </Card>
@@ -310,7 +312,7 @@ export default function InvestmentDashboardClient() {
                     <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
                       <Activity className="w-4 h-4 text-white" />
                     </div>
-                    {t("active_investment")}
+                    {tInvestment("active_investment")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -318,15 +320,15 @@ export default function InvestmentDashboardClient() {
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                          {t("Plan")}
+                          {tCommon("plan")}
                         </span>
                         <span className="font-semibold">
-                          {t("investment_plan")}
+                          {tCommon("investment_plan")}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                          {t("Amount")}
+                          {tCommon("amount")}
                         </span>
                         <span className="font-semibold">
                           {formatCurrency(activeInvestment.amount, activeInvestment.plan?.currency || "USD")}
@@ -334,7 +336,7 @@ export default function InvestmentDashboardClient() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                          {t("Status")}
+                          {tCommon("status")}
                         </span>
                         <Badge
                           className={getStatusColor(activeInvestment.status)}
@@ -344,16 +346,16 @@ export default function InvestmentDashboardClient() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                          {t("Duration")}
+                          {tCommon("duration")}
                         </span>
                         <span className="font-semibold">
-                          {t("investment_duration")}
+                          {tCommon("investment_duration")}
                         </span>
                       </div>
                       {activeInvestment.endDate && (
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                            {t("end_date")}
+                            {tCommon("end_date")}
                           </span>
                           <span className="font-semibold">
                             {formatDate(activeInvestment.endDate)}
@@ -367,17 +369,17 @@ export default function InvestmentDashboardClient() {
                         <Target className="w-8 h-8 text-zinc-400" />
                       </div>
                       <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                        {t("no_active_investment")}
+                        {tInvestment("no_active_investment")}
                       </h3>
                       <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                        {t("start_your_investment_journey_today")}
+                        {tInvestment("start_your_investment_journey_today")}
                       </p>
                       <Link href="/investment/plan">
                         <Button
                           size="sm"
                           className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
                         >
-                          {t("browse_plans")}
+                          {tInvestment("browse_plans")}
                         </Button>
                       </Link>
                     </div>
@@ -407,7 +409,7 @@ export default function InvestmentDashboardClient() {
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
                       <BarChart3 className="w-4 h-4 text-white" />
                     </div>
-                    {t("recent_investments")}
+                    {tInvestment("recent_investments")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -422,7 +424,7 @@ export default function InvestmentDashboardClient() {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="font-medium text-sm">
-                                  {t("investment_plan")}
+                                  {tCommon("investment_plan")}
                                 </span>
                                 <Badge
                                   className={getStatusColor(investment.status)}
@@ -458,10 +460,10 @@ export default function InvestmentDashboardClient() {
                         <BarChart3 className="w-8 h-8 text-zinc-400" />
                       </div>
                       <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                        {t("no_investments_yet")}
+                        {tCommon("no_investments_yet")}
                       </h3>
                       <p className="text-zinc-600 dark:text-zinc-400">
-                        {t("your_investment_history_will_appear_here")}
+                        {tInvestment("your_investment_history_will_appear_here")}
                       </p>
                     </div>
                   )}
@@ -488,7 +490,7 @@ export default function InvestmentDashboardClient() {
           >
             <Card>
               <CardHeader>
-                <CardTitle>{t("quick_actions")}</CardTitle>
+                <CardTitle>{tCommon("quick_actions")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -498,7 +500,7 @@ export default function InvestmentDashboardClient() {
                       className="w-full h-20 flex flex-col gap-2 hover:bg-blue-50 dark:hover:bg-blue-950/20 border-blue-200 dark:border-blue-800"
                     >
                       <Plus className="w-6 h-6 text-blue-600" />
-                      <span>{t("new_investment")}</span>
+                      <span>{tCommon("new_investment")}</span>
                     </Button>
                   </Link>
 
@@ -507,7 +509,7 @@ export default function InvestmentDashboardClient() {
                     className="w-full h-20 flex flex-col gap-2 hover:bg-green-50 dark:hover:bg-green-950/20 border-green-200 dark:border-green-800"
                   >
                     <Clock className="w-6 h-6 text-green-600" />
-                    <span>{t("view_history")}</span>
+                    <span>{tCommon("view_history")}</span>
                   </Button>
 
                   <Button
@@ -515,7 +517,7 @@ export default function InvestmentDashboardClient() {
                     className="w-full h-20 flex flex-col gap-2 hover:bg-purple-50 dark:hover:bg-purple-950/20 border-purple-200 dark:border-purple-800"
                   >
                     <PieChart className="w-6 h-6 text-purple-600" />
-                    <span>{t("Analytics")}</span>
+                    <span>{tCommon("analytics")}</span>
                   </Button>
                 </div>
               </CardContent>

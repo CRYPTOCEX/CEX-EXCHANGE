@@ -31,13 +31,18 @@ export const metadata = {
   responses: updateRecordResponses("Announcement"),
   requiresAuth: true,
   permission: "edit.announcement",
+  logModule: "ADMIN_SYS",
+  logTitle: "Update announcement",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { type, title, message, link, status } = body;
 
+  ctx?.step("Validating announcement data");
+
+  ctx?.step(`Updating announcement ${id}`);
   const msg = await updateRecord("announcement", id, {
     type,
     title,
@@ -46,6 +51,7 @@ export default async (data) => {
     status,
   });
 
+  ctx?.step("Broadcasting announcement update");
   handleBroadcastMessage({
     type: "announcements",
     model: "announcement",
@@ -60,5 +66,6 @@ export default async (data) => {
     id,
   });
 
+  ctx?.success("Announcement updated successfully");
   return msg;
 };

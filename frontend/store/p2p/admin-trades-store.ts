@@ -74,7 +74,7 @@ export const useAdminTradesStore = create<AdminTradesState>((set, get) => ({
 
   totalTrades: 0,
   currentPage: 1,
-  pageSize: 10,
+  pageSize: 12,
 
   // Get all trades with optional filtering
   getTrades: async (filters = {}, page = 1, pageSize = 10) => {

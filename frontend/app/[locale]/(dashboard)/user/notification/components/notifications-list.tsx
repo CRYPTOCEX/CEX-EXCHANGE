@@ -5,11 +5,80 @@ import { NotificationItem } from "./notification-item";
 import { NotificationCard } from "./notification-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { useNotificationsStore } from "@/store/notification-store";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
+
+// Sticky header component that detects when it's stuck
+function StickyGroupHeader({
+  groupKey,
+  count,
+  groupIndex,
+}: {
+  groupKey: string;
+  count: number;
+  groupIndex: number;
+}) {
+  const [isSticky, setIsSticky] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // When sentinel is not visible (scrolled past), header is sticky
+        setIsSticky(!entry.isIntersecting);
+      },
+      { threshold: 0, rootMargin: "0px 0px 0px 0px" }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <>
+      {/* Sentinel element to detect when header becomes sticky */}
+      <div ref={sentinelRef} className="h-0 w-full" aria-hidden="true" />
+      <motion.div className="sticky top-0 z-10" layout="position">
+        <div
+          className={cn(
+            "flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5 bg-background/95 backdrop-blur-xl border-border/50 shadow-md transition-all duration-200",
+            isSticky
+              ? "rounded-b-lg sm:rounded-b-xl rounded-t-none border-x border-b"
+              : "rounded-lg sm:rounded-xl border"
+          )}
+        >
+          <motion.span
+            className="inline-block w-2 h-2 rounded-full bg-primary"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{
+              repeat: Infinity,
+              duration: 2,
+              delay: groupIndex * 0.3,
+            }}
+          />
+          <h3 className="text-xs sm:text-sm font-medium text-foreground">
+            {groupKey}
+          </h3>
+          <motion.span
+            key={count}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="text-xs bg-primary/10 text-primary px-1.5 sm:px-2 py-0.5 rounded-full font-medium"
+          >
+            {count}
+          </motion.span>
+        </div>
+      </motion.div>
+    </>
+  );
+}
 
 interface NotificationsListProps {
   notifications: notificationAttributes[];
@@ -24,14 +93,11 @@ export function NotificationsList({
   viewMode,
   soundEnabled = false,
 }: NotificationsListProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
   const [visibleCount, setVisibleCount] = useState(10);
   const { markAsRead, markAsUnread, deleteNotification } =
     useNotificationsStore();
   const [ref, inView] = useInView();
-  const [stickyHeaders, setStickyHeaders] = useState<Record<string, boolean>>(
-    {}
-  );
 
   // Auto-load more when scrolling to the bottom (removed soundEnabled from dependencies)
   useEffect(() => {
@@ -76,35 +142,6 @@ export function NotificationsList({
     setVisibleCount((prev) => Math.min(prev + 10, notifications.length));
   };
 
-  // Setup intersection observers for headers
-  useEffect(() => {
-    const observers: IntersectionObserver[] = [];
-    const headerElements = document.querySelectorAll(".group-header");
-
-    headerElements.forEach((header) => {
-      const groupKey = header.getAttribute("data-group");
-      if (!groupKey) return;
-
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (groupKey) {
-            setStickyHeaders((prev) => ({
-              ...prev,
-              [groupKey]: entry.isIntersecting ? false : true,
-            }));
-          }
-        },
-        { threshold: 0, rootMargin: "-1px 0px 0px 0px" }
-      );
-
-      observer.observe(header);
-      observers.push(observer);
-    });
-
-    return () => {
-      observers.forEach((observer) => observer.disconnect());
-    };
-  }, [notifications]);
 
   if (isLoading) {
     return (
@@ -188,82 +225,94 @@ export function NotificationsList({
 
   return (
     <div className="space-y-6">
-      <AnimatePresence>
-        {groupOrder.map((groupKey) => {
-          if (!visibleGroupedNotifications[groupKey]) return null;
-          return (
-            <motion.div
-              key={groupKey}
-              className="space-y-3"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <div className="sticky top-28 z-10 bg-background/60 backdrop-blur-sm py-2 pl-2">
-                <h3 className="text-sm font-medium text-muted-foreground flex items-center">
-                  <span className="inline-block w-2 h-2 rounded-full bg-primary mr-2"></span>
-                  {groupKey}
-                  <span className="ml-2 text-xs bg-muted px-2 py-0.5 rounded-full">
-                    {visibleGroupedNotifications[groupKey].length}
-                  </span>
-                </h3>
-              </div>
-
-              <div
-                className={
-                  viewMode === "grid"
-                    ? "grid grid-cols-1 md:grid-cols-2 gap-4"
-                    : "space-y-2"
-                }
+      <LayoutGroup>
+        <AnimatePresence mode="popLayout">
+          {groupOrder.map((groupKey, groupIndex) => {
+            if (!visibleGroupedNotifications[groupKey]) return null;
+            return (
+              <motion.div
+                key={groupKey}
+                className="space-y-3"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3, delay: groupIndex * 0.1 }}
+                layout
               >
-                {visibleGroupedNotifications[groupKey].map(
-                  (notification, index) =>
-                    viewMode === "grid" ? (
-                      <NotificationCard
-                        key={
-                          notification.id
-                            ? `${notification.id}-${index}`
-                            : index
-                        }
-                        notification={notification}
-                        onMarkAsRead={() => markAsRead(notification.id)}
-                        onMarkAsUnread={() => markAsUnread(notification.id)}
-                        onDelete={() => deleteNotification(notification.id)}
-                        index={index}
-                      />
-                    ) : (
-                      <NotificationItem
-                        key={
-                          notification.id
-                            ? `${notification.id}-${index}`
-                            : index
-                        }
-                        notification={notification}
-                        onMarkAsRead={() => markAsRead(notification.id)}
-                        onMarkAsUnread={() => markAsUnread(notification.id)}
-                        onDelete={() => deleteNotification(notification.id)}
-                        index={index}
-                      />
-                    )
-                )}
-              </div>
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
+                <StickyGroupHeader
+                  groupKey={groupKey}
+                  count={visibleGroupedNotifications[groupKey].length}
+                  groupIndex={groupIndex}
+                />
+
+                <motion.div
+                  className={
+                    viewMode === "grid"
+                      ? "grid grid-cols-1 md:grid-cols-2 gap-4"
+                      : "space-y-3"
+                  }
+                  layout
+                >
+                  <AnimatePresence mode="popLayout">
+                    {visibleGroupedNotifications[groupKey].map(
+                      (notification, index) =>
+                        viewMode === "grid" ? (
+                          <NotificationCard
+                            key={notification.id || `card-${index}`}
+                            notification={notification}
+                            onMarkAsRead={() => markAsRead(notification.id)}
+                            onMarkAsUnread={() => markAsUnread(notification.id)}
+                            onDelete={() => deleteNotification(notification.id)}
+                            index={index}
+                          />
+                        ) : (
+                          <NotificationItem
+                            key={notification.id || `item-${index}`}
+                            notification={notification}
+                            onMarkAsRead={() => markAsRead(notification.id)}
+                            onMarkAsUnread={() => markAsUnread(notification.id)}
+                            onDelete={() => deleteNotification(notification.id)}
+                            index={index}
+                          />
+                        )
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </LayoutGroup>
 
       {notifications.length > visibleCount && (
-        <div className="flex justify-center mt-6" ref={ref}>
+        <motion.div
+          className="flex justify-center mt-8"
+          ref={ref}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
           <Button
             variant="outline"
             onClick={handleLoadMore}
-            className="gap-2 group relative overflow-hidden"
+            className="gap-2 group relative overflow-hidden rounded-full px-6 border-primary/20 hover:border-primary/50"
           >
             <span className="relative z-10">{t("load_more")}</span>
-            <ChevronDown className="h-4 w-4 relative z-10" />
-            <span className="absolute inset-0 bg-primary/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
+            <motion.div
+              animate={{ y: [0, 3, 0] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+            >
+              <ChevronDown className="h-4 w-4 relative z-10" />
+            </motion.div>
+            <motion.span
+              className="absolute inset-0 bg-primary/10"
+              initial={{ scaleX: 0 }}
+              whileHover={{ scaleX: 1 }}
+              transition={{ duration: 0.3 }}
+              style={{ originX: 0 }}
+            />
           </Button>
-        </div>
+        </motion.div>
       )}
     </div>
   );

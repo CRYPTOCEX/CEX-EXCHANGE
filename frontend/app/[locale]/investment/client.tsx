@@ -37,7 +37,7 @@ export default function InvestmentClient() {
   const trendingPlans = safePlans.filter((plan) => plan.trending);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen pt-16">
       <HeroSection />
       <FeaturesSection />
       <FeaturedPlansSection trendingPlans={trendingPlans} />

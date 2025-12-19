@@ -21,7 +21,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
       y: 0,
       transition: {
         duration: 0.4,
-        ease: "easeOut",
+        ease: "easeOut" as const,
       },
     },
     exit: {
@@ -29,7 +29,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
       y: -20,
       transition: {
         duration: 0.3,
-        ease: "easeIn",
+        ease: "easeIn" as const,
       },
     },
   };

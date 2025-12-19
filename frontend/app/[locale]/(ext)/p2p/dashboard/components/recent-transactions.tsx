@@ -50,7 +50,7 @@ export function RecentTransactions({
   transactions,
   isLoading,
 }: RecentTransactionsProps) {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   if (isLoading) {
     return <TransactionsSkeleton />;
   }
@@ -159,7 +159,7 @@ export function RecentTransactions({
 
       <Link href="/transactions" className="w-full justify-between mt-2">
         <Button variant="outline">
-          {t("view_all_transactions")} <ChevronRight className="h-4 w-4" />
+          {tCommon("view_all_transactions")} <ChevronRight className="h-4 w-4" />
         </Button>
       </Link>
     </div>
@@ -167,6 +167,7 @@ export function RecentTransactions({
 }
 export function EmptyTransactions() {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
     <div className="border border-dashed rounded-xl p-8 text-center">
       <div className="flex flex-col items-center">
@@ -177,7 +178,7 @@ export function EmptyTransactions() {
         </p>
         <Link href="/finance/wallet">
           <Button>
-            <Banknote className="mr-2 h-4 w-4" /> {t("go_to_wallet")}
+            <Banknote className="mr-2 h-4 w-4" /> {tCommon("go_to_wallet")}
           </Button>
         </Link>
       </div>

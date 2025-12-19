@@ -3,24 +3,25 @@
 import { models } from "@b/db";
 
 import { crudParameters, paginationSchema } from "@b/utils/constants";
+import { getFiltered } from "@b/utils/query";
 import {
-  getFiltered,
-  notFoundMetadataResponse,
-  serverErrorResponse,
   unauthorizedResponse,
-} from "@b/utils/query";
+  notFoundResponse,
+  serverErrorResponse,
+} from "@b/utils/schema/errors";
 import { ecommerceDiscountSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary:
-    "Lists all ecommerce discounts with pagination and optional filtering",
+  summary: "Lists all ecommerce discounts with pagination and filtering",
   operationId: "listEcommerceDiscounts",
-  tags: ["Admin", "Ecommerce", "Discounts"],
+  description:
+    "Retrieves a paginated list of all ecommerce discounts with their associated product information. Supports filtering, sorting, and searching capabilities. Returns discount codes, percentages, validity dates, and linked product details including category information.",
+  tags: ["Admin", "Ecommerce", "Discount"],
   parameters: crudParameters,
   responses: {
     200: {
       description:
-        "List of ecommerce discounts with product details and pagination",
+        "List of ecommerce discounts with product details and pagination metadata",
       content: {
         "application/json": {
           schema: {
@@ -40,17 +41,22 @@ export const metadata: OperationObject = {
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("E-commerce Discounts"),
+    404: notFoundResponse("Ecommerce Discounts"),
     500: serverErrorResponse,
   },
   requiresAuth: true,
   permission: "view.ecommerce.discount",
+  logModule: "ADMIN_ECOM",
+  logTitle: "List discounts",
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Parsing query parameters");
+  ctx?.step("Fetching discounts from database");
+
+  const result = await getFiltered({
     model: models.ecommerceDiscount,
     query,
     sortField: query.sortField || "validUntil",
@@ -70,4 +76,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} discounts`);
+  return result;
 };

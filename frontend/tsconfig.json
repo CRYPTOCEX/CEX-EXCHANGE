@@ -56,6 +56,10 @@
   "exclude": [
     "node_modules",
     "**/*.spec.ts",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "../backend/**/*",
+    "../node_modules/**/*",
+    "dist",
+    ".next"
   ]
 }

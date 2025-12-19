@@ -35,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 interface RecentActivityProps {
   activities?: (icoAdminActivityAttributes & {
     admin: {
@@ -72,13 +73,15 @@ const getAdminFullName = (admin) => {
     : admin.name || "NA";
 };
 export function RecentActivity({ activities = [] }: RecentActivityProps) {
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const [activeTab, setActiveTab] = useState<ActivityType>("all");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [showCount, setShowCount] = useState(5);
   const filteredActivities = activities.filter(
     (activity) => activeTab === "all" || activity.type === activeTab
   );
-  const getActivityIcon = (type: string) => {
+  const getActivityIcon = (type?: string) => {
     switch (type) {
       case "approval":
         return <CheckCircle2 className="h-5 w-5 text-green-500" />;
@@ -89,12 +92,12 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
       case "pause":
         return <PauseCircle className="h-5 w-5 text-blue-500" />;
       case "resume":
-        return <PlayCircle className="h-5 w-5 text-emerald-500" />;
+        return <PlayCircle className="h-5 w-5 text-teal-500" />;
       default:
         return <AlertTriangle className="h-5 w-5 text-gray-500" />;
     }
   };
-  const getActivityColor = (type: string) => {
+  const getActivityColor = (type?: string): string => {
     switch (type) {
       case "approval":
         return "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800";
@@ -105,12 +108,12 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
       case "pause":
         return "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800";
       case "resume":
-        return "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800";
+        return "bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-800";
       default:
         return "bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800";
     }
   };
-  const getActivityLabel = (type: string) => {
+  const getActivityLabel = (type?: string): string => {
     switch (type) {
       case "approval":
         return "Approved";
@@ -126,7 +129,7 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
         return "Action";
     }
   };
-  const getActivityVariant = (type: string) => {
+  const getActivityVariant = (type?: string): string => {
     switch (type) {
       case "approval":
         return "success";
@@ -156,9 +159,9 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-xl font-bold">Recent Activity</CardTitle>
+            <CardTitle className="text-xl font-bold">{tCommon("recent_activity")}</CardTitle>
             <CardDescription>
-              Latest admin actions on the platform
+              {t("latest_admin_actions_on_the_platform")}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -173,7 +176,7 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setActiveTab("all")}>
-                  All Activities
+                  {t("all_activities")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setActiveTab("approval")}>
                   Approvals
@@ -214,17 +217,17 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Clock className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <p className="text-muted-foreground font-medium">
-              No recent activity to display
+              {tCommon("no_recent_activity_to_display")}
             </p>
             <p className="text-sm text-muted-foreground/70 mt-1">
               {activeTab !== "all"
                 ? "Try changing your filter or"
                 : "Check back later or"}{" "}
-              view all activities
+              {t("view_all_activities")}
             </p>
             <Link href="/admin/activity">
               <Button variant="outline" className="mt-4">
-                View Activity Log
+                {t("view_activity_log")}
               </Button>
             </Link>
           </div>
@@ -329,7 +332,7 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <p className="text-muted-foreground mb-1">
-                                Offering ID
+                                {t("offering_id")}
                               </p>
                               <p className="font-mono text-xs bg-muted px-2 py-1 rounded inline-block">
                                 {activity.offeringId}
@@ -337,7 +340,7 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
                             </div>
                             <div>
                               <p className="text-muted-foreground mb-1">
-                                Admin ID
+                                {t("admin_id")}
                               </p>
                               <p className="font-mono text-xs bg-muted px-2 py-1 rounded inline-block">
                                 {activity.adminId}
@@ -362,7 +365,7 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
                               href={`/admin/ico/offer/${activity.offeringId}`}
                             >
                               <Button variant="outline" size="sm">
-                                View Offering
+                                {t("view_offering")}
                               </Button>
                             </Link>
                           </div>
@@ -379,7 +382,7 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
       {filteredActivities.length > showCount && (
         <CardFooter className="flex justify-center p-4 border-t">
           <Button variant="outline" onClick={loadMore}>
-            Load More
+            {tCommon("load_more")}
           </Button>
         </CardFooter>
       )}

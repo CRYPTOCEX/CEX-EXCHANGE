@@ -74,7 +74,9 @@ export function MatchingResults({
   matches = [],
   onStartOver,
 }: MatchingResultsProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { toast } = useToast();
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
@@ -268,13 +270,13 @@ export function MatchingResults({
           </div>
           <h3 className="text-xl font-medium">{t("failed_to_load_offers")}</h3>
           <p className="text-muted-foreground text-center max-w-md">
-            {t("we_encountered_an_error_while_fetching")} {t("please_try_again")}
+            {t("we_encountered_an_error_while_fetching")} {tCommon("please_try_again")}
           </p>
           <div className="flex gap-2">
             <Button onClick={() => fetchMatches()} variant="outline">
-              {t("try_again")}
+              {tCommon("try_again")}
             </Button>
-            <Button onClick={onStartOver}>{t("start_over")}</Button>
+            <Button onClick={onStartOver}>{tCommon("start_over")}</Button>
           </div>
         </div>
       </div>
@@ -294,7 +296,7 @@ export function MatchingResults({
           <Button onClick={handleRefresh} variant="outline">
             Refresh
           </Button>
-          <Button onClick={onStartOver}>{t("start_over")}</Button>
+          <Button onClick={onStartOver}>{tCommon("start_over")}</Button>
         </div>
       </div>
     );
@@ -327,12 +329,12 @@ export function MatchingResults({
           </Button>
           <Select value={sortBy} onValueChange={handleSort}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={t("sort_by")} />
+              <SelectValue placeholder={tCommon("sort_by")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="match_score">{t("best_match")}</SelectItem>
-              <SelectItem value="price_asc">{t("price_low_to_high")}</SelectItem>
-              <SelectItem value="price_desc">{t("price_high_to_low")}</SelectItem>
+              <SelectItem value="price_asc">{tExt("price_low_to_high")}</SelectItem>
+              <SelectItem value="price_desc">{tExt("price_high_to_low")}</SelectItem>
               <SelectItem value="rating_desc">{t("highest_rating")}</SelectItem>
               <SelectItem value="amount_desc">{t("largest_amount")}</SelectItem>
             </SelectContent>
@@ -411,14 +413,14 @@ export function MatchingResults({
                               />
                             ))}
                           </div>
-                          {offer.trader?.completedTrades || 0} {t("trades")}{" "}
+                          {offer.trader?.completedTrades || 0} {tCommon("trades")}{" "}
                           {offer.trader?.completionRate || 0}%
                         </div>
                       </div>
                     </div>
                     <Badge className="bg-primary/10 text-primary border-primary/20 font-medium flex items-center gap-1 px-2.5 py-1">
                       <Zap className="h-3.5 w-3.5" />
-                      {offer.matchScore}{t("match")}
+                      {offer.matchScore}% {t("match")}
                     </Badge>
                   </div>
 
@@ -461,7 +463,7 @@ export function MatchingResults({
                             {method}
                           </Badge>
                         )
-                      ) || <Badge variant="outline">{t("no_payment_methods")}</Badge>}
+                      ) || <Badge variant="outline">{tCommon("no_payment_methods")}</Badge>}
                     </div>
 
                     <div className="pt-2">
@@ -516,7 +518,7 @@ export function MatchingResults({
 
       <div className="flex justify-between pt-4">
         <Button variant="outline" onClick={onStartOver}>
-          {t("start_over")}
+          {tCommon("start_over")}
         </Button>
         <Link href="/p2p/offer">
           <Button>{t("browse_all_offers")}</Button>

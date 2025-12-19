@@ -1,4 +1,4 @@
-import { logError } from "../../../../utils/logger";
+import { logger } from "@b/utils/console";
 import { models } from "@b/db";
 
 export async function getUserWalletByCurrency(
@@ -22,7 +22,7 @@ export async function getUserWalletByCurrency(
 
     return wallet;
   } catch (error) {
-    logError("get_user_wallet", error, __filename);
+    logger.error("FUTURES", "Failed to get user wallet", error);
     throw error;
   }
 }

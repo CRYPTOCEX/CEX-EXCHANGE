@@ -1,9 +1,11 @@
 import { updateRecordResponses, updateStatus } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Bulk updates the status of AI Investment Plans",
+  summary: "Bulk updates AI Investment Plan status",
   operationId: "bulkUpdateAiInvestmentPlanStatus",
-  tags: ["Admin", "AI Investment Plans"],
+  tags: ["Admin", "AI Investment", "Plan"],
+  description:
+    "Updates the active/inactive status for multiple AI Investment Plans simultaneously. Use this endpoint to activate or deactivate multiple plans in a single operation.",
   requestBody: {
     required: true,
     content: {
@@ -30,10 +32,17 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("AI Investment Plan"),
   requiresAuth: true,
   permission: "edit.ai.investment.plan",
+  logModule: "ADMIN_AI",
+  logTitle: "Bulk update plan status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("aiInvestmentPlan", ids, status);
+
+  ctx?.step(`Updating status for ${ids.length} plan(s) to ${status ? 'active' : 'inactive'}`);
+  const result = await updateStatus("aiInvestmentPlan", ids, status);
+
+  ctx?.success(`Status updated for ${ids.length} plan(s)`);
+  return result;
 };

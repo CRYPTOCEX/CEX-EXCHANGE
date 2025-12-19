@@ -19,8 +19,11 @@ import { StepLabelItem, Stepper } from "@/components/ui/stepper";
 import { useUserStore } from "@/store/user";
 import { useConfigStore } from "@/store/config";
 import KycRequiredNotice from "@/components/blocks/kyc/kyc-required-notice";
+import { useTranslations } from "next-intl";
 
 export default function DepositClient() {
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const [isClient, setIsClient] = useState(false);
   const [hasError, setHasError] = useState(false);
   
@@ -48,15 +51,15 @@ export default function DepositClient() {
   // Show error fallback if there's an error
   if (hasError) {
     return (
-      <div className="container mx-auto px-4 pt-8 mb-24">
+      <div className="container mx-auto pt-8 mb-24">
         <div className="text-center py-12">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
+          <h1 className="text-2xl font-bold mb-2">{tCommon("something_went_wrong")}</h1>
           <p className="text-muted-foreground mb-4">
-            There was an error loading the deposit page. Please try refreshing the page.
+            {tExt("there_was_an_error_loading_the")}
           </p>
           <Button onClick={() => window.location.reload()}>
-            Refresh Page
+            {tCommon("refresh_page")}
           </Button>
         </div>
       </div>
@@ -73,6 +76,8 @@ export default function DepositClient() {
 }
 
 function DepositClientContent() {
+  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { hasKyc, canAccessFeature } = useUserStore();
   const { settings } = useConfigStore();
   const { id } = useParams() as {
@@ -167,7 +172,7 @@ function DepositClientContent() {
   // Show error state if account not found or invalid
   if (accountError) {
     return (
-      <div className="container mx-auto py-12 px-4">
+      <div className="container mx-auto py-12">
         <div className="max-w-2xl mx-auto">
           <div className="text-center py-8">
             <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
@@ -185,7 +190,7 @@ function DepositClientContent() {
               className="px-6"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
+              {tCommon("back_to_dashboard")}
             </Button>
           </div>
         </div>
@@ -340,19 +345,19 @@ function DepositClientContent() {
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            Deposit Submitted
+            {t("deposit_submitted")}
           </CardTitle>
           <CardDescription>
-            Your deposit has been submitted and is being processed
+            {t("your_deposit_has_been_submitted_and")}
           </CardDescription>
         </div>
         <div className="space-y-6">
           <div className="bg-green-50 p-4 rounded-lg dark:bg-green-900/30 dark:text-green-100">
-            <h4 className="font-medium mb-4">Transaction Details</h4>
+            <h4 className="font-medium mb-4">{tCommon("transaction_details")}</h4>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-green-200">
-                  Transaction ID:
+                  {tCommon("transaction_id")}:
                 </span>
                 <span className="font-medium">
                   {deposit.transaction?.id
@@ -362,7 +367,7 @@ function DepositClientContent() {
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-green-200">
-                  Status:
+                  {tCommon("status")}:
                 </span>
                 <span className="font-medium">
                   {deposit.transaction?.status || "PENDING"}
@@ -370,7 +375,7 @@ function DepositClientContent() {
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-green-200">
-                  Amount:
+                  {tCommon("amount")}:
                 </span>
                 <span className="font-medium">
                   {formatCurrency(
@@ -381,14 +386,14 @@ function DepositClientContent() {
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-green-200">
-                  Currency:
+                  {tCommon("currency")}:
                 </span>
                 <span className="font-medium">
                   {deposit.currency || selectedCurrency}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-600 dark:text-green-200">Type:</span>
+                <span className="text-zinc-600 dark:text-green-200">{tCommon("type")}:</span>
                 <span className="font-medium">
                   {deposit.type || selectedWalletType.value}
                 </span>
@@ -396,7 +401,7 @@ function DepositClientContent() {
               {deposit.balance !== undefined && (
                 <div className="flex justify-between">
                   <span className="text-zinc-600 dark:text-green-200">
-                    New Balance:
+                    {tCommon('new_balance')}:
                   </span>
                   <span className="font-medium">
                     {formatCurrency(
@@ -410,11 +415,11 @@ function DepositClientContent() {
           </div>
           
           {/* Transaction Status Information */}
-          <div className="bg-blue-50 p-4 rounded-lg dark:bg-blue-900/30 dark:text-blue-100">
+          <div className={`bg-teal-500/10 p-4 rounded-lg dark:bg-teal-500/10 dark:text-teal-300`}>
             <div className="flex items-center mb-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2 text-blue-600"
+                className={`h-5 w-5 mr-2 text-teal-600 dark:text-teal-300`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -426,31 +431,31 @@ function DepositClientContent() {
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <h4 className="font-medium text-blue-900 dark:text-blue-100">
-                What happens next?
+              <h4 className={`font-medium text-teal-600 dark:text-teal-300`}>
+                {tCommon("what_happens_next")}
               </h4>
             </div>
-            <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-              <p>• Your transaction is currently <strong>PENDING</strong> approval</p>
-              <p>• You will receive an email notification once it's processed</p>
-              <p>• You can track the status in your <strong>Forex Transactions</strong> page</p>
-              <p>• Processing typically takes 5-15 minutes</p>
+            <div className={`text-sm text-teal-600 dark:text-teal-300 space-y-1`}>
+              <p>{t("your_transaction_is_currently")} <strong>PENDING</strong> approval</p>
+              <p>{t("you_will_receive_an_email_notification")}</p>
+              <p>{t("you_can_track_the_status_in_your")} <strong>{tCommon("forex_transactions")}</strong> page</p>
+              <p>{tCommon("processing_typically_takes_5_15_minutes")}</p>
             </div>
           </div>
 
           <div className="flex justify-center gap-4 mt-6">
             <Button
-              onClick={() => router.push("/forex/transactions")}
+              onClick={() => router.push("/forex/transaction")}
               variant="outline"
               className="px-6"
             >
-              View Transactions
+              {t("view_transactions")}
             </Button>
             <Button
               onClick={() => router.push("/forex/dashboard")}
               className="px-6"
             >
-              Return to Dashboard
+              {tCommon("return_to_dashboard")}
             </Button>
           </div>
         </div>
@@ -468,9 +473,9 @@ function DepositClientContent() {
       return (
         <>
           <div className="mb-6">
-            <CardTitle>Select Wallet Type</CardTitle>
+            <CardTitle>{tCommon("select_wallet_type")}</CardTitle>
             <CardDescription>
-              Choose the type of wallet you want to deposit from
+              {tCommon("choose_the_type_of_wallet_you_want_to_deposit_from")}
             </CardDescription>
           </div>
           <div>
@@ -497,9 +502,9 @@ function DepositClientContent() {
                     />
                     <Label
                       htmlFor={walletType.value}
-                      className={`flex items-center p-4 border rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 w-full ${selectedWalletType.value === walletType.value ? "bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-400" : ""}`}
+                      className={`flex items-center p-4 border rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 w-full ${selectedWalletType.value === walletType.value ? `bg-emerald-100/20 dark:bg-emerald-100/10 border-emerald-600 dark:border-emerald-400` : ""}`}
                     >
-                      <Wallet className="h-5 w-5 mr-3 text-blue-600" />
+                      <Wallet className={`h-5 w-5 mr-3 text-emerald-600 dark:text-emerald-400`} />
                       <div>
                         <p className="font-medium text-zinc-800 dark:text-zinc-100">
                           {walletType.label} Wallet
@@ -525,22 +530,22 @@ function DepositClientContent() {
       return (
         <>
           <div className="mb-6">
-            <CardTitle>Select Currency</CardTitle>
+            <CardTitle>{tCommon("select_currency")}</CardTitle>
             <CardDescription>
-              Select the currency you want to deposit
+              {tCommon("select_the_currency_you_want_to_deposit")}
             </CardDescription>
           </div>
           <div>
             {loading ? (
               <div className="flex justify-center py-8">
-                <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                <div className={`w-8 h-8 border-4 border-emerald-100/20 border-t-emerald-600 rounded-full animate-spin`} />
               </div>
             ) : currencies.length > 0 ? (
               <div className="grid grid-cols-2 gap-4">
                 {currencies.map((currency: any) => (
                   <div
                     key={currency.value}
-                    className={`border rounded-lg p-4 cursor-pointer hover:bg-zinc-50 hover:border-blue-300 dark:hover:bg-zinc-700 ${selectedCurrency === currency.value ? "bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-400" : ""}`}
+                    className={`border rounded-lg p-4 cursor-pointer hover:bg-zinc-50 hover:border-emerald-100/30 dark:hover:bg-zinc-700 ${selectedCurrency === currency.value ? `bg-emerald-100/20 dark:bg-emerald-100/10 border-emerald-600 dark:border-emerald-400` : ""}`}
                     onClick={() => setSelectedCurrency(currency.value)}
                   >
                     <div className="flex items-center">
@@ -563,14 +568,14 @@ function DepositClientContent() {
               <div className="text-center py-8">
                 <AlertCircle className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
                 <p className="text-zinc-600 dark:text-zinc-300">
-                  No currencies available for this wallet type
+                  {t("no_currencies_available_for_this_wallet_type")}
                 </p>
                 <Button
                   variant="outline"
                   className="mt-4"
                   onClick={() => setStep(1)}
                 >
-                  Go Back
+                  {tCommon("go_back")}
                 </Button>
               </div>
             )}
@@ -585,22 +590,22 @@ function DepositClientContent() {
       return (
         <>
           <div className="mb-6">
-            <CardTitle>Select Network</CardTitle>
+            <CardTitle>{tCommon("select_network")}</CardTitle>
             <CardDescription>
-              Choose the network for your deposit
+              {tCommon("choose_the_network_for_your_deposit")}
             </CardDescription>
           </div>
           <div>
             {loading ? (
               <div className="flex justify-center py-8">
-                <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                <div className={`w-8 h-8 border-4 border-emerald-100/20 border-t-emerald-600 rounded-full animate-spin`} />
               </div>
             ) : depositMethods && depositMethods.length > 0 ? (
               <div className="space-y-4">
                 {depositMethods.map((method: any) => (
                   <div
                     key={method.id || method.chain}
-                    className={`border rounded-lg p-4 cursor-pointer hover:bg-zinc-50 hover:border-blue-300 dark:hover:bg-zinc-700 dark:hover:border-blue-400 ${selectedDepositMethod?.chain === method.chain ? "bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-400" : ""}`}
+                    className={`border rounded-lg p-4 cursor-pointer hover:bg-zinc-50 hover:border-emerald-100/30 dark:hover:bg-zinc-700 dark:hover:border-emerald-400/50 ${selectedDepositMethod?.chain === method.chain ? `bg-emerald-100/20 dark:bg-emerald-100/10 border-emerald-600 dark:border-emerald-400` : ""}`}
                     onClick={() => {
                       setSelectedDepositMethod(method);
                       // Auto-advance to next step after selecting network
@@ -635,14 +640,14 @@ function DepositClientContent() {
               <div className="text-center py-8">
                 <AlertCircle className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
                 <p className="text-zinc-600 dark:text-zinc-300">
-                  No deposit methods available for this currency
+                  {tCommon("no_deposit_methods_available_for_this_currency")}
                 </p>
                 <Button
                   variant="outline"
                   className="mt-4"
                   onClick={() => setStep(2)}
                 >
-                  Go Back
+                  {tCommon("go_back")}
                 </Button>
               </div>
             )}
@@ -672,9 +677,9 @@ function DepositClientContent() {
     return (
       <>
         <div className="mb-6">
-          <CardTitle>Enter Deposit Amount</CardTitle>
+          <CardTitle>{tCommon("enter_deposit_amount")}</CardTitle>
           <CardDescription>
-            Enter the amount you want to deposit
+            {tCommon("enter_the_amount_you_want_to_deposit")}
           </CardDescription>
         </div>
         <div>
@@ -689,22 +694,22 @@ function DepositClientContent() {
                   const val = parseFloat(e.target.value);
                   setDepositAmount(!isNaN(val) ? val : 0);
                 }}
-                label="Deposit Amount"
+                label={tCommon("deposit_amount")}
                 prefix={selectedCurrency}
               />
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                Minimum deposit: {formatCurrency(100, selectedCurrency)}
+                {tCommon("minimum_deposit")}: {formatCurrency(100, selectedCurrency)}
               </p>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-lg dark:bg-zinc-700 dark:text-zinc-100">
-              <h3 className="font-medium text-blue-900 dark:text-zinc-100 mb-2">
-                Deposit Summary
+            <div className={`bg-emerald-100/10 p-4 rounded-lg dark:bg-emerald-100/10 dark:text-zinc-100`}>
+              <h3 className={`font-medium text-emerald-700 dark:text-emerald-400 mb-2`}>
+                {tCommon("deposit_summary")}
               </h3>
               <div className="space-y-2 text-zinc-700 dark:text-zinc-100">
                 <div className="flex justify-between">
                   <span className="text-zinc-600 dark:text-zinc-300">
-                    Wallet Type:
+                    {tCommon("wallet_type")}:
                   </span>
                   <span className="font-medium">
                     {selectedWalletType.label}
@@ -712,14 +717,14 @@ function DepositClientContent() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-600 dark:text-zinc-300">
-                    Currency:
+                    {tCommon("currency")}:
                   </span>
                   <span className="font-medium">{selectedCurrency}</span>
                 </div>
                 {!isFiat && (
                   <div className="flex justify-between">
                     <span className="text-zinc-600 dark:text-zinc-300">
-                      Network:
+                      {tCommon("network")}:
                     </span>
                     <span className="font-medium">
                       {selectedDepositMethod?.chain || "N/A"}
@@ -728,7 +733,7 @@ function DepositClientContent() {
                 )}
                 <div className="flex justify-between">
                   <span className="text-zinc-600 dark:text-zinc-300">
-                    Amount:
+                    {tCommon("amount")}:
                   </span>
                   <span className="font-medium">
                     {formatCurrency(depositAmount || 0, selectedCurrency)}
@@ -736,7 +741,7 @@ function DepositClientContent() {
                 </div>
                 <Separator className="my-2 dark:border-zinc-600" />
                 <div className="flex justify-between font-medium">
-                  <span>Total:</span>
+                  <span>{tCommon("total")}:</span>
                   <span>
                     {formatCurrency(depositAmount || 0, selectedCurrency)}
                   </span>
@@ -755,31 +760,31 @@ function DepositClientContent() {
     return (
       <>
         <div className="mb-6">
-          <CardTitle>Confirm Your Deposit</CardTitle>
+          <CardTitle>{tCommon("confirm_your_deposit")}</CardTitle>
           <CardDescription>
-            Review your deposit details before final submission
+            {tCommon("review_your_deposit_final_submission")}
           </CardDescription>
         </div>
         <div className="space-y-6">
           <div className="bg-zinc-50 p-4 rounded-lg dark:bg-zinc-700 dark:text-zinc-100">
-            <h4 className="font-medium mb-4">Deposit Details</h4>
+            <h4 className="font-medium mb-4">{tCommon("deposit_details")}</h4>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-zinc-300">
-                  Wallet Type:
+                  {tCommon("wallet_type")}:
                 </span>
                 <span className="font-medium">{selectedWalletType.label}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-zinc-300">
-                  Currency:
+                  {tCommon("currency")}:
                 </span>
                 <span className="font-medium">{selectedCurrency}</span>
               </div>
               {!isFiat && (
                 <div className="flex justify-between">
                   <span className="text-zinc-600 dark:text-zinc-300">
-                    Network:
+                    {tCommon("network")}:
                   </span>
                   <span className="font-medium">
                     {selectedDepositMethod?.chain || "N/A"}
@@ -788,21 +793,21 @@ function DepositClientContent() {
               )}
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-zinc-300">
-                  Amount:
+                  {tCommon("amount")}:
                 </span>
                 <span className="font-medium">
                   {formatCurrency(depositAmount, selectedCurrency)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-600 dark:text-zinc-300">Fee:</span>
+                <span className="text-zinc-600 dark:text-zinc-300">{tCommon("fee")}:</span>
                 <span className="font-medium">
                   {formatCurrency(5, selectedCurrency)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-zinc-300">
-                  Total to be charged:
+                  {t("total_to_be_charged_1")}:
                 </span>
                 <span className="font-medium">
                   {formatCurrency((depositAmount || 0) + 5, selectedCurrency)}
@@ -811,31 +816,32 @@ function DepositClientContent() {
             </div>
           </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-300">
-            By clicking “Submit”, you agree to proceed with this deposit.
+            {t("by_clicking_submit_you_agree_to")}
           </p>
         </div>
       </>
     );
   }
   return (
-    <div>
-      <main className="container mx-auto px-4 pt-8 mb-24">
-        {/* Title */}
-        <div className="mb-8 flex items-center justify-between">
+    <div className="min-h-screen bg-linear-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+      <main className="container mx-auto pt-20 pb-24">
+        {/* Header */}
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Deposit Funds</h1>
+            <h1 className="text-3xl md:text-4xl font-bold bg-linear-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">
+              {t("deposit_funds")}
+            </h1>
             <p className="text-zinc-600 dark:text-zinc-400 mt-2">
-              Add funds to your {account.broker} account ({account.accountId})
+              {tCommon("add_funds_to_your")} {account.broker} {tCommon("account")}{account.accountId})
             </p>
           </div>
-          {/* Back Button */}
           <Button
-            variant="ghost"
-            className="mb-6 group dark:text-zinc-100"
+            variant="outline"
+            className={`group rounded-xl border-zinc-200 dark:border-zinc-700 hover:bg-emerald-100/5 dark:hover:bg-emerald-600/10 hover:border-emerald-600/30`}
             onClick={() => router.push("/forex/dashboard")}
           >
             <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Back to Dashboard
+            {tCommon("back_to_dashboard")}
           </Button>
         </div>
 

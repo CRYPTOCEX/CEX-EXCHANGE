@@ -25,7 +25,7 @@ export const metadata: OperationObject = {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -47,9 +47,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching shipping options list");
+
+  const result = await getFiltered({
     model: models.ecommerceShipping,
     query,
     sortField: query.sortField || "createdAt",
@@ -68,4 +70,7 @@ export default async (data: Handler) => {
     ],
     numericFields: ["cost", "weight", "volume", "tax"],
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} shipping options`);
+  return result;
 };

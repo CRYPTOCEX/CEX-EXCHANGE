@@ -1,11 +1,17 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  notFoundResponse,
+  successMessageResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Delete FAQ",
-  description: "Deletes an FAQ entry.",
-  operationId: "deleteFAQ",
-  tags: ["FAQ", "Admin"],
+  summary: "Delete Single FAQ",
+  description: "Deletes a specific FAQ entry by ID. This is a soft delete operation that marks the FAQ as deleted.",
+  operationId: "deleteFaq",
+  tags: ["Admin", "FAQ", "Delete"],
   requiresAuth: true,
   parameters: [
     {
@@ -13,28 +19,37 @@ export const metadata = {
       name: "id",
       in: "path",
       required: true,
-      schema: { type: "string" },
-      description: "FAQ ID",
+      schema: { type: "string", format: "uuid" },
+      description: "FAQ ID to delete",
     },
   ],
   responses: {
-    200: { description: "FAQ deleted successfully" },
-    401: { description: "Unauthorized" },
-    404: { description: "FAQ not found" },
-    500: { description: "Internal Server Error" },
+    200: successMessageResponse("FAQ deleted successfully"),
+    401: unauthorizedResponse,
+    404: notFoundResponse("FAQ"),
+    500: serverErrorResponse,
   },
-  permission: "delete.faq.feedback",
+  permission: "delete.faq",
+  logModule: "ADMIN_FAQ",
+  logTitle: "Delete FAQ entry",
 };
 
 export default async (data: Handler) => {
-  const { user, params } = data;
+  const { user, params, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Fetching FAQ");
   const faq = await models.faq.findByPk(params.id);
   if (!faq) {
+    ctx?.fail("FAQ not found");
     throw createError({ statusCode: 404, message: "FAQ not found" });
   }
+
+  ctx?.step("Deleting FAQ");
   await faq.destroy();
+
+  ctx?.success("FAQ deleted successfully");
   return { message: "FAQ deleted successfully" };
 };

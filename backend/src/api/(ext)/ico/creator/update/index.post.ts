@@ -9,6 +9,8 @@ export const metadata = {
   operationId: "createTokenOfferingUpdate",
   tags: ["ICO", "Creator", "Updates"],
   requiresAuth: true,
+  logModule: "ICO_UPDATE",
+  logTitle: "Create offering update",
   requestBody: {
     required: true,
     content: {
@@ -58,15 +60,18 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
+
+  ctx?.step("Validating update request");
   const { tokenId, title, content, attachments } = body;
   if (!tokenId || !title || !content) {
     throw createError({ statusCode: 400, message: "Missing required fields" });
   }
 
+  ctx?.step("Creating offering update");
   const update = await models.icoTokenOfferingUpdate.create({
     offeringId: tokenId,
     userId: user.id,
@@ -75,6 +80,7 @@ export default async (data: Handler) => {
     attachments: attachments || [],
   });
 
+  ctx?.step("Sending notification");
   try {
     await createNotification({
       userId: user.id,
@@ -100,5 +106,6 @@ export default async (data: Handler) => {
     );
   }
 
+  ctx?.success(`Created update "${title}"`);
   return { message: "Update created successfully.", update };
 };

@@ -6,10 +6,17 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 // Type definitions
 type Transaction = any; // Using any to avoid errors when model doesn't exist
 type Wallet = any; // Using any to avoid errors when model doesn't exist
+
+interface LogContext {
+  step?: (message: string) => void;
+  success?: (message: string) => void;
+  fail?: (message: string) => void;
+}
 
 export const metadata = {
   summary: "Rejects a spot wallet withdrawal request",
@@ -62,14 +69,17 @@ export const metadata = {
   },
   permission: "edit.wallet",
   requiresAuth: true,
+  logModule: "ADMIN_FIN",
+  logTitle: "Reject Withdrawal",
 };
 
 export default async (data: Handler) => {
-  const { params, body } = data;
+  const { params, body, ctx } = data;
 
   const { id } = params;
   const { message } = body;
   try {
+    ctx?.step("Fetching transaction");
     const transaction = (await models.transaction.findOne({
       where: { id },
     })) as unknown as transactionAttributes;
@@ -84,6 +94,7 @@ export default async (data: Handler) => {
 
     const { walletId } = transaction;
 
+    ctx?.step("Updating transaction status to rejected");
     await models.transaction.update(
       {
         status: "REJECTED",
@@ -111,14 +122,17 @@ export default async (data: Handler) => {
 
     const trx = updatedTransaction.get({ plain: true });
 
+    ctx?.step("Refunding wallet balance");
     const updatedWallet = (await updateUserWalletBalance(
       walletId,
       Number(trx.amount),
       Number(trx.fee),
-      "REFUND_WITHDRAWAL"
+      "REFUND_WITHDRAWAL",
+      ctx
     )) as unknown as walletAttributes;
 
     try {
+      ctx?.step("Sending rejection email");
       const user = await models.user.findOne({
         where: { id: transaction.userId },
       });
@@ -131,9 +145,10 @@ export default async (data: Handler) => {
         trx.metadata?.note || "Withdrawal request rejected"
       );
     } catch (error) {
-      console.error(error);
+      logger.error("WALLET", "Error sending withdrawal rejection email", error);
     }
 
+    ctx?.success("Withdrawal rejected successfully");
     return {
       message: "Withdrawal rejected successfully",
     };
@@ -146,8 +161,10 @@ export async function updateUserWalletBalance(
   id: string,
   amount: number,
   fee: number,
-  type: "DEPOSIT" | "WITHDRAWAL" | "REFUND_WITHDRAWAL"
+  type: "DEPOSIT" | "WITHDRAWAL" | "REFUND_WITHDRAWAL",
+  ctx?: LogContext
 ) {
+  ctx?.step?.(`Updating wallet balance: ${id} (${type})`);
   const wallet = await models.wallet.findOne({
     where: {
       id,
@@ -155,6 +172,7 @@ export async function updateUserWalletBalance(
   });
 
   if (!wallet) {
+    ctx?.fail?.("Wallet not found");
     return new Error("Wallet not found");
   }
 
@@ -174,6 +192,7 @@ export async function updateUserWalletBalance(
   }
 
   if (balance < 0) {
+    ctx?.fail?.("Insufficient balance");
     throw new Error("Insufficient balance");
   }
 
@@ -195,12 +214,14 @@ export async function updateUserWalletBalance(
   });
 
   if (!updatedWallet) {
+    ctx?.fail?.("Failed to update wallet balance");
     throw createError({
       message: "Failed to update wallet balance",
       statusCode: 500,
     });
   }
 
+  ctx?.success?.(`Wallet balance updated: ${updatedWallet.id} - ${updatedWallet.balance}`);
   return updatedWallet;
 }
 

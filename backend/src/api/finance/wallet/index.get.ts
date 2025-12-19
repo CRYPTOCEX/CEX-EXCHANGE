@@ -74,7 +74,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { query, user } = data;
+  const { query, user, ctx } = data;
 
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -82,7 +82,14 @@ export default async (data: Handler) => {
   const { walletType, sortOrder, ...rest } = query;
 
   const { pnl } = query;
-  if (pnl) return handlePnl(user);
+  if (pnl) {
+    ctx?.step("Calculating wallet PnL");
+    const result = await handlePnl(user);
+    ctx?.success("Wallet PnL calculated successfully");
+    return result;
+  }
+
+  ctx?.step("Fetching user wallets");
 
   // Check if spot wallets are enabled
   const cacheManager = CacheManager.getInstance();
@@ -129,6 +136,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.success(`Retrieved ${items.length} wallets`);
   return {
     items,
     pagination,

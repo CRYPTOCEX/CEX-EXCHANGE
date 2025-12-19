@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
   operationId: "createCustomFiatDeposit",
   tags: ["Wallets"],
   requiresAuth: true,
+  logModule: "FIAT_DEPOSIT",
+  logTitle: "Create custom fiat deposit",
   requestBody: {
     required: true,
     content: {
@@ -56,30 +58,39 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { methodId, amount, currency, customFields } = body;
 
+  ctx?.step("Fetching user account");
   const userPk = await models.user.findByPk(user.id);
   if (!userPk) {
+    ctx?.fail("User not found");
     throw createError({ statusCode: 404, message: "User not found" });
   }
 
+  ctx?.step("Validating deposit method");
   const method = await models.depositMethod.findByPk(methodId);
   if (!method) {
+    ctx?.fail("Deposit method not found");
     throw createError({ statusCode: 404, message: "Deposit method not found" });
   }
 
+  ctx?.step("Validating currency");
   const currencyData = await models.currency.findOne({
     where: { id: currency },
   });
   if (!currencyData) {
+    ctx?.fail("Currency not found");
     throw createError({ statusCode: 404, message: "Currency not found" });
   }
 
+  ctx?.step("Calculating deposit fees");
   const parsedAmount = parseFloat(amount);
   const fixedFee = method.fixedFee || 0;
   const percentageFee = method.percentageFee || 0;
@@ -87,16 +98,14 @@ export default async (data: Handler) => {
     Math.max((parsedAmount * percentageFee) / 100 + fixedFee, 0).toFixed(2)
   );
 
-  // Begin transaction for proper isolation
+  ctx?.step("Processing deposit transaction");
   const depositTransaction = await sequelize.transaction(async (t) => {
-    // Find (and lock) the wallet row for this user/currency/type
     let wallet = await models.wallet.findOne({
       where: { userId: user.id, currency: currency, type: "FIAT" },
       transaction: t,
       lock: t.LOCK.UPDATE,
     });
 
-    // If wallet doesn't exist, create and lock it
     if (!wallet) {
       wallet = await models.wallet.create(
         { userId: user.id, currency: currency, type: "FIAT" },
@@ -109,7 +118,6 @@ export default async (data: Handler) => {
       });
     }
 
-    // Record the deposit transaction
     const trx = await models.transaction.create(
       {
         userId: user.id,
@@ -127,7 +135,6 @@ export default async (data: Handler) => {
       { transaction: t }
     );
 
-    // Record admin profit if needed
     if (taxAmount > 0) {
       await models.adminProfit.create(
         {
@@ -141,10 +148,10 @@ export default async (data: Handler) => {
       );
     }
 
-    // Don't update balance yet - it will be updated when deposit is approved/completed
-
     return trx;
   });
+
+  ctx?.success(`Fiat deposit created: ${parsedAmount} ${currency} via ${method.title}`);
 
   return {
     transaction: depositTransaction,

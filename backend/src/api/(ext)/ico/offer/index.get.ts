@@ -7,6 +7,8 @@ export const metadata = {
     "Retrieves ICO token offerings filtered by a given status and additional query parameters such as pagination, search, sort, blockchain, tokenType. If the status is 'COMPLETED', the endpoint returns offerings with statuses 'SUCCESS' and 'FAILED'.",
   operationId: "getIcoOfferingsByStatus",
   tags: ["ICO", "Offerings"],
+  logModule: "ICO",
+  logTitle: "Get ICO Offers",
   parameters: [
     {
       index: 1,
@@ -81,7 +83,7 @@ export const metadata = {
           schema: {
             type: "object",
             properties: {
-              offerings: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -259,8 +261,10 @@ export const metadata = {
   },
 };
 
-export default async (data: { query?: any }): Promise<any> => {
+export default async (data: { query?: any; ctx?: any }): Promise<any> => {
   try {
+    const { ctx } = data || {};
+    ctx?.step("Fetching get ico offers");
     const { query } = data || {};
 
     // Parse parameters with defaults
@@ -394,7 +398,8 @@ export default async (data: { query?: any }): Promise<any> => {
           break;
         }
       }
-      return {
+
+  return {
         id: offering.id,
         name: offering.name,
         icon: offering.icon,
@@ -425,12 +430,15 @@ export default async (data: { query?: any }): Promise<any> => {
       };
     });
 
+    ctx?.success("Get ICO Offers retrieved successfully");
+
     return {
-      offerings: transformedOfferings,
+      items: transformedOfferings,
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(count / limit),
         totalItems: count,
+        total: count,
       },
     };
   } catch (error) {

@@ -30,10 +30,12 @@ export const metadata = {
   responses: updateRecordResponses("Binary Order"),
   requiresAuth: true,
   permission: "edit.binary.order",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Binary Order",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     symbol,

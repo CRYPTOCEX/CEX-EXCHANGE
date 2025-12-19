@@ -70,7 +70,14 @@ import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import AffiliateReferralsLoading from "./loading";
+import AffiliateReferralsErrorState from "./error-state";
+import { ReferralHero } from "./components/referral-hero";
+import { useTranslations } from "next-intl";
+
 export default function AffiliateReferralsClient() {
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const {
     referrals,
     pagination,
@@ -178,48 +185,27 @@ export default function AffiliateReferralsClient() {
     fetchReferrals(1, newPerPage);
   };
   if (loading && referrals.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-6 md:px-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Your Referrals</h1>
-            <p className="text-muted-foreground">
-              Manage and track your referred users
-            </p>
-          </div>
-          <Skeleton className="h-10 w-32" />
-        </div>
-
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <Skeleton className="h-6 w-32" />
-              <Skeleton className="h-10 w-32" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-[400px] w-full" />
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AffiliateReferralsLoading />;
   }
   if (error) {
-    return <div className="text-red-500 p-4">Error: {error}</div>;
+    return <AffiliateReferralsErrorState error={error} />;
   }
+  // Calculate stats for hero
+  const totalReferrals = pagination.totalItems || 0;
+  const activeReferrals = referrals.filter(r => r.status === 'ACTIVE').length;
+  const pendingReferrals = referrals.filter(r => r.status === 'PENDING').length;
+
   return (
-    <div className="w-full px-3 sm:px-4 lg:px-6 py-4 sm:py-6 max-w-7xl mx-auto">
+    <div className="w-full">
+      {/* Hero Section */}
+      <ReferralHero
+        totalReferrals={totalReferrals}
+        activeReferrals={activeReferrals}
+        pendingReferrals={pendingReferrals}
+      />
+
+      <div className="container mx-auto pb-6 pt-8">
       {/* Referrals List */}
-      <div className="mb-6">
-        <div className="text-center sm:text-left">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            Your Referrals
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">
-            Manage and track your referred users
-          </p>
-        </div>
-      </div>
 
       <div>
         <Tabs defaultValue="cards" className="w-full">
@@ -227,10 +213,10 @@ export default function AffiliateReferralsClient() {
             <div className="flex flex-col xs:flex-row items-center justify-between gap-3">
               <TabsList className="w-full xs:w-auto grid grid-cols-2 xs:flex">
                 <TabsTrigger value="cards" className="text-xs sm:text-sm">
-                  Card View
+                  {tCommon("card_view")}
                 </TabsTrigger>
                 <TabsTrigger value="table" className="text-xs sm:text-sm">
-                  Table View
+                  {tCommon("table_view")}
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -240,7 +226,7 @@ export default function AffiliateReferralsClient() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search referrals..."
+                  placeholder={tExt("search_referrals_ellipsis")}
                   className="pl-8 w-full"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -258,7 +244,7 @@ export default function AffiliateReferralsClient() {
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Statuses</SelectItem>
+                  <SelectItem value="ALL">{tCommon("all_statuses")}</SelectItem>
                   <SelectItem value="ACTIVE">Active</SelectItem>
                   <SelectItem value="PENDING">Pending</SelectItem>
                   <SelectItem value="REJECTED">Rejected</SelectItem>
@@ -310,7 +296,7 @@ export default function AffiliateReferralsClient() {
                           <div className="flex flex-col items-center justify-center">
                             <Filter className="h-8 w-8 text-muted-foreground mb-2" />
                             <p className="text-muted-foreground">
-                              No referrals found
+                              {tCommon("no_referrals_found")}
                             </p>
                             {(searchTerm || statusFilter !== "ALL") && (
                               <Button
@@ -320,7 +306,7 @@ export default function AffiliateReferralsClient() {
                                   setStatusFilter("ALL");
                                 }}
                               >
-                                Clear filters
+                                {tCommon("clear_filters")}
                               </Button>
                             )}
                           </div>
@@ -358,7 +344,7 @@ export default function AffiliateReferralsClient() {
                                   <AvatarImage
                                     src={referral.referred?.avatar || ""}
                                   />
-                                  <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-xs md:text-sm">
+                                  <AvatarFallback className="bg-linear-to-br from-blue-600 to-amber-600 text-white text-xs md:text-sm">
                                     {referral.referred?.firstName?.charAt(0) ||
                                       ""}
                                     {referral.referred?.lastName?.charAt(0) ||
@@ -427,7 +413,7 @@ export default function AffiliateReferralsClient() {
                                     }}
                                   >
                                     <Mail className="h-4 w-4 mr-2" />
-                                    Send Email
+                                    {tCommon("send_email")}
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
@@ -437,7 +423,7 @@ export default function AffiliateReferralsClient() {
                                     }}
                                   >
                                     <Copy className="h-4 w-4 mr-2" />
-                                    Copy Details
+                                    {tCommon("copy_details")}
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -458,9 +444,9 @@ export default function AffiliateReferralsClient() {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
                   <Filter className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-medium mb-2">No referrals found</h3>
+                <h3 className="text-lg font-medium mb-2">{tCommon("no_referrals_found")}</h3>
                 <p className="text-muted-foreground mb-4">
-                  Try adjusting your search or filter criteria
+                  {tCommon("try_adjusting_your_search_or_filter_criteria")}
                 </p>
                 {(searchTerm || statusFilter !== "ALL") && (
                   <Button
@@ -470,7 +456,7 @@ export default function AffiliateReferralsClient() {
                       setStatusFilter("ALL");
                     }}
                   >
-                    Clear filters
+                    {tCommon("clear_filters")}
                   </Button>
                 )}
               </div>
@@ -652,7 +638,7 @@ export default function AffiliateReferralsClient() {
                   <SelectItem value="50">50</SelectItem>
                 </SelectContent>
               </Select>
-              <span className="text-muted-foreground">per page</span>
+              <span className="text-muted-foreground">{tCommon("per_page")}</span>
             </div>
           </div>
         )}
@@ -668,7 +654,7 @@ export default function AffiliateReferralsClient() {
               <>
                 <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
                   <div className="flex justify-between items-center">
-                    <DialogTitle>Referral Details</DialogTitle>
+                    <DialogTitle>{tCommon("referral_details")}</DialogTitle>
                     {/* Only one close button here */}
                   </div>
                 </DialogHeader>
@@ -678,7 +664,7 @@ export default function AffiliateReferralsClient() {
                     <div className="flex flex-col items-center gap-4">
                       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
                       <p className="text-muted-foreground">
-                        Loading referral details...
+                        {tExt("loading_referral_details_ellipsis")}
                       </p>
                     </div>
                   </div>
@@ -690,7 +676,7 @@ export default function AffiliateReferralsClient() {
                           <AvatarImage
                             src={selectedReferral.referred?.avatar || ""}
                           />
-                          <AvatarFallback className="text-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
+                          <AvatarFallback className="text-xl bg-linear-to-br from-blue-600 to-amber-600 text-white">
                             {selectedReferral.referred?.firstName?.charAt(0) ||
                               ""}
                             {selectedReferral.referred?.lastName?.charAt(0) ||
@@ -713,14 +699,14 @@ export default function AffiliateReferralsClient() {
                         <Card>
                           <CardHeader className="pb-2">
                             <CardTitle className="text-sm font-medium">
-                              Referral Information
+                              {tCommon("referral_information")}
                             </CardTitle>
                           </CardHeader>
                           <CardContent className="pt-2">
                             <div className="space-y-2 text-sm">
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">
-                                  Referral ID
+                                  {tExt("referral_id_1")}
                                 </span>
                                 <span className="font-mono">
                                   {selectedReferral.id}
@@ -728,7 +714,7 @@ export default function AffiliateReferralsClient() {
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">
-                                  Joined Date
+                                  {tCommon("joined_date")}
                                 </span>
                                 <span>
                                   {selectedReferral.createdAt
@@ -740,7 +726,7 @@ export default function AffiliateReferralsClient() {
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">
-                                  Referrer ID
+                                  {tCommon("referrer_id")}
                                 </span>
                                 <span className="font-mono">
                                   {selectedReferral.referrerId || "N/A"}
@@ -754,7 +740,7 @@ export default function AffiliateReferralsClient() {
                           <Card>
                             <CardHeader className="pb-2">
                               <CardTitle className="text-sm font-medium">
-                                Performance Metrics
+                                {tExt("performance_metrics")}
                               </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-2">
@@ -764,7 +750,7 @@ export default function AffiliateReferralsClient() {
                                   <div>
                                     <div className="flex justify-between mb-1">
                                       <span className="text-sm">
-                                        Activity Score
+                                        {tCommon("activity_score")}
                                       </span>
                                       <span className="text-sm font-medium">
                                         {referralDetails.metrics.activityScore}%
@@ -815,7 +801,7 @@ export default function AffiliateReferralsClient() {
                                   !referralDetails.metrics.retention && (
                                     <div className="flex items-center justify-center py-4 text-muted-foreground">
                                       <Info className="h-4 w-4 mr-2" />
-                                      <span>No metrics available</span>
+                                      <span>{tCommon("no_metrics_available")}</span>
                                     </div>
                                   )}
                               </div>
@@ -827,14 +813,14 @@ export default function AffiliateReferralsClient() {
                           <Card>
                             <CardHeader className="pb-2">
                               <CardTitle className="text-sm font-medium">
-                                Earnings & Rewards
+                                {tCommon("earnings_rewards")}
                               </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-2">
                               <div className="space-y-2 text-sm">
                                 <div className="flex justify-between">
                                   <span className="text-muted-foreground">
-                                    Total Earnings
+                                    {tCommon("total_earnings")}
                                   </span>
                                   <span className="font-medium">
                                     ${referralDetails.earnings.total.toFixed(2)}
@@ -842,7 +828,7 @@ export default function AffiliateReferralsClient() {
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-muted-foreground">
-                                    Pending Rewards
+                                    {tExt("pending_rewards")}
                                   </span>
                                   <span className="font-medium">
                                     $
@@ -854,7 +840,7 @@ export default function AffiliateReferralsClient() {
                                 {referralDetails.earnings.lastReward && (
                                   <div className="flex justify-between">
                                     <span className="text-muted-foreground">
-                                      Last Reward
+                                      {tCommon("last_reward")}
                                     </span>
                                     <span className="font-medium">
                                       $
@@ -874,7 +860,7 @@ export default function AffiliateReferralsClient() {
                                   !referralDetails.earnings.lastReward && (
                                     <div className="flex items-center justify-center py-4 text-muted-foreground">
                                       <Info className="h-4 w-4 mr-2" />
-                                      <span>No earnings data available</span>
+                                      <span>{tExt("no_earnings_data_available")}</span>
                                     </div>
                                   )}
                               </div>
@@ -887,7 +873,7 @@ export default function AffiliateReferralsClient() {
                           <Card>
                             <CardHeader className="pb-2">
                               <CardTitle className="text-sm font-medium">
-                                Activity Timeline
+                                {tCommon("activity_timeline")}
                               </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-2">
@@ -927,13 +913,13 @@ export default function AffiliateReferralsClient() {
                           <Card>
                             <CardHeader className="pb-2">
                               <CardTitle className="text-sm font-medium">
-                                Activity Timeline
+                                {tCommon("activity_timeline")}
                               </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-2">
                               <div className="flex items-center justify-center py-8 text-muted-foreground">
                                 <Info className="h-4 w-4 mr-2" />
-                                <span>No activity data available</span>
+                                <span>{tCommon("no_activity_data_available")}</span>
                               </div>
                             </CardContent>
                           </Card>
@@ -955,13 +941,13 @@ export default function AffiliateReferralsClient() {
                     <span>Contact</span>
                   </Button>
                   <Button
-                    className="gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                    className="gap-2 bg-linear-to-r from-blue-600 to-amber-600 hover:from-blue-700 hover:to-amber-700"
                     onClick={() => {
                       toast.success("Email sent to referral!");
                     }}
                   >
                     <Mail className="h-4 w-4" />
-                    <span>Send Email</span>
+                    <span>{tCommon("send_email")}</span>
                   </Button>
                 </div>
               </>
@@ -969,6 +955,7 @@ export default function AffiliateReferralsClient() {
           </DialogContent>
         </Dialog>
       </SidebarProvider>
+      </div>
     </div>
   );
 }
@@ -1010,6 +997,8 @@ function ReferralCard({
   onContact: () => void;
   onViewDetails: () => void;
 }) {
+  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
     <motion.div
       variants={{
@@ -1044,7 +1033,7 @@ function ReferralCard({
                   }}
                 >
                   <Mail className="h-4 w-4 mr-2" />
-                  Send Email
+                  {tCommon("send_email")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -1053,7 +1042,7 @@ function ReferralCard({
                   }}
                 >
                   <Copy className="h-4 w-4 mr-2" />
-                  Copy Details
+                  {tCommon("copy_details")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -1061,9 +1050,9 @@ function ReferralCard({
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center text-center mb-4">
-            <Avatar className="h-16 w-16 mb-3 border-2 border-white shadow-md group-hover:shadow-indigo-200 transition-shadow">
+            <Avatar className="h-16 w-16 mb-3 border-2 border-white shadow-md group-hover:shadow-amber-500 transition-shadow">
               <AvatarImage src={referral.referred?.avatar || ""} />
-              <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-lg">
+              <AvatarFallback className="bg-linear-to-br from-blue-600 to-amber-600 text-white text-lg">
                 {referral.referred?.firstName?.charAt(0) || ""}
                 {referral.referred?.lastName?.charAt(0) || ""}
               </AvatarFallback>
@@ -1078,7 +1067,7 @@ function ReferralCard({
 
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Joined:</span>
+              <span className="text-muted-foreground">{tCommon("joined")}:</span>
               <span>
                 {referral.createdAt
                   ? new Date(referral.createdAt).toLocaleDateString()
@@ -1086,7 +1075,7 @@ function ReferralCard({
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Referral ID:</span>
+              <span className="text-muted-foreground">{t("referral_id_1")}:</span>
               <span className="font-mono">{referral.id.substring(0, 8)}</span>
             </div>
           </div>
@@ -1105,7 +1094,7 @@ function ReferralCard({
             </Button>
             <Button
               size="sm"
-              className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+              className="flex-1 bg-linear-to-r from-blue-600 to-amber-600 hover:from-blue-700 hover:to-amber-700"
               onClick={onViewDetails}
             >
               <Sparkles className="h-4 w-4 mr-1" />
@@ -1138,7 +1127,7 @@ function getEventIconBackground(eventType: string) {
     case "activation":
       return "bg-green-100";
     case "reward":
-      return "bg-blue-100";
+      return "bg-blue-600/10";
     case "invite":
       return "bg-purple-100";
     default:

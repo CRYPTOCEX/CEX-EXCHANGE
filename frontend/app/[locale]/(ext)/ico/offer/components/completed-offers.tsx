@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,19 +14,15 @@ import {
   Coins,
 } from "lucide-react";
 import { useOfferStore } from "@/store/ico/offer/offer-store";
-import { useFilterStore } from "@/store/ico/offer/filter-store";
 import { formatCurrency, formatDate } from "@/lib/ico/utils";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-
 export function CompletedOfferings() {
-  const t = useTranslations("ext");
-  const { completedOfferings, isLoadingCompleted, fetchCompletedOfferings } =
-    useOfferStore();
-  const { getQueryParams } = useFilterStore();
-  useEffect(() => {
-    fetchCompletedOfferings(getQueryParams());
-  }, [fetchCompletedOfferings, getQueryParams]);
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
+  const tExtAdmin = useTranslations("ext_admin");
+  const { completedOfferings, isLoadingCompleted } = useOfferStore();
   if (isLoadingCompleted) {
     return (
       <div className="space-y-6">
@@ -65,7 +60,7 @@ export function CompletedOfferings() {
           {t("no_completed_offerings_match_your_filters")}
         </h3>
         <p className="text-muted-foreground mt-2">
-          {t("try_adjusting_your_search_or_filter_criteria")}
+          {tCommon("try_adjusting_your_search_or_filter_criteria")}
         </p>
       </div>
     );
@@ -88,7 +83,11 @@ export function CompletedOfferings() {
                     variant={
                       offering.status === "SUCCESS" ? "default" : "destructive"
                     }
-                    className={`${offering.status === "SUCCESS" ? "bg-green-500/10 hover:bg-green-500/20 text-green-500" : ""}`}
+                    className={`${
+                      offering.status === "SUCCESS"
+                        ? "bg-gray-100 dark:bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800 border hover:opacity-80"
+                        : ""
+                    }`}
                   >
                     {offering.status === "SUCCESS" ? "Success" : "Failed"}
                   </Badge>
@@ -114,7 +113,7 @@ export function CompletedOfferings() {
                     {t("final_token_price")}
                   </p>
                   <p className="text-2xl font-bold">
-                    {formatCurrency(offering.tokenPrice)}
+                    {formatCurrency(offering.tokenPrice ?? 0)}
                   </p>
                 </div>
               </div>
@@ -125,7 +124,7 @@ export function CompletedOfferings() {
                     <div className="bg-muted/30 p-3 rounded-lg">
                       <p className="text-xs text-muted-foreground mb-1 flex items-center">
                         <DollarSign className="h-3 w-3 mr-1" />
-                        {t("total_raised")}
+                        {tExt("total_raised")}
                       </p>
                       <p className="font-medium">
                         {formatCurrency(offering.currentRaised ?? 0)}
@@ -134,10 +133,10 @@ export function CompletedOfferings() {
                     <div className="bg-muted/30 p-3 rounded-lg">
                       <p className="text-xs text-muted-foreground mb-1 flex items-center">
                         <BarChart3 className="h-3 w-3 mr-1" />
-                        {t("Target")}
+                        {tExtAdmin("target")}
                       </p>
                       <p className="font-medium">
-                        {formatCurrency(offering.targetAmount)}
+                        {formatCurrency(offering.targetAmount ?? 0)}
                       </p>
                     </div>
                     <div className="bg-muted/30 p-3 rounded-lg">
@@ -152,14 +151,14 @@ export function CompletedOfferings() {
                     <div className="bg-muted/30 p-3 rounded-lg">
                       <p className="text-xs text-muted-foreground mb-1 flex items-center">
                         <Users className="h-3 w-3 mr-1" />
-                        {t("Participants")}
+                        {tExt("participants")}
                       </p>
                       <p className="font-medium">{offering.participants}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 bg-muted/30 p-3 rounded-lg">
-                    <p className="text-sm font-medium">{t("current_price")}</p>
+                    <p className="text-sm font-medium">{tCommon("current_price")}</p>
                     <p className="font-bold">
                       {formatCurrency(offering.currentPrice ?? 0)}
                     </p>
@@ -186,7 +185,7 @@ export function CompletedOfferings() {
                   <div className="flex gap-2 pt-2">
                     <Link href={`/ico/offer/${offering.id}`} className="flex-1">
                       <Button variant="outline" className="w-full">
-                        {t("view_details")}
+                        {tCommon("view_details")}
                       </Button>
                     </Link>
                   </div>

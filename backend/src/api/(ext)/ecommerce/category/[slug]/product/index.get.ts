@@ -11,6 +11,8 @@ export const metadata: OperationObject = {
   description: "Retrieves all active products within a specific category identified by its slug.",
   operationId: "getProductsByCategorySlug",
   tags: ["Ecommerce", "Categories", "Products"],
+  logModule: "ECOM",
+  logTitle: "Get Category Products",
   parameters: [
     {
       index: 0,
@@ -46,7 +48,9 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
+    ctx?.step("Fetching Category Products");
+
   const { slug } = params;
 
   try {
@@ -84,6 +88,7 @@ export default async (data: Handler) => {
     });
 
     if (!products || products.length === 0) {
+      ctx?.success("No products found in category");
       return [];
     }
 
@@ -103,6 +108,7 @@ export default async (data: Handler) => {
       };
     });
 
+    ctx?.success(`Retrieved ${processedProducts.length} products from category`);
     return processedProducts;
 
   } catch (error) {

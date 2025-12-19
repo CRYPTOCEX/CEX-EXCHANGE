@@ -36,11 +36,15 @@ export const metadata: OperationObject = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "ADMIN_AI",
+  logTitle: "Get Market Maker PnL",
   permission: "view.ai.market-maker.analytics",
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
+
+  ctx?.step("Get Market Maker PnL");
 
   const marketMaker = await models.aiMarketMaker.findByPk(params.marketId, {
     include: [
@@ -128,6 +132,7 @@ export default async (data: Handler) => {
   const totalPnL = unrealizedPnL + realizedPnL;
   const roi = initialInvestment > 0 ? (totalPnL / initialInvestment) * 100 : 0;
 
+  ctx?.success("Get Market Maker PnL retrieved successfully");
   return {
     marketId: params.marketId,
     market: (marketMaker as any).market,

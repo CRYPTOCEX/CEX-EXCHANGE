@@ -1,11 +1,18 @@
 import { updateRecord, updateRecordResponses } from "@b/utils/query";
 import { createError } from "@b/utils/error";
+import {
+  badRequestResponse,
+  unauthorizedResponse,
+  notFoundResponse,
+  serverErrorResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Update a specific Blockchain Configuration",
-  description: "Updates a blockchain configuration for ICO admin.",
-  operationId: "updateBlockchain",
-  tags: ["ICO", "Admin", "Blockchain"],
+  summary: "Update ICO Blockchain Configuration",
+  description:
+    "Updates an existing blockchain configuration for ICO token offerings. All fields must be provided.",
+  operationId: "updateIcoBlockchain",
+  tags: ["Admin", "ICO", "Settings"],
   parameters: [
     {
       index: 0,
@@ -25,15 +32,15 @@ export const metadata = {
           properties: {
             name: {
               type: "string",
-              description: "The display name of the blockchain.",
+              description: "The display name of the blockchain",
             },
             value: {
               type: "string",
-              description: "The unique value identifier for the blockchain.",
+              description: "The unique value identifier for the blockchain",
             },
             status: {
               type: "boolean",
-              description: "Status flag. Defaults to true if not provided.",
+              description: "Status flag. Defaults to true if not provided",
             },
           },
           required: ["name", "value"],
@@ -41,25 +48,54 @@ export const metadata = {
       },
     },
   },
-  responses: updateRecordResponses("Blockchain Configuration"),
+  responses: {
+    200: {
+      description: "Blockchain configuration updated successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              message: { type: "string" },
+            },
+          },
+        },
+      },
+    },
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    404: notFoundResponse("Blockchain Configuration"),
+    500: serverErrorResponse,
+  },
   requiresAuth: true,
   permission: "edit.ico.settings",
+  logModule: "ADMIN_ICO",
+  logTitle: "Update blockchain configuration",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { name, value, status } = body;
+
+  ctx?.step("Validating blockchain data");
   if (!name || !value) {
+    ctx?.fail("Missing required fields");
     throw createError({
       statusCode: 400,
       message: "Missing required fields: name, value and description",
     });
   }
+
   const statusFlag = status === undefined ? true : status;
-  return await updateRecord("icoBlockchain", id, {
+
+  ctx?.step("Updating blockchain configuration");
+  const result = await updateRecord("icoBlockchain", id, {
     name,
     value,
     status: statusFlag,
   });
+
+  ctx?.success("Blockchain configuration updated successfully");
+  return result;
 };

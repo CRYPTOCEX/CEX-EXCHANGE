@@ -4,6 +4,8 @@ export const metadata: OperationObject = {
   summary: "Updates the status of a Staking Pool",
   operationId: "updateStakingPoolStatus",
   tags: ["Admin", "Staking", "Pools"],
+  logModule: "ADMIN_STAKE",
+  logTitle: "Update Single Pool Status",
   parameters: [
     {
       index: 0,

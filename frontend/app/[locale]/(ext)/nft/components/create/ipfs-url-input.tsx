@@ -29,7 +29,9 @@ interface IPFSUrlInputProps {
 }
 
 export function IPFSUrlInput({ onImageValidated, onMetadataValidated, onComplete, onShowGuide }: IPFSUrlInputProps) {
-  const t = useTranslations("nft");
+  const t = useTranslations("ext_nft");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const [imageUrl, setImageUrl] = useState("");
   const [metadataUrl, setMetadataUrl] = useState("");
   const [imageValidating, setImageValidating] = useState(false);
@@ -203,7 +205,7 @@ export function IPFSUrlInput({ onImageValidated, onMetadataValidated, onComplete
       <Card className="border-2">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-primary" />
+            <Globe className={`h-5 w-5 text-purple-600`} />
             IPFS Image URL
             <Badge variant="destructive" className="text-xs">Required</Badge>
           </CardTitle>
@@ -222,7 +224,7 @@ export function IPFSUrlInput({ onImageValidated, onMetadataValidated, onComplete
                   setImageValid(null);
                   setImagePreview("");
                 }}
-                placeholder={t("ipfs_qm_ellipsis_or_https_gateway")}
+                placeholder="ipfs://Qm... or https://gateway..."
                 className="font-mono text-sm flex-1"
                 disabled={imageValidating}
               />
@@ -262,8 +264,8 @@ export function IPFSUrlInput({ onImageValidated, onMetadataValidated, onComplete
           {/* Image Preview */}
           {imagePreview && imageValid && (
             <div className="mt-4">
-              <Label className="mb-2 block">{t("preview")}</Label>
-              <div className="relative aspect-square max-w-sm mx-auto bg-muted rounded-xl overflow-hidden border-2 border-primary">
+              <Label className="mb-2 block">{tCommon("preview")}</Label>
+              <div className={`relative aspect-square max-w-sm mx-auto bg-muted rounded-xl overflow-hidden border-2 border-purple-500`}>
                 <Image
                   src={imagePreview}
                   alt="IPFS Image Preview"
@@ -282,9 +284,9 @@ export function IPFSUrlInput({ onImageValidated, onMetadataValidated, onComplete
               {t("accepted_url_formats")}
             </p>
             <ul className="space-y-1 font-mono text-muted-foreground ml-4 text-[10px]">
-              <li>{t("https_your_gateway_mypinata_cloud_ipfs")}</li>
-              <li>{t("https_gateway_pinata_cloud_ipfs_bafybei_ellipsis")}</li>
-              <li>{t("https_ipfs_io_ipfs_ellipsis")}</li>
+              <li>{"https://your-gateway.mypinata.cloud/ipfs/"}</li>
+              <li>{"https://gateway.pinata.cloud/ipfs/bafybei..."}</li>
+              <li>{"https://ipfs.io/ipfs/..."}</li>
               <li>{t("ipfs_bafybei_ellipsis_advanced")}</li>
             </ul>
             <p className="text-xs text-muted-foreground mt-2">
@@ -298,7 +300,7 @@ export function IPFSUrlInput({ onImageValidated, onMetadataValidated, onComplete
       <Card className="border-2 border-dashed">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-purple-600" />
+            <FileText className={`h-5 w-5 text-purple-600`} />
             IPFS Metadata URL
             <Badge variant="outline" className="text-xs">{t("advanced_optional")}</Badge>
           </CardTitle>
@@ -340,7 +342,7 @@ export function IPFSUrlInput({ onImageValidated, onMetadataValidated, onComplete
             <Alert className="border-green-500 bg-green-50 dark:bg-green-950">
               <CheckCircle2 className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800 dark:text-green-200">
-                <strong>{t("metadata_validated")}</strong> {t("found")} {metadata.name}
+                <strong>{t("metadata_validated")}</strong> {tExt("found")} {metadata.name}
                 <div className="mt-2 p-2 bg-background/50 rounded text-xs font-mono overflow-x-auto">
                   <pre>{JSON.stringify(metadata, null, 2)}</pre>
                 </div>
@@ -381,7 +383,7 @@ export function IPFSUrlInput({ onImageValidated, onMetadataValidated, onComplete
           onClick={onComplete}
           disabled={!canProceed}
           size="lg"
-          className="bg-gradient-to-r from-primary to-purple-600"
+          className={`bg-gradient-to-r from-primary to-purple-600`}
         >
           {canProceed ? (
             <>

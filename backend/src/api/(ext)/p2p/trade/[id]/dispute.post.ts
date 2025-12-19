@@ -1,6 +1,7 @@
 import { models, sequelize } from "@b/db";
 import { Op } from "sequelize";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Dispute Trade",
@@ -10,6 +11,8 @@ export const metadata = {
   tags: ["P2P", "Trade"],
   requiresAuth: true,
   middleware: ["p2pDisputeCreateRateLimit"],
+  logModule: "P2P_DISPUTE",
+  logTitle: "Create dispute",
   parameters: [
     {
       index: 0,
@@ -74,15 +77,16 @@ export const metadata = {
   },
 };
 
-export default async (data: { params?: any; body: any; user?: any }) => {
+export default async (data: { params?: any; body: any; user?: any; ctx?: any }) => {
   const { id } = data.params || {};
   const { reason, description, evidence } = data.body;
-  const { user } = data;
-  
+  const { user, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Validating dispute details");
   // Import validation utilities
   const { validateDisputeReason, sanitizeInput, validateTradeStatusTransition } = await import("../../utils/validation");
   const { notifyTradeEvent } = await import("../../utils/notifications");
@@ -90,7 +94,7 @@ export default async (data: { params?: any; body: any; user?: any }) => {
 
   // Validate reason
   const validatedReason = validateDisputeReason(reason);
-  
+
   // Sanitize description
   const sanitizedDescription = sanitizeInput(description);
   if (!sanitizedDescription || sanitizedDescription.length < 20) {
@@ -100,6 +104,7 @@ export default async (data: { params?: any; body: any; user?: any }) => {
     });
   }
 
+  ctx?.step("Finding and locking trade");
   const transaction = await sequelize.transaction();
   let transactionCommitted = false;
 
@@ -158,6 +163,7 @@ export default async (data: { params?: any; body: any; user?: any }) => {
       });
     }
 
+    ctx?.step(`Creating dispute record (reason: ${validatedReason})`);
     // Determine the other party
     const againstId = trade.buyerId === user.id ? trade.sellerId : trade.buyerId;
 
@@ -188,7 +194,7 @@ export default async (data: { params?: any; body: any; user?: any }) => {
       try {
         timeline = JSON.parse(timeline);
       } catch (e) {
-        console.error("Failed to parse timeline JSON:", e);
+        logger.error("P2P_TRADE", "Failed to parse timeline JSON", e);
         timeline = [];
       }
     }
@@ -228,6 +234,8 @@ export default async (data: { params?: any; body: any; user?: any }) => {
 
     await transaction.commit();
     transactionCommitted = true;
+
+    ctx?.success(`Created dispute for trade ${trade.id.slice(0, 8)}... (${validatedReason})`);
 
     // Send notifications
     notifyTradeEvent(trade.id, "TRADE_DISPUTED", {

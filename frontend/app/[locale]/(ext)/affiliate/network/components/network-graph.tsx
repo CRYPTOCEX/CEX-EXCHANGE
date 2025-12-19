@@ -65,7 +65,9 @@ export function NetworkGraph({
   networkData,
   mlmSystem,
 }: ForceDirectedGraphProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_affiliate");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -1046,7 +1048,7 @@ export function NetworkGraph({
                   <div className="flex items-center justify-center gap-1 mt-1 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     <span>
-                      {t("Joined")}
+                      {tCommon("joined")}
                       {selectedNode.joinDate}
                     </span>
                   </div>
@@ -1063,7 +1065,7 @@ export function NetworkGraph({
                       <div className="flex flex-col items-center">
                         <DollarSign className="h-5 w-5 text-primary mb-1" />
                         <p className="text-xs text-muted-foreground">
-                          {t("Earnings")}
+                          {tExt("earnings")}
                         </p>
                         <p className="text-lg font-bold">
                           ${selectedNode.earnings?.toFixed(2)}
@@ -1073,10 +1075,10 @@ export function NetworkGraph({
                   </Card>
 
                   {selectedNode.teamSize !== undefined && (
-                    <Card className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 border-blue-500/20">
+                    <Card className="bg-linear-to-br from-blue-600/5 to-blue-600/10 border-blue-600/20">
                       <CardContent className="p-3">
                         <div className="flex flex-col items-center">
-                          <Users className="h-5 w-5 text-blue-500 mb-1" />
+                          <Users className="h-5 w-5 text-blue-600 mb-1" />
                           <p className="text-xs text-muted-foreground">
                             {t("team_size")}
                           </p>
@@ -1095,7 +1097,7 @@ export function NetworkGraph({
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">
-                      {t("Performance")}
+                      {tExt("performance")}
                     </span>
                     <Badge
                       variant={
@@ -1112,8 +1114,8 @@ export function NetworkGraph({
                       selectedNode.performance > 80
                         ? "bg-green-500"
                         : selectedNode.performance > 50
-                          ? "bg-blue-500"
-                          : "bg-amber-500"
+                          ? "bg-blue-600"
+                          : "bg-yellow-500"
                     }
                   />
                   <p className="text-xs text-muted-foreground">
@@ -1139,7 +1141,7 @@ export function NetworkGraph({
                       <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
                         <Network className="h-3.5 w-3.5 text-primary" />
                       </div>
-                      <span className="text-sm">{t("Level")}</span>
+                      <span className="text-sm">{tCommon("level")}</span>
                     </div>
                     <Badge variant="outline">
                       {selectedNode.level === 0 ? "Root" : selectedNode.level}
@@ -1171,7 +1173,7 @@ export function NetworkGraph({
                   </Button>
                   <Button variant="outline" className="w-full gap-2">
                     <ArrowUpRight className="h-4 w-4" />
-                    {t("view_full_profile")}
+                    {tCommon('view_full_profile_1')}
                   </Button>
                 </div>
               )}
@@ -1193,7 +1195,7 @@ export function NetworkGraph({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{t("zoom_in")}</p>
+                <p>{tCommon("zoom_in")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -1210,7 +1212,7 @@ export function NetworkGraph({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{t("zoom_out")}</p>
+                <p>{tCommon("zoom_out")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -1257,7 +1259,7 @@ export function NetworkGraph({
               )}
               {hoveredNode.teamSize !== undefined && (
                 <Badge variant="outline" className="text-[10px] h-4">
-                  {t("team")}
+                  {tExt("team")}
                   {hoveredNode.teamSize}
                 </Badge>
               )}
@@ -1276,7 +1278,7 @@ export function NetworkGraph({
             {t("network_visualization_showing")}
             {graphData.nodes.length}
             {t("members_and")} {graphData.links.length}
-            {t("connections")}
+            {tExt("connections")}
           </span>
         </p>
         <p className="mt-1">
@@ -1290,9 +1292,9 @@ export function NetworkGraph({
 
 // Colors for different levels in the unilevel system
 const levelColors = [
-  "#4f46e5", // Indigo
   "#3b82f6", // Blue
-  "#0ea5e9", // Light Blue
-  "#06b6d4", // Cyan
-  "#14b8a6", // Teal
+  "#60a5fa", // Light Blue
+  "#F59E0B", // Amber
+  "#FBBF24", // Yellow
+  "#D97706", // Dark Amber
 ];

@@ -11,6 +11,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow, format } from "date-fns";
+import { useTranslations } from "next-intl";
 interface CronDetailModalProps {
   cronName: string | null;
   isOpen: boolean;
@@ -21,6 +22,7 @@ export function CronDetailModal({
   isOpen,
   onClose,
 }: CronDetailModalProps) {
+  const t = useTranslations("dashboard_admin");
   const { cronJobs, logs } = useCronStore();
   const cronJob = cronName
     ? cronJobs.find((job) => job.name === cronName)
@@ -97,7 +99,7 @@ export function CronDetailModal({
               </div>
             </div>
             <div className="border rounded-md p-3">
-              <div className="text-sm text-muted-foreground">Last Run</div>
+              <div className="text-sm text-muted-foreground">{t("last_run")}</div>
               <div className="font-medium mt-1">
                 {cronJob.lastRun
                   ? formatDistanceToNow(new Date(cronJob.lastRun), {
@@ -129,7 +131,7 @@ export function CronDetailModal({
                 <div className="font-mono text-xs space-y-1">
                   {cronLogs.length === 0 ? (
                     <div className="text-gray-400 p-4 text-center">
-                      No logs available for this cron job
+                      {t("no_logs_available_for_this_cron_job")}
                     </div>
                   ) : (
                     cronLogs.map((log) => {
@@ -156,7 +158,7 @@ export function CronDetailModal({
               <div className="h-full pr-4">
                 <div className="border rounded-md p-4">
                   <h3 className="text-lg font-medium mb-4">
-                    Schedule Information
+                    {t("schedule_information")}
                   </h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -170,7 +172,7 @@ export function CronDetailModal({
                       </div>
                       <div>
                         <div className="text-sm text-muted-foreground">
-                          Next Run
+                          {t("next_run")}
                         </div>
                         <div className="font-medium">
                           {cronJob.nextScheduledRun

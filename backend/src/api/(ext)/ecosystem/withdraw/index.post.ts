@@ -19,6 +19,7 @@ import {
 } from "@b/api/finance/transfer/index.post";
 import WithdrawalQueue from "../utils/withdrawalQueue";
 import { getTronService, getMoneroService } from "@b/utils/safe-imports";
+import { logger } from "@b/utils/console";
 
 // Utility function to count decimal places
 function countDecimals(value: number): number {
@@ -40,6 +41,8 @@ export const metadata: OperationObject = {
   operationId: "withdrawFunds",
   tags: ["Wallet", "Withdrawal"],
   requiresAuth: true,
+  logModule: "ECO_WITHDRAW",
+  logTitle: "Withdraw funds to external address",
   requestBody: {
     required: true,
     content: {
@@ -132,7 +135,7 @@ function validateAddressFormat(address: string): boolean {
 
   for (const pattern of suspiciousPatterns) {
     if (pattern.test(address)) {
-      console.error(`[SECURITY] Suspicious pattern detected in address: ${pattern}`);
+      logger.error("SECURITY", `Suspicious pattern detected in address: ${pattern}`);
       return false;
     }
   }
@@ -144,7 +147,7 @@ function validateAddressFormat(address: string): boolean {
 }
 
 export default async (data: Handler) => {
-  const { body, user } = data;
+  const { body, user, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -152,13 +155,16 @@ export default async (data: Handler) => {
   try {
     const { currency: rawCurrency, chain: rawChain, amount, toAddress: rawToAddress } = body;
 
+    ctx?.step("Sanitizing input parameters");
     // Sanitize all string inputs
     const currency = sanitizeInput(rawCurrency, 10);
     const chain = sanitizeInput(rawChain, 20);
     const toAddress = sanitizeInput(rawToAddress, 200);
 
+    ctx?.step("Validating withdrawal request");
     // Validate inputs
     if (!currency || !chain || !toAddress) {
+      ctx?.fail("Missing required parameters");
       throw createError({
         statusCode: 400,
         message: "Missing required parameters",
@@ -167,31 +173,29 @@ export default async (data: Handler) => {
 
     // Basic address format validation before chain-specific validation
     if (!validateAddressFormat(toAddress)) {
+      ctx?.fail("Invalid address format detected");
       throw createError({
         statusCode: 400,
         message: "Invalid address format. Address contains invalid characters or suspicious patterns.",
       });
     }
 
-    console.log(`[ECO_WITHDRAW] Starting withdrawal process:`, {
-      userId: user.id,
-      currency,
-      chain,
-      amount,
-      toAddress: toAddress?.substring(0, 10) + '...'
-    });
+    logger.info("ECO_WITHDRAW", `Starting withdrawal: userId=${user.id}, currency=${currency}, chain=${chain}, amount=${amount}, toAddress=${toAddress?.substring(0, 10)}...`);
 
     if (!chain) {
-      console.error(`[ECO_WITHDRAW] Chain parameter missing`);
+      logger.error("ECO_WITHDRAW", `Chain parameter missing`);
+      ctx?.fail("Chain parameter is required");
       throw createError({
         statusCode: 400,
         message: "Chain parameter is required",
       });
     }
 
+    ctx?.step("Validating withdrawal amount");
     // Validate amount is a valid positive number
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0 || !isFinite(parsedAmount)) {
+      ctx?.fail("Invalid amount provided");
       throw createError({
         statusCode: 400,
         message: "Invalid amount. Must be a positive number.",
@@ -200,37 +204,47 @@ export default async (data: Handler) => {
 
     const finalAmount = Math.abs(parsedAmount);
 
+    ctx?.step("Checking if address is internal");
     // Check if the toAddress belongs to an internal user
-    console.log(`[ECO_WITHDRAW] Checking if address is internal...`);
+    logger.debug("ECO_WITHDRAW", `Checking if address is internal...`);
     const recipientWallet = await findWalletByAddress(toAddress);
 
     if (recipientWallet) {
       // Process as internal transfer
-      console.log(`[ECO_WITHDRAW] Address is internal, processing as transfer`);
-      return await processInternalTransfer(
+      ctx?.step("Processing as internal transfer");
+      logger.info("ECO_WITHDRAW", `Address is internal, processing as transfer`);
+      const result = await processInternalTransfer(
         user.id,
         recipientWallet.userId,
         currency,
         chain,
         finalAmount
       );
+      ctx?.success(`Internal transfer of ${finalAmount} ${currency} completed`);
+      return result;
     } else {
       // Proceed with the regular withdrawal process
-      console.log(`[ECO_WITHDRAW] Address is external, processing withdrawal`);
-      return await storeWithdrawal(
+      ctx?.step("Processing as external withdrawal");
+      logger.info("ECO_WITHDRAW", `Address is external, processing withdrawal`);
+      const result = await storeWithdrawal(
         user.id,
         currency,
         chain,
         finalAmount,
-        toAddress
+        toAddress,
+        ctx
       );
+      ctx?.success(`Withdrawal of ${finalAmount} ${currency} to ${chain} submitted`);
+      return result;
     }
   } catch (error) {
-    console.error(`[ECO_WITHDRAW] Error in withdrawal:`, error);
+    logger.error("ECO_WITHDRAW", `Error in withdrawal`, error);
     if (error.message === "INSUFFICIENT_FUNDS") {
-      console.log("[ECO_WITHDRAW] Insufficient funds error");
+      logger.debug("ECO_WITHDRAW", "Insufficient funds error");
+      ctx?.fail("Insufficient funds");
       throw createError({ statusCode: 400, message: "Insufficient funds" });
     }
+    ctx?.fail(`Withdrawal failed: ${error.message}`);
     throw createError({
       statusCode: 500,
       message: `Failed to withdraw: ${error}`,
@@ -243,64 +257,63 @@ const storeWithdrawal = async (
   currency: string,
   chain: string,
   amount: number,
-  toAddress: string
+  toAddress: string,
+  ctx?: any
 ) => {
-  console.log(`[ECO_WITHDRAW_STORE] Starting storeWithdrawal:`, {
-    userId,
-    currency,
-    chain,
-    amount,
-    toAddress: toAddress?.substring(0, 10) + '...'
-  });
+  logger.debug("ECO_WITHDRAW", `Starting storeWithdrawal: userId=${userId}, currency=${currency}, chain=${chain}, amount=${amount}, toAddress=${toAddress?.substring(0, 10)}...`);
 
   if (!chain || typeof chain !== "string") {
-    console.error(`[ECO_WITHDRAW_STORE] Invalid chain parameter:`, chain);
+    logger.error("ECO_WITHDRAW", `Invalid chain parameter: ${chain}`);
     throw new Error("Invalid or missing chain parameter");
   }
 
+  ctx?.step("Validating withdrawal address");
   // Validate address for non-BTC, LTC, DOGE, and DASH chains
   if (!["BTC", "LTC", "DOGE", "DASH"].includes(chain)) {
     validateAddress(toAddress, chain);
   }
 
-  // Find the user's wallet
-  console.log(`[ECO_WITHDRAW_STORE] Looking for wallet:`, { userId, currency, type: "ECO" });
+  ctx?.step("Retrieving user wallet");
+  // Find the user's wallet (ECO type only - COPY_TRADING wallets cannot withdraw)
+  logger.debug("ECO_WITHDRAW", `Looking for wallet: userId=${userId}, currency=${currency}, type=ECO`);
   const userWallet = await models.wallet.findOne({
     where: { userId, currency, type: "ECO" },
   });
 
   if (!userWallet) {
-    console.error(`[ECO_WITHDRAW_STORE] Wallet not found for user ${userId}, currency ${currency}`);
+    logger.error("ECO_WITHDRAW", `Wallet not found for user ${userId}, currency ${currency}`);
     throw new Error("User wallet not found");
   }
-  console.log(`[ECO_WITHDRAW_STORE] Found wallet:`, {
-    walletId: userWallet.id,
-    balance: userWallet.balance
-  });
 
+  // Additional security check: ensure wallet type is ECO
+  if (userWallet.type !== "ECO") {
+    logger.error("ECO_WITHDRAW", `Attempted withdrawal from non-ECO wallet: type=${userWallet.type}`);
+    throw new Error("Withdrawals are only allowed from ECO wallets");
+  }
+  logger.debug("ECO_WITHDRAW", `Found wallet: walletId=${userWallet.id}, balance=${userWallet.balance}`);
+
+  ctx?.step("Fetching token configuration");
   // Fetch token settings (like withdrawal fees)
-  console.log(`[ECO_WITHDRAW_STORE] Fetching token settings for ${currency} on ${chain}`);
+  logger.debug("ECO_WITHDRAW", `Fetching token settings for ${currency} on ${chain}`);
   const token = await getEcosystemToken(chain, currency);
   if (!token) {
-    console.error(`[ECO_WITHDRAW_STORE] Token not found for ${currency} on ${chain}`);
+    logger.error("ECO_WITHDRAW", `Token not found for ${currency} on ${chain}`);
     throw new Error("Token not found");
   }
-  console.log(`[ECO_WITHDRAW_STORE] Token found:`, {
-    currency: token.currency,
-    decimals: token.decimals,
-    precision: token.precision
-  });
+  logger.debug("ECO_WITHDRAW", `Token found: currency=${token.currency}, decimals=${token.decimals}, precision=${token.precision}`);
 
+  ctx?.step("Validating amount precision");
   // Validate decimal precision based on token configuration
   const maxPrecision = token.precision ?? token.decimals ?? 8;
   const actualDecimals = countDecimals(amount);
-  
+
   if (actualDecimals > maxPrecision) {
     throw new Error(
       `Amount has too many decimal places for ${currency} on ${chain}. Max allowed is ${maxPrecision} decimal places. Your amount has ${actualDecimals} decimal places.`
     );
   }
 
+  ctx?.step("Calculating withdrawal fees");
   // Calculate the withdrawal fee based on token settings
   let withdrawalFee: number = 0;
   if (token.fee) {
@@ -324,7 +337,8 @@ const storeWithdrawal = async (
   const isNativeEVM = evmChains.includes(chain) && token.contractType === "NATIVE";
 
   if (isNativeEVM) {
-    console.log(`[ECO_WITHDRAW_STORE] Estimating gas for NATIVE ${currency} on ${chain}`);
+    ctx?.step(`Estimating gas fees for ${chain}`);
+    logger.debug("ECO_WITHDRAW", `Estimating gas for NATIVE ${currency} on ${chain}`);
     try {
       const { initializeProvider } = require("@b/api/(ext)/ecosystem/utils/provider");
       const provider = await initializeProvider(chain);
@@ -338,13 +352,9 @@ const storeWithdrawal = async (
       const gasCost = BigInt(gasLimit) * (gasPrice.gasPrice || gasPrice.maxFeePerGas || BigInt(0));
       estimatedFee = parseFloat(ethers.formatUnits(gasCost, token.decimals));
 
-      console.log(`[ECO_WITHDRAW_STORE] Estimated gas fee: ${estimatedFee} ${currency}`, {
-        gasLimit,
-        gasPrice: gasPrice.gasPrice?.toString(),
-        maxFeePerGas: gasPrice.maxFeePerGas?.toString()
-      });
+      logger.debug("ECO_WITHDRAW", `Estimated gas fee: ${estimatedFee} ${currency}, gasLimit=${gasLimit}, gasPrice=${gasPrice.gasPrice?.toString()}`);
     } catch (error) {
-      console.error(`[ECO_WITHDRAW_STORE] Failed to estimate gas:`, error.message);
+      logger.error("ECO_WITHDRAW", `Failed to estimate gas: ${error.message}`);
       // Use a fallback estimate based on chain
       const fallbackGasFees = {
         ETH: 0.001,
@@ -356,7 +366,7 @@ const storeWithdrawal = async (
         AVAX: 0.001,
       };
       estimatedFee = fallbackGasFees[chain] || 0.001;
-      console.log(`[ECO_WITHDRAW_STORE] Using fallback gas estimate: ${estimatedFee} ${currency}`);
+      logger.debug("ECO_WITHDRAW", `Using fallback gas estimate: ${estimatedFee} ${currency}`);
     }
   }
 
@@ -364,7 +374,8 @@ const storeWithdrawal = async (
   // Note: We cannot accurately estimate UTXO network fees until transaction building
   // because fees depend on number of UTXOs, current fee rate, and change output
   if (["BTC", "LTC", "DOGE", "DASH"].includes(chain)) {
-    console.log(`[ECO_WITHDRAW_STORE] Pre-validating UTXO withdrawal for ${chain}`);
+    ctx?.step(`Validating UTXO withdrawal for ${chain}`);
+    logger.debug("ECO_WITHDRAW", `Pre-validating UTXO withdrawal for ${chain}`);
     const { calculateMinimumWithdrawal } = require("@b/api/(ext)/ecosystem/utils/utxo");
 
     try {
@@ -375,19 +386,20 @@ const storeWithdrawal = async (
       );
 
       if (!validationResult.isEconomical) {
-        console.error(`[ECO_WITHDRAW_STORE] Withdrawal not economical:`, validationResult);
+        logger.error("ECO_WITHDRAW", `Withdrawal not economical: ${validationResult.reason}`);
         throw new Error(validationResult.reason);
       }
 
-      console.log(`[ECO_WITHDRAW_STORE] UTXO validation passed: withdrawal requires ${validationResult.utxoCount} UTXOs`);
+      logger.debug("ECO_WITHDRAW", `UTXO validation passed: withdrawal requires ${validationResult.utxoCount} UTXOs`);
 
       // Note: estimatedFee remains 0 for UTXO chains
       // Actual network fee will be calculated and deducted during transaction processing
     } catch (error) {
-      console.error(`[ECO_WITHDRAW_STORE] UTXO validation error:`, error.message);
+      logger.error("ECO_WITHDRAW", `UTXO validation error: ${error.message}`);
       throw error;
     }
   } else if (chain === "TRON") {
+    ctx?.step("Estimating TRON transaction fees");
     // Handle Tron-specific logic
     const TronService = await getTronService();
     if (!TronService) {
@@ -427,6 +439,7 @@ const storeWithdrawal = async (
 
     estimatedFee = estimatedFeeSun / 1e6; // Convert Sun to TRX
   } else if (chain === "XMR") {
+    ctx?.step("Estimating Monero transaction fees");
     // Handle Monero-specific logic
     const MoneroService = await getMoneroService();
     if (!MoneroService) {
@@ -436,6 +449,7 @@ const storeWithdrawal = async (
     estimatedFee = await moneroService.estimateMoneroFee();
   }
 
+  ctx?.step("Calculating total fees and amounts");
   // Calculate the total fee for the transaction
   // For NATIVE EVM tokens, gas is paid FROM the withdrawal amount (not added on top)
   // For other chains, gas/network fees are added on top of the withdrawal amount
@@ -448,15 +462,9 @@ const storeWithdrawal = async (
   const precision = token.precision ?? token.decimals ?? 8;
   const totalAmount = parseFloat((amount + totalFee).toFixed(precision));
 
-  console.log(`[ECO_WITHDRAW_STORE] Fee calculation:`, {
-    withdrawAmount: amount,
-    withdrawalFee,
-    activationFee,
-    estimatedNetworkFee: estimatedFee,
-    totalFee,
-    totalToDeduct: totalAmount
-  });
+  logger.debug("ECO_WITHDRAW", `Fee calculation: withdrawAmount=${amount}, withdrawalFee=${withdrawalFee}, activationFee=${activationFee}, estimatedNetworkFee=${estimatedFee}, totalFee=${totalFee}, totalToDeduct=${totalAmount}`);
 
+  ctx?.step("Verifying balance and creating withdrawal transaction");
   // Use database transaction with row-level locking to prevent race conditions
   // This ensures that when multiple withdrawals happen simultaneously for the same wallet,
   // each one gets exclusive access to the wallet balance
@@ -511,25 +519,15 @@ const storeWithdrawal = async (
           // Subtract from available balance
           availableBalance = availableBalance - offchainDiff;
 
-          console.log(`[ECO_WITHDRAW_STORE] PERMIT token - adjusted for private ledger:`, {
-            walletDataBalance: lockedWalletData.balance,
-            offchainDifference: offchainDiff,
-            adjustedAvailableBalance: availableBalance
-          });
+          logger.debug("ECO_WITHDRAW", `PERMIT token - adjusted for private ledger: walletDataBalance=${lockedWalletData.balance}, offchainDifference=${offchainDiff}, adjustedAvailableBalance=${availableBalance}`);
         }
       }
 
-      console.log(`[ECO_WITHDRAW_STORE] Balance check:`, {
-        walletBalance: lockedWallet.balance,
-        walletDataBalance: lockedWalletData?.balance,
-        contractType: token.contractType,
-        availableBalance,
-        totalRequired: totalAmount
-      });
+      logger.debug("ECO_WITHDRAW", `Balance check: walletBalance=${lockedWallet.balance}, walletDataBalance=${lockedWalletData?.balance}, contractType=${token.contractType}, availableBalance=${availableBalance}, totalRequired=${totalAmount}`);
 
       // Check balance with the chain-specific available balance
       if (availableBalance < totalAmount) {
-        console.error(`[ECO_WITHDRAW_STORE] Insufficient funds: available ${availableBalance} < required ${totalAmount}`);
+        logger.error("ECO_WITHDRAW", `Insufficient funds: available ${availableBalance} < required ${totalAmount}`);
         throw new Error("Insufficient funds");
       }
 
@@ -555,6 +553,7 @@ const storeWithdrawal = async (
     }
   );
 
+  ctx?.step("Adding transaction to withdrawal queue");
   // Add the transaction to the withdrawal queue
   const withdrawalQueue = WithdrawalQueue.getInstance();
   withdrawalQueue.addTransaction(transaction.id);

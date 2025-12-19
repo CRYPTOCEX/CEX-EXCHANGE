@@ -7,9 +7,11 @@ import {
 } from "./utils";
 
 export const metadata: OperationObject = {
-  summary: "Stores a new AI Investment Duration",
-  operationId: "storeAIInvestmentDuration",
-  tags: ["Admin", "AI Investment Durations"],
+  summary: "Create a new AI investment duration",
+  operationId: "createAiInvestmentDuration",
+  tags: ["Admin", "AI Investment", "Duration"],
+  description:
+    "Creates a new AI investment duration option. Allows administrators to define new timeframes for AI investment plans.",
   requestBody: {
     required: true,
     content: {
@@ -24,17 +26,25 @@ export const metadata: OperationObject = {
   ),
   requiresAuth: true,
   permission: "create.ai.investment.duration",
+  logModule: "ADMIN_AI",
+  logTitle: "Create investment duration",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { duration, timeframe } = body;
 
-  return await storeRecord({
+  ctx?.step("Validating duration data");
+
+  ctx?.step("Creating duration record");
+  const result = await storeRecord({
     model: "aiInvestmentDuration",
     data: {
       duration,
       timeframe,
     },
   });
+
+  ctx?.success("Duration created successfully");
+  return result;
 };

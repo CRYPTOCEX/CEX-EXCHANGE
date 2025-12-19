@@ -30,14 +30,21 @@ export const metadata = {
   responses: commonBulkDeleteResponses("Wallets"),
   requiresAuth: true,
   permission: "delete.wallet",
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk Delete Wallets",
 };
 
 export default async (data: Handler) => {
-  const { body, query } = data;
+  const { body, query, ctx } = data;
   const { ids } = body;
-  return handleBulkDelete({
+
+  ctx?.step("Deleting wallets");
+  const result = await handleBulkDelete({
     model: "wallet",
     ids,
     query,
   });
+
+  ctx?.success("Wallets deleted successfully");
+  return result;
 };

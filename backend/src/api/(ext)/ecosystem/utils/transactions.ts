@@ -2,7 +2,7 @@ import { differenceInMinutes } from "date-fns";
 import { chainConfigs } from "./chains";
 import { fetchUTXOTransactions } from "./utxo";
 import { RedisSingleton } from "../../../../utils/redis";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 import { getSolanaService, getTronService, getMoneroService, getTonService } from "@b/utils/safe-imports";
 
 const CACHE_EXPIRATION = 30;
@@ -55,7 +55,7 @@ export const fetchEcosystemTransactions = async (
       return await fetchAndParseTransactions(address, chain, config);
     }
   } catch (error) {
-    logError("fetch_ecosystem_transactions", error, __filename);
+    logger.error("ECOSYSTEM_TRANSACTIONS", "Failed to fetch ecosystem transactions", error);
     throw new Error(error.message);
   }
 };
@@ -106,7 +106,7 @@ const getCachedData = async (cacheKey: string) => {
 
 const parseRawTransactions = (rawTransactions: any): ParsedTransaction[] => {
   if (!Array.isArray(rawTransactions?.result)) {
-    console.error('[TX_PARSE_ERROR] Invalid raw transactions format received:', {
+    logger.error("TRANSACTIONS", "Invalid raw transactions format received", {
       type: typeof rawTransactions,
       isArray: Array.isArray(rawTransactions),
       hasResult: rawTransactions?.hasOwnProperty('result'),
@@ -179,7 +179,7 @@ export const fetchGeneralEcosystemTransactions = async (
   }`;
 
   try {
-    console.log(`[ETHERSCAN_V2] ${chain} Fetching transactions for address ${address.substring(0, 10)}... using chainId ${network.chainId}`);
+    logger.info("ETHERSCAN", `${chain} Fetching transactions for address ${address.substring(0, 10)}... using chainId ${network.chainId}`);
 
     const response = await fetch(url);
 
@@ -203,7 +203,7 @@ export const fetchGeneralEcosystemTransactions = async (
     // Handle API errors
     if (data.status === "0") {
       if (data.message === "NOTOK") {
-        console.error(`[ETHERSCAN_API_ERROR] ${chain}: ${data.result}`);
+        logger.warn("ETHERSCAN", `${chain} API error: ${data.result}`);
         // Return empty result set for addresses with no transactions or errors
         return { status: "1", message: "OK", result: [] };
       }
@@ -211,14 +211,14 @@ export const fetchGeneralEcosystemTransactions = async (
 
     // Validate we got proper data structure
     if (!data.result || !Array.isArray(data.result)) {
-      console.warn(`[ETHERSCAN_API_WARNING] ${chain}: Unexpected response format, returning empty results`);
+      logger.warn("ETHERSCAN", `${chain} Unexpected response format, returning empty results`);
       return { status: "1", message: "OK", result: [] };
     }
 
-    console.log(`[ETHERSCAN_V2] ${chain} Successfully fetched ${data.result.length} transactions`);
+    logger.info("ETHERSCAN", `${chain} Successfully fetched ${data.result.length} transactions`);
     return data;
   } catch (error) {
-    logError("fetch_general_ecosystem_transactions", error, __filename);
+    logger.error("GENERAL_TRANSACTIONS", "API call failed", error);
     throw new Error(`API call failed: ${error.message}`);
   }
 };
@@ -228,7 +228,7 @@ export const fetchPublicEcosystemTransactions = async (url: string) => {
     const response = await fetch(url);
     return await response.json();
   } catch (error) {
-    logError("fetch_public_ecosystem_transactions", error, __filename);
+    logger.error("PUBLIC_TRANSACTIONS", "API call failed", error);
     throw new Error(`API call failed: ${error.message}`);
   }
 };

@@ -1,15 +1,18 @@
-import React from "react";
-import DashBoardLayoutProvider from "@/provider/dashboard.provider";
+import type React from "react";
+import Footer from "@/components/partials/footer";
+import SiteHeader from "@/components/partials/header/site-header";
+import { menu, colorSchema } from "./menu";
 
-interface DashboardLayoutProps {
+export default function AdminAIInvestmentLayout({
+  children,
+}: {
   children: React.ReactNode;
-}
-
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  // Override guest mode for dashboard routes - show admin header/sidebar
+}) {
   return (
-    <DashBoardLayoutProvider isGuest={false}>
-      {children}
-    </DashBoardLayoutProvider>
+    <>
+      <SiteHeader menu={menu} colorSchema={colorSchema} userPath="/" />
+      <main className="flex-1">{children}</main>
+      <Footer />
+    </>
   );
 }

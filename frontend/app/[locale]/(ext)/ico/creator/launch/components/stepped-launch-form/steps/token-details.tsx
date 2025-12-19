@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, X } from "lucide-react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 interface TokenDetailsStepProps {
   formData: FormData;
@@ -19,6 +20,9 @@ export default function TokenDetailsStep({
   updateFormData,
   errors,
 }: TokenDetailsStepProps) {
+  const t = useTranslations("ext_ico");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -63,8 +67,8 @@ export default function TokenDetailsStep({
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
-          label="Token Name"
-          placeholder="e.g. Ethereum"
+          label={tExt("token_name")}
+          placeholder={t("e_g_ethereum")}
           value={formData.name}
           onChange={(e) => updateFormData("name", e.target.value)}
           error={!!errors.name}
@@ -72,8 +76,8 @@ export default function TokenDetailsStep({
         />
 
         <Input
-          label="Token Symbol"
-          placeholder="e.g. ETH"
+          label={tExt("token_symbol")}
+          placeholder={t("e_g_eth")}
           value={formData.symbol}
           onChange={(e) => updateFormData("symbol", e.target.value)}
           error={!!errors.symbol}
@@ -83,14 +87,14 @@ export default function TokenDetailsStep({
 
       {/* Simplified Icon upload */}
       <div className="mt-4">
-        <label className="text-sm font-medium mb-2 block">Token Icon</label>
-        <div className="border-2 border-dashed rounded-lg p-6 max-w-md hover:border-primary/50 transition-colors">
+        <label className="text-sm font-medium mb-2 block">{tExt("token_icon")}</label>
+        <div className={"border-2 border-dashed rounded-lg p-6 max-w-md hover:border-teal-600/50 transition-colors"}>
           {previewUrl || (formData.icon && typeof formData.icon === 'string') ? (
             <div className="flex items-center gap-4">
               <div className="relative w-24 h-24 rounded-lg overflow-hidden border">
                 <Image
                   src={previewUrl || (formData.icon as string)}
-                  alt="Token icon"
+                  alt={tExt("token_icon")}
                   fill
                   className="object-cover"
                 />
@@ -117,17 +121,17 @@ export default function TokenDetailsStep({
           ) : (
             <div className="text-center">
               <Upload className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm mb-2">Upload token icon</p>
+              <p className="text-sm mb-2">{t("upload_token_icon")}</p>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Upload className="h-4 w-4 mr-2" />
-                Choose File
+                {tCommon("choose_file")}
               </Button>
               <p className="text-xs text-muted-foreground mt-2">
-                Max 5MB • JPG, PNG, GIF, WebP
+                {t("max_5mb_jpg_png_gif_webp")}
               </p>
             </div>
           )}

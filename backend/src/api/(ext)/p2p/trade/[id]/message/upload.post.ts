@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import path from "path";
 import fs from "fs/promises";
 import sharp from "sharp";
+import { logger } from "@b/utils/console";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -15,6 +16,8 @@ export const metadata = {
   tags: ["P2P", "Trade"],
   requiresAuth: true,
   middleware: ["p2pMessageRateLimit"],
+  logModule: "P2P_MESSAGE",
+  logTitle: "Upload trade message image",
   parameters: [
     {
       index: 0,
@@ -72,15 +75,16 @@ async function ensureDirExists(dir: string) {
   }
 }
 
-export default async (data: { params?: any; body: any; user?: any }) => {
+export default async (data: { params?: any; body: any; user?: any; ctx?: any }) => {
   const { id } = data.params || {};
   const { file: base64File, filename: originalFilename } = data.body;
-  const { user } = data;
+  const { user, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Validating file upload");
   if (!base64File) {
     throw createError({ statusCode: 400, message: "No file provided" });
   }
@@ -142,6 +146,7 @@ export default async (data: { params?: any; body: any; user?: any }) => {
   }
 
   try {
+    ctx?.step("Processing and saving image");
     // Create upload directory - save to frontend/public/uploads for static file serving
     const baseDir = isProduction
       ? path.resolve(process.cwd(), "frontend", "public")
@@ -169,13 +174,15 @@ export default async (data: { params?: any; body: any; user?: any }) => {
 
     const fileUrl = generateFileUrl(`p2p/trade/${id}/${filename}`);
 
+    ctx?.step("Adding image message to trade timeline");
+
     // Parse timeline if it's a string
     let timeline = trade.timeline || [];
     if (typeof timeline === "string") {
       try {
         timeline = JSON.parse(timeline);
       } catch (e) {
-        console.error("Failed to parse timeline JSON:", e);
+        logger.error("P2P_TRADE", "Failed to parse timeline JSON", e);
         timeline = [];
       }
     }
@@ -250,6 +257,8 @@ export default async (data: { params?: any; body: any; user?: any }) => {
         attachment: messageEntry.attachment,
       },
     });
+
+    ctx?.success(`Uploaded ${mimeType} to trade ${trade.id.slice(0, 8)}...`);
 
     return {
       message: "File uploaded successfully.",

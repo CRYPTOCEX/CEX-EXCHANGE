@@ -4,7 +4,7 @@ import { useFormContext } from "react-hook-form";
 import { useTranslations } from "next-intl";
 
 const StepMode: React.FC = () => {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const { register, watch } = useFormContext<DeployFormData>();
   const mode = watch("mode");
   return (

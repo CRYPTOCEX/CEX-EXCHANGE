@@ -21,7 +21,9 @@ interface DisputedTradesTabProps {
   disputedTrades: any[];
 }
 export function DisputedTradesTab({ disputedTrades }: DisputedTradesTabProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   return (
     <Card>
       <CardHeader>
@@ -38,7 +40,7 @@ export function DisputedTradesTab({ disputedTrades }: DisputedTradesTabProps) {
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="h-10 px-4 text-left text-xs font-medium">
-                      {t("trade_id")}
+                      {tExt("trade_id")}
                     </th>
                     <th className="h-10 px-4 text-left text-xs font-medium">
                       Type
@@ -70,8 +72,8 @@ export function DisputedTradesTab({ disputedTrades }: DisputedTradesTabProps) {
                             variant="outline"
                             className={
                               trade.type === TRADE_TYPE.BUY
-                                ? "bg-green-100 text-green-800"
-                                : "bg-blue-100 text-blue-800"
+                                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                                : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
                             }
                           >
                             {trade.type === TRADE_TYPE.BUY ? "Buy" : "Sell"}
@@ -96,7 +98,7 @@ export function DisputedTradesTab({ disputedTrades }: DisputedTradesTabProps) {
                           </div>
                         </td>
                         <td className="p-2 align-middle text-xs">
-                          <Badge variant="destructive">{t("under_review")}</Badge>
+                          <Badge variant="destructive">{tCommon("under_review")}</Badge>
                         </td>
                         <td className="p-2 align-middle text-xs">
                           <Link href={`/p2p/trade/${trade.id}`}>

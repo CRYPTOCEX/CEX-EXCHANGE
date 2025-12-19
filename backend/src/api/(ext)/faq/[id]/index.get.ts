@@ -8,6 +8,8 @@ export const metadata = {
     "Retrieves a single FAQ entry by its ID, including its related FAQs, computed helpfulCount from feedback, and increments the view count.",
   operationId: "getFAQById",
   tags: ["FAQ"],
+  logModule: "FAQ",
+  logTitle: "Get FAQ by ID",
   parameters: [
     {
       index: 0,
@@ -30,17 +32,22 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
+
+  ctx?.step(`Fetching FAQ by ID: ${params.id}`);
   const faq = await models.faq.findByPk(params.id);
 
   if (!faq) {
+    ctx?.fail("FAQ not found");
     throw createError({ statusCode: 404, message: "FAQ not found" });
   }
 
+  ctx?.step("Incrementing view count");
   // Increment the views count and reload the instance to get the updated value.
   await faq.increment("views", { by: 1 });
   await faq.reload();
 
+  ctx?.step("Parsing related FAQ IDs");
   // Parse relatedFaqIds if stored as a JSON string.
   let relatedFaqIds: string[] = [];
   if (faq.relatedFaqIds) {
@@ -59,6 +66,7 @@ export default async (data: Handler) => {
   // Fetch related FAQs if there are any related FAQ IDs.
   let relatedFaqs = [];
   if (relatedFaqIds.length > 0) {
+    ctx?.step(`Fetching ${relatedFaqIds.length} related FAQs`);
     relatedFaqs = await models.faq.findAll({
       where: {
         id: relatedFaqIds,
@@ -66,6 +74,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Calculating helpful count from feedback");
   // Compute the helpfulCount by counting all feedbacks with isHelpful true.
   const helpfulCount = await models.faqFeedback.count({
     where: {
@@ -74,11 +83,13 @@ export default async (data: Handler) => {
     },
   });
 
+  ctx?.step("Building response data");
   // Convert the FAQ model instance to a plain object.
   const faqData = faq.toJSON();
   // Embed the related FAQs and helpfulCount within the FAQ object.
   faqData.relatedFaqs = relatedFaqs;
   faqData.helpfulCount = helpfulCount;
 
+  ctx?.success(`FAQ retrieved successfully (views: ${faq.views}, helpful: ${helpfulCount})`);
   return faqData;
 };

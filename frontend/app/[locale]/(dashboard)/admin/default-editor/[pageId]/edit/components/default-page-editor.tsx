@@ -32,6 +32,7 @@ import {
   CTASectionEditor,
   type EditorProps
 } from "./";
+import { useTranslations } from "next-intl";
 
 interface PageContent {
   id: string;
@@ -50,6 +51,8 @@ interface DefaultPageEditorProps {
 }
 
 export function DefaultPageEditor({ pageId }: DefaultPageEditorProps) {
+  const tCommon = useTranslations("common");
+  const tDashboard = useTranslations("dashboard");
   const router = useRouter();
   
   const [pageContent, setPageContent] = useState<PageContent | null>(null);
@@ -230,7 +233,7 @@ export function DefaultPageEditor({ pageId }: DefaultPageEditorProps) {
               {pageContent.title}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Edit your {isHomePage ? 'home' : 'legal'} page content
+              {tCommon("edit_your")} {isHomePage ? 'home' : 'legal'} {tDashboard("page_content")}
             </p>
           </div>
         </div>
@@ -295,16 +298,16 @@ export function DefaultPageEditor({ pageId }: DefaultPageEditorProps) {
               ) : (
                 <div>
                   <Label htmlFor="content" className="text-base font-medium">
-                    Page Content
+                    {tDashboard("page_content")}
                   </Label>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Use the rich text editor to create and format your page content
+                    {tDashboard("use_the_rich_text_editor_to")}
                   </p>
                   <div className="mt-1.5 overflow-hidden">
                     <RichTextEditor
                       value={pageContent.content || ""}
                       onChange={handleContentChange}
-                      placeholder="Write your page content here..."
+                      placeholder={tDashboard("write_your_page_content_here_ellipsis")}
                       uploadDir="legal-pages"
                     />
                   </div>
@@ -323,7 +326,7 @@ export function DefaultPageEditor({ pageId }: DefaultPageEditorProps) {
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="title" className="text-base font-medium">
-                    Page Title
+                    {tDashboard("page_title")}
                   </Label>
                   <Input
                     id="title"
@@ -332,7 +335,7 @@ export function DefaultPageEditor({ pageId }: DefaultPageEditorProps) {
                       setPageContent(prev => prev ? { ...prev, title: e.target.value } : null);
                       setHasChanges(true);
                     }}
-                    placeholder="Enter page title"
+                    placeholder={tDashboard("enter_page_title")}
                     className="mt-1.5"
                   />
                 </div>
@@ -341,7 +344,7 @@ export function DefaultPageEditor({ pageId }: DefaultPageEditorProps) {
                     Status
                   </Label>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Set the page status to control visibility
+                    {tDashboard("set_the_page_status_to_control_visibility")}
                   </p>
                   <select 
                     id="status"
@@ -370,6 +373,7 @@ function MetaEditor({ meta, onMetaChange }: {
   meta: Record<string, any>;
   onMetaChange: (meta: Record<string, any>) => void;
 }) {
+  const t = useTranslations("dashboard");
   const handleChange = (key: string, value: any) => {
     onMetaChange({ ...meta, [key]: value });
   };
@@ -379,7 +383,7 @@ function MetaEditor({ meta, onMetaChange }: {
       <div>
         <h3 className="text-lg font-semibold mb-4">SEO Settings</h3>
         <p className="text-sm text-muted-foreground mb-6">
-          Optimize your page for search engines
+          {t("optimize_your_page_for_search_engines")}
         </p>
       </div>
       
@@ -392,7 +396,7 @@ function MetaEditor({ meta, onMetaChange }: {
             id="seoTitle"
             value={meta.seoTitle || ""}
             onChange={(e) => handleChange("seoTitle", e.target.value)}
-            placeholder="Enter SEO title"
+            placeholder={t("enter_seo_title")}
             className="mt-1.5"
           />
         </div>
@@ -405,7 +409,7 @@ function MetaEditor({ meta, onMetaChange }: {
             id="seoDescription"
             value={meta.seoDescription || ""}
             onChange={(e) => handleChange("seoDescription", e.target.value)}
-            placeholder="Enter SEO description"
+            placeholder={t("enter_seo_description")}
             className="mt-1.5"
             rows={3}
           />
@@ -419,7 +423,7 @@ function MetaEditor({ meta, onMetaChange }: {
             id="keywords"
             value={Array.isArray(meta.keywords) ? meta.keywords.join(", ") : ""}
             onChange={(e) => handleChange("keywords", e.target.value.split(",").map((k: string) => k.trim()).filter(Boolean))}
-            placeholder="Enter keywords separated by commas"
+            placeholder={t("enter_keywords_separated_by_commas")}
             className="mt-1.5"
           />
         </div>
@@ -433,6 +437,7 @@ function SectionalHomeEditor({ variables, onVariablesChange }: {
   variables: Record<string, any>;
   onVariablesChange: (variables: Record<string, any>) => void;
 }) {
+  const t = useTranslations("dashboard");
   // Helper function to get nested values from variables
   const getValue = (path: string) => {
     const keys = path.split('.');
@@ -465,9 +470,9 @@ function SectionalHomeEditor({ variables, onVariablesChange }: {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-2">Home Page Sections</h3>
+        <h3 className="text-lg font-semibold mb-2">{t("home_page_sections")}</h3>
         <p className="text-sm text-muted-foreground mb-6">
-          Configure your home page sections and content
+          {t("configure_your_home_page_sections_and_content")}
         </p>
       </div>
       

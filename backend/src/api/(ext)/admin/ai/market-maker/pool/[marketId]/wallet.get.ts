@@ -1,16 +1,18 @@
 import { models } from "@b/db";
 import {
   unauthorizedResponse,
-  notFoundMetadataResponse,
+  notFoundResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+} from "@b/utils/schema/errors";
 import { createError } from "@b/utils/error";
 import { getWalletByUserIdAndCurrency } from "@b/api/(ext)/ecosystem/utils/wallet";
 
 export const metadata: OperationObject = {
-  summary: "Get admin wallet balances for AI Market Maker",
-  operationId: "getAiMarketMakerWalletBalances",
+  summary: "Get admin wallet balances for Market Maker pool",
+  operationId: "getMarketMakerPoolWallet",
   tags: ["Admin", "AI Market Maker", "Pool"],
+  description:
+    "Retrieves the admin\'s wallet balances for both base and quote currencies associated with an AI Market Maker. This information is useful for checking available funds before making deposits to the pool.",
   parameters: [
     {
       index: 0,
@@ -23,7 +25,7 @@ export const metadata: OperationObject = {
   ],
   responses: {
     200: {
-      description: "Admin wallet balances",
+      description: "Admin wallet balances retrieved successfully",
       content: {
         "application/json": {
           schema: {
@@ -31,18 +33,40 @@ export const metadata: OperationObject = {
             properties: {
               base: {
                 type: "object",
+                description: "Base currency wallet information",
                 properties: {
-                  currency: { type: "string" },
-                  balance: { type: "number" },
-                  walletId: { type: "string" },
+                  currency: {
+                    type: "string",
+                    description: "Base currency symbol",
+                  },
+                  balance: {
+                    type: "number",
+                    description: "Available balance in base currency",
+                  },
+                  walletId: {
+                    type: "string",
+                    nullable: true,
+                    description: "Wallet ID (null if wallet doesn't exist)",
+                  },
                 },
               },
               quote: {
                 type: "object",
+                description: "Quote currency wallet information",
                 properties: {
-                  currency: { type: "string" },
-                  balance: { type: "number" },
-                  walletId: { type: "string" },
+                  currency: {
+                    type: "string",
+                    description: "Quote currency symbol",
+                  },
+                  balance: {
+                    type: "number",
+                    description: "Available balance in quote currency",
+                  },
+                  walletId: {
+                    type: "string",
+                    nullable: true,
+                    description: "Wallet ID (null if wallet doesn't exist)",
+                  },
                 },
               },
             },
@@ -51,21 +75,25 @@ export const metadata: OperationObject = {
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("AI Market Maker"),
+    404: notFoundResponse("AI Market Maker"),
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "ADMIN_AI",
+  logTitle: "Get Market Maker Pool Wallet",
   permission: "view.ai.market-maker.pool",
 };
 
 export default async (data: Handler) => {
-  const { params, user } = data;
+  const { params, user, ctx } = data;
 
   if (!user?.id) {
     throw createError(401, "Unauthorized");
   }
 
   // Get market maker with market info
+  ctx?.step("Get Market Maker Pool Wallet");
+
   const marketMaker = await models.aiMarketMaker.findByPk(params.marketId, {
     include: [
       {
@@ -103,6 +131,7 @@ export default async (data: Handler) => {
     // Wallet might not exist yet
   }
 
+  ctx?.success("Get Market Maker Pool Wallet retrieved successfully");
   return {
     base: {
       currency: baseCurrency,

@@ -2,6 +2,7 @@ import { jwtVerify, SignJWT } from "jose";
 import crypto from "crypto";
 import { makeUuid } from "./passwords";
 import { RedisSingleton } from "./redis";
+import { logger } from "@b/utils/console";
 
 export const issuerKey = "platform";
 const redis = RedisSingleton.getInstance();
@@ -108,7 +109,7 @@ export const verifyAccessToken = async (token: string): Promise<any> => {
     return payload;
   } catch (error) {
     if (error.message !== `"exp" claim timestamp check failed`) {
-      console.error("JWT verification failed:", error.message);
+      logger.debug("AUTH", `JWT verification failed: ${error.message}`);
     }
     return null;
   }
@@ -151,7 +152,7 @@ export const verifyRefreshToken = async (token: string): Promise<any> => {
     );
     return payload;
   } catch (error) {
-    console.error("JWT verification failed:", error.message);
+    logger.debug("AUTH", `Refresh token verification failed: ${error.message}`);
     return null;
   }
 };
@@ -213,7 +214,7 @@ export const verifyResetToken = async (token: string): Promise<any> => {
     );
     return payload;
   } catch (error) {
-    console.error("Reset Token verification failed:", error.message);
+    logger.debug("AUTH", `Reset token verification failed: ${error.message}`);
     return null;
   }
 };

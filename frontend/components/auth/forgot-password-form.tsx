@@ -31,7 +31,8 @@ export default function ForgotPasswordForm({
   onLoginClick,
   onTokenSubmit,
 }: ForgotPasswordFormProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("components_auth");
+  const tCommon = useTranslations("common");
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [token, setToken] = useState("");
@@ -302,7 +303,7 @@ export default function ForgotPasswordForm({
               >
                 <Input
                   type="text"
-                  placeholder="Enter reset token"
+                  placeholder={t("enter_reset_token")}
                   value={token}
                   onChange={(e) => setToken(e.target.value)}
                   required
@@ -391,7 +392,7 @@ export default function ForgotPasswordForm({
             >
               <Input
                 type="email"
-                placeholder="Email address"
+                placeholder={tCommon("email_address")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

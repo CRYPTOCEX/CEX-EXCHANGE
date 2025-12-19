@@ -18,8 +18,9 @@ function getUserName(user: any): string {
   return "Unknown User";
 }
 
-function getStatusBadge(status: string | undefined) {
-  const t = useTranslations("ext");
+function StatusBadge({ status }: { status: string | undefined }) {
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   if (!status) {
     return (
       <Badge variant="outline" className="border-gray-200 bg-gray-100 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
@@ -51,7 +52,7 @@ function getStatusBadge(status: string | undefined) {
 }
 
 export function UserHistory({ dispute }: UserHistoryProps) {
-  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
 
   const reportedBy = dispute?.reportedBy || {};
   const against = dispute?.against || {};
@@ -59,7 +60,7 @@ export function UserHistory({ dispute }: UserHistoryProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("user_history")}</CardTitle>
+        <CardTitle>{tCommon("user_history")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -71,23 +72,23 @@ export function UserHistory({ dispute }: UserHistoryProps) {
             </h3>
             <div className="space-y-1.5 text-sm pl-4">
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Disputes:</span>
+                <span className="text-muted-foreground">{tCommon("disputes")}:</span>
                 <span>{reportedBy.disputeCount ?? "N/A"}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Trades:</span>
+                <span className="text-muted-foreground">{tCommon("trades")}:</span>
                 <span>{reportedBy.tradeCount ?? "N/A"}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Status:</span>
-                {getStatusBadge(reportedBy.status)}
+                <span className="text-muted-foreground">{tCommon("status")}:</span>
+                <StatusBadge status={reportedBy.status} />
               </div>
               {reportedBy.id && (
                 <Link
                   href={`/admin/crm/user/${reportedBy.id}`}
                   className="text-xs text-primary hover:underline block pt-1"
                 >
-                  View Full Profile →
+                  {tCommon("view_full_profile_1")}
                 </Link>
               )}
             </div>
@@ -103,23 +104,23 @@ export function UserHistory({ dispute }: UserHistoryProps) {
             </h3>
             <div className="space-y-1.5 text-sm pl-4">
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Disputes:</span>
+                <span className="text-muted-foreground">{tCommon("disputes")}:</span>
                 <span>{against.disputeCount ?? "N/A"}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Trades:</span>
+                <span className="text-muted-foreground">{tCommon("trades")}:</span>
                 <span>{against.tradeCount ?? "N/A"}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Status:</span>
-                {getStatusBadge(against.status)}
+                <span className="text-muted-foreground">{tCommon("status")}:</span>
+                <StatusBadge status={against.status} />
               </div>
               {against.id && (
                 <Link
                   href={`/admin/crm/user/${against.id}`}
                   className="text-xs text-primary hover:underline block pt-1"
                 >
-                  View Full Profile →
+                  {tCommon("view_full_profile_1")}
                 </Link>
               )}
             </div>

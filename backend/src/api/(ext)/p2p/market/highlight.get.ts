@@ -7,6 +7,8 @@ export const metadata = {
     "Retrieves highlighted market data (for example, top active offers).",
   operationId: "getP2PMarketHighlights",
   tags: ["P2P", "Market"],
+  logModule: "P2P",
+  logTitle: "Get market highlights",
   responses: {
     200: { description: "P2P market highlights retrieved successfully." },
     401: unauthorizedResponse,
@@ -14,7 +16,10 @@ export const metadata = {
   },
 };
 
-export default async (data: { query?: any }) => {
+export default async (data: { query?: any; ctx?: any }) => {
+  const { ctx } = data || {};
+
+  ctx?.step("Fetching market highlights");
   try {
     // Example: get the five newest active offers
     const highlights = await models.p2pOffer.findAll({
@@ -22,8 +27,11 @@ export default async (data: { query?: any }) => {
       order: [["createdAt", "DESC"]],
       limit: 5,
     });
+
+    ctx?.success(`Retrieved ${highlights.length} market highlights`);
     return highlights;
   } catch (err: any) {
+    ctx?.fail(err.message || "Failed to retrieve market highlights");
     throw new Error("Internal Server Error: " + err.message);
   }
 };

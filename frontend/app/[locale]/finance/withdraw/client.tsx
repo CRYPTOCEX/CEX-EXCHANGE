@@ -86,7 +86,8 @@ interface WithdrawFormProps {
   initialCurrency?: string;
 }
 export function WithdrawForm() {
-  const t = useTranslations("common");
+  const t = useTranslations("finance");
+  const tCommon = useTranslations("common");
   const searchParams = useSearchParams();
   const initialType = searchParams?.get("type");
   const initialCurrency = searchParams?.get("currency");
@@ -148,7 +149,7 @@ export function WithdrawForm() {
     const isFiatEnabled = settings?.fiatWallets === true || settings?.fiatWallets === "true";
     const isEcosystemEnabled = extensions?.includes("ecosystem");
 
-    const walletTypes = [];
+    const walletTypes: string[] = [];
     if (isFiatEnabled) walletTypes.push("FIAT");
     if (isSpotEnabled) walletTypes.push("SPOT");
     if (isEcosystemEnabled) walletTypes.push("ECO");
@@ -401,7 +402,7 @@ export function WithdrawForm() {
     // Check KYC requirements for withdrawal feature only if KYC is enabled
     const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
     if (kycEnabled) {
-      const kycRequirement = getKycRequirement(user, 'WITHDRAW');
+      const kycRequirement = getKycRequirement(user as any, 'WITHDRAW');
       if (kycRequirement.required) {
         return kycRequirement.message;
       }
@@ -486,7 +487,7 @@ export function WithdrawForm() {
             <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
           </div>
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            {t("withdrawal_submitted")}
+            {tCommon("withdrawal_submitted")}
           </h1>
           <p className="text-zinc-600 dark:text-zinc-400">
             {t("your_withdrawal_request_processed_soon")}
@@ -498,14 +499,14 @@ export function WithdrawForm() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
                 <CheckCircle className="h-5 w-5 text-green-500" />
-                {t("withdrawal_details")}
+                {tCommon("withdrawal_details")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-zinc-600 dark:text-zinc-400">
-                    {t("amount")}
+                    {tCommon("amount")}
                   </span>
                   <span className="font-medium text-red-600 dark:text-red-400">
                     -{amount} {currency}
@@ -513,13 +514,13 @@ export function WithdrawForm() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-zinc-600 dark:text-zinc-400">
-                    {t("wallet")}
+                    {tCommon("wallet")}
                   </span>
                   <span className="font-medium">{walletType}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-zinc-600 dark:text-zinc-400">
-                    {t("method")}
+                    {tCommon("method")}
                   </span>
                   <span className="font-medium">
                     {
@@ -545,7 +546,7 @@ export function WithdrawForm() {
                   onClick={() => router.push("/finance/history")}
                   className="flex-1"
                 >
-                  {t("view_history")}
+                  {tCommon("view_history")}
                 </Button>
               </div>
             </CardContent>
@@ -559,7 +560,7 @@ export function WithdrawForm() {
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-          {t("withdraw_funds")}
+          {tCommon("withdraw_funds")}
         </h1>
         <p className="text-zinc-600 dark:text-zinc-400">
           {t("withdraw_your_funds_preferred_destination")}
@@ -591,7 +592,7 @@ export function WithdrawForm() {
               <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-semibold">
                 1
               </span>
-              {t("select_wallet_type")}
+              {tCommon("select_wallet_type")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -599,7 +600,7 @@ export function WithdrawForm() {
               <Alert className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/20">
                 <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                 <AlertTitle className="text-yellow-800 dark:text-yellow-300">
-                  {t("no_wallets_available")}
+                  {tCommon("no_wallets_available")}
                 </AlertTitle>
                 <AlertDescription className="text-yellow-700 dark:text-yellow-400">
                   {t("you_dont_have_any")}
@@ -660,7 +661,7 @@ export function WithdrawForm() {
                  {t("no_currencies_available")}
                </AlertTitle>
                <AlertDescription className="text-yellow-700 dark:text-yellow-400">
-                 {t("no_currencies_with_balance_available_in")} {walletType.toLowerCase()} {t("wallet")}
+                 {t("no_currencies_with_balance_available_in")} {walletType.toLowerCase()} {tCommon("wallet")}
                </AlertDescription>
             </Alert>
           </motion.div>
@@ -673,7 +674,7 @@ export function WithdrawForm() {
                   <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-semibold">
                     2
                   </span>
-                  {t("select_currency")}
+                  {tCommon("select_currency")}
                   {isFetchingCurrencies && (
                     <Loader size="sm" className="ml-2" />
                   )}
@@ -730,7 +731,8 @@ export function WithdrawForm() {
                                     onError={(e) => {
                                       // Fallback to text if image fails to load
                                       e.currentTarget.style.display = 'none';
-                                      e.currentTarget.nextElementSibling.style.display = 'block';
+                                      const sibling = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                      if (sibling) sibling.style.display = 'block';
                                     }}
                                   />
                                 ) : null}
@@ -755,7 +757,7 @@ export function WithdrawForm() {
                                     <span>{t("available_for_withdrawal")}</span>
                                   ) : (
                                     <>
-                                      {t("balance")}{" "}
+                                      {tCommon("balance")}{" "}
                                       {balance.toFixed(8)}
                                     </>
                                   )}
@@ -848,7 +850,7 @@ export function WithdrawForm() {
                             <div className="flex flex-wrap items-center gap-2">
                               {method.processingTime && (
                                 <Badge variant="outline" className="text-xs whitespace-nowrap">
-                                  {method.processingTime} {t("days")}
+                                  {method.processingTime} {tCommon("days")}
                                 </Badge>
                               )}
                               {(method.fixedFee > 0 || method.percentageFee > 0) && (
@@ -861,7 +863,7 @@ export function WithdrawForm() {
                               )}
                               {method.fixedFee === 0 && method.percentageFee === 0 && (
                                 <Badge variant="outline" className="text-xs text-green-600 dark:text-green-400 whitespace-nowrap">
-                                  {t("Free")}
+                                  {tCommon("free")}
                                 </Badge>
                               )}
                             </div>
@@ -900,7 +902,7 @@ export function WithdrawForm() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                      {t("withdrawal_amount")}
+                      {tCommon("withdrawal_amount")}
                     </label>
                     <div className="flex items-center gap-2">
                       <button
@@ -985,7 +987,7 @@ export function WithdrawForm() {
                   )}
                   <div className="flex justify-between text-sm text-zinc-600 dark:text-zinc-400">
                     <span>
-                      {t("available")}{" "}
+                      {tCommon("available")}{" "}
                       {(() => {
                         const curr = availableCurrencies.find(
                           (c) => (c.value || c.name || c.currency) === currency
@@ -1009,7 +1011,7 @@ export function WithdrawForm() {
                       {currency}
                     </span>
                     <span>
-                      {t("min")} {getMinAmount()} {currency} ({t("to_receive")}{" "}
+                      {tCommon("min")} {getMinAmount()} {currency} ({t("to_receive")}{" "}
                       {(() => {
                         const method = withdrawalMethods.find(
                           (m) => m.id === withdrawMethod
@@ -1029,20 +1031,20 @@ export function WithdrawForm() {
                         {isFetchingMax ? (
                           <span className="flex items-center gap-2">
                             <Loader size="sm" />
-                            Calculating maximum withdrawable amount...
+                            {t("calculating_maximum_withdrawable_amount_ellipsis")}
                           </span>
                         ) : maxWithdrawable.maxAmount > 0 ? (
                           <>
-                            <strong>Maximum you can withdraw:</strong> {maxWithdrawable.maxAmount.toFixed(8)} {currency}
+                            <strong>{t("maximum_you_can_withdraw")}:</strong> {maxWithdrawable.maxAmount.toFixed(8)} {currency}
                             <br />
                             <span className="text-xs opacity-75">
-                              (After platform fee: {maxWithdrawable.platformFee.toFixed(8)} {currency}
+                              {t("after_platform_fee")}: {maxWithdrawable.platformFee.toFixed(8)} {currency}
                               {maxWithdrawable.estimatedNetworkFee > 0 && ` + estimated network fee: ${maxWithdrawable.estimatedNetworkFee.toFixed(8)} ${currency}`})
                             </span>
                           </>
                         ) : (
                           <span className="text-red-600 dark:text-red-400">
-                            <strong>Cannot withdraw:</strong> {maxWithdrawable.utxoInfo?.reason || "Insufficient funds"}
+                            <strong>{t("cannot_withdraw")}:</strong> {maxWithdrawable.utxoInfo?.reason || "Insufficient funds"}
                           </span>
                         )}
                       </AlertDescription>
@@ -1060,7 +1062,7 @@ export function WithdrawForm() {
                       <Alert className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
                         <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         <AlertDescription className="text-blue-700 dark:text-blue-300">
-                          <strong>{t("instructions")}</strong>{" "}
+                          <strong>{tCommon("instructions")}</strong>{" "}
                           {method.instructions}
                         </AlertDescription>
                       </Alert>
@@ -1116,7 +1118,7 @@ export function WithdrawForm() {
                                   className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 >
                                   <option value="">
-                                    {t("Select")}
+                                    {tCommon("select")}
                                     {field.title}
                                   </option>
                                   {field.options.map((option: any, optionIndex: number) => (
@@ -1177,7 +1179,7 @@ export function WithdrawForm() {
                 <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-zinc-600 dark:text-zinc-400">
-                      {t("withdrawal_amount")}
+                      {tCommon("withdrawal_amount")}
                     </span>
                     <span className="font-medium">
                       {amount || "0"} {currency}
@@ -1185,7 +1187,7 @@ export function WithdrawForm() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-zinc-600 dark:text-zinc-400">
-                      {t("Platform Fee")}
+                      {tCommon("platform_fee")}
                       {walletType === "ECO" && ["BTC", "LTC", "DOGE", "DASH"].includes(currency) && (
                         <TooltipProvider>
                           <Tooltip>
@@ -1193,7 +1195,7 @@ export function WithdrawForm() {
                               <Info className="inline h-3 w-3 ml-1 text-zinc-400" />
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p className="text-xs">Network fees will be calculated and deducted during processing</p>
+                              <p className="text-xs">{t("network_fees_will_be_calculated_and")}</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -1207,7 +1209,7 @@ export function WithdrawForm() {
                     <div className="flex justify-between text-sm font-semibold">
                       <span className="text-zinc-900 dark:text-zinc-100">
                         {walletType === "ECO" && ["BTC", "LTC", "DOGE", "DASH"].includes(currency)
-                          ? t("Amount to Send (before network fees)")
+                          ? tCommon('amount_to_send')
                           : t("youll_receive")}
                       </span>
                       <span className="text-zinc-900 dark:text-zinc-100">
@@ -1224,7 +1226,7 @@ export function WithdrawForm() {
                     <Alert className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/20 mt-2">
                       <Info className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                       <AlertDescription className="text-yellow-700 dark:text-yellow-300 text-xs">
-                        Network transaction fees will be calculated based on current network conditions and deducted from the amount shown above.
+                        {t("network_transaction_fees_will_be_calculated")}
                       </AlertDescription>
                     </Alert>
                   )}
@@ -1253,11 +1255,11 @@ export function WithdrawForm() {
                           {isSubmitting ? (
                             <>
                               <Loader size="sm" className="mr-2" />
-                              {t("Processing")}.
+                              {tCommon("processing")}.
                             </>
                           ) : (
                             <>
-                              {t("Withdraw")}
+                              {tCommon("withdraw")}
                               <ChevronRight className="ml-2 h-5 w-5" />
                             </>
                           )}
@@ -1284,7 +1286,7 @@ export function WithdrawForm() {
           onClick={reset}
           className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
         >
-          {t("start_over")}
+          {tCommon("start_over")}
         </Button>
       </div>
     </div>

@@ -30,10 +30,17 @@ export const metadata = {
   responses: updateRecordResponses("Ecosystem Market"),
   requiresAuth: true,
   permission: "edit.ecosystem.market",
+  logModule: "ADMIN_FIN",
+  logTitle: "Bulk Update Exchange Market Status",
 };
 
 export default async (data) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("exchangeMarket", ids, status);
+
+  ctx?.step("Updating market status");
+  const result = await updateStatus("exchangeMarket", ids, status);
+
+  ctx?.success();
+  return result;
 };

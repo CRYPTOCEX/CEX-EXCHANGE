@@ -1,9 +1,10 @@
 import { updateStatus, updateRecordResponses } from "@b/utils/query";
 
 export const metadata: OperationObject = {
-  summary: "Updates the status of a Forex Plan",
+  summary: "Updates a Forex plan status",
+  description: "Updates the active/inactive status of a specific Forex plan. Active plans are visible to users for investment.",
   operationId: "updateForexPlanStatus",
-  tags: ["Admin", "Forex Plans"],
+  tags: ["Admin", "Forex", "Plan"],
   parameters: [
     {
       index: 0,
@@ -35,11 +36,20 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Forex Plan"),
   requiresAuth: true,
   permission: "edit.forex.plan",
+  logModule: "ADMIN_FOREX",
+  logTitle: "Update forex plan status",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params , ctx } = data;
   const { id } = params;
   const { status } = body;
-  return updateStatus("forexPlan", id, status);
+
+  ctx?.step(`Validating record ${id}`);
+
+  ctx?.step("Updating status");
+  const result = await updateStatus("forexPlan", id, status);
+
+  ctx?.success("Status updated successfully");
+  return result;
 };

@@ -5,6 +5,7 @@ import { getSolanaService, getTronService, getMoneroService, getTonService } fro
 import { refundUser } from "@b/api/(ext)/ecosystem/utils/wallet";
 import { emailQueue } from "@b/utils/emails";
 import { handleEvmWithdrawal } from "./withdraw";
+import { logger } from "@b/utils/console";
 
 class WithdrawalQueue {
   private static instance: WithdrawalQueue;
@@ -22,15 +23,15 @@ class WithdrawalQueue {
   }
 
   public addTransaction(transactionId: string) {
-    console.log(`[WITHDRAWAL_QUEUE] Adding transaction to queue: ${transactionId}`);
+    logger.info("WITHDRAW", `Adding transaction to queue: ${transactionId}`);
     if (this.processingTransactions.has(transactionId)) {
       // Transaction is already being processed
-      console.log(`[WITHDRAWAL_QUEUE] Transaction ${transactionId} already processing`);
+      logger.debug("WITHDRAW", `Transaction ${transactionId} already processing`);
       return;
     }
     if (!this.queue.includes(transactionId)) {
       this.queue.push(transactionId);
-      console.log(`[WITHDRAWAL_QUEUE] Queue size: ${this.queue.length}`);
+      logger.debug("WITHDRAW", `Queue size: ${this.queue.length}`);
       this.processNext();
     }
   }
@@ -38,14 +39,14 @@ class WithdrawalQueue {
   private async processNext() {
     if (this.isProcessing || this.queue.length === 0) {
       if (this.isProcessing) {
-        console.log(`[WITHDRAWAL_QUEUE] Already processing, skipping`);
+        logger.debug("WITHDRAW", `Already processing, skipping`);
       }
       return;
     }
 
     this.isProcessing = true;
     const transactionId = this.queue.shift();
-    console.log(`[WITHDRAWAL_QUEUE] Processing transaction: ${transactionId}`);
+    logger.info("WITHDRAW", `Processing transaction: ${transactionId}`);
 
     if (transactionId) {
       try {
@@ -64,31 +65,26 @@ class WithdrawalQueue {
         });
 
         if (!transaction) {
-          console.error(`[WITHDRAWAL_QUEUE] Transaction ${transactionId} not found.`);
+          logger.error("WITHDRAW", `Transaction ${transactionId} not found`);
           throw new Error("Transaction not found");
         }
 
-        console.log(`[WITHDRAWAL_QUEUE] Transaction found:`, {
-          id: transaction.id,
-          type: transaction.type,
-          status: transaction.status,
-          amount: transaction.amount
-        });
+        logger.debug("WITHDRAW", `Transaction found: id=${transaction.id}, type=${transaction.type}, status=${transaction.status}, amount=${transaction.amount}`);
 
         if (!transaction.wallet) {
-          console.error(`[WITHDRAWAL_QUEUE] Wallet not found for transaction ${transactionId}`);
+          logger.error("WITHDRAW", `Wallet not found for transaction ${transactionId}`);
           throw new Error("Wallet not found for transaction");
         }
 
         // Update transaction status to 'PROCESSING' to prevent duplicate processing
-        console.log(`[WITHDRAWAL_QUEUE] Updating transaction status to PROCESSING`);
+        logger.debug("WITHDRAW", `Updating transaction status to PROCESSING`);
         const [updatedCount] = await models.transaction.update(
           { status: "PROCESSING" },
           { where: { id: transactionId, status: "PENDING" } }
         );
 
         if (updatedCount === 0) {
-          console.error(`[WITHDRAWAL_QUEUE] Transaction ${transactionId} already processed or in process`);
+          logger.warn("WITHDRAW", `Transaction ${transactionId} already processed or in process`);
           throw new Error("Transaction already processed or in process");
         }
 
@@ -97,15 +93,15 @@ class WithdrawalQueue {
             ? JSON.parse(transaction.metadata)
             : transaction.metadata;
 
-        console.log(`[WITHDRAWAL_QUEUE] Transaction metadata:`, metadata);
+        logger.debug("WITHDRAW", `Transaction metadata: chain=${metadata?.chain}, toAddress=${metadata?.toAddress}`);
 
         if (!metadata || !metadata.chain) {
-          console.error(`[WITHDRAWAL_QUEUE] Invalid metadata:`, metadata);
+          logger.error("WITHDRAW", `Invalid metadata: ${JSON.stringify(metadata)}`);
           throw new Error("Invalid or missing chain in transaction metadata");
         }
 
         // Process withdrawal based on the blockchain chain type
-        console.log(`[WITHDRAWAL_QUEUE] Processing withdrawal for chain: ${metadata.chain}`);
+        logger.info("WITHDRAW", `Processing withdrawal for chain: ${metadata.chain}`);
         await this.processWithdrawal(transaction, metadata);
 
         // Send email to the user
@@ -114,13 +110,10 @@ class WithdrawalQueue {
         // Record admin profit if a fee is associated with the transaction
         await this.recordAdminProfit(transaction, metadata);
       } catch (error) {
-        console.error(
-          `[WITHDRAWAL_QUEUE] Failed to process transaction ${transactionId}: ${error.message}`,
-          error
-        );
+        logger.error("WITHDRAW", `Failed to process transaction ${transactionId}: ${error.message}`);
 
         // Mark transaction as 'FAILED' and attempt to refund the user
-        console.log(`[WITHDRAWAL_QUEUE] Marking transaction as failed`);
+        logger.info("WITHDRAW", `Marking transaction as failed`);
         await this.markTransactionFailed(transactionId, error.message);
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -135,7 +128,7 @@ class WithdrawalQueue {
   }
 
   private async processWithdrawal(transaction: any, metadata: any) {
-    console.log(`[WITHDRAWAL_QUEUE] processWithdrawal started for chain ${metadata.chain}`);
+    logger.info("WITHDRAW", `processWithdrawal started for chain ${metadata.chain}`);
     if (["BTC", "LTC", "DOGE", "DASH"].includes(metadata.chain)) {
       await handleUTXOWithdrawal(transaction);
     } else if (metadata.chain === "SOL") {

@@ -1,12 +1,12 @@
 import { fetchEcosystemTransactions } from "@b/api/(ext)/ecosystem/utils/transactions";
 import { createError } from "@b/utils/error";
+import { unauthorizedResponse, serverErrorResponse } from "@b/utils/schema/errors";
 
 export const metadata: OperationObject = {
-  summary: "Retrieves transactions for a specific address on a chain",
-  description:
-    "Fetches all transactions associated with a specific address on a blockchain.",
-  operationId: "getTransactions",
-  tags: ["Admin", "Blockchain", "Transactions"],
+  summary: "Get master wallet transactions",
+  description: "Retrieves the transaction history for a specific master wallet address on a given blockchain. Returns transaction details including sender, receiver, amount, and timestamp.",
+  operationId: "getMasterWalletTransactions",
+  tags: ["Admin", "Ecosystem", "Wallet"],
   parameters: [
     {
       name: "chain",
@@ -45,15 +45,17 @@ export const metadata: OperationObject = {
         },
       },
     },
-    500: {
-      description: "Failed to retrieve transactions",
-    },
+    401: unauthorizedResponse,
+    500: serverErrorResponse,
   },
   permission: "view.ecosystem.master.wallet",
 };
 
 export const getTransactionsController = async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
+
+  ctx?.step("Fetching master wallet transactions");
+
   try {
     const { chain, address } = params;
     return await fetchEcosystemTransactions(chain, address);

@@ -16,6 +16,8 @@ export const metadata: OperationObject = {
   operationId: "applyEcommerceDiscount",
   tags: ["Ecommerce", "Discounts"],
   requiresAuth: true,
+  logModule: "ECOM",
+  logTitle: "Apply discount code",
   parameters: [
     {
       index: 0,
@@ -62,7 +64,7 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params, body } = data;
+  const { user, params, body, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -70,6 +72,7 @@ export default async (data: Handler) => {
   const { productId } = params;
   const { code } = body;
 
+  ctx?.step("Looking up discount code for product");
   const discount = await models.ecommerceDiscount.findOne({
     where: {
       productId: productId,
@@ -82,12 +85,14 @@ export default async (data: Handler) => {
   });
 
   if (!discount) {
+    ctx?.fail("Discount not found or has expired");
     throw createError({
       statusCode: 404,
       message: "Discount not found or has expired",
     });
   }
 
+  ctx?.step("Checking existing discount usage");
   // Check if user already has this discount applied
   const existingDiscount = await models.ecommerceUserDiscount.findOne({
     where: {
@@ -97,12 +102,14 @@ export default async (data: Handler) => {
   });
 
   if (existingDiscount && existingDiscount.status) {
+    ctx?.fail("Discount already applied and used");
     throw createError({
       statusCode: 400,
       message: "Discount already applied and is no longer active",
     });
   }
 
+  ctx?.step("Creating user discount record");
   if (!existingDiscount) {
     await models.ecommerceUserDiscount.create({
       userId: user.id,
@@ -110,6 +117,8 @@ export default async (data: Handler) => {
       status: false,
     });
   }
+
+  ctx?.success(`Discount code "${code}" applied to product`);
 
   return {
     id: discount.id,

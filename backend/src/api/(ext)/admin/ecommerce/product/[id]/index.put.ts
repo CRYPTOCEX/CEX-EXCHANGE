@@ -2,9 +2,10 @@ import { updateRecord, updateRecordResponses } from "@b/utils/query";
 import { ecommerceProductUpdateSchema } from "../utils";
 
 export const metadata: OperationObject = {
-  summary: "Updates a specific ecommerce product",
+  summary: "Updates a specific ecommerce product by ID",
   operationId: "updateEcommerceProduct",
-  tags: ["Admin", "Ecommerce", "Products"],
+  tags: ["Admin", "Ecommerce", "Product"],
+  description: "Updates an existing ecommerce product with new information. All product fields can be modified including name, description, price, inventory, category, and status.",
   parameters: [
     {
       index: 0,
@@ -18,7 +19,7 @@ export const metadata: OperationObject = {
     },
   ],
   requestBody: {
-    description: "New data for the ecommerce product",
+    description: "Updated product data",
     content: {
       "application/json": {
         schema: ecommerceProductUpdateSchema,
@@ -28,10 +29,12 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("Ecommerce Product"),
   requiresAuth: true,
   permission: "edit.ecommerce.product",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Update Ecommerce Product",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     name,
@@ -46,7 +49,8 @@ export default async (data) => {
     inventoryQuantity,
   } = body;
 
-  return await updateRecord("ecommerceProduct", id, {
+  ctx?.step("Updating E-commerce product");
+  const result = await updateRecord("ecommerceProduct", id, {
     name,
     description,
     shortDescription,
@@ -58,4 +62,7 @@ export default async (data) => {
     walletType,
     inventoryQuantity,
   });
+
+  ctx?.success("Successfully updated E-commerce product");
+  return result;
 };

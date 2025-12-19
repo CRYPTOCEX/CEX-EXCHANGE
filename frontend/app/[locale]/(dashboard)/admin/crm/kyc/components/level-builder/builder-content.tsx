@@ -62,7 +62,8 @@ export function BuilderContent({
   handleReorderFields,
   setRightSidebarOpen,
 }: BuilderContentProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [isDraggingOver, setIsDraggingOver] = React.useState(false);
   const [dropPosition, setDropPosition] = React.useState<{
     index: number;
@@ -287,12 +288,12 @@ export function BuilderContent({
                     </div>
                     <div>
                       <div className="font-medium dark:text-zinc-300">
-                        {t("New")}{" "}
+                        {tCommon("new")}{" "}
                         {draggedFieldType
                           ? draggedFieldType.charAt(0) +
                             draggedFieldType.slice(1).toLowerCase()
                           : ""}{" "}
-                        {t("Field")}
+                        {tCommon("field")}
                       </div>
                       <div className="text-xs text-muted-foreground dark:text-zinc-400">
                         {draggedFieldType}

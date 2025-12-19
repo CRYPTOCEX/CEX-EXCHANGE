@@ -44,12 +44,18 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.ecommerce.order",
+  logModule: "ADMIN_ECOM",
+  logTitle: "List orders",
+  demoMask: ["items.user.email"],
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Parsing query parameters");
+  ctx?.step("Fetching orders from database");
+
+  const result = await getFiltered({
     model: models.ecommerceOrder,
     query,
     sortField: query.sortField || "createdAt",
@@ -74,4 +80,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} orders`);
+  return result;
 };

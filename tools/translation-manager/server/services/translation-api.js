@@ -211,8 +211,13 @@ class TranslationAPI {
                 const namespace = fullKey.substring(0, firstDotIndex);
                 const key = fullKey.substring(firstDotIndex + 1);
 
-                // Special handling for "menu" namespace - use full nested structure
-                if (namespace === 'menu' && key.includes('.')) {
+                // Special handling for namespaces that use deeply nested structure:
+                // - "menu" namespace: menu.admin.dashboard.title -> menu: { admin: { dashboard: { title: "..." } } }
+                // - "ext_*" namespaces with nav: ext_affiliate.nav.home.title -> ext_affiliate: { nav: { home: { title: "..." } } }
+                const needsDeepNesting = (namespace === 'menu' && key.includes('.')) ||
+                                         (namespace.startsWith('ext_') && key.startsWith('nav.'));
+
+                if (needsDeepNesting) {
                     const allParts = fullKey.split('.');
                     setNestedProperty(result, allParts, obj[fullKey]);
                 } else {

@@ -7,6 +7,8 @@ export const metadata = {
     "Retrieves aggregated platform activity data for the current year, grouped by month. Returns data for all 12 months even if no activity exists for some months.",
   operationId: "getAdminP2PMonthlyPlatformActivity",
   tags: ["Admin", "Dashboard", "P2P"],
+  logModule: "ADMIN_P2P",
+  logTitle: "Get P2P Activities",
   requiresAuth: true,
   responses: {
     200: {

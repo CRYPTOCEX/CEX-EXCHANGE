@@ -32,9 +32,12 @@ import {
   TrendingUp,
   Users,
   Wallet,
+  Sparkles,
+  Target,
+  Zap,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { calculateProfit } from "@/utils/calculations";
 import {
   formatCurrency,
@@ -56,7 +59,6 @@ import { useUserStore } from "@/store/user";
 import { useConfigStore } from "@/store/config";
 import KycRequiredNotice from "@/components/blocks/kyc/kyc-required-notice";
 import { useTranslations } from "next-intl";
-
 const faqs = [
   {
     question: "How are profits calculated and distributed?",
@@ -81,7 +83,9 @@ const faqs = [
 ];
 
 export default function PlanDetailClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_forex");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { toast } = useToast();
   const { id } = useParams();
   const router = useRouter();
@@ -231,7 +235,8 @@ export default function PlanDetailClient() {
     return <PlanDetailLoading />;
   }
 
-  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
+  const kycEnabled =
+    settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasAccess = hasKyc() && canAccessFeature("invest_forex");
 
   if (kycEnabled && !hasAccess) {
@@ -239,17 +244,23 @@ export default function PlanDetailClient() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex-1">
-        <div className="container mx-auto px-4 py-6">
+    <div className="min-h-screen bg-linear-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+      <main className="pt-20 pb-24">
+        <div className="container mx-auto px-4">
           {isSuccess ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
+              className="max-w-lg mx-auto"
             >
-              <Card className="max-w-md mx-auto p-8 text-center border-green-200 dark:border-green-700 shadow-lg">
-                <div className="flex flex-col items-center space-y-4">
+              <Card
+                className={`border border-emerald-600/30 dark:border-emerald-600/30 shadow-2xl bg-white dark:bg-zinc-900 overflow-hidden`}
+              >
+                <div
+                  className={`absolute inset-0 bg-linear-to-br from-emerald-500/30 via-teal-500/30 to-emerald-600/30`}
+                />
+                <CardContent className="relative p-8 text-center">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -259,174 +270,220 @@ export default function PlanDetailClient() {
                       damping: 20,
                       delay: 0.2,
                     }}
-                    className="rounded-full bg-green-100 dark:bg-green-900 p-4"
+                    className={`w-24 h-24 rounded-full bg-linear-to-br from-emerald-600 to-teal-600 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-500/25`}
                   >
-                    <CheckCircle className="h-16 w-16 text-green-600" />
+                    <CheckCircle className="h-12 w-12 text-white" />
                   </motion.div>
-                  <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">
                     {t("investment_successful")}
                   </h2>
-                  <p className="text-zinc-600 dark:text-zinc-300">
-                    {t("your_investment_of")}
-                    {formatCurrency(amount)}
-                    {t("in")}
-                    {plan.title} {t("has_been_processed_successfully")}.
+                  <p className="text-zinc-600 dark:text-zinc-400 mb-6">
+                    {t("your_investment_of")} {formatCurrency(amount)}{" "}
+                    {tCommon("in")} {plan.title}{" "}
+                    {t("has_been_processed_successfully")}.
                   </p>
-                  <div className="w-full bg-zinc-100 dark:bg-zinc-700 h-2 rounded-full mt-4">
+                  <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-2 rounded-full overflow-hidden mb-8">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: "100%" }}
                       transition={{ duration: 2 }}
-                      className="bg-green-500 h-2 rounded-full"
-                    ></motion.div>
+                      className={`bg-linear-to-r from-emerald-600 to-teal-600 h-2`}
+                    />
                   </div>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
                     {t("what_would_you_like_to_do_next")}
                   </p>
-                  <div className="flex justify-center space-x-4 mt-4">
-                    <Button onClick={() => router.push("/forex/dashboard")}>
-                      {t("go_to_dashboard")}
-                    </Button>
+                  <div className="flex flex-col sm:flex-row justify-center gap-4">
+                    <Link href="/forex/dashboard">
+                      <Button
+                        className={`w-full sm:w-auto rounded-xl bg-linear-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-size-[200%_100%] hover:bg-position-[100%_0] text-white font-semibold transition-all duration-300`}
+                      >
+                        {tCommon("go_to_dashboard")}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
                     <Button
                       variant="outline"
                       onClick={resetFormForMoreInvestment}
+                      className={`rounded-xl border-emerald-600/30 text-emerald-600 hover:bg-emerald-600/5 dark:text-emerald-400 dark:hover:bg-emerald-600/10`}
                     >
                       {t("invest_more")}
                     </Button>
                   </div>
-                </div>
+                </CardContent>
               </Card>
             </motion.div>
           ) : (
-            <div className="grid lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 pb-12">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="flex flex-wrap items-center justify-start gap-4 mb-6">
+            <>
+              {/* Header */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="mb-8"
+              >
+                <div className="flex flex-wrap items-center gap-4 mb-6">
+                  <Link href="/forex/plan">
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => router.push("/forex/plan")}
+                      className={`rounded-xl border-zinc-200 dark:border-zinc-700 hover:bg-emerald-500/5 dark:hover:bg-emerald-600/10 hover:border-emerald-600/30`}
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </Button>
-                    <div>
-                      <div className="flex items-center">
-                        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-                          {plan.title}
-                        </h1>
-                        <Badge
-                          variant="outline"
-                          className="ml-3 px-3 py-1 bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700"
-                        >
-                          {formatPercentage(plan.profitPercentage || 0)}
-                          {t("Profit")}
-                        </Badge>
-                      </div>
-                      <p className="text-zinc-600 dark:text-zinc-300 mt-1">
-                        {plan.description}
-                      </p>
+                  </Link>
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-3 mb-1">
+                      <h1 className="text-3xl md:text-4xl font-bold bg-linear-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">
+                        {plan.title}
+                      </h1>
+                      <Badge
+                        className={`bg-linear-to-r from-emerald-600 to-teal-600 text-white px-3 py-1 font-semibold`}
+                      >
+                        {formatPercentage(plan.profitPercentage || 0)}{" "}
+                        {tCommon("profit")}
+                      </Badge>
                     </div>
+                    <p className="text-zinc-600 dark:text-zinc-400">
+                      {plan.description}
+                    </p>
                   </div>
+                </div>
+              </motion.div>
 
-                  <Card className="overflow-hidden mb-8 shadow-md border-0 bg-white dark:bg-zinc-800">
-                    <div className="relative h-64 sm:h-80">
-                      <Image
-                        src={plan.image || "/img/placeholder.svg"}
-                        alt={plan.title || "Plan Image"}
-                        fill
-                        className="object-cover"
-                        priority
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
-                        <div className="p-6 text-white">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <DollarSign className="h-5 w-5 mr-1" />
-                            <span className="font-medium">
-                              {formatCurrency(plan.minAmount || 0)} -{" "}
-                              {formatCurrency(plan.maxAmount || 100000)}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-4">
-                            <div className="flex items-center">
-                              <Wallet className="h-4 w-4 mr-1" />
-                              <span className="text-sm">{plan.walletType}</span>
+              <div className="grid lg:grid-cols-3 gap-8">
+                {/* Left Column - Plan Details */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Hero Image Card */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                  >
+                    <Card className="overflow-hidden border border-zinc-200/50 dark:border-zinc-700/50 shadow-xl bg-white dark:bg-zinc-900">
+                      <div className="relative h-64 sm:h-80">
+                        <Image
+                          src={plan.image || "/img/placeholder.svg"}
+                          alt={plan.title || "Plan Image"}
+                          fill
+                          className="object-cover"
+                          priority
+                        />
+                        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-6">
+                          <div className="flex flex-wrap gap-4">
+                            <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
+                              <DollarSign
+                                className={`h-5 w-5 text-emerald-400 mr-2`}
+                              />
+                              <div>
+                                <p className="text-xs text-white/70">
+                                  {t("investment_range")}
+                                </p>
+                                <p className="text-white font-semibold">
+                                  {formatCurrency(plan.minAmount || 0)} -{" "}
+                                  {formatCurrency(plan.maxAmount || 100000)}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex items-center">
-                              <Calendar className="h-4 w-4 mr-1" />
-                              <span className="text-sm">
-                                {plan.durations && plan.durations.length > 0
-                                  ? `${plan.durations[0].duration} - ${plan.durations[plan.durations.length - 1].duration} ${plan.durations[0].timeframe.toLowerCase()}s`
-                                  : "Flexible duration"}
-                              </span>
+                            <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
+                              <Calendar
+                                className={`h-5 w-5 text-teal-400 mr-2`}
+                              />
+                              <div>
+                                <p className="text-xs text-white/70">
+                                  Duration
+                                </p>
+                                <p className="text-white font-semibold">
+                                  {plan.durations && plan.durations.length > 0
+                                    ? `${plan.durations[0].duration} - ${plan.durations[plan.durations.length - 1].duration} ${plan.durations[0].timeframe.toLowerCase()}s`
+                                    : "Flexible"}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex items-center">
-                              <Users className="h-4 w-4 mr-1" />
-                              <span className="text-sm">
-                                {plan.totalInvestors} {t("active_investors")}
-                              </span>
+                            <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
+                              <Users
+                                className={`h-5 w-5 text-emerald-400 mr-2`}
+                              />
+                              <div>
+                                <p className="text-xs text-white/70">
+                                  Investors
+                                </p>
+                                <p className="text-white font-semibold">
+                                  {plan.totalInvestors}{" "}
+                                  {tCommon("active_investors")}
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </Card>
+                    </Card>
+                  </motion.div>
 
-                  <div className="space-y-6">
-                    <Card className="bg-white dark:bg-zinc-900">
+                  {/* Plan Highlights */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    <Card className="border border-zinc-200/50 dark:border-zinc-700/50 shadow-xl bg-white dark:bg-zinc-900">
                       <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
+                        <CardTitle className="flex items-center text-zinc-900 dark:text-white">
+                          <div
+                            className={`w-10 h-10 rounded-xl bg-emerald-600/10 flex items-center justify-center mr-3`}
+                          >
+                            <BarChart3
+                              className={`h-5 w-5 text-emerald-600`}
+                            />
+                          </div>
                           {t("plan_highlights")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid md:grid-cols-2 gap-6">
+                        <div className="grid sm:grid-cols-2 gap-6">
                           <div className="space-y-4">
-                            <div>
-                              <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">
+                            <div
+                              className={`bg-emerald-500/10 dark:bg-emerald-600/10 rounded-xl p-4 border border-emerald-500/20 dark:border-emerald-600/20`}
+                            >
+                              <h3
+                                className={`text-sm font-medium text-emerald-600 dark:text-emerald-400 mb-1`}
+                              >
                                 {t("profit_range")}
                               </h3>
-                              <p className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+                              <p className="text-2xl font-bold text-zinc-900 dark:text-white">
                                 {formatPercentage(plan.minProfit || 0)} -{" "}
                                 {formatPercentage(plan.maxProfit || 0)}
                               </p>
                             </div>
-                            <div>
-                              <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">
+                            <div
+                              className={`bg-teal-500/10 dark:bg-teal-500/10 rounded-xl p-4 border border-teal-500/20 dark:border-teal-500/20`}
+                            >
+                              <h3
+                                className={`text-sm font-medium text-teal-600 dark:text-teal-400 mb-1`}
+                              >
                                 {t("investment_range")}
                               </h3>
-                              <p className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+                              <p className="text-2xl font-bold text-zinc-900 dark:text-white">
                                 {formatCurrency(plan.minAmount || 0)} -{" "}
                                 {formatCurrency(plan.maxAmount || 100000)}
                               </p>
                             </div>
-                            <div>
+                          </div>
+                          <div className="space-y-4">
+                            <div className="bg-zinc-50 dark:bg-zinc-800 rounded-xl p-4 border border-zinc-100 dark:border-zinc-700">
                               <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">
-                                {t("Currency")}
+                                {tCommon("currency")}
                               </h3>
-                              <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+                              <p className="text-xl font-bold text-zinc-900 dark:text-white">
                                 {plan.currency}
                               </p>
                             </div>
-                          </div>
-                          <div className="space-y-4">
-                            <div>
+                            <div className="bg-zinc-50 dark:bg-zinc-800 rounded-xl p-4 border border-zinc-100 dark:border-zinc-700">
                               <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">
-                                {t("wallet_type")}
+                                {tCommon("total_invested")}
                               </h3>
-                              <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-                                {plan.walletType}
-                              </p>
-                            </div>
-                            <div>
-                              <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">
-                                {t("total_invested")}
-                              </h3>
-                              <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+                              <p className="text-xl font-bold text-zinc-900 dark:text-white">
                                 {formatCurrency(plan.invested)}
                               </p>
                             </div>
@@ -434,91 +491,115 @@ export default function PlanDetailClient() {
                         </div>
                       </CardContent>
                     </Card>
-                    <Card className="bg-white dark:bg-zinc-900">
+                  </motion.div>
+
+                  {/* Security & Features */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  >
+                    <Card className="border border-zinc-200/50 dark:border-zinc-700/50 shadow-xl bg-white dark:bg-zinc-900">
                       <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Shield className="h-5 w-5 mr-2 text-blue-600" />
-                          {t("plan_security_&_features")}
+                        <CardTitle className="flex items-center text-zinc-900 dark:text-white">
+                          <div
+                            className={`w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center mr-3`}
+                          >
+                            <Shield
+                              className={`h-5 w-5 text-teal-500`}
+                            />
+                          </div>
+                          {t("plan_security_features")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <div className="space-y-4">
-                            <div className="flex items-start">
-                              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mr-3">
-                                <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="grid sm:grid-cols-2 gap-6">
+                          {[
+                            {
+                              icon: CheckCircle,
+                              color: "primary",
+                              title: t("secure_investment"),
+                              desc: t("your_funds_are_security_measures"),
+                            },
+                            {
+                              icon: Zap,
+                              color: "secondary",
+                              title: t("transparent_fees"),
+                              desc: t(
+                                "no_hidden_charges_all_fees_are_clearly_displayed"
+                              ),
+                            },
+                            {
+                              icon: Target,
+                              color: "primary",
+                              title: t("expert_management"),
+                              desc: t(
+                                "managed_by_professional_forex_traders"
+                              ),
+                            },
+                            {
+                              icon: Clock,
+                              color: "secondary",
+                              title: tExt("n_24_7_support"),
+                              desc: t("get_help_whenever_you_need_it"),
+                            },
+                          ].map((item, i) => (
+                            <div key={i} className="flex items-start">
+                              <div
+                                className={`shrink-0 w-12 h-12 rounded-xl ${item.color === "primary" ? `bg-emerald-600/10` : `bg-teal-500/10`} flex items-center justify-center mr-4`}
+                              >
+                                <item.icon
+                                  className={`h-6 w-6 ${item.color === "primary" ? `text-emerald-600` : `text-teal-500`}`}
+                                />
                               </div>
                               <div>
-                                <h3 className="font-medium text-zinc-900 dark:text-zinc-100">
-                                  {t("secure_investment")}
+                                <h3 className="font-semibold text-zinc-900 dark:text-white mb-1">
+                                  {item.title}
                                 </h3>
-                                <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                                  {t("your_funds_are_security_measures")}
+                                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                                  {item.desc}
                                 </p>
                               </div>
                             </div>
-                            <div className="flex items-start">
-                              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mr-3">
-                                <CheckCircle className="h-5 w-5 text-blue-600" />
-                              </div>
-                              <div>
-                                <h3 className="font-medium text-zinc-900 dark:text-zinc-100">
-                                  {t("transparent_fees")}
-                                </h3>
-                                <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                                  {t(
-                                    "No hidden charges, all fees are clearly displayed"
-                                  )}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="space-y-4">
-                            <div className="flex items-start">
-                              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center mr-3">
-                                <CheckCircle className="h-5 w-5 text-purple-600" />
-                              </div>
-                              <div>
-                                <h3 className="font-medium text-zinc-900 dark:text-zinc-100">
-                                  {t("expert_management")}
-                                </h3>
-                                <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                                  {t("managed_by_professional_forex_traders")}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-start">
-                              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center mr-3">
-                                <CheckCircle className="h-5 w-5 text-orange-600" />
-                              </div>
-                              <div>
-                                <h3 className="font-medium text-zinc-900 dark:text-zinc-100">
-                                  {t("24_7_support")}
-                                </h3>
-                                <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                                  {t("get_help_whenever_you_need_it")}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
+                          ))}
                         </div>
                       </CardContent>
                     </Card>
-                    <Card className="bg-white dark:bg-zinc-900">
+                  </motion.div>
+
+                  {/* FAQs */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                  >
+                    <Card className="border border-zinc-200/50 dark:border-zinc-700/50 shadow-xl bg-white dark:bg-zinc-900">
                       <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <HelpCircle className="h-5 w-5 mr-2 text-blue-600" />
-                          {t("frequently_asked_questions")}
+                        <CardTitle className="flex items-center text-zinc-900 dark:text-white">
+                          <div
+                            className={`w-10 h-10 rounded-xl bg-emerald-600/10 flex items-center justify-center mr-3`}
+                          >
+                            <HelpCircle
+                              className={`h-5 w-5 text-emerald-600`}
+                            />
+                          </div>
+                          {tCommon("faq_question")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <Accordion type="single" collapsible className="w-full">
                           {faqs.map((faq, index) => (
-                            <AccordionItem key={index} value={`item-${index}`}>
-                              <AccordionTrigger className="text-left dark:text-zinc-100">
+                            <AccordionItem
+                              key={index}
+                              value={`item-${index}`}
+                              className="border-zinc-200 dark:border-zinc-700"
+                            >
+                              <AccordionTrigger
+                                className={`text-left text-zinc-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400`}
+                              >
                                 {faq.question}
                               </AccordionTrigger>
-                              <AccordionContent className="dark:text-zinc-300">
+                              <AccordionContent className="text-zinc-600 dark:text-zinc-400">
                                 {faq.answer}
                               </AccordionContent>
                             </AccordionItem>
@@ -526,192 +607,205 @@ export default function PlanDetailClient() {
                         </Accordion>
                       </CardContent>
                     </Card>
-                  </div>
-                </motion.div>
-              </div>
+                  </motion.div>
+                </div>
 
-              <div id="investment-form" className="lg:col-span-1">
-                <Card className="sticky top-22 shadow-lg bg-white dark:bg-zinc-950/40 rounded-lg">
-                  <div className="bg-zinc-100 dark:bg-zinc-900 rounded-t-lg px-6 py-4">
-                    <CardTitle className="text-xl">
-                      {t("create_your_investment")}
-                    </CardTitle>
-                    <CardDescription>
-                      {currentStep === 1
-                        ? "Step 1: Choose your duration"
-                        : currentStep === 2
-                          ? "Step 2: Set your investment amount"
-                          : "Step 3: Review and confirm"}
-                    </CardDescription>
-                  </div>
-                  <div className="px-6 pt-6 pb-3">
-                    <div className="flex items-center justify-between mb-2">
+                {/* Right Column - Investment Form */}
+                <div className="lg:col-span-1">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    <Card className="sticky top-24 border border-zinc-200/50 dark:border-zinc-700/50 shadow-2xl bg-white dark:bg-zinc-900 overflow-hidden">
+                      {/* Header */}
                       <div
-                        className={`flex flex-col items-center ${
-                          currentStep >= 1
-                            ? "text-blue-600 dark:text-blue-300"
-                            : "text-zinc-400 dark:text-zinc-500"
-                        }`}
+                        className={`bg-linear-to-r from-emerald-600 via-teal-500 to-emerald-600 p-6`}
                       >
-                        <div
-                          className={`h-8 w-8 rounded-full flex items-center justify-center mr-2 ${
-                            currentStep >= 1
-                              ? "bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300"
-                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"
-                          }`}
-                        >
-                          1:
-                        </div>
-                        <span className="text-sm font-medium">
-                          {t("Duration")}
-                        </span>
+                        <CardTitle className="text-xl text-white mb-1">
+                          {t("create_your_investment")}
+                        </CardTitle>
+                        <CardDescription className="text-white/80">
+                          {currentStep === 1
+                            ? "Step 1: Choose your duration"
+                            : currentStep === 2
+                              ? "Step 2: Set your investment amount"
+                              : "Step 3: Review and confirm"}
+                        </CardDescription>
                       </div>
-                      <div className="w-12 h-0.5 bg-zinc-200 dark:bg-zinc-700"></div>
-                      <div
-                        className={`flex flex-col items-center ${
-                          currentStep >= 2
-                            ? "text-blue-600 dark:text-blue-300"
-                            : "text-zinc-400 dark:text-zinc-500"
-                        }`}
-                      >
-                        <div
-                          className={`h-8 w-8 rounded-full flex items-center justify-center mr-2 ${
-                            currentStep >= 2
-                              ? "bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300"
-                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"
-                          }`}
-                        >
-                          2
-                        </div>
-                        <span className="text-sm font-medium">
-                          {t("Amount")}
-                        </span>
-                      </div>
-                      <div className="w-12 h-0.5 bg-zinc-200 dark:bg-zinc-700"></div>
-                      <div
-                        className={`flex flex-col items-center ${
-                          currentStep >= 3
-                            ? "text-blue-600 dark:text-blue-300"
-                            : "text-zinc-400 dark:text-zinc-500"
-                        }`}
-                      >
-                        <div
-                          className={`h-8 w-8 rounded-full flex items-center justify-center mr-2 ${
-                            currentStep >= 3
-                              ? "bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300"
-                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"
-                          }`}
-                        >
-                          3
-                        </div>
-                        <span className="text-sm font-medium">
-                          {t("Confirm")}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <CardContent className="px-6 max-h-[50vh] overflow-y-auto">
-                    <AnimatePresence mode="wait">
-                      {currentStep === 1 && (
-                        <motion.div
-                          key="step1"
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 20 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <div className="space-y-6">
-                            <div>
-                              <Label className="text-base font-medium mb-2 block text-zinc-900 dark:text-zinc-100">
-                                {t("select_investment_duration")}
-                              </Label>
-                              <RadioGroup
-                                value={selectedDurationId}
-                                onValueChange={handleDurationChange}
-                                className="grid grid-cols-2 gap-4 mt-2"
-                              >
-                                {durations.map((duration) => (
-                                  <div
-                                    key={duration.id}
-                                    className={`border rounded-lg p-3 cursor-pointer transition-all ${
-                                      selectedDurationId === duration.id
-                                        ? "border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-300"
-                                        : "border-zinc-200 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-800"
-                                    }`}
-                                    onClick={() =>
-                                      handleDurationChange(duration.id)
-                                    }
-                                  >
-                                    <RadioGroupItem
-                                      value={duration.id}
-                                      id={duration.id}
-                                      className="sr-only"
-                                    />
-                                    <Label
-                                      htmlFor={duration.id}
-                                      className="flex items-center cursor-pointer w-full h-full"
-                                    >
-                                      <Clock className="h-4 w-4 mr-2" />
-                                      <span className="font-medium">
-                                        {formatDuration(
-                                          duration.duration,
-                                          duration.timeframe
-                                        )}
-                                      </span>
-                                    </Label>
-                                  </div>
-                                ))}
-                              </RadioGroup>
-                            </div>
-                            <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
-                              <h3 className="font-medium text-blue-900 dark:text-blue-300 mb-2 flex items-center">
-                                <Info className="h-4 w-4 mr-2" />
-                                {t("duration_information")}
-                              </h3>
-                              <p className="text-sm text-blue-800 dark:text-blue-200">
-                                {t("the_investment_duration_be_invested")}.{" "}
-                                {t("longer_durations_often_longer_commitment")}.
-                              </p>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
 
-                      {currentStep === 2 && (
-                        <motion.div
-                          key="step2"
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 20 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <div className="space-y-6">
-                            <div>
-                              <Input
-                                type="number"
-                                value={amount}
-                                onChange={(e) =>
-                                  handleAmountChange(
-                                    Number.parseFloat(e.target.value)
-                                  )
-                                }
-                                min={plan.minAmount || 100}
-                                max={maxAllowed}
-                                title="Investment Amount"
-                                hasShadow={false}
-                              />
-                              <div className="mt-2">
-                                <Label className="text-xs text-zinc-600 dark:text-zinc-300">
-                                  {t("your_wallet_balance")}{" "}
-                                  {formatCurrency(walletBalance)}
-                                </Label>
+                      {/* Progress Steps */}
+                      <div className="px-6 py-4 bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700">
+                        <div className="flex items-center justify-between">
+                          {[
+                            { step: 1, label: tCommon("duration") },
+                            { step: 2, label: tCommon("amount") },
+                            { step: 3, label: tCommon("confirm") },
+                          ].map((item, i) => (
+                            <div key={item.step} className="flex items-center">
+                              <div className="flex flex-col items-center">
+                                <div
+                                  className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm transition-all duration-300 ${
+                                    currentStep >= item.step
+                                      ? `bg-linear-to-br from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/25`
+                                      : "bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400"
+                                  }`}
+                                >
+                                  {item.step}
+                                </div>
+                                <span
+                                  className={`text-xs font-medium mt-1 ${
+                                    currentStep >= item.step
+                                      ? `text-emerald-600 dark:text-emerald-400`
+                                      : "text-zinc-500 dark:text-zinc-400"
+                                  }`}
+                                >
+                                  {item.label}
+                                </span>
                               </div>
-                              <div className="mt-4">
-                                <div className="flex justify-between text-sm mb-2">
-                                  <Label className="text-zinc-600 dark:text-zinc-300">
+                              {i < 2 && (
+                                <div
+                                  className={`w-8 h-0.5 mx-2 transition-colors ${
+                                    currentStep > item.step
+                                      ? `bg-emerald-600`
+                                      : "bg-zinc-200 dark:bg-zinc-700"
+                                  }`}
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <CardContent className="p-6 max-h-96 overflow-y-auto">
+                        <AnimatePresence mode="wait">
+                          {currentStep === 1 && (
+                            <motion.div
+                              key="step1"
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: 20 }}
+                              transition={{ duration: 0.3 }}
+                              className="space-y-6"
+                            >
+                              <div>
+                                <Label className="text-base font-semibold mb-3 block text-zinc-900 dark:text-white">
+                                  {t("select_investment_duration")}
+                                </Label>
+                                <RadioGroup
+                                  value={selectedDurationId}
+                                  onValueChange={handleDurationChange}
+                                  className="grid grid-cols-2 gap-3"
+                                >
+                                  {durations.map((duration) => (
+                                    <div
+                                      key={duration.id}
+                                      className={`border-2 rounded-xl p-3 cursor-pointer transition-all duration-200 ${
+                                        selectedDurationId === duration.id
+                                          ? `border-emerald-600 bg-emerald-500/10 dark:bg-emerald-600/10`
+                                          : `border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/30 dark:hover:border-emerald-600/50 hover:bg-zinc-50 dark:hover:bg-zinc-800`
+                                      }`}
+                                      onClick={() =>
+                                        handleDurationChange(duration.id)
+                                      }
+                                    >
+                                      <RadioGroupItem
+                                        value={duration.id}
+                                        id={duration.id}
+                                        className="sr-only"
+                                      />
+                                      <Label
+                                        htmlFor={duration.id}
+                                        className="flex items-center cursor-pointer w-full"
+                                      >
+                                        <Clock
+                                          className={`h-4 w-4 mr-2 ${
+                                            selectedDurationId === duration.id
+                                              ? `text-emerald-600`
+                                              : "text-zinc-400"
+                                          }`}
+                                        />
+                                        <span
+                                          className={`font-medium ${
+                                            selectedDurationId === duration.id
+                                              ? `text-emerald-700 dark:text-emerald-400`
+                                              : "text-zinc-700 dark:text-zinc-300"
+                                          }`}
+                                        >
+                                          {formatDuration(
+                                            duration.duration,
+                                            duration.timeframe
+                                          )}
+                                        </span>
+                                      </Label>
+                                    </div>
+                                  ))}
+                                </RadioGroup>
+                              </div>
+                              <div
+                                className={`bg-emerald-500/10 dark:bg-emerald-600/10 p-4 rounded-xl border border-emerald-500/20 dark:border-emerald-600/20`}
+                              >
+                                <h3
+                                  className={`font-semibold text-emerald-700 dark:text-emerald-400 mb-2 flex items-center`}
+                                >
+                                  <Info className="h-4 w-4 mr-2" />
+                                  {t("duration_information")}
+                                </h3>
+                                <p
+                                  className={`text-sm text-emerald-700 dark:text-emerald-400`}
+                                >
+                                  {t("the_investment_duration_be_invested")}.{" "}
+                                  {t(
+                                    "longer_durations_often_longer_commitment"
+                                  )}
+                                  .
+                                </p>
+                              </div>
+                            </motion.div>
+                          )}
+
+                          {currentStep === 2 && (
+                            <motion.div
+                              key="step2"
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: 20 }}
+                              transition={{ duration: 0.3 }}
+                              className="space-y-6"
+                            >
+                              <div>
+                                <Input
+                                  type="number"
+                                  value={amount}
+                                  onChange={(e) =>
+                                    handleAmountChange(
+                                      Number.parseFloat(e.target.value)
+                                    )
+                                  }
+                                  min={plan.minAmount || 100}
+                                  max={maxAllowed}
+                                  title={tCommon("investment_amount")}
+                                  className="rounded-xl"
+                                />
+                                <div className="flex items-center justify-between mt-2 text-sm">
+                                  <span className="text-zinc-500 dark:text-zinc-400">
+                                    {tExt("your_wallet_balance")}
+                                  </span>
+                                  <span
+                                    className={`font-semibold text-emerald-600 dark:text-emerald-400`}
+                                  >
+                                    {formatCurrency(walletBalance)}
+                                  </span>
+                                </div>
+                              </div>
+                              <div>
+                                <div className="flex justify-between text-sm mb-3">
+                                  <Label className="text-zinc-600 dark:text-zinc-400">
                                     {t("adjust_amount")}
                                   </Label>
-                                  <span className="font-medium text-blue-600 dark:text-blue-300">
+                                  <span
+                                    className={`font-bold text-emerald-600 dark:text-emerald-400`}
+                                  >
                                     {formatCurrency(amount)}
                                   </span>
                                 </div>
@@ -723,189 +817,209 @@ export default function PlanDetailClient() {
                                   onValueChange={(values) =>
                                     handleAmountChange(values[0])
                                   }
-                                  className="mt-2"
+                                  className={`**:[[role=slider]]:bg-emerald-600`}
                                 />
-                                <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                <div className="flex justify-between text-xs text-zinc-500 mt-2">
                                   <span>
                                     {formatCurrency(plan.minAmount || 100)}
                                   </span>
                                   <span>{formatCurrency(maxAllowed)}</span>
                                 </div>
                               </div>
-                            </div>
-                            <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
-                              <h3 className="font-medium text-green-900 dark:text-green-300 mb-2 flex items-center">
-                                <TrendingUp className="h-4 w-4 mr-2" />
-                                {t("profit_estimate")}
-                              </h3>
-                              <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                  <p className="text-xs text-zinc-600 dark:text-zinc-300">
-                                    {t("monthly_profit")}
-                                  </p>
-                                  <p className="text-lg font-semibold text-green-700 dark:text-green-300">
-                                    {formatCurrency(estimatedProfit / 12)}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-zinc-600 dark:text-zinc-300">
-                                    {t("annual_profit")}
-                                  </p>
-                                  <p className="text-lg font-semibold text-green-700 dark:text-green-300">
-                                    {formatCurrency(estimatedProfit)}
-                                  </p>
+                              <div
+                                className={`bg-teal-500/10 dark:bg-teal-500/10 p-4 rounded-xl border border-teal-500/20 dark:border-teal-500/20`}
+                              >
+                                <h3
+                                  className={`font-semibold text-teal-600 dark:text-teal-400 mb-3 flex items-center`}
+                                >
+                                  <TrendingUp className="h-4 w-4 mr-2" />
+                                  {t("profit_estimate")}
+                                </h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <p
+                                      className={`text-xs text-teal-600 dark:text-teal-400 mb-1`}
+                                    >
+                                      {t("monthly_profit")}
+                                    </p>
+                                    <p
+                                      className={`text-xl font-bold text-teal-600 dark:text-teal-400`}
+                                    >
+                                      {formatCurrency(estimatedProfit / 12)}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p
+                                      className={`text-xs text-teal-600 dark:text-teal-400 mb-1`}
+                                    >
+                                      {t("annual_profit")}
+                                    </p>
+                                    <p
+                                      className={`text-xl font-bold text-teal-600 dark:text-teal-400`}
+                                    >
+                                      {formatCurrency(estimatedProfit)}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
+                            </motion.div>
+                          )}
 
-                      {currentStep === 3 && (
-                        <motion.div
-                          key="step3"
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 20 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <div className="space-y-6">
-                            <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
-                              <h3 className="font-medium text-blue-900 dark:text-blue-300 mb-3 flex items-center">
-                                <Info className="h-4 w-4 mr-2" />
-                                {t("investment_summary")}
-                              </h3>
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                  <span className="text-zinc-600 dark:text-zinc-300">
-                                    {t("plan")}
-                                  </span>
-                                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                                    {plan.title}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                  <span className="text-zinc-600 dark:text-zinc-300">
-                                    {t("duration")}
-                                  </span>
-                                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                                    {selectedDurationId && durations.length > 0
-                                      ? formatDuration(
-                                          durations.find(
-                                            (d) => d.id === selectedDurationId
-                                          )?.duration || 0,
-                                          durations.find(
-                                            (d) => d.id === selectedDurationId
-                                          )?.timeframe || "DAY"
-                                        )
-                                      : "Select a duration"}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                  <span className="text-zinc-600 dark:text-zinc-300">
-                                    {t("amount")}
-                                  </span>
-                                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                                    {formatCurrency(amount)}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                  <span className="text-zinc-600 dark:text-zinc-300">
-                                    {t("profit_rate")}
-                                  </span>
-                                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                                    {formatPercentage(
-                                      plan.profitPercentage || 0
-                                    )}
-                                  </span>
-                                </div>
-                                <Separator className="my-2 bg-blue-200 dark:bg-blue-700/20" />
-                                <div className="flex justify-between text-sm font-medium text-blue-900 dark:text-blue-100">
-                                  <span>{t("estimated_profit")}</span>
-                                  <span className="text-green-600 dark:text-green-300">
-                                    {formatCurrency(estimatedProfit)}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between text-blue-900 dark:text-blue-100">
-                                  <span className="font-medium">
-                                    {t("total_return")}
-                                  </span>
-                                  <span className="font-bold">
-                                    {formatCurrency(amount + estimatedProfit)}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="p-4 border border-yellow-200 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
-                              <div className="flex items-start">
-                                <AlertCircle className="h-5 w-12 text-yellow-600 dark:text-yellow-300 mr-2 mt-0.5" />
-                                <div>
-                                  <h4 className="font-medium text-yellow-800 dark:text-yellow-200">
-                                    {t("important_notice")}
-                                  </h4>
-                                  <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                                    {t("by_proceeding_with_and_conditions")}.{" "}
-                                    {t("all_investments_carry_risk")}.
-                                  </p>
+                          {currentStep === 3 && (
+                            <motion.div
+                              key="step3"
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: 20 }}
+                              transition={{ duration: 0.3 }}
+                              className="space-y-6"
+                            >
+                              <div className="bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700">
+                                <h3 className="font-semibold text-zinc-900 dark:text-white mb-4 flex items-center">
+                                  <Info
+                                    className={`h-4 w-4 mr-2 text-emerald-600`}
+                                  />
+                                  {t("investment_summary")}
+                                </h3>
+                                <div className="space-y-3">
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-zinc-500 dark:text-zinc-400">
+                                      {tCommon("plan")}
+                                    </span>
+                                    <span className="font-medium text-zinc-900 dark:text-white">
+                                      {plan.title}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-zinc-500 dark:text-zinc-400">
+                                      {tCommon("duration")}
+                                    </span>
+                                    <span className="font-medium text-zinc-900 dark:text-white">
+                                      {selectedDurationId && durations.length > 0
+                                        ? formatDuration(
+                                            durations.find(
+                                              (d) => d.id === selectedDurationId
+                                            )?.duration || 0,
+                                            durations.find(
+                                              (d) => d.id === selectedDurationId
+                                            )?.timeframe || "DAY"
+                                          )
+                                        : "Select a duration"}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-zinc-500 dark:text-zinc-400">
+                                      {tCommon("amount")}
+                                    </span>
+                                    <span className="font-medium text-zinc-900 dark:text-white">
+                                      {formatCurrency(amount)}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-zinc-500 dark:text-zinc-400">
+                                      {t("profit_rate")}
+                                    </span>
+                                    <span className="font-medium text-zinc-900 dark:text-white">
+                                      {formatPercentage(
+                                        plan.profitPercentage || 0
+                                      )}
+                                    </span>
+                                  </div>
+                                  <Separator className="my-3" />
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-zinc-500 dark:text-zinc-400">
+                                      {tCommon("estimated_profit")}
+                                    </span>
+                                    <span
+                                      className={`font-bold text-emerald-600 dark:text-emerald-400`}
+                                    >
+                                      {formatCurrency(estimatedProfit)}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="font-medium text-zinc-900 dark:text-white">
+                                      {tCommon("total_return")}
+                                    </span>
+                                    <span
+                                      className={`font-bold text-lg text-emerald-600 dark:text-emerald-400`}
+                                    >
+                                      {formatCurrency(amount + estimatedProfit)}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </CardContent>
-                  <CardFooter className="flex justify-between bg-zinc-100 dark:bg-zinc-900 px-6 py-3 rounded-b-lg">
-                    {currentStep > 1 && (
-                      <Button
-                        variant="outline"
-                        onClick={prevStep}
-                        className="group"
-                      >
-                        <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-                        {t("Back")}
-                      </Button>
-                    )}
-                    {currentStep < 3 ? (
-                      <Button
-                        className="transition-colors group ml-auto"
-                        onClick={nextStep}
-                        disabled={
-                          (currentStep === 1 && !selectedDurationId) ||
-                          (currentStep === 2 && amount <= 0)
-                        }
-                      >
-                        {t("Next")}
-                        <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    ) : (
-                      <Button
-                        className="transition-colors group ml-auto"
-                        onClick={handleInvest}
-                        disabled={
-                          isLoading ||
-                          !selectedDurationId ||
-                          amount <= 0 ||
-                          amount > walletBalance
-                        }
-                      >
-                        {isLoading ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            {t("Processing")}.
-                          </>
-                        ) : (
-                          <>
-                            {t("confirm_investment")}
-                            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                          </>
+                              <div className="p-4 border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 rounded-xl">
+                                <div className="flex items-start">
+                                  <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mr-3 mt-0.5 shrink-0" />
+                                  <div>
+                                    <h4 className="font-semibold text-amber-800 dark:text-amber-300">
+                                      {tCommon("important_notice")}
+                                    </h4>
+                                    <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                                      {t("by_proceeding_with_and_conditions")}.{" "}
+                                      {t("all_investments_carry_risk")}.
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </CardContent>
+
+                      <CardFooter className="flex justify-between bg-zinc-50 dark:bg-zinc-800/50 px-6 py-4 border-t border-zinc-200 dark:border-zinc-700">
+                        {currentStep > 1 && (
+                          <Button
+                            variant="outline"
+                            onClick={prevStep}
+                            className="rounded-xl border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                          >
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            {tCommon("back")}
+                          </Button>
                         )}
-                      </Button>
-                    )}
-                  </CardFooter>
-                </Card>
+                        {currentStep < 3 ? (
+                          <Button
+                            onClick={nextStep}
+                            disabled={
+                              (currentStep === 1 && !selectedDurationId) ||
+                              (currentStep === 2 && amount <= 0)
+                            }
+                            className={`ml-auto rounded-xl bg-linear-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-size-[200%_100%] hover:bg-position-[100%_0] text-white font-semibold transition-all duration-300`}
+                          >
+                            {tCommon("next")}
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={handleInvest}
+                            disabled={
+                              isLoading ||
+                              !selectedDurationId ||
+                              amount <= 0 ||
+                              amount > walletBalance
+                            }
+                            className={`ml-auto rounded-xl bg-linear-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-size-[200%_100%] hover:bg-position-[100%_0] text-white font-semibold transition-all duration-300`}
+                          >
+                            {isLoading ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                                {tCommon("processing")}.
+                              </>
+                            ) : (
+                              <>
+                                {t("confirm_investment")}
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
       </main>

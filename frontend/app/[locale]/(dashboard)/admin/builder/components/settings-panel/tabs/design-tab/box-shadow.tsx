@@ -14,7 +14,8 @@ export function BoxShadow({
   activeGradientProperty,
   setActiveGradientProperty,
 }: BoxShadowProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const { theme } = useTheme();
   const { toast } = useToast();
 
@@ -100,7 +101,7 @@ export function BoxShadow({
 
       <div>
         <ColorPicker
-          label="Shadow Color"
+          label={t("shadow_color")}
           colorVariable="shadow-color"
           value={
             typeof settings.boxShadowColor === "object"
@@ -113,7 +114,7 @@ export function BoxShadow({
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <Label className="text-xs mb-1 block">{t("Horizontal")}</Label>
+          <Label className="text-xs mb-1 block">{t("horizontal")}</Label>
           <SliderWithInput
             value={settings.boxShadowX || 0}
             onChange={(value) => onSettingChange("boxShadowX", value)}
@@ -122,7 +123,7 @@ export function BoxShadow({
           />
         </div>
         <div>
-          <Label className="text-xs mb-1 block">{t("Vertical")}</Label>
+          <Label className="text-xs mb-1 block">{t("vertical")}</Label>
           <SliderWithInput
             value={settings.boxShadowY || 0}
             onChange={(value) => onSettingChange("boxShadowY", value)}
@@ -133,7 +134,7 @@ export function BoxShadow({
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <Label className="text-xs mb-1 block">{t("Blur")}</Label>
+          <Label className="text-xs mb-1 block">{t("blur")}</Label>
           <SliderWithInput
             value={settings.boxShadowBlur || 0}
             onChange={(value) => onSettingChange("boxShadowBlur", value)}
@@ -142,7 +143,7 @@ export function BoxShadow({
           />
         </div>
         <div>
-          <Label className="text-xs mb-1 block">{t("Spread")}</Label>
+          <Label className="text-xs mb-1 block">{tCommon("spread")}</Label>
           <SliderWithInput
             value={settings.boxShadowSpread || 0}
             onChange={(value) => onSettingChange("boxShadowSpread", value)}

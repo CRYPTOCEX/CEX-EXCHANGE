@@ -14,9 +14,11 @@ import { AlertTriangle, Database, CheckCircle, Wrench } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { $fetch } from "@/lib/api";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 export default function UpgradeHelperPage() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{
     success: boolean;
@@ -79,7 +81,7 @@ export default function UpgradeHelperPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className={`container ${PAGE_PADDING} space-y-6`}>
       <div className="flex items-center gap-3 mb-6">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
           <Wrench className="h-5 w-5 text-primary" />
@@ -140,7 +142,7 @@ export default function UpgradeHelperPage() {
                 {isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                    {t("Migrating")}.
+                    {t("migrating")}.
                   </>
                 ) : (
                   <>
@@ -183,7 +185,7 @@ export default function UpgradeHelperPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-amber-500" />
-            {t("important_information")}
+            {tCommon("important_information")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">

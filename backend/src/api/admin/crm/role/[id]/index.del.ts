@@ -2,11 +2,14 @@ import { models, sequelize } from "@b/db";
 import { cacheRoles } from "../utils";
 import { deleteRecordResponses } from "@b/utils/query";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Deletes a role",
   operationId: "deleteRole",
   tags: ["Admin", "CRM", "Role"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Delete role",
   parameters: [
     {
       index: 0,
@@ -25,9 +28,10 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, user } = data;
+  const { params, user, ctx } = data;
   const { id } = params;
 
+  ctx?.step("Validating user authorization");
   if (!user?.id) {
     throw createError({
       statusCode: 401,
@@ -47,6 +51,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Validating role");
   // Optionally, prevent deleting a "Super Admin" role if such a special role exists.
   // For example, if the "Super Admin" role has an ID or name that should never be deleted:
   const roleToDelete = await models.role.findByPk(id);
@@ -61,6 +66,7 @@ export default async (data: Handler) => {
   }
 
   try {
+    ctx?.step("Deleting role and permissions");
     await sequelize.transaction(async (transaction) => {
       await models.rolePermission.destroy({
         where: {
@@ -77,13 +83,15 @@ export default async (data: Handler) => {
       });
     });
 
+    ctx?.step("Rebuilding roles cache");
     await cacheRoles();
 
+    ctx?.success();
     return {
       message: "Role removed successfully",
     };
   } catch (error: any) {
-    console.error("Transaction failed:", error);
+    logger.error("ROLE", "Transaction failed", error);
     throw new Error("Failed to remove the role");
   }
 };

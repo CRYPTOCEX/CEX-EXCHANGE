@@ -4,7 +4,7 @@ import { getProvider } from "./provider";
 import { decrypt } from "../../../../utils/encrypt";
 import { getAdjustedGasPrice } from "./gas";
 import { models } from "@b/db";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 export async function getCustodialWalletBalances(
   contract,
@@ -25,7 +25,7 @@ export async function getCustodialWalletBalances(
     const native = format ? ethers.formatEther(nativeBalance) : nativeBalance;
     return { balances, native };
   } catch (error) {
-    logError("custodial_wallet", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to get custodial wallet balances", error);
     throw new Error(
       `Failed to get custodial wallet balances: ${error.message}`
     );
@@ -39,7 +39,7 @@ export async function getCustodialWalletTokenBalance(
   try {
     return await contract.getTokenBalance(tokenContractAddress);
   } catch (error) {
-    logError("custodial_wallet", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to get custodial wallet token balance", error);
     throw new Error(`Failed to get token balance: ${error.message}`);
   }
 }
@@ -48,7 +48,7 @@ export async function getCustodialWalletNativeBalance(contract) {
   try {
     return await contract.getNativeBalance();
   } catch (error) {
-    logError("custodial_wallet", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to get custodial wallet native balance", error);
     throw new Error(`Failed to get native balance: ${error.message}`);
   }
 }
@@ -65,7 +65,7 @@ export async function getCustodialWalletContract(
 
     return new ethers.Contract(address, abi, provider);
   } catch (error) {
-    logError("custodial_wallet", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to get custodial wallet contract", error);
     throw new Error(
       `Failed to get custodial wallet contract: ${error.message}`
     );
@@ -116,7 +116,7 @@ export async function deployCustodialContract(
 
     return await response.getAddress();
   } catch (error: any) {
-    logError("custodial_wallet_deployment", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to deploy custodial wallet contract", error);
     if (isError(error, "INSUFFICIENT_FUNDS")) {
       throw new Error("Not enough funds to deploy the contract");
     }
@@ -125,7 +125,8 @@ export async function deployCustodialContract(
 }
 
 export async function getActiveCustodialWallets(
-  chain
+  chain,
+  ctx?: any
 ): Promise<ecosystemCustodialWalletAttributes[]> {
   try {
     const wallet = await models.ecosystemCustodialWallet.findAll({
@@ -141,7 +142,7 @@ export async function getActiveCustodialWallets(
 
     return wallet;
   } catch (error) {
-    logError("custodial_wallet", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to get active custodial wallets", error);
     throw new Error(`Failed to get active custodial wallets: ${error.message}`);
   }
 }

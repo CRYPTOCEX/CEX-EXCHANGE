@@ -178,7 +178,7 @@ export default function GatewayDocsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pt-16">
       {/* Hero Header */}
       <div className="border-b bg-gradient-to-b from-primary/5 to-background">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">

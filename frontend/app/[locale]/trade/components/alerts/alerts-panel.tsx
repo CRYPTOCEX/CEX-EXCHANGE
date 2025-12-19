@@ -14,7 +14,7 @@ interface Alert {
 }
 
 export default function AlertsPanel() {
-  const t = useTranslations("ext");
+  const t = useTranslations("trade_components");
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -86,7 +86,7 @@ export default function AlertsPanel() {
             <div>
               <p className="text-sm font-medium">{t("price_alert")}</p>
               <p className="text-xs text-zinc-400">
-                {t("btc_usd_crossed_above_$50000")}
+                {t("btc_usd_crossed_above_50000")}
               </p>
             </div>
           </div>
@@ -95,7 +95,7 @@ export default function AlertsPanel() {
             <div>
               <p className="text-sm font-medium">{t("market_update")}</p>
               <p className="text-xs text-zinc-400">
-                {t("trading_volume_increased_by_25%")}
+                {t("trading_volume_increased_by_25")}
               </p>
             </div>
           </div>

@@ -64,7 +64,9 @@ interface KycApplication {
 }
 
 export function UserKycClient() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_user");
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   const router = useRouter();
   const { settings } = useConfigStore();
   const [levels, setLevels] = useState<KycLevel[]>([]);
@@ -139,7 +141,7 @@ export function UserKycClient() {
                   className="w-full border-amber-200 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-950/20"
                 >
                   <ChevronLeft className="w-4 h-4 mr-2" />
-                  {t("back_to_dashboard")}
+                  {tCommon("back_to_dashboard")}
                 </Button>
               </Link>
             </div>
@@ -243,7 +245,7 @@ export function UserKycClient() {
             className="bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 flex items-center gap-1 px-3 py-1 rounded-full"
           >
             <CheckCircle2 className="h-3.5 w-3.5" />
-            <span>{t("Approved")}</span>
+            <span>{tCommon("approved")}</span>
           </Badge>
         );
       case "PENDING":
@@ -253,7 +255,7 @@ export function UserKycClient() {
             className="bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 flex items-center gap-1 px-3 py-1 rounded-full"
           >
             <Clock className="h-3.5 w-3.5" />
-            <span>{t("Pending")}</span>
+            <span>{tCommon("pending")}</span>
           </Badge>
         );
       case "REJECTED":
@@ -263,7 +265,7 @@ export function UserKycClient() {
             className="bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800 flex items-center gap-1 px-3 py-1 rounded-full"
           >
             <XCircle className="h-3.5 w-3.5" />
-            <span>{t("Rejected")}</span>
+            <span>{tCommon("rejected")}</span>
           </Badge>
         );
       case "ADDITIONAL_INFO_REQUIRED":
@@ -273,7 +275,7 @@ export function UserKycClient() {
             className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 flex items-center gap-1 px-3 py-1 rounded-full"
           >
             <AlertCircle className="h-3.5 w-3.5" />
-            <span>{t("info_required")}</span>
+            <span>{tCommon("info_required")}</span>
           </Badge>
         );
       default:
@@ -393,7 +395,7 @@ export function UserKycClient() {
                   </Button>
                 </Link>
                 <h1 className="text-3xl font-bold tracking-tight">
-                  {t("identity_verification")}
+                  {tCommon("identity_verification")}
                 </h1>
               </div>
               <p className="text-blue-100 dark:text-blue-200 max-w-md">
@@ -406,9 +408,9 @@ export function UserKycClient() {
                     <BadgeCheck className="h-5 w-5 text-blue-100" />
                   </div>
                   <span className="font-medium">
-                    {t("Level")}
+                    {tCommon("level")}
                     {currentLevel}
-                    {t("Verified")}
+                    {tCommon("verified")}
                   </span>
                 </div>
               ) : (
@@ -416,14 +418,14 @@ export function UserKycClient() {
                   <div className="bg-white/20 rounded-full p-1.5">
                     <AlertCircle className="h-5 w-5 text-blue-100" />
                   </div>
-                  <span>{t("not_verified")}</span>
+                  <span>{tCommon("not_verified")}</span>
                 </div>
               )}
             </div>
 
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 w-full md:w-auto">
               <div className="text-sm text-blue-100 dark:text-blue-200 mb-1">
-                {t("verification_progress")}
+                {tCommon("verification_progress")}
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-full md:w-48">
@@ -496,7 +498,7 @@ export function UserKycClient() {
                 <div className="bg-green-100 dark:bg-green-900 p-2 rounded-full">
                   <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
                 </div>
-                {t("Approved")}
+                {tCommon("approved")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -505,9 +507,9 @@ export function UserKycClient() {
                   {approvedCount}
                 </div>
                 <div className="text-sm text-green-600 dark:text-green-400">
-                  {t("of")}
+                  {tCommon("of")}
                   {Array.isArray(applications) ? applications.length : 0}{" "}
-                  {t("total")}
+                  {tCommon("total")}
                 </div>
               </div>
               <div className="mt-2 text-sm text-green-600 dark:text-green-400">
@@ -524,7 +526,7 @@ export function UserKycClient() {
                 <div className="bg-amber-100 dark:bg-amber-900 p-2 rounded-full">
                   <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                 </div>
-                {t("Pending")}
+                {tCommon("pending")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -537,7 +539,7 @@ export function UserKycClient() {
                     variant="outline"
                     className="bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 px-3 py-1 rounded-full"
                   >
-                    {t("in_review")}
+                    {tCommon("in_review")}
                   </Badge>
                 )}
               </div>
@@ -579,7 +581,7 @@ export function UserKycClient() {
                 {nextLevelPending ? (
                   <>
                     <Clock className="mr-2 h-4 w-4" />
-                    {t("application_pending")}
+                    {tCommon("application_pending")}
                   </>
                 ) : (
                   <>
@@ -640,7 +642,7 @@ export function UserKycClient() {
                             </div>
                             <div>
                               <CardTitle className="text-xl flex items-center gap-2 dark:text-zinc-100">
-                                {t("Level")}{" "}
+                                {tCommon("level")}{" "}
                                 {level.level}: {level.name}
                                 {isApproved && (
                                   <BadgeCheck className="h-5 w-5 text-green-500 ml-1" />
@@ -659,7 +661,7 @@ export function UserKycClient() {
                             <div className="flex flex-col gap-2 mt-2">
                               <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground dark:text-zinc-400">
-                                  {t("application_status")}
+                                  {tCommon("application_status")}
                                 </span>
                                 <span className="font-medium dark:text-zinc-200">
                                   {application?.status === "APPROVED" &&
@@ -679,7 +681,7 @@ export function UserKycClient() {
                                 <div className="space-y-1">
                                   <div className="flex justify-between text-xs">
                                     <span className="dark:text-zinc-400">
-                                      {t("verification_progress")}
+                                      {tCommon("verification_progress")}
                                     </span>
                                     <span className="dark:text-zinc-300">
                                       {(application as any)
@@ -700,7 +702,7 @@ export function UserKycClient() {
                               {application?.createdAt && (
                                 <div className="flex justify-between text-sm">
                                   <span className="text-muted-foreground dark:text-zinc-400">
-                                    {t("Submitted")}
+                                    {tExtAdmin("submitted_1")}
                                   </span>
                                   <span className="dark:text-zinc-300">
                                     {formatDate(
@@ -714,7 +716,7 @@ export function UserKycClient() {
                                 application?.status !== "PENDING" && (
                                   <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground dark:text-zinc-400">
-                                      {t("last_updated")}
+                                      {tCommon("last_updated")}
                                     </span>
                                     <span className="dark:text-zinc-300">
                                       {formatDate(
@@ -735,7 +737,7 @@ export function UserKycClient() {
                               disabled
                             >
                               <BadgeCheck className="mr-2 h-4 w-4" />
-                              {t("Verified")}
+                              {tCommon("verified")}
                             </Button>
                           ) : isPending ? (
                             <Button
@@ -748,7 +750,7 @@ export function UserKycClient() {
                               }
                             >
                               <FileText className="mr-2 h-4 w-4" />
-                              {t("view_application")}
+                              {tCommon("view_application")}
                             </Button>
                           ) : isRejected ? (
                             <Button
@@ -769,7 +771,7 @@ export function UserKycClient() {
                               }
                             >
                               <Upload className="mr-2 h-4 w-4" />
-                              {t("start_verification")}
+                              {tCommon("start_verification")}
                             </Button>
                           ) : (
                             <Button
@@ -785,7 +787,7 @@ export function UserKycClient() {
                               ) : (
                                 <>
                                   <CheckCircle2 className="mr-2 h-4 w-4" />
-                                  {t("already_completed")}
+                                  {tCommon("already_completed")}
                                 </>
                               )}
                             </Button>

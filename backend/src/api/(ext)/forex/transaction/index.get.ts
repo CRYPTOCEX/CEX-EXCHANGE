@@ -1,6 +1,5 @@
 import { models } from "@b/db";
-import {
-  getFiltered,
+import { getFiltered,
   notFoundMetadataResponse,
   serverErrorResponse,
   unauthorizedResponse,
@@ -9,23 +8,14 @@ import { crudParameters, paginationSchema } from "@b/utils/constants";
 import { createError } from "@b/utils/error";
 import { baseTransactionSchema } from "@b/api/finance/transaction/utils";
 
-export const metadata: OperationObject = {
-  summary: "Lists transactions with optional filters",
+export const metadata: OperationObject = { summary: "Lists transactions with optional filters",
   operationId: "listForexTransactions",
   tags: ["User", "Forex", "Transactions"],
   parameters: crudParameters,
-  responses: {
-    200: {
-      description: "Paginated list of transactions retrieved successfully",
-      content: {
-        "application/json": {
-          schema: {
-            type: "object",
-            properties: {
-              data: {
-                type: "array",
-                items: {
-                  type: "object",
+  responses: { 200: { description: "Paginated list of transactions retrieved successfully",
+      content: { "application/json": { schema: { type: "object",
+            properties: { data: { type: "array",
+                items: { type: "object",
                   properties: baseTransactionSchema,
                 },
               },
@@ -40,10 +30,11 @@ export const metadata: OperationObject = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "FOREX",
+  logTitle: "Get Forex Transactions",
 };
 
-export default async (data: Handler) => {
-  const { user } = data;
+export default async (data: Handler) => { const { user, ctx } = data;
 
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -53,19 +44,17 @@ export default async (data: Handler) => {
   let where: any = { userId: user.id };
 
   const typeParsed = filter?.includes("type");
-  if (!typeParsed) {
-    where = { ...where, type: ["FOREX_DEPOSIT", "FOREX_WITHDRAW"] };
+  if (!typeParsed) { where = { ...where, type: ["FOREX_DEPOSIT", "FOREX_WITHDRAW"] };
   }
+  ctx?.success("Request completed successfully");
 
-  return getFiltered({
-    model: models.transaction,
+  return getFiltered({ model: models.transaction,
     query: data.query,
     where,
     sortField: query.sortField || "createdAt",
     numericFields: ["amount", "fee"],
     includeModels: [
-      {
-        model: models.wallet,
+      { model: models.wallet,
         as: "wallet",
         attributes: ["currency", "type"],
       },

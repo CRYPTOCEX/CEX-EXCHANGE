@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
     "Fetches active Forex investments associated with the currently authenticated user.",
   operationId: "getActiveForexInvestments",
   tags: ["Forex", "Investments"],
+  logModule: "FOREX",
+  logTitle: "Get Active Investments",
   responses: {
     200: {
       description: "Active Forex investments retrieved successfully",
@@ -37,7 +39,9 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
+    ctx?.step("Fetching Active Investments");
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -69,6 +73,9 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success("Get Active Investments fetched successfully");
+
 
   return activeInvestments;
 };

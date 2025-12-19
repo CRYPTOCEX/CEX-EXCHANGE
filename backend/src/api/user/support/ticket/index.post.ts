@@ -9,6 +9,8 @@ export const metadata: OperationObject = {
   operationId: "createTicket",
   tags: ["Support"],
   requiresAuth: true,
+  logModule: "USER",
+  logTitle: "Create support ticket",
   requestBody: {
     required: true,
     content: {
@@ -34,12 +36,15 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, user } = data;
-  if (!user?.id)
+  const { body, user, ctx } = data;
+  if (!user?.id) {
+    ctx?.fail("User not authenticated");
     throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
   const { subject, message, importance, tags } = body;
 
+  ctx?.step("Creating support ticket");
   const ticket = await models.supportTicket.create({
     userId: user.id,
     subject,
@@ -61,5 +66,6 @@ export default async (data: Handler) => {
         : [],
   });
 
+  ctx?.success("Support ticket created successfully");
   return ticket.get({ plain: true });
 };

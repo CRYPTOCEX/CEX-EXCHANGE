@@ -7,6 +7,8 @@ export const metadata = {
   description: "Retrieves detailed trade data for the given trade ID.",
   operationId: "getP2PTradeById",
   tags: ["P2P", "Trade"],
+  logModule: "P2P",
+  logTitle: "Get trade by ID",
   parameters: [
     {
       index: 0,
@@ -26,10 +28,12 @@ export const metadata = {
   requiresAuth: true,
 };
 
-export default async (data: { params?: any; user?: any }) => {
+export default async (data: { params?: any; user?: any; ctx?: any }) => {
   const { id } = data.params || {};
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) throw new Error("Unauthorized");
+
+  ctx?.step("Verifying trade access");
   try {
     // First check if the trade exists at all
     const tradeExists = await models.p2pTrade.findOne({
@@ -50,6 +54,7 @@ export default async (data: { params?: any; user?: any }) => {
       throw new Error("You don't have permission to view this trade");
     }
 
+    ctx?.step("Fetching trade details with counterparty info");
     // Now fetch the full trade data
     const trade = await models.p2pTrade.findOne({
       where: { id },
@@ -144,8 +149,10 @@ export default async (data: { params?: any; user?: any }) => {
       tradeData.offer?.tradeSettings?.paymentWindow ||
       defaultPaymentWindow;
 
+    ctx?.success(`Retrieved trade ${id.slice(0, 8)}... (${tradeData.status})`);
     return tradeData;
   } catch (err: any) {
+    ctx?.fail(err.message || "Failed to retrieve trade");
     throw new Error(err.message || "Internal Server Error");
   }
 };

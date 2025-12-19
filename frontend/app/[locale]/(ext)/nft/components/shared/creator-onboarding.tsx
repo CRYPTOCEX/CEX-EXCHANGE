@@ -50,7 +50,8 @@ export function CreatorOnboarding({
   undeployedCount = 0,
   totalNFTs = 0,
 }: CreatorOnboardingProps) {
-  const t = useTranslations("nft");
+  const t = useTranslations("ext_nft");
+  const tCommon = useTranslations("common");
   const [isDismissed, setIsDismissed] = useState(false);
 
   // Calculate onboarding steps
@@ -147,7 +148,7 @@ export function CreatorOnboarding({
         <div className="mb-6">
           <Progress value={progressPercentage} className="h-2 mb-2" />
           <p className="text-xs text-muted-foreground">
-            {progressPercentage.toFixed(0)}{t("complete")}
+            {progressPercentage.toFixed(0)}{tCommon("complete")}
           </p>
         </div>
 
@@ -200,7 +201,7 @@ export function CreatorOnboarding({
                     </Badge>
                   )}
                   {step.current && (
-                    <Badge className="bg-blue-600 dark:bg-blue-600 text-white border-0">Current</Badge>
+                    <Badge className="bg-purple-600 dark:bg-purple-600 text-white border-0">Current</Badge>
                   )}
                 </div>
 

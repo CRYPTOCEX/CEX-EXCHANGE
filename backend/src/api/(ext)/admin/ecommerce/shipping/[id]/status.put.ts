@@ -38,19 +38,23 @@ export const metadata: OperationObject = {
   responses: updateRecordResponses("E-commerce Shipping"),
   requiresAuth: true,
   permission: "edit.ecommerce.shipping",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Update E-commerce Shipping Status",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
 
+  ctx?.step("Validating shipping record");
   const shipping = await models.ecommerceShipping.findByPk(id);
   if (!shipping) {
     throw new Error("Shipping record not found");
   }
 
-  await updateStatus(
+  ctx?.step("Updating E-commerce shipping status");
+  const result = await updateStatus(
     "ecommerceShipping",
     id,
     status,
@@ -67,4 +71,7 @@ export default async (data) => {
       }
     }
   );
+
+  ctx?.success("Successfully updated E-commerce shipping status");
+  return result;
 };

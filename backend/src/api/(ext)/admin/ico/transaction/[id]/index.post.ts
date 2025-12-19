@@ -42,6 +42,8 @@ export const metadata = {
     500: { description: "Internal Server Error" },
   },
   permission: "edit.ico.transaction",
+  logModule: "ADMIN_ICO",
+  logTitle: "Update ICO Transaction",
 };
 
 // Mapping of action handlers.
@@ -213,7 +215,7 @@ const notifMapping = {
 };
 
 export default async (data: Handler) => {
-  const { params, user, query, body } = data;
+  const { params, user, query, body, ctx } = data;
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
   const action = query.action;
@@ -223,6 +225,7 @@ export default async (data: Handler) => {
       message: "Invalid or missing action.",
     });
 
+  ctx?.step(`Fetching transaction for action: ${action}`);
   // Fetch the transaction with its offering details.
   const transaction = await models.icoTransaction.findOne({
     where: { id: params.id },
@@ -246,12 +249,14 @@ export default async (data: Handler) => {
   const fiatAmount = transaction.amount * transaction.price;
   const note = body.note;
 
+  ctx?.step(`Processing ${action} action on transaction`);
   // Execute the update operation within a transaction.
   const t = await sequelize.transaction();
   let result;
   try {
     result = await updateActions[action](transaction, t, fiatAmount, note);
 
+    ctx?.step("Logging admin activity");
     // Log the admin activity using icoAdminActivity model.
     await models.icoAdminActivity.create(
       {
@@ -272,6 +277,7 @@ export default async (data: Handler) => {
     });
   }
 
+  ctx?.step("Sending emails and notifications");
   // Fetch buyer (investor) and seller (creator) details.
   const buyer = await models.user.findByPk(transaction.userId);
   const seller = await models.user.findByPk(transaction.offering.userId);
@@ -284,7 +290,7 @@ export default async (data: Handler) => {
   ) => {
     if (recipient?.email) {
       try {
-        await sendIcoEmail(templateName, recipient.email, dataObj);
+        await sendIcoEmail(templateName, recipient.email, dataObj, ctx);
       } catch (emailErr) {
         console.error(`Failed to send ${templateName} email`, emailErr);
       }
@@ -347,7 +353,7 @@ export default async (data: Handler) => {
             primary: true,
           },
         ],
-      });
+      }, ctx);
     } catch (notifErr) {
       console.error(`Failed to create notification for ${action}`, notifErr);
     }
@@ -364,5 +370,6 @@ export default async (data: Handler) => {
     }
   }
 
+  ctx?.success(`Transaction ${action} action completed successfully`);
   return { message: result.message || "Transaction updated successfully." };
 };

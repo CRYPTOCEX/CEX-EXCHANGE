@@ -192,7 +192,8 @@ export function CategoryDistributionChart({
   data: CategoryDistribution[];
   height?: number;
 }) {
-  const t = useTranslations("blog");
+  const tBlog = useTranslations("blog");
+  const tCommon = useTranslations("common");
   const CHART_COLORS = [
     COLORS.primary,
     COLORS.secondary,
@@ -207,8 +208,8 @@ export function CategoryDistributionChart({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("category_distribution")}</CardTitle>
-        <CardDescription>{t("posts_distribution_by_category")}</CardDescription>
+        <CardTitle>{tCommon("category_distribution")}</CardTitle>
+        <CardDescription>{tBlog("posts_distribution_by_category")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div style={{ height: `${height}px` }}>
@@ -275,13 +276,13 @@ export function ContentPerformanceChart({
   data: ContentPerformance[];
   height?: number;
 }) {
-  const t = useTranslations("blog");
+  const tCommon = useTranslations("common");
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("content_performance")}</CardTitle>
+        <CardTitle>{tCommon("content_performance")}</CardTitle>
         <CardDescription>
-          {t("top_performing_content_by_views_and_engagement")}
+          {tCommon("top_performing_content_by_views_and_engagement")}
         </CardDescription>
       </CardHeader>
       <CardContent>

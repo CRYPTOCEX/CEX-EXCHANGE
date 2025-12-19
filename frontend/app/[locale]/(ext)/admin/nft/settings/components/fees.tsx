@@ -24,7 +24,8 @@ export default function NFTFeesSettingsSection({
   validationErrors = {},
   hasSubmitted = false,
 }: NFTFeesSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const safeSettings = {
     MarketplaceFeePercentage: settings.MarketplaceFeePercentage ?? 2.5,
     MaxRoyaltyPercentage: settings.MaxRoyaltyPercentage ?? 10,
@@ -50,16 +51,16 @@ export default function NFTFeesSettingsSection({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            {t("Marketplace Fees")}
+            {t("marketplace_fees")}
           </CardTitle>
           <CardDescription>
-            {t("Configure platform and creator fees")}
+            {t("configure_platform_and_creator_fees")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="marketplaceFee">{t("Marketplace Fee (%)")} *</Label>
+              <Label htmlFor="marketplaceFee">{`${t("marketplace_fee")} (%)`} *</Label>
               <Input
                 id="marketplaceFee"
                 type="number"
@@ -71,7 +72,7 @@ export default function NFTFeesSettingsSection({
                 className={hasError("MarketplaceFeePercentage") ? "border-red-500" : ""}
               />
               <p className="text-xs text-muted-foreground">
-                {t("Percentage fee charged on each sale (0-10%)")}
+                {t("percentage_fee_charged_on_each_sale_0_10")}
               </p>
               {getErrorMessage("MarketplaceFeePercentage") && (
                 <p className="text-sm text-red-500">{getErrorMessage("MarketplaceFeePercentage")}</p>
@@ -79,7 +80,7 @@ export default function NFTFeesSettingsSection({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="maxRoyalty">{t("Maximum Royalty (%)")} *</Label>
+              <Label htmlFor="maxRoyalty">{`${t("maximum_royalty")} (%)`} *</Label>
               <Input
                 id="maxRoyalty"
                 type="number"
@@ -91,7 +92,7 @@ export default function NFTFeesSettingsSection({
                 className={hasError("MaxRoyaltyPercentage") ? "border-red-500" : ""}
               />
               <p className="text-xs text-muted-foreground">
-                {t("Maximum royalty creators can set (0-50%)")}
+                {t("maximum_royalty_creators_can_set_0_50")}
               </p>
               {getErrorMessage("MaxRoyaltyPercentage") && (
                 <p className="text-sm text-red-500">{getErrorMessage("MaxRoyaltyPercentage")}</p>
@@ -99,7 +100,7 @@ export default function NFTFeesSettingsSection({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="listingFee">{t("Listing Fee (Optional)")}</Label>
+              <Label htmlFor="listingFee">{t("listing_fee_optional")}</Label>
               <Input
                 id="listingFee"
                 type="number"
@@ -110,7 +111,7 @@ export default function NFTFeesSettingsSection({
                 className={hasError("ListingFee") ? "border-red-500" : ""}
               />
               <p className="text-xs text-muted-foreground">
-                {t("Fixed fee to create a listing (0 = free)")}
+                {t("fixed_fee_to_create_a_listing_0_free")} (0 = {tCommon("free")})
               </p>
               {getErrorMessage("ListingFee") && (
                 <p className="text-sm text-red-500">{getErrorMessage("ListingFee")}</p>

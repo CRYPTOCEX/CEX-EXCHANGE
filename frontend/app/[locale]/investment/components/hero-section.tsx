@@ -22,7 +22,8 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("investment");
+  const tCommon = useTranslations("common");
   const { stats, statsLoading } = useInvestmentStore();
 
   useEffect(() => {
@@ -46,7 +47,7 @@ export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
     return `${percentage.toFixed(1)}%`;
   };
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-zinc-950 dark:via-blue-950/20 dark:to-purple-950/20">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-zinc-950 dark:via-blue-950/20 dark:to-purple-950/20 pt-16">
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Animated background shapes */}
@@ -181,10 +182,10 @@ export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
                   </div>
                   <div>
                     <p className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
-                      {t("Secure")}
+                      {tCommon("secure")}
                     </p>
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                      {t("bank-grade_security")}
+                      {t("bank_grade_security")}
                     </p>
                   </div>
                 </div>
@@ -195,10 +196,10 @@ export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
                   </div>
                   <div>
                     <p className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
-                      {t("Targeted")}
+                      {t("targeted")}
                     </p>
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                      {t("high-yield_plans")}
+                      {t("high_yield_plans")}
                     </p>
                   </div>
                 </div>
@@ -209,7 +210,7 @@ export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
                   </div>
                   <div>
                     <p className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
-                      {t("Profitable")}
+                      {t("profitable")}
                     </p>
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
                       {t("proven_returns")}
@@ -240,7 +241,7 @@ export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
                     size="lg"
                     className="border-2 border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-300"
                   >
-                    {t("view_dashboard")}
+                    {tCommon("view_dashboard")}
                   </Button>
                 </Link>
               </motion.div>
@@ -281,7 +282,7 @@ export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
                         : "$0"}
                   </h3>
                   <p className="text-zinc-600 dark:text-zinc-400 text-sm">
-                    {t("total_invested")}
+                    {tCommon("total_invested")}
                   </p>
                 </motion.div>
 
@@ -297,7 +298,7 @@ export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
                       <BarChart3 className="w-6 h-6 text-white" />
                     </div>
                     <span className="text-blue-500 text-sm font-medium">
-                      {t("Active")}
+                      {tCommon("active")}
                     </span>
                   </div>
                   <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -308,7 +309,7 @@ export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
                         : "0"}
                   </h3>
                   <p className="text-zinc-600 dark:text-zinc-400 text-sm">
-                    {t("active_investors")}
+                    {tCommon("active_investors")}
                   </p>
                 </motion.div>
 
@@ -324,7 +325,7 @@ export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
                       <PieChart className="w-6 h-6 text-white" />
                     </div>
                     <span className="text-purple-500 text-sm font-medium">
-                      {t("ROI")}
+                      {tCommon("roi")}
                     </span>
                   </div>
                   <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -335,7 +336,7 @@ export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
                         : "0%"}
                   </h3>
                   <p className="text-zinc-600 dark:text-zinc-400 text-sm">
-                    {t("Avg")} {t("Returns")}
+                    {tCommon("avg")} {t("returns")}
                   </p>
                 </motion.div>
 
@@ -351,7 +352,7 @@ export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
                       <Target className="w-6 h-6 text-white" />
                     </div>
                     <span className="text-orange-500 text-sm font-medium">
-                      {t("Plans")}
+                      {t("plans")}
                     </span>
                   </div>
                   <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -362,7 +363,7 @@ export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
                         : "0+"}
                   </h3>
                   <p className="text-zinc-600 dark:text-zinc-400 text-sm">
-                    {t("investment_plans")}
+                    {tCommon("investment_plans")}
                   </p>
                 </motion.div>
               </div>

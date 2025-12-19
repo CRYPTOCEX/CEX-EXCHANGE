@@ -11,7 +11,9 @@ interface FaqFeedbackSummaryProps {
 }
 
 export function FaqFeedbackSummary({ faqId }: FaqFeedbackSummaryProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_faq");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { feedbacks, fetchFeedbackByFaqId, isLoading } = useFeedbackStore();
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export function FaqFeedbackSummary({ faqId }: FaqFeedbackSummaryProps) {
         <div className="space-y-4">
           <div>
             <div className="flex justify-between mb-1">
-              <span className="text-sm font-medium">{t("Helpful")}</span>
+              <span className="text-sm font-medium">{tExt("helpful")}</span>
               <span className="text-sm font-medium">{helpfulPercentage}%</span>
             </div>
             <Progress value={helpfulPercentage} className="h-2" />
@@ -59,7 +61,7 @@ export function FaqFeedbackSummary({ faqId }: FaqFeedbackSummaryProps) {
                 {totalFeedback - helpfulCount}
               </div>
               <div className="text-xs text-muted-foreground">
-                {t("not_helpful")}
+                {tCommon("not_helpful")}
               </div>
             </div>
           </div>

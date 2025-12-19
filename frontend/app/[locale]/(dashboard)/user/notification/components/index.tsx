@@ -47,12 +47,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { format, formatDistanceToNow } from "date-fns";
 import { formatDate } from "@/lib/ico/utils";
+import { useTranslations } from "next-intl";
 
 interface NotificationsCardProps {
   filterType?: string; // Optional filter by notification type
 }
 
 export function NotificationsCard({ filterType }: NotificationsCardProps = {}) {
+  const t = useTranslations("common");
+  const tDashboardUser = useTranslations("dashboard_user");
   const {
     notifications,
     markAsRead,
@@ -181,7 +184,7 @@ export function NotificationsCard({ filterType }: NotificationsCardProps = {}) {
             <Bell className="h-4 w-4 mr-2" />
             Notifications
             <Badge variant="outline" className="ml-2 bg-primary/10 text-xs">
-              Loading...
+              {t('loading')}
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -216,7 +219,7 @@ export function NotificationsCard({ filterType }: NotificationsCardProps = {}) {
             </div>
             <Link href="/user/notification">
               <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs">
-                View all
+                {t("view_all")}
                 <ChevronRight className="h-3 w-3" />
               </Button>
             </Link>
@@ -226,9 +229,9 @@ export function NotificationsCard({ filterType }: NotificationsCardProps = {}) {
           {recentNotifications.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Bell className="h-12 w-12 mx-auto mb-3 opacity-20" />
-              <p className="text-sm">No notifications yet</p>
+              <p className="text-sm">{t("no_notifications_yet")}</p>
               <p className="text-xs mt-1">
-                You'll see your notifications here when they arrive
+                {tDashboardUser("youll_see_your_notifications_here_when_they_arrive")}
               </p>
             </div>
           ) : (
@@ -348,7 +351,7 @@ export function NotificationsCard({ filterType }: NotificationsCardProps = {}) {
                                   window.open(notification.link, "_blank")
                                 }
                               >
-                                Open link
+                                {tDashboardUser("open_link")}
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuSeparator />

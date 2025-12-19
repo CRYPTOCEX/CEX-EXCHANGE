@@ -1,7 +1,7 @@
 interface walletAttributes {
   id: string;
   userId: string;
-  type: "FIAT" | "SPOT" | "ECO" | "FUTURES";
+  type: "FIAT" | "SPOT" | "ECO" | "FUTURES" | "COPY_TRADING";
   currency: string;
   balance: number;
   inOrder?: number;

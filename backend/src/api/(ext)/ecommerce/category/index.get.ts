@@ -14,6 +14,8 @@ export const metadata: OperationObject = {
     "Fetches all active ecommerce categories along with their active products, with calculated ratings and review counts for each product.",
   operationId: "listEcommerceCategories",
   tags: ["Ecommerce", "Categories"],
+  logModule: "ECOM",
+  logTitle: "Get Categories",
   responses: {
     200: {
       description: "Ecommerce categories retrieved successfully",
@@ -35,8 +37,11 @@ export const metadata: OperationObject = {
   },
 };
 
-export default async () => {
-  const categories = await models.ecommerceCategory.findAll({
+export default async (data: Handler) => {
+  const { ctx } = data;
+    ctx?.step("Fetching Categories");
+
+const categories = await models.ecommerceCategory.findAll({
     where: { status: true },
     attributes: [
       "id",
@@ -114,6 +119,8 @@ export default async () => {
     });
 
     // Return the processed categories
+    ctx?.success("Get Categories fetched successfully");
+
     return JSON.parse(JSON.stringify(processedCategories));
   } catch (error) {
     console.error("Error fetching categories:", error);

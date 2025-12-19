@@ -73,7 +73,8 @@ export default function Header({
 }: HeaderProps) {
   // Get binary markets from store for proper symbol parsing
   const { binaryMarkets } = useBinaryStore();
-  const t = useTranslations("common");
+  const t = useTranslations("binary_components");
+  const tCommon = useTranslations("common");
   const [showBalanceMenu, setShowBalanceMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -492,7 +493,7 @@ export default function Header({
                             : "bg-zinc-100 hover:bg-zinc-200"
                         } py-1.5 px-3 rounded text-sm min-w-[80px] text-center transition-colors`}
                       >
-                        {t("Deposit")}
+                        {tCommon("deposit")}
                       </button>
                     </div>
                   </div>
@@ -548,7 +549,7 @@ export default function Header({
                     <span
                       className={`text-xs ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}
                     >
-                      {t("available")}
+                      {tCommon("available")}
                     </span>
                     <span
                       className={`text-sm font-medium ${darkMode ? "text-white" : "text-zinc-800"}`}
@@ -614,7 +615,7 @@ export default function Header({
                     <span
                       className={`text-xs ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}
                     >
-                      {t("available")}
+                      {tCommon("available")}
                     </span>
                     <span
                       className={`text-sm font-medium ${darkMode ? "text-white" : "text-zinc-800"}`}

@@ -27,6 +27,8 @@ export const metadata: OperationObject = {
     "Initiates a Klarna payment process by creating a payment session with Buy Now, Pay Later options. Supports multiple payment methods including Pay Now, Pay Later, and Pay in Installments.",
   operationId: "createKlarnaPayment",
   tags: ["Finance", "Deposit"],
+  logModule: "KLARNA_DEPOSIT",
+  logTitle: "Create Klarna payment session",
   requestBody: {
     description: "Payment information for Klarna session",
     content: {
@@ -165,7 +167,8 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user) throw new Error("User not authenticated");
 
   const { 
@@ -188,11 +191,13 @@ export default async (data: Handler) => {
   }
 
   // Check if Klarna gateway is available
+  ctx?.step("Fetching payment gateway configuration");
   const gateway = await models.depositGateway.findOne({
     where: { alias: "klarna", status: true },
   });
 
   if (!gateway) {
+    ctx?.fail("Payment gateway not found");
     throw new Error("Klarna gateway not found or disabled");
   }
 
@@ -232,6 +237,7 @@ export default async (data: Handler) => {
 
   // Convert amounts to Klarna format (minor units)
   const orderAmount = convertToKlarnaAmount(totalAmount);
+  ctx?.step("Calculating fees");
   const taxAmount = convertToKlarnaAmount(feeAmount);
 
   // Generate unique reference

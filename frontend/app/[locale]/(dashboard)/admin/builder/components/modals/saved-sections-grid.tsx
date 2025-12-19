@@ -10,6 +10,7 @@ import { SectionSnapshot } from "../renderers/section-snapshot";
 import { AISectionGenerator } from "../ai-section-generator";
 import type { Section } from "@/types/builder";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "next-intl";
 interface SavedSectionsGridProps {
   sections: Section[];
   onSelectTemplate: (section: Section) => void;
@@ -22,6 +23,7 @@ export function SavedSectionsGrid({
   onRemoveSection,
   setImportSectionOpen,
 }: SavedSectionsGridProps) {
+  const t = useTranslations("dashboard_admin");
   const [snapshotStatus, setSnapshotStatus] = useState<Record<string, boolean>>(
     {}
   );
@@ -126,7 +128,7 @@ export function SavedSectionsGrid({
             size="sm"
             onClick={() => setShowAIGenerator(false)}
           >
-            <X className="h-4 w-4 mr-1" /> Back to Saved Sections
+            <X className="h-4 w-4 mr-1" /> {t("back_to_saved_sections")}
           </Button>
         </div>
 
@@ -145,7 +147,7 @@ export function SavedSectionsGrid({
               }}
               className="bg-green-600 hover:bg-green-700"
             >
-              Use This Section
+              {t("use_this_section")}
             </Button>
           </div>
         )}
@@ -156,7 +158,7 @@ export function SavedSectionsGrid({
     <div>
       <h2 className="text-2xl font-bold mb-4 flex items-center dark:text-zinc-100">
         <Save className="w-5 h-5 mr-2 text-green-500" />
-        Saved Sections
+        {t("saved_sections")}
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -170,10 +172,10 @@ export function SavedSectionsGrid({
           </div>
           <div className="text-left">
             <span className="text-sm font-medium block dark:text-zinc-100">
-              Import Section
+              {t("import_section")}
             </span>
             <span className="text-xs text-muted-foreground">
-              Import from JSON file
+              {t("import_from_json_file")}
             </span>
           </div>
         </Button>
@@ -192,7 +194,7 @@ export function SavedSectionsGrid({
               AI Generator
             </span>
             <span className="text-xs text-muted-foreground">
-              Create with AI
+              {t("create_with_ai")}
             </span>
           </div>
         </Button>
@@ -205,11 +207,10 @@ export function SavedSectionsGrid({
             <Save className="h-6 w-6 text-zinc-400 dark:text-zinc-400" />
           </div>
           <h3 className="text-lg font-medium mb-2 dark:text-zinc-100">
-            No Saved Sections
+            {t("no_saved_sections")}
           </h3>
           <p className="text-muted-foreground max-w-md">
-            You haven't saved any sections yet. Save sections from your pages to
-            reuse them later.
+            {t("you_havent_saved_any_sections_yet_1")} {t("save_sections_from_your_pages_to_reuse_them_later_1")}
           </p>
         </div>
       ) : (
@@ -236,7 +237,7 @@ export function SavedSectionsGrid({
                   <div className="scale-[0.4] origin-top-left w-[250%] h-[250%] overflow-hidden">
                     <img
                       src={section.snapshots?.card || "/placeholder.svg"}
-                      alt="Saved section"
+                      alt={t("saved_section")}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -269,10 +270,10 @@ export function SavedSectionsGrid({
 
                   <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-20">
                     <h3 className="font-medium text-white text-lg">
-                      Saved Section
+                      {t("saved_section")}
                     </h3>
                     <p className="text-sm text-white/80 line-clamp-2 mt-1">
-                      Click to use this saved section
+                      {t("click_to_use_this_saved_section")}
                     </p>
                   </div>
                 </div>
@@ -280,7 +281,7 @@ export function SavedSectionsGrid({
                 {/* Use section button */}
                 <div className="p-3 flex justify-between items-center">
                   <span className="text-sm font-medium dark:text-zinc-100">
-                    Saved Section
+                    {t("saved_section")}
                   </span>
                   <Button
                     size="sm"

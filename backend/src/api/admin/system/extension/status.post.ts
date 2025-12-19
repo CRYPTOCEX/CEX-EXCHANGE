@@ -31,18 +31,23 @@ export const metadata = {
   responses: updateRecordResponses("Extension"),
   requiresAuth: true,
   permission: "edit.extension",
+  logModule: "ADMIN_SYS",
+  logTitle: "Bulk update extension status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
 
+  ctx?.step(`Updating ${ids.length} extensions to ${status ? "active" : "inactive"}`);
   // Update the statuses in the database
   const updateResult = await updateStatus("extension", ids, status);
 
+  ctx?.step("Clearing cache");
   // Clear cache after update
   const cacheManager = CacheManager.getInstance();
   await cacheManager.clearCache();
 
+  ctx?.success(`${ids.length} extension statuses updated successfully`);
   return updateResult;
 };

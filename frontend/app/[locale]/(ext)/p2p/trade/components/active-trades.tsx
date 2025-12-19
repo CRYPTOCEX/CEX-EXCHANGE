@@ -55,7 +55,8 @@ interface ActiveTradesProps {
   trades?: Trade[];
 }
 export function ActiveTrades({ trades = [] }: ActiveTradesProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
   const router = useRouter();
 
   const viewTradeDetails = (id: string, tab?: string) => {
@@ -186,7 +187,7 @@ export function ActiveTrades({ trades = [] }: ActiveTradesProps) {
                   onClick={() => viewTradeDetails(trade.id)}
                 >
                   <ExternalLink className="mr-2 h-4 w-4" />
-                  {t("view_details")}
+                  {tCommon("view_details")}
                 </Button>
 
                 <Button

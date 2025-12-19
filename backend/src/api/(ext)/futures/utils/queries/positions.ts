@@ -10,6 +10,7 @@ try {
 }
 import { makeUuid } from "@b/utils/passwords";
 import { uuidToString } from "./order";
+import { logger } from "@b/utils/console";
 
 export interface FuturesPosition {
   id: string;
@@ -68,7 +69,7 @@ export async function getPosition(
     }
     return null;
   } catch (error) {
-    console.error(`Failed to fetch position: ${error.message}`);
+    logger.error("POSITIONS", "Failed to fetch position", error);
     throw new Error(`Failed to fetch position: ${error.message}`);
   }
 }
@@ -120,7 +121,7 @@ export async function getPositions(
       updatedAt: new Date(row.updatedAt),
     }));
   } catch (error) {
-    console.error(`Failed to fetch positions: ${error.message}`);
+    logger.error("POSITIONS", "Failed to fetch positions", error);
     throw new Error(`Failed to fetch positions: ${error.message}`);
   }
 }
@@ -154,7 +155,7 @@ export async function getAllOpenPositions(): Promise<FuturesPosition[]> {
       updatedAt: new Date(row.updatedAt),
     }));
   } catch (error) {
-    console.error(`Failed to fetch open positions: ${error.message}`);
+    logger.error("POSITIONS", "Failed to fetch open positions", error);
     throw new Error(`Failed to fetch open positions: ${error.message}`);
   }
 }
@@ -196,7 +197,7 @@ export async function createPosition(
   try {
     await client.execute(query, params, { prepare: true });
   } catch (error) {
-    console.error(`Failed to create position: ${error.message}`);
+    logger.error("POSITIONS", "Failed to create position", error);
     throw new Error(`Failed to create position: ${error.message}`);
   }
 }
@@ -233,7 +234,7 @@ export async function updatePositionInDB(
   try {
     await client.execute(query, params, { prepare: true });
   } catch (error) {
-    console.error(`Failed to update position: ${error.message}`);
+    logger.error("POSITIONS", "Failed to update position", error);
     throw new Error(`Failed to update position: ${error.message}`);
   }
 }
@@ -257,7 +258,7 @@ export async function updatePositionStatus(
   try {
     await client.execute(query, params, { prepare: true });
   } catch (error) {
-    console.error(`Failed to update position status: ${error.message}`);
+    logger.error("POSITIONS", "Failed to update position status", error);
     throw new Error(`Failed to update position status: ${error.message}`);
   }
 }

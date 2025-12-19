@@ -13,6 +13,7 @@ import {
 import passwordGenerator from "generate-password";
 import { emailQueue } from "@b/utils/emails";
 import { createPublicClient, http } from "viem";
+import { logger } from "@b/utils/console";
 
 export async function verifySignature({
   address,
@@ -44,7 +45,7 @@ export async function verifySignature({
 
     return isValid;
   } catch (e) {
-    console.error("Signature verification error:", e);
+    logger.error("AUTH", "Signature verification error", e);
     return false;
   }
 }
@@ -385,19 +386,19 @@ export async function addOneTimeToken(
 export const verifyRecaptcha = async (token) => {
   try {
     const secretKey = process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SECRET_KEY;
-    
+
     if (!secretKey) {
-      console.error('reCAPTCHA secret key not found in environment variables');
+      logger.error("AUTH", "reCAPTCHA secret key not found in environment variables");
       return false;
     }
-    
+
     if (!token) {
-      console.error('reCAPTCHA token is missing');
+      logger.error("AUTH", "reCAPTCHA token is missing");
       return false;
     }
-    
-    console.log('Verifying reCAPTCHA token with Google...');
-    
+
+    logger.debug("AUTH", "Verifying reCAPTCHA token with Google...");
+
     const response = await fetch(
       `https://www.google.com/recaptcha/api/siteverify`,
       {
@@ -410,14 +411,14 @@ export const verifyRecaptcha = async (token) => {
     );
 
     const data = await response.json();
-    
+
     if (!data.success) {
-      console.error('reCAPTCHA verification failed:', data['error-codes']);
+      logger.error("AUTH", `reCAPTCHA verification failed: ${data['error-codes']}`);
     }
-    
+
     return data.success;
   } catch (error) {
-    console.error('reCAPTCHA verification error:', error);
+    logger.error("AUTH", "reCAPTCHA verification error", error);
     return false;
   }
 };

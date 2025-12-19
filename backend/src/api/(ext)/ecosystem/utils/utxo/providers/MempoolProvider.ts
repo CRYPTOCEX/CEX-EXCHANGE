@@ -5,7 +5,7 @@
  */
 
 import { IUTXOProvider, UTXOTransaction, UTXOTransactionDetails, UTXO, UTXOInput, UTXOOutput } from './IUTXOProvider';
-import { logError } from '@b/utils/logger';
+import { logger } from '@b/utils/console';
 
 export class MempoolProvider implements IUTXOProvider {
   private baseURL: string;
@@ -56,9 +56,52 @@ export class MempoolProvider implements IUTXOProvider {
         return await response.text();
       }
     } catch (error) {
-      logError('mempool_provider_fetch', error, __filename);
-      throw error;
+      // Enhance the error with more context for debugging
+      const enhancedError = this.enhanceError(error, url);
+      throw enhancedError;
     }
+  }
+
+  private enhanceError(error: any, url: string): Error {
+    let message = error?.message || 'Unknown error';
+    const details: string[] = [];
+
+    // Extract the root cause from nested errors
+    if (error?.cause) {
+      const cause = error.cause;
+      if (cause.code) details.push(`code: ${cause.code}`);
+      if (cause.syscall) details.push(`syscall: ${cause.syscall}`);
+      if (cause.hostname) details.push(`host: ${cause.hostname}`);
+      if (cause.message && cause.message !== message) {
+        message = cause.message;
+      }
+      // Check for deeper nested cause
+      if (cause.cause?.message) {
+        message = cause.cause.message;
+      }
+    }
+
+    // Handle specific error types
+    if (error?.name === 'TimeoutError' || message.includes('timeout')) {
+      message = `Request timed out after ${this.timeout}ms`;
+    } else if (error?.code === 'ENOTFOUND' || error?.cause?.code === 'ENOTFOUND') {
+      message = 'DNS lookup failed - host not found';
+    } else if (error?.code === 'ECONNREFUSED' || error?.cause?.code === 'ECONNREFUSED') {
+      message = 'Connection refused';
+    } else if (error?.code === 'ECONNRESET' || error?.cause?.code === 'ECONNRESET') {
+      message = 'Connection reset by server';
+    } else if (error?.code === 'CERT_HAS_EXPIRED' || message.includes('certificate')) {
+      message = 'SSL certificate error';
+    }
+
+    // Build the final error message
+    const urlPath = url.replace(this.baseURL, '');
+    const detailStr = details.length > 0 ? ` (${details.join(', ')})` : '';
+    const enhancedMessage = `${message}${detailStr} [${urlPath}]`;
+
+    const enhancedError = new Error(enhancedMessage);
+    enhancedError.name = error?.name || 'FetchError';
+    return enhancedError;
   }
 
   async fetchTransactions(address: string): Promise<UTXOTransaction[]> {
@@ -90,7 +133,7 @@ export class MempoolProvider implements IUTXOProvider {
         };
       });
     } catch (error) {
-      logError('mempool_fetch_transactions', error, __filename);
+      logger.error('MEMPOOL', `fetchTransactions(${address.slice(0, 8)}...)`, error);
       return [];
     }
   }
@@ -134,7 +177,7 @@ export class MempoolProvider implements IUTXOProvider {
         outputs: outputs,
       };
     } catch (error) {
-      logError('mempool_fetch_transaction', error, __filename);
+      logger.error('MEMPOOL', `fetchTransaction(${txHash.slice(0, 8)}...)`, error);
       return null;
     }
   }
@@ -144,7 +187,7 @@ export class MempoolProvider implements IUTXOProvider {
       const hex = await this.fetchFromAPI(`/tx/${txHash}/hex`);
       return hex;
     } catch (error) {
-      logError('mempool_fetch_raw_transaction', error, __filename);
+      logger.error('MEMPOOL', `fetchRawTransaction(${txHash.slice(0, 8)}...)`, error);
       throw error;
     }
   }
@@ -158,7 +201,7 @@ export class MempoolProvider implements IUTXOProvider {
 
       return funded - spent; // Returns satoshis
     } catch (error) {
-      logError('mempool_get_balance', error, __filename);
+      logger.error('MEMPOOL', `getBalance(${address.slice(0, 8)}...)`, error);
       return 0;
     }
   }
@@ -178,7 +221,7 @@ export class MempoolProvider implements IUTXOProvider {
         script: utxo.scriptpubkey,
       }));
     } catch (error) {
-      logError('mempool_get_utxos', error, __filename);
+      logger.error('MEMPOOL', `getUTXOs(${address.slice(0, 8)}...)`, error);
       return [];
     }
   }
@@ -198,7 +241,7 @@ export class MempoolProvider implements IUTXOProvider {
         txid: txid,
       };
     } catch (error) {
-      logError('mempool_broadcast_transaction', error, __filename);
+      logger.error('MEMPOOL', 'broadcastTransaction', error);
       return {
         success: false,
         txid: null,
@@ -217,7 +260,7 @@ export class MempoolProvider implements IUTXOProvider {
 
       return fees[feeRatePriority] || fees.halfHourFee || fees.fastestFee;
     } catch (error) {
-      logError('mempool_get_fee_rate', error, __filename);
+      logger.error('MEMPOOL', 'getFeeRate', error);
       return 1; // Default 1 sat/vByte
     }
   }
@@ -227,7 +270,7 @@ export class MempoolProvider implements IUTXOProvider {
       const height = await this.fetchFromAPI('/blocks/tip/height');
       return parseInt(height);
     } catch (error) {
-      logError('mempool_get_block_height', error, __filename);
+      logger.error('MEMPOOL', 'getCurrentBlockHeight', error);
       return 0;
     }
   }

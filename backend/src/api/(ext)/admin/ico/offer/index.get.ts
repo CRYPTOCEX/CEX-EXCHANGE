@@ -19,16 +19,20 @@ export const metadata = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "ADMIN_ICO",
+  logTitle: "Get ICO Offers",
   permission: "view.ico.offer",
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+  ctx?.step("Validate user authentication");
   if (!user) {
     throw new Error("Unauthorized");
   }
 
-  return getFiltered({
+  ctx?.step("Fetch ICO offerings with computed metrics");
+  const result = await getFiltered({
     model: models.icoTokenOffering,
     query,
     sortField: query.sortField || "createdAt",
@@ -44,4 +48,7 @@ export default async (data: Handler) => {
       ],
     ],
   });
+
+  ctx?.success("Get ICO Offers retrieved successfully");
+  return result;
 };

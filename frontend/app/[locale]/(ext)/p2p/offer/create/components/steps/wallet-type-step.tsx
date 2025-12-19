@@ -26,7 +26,8 @@ interface UserWallet {
   status: boolean;
 }
 export function WalletTypeStep() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tCommon = useTranslations("common");
   const { tradeData, updateTradeData, markStepComplete } = useWizard();
   const [walletOptions, setWalletOptions] = useState<WalletOption[]>([]);
   const [selectedWallet, setSelectedWallet] = useState<string>("");
@@ -286,7 +287,7 @@ export function WalletTypeStep() {
                         {wallet.symbol}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {t("available_balance")}
+                        {tCommon("available_balance")}
                       </p>
                     </div>
                     {selectedUserWallet === wallet.id && (

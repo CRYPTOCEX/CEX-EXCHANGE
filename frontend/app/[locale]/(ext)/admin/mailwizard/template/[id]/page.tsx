@@ -9,10 +9,11 @@ import { useTheme } from "next-themes";
 import { $fetch } from "@/lib/api";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 const EmailEditor = dynamic(() => import("react-email-editor"), { ssr: false });
 export default function TemplateEdit() {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   const router = useRouter();
   const params = useParams();
   const { id } = params; // Now using route parameters for the ID
@@ -89,13 +90,13 @@ export default function TemplateEdit() {
     });
   };
   return (
-    <div className="space-y-5">
+    <div className={`container ${PAGE_PADDING} space-y-5`}>
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold text-zinc-500 dark:text-zinc-400">
-          {t("Edit")}
+          {t("edit")}
           {template.name}
-          {t("Template")}
+          {t("template")}
         </h2>
         <div className="flex gap-2">
           <Button
@@ -103,13 +104,13 @@ export default function TemplateEdit() {
             onClick={() => router.push("/admin/mailwizard/template")}
           >
             <Icon icon="lucide:arrow-left" className="mr-2 h-4 w-4" />
-            {t("Back")}
+            {t("back")}
           </Button>
           <Button
             onClick={save}
             disabled={isLoading || !emailEditorRef.current}
           >
-            {t("Save")}
+            {t("save")}
           </Button>
         </div>
       </div>

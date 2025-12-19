@@ -4,7 +4,7 @@ import { Coins } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function PositionsEmptyState({ tab }: { tab: string }) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_staking");
   let title: string;
   let description: string;
 

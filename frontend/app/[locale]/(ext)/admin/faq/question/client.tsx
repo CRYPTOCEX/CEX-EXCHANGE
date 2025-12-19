@@ -1,34 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, RefreshCcw } from "lucide-react";
+import { Search, Sparkles, HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ConvertToFaqDialog } from "./components/convert-to-faq-dialog";
-import { AnswerQuestionDialog } from "./components/answer-question-dialog";
 import { useAdminQuestionsStore } from "@/store/faq/question-store";
+import { useTranslations } from "next-intl";
+import { HeroSection } from "@/components/ui/hero-section";
+import { motion } from "framer-motion";
+import { Link } from "@/i18n/routing";
+import { useState } from "react";
+
 export default function AdminQuestionsClient() {
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const { questions, isLoading, fetchQuestions, updateQuestionStatus } =
     useAdminQuestionsStore();
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedQuestion, setSelectedQuestion] =
-    useState<faqQuestionAttributes | null>(null);
-  const [showConvertDialog, setShowConvertDialog] = useState(false);
-  const [showAnswerDialog, setShowAnswerDialog] = useState(false);
+
   useEffect(() => {
     fetchQuestions();
   }, [fetchQuestions]);
+
   const handleStatusChange = async (
     questionId: string,
     status: "PENDING" | "ANSWERED" | "REJECTED"
@@ -39,24 +35,12 @@ export default function AdminQuestionsClient() {
       console.error("Error updating question status:", error);
     }
   };
-  const handleConvertToFaq = (question: faqQuestionAttributes) => {
-    setSelectedQuestion(question);
-    setShowConvertDialog(true);
-  };
-  const handleAnswerQuestion = (question: faqQuestionAttributes) => {
-    setSelectedQuestion(question);
-    setShowAnswerDialog(true);
-  };
-  const handleRefresh = () => {
-    fetchQuestions();
-  };
   const filteredQuestions = questions
     .filter(
       (q) =>
         q.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (q.email && q.email.toLowerCase().includes(searchQuery.toLowerCase()))
     )
-    .filter((q) => statusFilter === "all" || q.status === statusFilter)
     .sort(
       (a, b) =>
         new Date(b.createdAt || 0).getTime() -
@@ -95,27 +79,83 @@ export default function AdminQuestionsClient() {
         return <Badge variant="outline">{status}</Badge>;
     }
   };
-  return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              User Questions
-            </h1>
-            <p className="text-muted-foreground">
-              Manage user questions, provide answers, and convert them into FAQs
-              for your knowledge base.
-            </p>
-          </div>
-        </div>
-      </div>
+  const pendingCount = questions.filter(q => q.status === "PENDING").length;
+  const answeredCount = questions.filter(q => q.status === "ANSWERED").length;
 
-      <Tabs defaultValue="all" className="w-full">
+  return (
+    <div className="min-h-screen">
+      <HeroSection
+        badge={{
+          icon: <Sparkles className="h-3.5 w-3.5" />,
+          text: "Knowledge Base",
+          gradient: "from-sky-500/20 via-blue-500/20 to-sky-500/20",
+          iconColor: "text-sky-500",
+          textColor: "text-sky-600 dark:text-sky-400",
+        }}
+        title={[
+          { text: "User " },
+          {
+            text: "Questions",
+            gradient:
+              "from-sky-600 via-blue-500 to-sky-600 dark:from-sky-400 dark:via-blue-400 dark:to-sky-400",
+          },
+        ]}
+        description={t("manage_user_questions_provide_answers_and")}
+        paddingTop="pt-24"
+        paddingBottom="pb-12"
+        layout="split"
+        background={{
+          orbs: [
+            {
+              color: "#0ea5e9",
+              position: { top: "-10rem", right: "-10rem" },
+              size: "20rem",
+            },
+            {
+              color: "#3b82f6",
+              position: { bottom: "-5rem", left: "-5rem" },
+              size: "15rem",
+            },
+          ],
+        }}
+        particles={{
+          count: 6,
+          type: "floating",
+          colors: ["#0ea5e9", "#3b82f6"],
+          size: 8,
+        }}
+        bottomSlot={
+          <Card className="bg-card/50 backdrop-blur border-sky-500/20">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-linear-to-br from-sky-500 to-blue-600 flex items-center justify-center">
+                  <HelpCircle className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">
+                    {questions.length} Total Questions
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {pendingCount} pending, {answeredCount} answered
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        }
+      />
+
+      {/* Main Content Container */}
+      <div className="container mx-auto py-8 space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Tabs defaultValue="all" className="w-full">
         <div className="flex justify-between items-center">
           <TabsList>
-            <TabsTrigger value="all">All Questions</TabsTrigger>
+            <TabsTrigger value="all">{t("all_questions")}</TabsTrigger>
             <TabsTrigger value="PENDING">Pending</TabsTrigger>
             <TabsTrigger value="ANSWERED">Answered</TabsTrigger>
             <TabsTrigger value="REJECTED">Rejected</TabsTrigger>
@@ -123,7 +163,7 @@ export default function AdminQuestionsClient() {
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search questions..."
+              placeholder={t("search_questions_ellipsis")}
               className="pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -146,7 +186,9 @@ export default function AdminQuestionsClient() {
           ) : filteredQuestions.length === 0 ? (
             <Card>
               <CardContent className="p-6 text-center">
-                <p className="text-muted-foreground">No questions found.</p>
+                <p className="text-muted-foreground">
+                  {t("no_questions_found_1")}
+                </p>
               </CardContent>
             </Card>
           ) : (
@@ -173,9 +215,13 @@ export default function AdminQuestionsClient() {
                     </CardHeader>
                     <CardContent className="py-2">
                       <div className="text-sm text-muted-foreground mb-4">
-                        {question.email && <p>From: {question.email}</p>}
+                        {question.email && (
+                          <p>
+                            {tCommon("from")}: {question.email}
+                          </p>
+                        )}
                         <p>
-                          Submitted:{" "}
+                          {t("submitted_1")}:{" "}
                           {question.createdAt
                             ? new Date(question.createdAt).toLocaleDateString()
                             : ""}
@@ -184,19 +230,15 @@ export default function AdminQuestionsClient() {
                       <div className="flex gap-2 justify-end">
                         {question.status === "PENDING" && (
                           <>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleAnswerQuestion(question)}
-                            >
-                              Answer
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={`/admin/faq/question/${question.id}/answer`}>
+                                Answer
+                              </Link>
                             </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleConvertToFaq(question)}
-                            >
-                              Convert to FAQ
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={`/admin/faq/question/${question.id}/convert`}>
+                                {t("convert_to_faq")}
+                              </Link>
                             </Button>
                             <Button
                               variant="outline"
@@ -210,12 +252,10 @@ export default function AdminQuestionsClient() {
                           </>
                         )}
                         {question.status === "ANSWERED" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleConvertToFaq(question)}
-                          >
-                            Convert to FAQ
+                          <Button variant="outline" size="sm" asChild>
+                            <Link href={`/admin/faq/question/${question.id}/convert`}>
+                              {t("convert_to_faq")}
+                            </Link>
                           </Button>
                         )}
                         {question.status === "REJECTED" && (
@@ -226,7 +266,7 @@ export default function AdminQuestionsClient() {
                               handleStatusChange(question.id, "PENDING")
                             }
                           >
-                            Mark as Pending
+                            {t("mark_as_pending")}
                           </Button>
                         )}
                       </div>
@@ -256,7 +296,7 @@ export default function AdminQuestionsClient() {
             <Card>
               <CardContent className="p-6 text-center">
                 <p className="text-muted-foreground">
-                  No pending questions found.
+                  {t("no_pending_questions_found_1")}
                 </p>
               </CardContent>
             </Card>
@@ -280,9 +320,13 @@ export default function AdminQuestionsClient() {
                       </CardHeader>
                       <CardContent className="py-2">
                         <div className="text-sm text-muted-foreground mb-4">
-                          {question.email && <p>From: {question.email}</p>}
+                          {question.email && (
+                            <p>
+                              {tCommon("from")}: {question.email}
+                            </p>
+                          )}
                           <p>
-                            Submitted:{" "}
+                            {t("submitted_1")}:{" "}
                             {question.createdAt
                               ? new Date(
                                   question.createdAt
@@ -291,19 +335,15 @@ export default function AdminQuestionsClient() {
                           </p>
                         </div>
                         <div className="flex gap-2 justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleAnswerQuestion(question)}
-                          >
-                            Answer
+                          <Button variant="outline" size="sm" asChild>
+                            <Link href={`/admin/faq/question/${question.id}/answer`}>
+                              Answer
+                            </Link>
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleConvertToFaq(question)}
-                          >
-                            Convert to FAQ
+                          <Button variant="outline" size="sm" asChild>
+                            <Link href={`/admin/faq/question/${question.id}/convert`}>
+                              {t("convert_to_faq")}
+                            </Link>
                           </Button>
                           <Button
                             variant="outline"
@@ -340,7 +380,7 @@ export default function AdminQuestionsClient() {
             <Card>
               <CardContent className="p-6 text-center">
                 <p className="text-muted-foreground">
-                  No answered questions found.
+                  {t("no_answered_questions_found_1")}
                 </p>
               </CardContent>
             </Card>
@@ -364,9 +404,13 @@ export default function AdminQuestionsClient() {
                       </CardHeader>
                       <CardContent className="py-2">
                         <div className="text-sm text-muted-foreground mb-4">
-                          {question.email && <p>From: {question.email}</p>}
+                          {question.email && (
+                            <p>
+                              {tCommon("from")}: {question.email}
+                            </p>
+                          )}
                           <p>
-                            Submitted:{" "}
+                            {t("submitted_1")}:{" "}
                             {question.createdAt
                               ? new Date(
                                   question.createdAt
@@ -375,12 +419,10 @@ export default function AdminQuestionsClient() {
                           </p>
                         </div>
                         <div className="flex gap-2 justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleConvertToFaq(question)}
-                          >
-                            Convert to FAQ
+                          <Button variant="outline" size="sm" asChild>
+                            <Link href={`/admin/faq/question/${question.id}/convert`}>
+                              {t("convert_to_faq")}
+                            </Link>
                           </Button>
                         </div>
                       </CardContent>
@@ -408,7 +450,7 @@ export default function AdminQuestionsClient() {
             <Card>
               <CardContent className="p-6 text-center">
                 <p className="text-muted-foreground">
-                  No rejected questions found.
+                  {t("no_rejected_questions_found_1")}
                 </p>
               </CardContent>
             </Card>
@@ -432,9 +474,13 @@ export default function AdminQuestionsClient() {
                       </CardHeader>
                       <CardContent className="py-2">
                         <div className="text-sm text-muted-foreground mb-4">
-                          {question.email && <p>From: {question.email}</p>}
+                          {question.email && (
+                            <p>
+                              {tCommon("from")}: {question.email}
+                            </p>
+                          )}
                           <p>
-                            Submitted:{" "}
+                            {t("submitted_1")}:{" "}
                             {question.createdAt
                               ? new Date(
                                   question.createdAt
@@ -450,7 +496,7 @@ export default function AdminQuestionsClient() {
                               handleStatusChange(question.id, "PENDING")
                             }
                           >
-                            Mark as Pending
+                            {t("mark_as_pending")}
                           </Button>
                         </div>
                       </CardContent>
@@ -459,38 +505,10 @@ export default function AdminQuestionsClient() {
                 })}
             </div>
           )}
-        </TabsContent>
-      </Tabs>
-
-      {selectedQuestion && (
-        <>
-          <ConvertToFaqDialog
-            open={showConvertDialog}
-            onOpenChange={setShowConvertDialog}
-            question={selectedQuestion}
-            onConvert={(faqId) => {
-              // Update question status
-              handleStatusChange(selectedQuestion.id, "ANSWERED");
-              // Close dialog and reset
-              setShowConvertDialog(false);
-              setSelectedQuestion(null);
-            }}
-          />
-
-          <AnswerQuestionDialog
-            open={showAnswerDialog}
-            onOpenChange={setShowAnswerDialog}
-            question={selectedQuestion}
-            onAnswer={() => {
-              // Update question status
-              handleStatusChange(selectedQuestion.id, "ANSWERED");
-              // Close dialog and reset
-              setShowAnswerDialog(false);
-              setSelectedQuestion(null);
-            }}
-          />
-        </>
-      )}
+          </TabsContent>
+        </Tabs>
+        </motion.div>
+      </div>
     </div>
   );
 }

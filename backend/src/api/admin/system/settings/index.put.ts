@@ -48,18 +48,23 @@ export const metadata = {
   },
   permission: "edit.settings",
   requiresAuth: true,
+  // Logging configuration - ctx will be automatically provided
+  logModule: "SETTINGS",
+  logTitle: "Update application settings",
 };
 
-export default async (data: { body: { [key: string]: unknown } }) => {
-  const { body } = data;
+export default async (data: Handler) => {
+  const { body, ctx } = data;
 
-  // Validate and filter the request body
+  // Step 1: Validate and filter the request body
+  ctx?.step("Validating settings data");
   const validUpdates: Record<string, string> = {};
-  
+  let skippedCount = 0;
+
   Object.entries(body).forEach(([key, value]) => {
     // Skip problematic keys
     if (key === "settings" || key === "extensions") {
-      console.warn(`Skipping problematic setting key: ${key}`);
+      skippedCount++;
       return;
     }
 
@@ -68,7 +73,6 @@ export default async (data: { body: { [key: string]: unknown } }) => {
     if (value === null || value === "null" || value === undefined) {
       stringValue = "";
     } else if (typeof value === "object") {
-      // Serialize objects/arrays to JSON string
       stringValue = JSON.stringify(value);
     } else {
       stringValue = String(value);
@@ -77,27 +81,48 @@ export default async (data: { body: { [key: string]: unknown } }) => {
     validUpdates[key] = stringValue;
   });
 
-  // Fetch all existing settings keys.
+  if (skippedCount > 0) {
+    ctx?.warn(`Skipped ${skippedCount} problematic setting keys`);
+  }
+
+  const updateCount = Object.keys(validUpdates).length;
+  ctx?.step(`Processing ${updateCount} settings`);
+
+  // Step 2: Fetch existing settings
+  ctx?.step("Loading existing settings");
   const existingSettings = await models.settings.findAll();
   const existingKeys = existingSettings.map((setting) => setting.key);
 
-  // For every valid key in the request body, update or create the record.
+  // Step 3: Update or create settings
+  ctx?.step("Applying settings updates");
+  let updatedCount = 0;
+  let createdCount = 0;
+
   const updates = Object.entries(validUpdates).map(async ([key, value]) => {
     if (existingKeys.includes(key)) {
+      updatedCount++;
       return models.settings.update({ value }, { where: { key } });
     } else {
+      createdCount++;
       return models.settings.create({ key, value });
     }
   });
 
   await Promise.all(updates);
 
-  // Do not remove any settings not included in the request body.
-  // This ensures that settings pages performing partial updates do not cause unintended deletions.
+  if (createdCount > 0) {
+    ctx?.step(`Created ${createdCount} new settings`, "success");
+  }
+  if (updatedCount > 0) {
+    ctx?.step(`Updated ${updatedCount} existing settings`, "success");
+  }
 
-  // Clear cache to reflect updated settings.
+  // Step 4: Clear cache
+  ctx?.step("Clearing settings cache");
   const cacheManager = CacheManager.getInstance();
   await cacheManager.clearCache();
+
+  ctx?.success(`${updateCount} settings saved successfully`);
 
   return {
     message: "Settings updated successfully",

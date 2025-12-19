@@ -1,10 +1,12 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
 interface ErrorStateProps {
   error: string;
   onRetry: () => void;
 }
 export const ErrorState: React.FC<ErrorStateProps> = ({ error, onRetry }) => {
+  const t = useTranslations("common");
   return (
     <div className="flex items-center justify-center min-h-[600px]">
       <Card>
@@ -14,7 +16,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({ error, onRetry }) => {
             onClick={onRetry}
             className="text-sm text-muted-foreground hover:text-primary transition-colors"
           >
-            Try again
+            {t("try_again")}
           </button>
         </CardContent>
       </Card>

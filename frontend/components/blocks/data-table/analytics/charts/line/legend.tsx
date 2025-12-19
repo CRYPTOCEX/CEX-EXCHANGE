@@ -1,14 +1,16 @@
 import React from "react";
 import { variants } from "./utils";
 import { LegendProps } from "./types";
+import { useTranslations } from "next-intl";
 
 export const Legend: React.FC<LegendProps> = React.memo(({ config }) => {
+  const t = useTranslations("components_blocks");
   return (
     <div className="mt-6 pt-6 border-t">
       <div
         className="flex flex-wrap justify-center gap-x-4 gap-y-2 sm:gap-x-8 sm:gap-y-4"
         role="list"
-        aria-label="Chart legend"
+        aria-label={t("chart_legend")}
       >
         {config.metrics?.map((metric, index) => (
           <div key={metric} className="flex items-center gap-2" role="listitem">

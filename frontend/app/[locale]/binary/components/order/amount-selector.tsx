@@ -4,6 +4,7 @@ import type { RefObject } from "react";
 import { useRef, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Minus, Plus, Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 // Update the ref type to accept HTMLDivElement | null
 interface AmountSelectorProps {
@@ -37,6 +38,8 @@ export default function AmountSelector({
   darkMode = true,
   symbol,
 }: AmountSelectorProps) {
+  const t = useTranslations("binary_components");
+  const tCommon = useTranslations("common");
   const presetAmounts = [100, 500, 1000, 2000, 5000, 10000];
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -118,7 +121,7 @@ export default function AmountSelector({
         <div
           className={`text-[12px] ${darkMode ? "text-gray-400" : "text-gray-500"} mt-1`}
         >
-          {((amount / balance) * 100).toFixed(1)}% of balance
+          {((amount / balance) * 100).toFixed(1)}% {t("of_balance")}
         </div>
       </div>
 
@@ -156,7 +159,7 @@ export default function AmountSelector({
               <div
                 className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} mb-1`}
               >
-                Quick Amounts
+                {t("quick_amounts")}
               </div>
               <div className="grid grid-cols-3 gap-1">
                 {presetAmounts.map((presetAmount) => {
@@ -187,7 +190,7 @@ export default function AmountSelector({
               <div
                 className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} mb-1`}
               >
-                Percentage of Balance
+                {t("percentage_of_balance")}
               </div>
               <div className="grid grid-cols-4 gap-1">
                 {[1, 5, 10, 25].map((percent) => (
@@ -216,7 +219,7 @@ export default function AmountSelector({
               <div
                 className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} mb-1`}
               >
-                Custom Amount
+                {t("custom_amount")}
               </div>
               <div
                 className={`flex items-center ${darkMode ? "bg-[#2A2E39]" : "bg-gray-100"} rounded p-1`}
@@ -240,7 +243,7 @@ export default function AmountSelector({
                 />
               </div>
               <div className="flex justify-between items-center mt-2 text-[11px] text-gray-400">
-                <span>Available: {balance.toLocaleString()} {getCurrency(symbol)}</span>
+                <span>{tCommon("available")}: {balance.toLocaleString()} {getCurrency(symbol)}</span>
                 <button
                   className="bg-[#00C896] hover:bg-[#00B085] text-white px-2 py-1 rounded text-[11px]"
                   onClick={() => setShowAmountDropdown(false)}

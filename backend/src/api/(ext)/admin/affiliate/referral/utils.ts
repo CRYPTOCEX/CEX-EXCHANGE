@@ -45,14 +45,4 @@ export const mlmReferralUpdateSchema = {
   required: ["status"],
 };
 
-export const mlmReferralStoreSchema = {
-  description: `MLM Referral created or updated successfully`,
-  content: {
-    "application/json": {
-      schema: {
-        type: "object",
-        properties: baseMlmReferralSchema,
-      },
-    },
-  },
-};
+export const mlmReferralStoreSchema = baseMlmReferralSchema;

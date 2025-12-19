@@ -23,11 +23,10 @@ export const metadata: OperationObject = {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
-                  // You can document p2pTrade properties here if needed.
                 },
               },
               pagination: paginationSchema,
@@ -41,15 +40,21 @@ export const metadata: OperationObject = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
+  logModule: "ADMIN_P2P",
+  logTitle: "Get P2P Trades",
   permission: "view.p2p.trade",
+  demoMask: ["items.buyer.email", "items.seller.email"],
 };
 
 export default async (data: Handler) => {
-  const { query, user } = data;
-  if (!user?.id)
+  const { query, user, ctx } = data;
+  
+  ctx?.step("Fetching data");
+    if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
   // Adjust filtering as needed.
+    ctx?.success("Operation completed successfully");
   return getFiltered({
     model: models.p2pTrade,
     query,

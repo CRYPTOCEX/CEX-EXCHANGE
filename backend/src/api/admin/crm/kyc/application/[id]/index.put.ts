@@ -31,13 +31,17 @@ export const metadata = {
   responses: updateRecordResponses("KYC Application"),
   requiresAuth: true,
   permission: "edit.kyc.application",
+  logModule: "ADMIN_CRM",
+  logTitle: "Update KYC application",
 };
 
 export default async (req: Handler): Promise<any> => {
-  const { body, params } = req;
+  const { body, params, ctx } = req;
   const { id } = params;
   // Expecting payload to contain "status" and "adminNotes" (note: no "level" field here)
   const { status, adminNotes } = body;
+
+  ctx?.step(`Updating KYC application ${id}`);
 
   // Validate and sanitize admin notes
   if (adminNotes !== undefined) {
@@ -77,6 +81,7 @@ export default async (req: Handler): Promise<any> => {
     }
   }
 
+  ctx?.step("Fetching KYC application");
   // Retrieve the KYC application (using the correct model name) with the user relation
   const kycApplication = await models.kycApplication.findByPk(id, {
     include: [{ model: models.user, as: "user" }],
@@ -86,6 +91,7 @@ export default async (req: Handler): Promise<any> => {
   // Store the old status for comparison
   const oldStatus = kycApplication.status;
 
+  ctx?.step("Updating application fields");
   // Update the application fields (status and adminNotes)
   if (status) kycApplication.status = status;
   if (body.adminNotes !== undefined) kycApplication.adminNotes = body.adminNotes;
@@ -125,13 +131,16 @@ export default async (req: Handler): Promise<any> => {
   }
 
   if (emailType) {
+    ctx?.step(`Sending ${emailType} email notification`);
     try {
-      await sendKycEmail(kycApplication.user, kycApplication, emailType);
+      await sendKycEmail(kycApplication.user, kycApplication, emailType, ctx);
     } catch (error) {
+      ctx?.warn("Failed to send KYC email notification");
       console.error("Error sending KYC email:", error);
     }
   }
 
+  ctx?.success(`KYC application updated to ${status || oldStatus}`);
   return {
     message: "KYC application updated successfully",
   };

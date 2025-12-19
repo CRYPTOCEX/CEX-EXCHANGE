@@ -19,17 +19,20 @@ import { UserRequirementsStep } from "./components/steps/user-requirements-step"
 import { ReviewStep } from "./components/steps/review-step";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { HeroSection } from "@/components/ui/hero-section";
+import { Sparkles, Plus } from "lucide-react";
 
 export default function CreateOfferClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { settings } = useConfigStore();
   const router = useRouter();
 
-  // If settings are not yet loaded, don't render anything (or render a loader)
+  // If settings are not yet loaded, show loading state
   if (!settings) {
-    return null;
-    // Alternatively, you can render a spinner:
-    // return <div className="flex justify-center items-center h-64">Loading...</div>;
+    const CreateOfferLoading = require('./loading').default;
+    return <CreateOfferLoading />;
   }
 
   // Use the helper to convert the settings to proper booleans
@@ -40,11 +43,33 @@ export default function CreateOfferClient() {
   // Check if P2P trading is enabled
   if (!p2pEnabled) {
     return (
-      <div className="container max-w-4xl mx-auto py-12 px-4" style={{ minHeight: 'calc(100vh - 232px)' }}>
-        <PlatformDisabledBanner />
-        <Link href="/p2p" className="mt-6">
-          <Button variant="outline">{t("back_to_p2p_home")}</Button>
-        </Link>
+      <div className="min-h-screen bg-gradient-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+        <HeroSection
+          badge={{
+            icon: <Plus className="h-3.5 w-3.5" />,
+            text: "Create Offer",
+            gradient: `from-blue-500/10 to-violet-500/10`,
+            iconColor: `text-blue-500`,
+            textColor: `text-blue-600 dark:text-blue-400`,
+          }}
+          title={[{ text: t("create_a_new_offer") }]}
+          description={t("follow_the_steps_trading_offer")}
+          paddingTop="pt-24"
+          paddingBottom="pb-12"
+          background={{
+            orbs: [
+              { color: "#3b82f6", position: { top: "-10rem", right: "-10rem" }, size: "20rem" },
+              { color: "#8b5cf6", position: { bottom: "-5rem", left: "-5rem" }, size: "15rem" },
+            ],
+          }}
+          particles={{ count: 6, type: "floating", colors: ["#3b82f6", "#8b5cf6"], size: 8 }}
+        />
+        <div className="container max-w-4xl mx-auto py-12">
+          <PlatformDisabledBanner />
+          <Link href="/p2p" className="mt-6 inline-block">
+            <Button variant="outline">{t("back_to_p2p_home")}</Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -52,11 +77,33 @@ export default function CreateOfferClient() {
   // Check if in maintenance mode
   if (p2pMaintenanceMode) {
     return (
-      <div className="container max-w-4xl mx-auto py-12 px-4" style={{ minHeight: 'calc(100vh - 232px)' }}>
-        <MaintenanceBanner />
-        <Link href="/p2p" className="mt-6">
-          <Button variant="outline">{t("back_to_p2p_home")}</Button>
-        </Link>
+      <div className="min-h-screen bg-gradient-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+        <HeroSection
+          badge={{
+            icon: <Plus className="h-3.5 w-3.5" />,
+            text: "Create Offer",
+            gradient: `from-blue-500/10 to-violet-500/10`,
+            iconColor: `text-blue-500`,
+            textColor: `text-blue-600 dark:text-blue-400`,
+          }}
+          title={[{ text: t("create_a_new_offer") }]}
+          description={t("follow_the_steps_trading_offer")}
+          paddingTop="pt-24"
+          paddingBottom="pb-12"
+          background={{
+            orbs: [
+              { color: "#3b82f6", position: { top: "-10rem", right: "-10rem" }, size: "20rem" },
+              { color: "#8b5cf6", position: { bottom: "-5rem", left: "-5rem" }, size: "15rem" },
+            ],
+          }}
+          particles={{ count: 6, type: "floating", colors: ["#3b82f6", "#8b5cf6"], size: 8 }}
+        />
+        <div className="container max-w-4xl mx-auto py-12">
+          <MaintenanceBanner />
+          <Link href="/p2p" className="mt-6 inline-block">
+            <Button variant="outline">{t("back_to_p2p_home")}</Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -64,27 +111,65 @@ export default function CreateOfferClient() {
   // Check if new offers are allowed
   if (!p2pAllowNewOffers) {
     return (
-      <div className="container max-w-4xl mx-auto py-12 px-4" style={{ minHeight: 'calc(100vh - 232px)' }}>
-        <FeatureRestrictedBanner
-          title={t("new_offers_temporarily_disabled")}
-          description={t("creating_new_offers_is_temporarily_disabled")}
+      <div className="min-h-screen bg-gradient-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+        <HeroSection
+          badge={{
+            icon: <Plus className="h-3.5 w-3.5" />,
+            text: "Create Offer",
+            gradient: `from-blue-500/10 to-violet-500/10`,
+            iconColor: `text-blue-500`,
+            textColor: `text-blue-600 dark:text-blue-400`,
+          }}
+          title={[{ text: t("create_a_new_offer") }]}
+          description={t("follow_the_steps_trading_offer")}
+          paddingTop="pt-24"
+          paddingBottom="pb-12"
+          background={{
+            orbs: [
+              { color: "#3b82f6", position: { top: "-10rem", right: "-10rem" }, size: "20rem" },
+              { color: "#8b5cf6", position: { bottom: "-5rem", left: "-5rem" }, size: "15rem" },
+            ],
+          }}
+          particles={{ count: 6, type: "floating", colors: ["#3b82f6", "#8b5cf6"], size: 8 }}
         />
-        <Link href="/p2p/offer" className="mt-6">
-          <Button variant="outline">{t("browse_existing_offers")}</Button>
-        </Link>
+        <div className="container max-w-4xl mx-auto py-12">
+          <FeatureRestrictedBanner
+            title={t("new_offers_temporarily_disabled")}
+            description={t("creating_new_offers_is_temporarily_disabled")}
+          />
+          <Link href="/p2p/offer" className="mt-6 inline-block">
+            <Button variant="outline">{t("browse_existing_offers")}</Button>
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container max-w-4xl mx-auto py-12 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">{t("create_a_new_offer")}</h1>
-        <p className="text-muted-foreground">
-          {t("follow_the_steps_trading_offer")}. {t("you_can_buy_other_users")}.
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+      {/* Hero Section */}
+      <HeroSection
+        badge={{
+          icon: <Plus className="h-3.5 w-3.5" />,
+          text: "Create Offer",
+          gradient: `from-blue-500/10 to-violet-500/10`,
+          iconColor: `text-blue-500`,
+          textColor: `text-blue-600 dark:text-blue-400`,
+        }}
+        title={[{ text: t("create_a_new_offer") }]}
+        description={`${t("follow_the_steps_trading_offer")}. ${t("you_can_buy_other_users")}.`}
+        paddingTop="pt-24"
+        paddingBottom="pb-12"
+        background={{
+          orbs: [
+            { color: "#3b82f6", position: { top: "-10rem", right: "-10rem" }, size: "20rem" },
+            { color: "#8b5cf6", position: { bottom: "-5rem", left: "-5rem" }, size: "15rem" },
+          ],
+        }}
+        particles={{ count: 6, type: "floating", colors: ["#3b82f6", "#8b5cf6"], size: 8 }}
+      />
 
+      <main className="container max-w-4xl mx-auto py-12">
       <TradingWizard>
         <WizardStep
           title={t("select_trade_type")}
@@ -94,7 +179,7 @@ export default function CreateOfferClient() {
         </WizardStep>
 
         <WizardStep
-          title={t("select_wallet_type")}
+          title={tCommon("select_wallet_type")}
           helpText={t("choose_which_wallet_you_want_to_use_for_this_trade")}
         >
           <WalletTypeStep />
@@ -108,28 +193,28 @@ export default function CreateOfferClient() {
         </WizardStep>
 
         <WizardStep
-          title={t("set_amount_&_price")}
+          title={t("set_amount_price")}
           helpText={t("specify_the_amount_and_price_for_your_trade")}
         >
           <AmountPriceStep />
         </WizardStep>
 
         <WizardStep
-          title={t("payment_methods")}
+          title={tExt("payment_methods")}
           helpText={t("select_which_payment_methods_you_accept")}
         >
           <PaymentMethodsStep />
         </WizardStep>
 
         <WizardStep
-          title={t("trade_settings")}
+          title={tCommon("trade_settings")}
           helpText={t("configure_additional_settings_for_your_trade")}
         >
           <TradeSettingsStep />
         </WizardStep>
 
         <WizardStep
-          title={t("location_settings")}
+          title={tExt("location_settings")}
           helpText={t("specify_your_location_and")}
         >
           <LocationSettingsStep />
@@ -143,12 +228,13 @@ export default function CreateOfferClient() {
         </WizardStep>
 
         <WizardStep
-          title={t("review_&_create")}
+          title={t("review_create")}
           helpText={t("review_your_offer_details_before_creating")}
         >
           <ReviewStep />
         </WizardStep>
       </TradingWizard>
+      </main>
     </div>
   );
 }

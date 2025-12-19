@@ -1,128 +1,146 @@
 import fs from "fs";
 import path from "path";
 import { createError } from "@b/utils/error";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+} from "@b/utils/schema/errors";
+
+/**
+ * Recursively scans a directory to find all page.tsx files
+ * @param dir - Directory to scan
+ * @param basePath - Base path for building routes (default: "")
+ * @returns Array of route paths
+ */
+function getPagePaths(dir: string, basePath = ""): string[] {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const paths: string[] = [];
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      // Skip certain directories
+      if (
+        entry.name.startsWith("_") ||
+        entry.name.startsWith(".") ||
+        entry.name === "api" ||
+        entry.name === "admin" ||
+        entry.name === "auth"
+      ) {
+        continue;
+      }
+
+      // Build the route path
+      let routePart = entry.name;
+
+      // Handle dynamic routes [param] and remove locale from path
+      if (routePart.startsWith("[") && routePart.endsWith("]")) {
+        if (routePart === "[locale]") {
+          // Skip locale in the path
+          routePart = "";
+        } else {
+          // Keep other dynamic params as-is for now
+          routePart = routePart;
+        }
+      }
+
+      const newBasePath = routePart ? `${basePath}/${routePart}` : basePath;
+      paths.push(...getPagePaths(fullPath, newBasePath));
+    } else if (entry.name === "page.tsx" || entry.name === "page.jsx") {
+      // Found a page file, add the route
+      const routePath = basePath || "/";
+      paths.push(routePath);
+    }
+  }
+
+  return paths;
+}
+
+/**
+ * Transforms raw paths into structured page link objects
+ * @param rawPaths - Array of raw route paths
+ * @returns Array of structured page links
+ */
+function transformToPageLinks(rawPaths: string[]): Array<{
+  id: string;
+  path: string;
+  name: string;
+  group: string;
+}> {
+  return rawPaths
+    .filter((p) => {
+      // Exclude admin, auth, API, and error pages
+      return (
+        !p.includes("/admin") &&
+        !p.includes("/auth") &&
+        !p.includes("/api") &&
+        !p.includes("/error") &&
+        !p.includes("/_") &&
+        p !== "/404" &&
+        p !== "/500"
+      );
+    })
+    .map((p) => {
+      // Extract group from path (first segment after root)
+      const segments = p.split("/").filter(Boolean);
+      const group = segments[0] || "general";
+
+      // Create a friendly name from the path
+      const name = segments.length > 0
+        ? segments
+            .join(" > ")
+            .replace(/\[|\]/g, "")
+            .replace(/-/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase())
+        : "Home";
+
+      return {
+        id: p,
+        path: p,
+        name,
+        group: group.charAt(0).toUpperCase() + group.slice(1),
+      };
+    });
+}
 
 export const metadata = {
-  summary: "Get FAQ Page Links",
+  summary: "Get Available Page Links",
   description:
-    "Automatically retrieves a list of page paths from the Next.js app folder, excluding admin, auth, utility, and error-page routes.",
-  operationId: "getFAQPageLinks",
-  tags: ["FAQ", "Admin"],
+    "Automatically scans the Next.js app directory to retrieve a list of available page paths. Excludes admin, auth, utility, and error pages. Returns page paths with metadata for FAQ assignment.",
+  operationId: "getFaqPageLinks",
+  tags: ["Admin", "FAQ", "Pages"],
   requiresAuth: true,
   responses: {
     200: {
       description: "Page links retrieved successfully",
       content: {
         "application/json": {
-          schema: { type: "array", items: { type: "object" } },
+          schema: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                id: { type: "string", description: "Unique identifier (same as path)" },
+                path: { type: "string", description: "Page path" },
+                name: { type: "string", description: "User-friendly page name" },
+                group: { type: "string", description: "Page group/section" },
+              },
+            },
+          },
         },
       },
     },
-    401: { description: "Unauthorized" },
-    500: { description: "Internal Server Error" },
+    401: unauthorizedResponse,
+    500: serverErrorResponse,
   },
   permission: "view.faq",
+  logModule: "ADMIN_FAQ",
+  logTitle: "Get FAQ page links",
 };
 
-interface PageLink {
-  id: string;
-  path: string;
-  name: string;
-  group: string;
-}
-
-/**
- * Remove any segments that start with '[' or '(' so that dynamic or grouped routes are excluded.
- */
-function sanitizePath(basePath: string): string {
-  const segments = basePath.split("/");
-  const filtered = segments.filter(
-    (segment) => segment && !segment.startsWith("[") && !segment.startsWith("(")
-  );
-  return "/" + filtered.join("/");
-}
-
-function getPagePaths(dir: string, basePath: string = ""): string[] {
-  let pages: string[] = [];
-  const items = fs.readdirSync(dir, { withFileTypes: true });
-
-  // Check if the current folder contains a page file (e.g. page.tsx)
-  const hasPage = items.some(
-    (item) => !item.isDirectory() && /^page\.(tsx|jsx|js)$/.test(item.name)
-  );
-  if (hasPage) {
-    pages.push(sanitizePath(basePath));
-  }
-
-  // Recurse into subdirectories
-  for (const item of items) {
-    if (item.isDirectory()) {
-      // Exclude "admin" directories at the top-level
-      if (basePath === "" && item.name.toLowerCase() === "admin") continue;
-
-      const newBase = basePath === "" ? item.name : `${basePath}/${item.name}`;
-      const subDir = path.join(dir, item.name);
-      const subPages = getPagePaths(subDir, newBase);
-      pages = pages.concat(subPages);
-    }
-  }
-
-  return pages;
-}
-
-/**
- * Transform raw page paths (e.g. "/about") into PageLink objects
- * and skip admin/auth/utility/error-page routes.
- */
-function transformToPageLinks(rawPaths: string[]): PageLink[] {
-  const skipPrefixes = ["/admin", "/auth", "/utility", "/error-page"];
-  const pageLinks: PageLink[] = [];
-
-  for (const p of rawPaths) {
-    // Skip paths starting with undesired prefixes
-    if (skipPrefixes.some((prefix) => p.startsWith(prefix))) {
-      continue;
-    }
-
-    // Provide a user-friendly name.
-    let name = "";
-    if (p === "/") {
-      name = "Home";
-    } else {
-      // Remove the leading slash and split into segments.
-      // Then join segments with " >> " as a delimiter.
-      name = p
-        .replace(/^\/+/, "")
-        .split("/")
-        .map((segment) =>
-          segment
-            .split("-")
-            .map(
-              (part) =>
-                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-            )
-            .join(" ")
-        )
-        .join(" » ");
-    }
-
-    // Extract the group as the first segment (or "home" if empty)
-    const segments = p.replace(/^\/+/, "").split("/");
-    const group = segments[0] || "home";
-
-    pageLinks.push({
-      id: p, // or generate a unique id if desired
-      path: p,
-      name: name || "Untitled",
-      group, // the first segment of the path
-    });
-  }
-
-  return pageLinks;
-}
-
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -136,9 +154,11 @@ export default async (data: Handler) => {
     : path.join(process.cwd(), "..", "frontend", "app");
   let rawPaths: string[] = [];
   try {
+    ctx?.step("Scanning page directories");
     rawPaths = getPagePaths(appDir);
   } catch (err) {
     console.error("Error scanning pages directory:", err);
+    ctx?.fail("Failed to scan page directories");
     throw createError({
       statusCode: 500,
       message: "Failed to retrieve page links",
@@ -152,6 +172,7 @@ export default async (data: Handler) => {
   const uniqueLinks = Array.from(new Set(pageLinks.map((pl) => pl.path))).map(
     (path) => pageLinks.find((pl) => pl.path === path)!
   );
+  ctx?.success("Page links retrieved successfully");
 
   return uniqueLinks;
 };

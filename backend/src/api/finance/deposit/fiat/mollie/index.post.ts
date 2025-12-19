@@ -1,5 +1,6 @@
 import { createError } from '@b/utils/error'
 import { models } from '@b/db'
+import { logger } from '@b/utils/console'
 import {
   makeApiRequest,
   validateMollieConfig,
@@ -20,6 +21,8 @@ export const metadata = {
   operationId: 'createMolliePayment',
   tags: ['Finance', 'Deposit', 'Mollie'],
   requiresAuth: true,
+  logModule: "MOLLIE_DEPOSIT",
+  logTitle: "Create Mollie payment session",
   requestBody: {
     required: true,
     content: {
@@ -102,7 +105,7 @@ interface Handler {
 }
 
 export default async (data: Handler) => {
-  const { body, user } = data
+  const { body, user, ctx } = data as any
 
   if (!user?.id) {
     throw createError({
@@ -142,7 +145,8 @@ export default async (data: Handler) => {
 
   try {
     // Get gateway configuration
-    const gateway = await models.depositGateway.findOne({
+    ctx?.step("Fetching payment gateway configuration");
+  const gateway = await models.depositGateway.findOne({
       where: { id: 'mollie' },
     })
 
@@ -184,7 +188,8 @@ export default async (data: Handler) => {
     const reference = generateMollieReference()
 
     // Create transaction record
-    const transaction = await models.transaction.create({
+    ctx?.step("Creating transaction record");
+      const transaction = await models.transaction.create({
       uuid: reference,
       userId: user.id,
       type: 'DEPOSIT',
@@ -286,7 +291,7 @@ export default async (data: Handler) => {
       },
     }
   } catch (error) {
-    console.error('Mollie payment creation error:', error)
+    logger.error("MOLLIE", "Payment creation error", error)
 
     if (error.statusCode) {
       throw error

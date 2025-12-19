@@ -2,7 +2,7 @@
 
 import { models } from "@b/db";
 import { DatabaseError } from "sequelize";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 class RolesManager {
   static instance;
@@ -23,7 +23,7 @@ class RolesManager {
     try {
       // Access Sequelize models from your singleton
       if (!models.role || !models.permission) {
-        console.log("Models not yet initialized, skipping role loading");
+        logger.debug("ROLES", "Models not yet initialized, skipping role loading");
         return;
       }
 
@@ -44,14 +44,9 @@ class RolesManager {
       });
     } catch (error) {
       if (error instanceof DatabaseError) {
-        logError("rolesManager", error, __filename);
-        console.error(
-          "Failed to load roles and permissions. Table not found:",
-          error.message
-        );
+        logger.error("ROLES", "Failed to load roles - table not found", error);
       } else {
-        logError("rolesManager", error, __filename);
-        console.error("Failed to load roles and permissions:", error);
+        logger.error("ROLES", "Failed to load roles and permissions", error);
       }
     }
   }

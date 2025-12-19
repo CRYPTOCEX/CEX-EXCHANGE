@@ -22,7 +22,9 @@ import { $fetch } from "@/lib/api";
 import { useTranslations } from "next-intl";
 
 export default function PlatformSettingsConfiguration() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { settings, setSettings } = useConfigStore();
   const [localSettings, setLocalSettings] = useState(settings);
   const [loading, setLoading] = useState(true);
@@ -103,10 +105,10 @@ export default function PlatformSettingsConfiguration() {
               <TabsTrigger value="investment">
                 {t("investment_limits")}
               </TabsTrigger>
-              <TabsTrigger value="fees">{t("platform_fees")}</TabsTrigger>
-              <TabsTrigger value="features">{t("Features")}</TabsTrigger>
+              <TabsTrigger value="fees">{tExt("platform_fees")}</TabsTrigger>
+              <TabsTrigger value="features">{tCommon("features")}</TabsTrigger>
               <TabsTrigger value="announcement">
-                {t("Announcement")}
+                {tExt("announcement")}
               </TabsTrigger>
             </TabsList>
 
@@ -146,7 +148,7 @@ export default function PlatformSettingsConfiguration() {
           <div className="mt-6 flex justify-end">
             <Button onClick={handleSaveSettings} disabled={saving}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t("save_settings")}
+              {tCommon("save_settings")}
             </Button>
           </div>
         </CardContent>

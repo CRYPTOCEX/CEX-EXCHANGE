@@ -8,6 +8,7 @@ import {
 import { sendFiatTransactionEmail } from "@b/utils/emails";
 import { models, sequelize } from "@b/db";
 import { paypalOrdersController } from "./utils";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Verifies a Stripe checkout session",
@@ -16,6 +17,8 @@ export const metadata: OperationObject = {
   operationId: "verifyStripeCheckoutSession",
   tags: ["Finance", "Deposit"],
   requiresAuth: true,
+  logModule: "PAYPAL_DEPOSIT",
+  logTitle: "Verify PayPal order",
   parameters: [
     {
       name: "orderId",
@@ -95,20 +98,24 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, query } = data;
+  const { user, query, ctx } = data;
+
   if (!user?.id) throw new Error("User not authenticated");
 
+  ctx?.step("Fetching user account");
   const userPk = await models.user.findByPk(user.id);
   if (!userPk) throw new Error("User not found");
 
   const { orderId } = query;
 
-  const existingTransaction = await models.transaction.findOne({
+  ctx?.step("Checking for duplicate transaction");
+    const existingTransaction = await models.transaction.findOne({
     where: { referenceId: orderId },
   });
 
   if (existingTransaction) {
-    throw new Error("Transaction already exists");
+      ctx?.warn("Transaction already exists");
+      throw new Error("Transaction already exists");
   }
 
   const ordersController = paypalOrdersController();
@@ -135,20 +142,24 @@ export default async (data: Handler) => {
     const grossAmount = parseFloat(capture.amount?.value || "0");
     const currency = capture.amount?.currencyCode || "";
 
-    const paypalGateway = await models.depositGateway.findOne({
+    ctx?.step("Fetching payment gateway configuration");
+  const paypalGateway = await models.depositGateway.findOne({
       where: { name: "PAYPAL" },
     });
 
     if (!paypalGateway) {
-      throw new Error("PayPal gateway not found");
+    ctx?.fail("Payment gateway not found");
+    throw new Error("PayPal gateway not found");
     }
 
     // Retrieve the user's wallet
-    let wallet = await models.wallet.findOne({
+    ctx?.step("Finding or creating wallet");
+  let wallet = await models.wallet.findOne({
       where: { userId: user.id, currency: currency },
     });
 
     if (!wallet) {
+      ctx?.step("Creating new wallet");
       wallet = await models.wallet.create({
         userId: user.id,
         currency: currency,
@@ -156,17 +167,21 @@ export default async (data: Handler) => {
       });
     }
 
-    const currencyData = await models.currency.findOne({
+    ctx?.step("Validating currency");
+  const currencyData = await models.currency.findOne({
       where: { id: wallet.currency },
     });
     if (!currencyData) {
-      throw new Error("Currency not found");
+    ctx?.fail("Currency not found");
+    throw new Error("Currency not found");
     }
 
-    const fixedFee = paypalGateway.fixedFee || 0;
+    ctx?.step("Calculating fees");
+  const fixedFee = paypalGateway.fixedFee || 0;
     const percentageFee = paypalGateway.percentageFee || 0;
 
-    const taxAmount = Number(
+    ctx?.step("Calculating fees");
+  const taxAmount = Number(
       ((grossAmount * percentageFee) / 100 + fixedFee).toFixed(
         currencyData.precision || 2
       )
@@ -182,7 +197,8 @@ export default async (data: Handler) => {
     const createdTransaction = await sequelize.transaction(
       async (transaction) => {
         // Create a new transaction record
-        const newTransaction = await models.transaction.create(
+        ctx?.step("Creating transaction record");
+      const newTransaction = await models.transaction.create(
           {
             userId: user.id,
             walletId: wallet.id,
@@ -198,7 +214,8 @@ export default async (data: Handler) => {
         );
 
         // Update the wallet balance
-        await models.wallet.update(
+        ctx?.step("Updating wallet balance");
+      await models.wallet.update(
           {
             balance: newBalance,
           },
@@ -211,7 +228,8 @@ export default async (data: Handler) => {
         // **Admin Profit Recording:**
         // Create an admin profit record if there's a fee involved
         if (taxAmount > 0) {
-          await models.adminProfit.create(
+      ctx?.step("Recording admin profit");
+      await models.adminProfit.create(
             {
               amount: taxAmount,
               currency: wallet.currency,
@@ -229,24 +247,27 @@ export default async (data: Handler) => {
     );
 
     try {
-      await sendFiatTransactionEmail(
+      ctx?.step("Sending notification email");
+    await sendFiatTransactionEmail(
         userPk,
         createdTransaction,
         currency,
         newBalance
       );
     } catch (error) {
-      console.error("Error sending email:", error);
+      logger.error("PAYPAL", "Error sending email", error);
     }
 
-    return {
+    ctx?.success("Paypal deposit completed successfully");
+
+  return {
       transaction: createdTransaction,
       balance: newBalance.toFixed(2),
       currency,
       method: "PAYPAL",
     };
   } catch (error) {
-    console.log("Error verifying PayPal order:", error);
+    logger.error("PAYPAL", "Error verifying PayPal order", error);
     throw new Error(`Error verifying PayPal order: ${error.message}`);
   }
 };

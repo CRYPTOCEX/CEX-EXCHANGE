@@ -2,7 +2,9 @@
 
 import { useCronStore } from "@/store/cron";
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 export function LogViewer() {
+  const t = useTranslations("dashboard_admin");
   const { logs } = useCronStore();
   const getLogTypeColor = (type: string) => {
     switch (type) {
@@ -24,7 +26,7 @@ export function LogViewer() {
         <div className="font-mono text-xs space-y-1">
           {logs.length === 0 ? (
             <div className="text-gray-400 p-4 text-center">
-              No logs available
+              {t("no_logs_available")}
             </div>
           ) : (
             logs.map((log) => {

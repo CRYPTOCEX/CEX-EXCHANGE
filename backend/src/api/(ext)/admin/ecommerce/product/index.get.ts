@@ -12,21 +12,20 @@ import {
 import { ecommerceProductSchema } from "./utils";
 
 export const metadata: OperationObject = {
-  summary:
-    "Lists all ecommerce products with pagination and optional filtering",
+  summary: "Lists all ecommerce products with pagination and filtering",
   operationId: "listEcommerceProducts",
-  tags: ["Admin", "Ecommerce", "Products"],
+  tags: ["Admin", "Ecommerce", "Product"],
+  description: "Retrieves a paginated list of ecommerce products with optional filtering and sorting. Includes associated category information and reviews for each product.",
   parameters: crudParameters,
   responses: {
     200: {
-      description:
-        "List of ecommerce products with detailed information including associated categories, discounts, and reviews",
+      description: "Ecommerce products retrieved successfully",
       content: {
         "application/json": {
           schema: {
             type: "object",
             properties: {
-              data: {
+              items: {
                 type: "array",
                 items: {
                   type: "object",
@@ -40,7 +39,7 @@ export const metadata: OperationObject = {
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("E-commerce Products"),
+    404: notFoundMetadataResponse("Ecommerce Products"),
     500: serverErrorResponse,
   },
   requiresAuth: true,
@@ -48,9 +47,11 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Fetching products list");
+
+  const result = await getFiltered({
     model: models.ecommerceProduct,
     query,
     sortField: query.sortField || "createdAt",
@@ -69,4 +70,7 @@ export default async (data: Handler) => {
     ],
     numericFields: ["price", "inventoryQuantity", "rating"],
   });
+
+  ctx?.success(`Retrieved ${result.items?.length || 0} products`);
+  return result;
 };

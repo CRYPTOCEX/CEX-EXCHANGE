@@ -13,7 +13,8 @@ import { LayoutGrid, LayoutPanelLeft, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function LayoutDropdown() {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tTradeComponents = useTranslations("trade_components");
   const {
     layoutConfig,
     setLayoutConfig,
@@ -47,11 +48,11 @@ export function LayoutDropdown() {
         align="end"
         className="w-56 bg-zinc-900 border-zinc-800 text-zinc-300"
       >
-        <DropdownMenuLabel>{t("Layout")}</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("layout")}</DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-zinc-800" />
 
         <DropdownMenuLabel className="text-xs text-zinc-500 font-normal">
-          {t("Presets")}
+          {t("presets")}
         </DropdownMenuLabel>
         {Object.keys(layoutPresets).map((presetName) => (
           <DropdownMenuItem
@@ -65,12 +66,12 @@ export function LayoutDropdown() {
 
         <DropdownMenuSeparator className="bg-zinc-800" />
         <DropdownMenuLabel className="text-xs text-zinc-500 font-normal">
-          {t("Panels")}
+          {tTradeComponents("panels")}
         </DropdownMenuLabel>
 
         <DropdownMenuItem onClick={() => togglePanel("markets")}>
           <LayoutPanelLeft className="mr-2 h-4 w-4" />
-          <span>{t("Markets")}</span>
+          <span>{t("markets")}</span>
           <div className="ml-auto">
             {layoutConfig.panels.markets.visible ? (
               <div className="h-2 w-2 rounded-full bg-green-500" />
@@ -82,7 +83,7 @@ export function LayoutDropdown() {
 
         <DropdownMenuItem onClick={() => togglePanel("chart")}>
           <LayoutPanelLeft className="mr-2 h-4 w-4" />
-          <span>{t("Chart")}</span>
+          <span>{t("chart")}</span>
           <div className="ml-auto">
             {layoutConfig.panels.chart.visible ? (
               <div className="h-2 w-2 rounded-full bg-green-500" />
@@ -94,7 +95,7 @@ export function LayoutDropdown() {
 
         <DropdownMenuItem onClick={() => togglePanel("orderbook")}>
           <LayoutPanelLeft className="mr-2 h-4 w-4" />
-          <span>{t("Orderbook")}</span>
+          <span>{tTradeComponents("orderbook")}</span>
           <div className="ml-auto">
             {layoutConfig.panels.orderbook.visible ? (
               <div className="h-2 w-2 rounded-full bg-green-500" />
@@ -106,7 +107,7 @@ export function LayoutDropdown() {
 
         <DropdownMenuItem onClick={() => togglePanel("trading")}>
           <LayoutPanelLeft className="mr-2 h-4 w-4" />
-          <span>{t("Trading")}</span>
+          <span>{t("trading")}</span>
           <div className="ml-auto">
             {layoutConfig.panels.trading.visible ? (
               <div className="h-2 w-2 rounded-full bg-green-500" />
@@ -118,7 +119,7 @@ export function LayoutDropdown() {
 
         <DropdownMenuItem onClick={() => togglePanel("orders")}>
           <LayoutPanelLeft className="mr-2 h-4 w-4" />
-          <span>{t("Orders")}</span>
+          <span>{t("orders")}</span>
           <div className="ml-auto">
             {layoutConfig.panels.orders.visible ? (
               <div className="h-2 w-2 rounded-full bg-green-500" />
@@ -130,7 +131,7 @@ export function LayoutDropdown() {
 
         <DropdownMenuItem onClick={() => togglePanel("alerts")}>
           <LayoutPanelLeft className="mr-2 h-4 w-4" />
-          <span>{t("Alerts")}</span>
+          <span>{t("alerts")}</span>
           <div className="ml-auto">
             {layoutConfig.panels.alerts.visible ? (
               <div className="h-2 w-2 rounded-full bg-green-500" />
@@ -143,7 +144,7 @@ export function LayoutDropdown() {
         <DropdownMenuSeparator className="bg-zinc-800" />
         <DropdownMenuItem onClick={resetLayout}>
           <Trash2 className="mr-2 h-4 w-4" />
-          <span>{t("reset_layout")}</span>
+          <span>{tTradeComponents("reset_layout")}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

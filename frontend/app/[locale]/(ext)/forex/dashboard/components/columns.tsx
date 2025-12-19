@@ -1,59 +1,43 @@
+import { useTranslations } from "next-intl";
 import {
   Shield,
   DollarSign,
   Clock,
   TrendingUp,
   BarChart,
-  User as UserIcon,
   Calendar,
-  CheckCircle,
-  XCircle,
-  PauseCircle,
-  ArrowRightCircle,
+  Activity,
+  Wallet,
 } from "lucide-react";
 
-export const forexInvestmentColumns: ColumnDefinition[] = [
+export function useForexInvestmentColumns() {
+  const t = useTranslations("ext_forex");
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
+
+  return [
   {
     key: "id",
-    title: "ID",
+    title: tCommon("id"),
     type: "text",
     icon: Shield,
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "Investment ID",
+    description: t("unique_identifier_for_this_forex_investment"),
     priority: 3,
     expandedOnly: true,
   },
   {
-    key: "userId",
-    title: "User",
-    type: "text",
-    icon: UserIcon,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: false,
-    description: "Investor User ID",
-    expandedOnly: true,
-    // Optionally use a render function if you want to resolve user name/email by API.
-  },
-  {
     key: "plan",
-    title: "Plan",
-    type: "select",
+    title: tCommon("plan"),
+    type: "custom",
     icon: BarChart,
     sortable: true,
     searchable: true,
     filterable: true,
-    editable: true,
-    usedInCreate: true,
-    apiEndpoint: {
-      url: "/api/admin/forex/plan/options",
-      method: "GET",
-    },
-    description: "Investment Plan",
-    priority: 2,
+    description: t("your_selected_forex_trading_plan_with"),
+    priority: 1,
     render: {
       type: "custom",
       render: (value) => {
@@ -64,19 +48,13 @@ export const forexInvestmentColumns: ColumnDefinition[] = [
   },
   {
     key: "duration",
-    title: "Duration",
-    type: "select",
+    title: tCommon("duration"),
+    type: "custom",
     icon: Clock,
     sortable: true,
     searchable: true,
     filterable: true,
-    editable: true,
-    usedInCreate: true,
-    apiEndpoint: {
-      url: "/api/admin/forex/duration/options",
-      method: "GET",
-    },
-    description: "Investment Duration",
+    description: t("investment_period_length_before_completion_and"),
     priority: 2,
     render: {
       type: "custom",
@@ -88,38 +66,35 @@ export const forexInvestmentColumns: ColumnDefinition[] = [
   },
   {
     key: "amount",
-    title: "Amount",
+    title: tCommon("amount"),
     type: "number",
-    icon: DollarSign,
+    icon: Wallet,
     sortable: true,
     filterable: true,
-    editable: true,
-    usedInCreate: true,
-    description: "Invested Amount",
+    description: t("your_initial_investment_amount_deposited_into"),
     priority: 1,
   },
   {
     key: "profit",
-    title: "Profit",
+    title: tCommon("profit_loss"),
     type: "number",
     icon: TrendingUp,
     sortable: true,
     filterable: true,
-    editable: false,
-    description: "Profit (if completed)",
+    description: tExtAdmin("total_profit_or_loss_generated_from"),
     priority: 1,
   },
   {
     key: "result",
-    title: "Result",
+    title: tCommon("result"),
     type: "select",
+    icon: Activity,
     sortable: true,
     filterable: true,
-    editable: false,
     options: [
-      { value: "WIN", label: "Win" },
-      { value: "LOSS", label: "Loss" },
-      { value: "DRAW", label: "Draw" },
+      { value: "WIN", label: tCommon("win") },
+      { value: "LOSS", label: tCommon("loss") },
+      { value: "DRAW", label: tCommon("draw") },
     ],
     render: {
       type: "badge",
@@ -129,32 +104,30 @@ export const forexInvestmentColumns: ColumnDefinition[] = [
             case "WIN":
               return "success";
             case "LOSS":
-              return "danger";
+              return "destructive";
             case "DRAW":
-              return "warning";
+              return "secondary";
             default:
-              return "muted";
+              return "secondary";
           }
         },
       },
     },
-    description: "Result after completion",
+    description: tExtAdmin("final_trading_outcome_win_profit_loss"),
     priority: 2,
   },
   {
     key: "status",
-    title: "Status",
+    title: tCommon("status"),
     type: "select",
-    icon: ArrowRightCircle,
+    icon: Activity,
     sortable: true,
     filterable: true,
-    editable: true,
-    usedInCreate: true,
     options: [
-      { value: "ACTIVE", label: "Active" },
-      { value: "COMPLETED", label: "Completed" },
-      { value: "CANCELLED", label: "Cancelled" },
-      { value: "REJECTED", label: "Rejected" },
+      { value: "ACTIVE", label: tCommon("active") },
+      { value: "COMPLETED", label: tCommon("completed") },
+      { value: "CANCELLED", label: tCommon("cancelled") },
+      { value: "REJECTED", label: tCommon("rejected") },
     ],
     render: {
       type: "badge",
@@ -162,44 +135,31 @@ export const forexInvestmentColumns: ColumnDefinition[] = [
         variant: (value) => {
           switch (value) {
             case "ACTIVE":
-              return "primary";
-            case "COMPLETED":
               return "success";
+            case "COMPLETED":
+              return "info";
             case "CANCELLED":
-              return "danger";
+              return "secondary";
             case "REJECTED":
-              return "warning";
+              return "destructive";
             default:
-              return "muted";
+              return "secondary";
           }
         },
       },
     },
-    description: "Investment Status",
+    description: t("current_status_of_your_investment_in"),
     priority: 1,
   },
   {
     key: "createdAt",
-    title: "Created At",
+    title: tCommon("created_at"),
     type: "date",
     icon: Calendar,
     sortable: true,
     filterable: true,
-    editable: false,
-    description: "Created Date",
+    description: t("date_and_time_when_this_investment"),
     priority: 2,
-    // expandedOnly: true,
   },
-  // {
-  //   key: "endDate",
-  //   title: "End Date",
-  //   type: "date",
-  //   icon: Calendar,
-  //   sortable: true,
-  //   filterable: true,
-  //   editable: false,
-  //   description: "Investment End Date",
-  //   priority: 2,
-  //   // expandedOnly: true,
-  // },
-];
+] as ColumnDefinition[];
+}

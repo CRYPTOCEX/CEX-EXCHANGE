@@ -13,6 +13,7 @@ import {
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Icon } from "@iconify/react";
+import { useTranslations } from "next-intl";
 export interface CustomField {
   name: string;
   title: string;
@@ -27,6 +28,7 @@ export function CustomFieldsFormControl({
   field,
   error,
 }: CustomFieldsFormControlProps) {
+  const tCommon = useTranslations("common");
   // Get the current value; if not an array, default to empty array.
   const value: CustomField[] = Array.isArray(field.value) ? field.value : [];
 
@@ -71,10 +73,10 @@ export function CustomFieldsFormControl({
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-medium">Custom Fields</h3>
+        <h3 className="text-xl font-medium">{tCommon("custom_fields")}</h3>
         <Button type="button" variant="outline" size="sm" onClick={addField}>
           <Icon icon="mdi:plus" className="h-4 w-4" />
-          Add Field
+          {tCommon("add_field")}
         </Button>
       </div>
       <div className="overflow-x-auto border border-zinc-200 dark:border-zinc-700 rounded-md">
@@ -128,9 +130,9 @@ export function CustomFieldsFormControl({
                       <SelectContent className="z-[75]">
                         <SelectItem value="input">Input</SelectItem>
                         <SelectItem value="textarea">Textarea</SelectItem>
-                        <SelectItem value="file">File Upload</SelectItem>
-                        <SelectItem value="image">Image Upload</SelectItem>
-                        <SelectItem value="qr">QR Code</SelectItem>
+                        <SelectItem value="file">{tCommon("file_upload")}</SelectItem>
+                        <SelectItem value="image">{tCommon("image_upload")}</SelectItem>
+                        <SelectItem value="qr">{tCommon("qr_code")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </td>

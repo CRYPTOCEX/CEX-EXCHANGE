@@ -1,4 +1,5 @@
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 
 export const getUserById = async (id: string) => {
   const user = await models.user.findOne({
@@ -78,7 +79,7 @@ export const getUserById = async (id: string) => {
       }
     } catch (err) {
       // Parsing failed or malformed; fallback to empty array
-      console.error("Error parsing KYC level features:", err);
+      logger.error("USER", "Error parsing KYC level features", err);
       featureAccess = [];
     }
   } else {

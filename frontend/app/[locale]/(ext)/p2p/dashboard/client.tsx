@@ -16,7 +16,9 @@ import { Button } from "@/components/ui/button";
 import { LogIn, FileText } from "lucide-react";
 
 export function DashboardClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_p2p");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { user, isLoading } = useUserStore();
   const {
@@ -52,36 +54,14 @@ export function DashboardClient() {
 
   // Show loading state while checking authentication
   if (isLoading) {
-    return (
-      <div className="container mx-auto py-12 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">{t("loading")}</p>
-        </div>
-      </div>
-    );
+    const P2PDashboardLoading = require('./loading').default;
+    return <P2PDashboardLoading />;
   }
 
   // Show login prompt if not authenticated (after loading)
   if (!user) {
-    return (
-      <div className="container mx-auto py-12">
-        <Alert>
-          <LogIn className="h-4 w-4" />
-          <AlertTitle>{t("authentication_required")}</AlertTitle>
-          <AlertDescription className="mt-2">
-            {t("you_must_be_logged_in_to_access_the_dashboard")}.
-          </AlertDescription>
-          <Button
-            onClick={() => router.push("/login")}
-            className="mt-4"
-          >
-            <LogIn className="mr-2 h-4 w-4" />
-            {t("login")}
-          </Button>
-        </Alert>
-      </div>
-    );
+    const { DashboardErrorState } = require('./error-state');
+    return <DashboardErrorState showLoginButton={true} />;
   }
 
   const formattedTradingActivity =
@@ -114,44 +94,42 @@ export function DashboardClient() {
     : null;
 
   return (
-    <div className="w-full min-h-screen bg-background">
-      {/* Hero section with gradient background */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-violet-600/10 to-transparent pointer-events-none" />
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 relative z-10 py-12">
-          <div className="flex flex-col gap-8">
-            <DashboardHero
-              name={`${user?.firstName} ${user?.lastName}`}
-              isLoading={isLoadingDashboardData}
+    <div className="w-full min-h-screen bg-gradient-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+      {/* Hero section - Using HeroSection component */}
+      <DashboardHero
+        name={`${user?.firstName} ${user?.lastName}`}
+      />
+
+      {/* Stats Overview - With proper card backgrounds */}
+      <section className="py-12">
+        <div className="container mx-auto">
+          {dashboardStatsError ? (
+            <div className="p-6 border rounded-lg bg-red-50 dark:bg-red-950/30 text-red-500 dark:text-red-400">
+              {dashboardStatsError}
+            </div>
+          ) : (
+            <StatsOverview
+              stats={dashboardStats}
+              isLoading={isLoadingDashboardStats}
             />
-
-            {/* Stats Overview */}
-            {dashboardStatsError ? (
-              <div className="p-6 border rounded-lg bg-red-50 text-red-500">
-                {dashboardStatsError}
-              </div>
-            ) : (
-              <StatsOverview
-                stats={dashboardStats}
-                isLoading={isLoadingDashboardStats}
-              />
-            )}
-          </div>
+          )}
         </div>
-      </div>
+      </section>
 
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-12">
+      <div className="container mx-auto pb-12">
         {/* Main content */}
         <div className="space-y-12">
           {/* Portfolio Section */}
           <div>
             <h2 className="text-3xl font-bold mb-6 flex items-center">
-              <LineChart className="h-8 w-8 mr-3 text-blue-500" />
-              {t("portfolio_overview")}
+              <div className={`h-10 w-10 rounded-xl bg-blue-500/20 flex items-center justify-center mr-3`}>
+                <LineChart className={`h-5 w-5 text-blue-500`} />
+              </div>
+              {tExt("portfolio_overview")}
             </h2>
 
             {portfolioError ? (
-              <div className="p-6 border rounded-lg bg-red-50 text-red-500">
+              <div className="p-6 border rounded-lg bg-red-50 dark:bg-red-950/30 text-red-500 dark:text-red-400">
                 {portfolioError}
               </div>
             ) : (
@@ -165,8 +143,10 @@ export function DashboardClient() {
           {/* My Offers Section */}
           <div>
             <h2 className="text-2xl font-bold mb-6 flex items-center">
-              <FileText className="h-7 w-7 mr-3 text-blue-500" />
-              {t("my_offers")}
+              <div className={`h-9 w-9 rounded-xl bg-blue-500/20 flex items-center justify-center mr-3`}>
+                <FileText className={`h-5 w-5 text-blue-500`} />
+              </div>
+              {tCommon("my_offers")}
             </h2>
             <MyOffers
               offers={userOffers}
@@ -178,11 +158,13 @@ export function DashboardClient() {
           {/* Trading Activity - Full Width */}
           <div>
             <h2 className="text-2xl font-bold mb-6 flex items-center">
-              <Users className="h-7 w-7 mr-3 text-violet-500" />
+              <div className={`h-9 w-9 rounded-xl bg-blue-500/20 flex items-center justify-center mr-3`}>
+                <Users className={`h-5 w-5 text-blue-500`} />
+              </div>
               {t("p2p_trading_activity")}
             </h2>
             {tradingActivityError ? (
-              <div className="p-6 border rounded-lg bg-red-50 text-red-500">
+              <div className="p-6 border rounded-lg bg-red-50 dark:bg-red-950/30 text-red-500 dark:text-red-400">
                 {tradingActivityError}
               </div>
             ) : (

@@ -1,17 +1,18 @@
+import { getRecord } from "@b/utils/query";
 import {
-  getRecord,
   unauthorizedResponse,
-  notFoundMetadataResponse,
+  notFoundResponse,
   serverErrorResponse,
-} from "@b/utils/query";
+} from "@b/utils/schema/errors";
 import { baseEcommerceDiscountSchema } from "../utils";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
-  summary:
-    "Retrieves detailed information of a specific ecommerce discount by ID",
+  summary: "Retrieves a specific ecommerce discount by ID",
   operationId: "getEcommerceDiscountById",
-  tags: ["Admin", "Ecommerce Discounts"],
+  description:
+    "Fetches detailed information about a specific ecommerce discount including its code, percentage, validity date, status, and associated product details with category information. Use this endpoint to view or edit a single discount record.",
+  tags: ["Admin", "Ecommerce", "Discount"],
   parameters: [
     {
       index: 0,
@@ -24,7 +25,7 @@ export const metadata: OperationObject = {
   ],
   responses: {
     200: {
-      description: "Ecommerce discount details",
+      description: "Ecommerce discount details with product information",
       content: {
         "application/json": {
           schema: {
@@ -35,17 +36,22 @@ export const metadata: OperationObject = {
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("Ecommerce Discount"),
+    404: notFoundResponse("Ecommerce Discount"),
     500: serverErrorResponse,
   },
   permission: "view.ecommerce.discount",
   requiresAuth: true,
+  logModule: "ADMIN_ECOM",
+  logTitle: "Get discount details",
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("ecommerceDiscount", params.id, [
+  ctx?.step("Validating discount ID");
+  ctx?.step(`Fetching discount: ${params.id}`);
+
+  const result = await getRecord("ecommerceDiscount", params.id, [
     {
       model: models.ecommerceProduct,
       as: "product",
@@ -59,4 +65,7 @@ export default async (data) => {
       ],
     },
   ]);
+
+  ctx?.success("Discount details retrieved successfully");
+  return result;
 };

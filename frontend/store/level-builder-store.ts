@@ -366,7 +366,7 @@ export const useLevelBuilderStore = create<LevelBuilderState>((set, get) => ({
     const { currentLevel } = get();
     if (!currentLevel) return;
     const updatedLevel = { ...currentLevel };
-    updatedLevel.fields = updatedLevel.fields.map((field) =>
+    updatedLevel.fields = (updatedLevel.fields || []).map((field) =>
       field.id === updatedField.id ? updatedField : field
     );
     set({ currentLevel: updatedLevel });
@@ -376,7 +376,7 @@ export const useLevelBuilderStore = create<LevelBuilderState>((set, get) => ({
     const { currentLevel } = get();
     if (!currentLevel) return;
     const updatedLevel = { ...currentLevel };
-    updatedLevel.fields = updatedLevel.fields.filter(
+    updatedLevel.fields = (updatedLevel.fields || []).filter(
       (field) => field.id !== fieldId
     );
     set({ currentLevel: updatedLevel });

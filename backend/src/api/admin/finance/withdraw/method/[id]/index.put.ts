@@ -30,10 +30,12 @@ export const metadata = {
   responses: updateRecordResponses("Withdraw Method"),
   requiresAuth: true,
   permission: "edit.withdraw.method",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Withdraw Method",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     title,
@@ -48,7 +50,8 @@ export default async (data: Handler) => {
     status,
   } = body;
 
-  return await updateRecord("withdrawMethod", id, {
+  ctx?.step("Updating withdraw method");
+  const result = await updateRecord("withdrawMethod", id, {
     title,
     processingTime,
     instructions,
@@ -60,4 +63,7 @@ export default async (data: Handler) => {
     customFields,
     status,
   });
+
+  ctx?.success("Withdraw method updated successfully");
+  return result;
 };

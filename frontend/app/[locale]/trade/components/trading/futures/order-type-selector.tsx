@@ -12,7 +12,7 @@ export default function OrderTypeSelector({
   orderType,
   setOrderType,
 }: OrderTypeSelectorProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   return (
     <div className="flex mb-4">
       <button
@@ -24,7 +24,7 @@ export default function OrderTypeSelector({
         )}
         onClick={() => setOrderType("market")}
       >
-        {t("Market")}
+        {t("market")}
       </button>
       <button
         className={cn(
@@ -35,7 +35,7 @@ export default function OrderTypeSelector({
         )}
         onClick={() => setOrderType("limit")}
       >
-        {t("Limit")}
+        {t("limit")}
       </button>
     </div>
   );

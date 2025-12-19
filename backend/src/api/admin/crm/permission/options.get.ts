@@ -9,6 +9,8 @@ export const metadata: OperationObject = {
   summary: "Lists all permissions",
   operationId: "listPermissions",
   tags: ["Admin", "CRM", "Permission"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Get permission options",
   responses: {
     200: {
       description: "List of permissions",
@@ -38,7 +40,13 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  return await models.permission.findAll({
+  const { ctx } = data;
+
+  ctx?.step("Fetching permission options");
+  const result = await models.permission.findAll({
     order: [['name', 'ASC']]
   });
+
+  ctx?.success("Permission options retrieved successfully");
+  return result;
 };

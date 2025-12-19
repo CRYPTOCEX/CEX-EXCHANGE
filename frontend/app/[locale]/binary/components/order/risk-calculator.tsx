@@ -19,7 +19,8 @@ export default function RiskCalculator({
   onSetAmount,
   darkMode = true,
 }: RiskCalculatorProps) {
-  const t = useTranslations("common");
+  const t = useTranslations("binary_components");
+  const tCommon = useTranslations("common");
   const [isOpen, setIsOpen] = useState(false);
   const [riskPercent, setRiskPercent] = useState(2);
   const [riskAmount, setRiskAmount] = useState(0);
@@ -233,7 +234,7 @@ export default function RiskCalculator({
                             : "rgba(229, 231, 235, 0.5)",
                     }}
                   >
-                    {t("Statistics")}
+                    {t("statistics")}
                   </motion.button>
                 </div>
 
@@ -374,7 +375,7 @@ export default function RiskCalculator({
                             className="text-red-500 mr-2 mt-0.5 flex-shrink-0"
                           />
                           <span className="text-sm">
-                            {t("risk_above_5%_account_drawdowns")}.
+                            {t("risk_above_5_account_drawdowns")}.
                           </span>
                         </motion.div>
                       )}
@@ -399,7 +400,7 @@ export default function RiskCalculator({
                       <div className="mb-4">
                         <div className="flex justify-between">
                           <div className={`${styles.label} text-sm mb-1`}>
-                            {t("win_rate_(%)")}
+                            {tCommon("win_rate")}
                           </div>
                           <div className="text-sm font-medium">{winRate}%</div>
                         </div>
@@ -477,7 +478,7 @@ export default function RiskCalculator({
                           whileHover={{ scale: 1.02 }}
                         >
                           <div className={`${styles.label} text-sm`}>
-                            {t("Probability")}
+                            {t("probability")}
                           </div>
                           <div
                             className={`font-medium text-lg ${expectedValue > 0 ? "text-green-500" : "text-red-500"}`}
@@ -503,12 +504,12 @@ export default function RiskCalculator({
       <motion.button
         onClick={() => setIsOpen(true)}
         className={`flex items-center gap-1.5 text-sm ${styles.button} py-2 px-3 rounded-md transition-colors border shadow-sm`}
-        title="Risk Calculator"
+        title={t("risk_calculator")}
         whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.97 }}
       >
         <Calculator size={16} className={styles.accent} />
-        <span className="font-medium">{t("Risk")}</span>
+        <span className="font-medium">{tCommon("risk")}</span>
       </motion.button>
 
       {renderModal()}

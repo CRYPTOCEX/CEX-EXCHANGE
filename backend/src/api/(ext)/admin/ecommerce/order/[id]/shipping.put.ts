@@ -8,6 +8,8 @@ export const metadata: OperationObject = {
   operationId: "addShippingAddress",
   tags: ["Admin", "Ecommerce Orders"],
   requiresAuth: true,
+  logModule: "ADMIN_ECOM",
+  logTitle: "Add shipping address",
   parameters: [
     {
       index: 0,
@@ -59,25 +61,30 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { shippingAddress } = body;
 
+  ctx?.step("Validating order ID");
   const transaction = await sequelize.transaction();
 
   try {
+    ctx?.step(`Finding order: ${id}`);
     const order = await models.ecommerceOrder.findByPk(id);
     if (!order) {
       throw createError({ statusCode: 404, message: "Order not found" });
     }
 
+    ctx?.step("Checking for existing shipping address");
     const existingAddress = await models.ecommerceShippingAddress.findOne({
       where: { orderId: id },
     });
 
     if (existingAddress) {
+      ctx?.step("Updating existing shipping address");
       await existingAddress.update(shippingAddress, { transaction });
     } else {
+      ctx?.step("Creating new shipping address");
       await models.ecommerceShippingAddress.create(
         { orderId: id, ...shippingAddress },
         { transaction }
@@ -85,8 +92,10 @@ export default async (data: Handler) => {
     }
 
     await transaction.commit();
+    ctx?.success("Shipping address added/updated successfully");
     return { message: "Shipping address added/updated successfully" };
   } catch (error) {
+    ctx?.fail("Failed to add/update shipping address");
     await transaction.rollback();
     throw createError({ statusCode: 500, message: error.message });
   }

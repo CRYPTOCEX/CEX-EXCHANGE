@@ -1,34 +1,16 @@
 "use client";
-import { useState } from "react";
 import DataTable from "@/components/blocks/data-table";
-import { columns } from "./columns";
-import { GatewayModal } from "./components/gateway-modal";
-import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { useColumns } from "./columns";
+import { CreditCard } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function DepositGatewayPage() {
-  const [selectedGatewayId, setSelectedGatewayId] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const handleViewGateway = (gatewayId: string) => {
-    setSelectedGatewayId(gatewayId);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedGatewayId(null);
-    setIsModalOpen(false);
-  };
-
-  const handleGatewayUpdated = () => {
-    setRefreshKey(prev => prev + 1);
-  };
+  const t = useTranslations("dashboard_admin");
+  const columns = useColumns();
 
   return (
     <>
       <DataTable
-        key={refreshKey}
         apiEndpoint="/api/admin/finance/deposit/gateway"
         model="depositGateway"
         permissions={{
@@ -38,36 +20,21 @@ export default function DepositGatewayPage() {
           edit: "edit.deposit.gateway",
           delete: "delete.deposit.gateway",
         }}
-        pageSize={10}
+        pageSize={12}
         canCreate={false}
         canEdit={false}
+        canView
+        viewLink="/admin/finance/deposit/gateway/[id]"
         canDelete={false}
-        canView={true}
         isParanoid={false}
-        title="Payment Gateway Management"
-        description="Manage deposit payment gateways, configure fees, limits, and supported currencies"
+        title={t("payment_gateway_management")}
+        description={t("manage_deposit_payment_gateways_configure_fees")}
         itemTitle="Payment Gateway"
         columns={columns}
-        expandedButtons={(row) => {
-          return (
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={() => handleViewGateway(row.id)}
-              className="gap-2"
-            >
-              <Eye className="h-4 w-4" />
-              View Details
-            </Button>
-          );
+        design={{
+          animation: "orbs",
+          icon: CreditCard,
         }}
-      />
-      
-      <GatewayModal
-        gatewayId={selectedGatewayId}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onGatewayUpdated={handleGatewayUpdated}
       />
     </>
   );

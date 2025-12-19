@@ -42,6 +42,7 @@ export const metadata = {
   },
   requiresAuth: true,
   permission: "view.wallet",
+  demoMask: ["data.user.email"],
 };
 
 export default async (data: Handler) => {

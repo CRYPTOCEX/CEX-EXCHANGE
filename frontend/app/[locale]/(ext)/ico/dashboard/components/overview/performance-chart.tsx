@@ -16,7 +16,7 @@ import { usePortfolioPerformanceStore } from "@/store/ico/portfolio/performance-
 import { useTranslations } from "next-intl";
 
 export function PerformanceChart() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
   const { performanceData, metrics, fetchPerformanceData, timeframe, error } =
     usePortfolioPerformanceStore();
 
@@ -90,7 +90,7 @@ export function PerformanceChart() {
           <Line
             type="monotone"
             dataKey="value"
-            stroke={isPositive ? "#10B981" : "#EF4444"}
+            stroke={isPositive ? "#14B8A6" : "#EF4444"}
             strokeWidth={2}
             dot={false}
             activeDot={{ r: 6 }}

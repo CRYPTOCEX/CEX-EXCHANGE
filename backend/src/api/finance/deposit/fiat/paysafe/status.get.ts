@@ -1,5 +1,6 @@
 import { models } from '@b/db'
 import { createError } from '@b/utils/error'
+import { logger } from '@b/utils/console'
 import {
   validatePaysafeConfig,
   makeApiRequest,
@@ -189,7 +190,7 @@ export default async (data: Handler) => {
           }
         }
       } catch (apiError) {
-        console.error('Failed to get payment status from Paysafe:', apiError)
+        logger.error('PAYSAFE', 'Failed to get payment status from Paysafe', apiError)
         // Don't fail the request if API call fails, just use local data
       }
     }
@@ -231,8 +232,8 @@ export default async (data: Handler) => {
     }
 
   } catch (error) {
-    console.error('Paysafe status check error:', error)
-    
+    logger.error('PAYSAFE', 'Status check error', error)
+
     if (error instanceof PaysafeError) {
       throw createError({
         statusCode: error.status,

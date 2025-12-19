@@ -31,7 +31,9 @@ const FuturesBasicInfoStep: React.FC<FuturesBasicInfoStepProps> = ({
   tokenOptions,
   isLoadingTokens,
 }) => {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const filteredCurrency = tokenOptions.filter(
     (opt) => opt.value !== formData.pair
   );
@@ -41,86 +43,94 @@ const FuturesBasicInfoStep: React.FC<FuturesBasicInfoStepProps> = ({
 
   return (
     <Card className="p-5 space-y-3">
-      <h2 className="text-lg font-semibold mb-2">{t("basic_information")}</h2>
+      <h2 className="text-lg font-semibold mb-2">{tDashboardAdmin("basic_information")}</h2>
       <div className="grid grid-cols-2 gap-5">
         {/* Currency */}
-        <div>
-          <Select
-            value={formData.currency}
-            onValueChange={(val) => updateField("currency", val)}
+        <Select
+          value={formData.currency}
+          onValueChange={(val) => updateField("currency", val)}
+        >
+          <SelectTrigger
+            title={tCommon("currency")}
+            description={t("select_the_base_currency_for_this_futures_market")}
+            className="w-full"
           >
-            <SelectTrigger title="Currency" className="w-full">
-              <SelectValue placeholder="Select currency" />
-            </SelectTrigger>
-            <SelectContent search>
-              {isLoadingTokens ? (
-                <div className="px-2 py-1 text-sm text-zinc-500 dark:text-zinc-400">
-                  {t("loading_tokens")}.
-                </div>
-              ) : (
-                filteredCurrency.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-        </div>
+            <SelectValue placeholder={tCommon("select_currency")} />
+          </SelectTrigger>
+          <SelectContent search>
+            {isLoadingTokens ? (
+              <div className="px-2 py-1 text-sm text-zinc-500 dark:text-zinc-400">
+                {t("loading_tokens")}.
+              </div>
+            ) : (
+              filteredCurrency.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
         {/* Pair */}
-        <div>
-          <Select
-            value={formData.pair}
-            onValueChange={(val) => updateField("pair", val)}
+        <Select
+          value={formData.pair}
+          onValueChange={(val) => updateField("pair", val)}
+        >
+          <SelectTrigger
+            title={tDashboardAdmin("pair")}
+            description={t("select_the_quote_currency_to_pair_with_the_base_currency")}
+            className="w-full"
           >
-            <SelectTrigger title="Pair" className="w-full">
-              <SelectValue placeholder="Select pair" />
-            </SelectTrigger>
-            <SelectContent search>
-              {isLoadingTokens ? (
-                <div className="px-2 py-1 text-sm text-zinc-500 dark:text-zinc-400">
-                  {t("loading_tokens")}.
-                </div>
-              ) : (
-                filteredPair.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-        </div>
+            <SelectValue placeholder={t("select_pair")} />
+          </SelectTrigger>
+          <SelectContent search>
+            {isLoadingTokens ? (
+              <div className="px-2 py-1 text-sm text-zinc-500 dark:text-zinc-400">
+                {t("loading_tokens")}.
+              </div>
+            ) : (
+              filteredPair.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
         {/* Is Trending */}
-        <div>
-          <Select
-            value={formData.isTrending ? "true" : "false"}
-            onValueChange={(val) => updateField("isTrending", val === "true")}
+        <Select
+          value={formData.isTrending ? "true" : "false"}
+          onValueChange={(val) => updateField("isTrending", val === "true")}
+        >
+          <SelectTrigger
+            title={t("is_trending")}
+            description={t("when_enabled_this_the_frontend")}
+            className="w-full"
           >
-            <SelectTrigger title="Trending" className="w-full">
-              <SelectValue placeholder="Select trending" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="true">{t("Yes")}</SelectItem>
-              <SelectItem value="false">{t("No")}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+            <SelectValue placeholder={t("select_trending")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="true">{tCommon("yes")}</SelectItem>
+            <SelectItem value="false">{tCommon("no")}</SelectItem>
+          </SelectContent>
+        </Select>
         {/* Is Hot */}
-        <div>
-          <Select
-            value={formData.isHot ? "true" : "false"}
-            onValueChange={(val) => updateField("isHot", val === "true")}
+        <Select
+          value={formData.isHot ? "true" : "false"}
+          onValueChange={(val) => updateField("isHot", val === "true")}
+        >
+          <SelectTrigger
+            title={t("is_hot")}
+            description={t("when_enabled_this_markets_category")}
+            className="w-full"
           >
-            <SelectTrigger title="Hot" className="w-full">
-              <SelectValue placeholder="Select hot" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="true">{t("Yes")}</SelectItem>
-              <SelectItem value="false">{t("No")}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+            <SelectValue placeholder={t("select_hot")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="true">{tCommon("yes")}</SelectItem>
+            <SelectItem value="false">{tCommon("no")}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </Card>
   );

@@ -1,21 +1,25 @@
 import {
   notFoundMetadataResponse,
-  serverErrorResponse,
-  unauthorizedResponse,
 } from "@b/utils/query";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+} from "@b/utils/schema/errors";
 import { createError } from "@b/utils/error";
 import { models } from "@b/db";
 
 export const metadata: OperationObject = {
-  summary: "Retrieves a list of exchange markets",
+  summary: "Retrieves ecosystem market options",
   description:
-    "This endpoint retrieves active exchange markets formatted as options for UI selection.",
-  operationId: "getExchangeMarketOptions",
-  tags: ["Exchange", "Market"],
+    "Fetches a list of active ecosystem markets formatted as options for UI selection components. Each option contains the market ID and a formatted name showing the trading pair (e.g., 'BTC / USDT').",
+  operationId: "getEcosystemMarketOptions",
+  tags: ["Admin", "Ecosystem", "Market"],
   requiresAuth: true,
+  logModule: "ADMIN_ECO",
+  logTitle: "Get market options",
   responses: {
     200: {
-      description: "Exchange markets retrieved successfully",
+      description: "Ecosystem market options retrieved successfully",
       content: {
         "application/json": {
           schema: {
@@ -23,8 +27,15 @@ export const metadata: OperationObject = {
             items: {
               type: "object",
               properties: {
-                id: { type: "string" },
-                name: { type: "string" },
+                id: {
+                  type: "string",
+                  format: "uuid",
+                  description: "Market ID",
+                },
+                name: {
+                  type: "string",
+                  description: "Formatted market name (currency / pair)",
+                },
               },
             },
           },
@@ -32,27 +43,31 @@ export const metadata: OperationObject = {
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("ExchangeMarket"),
+    404: notFoundMetadataResponse("Ecosystem Market"),
     500: serverErrorResponse,
   },
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) throw createError(401, "Unauthorized");
 
   try {
-    const exchangeMarkets = await models.exchangeMarket.findAll({
+    ctx?.step("Fetching active ecosystem markets");
+    const ecosystemMarkets = await models.ecosystemMarket.findAll({
       where: { status: true },
     });
 
-    const formatted = exchangeMarkets.map((market) => ({
+    ctx?.step("Formatting market options");
+    const formatted = ecosystemMarkets.map((market) => ({
       id: market.id,
       name: `${market.currency} / ${market.pair}`,
     }));
 
+    ctx?.success("Market options retrieved successfully");
     return formatted;
   } catch (error) {
-    throw createError(500, "An error occurred while fetching exchange markets");
+    ctx?.fail(error.message);
+    throw createError(500, "An error occurred while fetching ecosystem markets");
   }
 };

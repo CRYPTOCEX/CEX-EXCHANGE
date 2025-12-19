@@ -20,8 +20,10 @@ import { useTranslations } from "next-intl";
 
 export default function OfferingLoading() {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen pt-20 pb-24">
       {/* Hero section with gradient background */}
       <div className="relative overflow-hidden mb-12 min-h-[80vh] flex items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/90 via-primary/70 to-primary-foreground/5 z-0"></div>
@@ -32,7 +34,7 @@ export default function OfferingLoading() {
             className="text-sm text-background/70 hover:text-background mb-4 flex items-center w-fit"
           >
             <ArrowLeft className="mr-1 h-4 w-4" />
-            {t("back_to_offerings")}
+            {tCommon("back_to_offerings")}
           </Link>
 
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
@@ -78,7 +80,7 @@ export default function OfferingLoading() {
                 <div className="bg-background/10 backdrop-blur-sm rounded-lg p-3 border border-background/10">
                   <div className="text-background/70 text-sm flex items-center gap-1.5">
                     <Users className="h-3.5 w-3.5" />
-                    <span>{t("Participants")}</span>
+                    <span>{t("participants")}</span>
                   </div>
                   <div className="mt-1">
                     <Skeleton className="h-6 w-16" />
@@ -100,7 +102,7 @@ export default function OfferingLoading() {
                 <div className="bg-background/10 backdrop-blur-sm rounded-lg p-3 border border-background/10">
                   <div className="text-background/70 text-sm flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5" />
-                    <span>{t("end_date")}</span>
+                    <span>{tCommon("end_date")}</span>
                   </div>
                   <div className="mt-1">
                     <Skeleton className="h-6 w-28" />
@@ -115,7 +117,7 @@ export default function OfferingLoading() {
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-background">
-                  {t("fundraising_progress")}
+                  {tExtAdmin("fundraising_progress")}
                 </h3>
                 <Skeleton className="h-5 w-16 rounded-full" />
               </div>

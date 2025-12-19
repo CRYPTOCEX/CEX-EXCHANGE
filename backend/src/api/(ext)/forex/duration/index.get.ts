@@ -1,5 +1,6 @@
-import { models, sequelize } from "@b/db";
+import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { literal } from "sequelize";
 
 export const metadata = {
   summary: "Get Forex Investment Durations",
@@ -7,6 +8,8 @@ export const metadata = {
     "Retrieves a list of all available Forex investment durations, ordered by timeframe (HOUR, DAY, WEEK, MONTH) then duration ascending.",
   operationId: "getForexDurations",
   tags: ["Forex", "Duration"],
+  logModule: "FOREX",
+  logTitle: "Get Forex Durations",
   requiresAuth: true,
   responses: {
     200: {
@@ -41,7 +44,9 @@ interface Handler {
 }
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data as any;
+    ctx?.step("Fetching Forex Durations");
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -61,11 +66,14 @@ export default async (data: Handler) => {
     const durations = await models.forexDuration.findAll({
       attributes: ["id", "duration", "timeframe"],
       order: [
-        [sequelize.literal(timeframeOrder), "ASC"], // Order by CASE expression
+        [literal(timeframeOrder), "ASC"], // Order by CASE expression
         ["duration", "ASC"], // Then order by numeric duration
       ],
       raw: true,
     });
+
+    ctx?.success("Get Forex Durations fetched successfully");
+
 
     return durations;
   } catch (error) {

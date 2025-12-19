@@ -41,12 +41,16 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.kyc.application",
+  logModule: "ADMIN_CRM",
+  logTitle: "View KYC application",
+  demoMask: ["user.email", "user.phone"],
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("kycApplication", params.id, [
+  ctx?.step(`Fetching KYC application ${params.id}`);
+  const result = await getRecord("kycApplication", params.id, [
     {
       model: models.user,
       as: "user",
@@ -99,4 +103,7 @@ export default async (data: Handler) => {
       as: "verificationResult",
     },
   ]);
+
+  ctx?.success("KYC application retrieved successfully");
+  return result;
 };

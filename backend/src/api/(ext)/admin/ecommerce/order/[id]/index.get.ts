@@ -39,10 +39,16 @@ export const metadata: OperationObject = {
   },
   permission: "view.ecommerce.order",
   requiresAuth: true,
+  logModule: "ADMIN_ECOM",
+  logTitle: "Get order details",
+  demoMask: ["order.user.email"],
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
+
+  ctx?.step("Validating order ID");
+  ctx?.step(`Fetching order: ${params.id}`);
 
   const order = await getRecord("ecommerceOrder", params.id, [
     {
@@ -83,6 +89,7 @@ export default async (data) => {
     },
   ]);
 
+  ctx?.step("Fetching available shipments");
   // shpments not "DELIVERED" | "CANCELLED"
   const shipments = await models.ecommerceShipping.findAll({
     where: {
@@ -90,6 +97,7 @@ export default async (data) => {
     },
   });
 
+  ctx?.success("Order details retrieved successfully");
   return {
     order,
     shipments: shipments.map((shipment) => shipment.get({ plain: true })),

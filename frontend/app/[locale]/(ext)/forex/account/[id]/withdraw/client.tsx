@@ -24,8 +24,11 @@ import { useParams } from "next/navigation";
 import { useUserStore } from "@/store/user";
 import { useConfigStore } from "@/store/config";
 import KycRequiredNotice from "@/components/blocks/kyc/kyc-required-notice";
+import { useTranslations } from "next-intl";
 
 export default function WithdrawClient() {
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -41,21 +44,21 @@ export default function WithdrawClient() {
   } catch (error) {
     console.error("Error in WithdrawClient:", error);
     return (
-      <div className="container mx-auto py-12 px-4">
+      <div className="container mx-auto py-12">
         <div className="max-w-2xl mx-auto">
           <div className="text-center py-8">
             <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
-              Something went wrong
+              {tCommon("something_went_wrong")}
             </h3>
             <p className="text-zinc-600 dark:text-zinc-300 mb-6">
-              There was an error loading the withdrawal page. Please try again.
+              {tExt("there_was_an_error_loading_the_1")}
             </p>
             <Button
               onClick={() => window.location.reload()}
               className="px-6"
             >
-              Reload Page
+              {tExt("reload_page")}
             </Button>
           </div>
         </div>
@@ -65,6 +68,8 @@ export default function WithdrawClient() {
 }
 
 function WithdrawClientContent() {
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { hasKyc, canAccessFeature } = useUserStore();
   const { settings } = useConfigStore();
   const { id } = useParams() as {
@@ -169,7 +174,7 @@ function WithdrawClientContent() {
               className="px-6"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
+              {tCommon("back_to_dashboard")}
             </Button>
           </div>
         </div>
@@ -340,19 +345,19 @@ function WithdrawClientContent() {
         <div className="mb-6">
           <CardTitle className="text-green-600 flex items-center">
             <CheckCircle className="h-6 w-6 mr-2" />
-            Withdrawal Submitted
+            {tCommon("withdrawal_submitted")}
           </CardTitle>
           <CardDescription>
-            Your withdrawal has been submitted and is being processed.
+            {tExt("your_withdrawal_has_been_submitted_and")}
           </CardDescription>
         </div>
         <div className="space-y-6">
           <div className="bg-green-50 p-4 rounded-lg dark:bg-green-900/30 dark:text-green-100">
-            <h4 className="font-medium mb-4">Transaction Details</h4>
+            <h4 className="font-medium mb-4">{tCommon("transaction_details")}</h4>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-green-200">
-                  Transaction ID:
+                  {tCommon("transaction_id")}:
                 </span>
                 <span className="font-medium">
                   {withdraw.transaction
@@ -362,7 +367,7 @@ function WithdrawClientContent() {
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-green-200">
-                  Status:
+                  {tCommon("status")}:
                 </span>
                 <span className="font-medium">
                   {withdraw.status || "Pending"}
@@ -370,21 +375,21 @@ function WithdrawClientContent() {
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-green-200">
-                  Amount:
+                  {tCommon("amount")}:
                 </span>
                 <span className="font-medium">
                   {formatCurrency(withdrawAmount, selectedCurrency)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-600 dark:text-green-200">Fee:</span>
+                <span className="text-zinc-600 dark:text-green-200">{tCommon("fee")}:</span>
                 <span className="font-medium">
                   {formatCurrency(5, selectedCurrency)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-green-200">
-                  Total to Receive:
+                  {tExt("total_to_receive_1")}:
                 </span>
                 <span className="font-medium">
                   {formatCurrency(withdrawAmount - 5, selectedCurrency)}
@@ -394,11 +399,11 @@ function WithdrawClientContent() {
           </div>
           
           {/* Transaction Status Information */}
-          <div className="bg-blue-50 p-4 rounded-lg dark:bg-blue-900/30 dark:text-blue-100">
+          <div className={`bg-teal-500/10 p-4 rounded-lg dark:bg-teal-500/10 dark:text-teal-300`}>
             <div className="flex items-center mb-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2 text-blue-600"
+                className={`h-5 w-5 mr-2 text-teal-600 dark:text-teal-300`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -410,31 +415,31 @@ function WithdrawClientContent() {
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <h4 className="font-medium text-blue-900 dark:text-blue-100">
-                What happens next?
+              <h4 className={`font-medium text-teal-600 dark:text-teal-300`}>
+                {tCommon("what_happens_next")}
               </h4>
             </div>
-            <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-              <p>• Your transaction is currently <strong>PENDING</strong> approval</p>
-              <p>• You will receive an email notification once it's processed</p>
-              <p>• You can track the status in your <strong>Forex Transactions</strong> page</p>
-              <p>• Processing typically takes 15-30 minutes</p>
+            <div className={`text-sm text-teal-600 dark:text-teal-300 space-y-1`}>
+              <p>{tExt("your_transaction_is_currently")} <strong>PENDING</strong> approval</p>
+              <p>{tExt("you_will_receive_an_email_notification")}</p>
+              <p>{tExt("you_can_track_the_status_in_your")} <strong>{tCommon("forex_transactions")}</strong> page</p>
+              <p>{tCommon("processing_typically_takes_15_30_minutes")}</p>
             </div>
           </div>
 
           <div className="flex justify-center gap-4 mt-6">
             <Button
-              onClick={() => router.push("/forex/transactions")}
+              onClick={() => router.push("/forex/transaction")}
               variant="outline"
               className="px-6"
             >
-              View Transactions
+              {tExt("view_transactions")}
             </Button>
             <Button
               onClick={() => router.push("/forex/dashboard")}
               className="px-6"
             >
-              Return to Dashboard
+              {tCommon("return_to_dashboard")}
             </Button>
           </div>
         </div>
@@ -452,9 +457,9 @@ function WithdrawClientContent() {
       return (
         <>
           <div className="mb-6">
-            <CardTitle>Select Wallet Type</CardTitle>
+            <CardTitle>{tCommon("select_wallet_type")}</CardTitle>
             <CardDescription>
-              Choose the type of wallet you want to withdraw to.
+              {tExt("choose_the_type_of_wallet_you_want_to_withdraw_to_1")}
             </CardDescription>
           </div>
           <div>
@@ -480,9 +485,9 @@ function WithdrawClientContent() {
                     />
                     <Label
                       htmlFor={walletType.value}
-                      className={`flex items-center p-4 border rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 w-full ${selectedWalletType.value === walletType.value ? "bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-400" : ""}`}
+                      className={`flex items-center p-4 border rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700 w-full ${selectedWalletType.value === walletType.value ? `bg-emerald-100/20 dark:bg-emerald-100/10 border-emerald-600 dark:border-emerald-400` : ""}`}
                     >
-                      <Wallet className="h-5 w-5 mr-3" />
+                      <Wallet className={`h-5 w-5 mr-3 text-emerald-600 dark:text-emerald-400`} />
                       <div>
                         <p className="font-medium text-zinc-800 dark:text-zinc-100">
                           {walletType.label} Wallet
@@ -508,22 +513,22 @@ function WithdrawClientContent() {
       return (
         <>
           <div className="mb-6">
-            <CardTitle>Select Currency</CardTitle>
+            <CardTitle>{tCommon("select_currency")}</CardTitle>
             <CardDescription>
-              Select the currency you want to deposit
+              {tCommon("select_the_currency_you_want_to_deposit")}
             </CardDescription>
           </div>
           <div>
             {loading ? (
               <div className="flex justify-center py-8">
-                <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                <div className={`w-8 h-8 border-4 border-emerald-100/20 border-t-emerald-600 rounded-full animate-spin`} />
               </div>
             ) : currencies.length > 0 ? (
               <div className="grid grid-cols-2 gap-4">
                 {currencies.map((currency: any) => (
                   <div
                     key={currency.value}
-                    className={`border rounded-lg p-4 cursor-pointer hover:bg-zinc-50 hover:border-blue-300 dark:hover:bg-zinc-700 ${selectedCurrency === currency.value ? "bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-400" : ""}`}
+                    className={`border rounded-lg p-4 cursor-pointer hover:bg-zinc-50 hover:border-emerald-100/30 dark:hover:bg-zinc-700 ${selectedCurrency === currency.value ? `bg-emerald-100/20 dark:bg-emerald-100/10 border-emerald-600 dark:border-emerald-400` : ""}`}
                     onClick={() => setSelectedCurrency(currency.value)}
                   >
                     <div className="flex items-center">
@@ -546,14 +551,14 @@ function WithdrawClientContent() {
               <div className="text-center py-8">
                 <AlertCircle className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
                 <p className="text-zinc-600 dark:text-zinc-300">
-                  No currencies available for this wallet type
+                  {tExt("no_currencies_available_for_this_wallet_type")}
                 </p>
                 <Button
                   variant="outline"
                   className="mt-4"
                   onClick={() => setStep(1)}
                 >
-                  Go Back
+                  {tCommon("go_back")}
                 </Button>
               </div>
             )}
@@ -569,22 +574,22 @@ function WithdrawClientContent() {
         return (
           <>
             <div className="mb-6">
-              <CardTitle>Select Network</CardTitle>
+              <CardTitle>{tCommon("select_network")}</CardTitle>
               <CardDescription>
-                Choose the network for your withdrawal.
+                {tExt("choose_the_network_for_your_withdrawal_1")}
               </CardDescription>
             </div>
             <div>
               {loading ? (
                 <div className="flex justify-center py-8">
-                  <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                  <div className={`w-8 h-8 border-4 border-emerald-100/20 border-t-emerald-600 rounded-full animate-spin`} />
                 </div>
               ) : withdrawMethods && withdrawMethods.length > 0 ? (
                 <div className="space-y-4">
                   {withdrawMethods.map((method: any) => (
                     <div
                       key={method.id || method.chain}
-                      className={`border rounded-lg p-4 cursor-pointer hover:bg-zinc-50 hover:border-blue-300 dark:hover:bg-zinc-700 dark:hover:border-blue-400 ${selectedWithdrawMethod?.chain === method.chain ? "bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-400" : ""}`}
+                      className={`border rounded-lg p-4 cursor-pointer hover:bg-zinc-50 hover:border-emerald-100/30 dark:hover:bg-zinc-700 dark:hover:border-emerald-400/50 ${selectedWithdrawMethod?.chain === method.chain ? `bg-emerald-100/20 dark:bg-emerald-100/10 border-emerald-600 dark:border-emerald-400` : ""}`}
                       onClick={() => {
                         setSelectedWithdrawMethod(method);
                         // Auto-advance to next step after selecting network
@@ -619,14 +624,14 @@ function WithdrawClientContent() {
                 <div className="text-center py-8">
                   <AlertCircle className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
                   <p className="text-zinc-600 dark:text-zinc-300">
-                    No withdrawal methods available for this currency.
+                    {tExt("no_withdrawal_methods_available_for_this_currency_1")}
                   </p>
                   <Button
                     variant="outline"
                     className="mt-4"
                     onClick={() => setStep(2)}
                   >
-                    Go Back
+                    {tCommon("go_back")}
                   </Button>
                 </div>
               )}
@@ -662,9 +667,9 @@ function WithdrawClientContent() {
     return (
       <>
         <div className="mb-6">
-          <CardTitle>Enter Withdrawal Amount</CardTitle>
+          <CardTitle>{tCommon("enter_withdrawal_amount")}</CardTitle>
           <CardDescription>
-            Enter the amount you want to withdraw.
+            {tCommon("enter_the_amount_you_want_to_withdraw_1")}
           </CardDescription>
         </div>
         <div className="space-y-6">
@@ -678,50 +683,50 @@ function WithdrawClientContent() {
                 const val = parseFloat(e.target.value);
                 setWithdrawAmount(!isNaN(val) ? val : 0);
               }}
-              label="Withdrawal Amount"
+              label={tCommon("withdrawal_amount")}
               prefix={selectedCurrency}
             />
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Minimum withdrawal: {formatCurrency(50, selectedCurrency)}
+              {tExt("minimum_withdrawal_1")}: {formatCurrency(50, selectedCurrency)}
             </p>
           </div>
           {selectedWalletType.value !== "FIAT" && (
             <div className="space-y-2">
               <Label htmlFor="address" className="dark:text-white">
-                Wallet Address
+                {tCommon("wallet_address")}
               </Label>
               <Input
                 id="address"
-                placeholder="Enter your wallet address"
+                placeholder={tExt("enter_your_wallet_address")}
                 className="dark:bg-zinc-800 dark:text-white"
               />
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                Make sure to enter the correct address for the{" "}
-                {selectedWithdrawMethod?.chain} network.
+                {tCommon("make_sure_to_enter_the_correct_address_for_the")}{" "}
+                {selectedWithdrawMethod?.chain} {tCommon("network")}
               </p>
             </div>
           )}
-          <div className="bg-blue-50 p-4 rounded-lg dark:bg-zinc-700 dark:text-zinc-100">
-            <h3 className="font-medium text-blue-900 dark:text-zinc-100 mb-2">
-              Withdrawal Summary
+          <div className={`bg-emerald-100/10 p-4 rounded-lg dark:bg-emerald-100/10 dark:text-zinc-100`}>
+            <h3 className={`font-medium text-emerald-700 dark:text-emerald-400 mb-2`}>
+              {tCommon("withdrawal_summary")}
             </h3>
             <div className="space-y-2 text-zinc-700 dark:text-zinc-100">
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-zinc-300">
-                  Wallet Type:
+                  {tCommon("wallet_type")}:
                 </span>
                 <span className="font-medium">{selectedWalletType.label}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-zinc-300">
-                  Currency:
+                  {tCommon("currency")}:
                 </span>
                 <span className="font-medium">{selectedCurrency}</span>
               </div>
               {!isFiat && (
                 <div className="flex justify-between">
                   <span className="text-zinc-600 dark:text-zinc-300">
-                    Network:
+                    {tCommon("network")}:
                   </span>
                   <span className="font-medium">
                     {selectedWithdrawMethod?.chain || "N/A"}
@@ -730,20 +735,20 @@ function WithdrawClientContent() {
               )}
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-zinc-300">
-                  Amount:
+                  {tCommon("amount")}:
                 </span>
                 <span className="font-medium">
                   {formatCurrency(withdrawAmount || 0, selectedCurrency)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-600 dark:text-zinc-300">Fee:</span>
+                <span className="text-zinc-600 dark:text-zinc-300">{tCommon("fee")}:</span>
                 <span className="font-medium">
                   {formatCurrency(5, selectedCurrency)}
                 </span>
               </div>
               <div className="flex justify-between font-medium">
-                <span>Total to Receive:</span>
+                <span>{tExt("total_to_receive_1")}:</span>
                 <span>
                   {formatCurrency(withdrawAmount - 5, selectedCurrency)}
                 </span>
@@ -761,31 +766,31 @@ function WithdrawClientContent() {
     return (
       <>
         <div className="mb-6">
-          <CardTitle>Confirm Your Withdrawal</CardTitle>
+          <CardTitle>{tCommon("confirm_your_withdrawal")}</CardTitle>
           <CardDescription>
-            Review your withdrawal details before final submission.
+            {tExt("review_your_withdrawal_details_before_final")}
           </CardDescription>
         </div>
         <div className="space-y-6">
           <div className="bg-zinc-50 p-4 rounded-lg dark:bg-zinc-700 dark:text-zinc-100">
-            <h4 className="font-medium mb-4">Withdrawal Details</h4>
+            <h4 className="font-medium mb-4">{tCommon("withdrawal_details")}</h4>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-zinc-300">
-                  Wallet Type:
+                  {tCommon("wallet_type")}:
                 </span>
                 <span className="font-medium">{selectedWalletType.label}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-zinc-300">
-                  Currency:
+                  {tCommon("currency")}:
                 </span>
                 <span className="font-medium">{selectedCurrency}</span>
               </div>
               {!isFiat && (
                 <div className="flex justify-between">
                   <span className="text-zinc-600 dark:text-zinc-300">
-                    Network:
+                    {tCommon("network")}:
                   </span>
                   <span className="font-medium">
                     {selectedWithdrawMethod?.chain || "N/A"}
@@ -794,21 +799,21 @@ function WithdrawClientContent() {
               )}
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-zinc-300">
-                  Amount:
+                  {tCommon("amount")}:
                 </span>
                 <span className="font-medium">
                   {formatCurrency(withdrawAmount, selectedCurrency)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-600 dark:text-zinc-300">Fee:</span>
+                <span className="text-zinc-600 dark:text-zinc-300">{tCommon("fee")}:</span>
                 <span className="font-medium">
                   {formatCurrency(5, selectedCurrency)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-600 dark:text-zinc-300">
-                  Total to Receive:
+                  {tExt("total_to_receive_1")}:
                 </span>
                 <span className="font-medium">
                   {formatCurrency(withdrawAmount - 5, selectedCurrency)}
@@ -817,7 +822,7 @@ function WithdrawClientContent() {
             </div>
           </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-300">
-            By clicking “Submit”, you agree to proceed with this withdrawal.
+            {tExt('by_clicking_submit_you_agree_to')}
           </p>
         </div>
       </>
@@ -825,24 +830,25 @@ function WithdrawClientContent() {
   }
   
   return (
-    <div>
-      <main className="container mx-auto px-4 pt-8 mb-24">
+    <div className="min-h-screen bg-linear-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
+      <main className="container mx-auto px-4 pt-20 pb-24">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Withdraw Funds</h1>
+            <h1 className="text-3xl md:text-4xl font-bold bg-linear-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">
+              {tCommon("withdraw_funds")}
+            </h1>
             <p className="text-zinc-600 dark:text-zinc-400 mt-2">
-              Withdraw funds from your {account.broker} account (
-              {account.accountId})
+              {tCommon("withdraw_funds_from_your")} {account.broker} {tCommon("account")}{account.accountId})
             </p>
           </div>
           <Button
-            variant="ghost"
-            className="mb-6 group dark:text-zinc-100"
+            variant="outline"
+            className={`group rounded-xl border-zinc-200 dark:border-zinc-700 hover:bg-emerald-100/5 dark:hover:bg-emerald-600/10 hover:border-emerald-600/30`}
             onClick={() => router.push("/forex/dashboard")}
           >
             <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Back to Dashboard
+            {tCommon("back_to_dashboard")}
           </Button>
         </div>
 

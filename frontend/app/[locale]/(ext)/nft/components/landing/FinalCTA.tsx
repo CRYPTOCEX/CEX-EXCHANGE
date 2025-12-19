@@ -19,7 +19,8 @@ import { useNftStore } from "@/store/nft/nft-store";
 import { useTranslations } from "next-intl";
 
 export default function FinalCTA() {
-  const t = useTranslations("nft");
+  const t = useTranslations("ext_nft");
+  const tCommon = useTranslations("common");
   const { ref, inView } = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -66,7 +67,7 @@ export default function FinalCTA() {
   return (
     <section ref={ref} className="py-20 relative overflow-hidden">
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-purple-600/5 to-pink-600/5">
+      <div className={`absolute inset-0 bg-gradient-to-br from-primary/5 via-purple-600/5 to-pink-600/5`}>
         <motion.div
           animate={{
             scale: [1, 1.2, 1],
@@ -86,13 +87,13 @@ export default function FinalCTA() {
         />
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="container relative z-10">
         {/* Main CTA Box */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="relative bg-gradient-to-br from-primary via-purple-600 to-pink-600 rounded-3xl p-1 shadow-2xl"
+          className={`relative bg-gradient-to-br from-primary via-purple-600 to-pink-600 rounded-3xl p-1 shadow-2xl`}
         >
           <div className="bg-background rounded-3xl p-8 md:p-12">
             <div className="max-w-4xl mx-auto text-center">
@@ -102,7 +103,7 @@ export default function FinalCTA() {
                   initial={{ opacity: 0, y: -20 }}
                   animate={inView ? { opacity: 1, y: 0 } : {}}
                   transition={{ duration: 0.5, delay: 0.1 }}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/20 to-purple-600/20 rounded-full mb-6"
+                  className={`inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/20 to-purple-600/20 rounded-full mb-6`}
                 >
                   <Rocket className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium">
@@ -118,7 +119,7 @@ export default function FinalCTA() {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight"
               >
-                <span className="bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <span className={`bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent`}>
                   {t("start_your_nft_journey")}
                 </span>
                 <br />
@@ -145,7 +146,7 @@ export default function FinalCTA() {
                 <Link href="/nft/create">
                   <Button
                     size="lg"
-                    className="gap-2 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 shadow-lg text-lg px-8"
+                    className={`gap-2 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 shadow-lg text-lg px-8`}
                   >
                     <Palette className="w-5 h-5" />
                     {t("create_your_first_nft")}
@@ -181,7 +182,7 @@ export default function FinalCTA() {
                 key={index}
                 className="text-center p-6 rounded-xl bg-card border border-border hover:border-primary/50 transition-all"
               >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-purple-600/10 flex items-center justify-center mx-auto mb-3">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-purple-600/10 flex items-center justify-center mx-auto mb-3`}>
                   <Icon className="w-6 h-6 text-primary" />
                 </div>
                 <h4 className="font-semibold mb-1">{benefit.title}</h4>
@@ -224,7 +225,7 @@ export default function FinalCTA() {
                       : totalVolume >= 1000
                       ? `$${(totalVolume / 1000).toFixed(0)}K+`
                       : `$${totalVolume}`}{" "}
-                    {t("trading_volume")}
+                    {tCommon("trading_volume")}
                   </span>
                 </div>
               )}
@@ -235,7 +236,7 @@ export default function FinalCTA() {
                     {totalUsers >= 1000
                       ? `${(totalUsers / 1000).toFixed(0)}K+`
                       : totalUsers}{" "}
-                    {t("active_users")}
+                    {tCommon("active_users")}
                   </span>
                 </div>
               )}

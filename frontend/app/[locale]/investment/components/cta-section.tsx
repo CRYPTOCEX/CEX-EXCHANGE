@@ -16,7 +16,8 @@ import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 
 export function CTASection() {
-  const t = useTranslations("common");
+  const t = useTranslations("investment");
+  const tCommon = useTranslations("common");
   const { stats, statsLoading } = useInvestmentStore();
 
   // Format currency
@@ -112,7 +113,7 @@ export function CTASection() {
               className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-950/50 dark:to-purple-950/50 border border-blue-200 dark:border-blue-800 rounded-full px-4 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 mb-8"
             >
               <Sparkles className="w-4 h-4" />
-              {t("start_your_investment_journey")}
+              {tCommon("start_your_investment_journey")}
             </motion.div>
 
             {/* Main Heading */}
@@ -175,7 +176,7 @@ export function CTASection() {
                     {t("secure_platform")}
                   </p>
                   <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                    {t("bank-grade_security")}
+                    {t("bank_grade_security")}
                   </p>
                 </div>
               </div>
@@ -186,7 +187,7 @@ export function CTASection() {
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
-                    {t("quick_start")}
+                    {tCommon("quick_start")}
                   </p>
                   <p className="text-xs text-zinc-600 dark:text-zinc-400">
                     {t("invest_in_5_minutes")}
@@ -219,7 +220,7 @@ export function CTASection() {
                   size="lg"
                   className="border-2 border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-300 px-8 py-4 text-lg"
                 >
-                  {t("view_dashboard")}
+                  {tCommon("view_dashboard")}
                 </Button>
               </Link>
             </motion.div>
@@ -246,7 +247,7 @@ export function CTASection() {
                         : "$0"}
                   </div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {t("total_invested")}
+                    {tCommon("total_invested")}
                   </div>
                 </div>
                 <div className="text-center">
@@ -258,7 +259,7 @@ export function CTASection() {
                         : "0"}
                   </div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {t("active_investors")}
+                    {tCommon("active_investors")}
                   </div>
                 </div>
                 <div className="text-center">
@@ -282,7 +283,7 @@ export function CTASection() {
                         : "0+"}
                   </div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {t("investment_plans")}
+                    {tCommon("investment_plans")}
                   </div>
                 </div>
               </div>

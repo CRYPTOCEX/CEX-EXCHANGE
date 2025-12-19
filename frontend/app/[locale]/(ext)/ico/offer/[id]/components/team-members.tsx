@@ -10,7 +10,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Linkedin, Twitter, Globe } from "lucide-react";
-
 export function TeamMembers({
   members,
 }: {
@@ -20,7 +19,7 @@ export function TeamMembers({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {members.map((member) => (
-        <Card key={member.id}>
+        <Card key={member.id} className={"bg-white dark:bg-zinc-900 border-teal-200 dark:border-teal-700 border"}>
           <CardHeader className="flex flex-row items-center gap-4">
             <Image
               src={member.avatar || "/img/placeholder.svg"}
@@ -44,7 +43,7 @@ export function TeamMembers({
                   href={member.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary"
+                  className={"text-muted-foreground hover:text-teal-600 dark:hover:text-teal-400"}
                 >
                   <Linkedin className="h-4 w-4" />
                   <span className="sr-only">LinkedIn</span>
@@ -55,7 +54,7 @@ export function TeamMembers({
                   href={member.twitter}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary"
+                  className={"text-muted-foreground hover:text-teal-600 dark:hover:text-teal-400"}
                 >
                   <Twitter className="h-4 w-4" />
                   <span className="sr-only">Twitter</span>
@@ -66,7 +65,7 @@ export function TeamMembers({
                   href={member.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary"
+                  className={"text-muted-foreground hover:text-teal-600 dark:hover:text-teal-400"}
                 >
                   <Globe className="h-4 w-4" />
                   <span className="sr-only">Website</span>

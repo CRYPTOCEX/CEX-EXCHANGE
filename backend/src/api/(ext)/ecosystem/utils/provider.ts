@@ -1,6 +1,6 @@
 import { JsonRpcProvider, WebSocketProvider, Network } from "ethers";
 import { chainConfigs } from "./chains";
-import { logError } from "../../../../utils/logger";
+import { logger } from "@b/utils/console";
 
 // Export chainConfigs for use in other modules
 export { chainConfigs };
@@ -63,7 +63,7 @@ export const getProvider = async (
 
     return provider;
   } catch (error) {
-    logError("get_provider", error, __filename);
+    logger.error("PROVIDER", "Failed to get provider", error);
     throw error;
   }
 };
@@ -88,8 +88,7 @@ export const getWssProvider = (chainSymbol: string): WebSocketProvider => {
 
     return new WebSocketProvider(rpcWssUrl);
   } catch (error) {
-    logError("get_wss_provider", error, __filename);
-    console.error(error.message);
+    logger.error("WSS_PROVIDER", "Failed to get WSS provider", error);
     throw error;
   }
 };

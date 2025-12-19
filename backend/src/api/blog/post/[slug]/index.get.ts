@@ -49,9 +49,14 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params } = data;
+  const { params, ctx } = data;
   const { slug } = params;
-  return await getPost(slug);
+
+  ctx?.step(`Fetching blog post ${slug}`);
+  const post = await getPost(slug);
+
+  ctx?.success("Blog post retrieved successfully");
+  return post;
 };
 
 export async function getPost(slug: string): Promise<any | null> {

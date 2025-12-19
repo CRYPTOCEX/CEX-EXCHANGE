@@ -16,10 +16,10 @@ interface MarketListProps {
   onMarketSelect: (symbol: Symbol) => void;
   onToggleWatchlist: (
     symbol: string,
-    marketType: "spot" | "futures",
+    marketType: "spot" | "eco" | "futures",
     e: React.MouseEvent
   ) => void;
-  marketType: "spot" | "futures";
+  marketType: "spot" | "eco" | "futures";
   onSortVolume?: (e: React.MouseEvent) => void;
   onSortPrice?: (e: React.MouseEvent) => void;
 }

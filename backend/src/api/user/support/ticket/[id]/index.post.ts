@@ -2,6 +2,7 @@ import { models } from "@b/db";
 import { messageBroker } from "@b/handler/Websocket";
 import { createError } from "@b/utils/error";
 import { updateRecordResponses } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Reply to a support ticket",
@@ -9,6 +10,8 @@ export const metadata: OperationObject = {
   operationId: "replyTicket",
   tags: ["Support"],
   requiresAuth: true,
+  logModule: "USER",
+  logTitle: "Reply to support ticket",
   parameters: [
     {
       index: 0,
@@ -42,11 +45,15 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { params, user, body } = data;
+  const { params, user, body, ctx } = data;
   const { id } = params;
 
-  if (!user?.id) throw createError(401, "Unauthorized");
+  if (!user?.id) {
+    ctx?.fail("User not authenticated");
+    throw createError(401, "Unauthorized");
+  }
 
+  ctx?.step("Finding support ticket");
   // Fetch the ticket and validate existence
   const ticket = await models.supportTicket.findByPk(id, {
     include: [
@@ -62,21 +69,29 @@ export default async (data: Handler) => {
       },
     ],
   });
-  if (!ticket) throw createError(404, "Ticket not found");
+  if (!ticket) {
+    ctx?.fail("Ticket not found");
+    throw createError(404, "Ticket not found");
+  }
 
   if (ticket.status === "CLOSED") {
+    ctx?.fail("Ticket is closed");
     throw createError(403, "Cannot reply to a closed ticket");
   }
 
+  ctx?.step("Validating message");
   const { type, time, userId, text, attachment } = body;
   if (!type || !time || !userId || !text) {
+    ctx?.fail("Invalid message structure");
     throw createError(400, "Invalid message structure");
   }
 
   if (type !== "client" && type !== "agent") {
+    ctx?.fail("Invalid message type");
     throw createError(400, "Invalid message type");
   }
   if (userId !== user.id) {
+    ctx?.fail("Unauthorized to send message");
     throw createError(403, "You are not authorized to send this message");
   }
 
@@ -103,7 +118,7 @@ export default async (data: Handler) => {
         const parsed = JSON.parse(ticket.messages);
         currentMessages = Array.isArray(parsed) ? parsed : [];
       } catch (e) {
-        console.error('Failed to parse messages JSON:', e);
+        logger.error("SUPPORT", "Failed to parse messages JSON", e);
         currentMessages = [];
       }
     }
@@ -128,6 +143,7 @@ export default async (data: Handler) => {
     );
   }
 
+  ctx?.step("Updating ticket with new message");
   // Update ticket with new messages and status using proper Sequelize methods
   await ticket.update({
     messages: currentMessages,
@@ -136,6 +152,7 @@ export default async (data: Handler) => {
     ...(ticket.responseTime && { responseTime: ticket.responseTime }),
   });
 
+  ctx?.step("Broadcasting reply via WebSocket");
   // WebSocket broadcast
   messageBroker.broadcastToSubscribedClients(
     `/api/user/support/ticket`,
@@ -150,5 +167,6 @@ export default async (data: Handler) => {
     }
   );
 
+  ctx?.success("Reply sent successfully");
   return { message: "Reply sent", data: ticket.get({ plain: true }) };
 };

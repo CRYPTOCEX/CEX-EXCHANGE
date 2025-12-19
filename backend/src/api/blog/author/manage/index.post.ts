@@ -8,6 +8,8 @@ export const metadata: OperationObject = {
   description: "This endpoint creates a new blog post.",
   operationId: "createPost",
   tags: ["Content", "Author", "Post"],
+  logModule: "BLOG",
+  logTitle: "Create blog post",
   requiresAuth: true,
   requestBody: {
     required: true,
@@ -77,13 +79,14 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { params, body, user } = data;
+  const { params, body, user, ctx } = data;
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
   const { content, tags, categoryId, description, title, status, slug, image } =
     body;
 
+  ctx?.step("Verifying author credentials");
   const author = await models.author.findOne({
     where: { userId: user.id },
   });
@@ -93,6 +96,7 @@ export default async (data) => {
 
   return await sequelize
     .transaction(async (transaction) => {
+      ctx?.step("Checking for duplicate post slug");
       // Check if a post with the same slug already exists
       const existingPost = await models.post.findOne({
         where: { slug, authorId: author.id },
@@ -106,6 +110,7 @@ export default async (data) => {
         });
       }
 
+      ctx?.step("Creating blog post");
       // Create the new post
       const newPost = await models.post.create(
         {
@@ -123,14 +128,17 @@ export default async (data) => {
 
       // Add tags if provided
       if (tags) {
+        ctx?.step("Adding tags to post");
         await addTags(newPost, tags, transaction);
       }
 
+      ctx?.success(`Blog post created: "${title}" (${newPost.id}) by author ${author.id}`);
       return {
         message: "Post created successfully",
       };
     })
     .catch((error) => {
+      ctx?.fail("Failed to create blog post");
       throw error;
     });
 };

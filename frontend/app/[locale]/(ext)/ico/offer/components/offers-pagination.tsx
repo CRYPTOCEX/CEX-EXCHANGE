@@ -26,7 +26,7 @@ export function OfferingsPagination({
   totalPages,
   onPageChange,
 }: OfferingsPaginationProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   // Don't show pagination if there's only one page
   if (totalPages <= 1) return null;
 
@@ -95,7 +95,7 @@ export function OfferingsPagination({
             aria-disabled={currentPage === 1}
           >
             <ChevronLeft className="h-4 w-4" />
-            <span>{t("Previous")}</span>
+            <span>{t('prev')}</span>
           </a>
         </PaginationItem>
 
@@ -135,7 +135,7 @@ export function OfferingsPagination({
             }}
             aria-disabled={currentPage === totalPages}
           >
-            <span>{t("Next")}</span>
+            <span>{t("next")}</span>
             <ChevronRight className="h-4 w-4" />
           </a>
         </PaginationItem>

@@ -5,7 +5,7 @@ import { CheckCircle, Activity } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function CronHealth() {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
   const { cronJobs } = useCronStore();
 
   // Count jobs by status

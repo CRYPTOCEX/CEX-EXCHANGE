@@ -5,7 +5,7 @@
  */
 
 import { IUTXOProvider, UTXOTransaction, UTXOTransactionDetails, UTXO, UTXOInput, UTXOOutput } from './IUTXOProvider';
-import { logError } from '@b/utils/logger';
+import { logger } from '@b/utils/console';
 
 export class BlockCypherProvider implements IUTXOProvider {
   private baseURL: string;
@@ -63,7 +63,7 @@ export class BlockCypherProvider implements IUTXOProvider {
 
       return await response.json();
     } catch (error) {
-      logError('blockcypher_provider_fetch', error, __filename);
+      logger.error('BLOCKCYPHER', 'Failed to fetch from API', error);
       throw error;
     }
   }
@@ -85,7 +85,7 @@ export class BlockCypherProvider implements IUTXOProvider {
         confirmations: tx.confirmations,
       }));
     } catch (error) {
-      logError('blockcypher_fetch_transactions', error, __filename);
+      logger.error('BLOCKCYPHER', 'Failed to fetch transactions', error);
       return [];
     }
   }
@@ -124,7 +124,7 @@ export class BlockCypherProvider implements IUTXOProvider {
         outputs: outputs,
       };
     } catch (error) {
-      logError('blockcypher_fetch_transaction', error, __filename);
+      logger.error('BLOCKCYPHER', 'Failed to fetch transaction details', error);
       return null;
     }
   }
@@ -139,7 +139,7 @@ export class BlockCypherProvider implements IUTXOProvider {
 
       return data.hex;
     } catch (error) {
-      logError('blockcypher_fetch_raw_transaction', error, __filename);
+      logger.error('BLOCKCYPHER', 'Failed to fetch raw transaction', error);
       throw error;
     }
   }
@@ -149,13 +149,13 @@ export class BlockCypherProvider implements IUTXOProvider {
       const data = await this.fetchFromAPI(`/addrs/${address}/balance`);
 
       if (data.error) {
-        logError('blockcypher_get_balance', new Error(data.error), __filename);
+        logger.error('BLOCKCYPHER', `Failed to get balance: ${data.error}`);
         return 0;
       }
 
       return Number(data.final_balance) || 0; // in satoshis
     } catch (error) {
-      logError('blockcypher_get_balance', error, __filename);
+      logger.error('BLOCKCYPHER', 'Failed to get balance', error);
       return 0;
     }
   }
@@ -178,7 +178,7 @@ export class BlockCypherProvider implements IUTXOProvider {
         script: ref.script,
       }));
     } catch (error) {
-      logError('blockcypher_get_utxos', error, __filename);
+      logger.error('BLOCKCYPHER', 'Failed to get UTXOs', error);
       return [];
     }
   }
@@ -202,7 +202,7 @@ export class BlockCypherProvider implements IUTXOProvider {
         txid: response.tx.hash,
       };
     } catch (error) {
-      logError('blockcypher_broadcast_transaction', error, __filename);
+      logger.error('BLOCKCYPHER', 'Failed to broadcast transaction', error);
       return {
         success: false,
         txid: null,
@@ -226,7 +226,7 @@ export class BlockCypherProvider implements IUTXOProvider {
         return mediumFeePerKb / 1024; // Convert to sat/byte
       }
     } catch (error) {
-      logError('blockcypher_get_fee_rate', error, __filename);
+      logger.error('BLOCKCYPHER', 'Failed to get fee rate', error);
       return 1; // Default 1 sat/byte
     }
   }

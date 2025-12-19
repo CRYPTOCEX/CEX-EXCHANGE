@@ -15,7 +15,8 @@ export function BuilderFooter({
   isEdit,
   levelNumber,
 }: BuilderFooterProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
   const [dateString, setDateString] = useState<string>("");
 
   useEffect(() => {
@@ -29,9 +30,9 @@ export function BuilderFooter({
         <div className="flex items-center gap-1">
           <BarChart3 className="h-3.5 w-3.5 dark:text-zinc-400" />
           <span className="dark:text-zinc-300">
-            {t("Level")}{" "}
+            {t("level")}{" "}
             {levelNumber}: {activeFields.length}{" "}
-            {t("fields")}
+            {tDashboardAdmin("fields")}
           </span>
         </div>
         <div>
@@ -43,7 +44,7 @@ export function BuilderFooter({
         <div>
           <span className="dark:text-zinc-400">
             {activeFields.filter((f) => f.conditional).length}{" "}
-            {t("conditional")}
+            {tDashboardAdmin("conditional")}
           </span>
         </div>
       </div>

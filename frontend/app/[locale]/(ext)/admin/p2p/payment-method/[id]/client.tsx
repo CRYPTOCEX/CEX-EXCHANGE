@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/routing";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,7 +32,7 @@ interface PaymentMethodEditClientProps {
 }
 
 export default function PaymentMethodEditClient({ id }: PaymentMethodEditClientProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   const router = useRouter();
   const isNew = id === "new";
 
@@ -239,7 +240,7 @@ export default function PaymentMethodEditClient({ id }: PaymentMethodEditClientP
   }
 
   return (
-    <div className="space-y-6">
+    <div className={`container ${PAGE_PADDING} space-y-6`}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

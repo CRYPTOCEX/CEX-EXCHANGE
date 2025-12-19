@@ -62,17 +62,25 @@ export const metadata = {
   },
   requiresAuth: true,
   permission: "edit.notification.template",
+  logModule: "ADMIN_SYS",
+  logTitle: "Update notification template status",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { email, sms, push } = body;
-  return Promise.all([
+
+  ctx?.step(`Updating template ${id} status (email: ${email}, sms: ${sms}, push: ${push})`);
+
+  const result = await Promise.all([
     updateStatus("notificationTemplates", id, email, "email"),
     updateStatus("notificationTemplates", id, sms, "sms"),
     updateStatus("notificationTemplates", id, push, "push"),
   ]).then((results) => ({
     message: "Notification template statuses updated successfully",
   }));
+
+  ctx?.success("Notification template status updated successfully");
+  return result;
 };

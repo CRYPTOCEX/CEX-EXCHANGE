@@ -1,15 +1,17 @@
 "use client";
 
 import React from "react";
-import { Eye } from "lucide-react";
+import { Eye, CreditCard } from "lucide-react";
 import DataTable from "@/components/blocks/data-table";
 import { Button } from "@/components/ui/button";
-import { columns } from "./columns";
+import { useColumns, useFormConfig } from "./columns";
 import { useAdminGatewayMode } from "../context/admin-gateway-mode";
 import { Link } from "@/i18n/routing";
 
 export default function AdminPaymentsPage() {
   const { mode } = useAdminGatewayMode();
+  const columns = useColumns();
+  const formConfig = useFormConfig();
 
   return (
     <DataTable
@@ -23,14 +25,16 @@ export default function AdminPaymentsPage() {
         edit: "edit.gateway.payment",
         delete: "delete.gateway.payment",
       }}
-      pageSize={10}
+      pageSize={12}
       canCreate={false}
       canEdit={false}
       canDelete={false}
       canView={true}
-      title="Payments"
+      title="Gateway Payments"
+      description="Monitor payment gateway transactions"
       itemTitle="Payment"
       columns={columns}
+      formConfig={formConfig}
       isParanoid={false}
       expandedButtons={(row) => (
         <div className="flex gap-2">
@@ -42,6 +46,12 @@ export default function AdminPaymentsPage() {
           </Link>
         </div>
       )}
+      design={{
+        animation: "orbs",
+        primaryColor: "indigo",
+        secondaryColor: "cyan",
+        icon: CreditCard,
+      }}
     />
   );
 }

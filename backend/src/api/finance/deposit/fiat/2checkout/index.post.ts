@@ -16,6 +16,8 @@ export const metadata: OperationObject = {
     "Initiates a 2Checkout payment process by creating a payment session. This endpoint supports hosted checkout integration for web applications.",
   operationId: "create2CheckoutPayment",
   tags: ["Finance", "Deposit"],
+  logModule: "2CHECKOUT_DEPOSIT",
+  logTitle: "Create 2Checkout payment session",
   requestBody: {
     description: "Payment information for 2Checkout",
     content: {
@@ -87,11 +89,13 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user) throw new Error("User not authenticated");
 
   const { amount, currency, customerInfo } = body;
 
+  ctx?.step("Fetching payment gateway configuration");
   const gateway = await models.depositGateway.findOne({
     where: { alias: "2checkout", status: true },
   });
@@ -103,6 +107,7 @@ export default async (data: Handler) => {
   }
 
   const { fixedFee, percentageFee } = gateway;
+  ctx?.step("Calculating fees");
   const taxAmount = (amount * (percentageFee || 0)) / 100 + (fixedFee || 0);
   const totalAmount = amount + taxAmount;
 

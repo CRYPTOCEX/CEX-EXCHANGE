@@ -5,18 +5,20 @@ import { Eye, CreditCard } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import DataTable from "@/components/blocks/data-table";
 import { Button } from "@/components/ui/button";
-import { columns } from "./columns";
+import { useColumns } from "./columns";
 import $fetch from "@/lib/api";
 import { useMerchantMode } from "../context/merchant-mode";
+import GatewayPaymentLoading from "./loading";
 
 export default function MerchantPaymentsClient() {
   const { mode } = useMerchantMode();
   const [needsRegistration, setNeedsRegistration] = useState(false);
   const [checkingMerchant, setCheckingMerchant] = useState(true);
+  const columns = useColumns();
 
   useEffect(() => {
     checkMerchant();
-  }, []);
+  }, [mode]);
 
   const checkMerchant = async () => {
     const { data, error } = await $fetch({
@@ -31,11 +33,7 @@ export default function MerchantPaymentsClient() {
   };
 
   if (checkingMerchant) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    );
+    return <GatewayPaymentLoading />;
   }
 
   if (needsRegistration) {
@@ -63,22 +61,23 @@ export default function MerchantPaymentsClient() {
       key={mode}
       apiEndpoint={`/api/gateway/payment?mode=${mode}`}
       model="gatewayPayment"
-      pageSize={10}
+      pageSize={12}
       canCreate={false}
       canEdit={false}
       canDelete={false}
       canView={true}
-      title="Payments"
+      title="Transaction History"
+      description="View and manage all your payment transactions"
       itemTitle="Payment"
       columns={columns}
       isParanoid={false}
-      navSlot={
+      extraTopButtons={() => (
         <Link href="/gateway/dashboard">
           <Button variant="outline" size="sm">
             Back to Dashboard
           </Button>
         </Link>
-      }
+      )}
       expandedButtons={(row) => (
         <div className="flex gap-2">
           <Link href={`/gateway/payment/${row.id}`}>
@@ -89,6 +88,14 @@ export default function MerchantPaymentsClient() {
           </Link>
         </div>
       )}
+      design={{
+        animation: "orbs",
+        primaryColor: "#6366F1", // indigo-500
+        secondaryColor: "#06B6D4", // cyan-500
+        badge: "Payment History",
+        icon: CreditCard,
+        detailsAlignment: "bottom",
+      }}
     />
   );
 }

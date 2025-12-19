@@ -26,7 +26,8 @@ interface FieldTypeSettingsProps {
 }
 
 export function FieldTypeSettings({ field, onUpdate }: FieldTypeSettingsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   switch (field.type) {
     case "TEXTAREA": {
       return (
@@ -35,7 +36,7 @@ export function FieldTypeSettings({ field, onUpdate }: FieldTypeSettingsProps) {
             htmlFor="field-rows"
             className="text-gray-700 dark:text-zinc-300 flex items-center gap-1"
           >
-            {t("Rows")}
+            {t("rows")}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -73,7 +74,7 @@ export function FieldTypeSettings({ field, onUpdate }: FieldTypeSettingsProps) {
             htmlFor="field-step"
             className="text-gray-700 dark:text-zinc-300 flex items-center gap-1"
           >
-            {t("Step")}
+            {tCommon("step")}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -132,26 +133,26 @@ export function FieldTypeSettings({ field, onUpdate }: FieldTypeSettingsProps) {
               id="field-format"
               className="bg-white border-gray-300 text-gray-900 focus:ring-primary dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
             >
-              <SelectValue placeholder="Select format" />
+              <SelectValue placeholder={t("select_format")} />
             </SelectTrigger>
             <SelectContent className="bg-white border-gray-200 dark:bg-zinc-900 dark:border-zinc-700">
               <SelectItem
                 value="yyyy-MM-dd"
                 className="text-gray-900 focus:bg-gray-100 dark:text-white dark:focus:bg-zinc-800"
               >
-                {t("yyyy-MM-dd")}
+                {t("yyyy_mm_dd")}
               </SelectItem>
               <SelectItem
                 value="MM/dd/yyyy"
                 className="text-gray-900 focus:bg-gray-100 dark:text-white dark:focus:bg-zinc-800"
               >
-                {t("MM_dd_yyyy")}
+                {t("mm_dd_yyyy")}
               </SelectItem>
               <SelectItem
                 value="dd/MM/yyyy"
                 className="text-gray-900 focus:bg-gray-100 dark:text-white dark:focus:bg-zinc-800"
               >
-                {t("dd_MM_yyyy")}
+                {t("dd_mm_yyyy")}
               </SelectItem>
             </SelectContent>
           </Select>
@@ -185,11 +186,11 @@ export function FieldTypeSettings({ field, onUpdate }: FieldTypeSettingsProps) {
               id="field-accept"
               value={field.accept || ""}
               onChange={(e) => onUpdate("accept", e.target.value || undefined)}
-              placeholder="e.g. image/*,application/pdf"
+              placeholder={t("e_g_image_application_pdf")}
               className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary dark:bg-zinc-900 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
             />
             <p className="text-xs text-gray-500 dark:text-zinc-500">
-              {t("comma-separated_list_of_file_extensions")}
+              {t("comma_separated_list_of_file_extensions")}
             </p>
           </div>
           <div className="flex items-center justify-between bg-gray-50 p-3 rounded-md border border-gray-200 dark:bg-zinc-900 dark:border-zinc-800 mt-4">

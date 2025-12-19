@@ -75,6 +75,9 @@ import { useUserStore } from "@/store/user";
 import { useConfigStore } from "@/store/config";
 import KycRequiredNotice from "@/components/blocks/kyc/kyc-required-notice";
 import { useLocale } from "next-intl";
+import AffiliateDashboardLoading from "./loading";
+import { DashboardHero } from "./components/dashboard-hero";
+import { useTranslations } from "next-intl";
 
 // Define chart data types
 interface ReferralChartItem {
@@ -91,6 +94,9 @@ interface RewardSourceItem {
   color: string;
 }
 export default function AffiliateDashboardClient() {
+  const t = useTranslations("ext_affiliate");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { user, hasKyc, canAccessFeature } = useUserStore();
   const { settings } = useConfigStore();
   const { conditions, fetchConditions } = useConditionStore();
@@ -167,7 +173,7 @@ export default function AffiliateDashboardClient() {
         setIsLoading(false);
       }
     }
-  }, [chartPeriod, fetchConditions, fetchDashboardData, dashboardError]); // Added missing dependencies
+  }, [chartPeriod, fetchConditions, fetchDashboardData]);
 
   useEffect(() => {
     fetchAllData();
@@ -490,14 +496,14 @@ export default function AffiliateDashboardClient() {
   const getGradient = (conditionName: string) => {
     switch (conditionName) {
       case "DEPOSIT":
-        return "from-blue-500/10 to-blue-600/10 border-blue-500/20";
+        return "from-blue-600/10 to-blue-600/10 border-blue-600/20";
       case "TRADE":
         return "from-purple-500/10 to-purple-600/10 border-purple-500/20";
       case "STAKING":
       case "STAKING_LOYALTY":
         return "from-green-500/10 to-green-600/10 border-green-500/20";
       case "P2P_TRADE":
-        return "from-amber-500/10 to-amber-600/10 border-amber-500/20";
+        return "from-yellow-500/10 to-yellow-500/10 border-yellow-500/20";
       case "ICO_CONTRIBUTION":
         return "from-pink-500/10 to-pink-600/10 border-pink-500/20";
       default:
@@ -518,30 +524,24 @@ export default function AffiliateDashboardClient() {
     return <KycRequiredNotice feature="affiliate_mlm" />;
   }
   if (isLoading || loading) {
-    return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <AffiliateDashboardLoading />;
   }
   return (
-    <div className="w-full px-3 sm:px-4 lg:px-6 py-4 sm:py-6 max-w-7xl mx-auto">
-      <div className="flex flex-col gap-3 mb-6 sm:mb-8">
-        <div className="text-center sm:text-left">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            Affiliate Dashboard
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">
-            Track your performance and earnings in real-time
-          </p>
-        </div>
-      </div>
+    <div className="w-full">
+      {/* Hero Section */}
+      <DashboardHero
+        totalReferrals={stats?.totalReferrals || 0}
+        activeReferrals={stats?.activeReferrals || 0}
+        totalEarnings={stats?.totalEarnings || 0}
+        conversionRate={stats?.conversionRate || 0}
+      />
 
+      <div className="container mx-auto pb-4 sm:pb-6 pt-8">
       {/* Display errors if any */}
       {errors.length > 0 && (
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error loading some data</AlertTitle>
+          <AlertTitle>{t("error_loading_some_data")}</AlertTitle>
           <AlertDescription>
             <ul className="list-disc pl-5 mt-2">
               {errors.map((error, index) => (
@@ -552,15 +552,15 @@ export default function AffiliateDashboardClient() {
         </Alert>
       )}
 
-      {/* Referral Link Card */}
-      <Card className="mb-6 sm:mb-8 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-indigo-200/50 dark:border-indigo-800/50">
+        {/* Referral Link Card */}
+        <Card className="mb-6 sm:mb-8 bg-linear-to-r from-blue-600/10 to-amber-600/10 border-blue-500/50 dark:border-blue-700/50">
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="text-base sm:text-lg lg:text-xl flex items-center gap-2">
             <Share2 className="h-4 w-4 sm:h-5 sm:w-5" />
-            Your Referral Link
+            {t("your_referral_link")}
           </CardTitle>
           <CardDescription className="text-sm">
-            Share this link to start earning rewards
+            {t("share_this_link_to_start_earning_rewards")}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
@@ -584,7 +584,7 @@ export default function AffiliateDashboardClient() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  className="lg:w-auto w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                  className="lg:w-auto w-full bg-linear-to-r from-blue-600 to-amber-600 hover:from-blue-700 hover:to-amber-700 text-white"
                 >
                   <Share2 className="h-4 w-4 mr-2 flex-shrink-0" />
                   <span className="truncate">Share</span>
@@ -641,9 +641,9 @@ export default function AffiliateDashboardClient() {
                 <Dialog open={showQRCode} onOpenChange={setShowQRCode}>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Share via QR Code</DialogTitle>
+                      <DialogTitle>{t("share_via_qr_code")}</DialogTitle>
                       <DialogDescription>
-                        Scan this QR code to access your referral link
+                        {t("scan_this_qr_code_to_access_your_referral_link")}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="flex flex-col items-center justify-center p-4">
@@ -656,15 +656,15 @@ export default function AffiliateDashboardClient() {
                             includeMargin={true}
                           />
                           <p className="mt-4 text-sm text-muted-foreground text-center">
-                            You can save this image or show it directly to others
+                            {t("you_can_save_to_others")}
                           </p>
                         </>
                       ) : (
                         <div className="flex flex-col items-center justify-center h-48 w-48 border-2 border-dashed border-gray-300 rounded-lg">
                           <AlertCircle className="h-8 w-8 text-gray-400 mb-2" />
                           <p className="text-sm text-gray-500 text-center">
-                            Unable to generate QR code.<br />
-                            Referral link not available.
+                            {t("unable_to_generate_qr_code")}<br />
+                            {t("referral_link_not_available")}
                           </p>
                         </div>
                       )}
@@ -695,7 +695,7 @@ export default function AffiliateDashboardClient() {
                         }}
                         className="mr-2"
                       >
-                        Download QR
+                        {t("download_qr")}
                       </Button>
                       <DialogClose asChild>
                         <Button variant="outline">Close</Button>
@@ -709,13 +709,13 @@ export default function AffiliateDashboardClient() {
         </CardContent>
       </Card>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
-        <StatsCard
-          title="Total Referrals"
-          value={stats?.totalReferrals.toString() || "0"}
-          description="All-time referred users"
-          icon={<Users className="h-5 w-5 text-indigo-500" />}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+          <StatsCard
+            title={tExt("total_referrals")}
+            value={stats?.totalReferrals.toString() || "0"}
+            description={t("all_time_referred_users")}
+            icon={<Users className="h-5 w-5 text-blue-600" />}
           trend={
             dashboardData.previousStats
               ? calculateTrend(
@@ -728,9 +728,9 @@ export default function AffiliateDashboardClient() {
         />
 
         <StatsCard
-          title="Active Referrals"
+          title={t("active_referrals")}
           value={stats?.activeReferrals.toString() || "0"}
-          description="Currently active users"
+          description={t("currently_active_users")}
           icon={<CheckCircle2 className="h-5 w-5 text-green-500" />}
           trend={
             dashboardData.previousStats
@@ -744,10 +744,10 @@ export default function AffiliateDashboardClient() {
         />
 
         <StatsCard
-          title="Pending Referrals"
+          title={t("pending_referrals")}
           value={stats?.pendingReferrals.toString() || "0"}
-          description="Awaiting activation"
-          icon={<Clock className="h-5 w-5 text-amber-500" />}
+          description={t("awaiting_activation")}
+          icon={<Clock className={`h-5 w-5 text-yellow-500`} />}
           trend={
             dashboardData.previousStats
               ? calculateTrend(
@@ -760,10 +760,10 @@ export default function AffiliateDashboardClient() {
         />
 
         <StatsCard
-          title="Conversion Rate"
+          title={tExt("conversion_rate")}
           value={`${stats?.conversionRate || 0}%`}
-          description="Pending to active conversion"
-          icon={<TrendingUp className="h-5 w-5 text-blue-500" />}
+          description={t("pending_to_active_conversion")}
+          icon={<TrendingUp className="h-5 w-5 text-blue-600" />}
           trend={
             dashboardData.previousStats
               ? calculateTrend(
@@ -773,11 +773,11 @@ export default function AffiliateDashboardClient() {
               : 0
           }
           trendLabel="vs last period"
-        />
-      </div>
+          />
+        </div>
 
-      {/* Performance Tabs */}
-      <Tabs defaultValue="earnings" className="mb-6 sm:mb-8">
+        {/* Performance Tabs */}
+        <Tabs defaultValue="earnings" className="mb-6 sm:mb-8">
         <div className="flex flex-col gap-3 mb-4">
           <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-3">
             <TabsList className="w-full xs:w-auto grid grid-cols-3 xs:flex">
@@ -835,10 +835,10 @@ export default function AffiliateDashboardClient() {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
                   <CardTitle className="text-base sm:text-lg font-medium">
-                    Earnings Over Time
+                    {tExt("earnings_over_time")}
                   </CardTitle>
                   <CardDescription className="text-sm">
-                    Your earnings for the past{" "}
+                    {t("your_earnings_for_the_past")}{" "}
                     {chartPeriod === "1m"
                       ? "month"
                       : chartPeriod === "3m"
@@ -853,7 +853,7 @@ export default function AffiliateDashboardClient() {
                   className="font-normal text-xs sm:text-sm"
                 >
                   <DollarSign className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1" />
-                  <span className="hidden xs:inline">Total: </span>$
+                  <span className="hidden xs:inline">{tCommon("total")}: </span>$
                   {stats?.totalEarnings.toFixed(3) || "0.000"}
                 </Badge>
               </div>
@@ -935,7 +935,7 @@ export default function AffiliateDashboardClient() {
                         dominantBaseline="middle"
                         className="fill-muted-foreground"
                       >
-                        No earnings data available yet
+                        {t("no_earnings_data_available_yet")}
                       </text>
                     )}
                   </AreaChart>
@@ -951,10 +951,10 @@ export default function AffiliateDashboardClient() {
               <div className="flex justify-between items-center">
                 <div>
                   <CardTitle className="text-base md:text-lg font-medium">
-                    Referrals Over Time
+                    {tCommon("referrals_over_time")}
                   </CardTitle>
                   <CardDescription>
-                    Your referrals for the past{" "}
+                    {t("your_referrals_for_the_past")}{" "}
                     {chartPeriod === "1m"
                       ? "month"
                       : chartPeriod === "3m"
@@ -966,7 +966,7 @@ export default function AffiliateDashboardClient() {
                 </div>
                 <Badge variant="outline" className="font-normal">
                   <Users className="h-3.5 w-3.5 mr-1" />
-                  Total: {stats?.totalReferrals || 0}
+                  {tCommon("total")}: {stats?.totalReferrals || 0}
                 </Badge>
               </div>
             </CardHeader>
@@ -1025,7 +1025,7 @@ export default function AffiliateDashboardClient() {
                         dominantBaseline="middle"
                         className="fill-muted-foreground"
                       >
-                        No referral data available yet
+                        {t("no_referral_data_available_yet")}
                       </text>
                     )}
                   </BarChart>
@@ -1041,10 +1041,10 @@ export default function AffiliateDashboardClient() {
               <div className="flex justify-between items-center">
                 <div>
                   <CardTitle className="text-base md:text-lg font-medium">
-                    Reward Sources
+                    {t("reward_sources")}
                   </CardTitle>
                   <CardDescription>
-                    Distribution of your rewards by source
+                    {t("distribution_of_your_rewards_by_source")}
                   </CardDescription>
                 </div>
                 <Badge variant="outline" className="font-normal">
@@ -1127,7 +1127,7 @@ export default function AffiliateDashboardClient() {
                           dominantBaseline="middle"
                           className="fill-muted-foreground"
                         >
-                          No reward data available yet
+                          {t("no_reward_data_available_yet")}
                         </text>
                       )}
                   </PieChart>
@@ -1143,14 +1143,14 @@ export default function AffiliateDashboardClient() {
         <CardHeader className="p-4 md:p-6">
           <div className="flex justify-between items-center">
             <CardTitle className="text-base md:text-lg font-medium">
-              Recent Referrals
+              {t("recent_referrals")}
             </CardTitle>
               <Link
                 href="/affiliate/referrals"
                 className="flex items-center gap-1 text-xs md:text-sm"
               >
               <Button variant="outline" size="sm">
-                View All
+                {tCommon("view_all")}
                 <ArrowUpRight className="h-3 w-3 md:h-4 md:w-4" />
             </Button>
             </Link>
@@ -1178,7 +1178,7 @@ export default function AffiliateDashboardClient() {
                   <div className="flex items-center gap-2 md:gap-3">
                     <Avatar className="h-8 w-8 md:h-10 md:w-10">
                       <AvatarImage src={referral.referred?.avatar || ""} />
-                      <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-xs md:text-sm">
+                      <AvatarFallback className="bg-linear-to-br from-blue-600 to-amber-600 text-white text-xs md:text-sm">
                         {referral.referred?.firstName?.charAt(0) || ""}
                         {referral.referred?.lastName?.charAt(0) || ""}
                       </AvatarFallback>
@@ -1204,7 +1204,7 @@ export default function AffiliateDashboardClient() {
               ))
             ) : (
               <div className="text-center py-4 text-muted-foreground">
-                No referrals yet. Share your link to get started!
+                {t("no_referrals_yet_share_your_link_to_get_started")}
               </div>
             )}
           </div>
@@ -1216,14 +1216,14 @@ export default function AffiliateDashboardClient() {
         <CardHeader className="p-4 md:p-6">
           <div className="flex justify-between items-center">
             <CardTitle className="text-base md:text-lg font-medium">
-              Available Affiliate Programs
+              {t("available_affiliate_programs")}
             </CardTitle>
               <Link
                 href="/affiliate/conditions"
                 className="flex items-center gap-1 text-xs md:text-sm"
               >
               <Button variant="outline" size="sm">
-                View Details
+                {tCommon("view_details")}
                 <ArrowUpRight className="h-3 w-3 md:h-4 md:w-4" />
             </Button>
             </Link>
@@ -1268,7 +1268,7 @@ export default function AffiliateDashboardClient() {
                           {condition.description}
                         </p>
                         <div className="flex justify-between mt-2 text-xs md:text-sm">
-                          <span className="text-muted-foreground">Reward:</span>
+                          <span className="text-muted-foreground">{tCommon("reward")}:</span>
                           <span className="font-medium">
                             {condition.rewardType === "PERCENTAGE"
                               ? `${condition.reward}%`
@@ -1282,12 +1282,13 @@ export default function AffiliateDashboardClient() {
               })
             ) : (
               <div className="col-span-1 sm:col-span-2 lg:col-span-3 text-center py-10 text-muted-foreground">
-                No affiliate programs available yet.
+                {t("no_affiliate_programs_available_yet_1")}
               </div>
             )}
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
@@ -1376,7 +1377,7 @@ function StatsCard({
               {description}
             </p>
           </div>
-          <div className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0">
+          <div className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 rounded-full bg-linear-to-br from-blue-600/20 to-amber-600/20 flex items-center justify-center flex-shrink-0">
             {icon}
           </div>
         </div>

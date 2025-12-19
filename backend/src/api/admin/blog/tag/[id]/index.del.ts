@@ -12,13 +12,22 @@ export const metadata: OperationObject = {
   responses: deleteRecordResponses("Tag"),
   permission: "delete.blog.tag",
   requiresAuth: true,
+  logModule: "ADMIN_BLOG",
+  logTitle: "Delete tag",
 };
 
 export default async (data: Handler) => {
-  const { params, query } = data;
-  return handleSingleDelete({
+  const { params, query, ctx } = data;
+
+  ctx?.step("Validating tag ID");
+
+  ctx?.step("Deleting tag");
+  const result = await handleSingleDelete({
     model: "tag",
     id: params.id,
     query,
   });
+
+  ctx?.success("Tag deleted successfully");
+  return result;
 };

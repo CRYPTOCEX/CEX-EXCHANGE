@@ -2,6 +2,7 @@ import { createError } from "@b/utils/error";
 import { serverErrorResponse, unauthorizedResponse } from "@b/utils/query";
 import ExchangeManager from "@b/utils/exchange";
 import ccxt from "ccxt";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Retrieves the exchange balance for the logged-in user",
@@ -49,13 +50,13 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   try {
-    const exchange = await ExchangeManager.startExchange();
+    const exchange = await ExchangeManager.startExchange(ctx);
 
     if (!exchange) {
       throw createError({
@@ -79,19 +80,20 @@ export default async (data: Handler) => {
     };
   } catch (error) {
     if (error instanceof ccxt.AuthenticationError) {
-      console.error(`Authentication error for userId: ${user.id}`, error);
+      logger.error("EXCHANGE", `Authentication error for userId: ${user.id}`, error);
       throw createError({
         statusCode: 401,
         message: "Authentication error: please check your API credentials.",
       });
     } else if (error instanceof ccxt.NetworkError) {
-      console.error(`Network error for userId: ${user.id}`, error);
+      logger.error("EXCHANGE", `Network error for userId: ${user.id}`, error);
       throw createError({
         statusCode: 503,
         message: "Network error: unable to reach the exchange.",
       });
     } else {
-      console.error(
+      logger.error(
+        "EXCHANGE",
         `An error occurred while fetching the exchange balance for userId: ${user.id}`,
         error
       );

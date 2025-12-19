@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export default function LoadingTeam() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
   return (
     <div className="flex flex-col justify-center items-center p-12 space-y-4">
       <div className="relative">

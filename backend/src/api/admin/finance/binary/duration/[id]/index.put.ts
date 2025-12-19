@@ -28,16 +28,23 @@ export const metadata = {
   responses: updateRecordResponses("Binary Duration"),
   requiresAuth: true,
   permission: "edit.binary.duration",
+  logModule: "ADMIN_BINARY",
+  logTitle: "Update binary duration",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { duration, profitPercentage, status } = body;
 
-  return await updateRecord("binaryDuration", id, {
+  ctx?.step("Fetching binary duration record");
+  ctx?.step("Updating binary duration");
+  const result = await updateRecord("binaryDuration", id, {
     duration,
     profitPercentage,
     status,
   });
+
+  ctx?.success("Binary duration updated successfully");
+  return result;
 };

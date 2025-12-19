@@ -28,10 +28,12 @@ export const metadata = {
   responses: updateRecordResponses("Exchange"),
   requiresAuth: true,
   permission: "edit.exchange",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update Exchange Provider",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const {
     name,
@@ -44,7 +46,8 @@ export default async (data) => {
     type,
   } = body;
 
-  return await updateRecord("exchange", id, {
+  ctx?.step("Updating exchange provider");
+  const result = await updateRecord("exchange", id, {
     name,
     title,
     status,
@@ -54,4 +57,7 @@ export default async (data) => {
     productId,
     type,
   });
+
+  ctx?.success();
+  return result;
 };

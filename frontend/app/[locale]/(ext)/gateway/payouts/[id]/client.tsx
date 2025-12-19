@@ -85,7 +85,9 @@ const WALLET_CONFIG: Record<string, { label: string; icon: any; color: string }>
 };
 
 export default function PayoutDetailClient() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_gateway");
+  const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const params = useParams();
   const payoutId = params.id as string;
 
@@ -109,7 +111,7 @@ export default function PayoutDetailClient() {
     });
 
     if (fetchError) {
-      setError(fetchError.message || "Failed to load payout details");
+      setError(fetchError || "Failed to load payout details");
     } else if (data) {
       setPayout(data);
     }
@@ -148,7 +150,7 @@ export default function PayoutDetailClient() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pt-16">
         <div className="flex items-center gap-4">
           <Skeleton className="h-10 w-10" />
           <div className="space-y-2">
@@ -204,7 +206,7 @@ export default function PayoutDetailClient() {
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">{t("payout_details")}</h1>
+              <h1 className="text-2xl font-bold">{tExt("payout_details")}</h1>
             </div>
             <div className="flex items-center gap-2 mt-1">
               <code className="text-sm text-muted-foreground font-mono">{payout.id}</code>
@@ -280,7 +282,7 @@ export default function PayoutDetailClient() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                {t("payout_period")}
+                {tExt("payout_period")}
               </CardTitle>
               <CardDescription>
                 {t("summary_of_transactions_included_in_this_payout")}
@@ -290,11 +292,11 @@ export default function PayoutDetailClient() {
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">{t("period_start")}</p>
+                    <p className="text-sm text-muted-foreground">{tCommon("period_start")}</p>
                     <p className="font-medium">{formatDate(payout.periodStart)}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">{t("period_end")}</p>
+                    <p className="text-sm text-muted-foreground">{tCommon("period_end")}</p>
                     <p className="font-medium">{formatDate(payout.periodEnd)}</p>
                   </div>
                 </div>
@@ -399,7 +401,7 @@ export default function PayoutDetailClient() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <RefreshCcw className="h-5 w-5" />
-                  {t("refunds_deducted")}
+                  {tExt("refunds_deducted")}
                 </CardTitle>
                 <CardDescription>
                   {t("refunds_processed_during_this_payout_period")}
@@ -437,12 +439,12 @@ export default function PayoutDetailClient() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Hash className="h-4 w-4" />
-                {t("payout_information")}
+                {tCommon("payout_information")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-sm text-muted-foreground">{t("payout_id")}</p>
+                <p className="text-sm text-muted-foreground">{tExt("payout_id")}</p>
                 <div className="flex items-center gap-2">
                   <code className="font-mono text-sm">{payout.id}</code>
                   <Button
@@ -457,7 +459,7 @@ export default function PayoutDetailClient() {
               </div>
               <Separator />
               <div>
-                <p className="text-sm text-muted-foreground">{t("wallet_type")}</p>
+                <p className="text-sm text-muted-foreground">{tCommon("wallet_type")}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <WalletIcon className={`h-4 w-4 ${walletConfig.color}`} />
                   <span className="font-medium">{walletConfig.label}</span>
@@ -508,7 +510,7 @@ export default function PayoutDetailClient() {
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("quick_actions")}</CardTitle>
+              <CardTitle className="text-base">{tCommon("quick_actions")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <Button
@@ -528,7 +530,7 @@ export default function PayoutDetailClient() {
                 }}
               >
                 <FileText className="h-4 w-4 mr-2" />
-                {t("export_as_json")}
+                {tCommon("export_as_json")}
               </Button>
             </CardContent>
           </Card>

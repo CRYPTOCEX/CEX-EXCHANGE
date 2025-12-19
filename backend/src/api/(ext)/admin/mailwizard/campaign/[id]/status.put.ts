@@ -1,10 +1,12 @@
 import { models } from "@b/db";
-import { updateRecordResponses } from "@b/utils/query";
+import { statusUpdateResponses } from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Update Status for a Mailwizard Campaign",
+  summary: "Update campaign status",
   operationId: "updateMailwizardCampaignStatus",
-  tags: ["Admin", "Mailwizard Campaigns"],
+  tags: ["Admin", "Mailwizard", "Campaigns"],
+  description:
+    "Updates the status of a specific Mailwizard campaign. When status is set to STOPPED, all target statuses are automatically reset to PENDING to allow the campaign to be restarted from the beginning.",
   parameters: [
     {
       index: 0,
@@ -40,27 +42,34 @@ export const metadata = {
       },
     },
   },
-  responses: updateRecordResponses("Mailwizard Campaign"),
+  responses: statusUpdateResponses("Mailwizard Campaign"),
   requiresAuth: true,
   permission: "edit.mailwizard.campaign",
+  logModule: "ADMIN_MAIL",
+  logTitle: "Update campaign status",
 };
 
 export default async (data) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
 
+  ctx?.step(`Updating campaign status to ${status}`);
+
   if (status === "STOPPED") {
+    ctx?.step("Resetting target statuses");
     // Find the campaign with its targets
     const campaign = await models.mailwizardCampaign.findByPk(id, {
       attributes: ["id", "targets"],
     });
 
     if (!campaign) {
+      ctx?.fail("Campaign not found");
       throw new Error("Campaign not found");
     }
 
     if (!campaign.targets) {
+      ctx?.fail("Campaign targets not found");
       throw new Error("Campaign targets not found");
     }
 
@@ -87,4 +96,6 @@ export default async (data) => {
       }
     );
   }
+
+  ctx?.success("Campaign status updated successfully");
 };

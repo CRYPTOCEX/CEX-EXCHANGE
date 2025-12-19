@@ -38,10 +38,18 @@ export const metadata: OperationObject = {
   },
   permission: "view.blog.author",
   requiresAuth: true,
+  logModule: "ADMIN_BLOG",
+  logTitle: "Get author by ID",
 };
 
 export default async (data) => {
-  const { params } = data;
+  const { params, ctx } = data;
 
-  return await getRecord("author", params.id);
+  ctx?.step("Validating author ID");
+
+  ctx?.step("Fetching author");
+  const result = await getRecord("author", params.id);
+
+  ctx?.success("Author retrieved successfully");
+  return result;
 };

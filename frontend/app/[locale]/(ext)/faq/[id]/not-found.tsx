@@ -10,9 +10,9 @@ import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
 export default function FaqNotFound() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_faq");
   return (
-    <div className="container flex items-center justify-center min-h-[70vh]">
+    <div className="container pt-20 flex items-center justify-center min-h-[70vh]">
       <Card className="max-w-md w-full">
         <CardHeader>
           <CardTitle className="text-2xl">{t("faq_not_found")}</CardTitle>

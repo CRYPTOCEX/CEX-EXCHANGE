@@ -1,5 +1,6 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Release Funds for Trade",
@@ -8,6 +9,8 @@ export const metadata = {
   operationId: "releaseP2PTradeFunds",
   tags: ["P2P", "Trade"],
   requiresAuth: true,
+  logModule: "P2P_TRADE",
+  logTitle: "Release funds",
   parameters: [
     {
       index: 0,
@@ -26,14 +29,15 @@ export const metadata = {
   },
 };
 
-export default async (data: { params?: any; user?: any }) => {
+export default async (data: { params?: any; user?: any; ctx?: any }) => {
   const { id } = data.params || {};
-  const { user } = data;
-  
+  const { user, ctx } = data;
+
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  ctx?.step("Checking idempotency and validating trade");
   // Import validation and utilities
   const { validateTradeStatusTransition } = await import("../../utils/validation");
   const { notifyTradeEvent } = await import("../../utils/notifications");
@@ -66,7 +70,7 @@ export default async (data: { params?: any; user?: any }) => {
     }
   } catch (redisError) {
     // Continue without idempotency if Redis is unavailable
-    console.error("Redis error in idempotency check:", redisError);
+    logger.error("P2P", "Redis error in idempotency check", redisError);
   }
 
   const transaction = await sequelize.transaction({
@@ -109,6 +113,7 @@ export default async (data: { params?: any; user?: any }) => {
       });
     }
 
+    ctx?.step("Processing fund transfer from seller to buyer");
     // Transfer funds to buyer when status is PAYMENT_SENT
     if (trade.status === "PAYMENT_SENT") {
       // This applies to ALL wallet types including FIAT
@@ -162,14 +167,7 @@ export default async (data: { params?: any; user?: any }) => {
 
       // Log warning if amounts don't match expected
       if (safeDeductAmount < trade.amount || safeUnlockAmount < trade.amount) {
-        console.warn('[P2P Trade Release] WARNING: Partial fund release:', {
-          tradeId: trade.id,
-          tradeAmount: trade.amount,
-          actualDeducted: safeDeductAmount,
-          actualUnlocked: safeUnlockAmount,
-          sellerBalance: previousBalance,
-          sellerInOrder: previousInOrder,
-        });
+        logger.warn("P2P", `Partial fund release: tradeId=${trade.id}, tradeAmount=${trade.amount}, actualDeducted=${safeDeductAmount}, actualUnlocked=${safeUnlockAmount}, sellerBalance=${previousBalance}, sellerInOrder=${previousInOrder}`);
       }
 
       // Audit log for funds unlocking
@@ -203,6 +201,7 @@ export default async (data: { params?: any; user?: any }) => {
       const buyerNetAmount = Math.max(0, safeDeductAmount - platformFee);
       const sellerNetAmount = safeDeductAmount; // Seller pays the actual deducted amount
 
+      ctx?.step(`Transferring ${buyerNetAmount} ${trade.offer.currency} to buyer`);
       // Transfer to buyer (net amount after platform fee)
       const buyerWallet = await getWalletSafe(
         trade.buyerId,
@@ -303,33 +302,16 @@ export default async (data: { params?: any; user?: any }) => {
             tradeId: trade.id,
           }, { transaction });
 
-          console.log('[P2P Trade Release] Platform commission recorded:', {
-            tradeId: trade.id,
-            adminId: systemAdmin.id,
-            platformFee,
-            currency: trade.offer.currency,
-          });
+          logger.debug("P2P", `Platform commission recorded: tradeId=${trade.id}, adminId=${systemAdmin.id}, fee=${platformFee} ${trade.offer.currency}`);
         } else {
-          console.warn('[P2P Trade Release] No super admin found to assign commission');
+          logger.warn("P2P", "No super admin found to assign commission");
         }
       }
 
-      console.log('[P2P Trade Release] Funds transferred:', {
-        tradeId: trade.id,
-        sellerId: trade.sellerId,
-        buyerId: trade.buyerId,
-        walletType: trade.offer.walletType,
-        currency: trade.offer.currency,
-        requestedAmount: trade.amount,
-        actualDeducted: safeDeductAmount,
-        platformFee,
-        buyerReceives: buyerNetAmount,
-        note: trade.offer.walletType === "FIAT"
-          ? "FIAT trade completed - platform balances updated, actual payment happens externally"
-          : "Crypto transferred from seller to buyer (minus platform fee)"
-      });
+      logger.info("P2P", `Funds transferred: tradeId=${trade.id}, seller=${trade.sellerId}, buyer=${trade.buyerId}, ${trade.offer.walletType} ${trade.offer.currency}, amount=${safeDeductAmount}, fee=${platformFee}, buyerReceives=${buyerNetAmount}`);
     }
 
+    ctx?.step("Updating trade status to COMPLETED");
     // Update trade status and timeline
     // Parse timeline if it's a string
     let timeline = trade.timeline || [];
@@ -337,7 +319,7 @@ export default async (data: { params?: any; user?: any }) => {
       try {
         timeline = JSON.parse(timeline);
       } catch (e) {
-        console.error("Failed to parse timeline JSON:", e);
+        logger.error("P2P", "Failed to parse timeline JSON", e);
         timeline = [];
       }
     }
@@ -385,7 +367,7 @@ export default async (data: { params?: any; user?: any }) => {
       sellerId: trade.sellerId,
       amount: trade.amount,
       currency: trade.offer.currency,
-    }).catch(console.error);
+    }).catch((err) => logger.error("P2P", "Failed to notify trade event", err));
 
     // Broadcast WebSocket event for real-time updates
     broadcastP2PTradeEvent(trade.id, {
@@ -407,12 +389,14 @@ export default async (data: { params?: any; user?: any }) => {
       }
     };
 
+    ctx?.success(`Released funds for trade ${trade.id.slice(0, 8)}... (${trade.amount} ${trade.offer.currency})`);
+
     // Cache the successful result for idempotency
     try {
       await redis.setex(idempotencyKey, 3600, JSON.stringify(result)); // Cache for 1 hour
       await redis.del(`${idempotencyKey}:lock`); // Release the lock
     } catch (redisError) {
-      console.error("Redis error in caching result:", redisError);
+      logger.error("P2P", "Redis error in caching result", redisError);
     }
 
     return result;
@@ -423,7 +407,7 @@ export default async (data: { params?: any; user?: any }) => {
     try {
       await redis.del(`${idempotencyKey}:lock`);
     } catch (redisError) {
-      console.error("Redis error in releasing lock:", redisError);
+      logger.error("P2P", "Redis error in releasing lock", redisError);
     }
     
     if (err.statusCode) {

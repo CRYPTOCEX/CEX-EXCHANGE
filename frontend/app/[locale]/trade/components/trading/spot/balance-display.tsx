@@ -21,7 +21,7 @@ export default function BalanceDisplay({
   pricePrecision = 2,
   amountPrecision = 4,
 }: BalanceDisplayProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
 
   // Format balance based on market precision
   const formatBalance = (value: number, precision: number) => {
@@ -76,7 +76,7 @@ export default function BalanceDisplay({
         </div>
         {isLoadingWallet ? (
           <span className="text-foreground dark:text-zinc-300 animate-pulse">
-            {t("Loading")}...
+            {t("loading")}...
           </span>
         ) : (
           <div className="flex flex-col items-end gap-0.5">
@@ -104,7 +104,7 @@ export default function BalanceDisplay({
         </div>
         {isLoadingWallet ? (
           <span className="text-foreground dark:text-zinc-300 animate-pulse">
-            {t("Loading")}...
+            {t("loading")}...
           </span>
         ) : (
           <div className="flex flex-col items-end gap-0.5">

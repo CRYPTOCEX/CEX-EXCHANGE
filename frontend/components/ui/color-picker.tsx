@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 
 // Define Tailwind color palette (extend as needed)
 export const tailwindColors = {
@@ -496,6 +497,7 @@ export function ColorPicker({
   isHover = false,
   disabled = false,
 }: ColorPickerProps) {
+  const t = useTranslations("components");
   const { theme, setTheme } = useTheme();
   const [selectedColor, setSelectedColor] = useState<string>("transparent");
   const [selectedTailwindClass, setSelectedTailwindClass] =
@@ -735,7 +737,7 @@ export function ColorPicker({
               onClick={() => setBaseColor(null)}
               className="h-8 text-xs mb-2"
             >
-              Back to Colors
+              {t("back_to_colors")}
             </Button>
             <h3 className="text-xs font-medium mb-2 capitalize">
               Select {baseColor} Shade
@@ -902,7 +904,7 @@ export function ColorPicker({
                       onClick={() => setBaseColor(null)}
                       className="h-8 text-xs mb-2"
                     >
-                      Back to Colors
+                      {t("back_to_colors")}
                     </Button>
                     <h3 className="text-xs font-medium mb-2 capitalize">
                       Select {baseColor} Shade
@@ -945,7 +947,7 @@ export function ColorPicker({
                       onValueChange={setGradientDirection}
                     >
                       <SelectTrigger className="h-7 text-xs">
-                        <SelectValue placeholder="Select direction" />
+                        <SelectValue placeholder={t("select_direction")} />
                       </SelectTrigger>
                       <SelectContent>
                         {gradientDirections.map((direction) => (
@@ -969,7 +971,7 @@ export function ColorPicker({
                       className="h-4 w-4"
                     />
                     <Label htmlFor="useVia" className="text-xs">
-                      Use Via Color
+                      {t("use_via_color")}
                     </Label>
                   </div>
                   {useVia &&
@@ -987,7 +989,7 @@ export function ColorPicker({
                     size="sm"
                     onClick={applyGradient}
                   >
-                    Apply Gradient
+                    {t("apply_gradient")}
                   </Button>
                 </div>
               </TabsContent>

@@ -37,11 +37,19 @@ export const metadata = {
   responses: updateRecordResponses("Deposit Gateway"),
   requiresAuth: true,
   permission: "edit.deposit.gateway",
+  logModule: "ADMIN_FIN",
+  logTitle: "Update deposit gateway status",
 };
 
 export default async (data: Handler) => {
-  const { body, params } = data;
+  const { body, params, ctx } = data;
   const { id } = params;
   const { status } = body;
-  return updateStatus("depositGateway", id, status);
+
+  ctx?.step("Fetching deposit gateway record");
+  ctx?.step("Updating deposit gateway status");
+  const result = await updateStatus("depositGateway", id, status);
+
+  ctx?.success("Deposit gateway status updated successfully");
+  return result;
 };

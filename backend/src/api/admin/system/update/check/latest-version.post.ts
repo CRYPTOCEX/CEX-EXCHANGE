@@ -47,8 +47,17 @@ export const metadata = {
     },
   },
   requiresAuth: true,
+  logModule: "ADMIN_SYS",
+  logTitle: "Check latest product version",
 };
 
 export default async (data) => {
-  return checkLatestVersion(data.body.productId);
+  const { ctx } = data;
+
+  ctx?.step(`Checking latest version for product ${data.body.productId}`);
+
+  const result = await checkLatestVersion(data.body.productId) as any;
+
+  ctx?.success(`Latest version: ${result.latestVersion || "Unknown"}`);
+  return result;
 };

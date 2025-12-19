@@ -10,6 +10,8 @@ export const metadata = {
   operationId: "getAffiliateDashboard",
   tags: ["Affiliate", "Dashboard"],
   requiresAuth: true,
+  logModule: "AFFILIATE",
+  logTitle: "Get affiliate dashboard",
   parameters: [
     {
       name: "period",
@@ -31,11 +33,14 @@ interface Handler {
 }
 
 export default async function getAffiliateDashboard(data: Handler) {
-  const userId = data.user?.id;
+  const { user, query, ctx } = data as any;
+  const userId = user?.id;
+
   if (!userId) throw createError({ statusCode: 401, message: "Unauthorized" });
 
+  ctx?.step("Parsing period parameter");
   // parse period
-  const period = data.query?.period || "6m";
+  const period = query?.period || "6m";
   let monthsCount = 6;
   switch (period) {
     case "1m":
@@ -67,6 +72,7 @@ export default async function getAffiliateDashboard(data: Handler) {
   );
   const prevEnd = new Date(startDate.getFullYear(), startDate.getMonth(), 0);
 
+  ctx?.step("Loading MLM system settings");
   // load settings once
   const cache = CacheManager.getInstance();
   const rawSettings = await cache.getSettings();
@@ -76,6 +82,7 @@ export default async function getAffiliateDashboard(data: Handler) {
   const binaryLevels = parseInt(rawSettings.get("binaryLevels") || "2", 10);
   const unilevelLevels = parseInt(rawSettings.get("unilevelLevels") || "2", 10);
 
+  ctx?.step(`Fetching dashboard statistics for ${period} period`);
   // stats for current and previous period in parallel
   const [
     totalReferrals,
@@ -160,6 +167,7 @@ export default async function getAffiliateDashboard(data: Handler) {
   const prevConversionRate =
     prevTotalRef > 0 ? Math.round((prevRewardCount / prevTotalRef) * 100) : 0;
 
+  ctx?.step("Computing statistics and growth metrics");
   const stats = {
     totalReferrals,
     activeReferrals,
@@ -176,6 +184,7 @@ export default async function getAffiliateDashboard(data: Handler) {
     totalEarnings: prevTotalEarnings,
   };
 
+  ctx?.step("Fetching referrals for current period");
   // referrals filtered by current period & approval
   const referralsWhere: any = {
     referrerId: userId,
@@ -194,6 +203,7 @@ export default async function getAffiliateDashboard(data: Handler) {
     order: [["createdAt", "DESC"]],
   });
 
+  ctx?.step("Fetching reward history");
   // rewards full history
   const rewards = await models.mlmReferralReward.findAll({
     where: { referrerId: userId },
@@ -207,6 +217,7 @@ export default async function getAffiliateDashboard(data: Handler) {
     order: [["createdAt", "DESC"]],
   });
 
+  ctx?.step("Generating monthly earnings breakdown");
   // monthly earnings for current period
   const months: string[] = [];
   for (let i = monthsCount - 1; i >= 0; i--) {
@@ -232,5 +243,6 @@ export default async function getAffiliateDashboard(data: Handler) {
     earnings: earningsMap[m] || 0,
   }));
 
+  ctx?.success(`Retrieved dashboard data: ${totalReferrals} referrals, ${totalEarnings.toFixed(2)} total earnings`);
   return { stats, referrals, rewards, monthlyEarnings };
 }

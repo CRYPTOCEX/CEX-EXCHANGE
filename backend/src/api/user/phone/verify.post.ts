@@ -6,6 +6,8 @@ export const metadata: OperationObject = {
   operationId: "verifyPhoneNumber",
   tags: ["User", "Phone"],
   requiresAuth: true,
+  logModule: "USER",
+  logTitle: "Verify phone number",
   requestBody: {
     required: true,
     content: {
@@ -31,22 +33,29 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
-  if (!user) throw createError({ statusCode: 401, message: "Unauthorized" });
+  const { user, body, ctx } = data;
+  if (!user) {
+    ctx?.fail("User not authenticated");
+    throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
   const { code } = body;
 
+  ctx?.step("Retrieving user record");
   const userRecord = await models.user.findByPk(user.id);
 
+  ctx?.step("Validating verification code");
   if (
     !userRecord.phoneVerificationCode ||
     !userRecord.phoneVerificationExpiresAt ||
     userRecord.phoneVerificationCode !== code ||
     new Date(userRecord.phoneVerificationExpiresAt) < new Date()
   ) {
+    ctx?.fail("Invalid or expired verification code");
     throw createError({ statusCode: 400, message: "Invalid or expired code" });
   }
 
+  ctx?.step("Updating phone verification status");
   // Verification successful - set phone and mark as verified
   await userRecord.update({
     phone: userRecord.phoneTemp,
@@ -56,5 +65,6 @@ export default async (data: Handler) => {
     phoneTemp: null,
   });
 
+  ctx?.success("Phone number verified successfully");
   return { message: "Phone number verified successfully." };
 };

@@ -46,16 +46,18 @@ export const metadata: OperationObject = {
     },
   },
   requiresAuth: true,
+  logModule: "AFFILIATE",
+  logTitle: "Get affiliate node details",
 };
 
 export default async (data: Handler) => {
-  const { user } = data;
+  const { user, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
-  // Corrected include statements with the right aliases
+  ctx?.step("Fetching user details with referral associations");
   const userPk = await models.user.findByPk(user.id, {
     include: [
       {
@@ -106,6 +108,7 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 404, message: "User not found" });
   }
 
+  ctx?.step("Loading MLM system settings from cache");
   const cacheManager = CacheManager.getInstance();
   const settings = await cacheManager.getSettings();
   const mlmSettings = settings.has("mlmSettings")
@@ -116,21 +119,23 @@ export default async (data: Handler) => {
     ? settings.get("mlmSystem")
     : null;
 
+  ctx?.step(`Building ${mlmSystem || 'DIRECT'} referral tree structure`);
   let nodeDetails;
   switch (mlmSystem) {
     case "DIRECT":
-      nodeDetails = await listDirectReferrals(userPk);
+      nodeDetails = await listDirectReferrals(userPk, ctx);
       break;
     case "BINARY":
-      nodeDetails = await listBinaryReferrals(userPk, mlmSettings);
+      nodeDetails = await listBinaryReferrals(userPk, mlmSettings, ctx);
       break;
     case "UNILEVEL":
-      nodeDetails = await listUnilevelReferrals(userPk, mlmSettings);
+      nodeDetails = await listUnilevelReferrals(userPk, mlmSettings, ctx);
       break;
     default:
-      nodeDetails = await listDirectReferrals(userPk);
+      nodeDetails = await listDirectReferrals(userPk, ctx);
       break;
   }
 
+  ctx?.success(`Retrieved ${mlmSystem || 'DIRECT'} node details for user`);
   return nodeDetails;
 };

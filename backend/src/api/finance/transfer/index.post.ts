@@ -6,6 +6,7 @@ import {
 } from "@b/utils/query";
 import { createError } from "@b/utils/error";
 import { getEcosystemWalletUtils, isServiceAvailable } from "@b/utils/safe-imports";
+import { logger } from "@b/utils/console";
 
 // Safe import for wallet utils (only available if extension is installed)
 async function getWalletByUserIdAndCurrency(userId: string | number, currency: string) {
@@ -47,6 +48,8 @@ export const metadata: OperationObject = {
   operationId: "createTransfer",
   tags: ["Finance", "Transfer"],
   requiresAuth: true,
+  logModule: "TRANSFER",
+  logTitle: "Process transfer transaction",
   requestBody: {
     required: true,
     content: {
@@ -114,10 +117,12 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, body } = data;
+  const { user, body, ctx } = data;
+
   if (!user?.id)
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
+  ctx?.step("Parsing transfer request parameters");
   const {
     fromType,
     toType,
@@ -128,7 +133,9 @@ export default async (data: Handler) => {
     toCurrency,
   } = body;
 
+  ctx?.step("Validating transfer request");
   if (toCurrency === "Select a currency") {
+    ctx?.fail("Invalid target currency selected");
     throw createError({
       statusCode: 400,
       message: "Please select a target currency",
@@ -137,16 +144,21 @@ export default async (data: Handler) => {
 
   // Wallet transfers must be between different wallet types
   if (transferType === "wallet" && fromType === toType) {
+    ctx?.fail("Cannot transfer between same wallet type");
     throw createError({
       statusCode: 400,
       message: "Wallet transfers must be between different wallet types",
     });
   }
 
+  ctx?.step("Verifying user exists in database");
   const userPk = await models.user.findByPk(user.id);
-  if (!userPk)
+  if (!userPk) {
+    ctx?.fail("User not found");
     throw createError({ statusCode: 404, message: "User not found" });
+  }
 
+  ctx?.step(`Fetching source wallet (${fromCurrency} ${fromType})`);
   const fromWallet = await models.wallet.findOne({
     where: {
       userId: user.id,
@@ -154,19 +166,23 @@ export default async (data: Handler) => {
       type: fromType,
     },
   });
-  if (!fromWallet)
+  if (!fromWallet) {
+    ctx?.fail("Source wallet not found");
     throw createError({ statusCode: 404, message: "Wallet not found" });
+  }
 
   let toWallet: any = null;
   let toUser: any = null;
 
   if (transferType === "client") {
+    ctx?.step(`Resolving destination wallet for client transfer`);
     ({ toWallet, toUser } = await handleClientTransfer(
       clientId,
       toCurrency || fromCurrency,
       toType || fromType
     ));
   } else {
+    ctx?.step(`Resolving destination wallet for wallet-to-wallet transfer`);
     toWallet = await handleWalletTransfer(
       user.id,
       fromType,
@@ -175,17 +191,24 @@ export default async (data: Handler) => {
     );
   }
 
+  ctx?.step("Validating transfer amount");
   const parsedAmount = parseFloat(amount);
-  
+
   // Validate amount
   if (isNaN(parsedAmount) || parsedAmount <= 0) {
+    ctx?.fail("Invalid transfer amount");
     throw createError(400, "Invalid transfer amount");
   }
 
+  ctx?.step("Fetching currency data");
   const currencyData = await getCurrencyData(fromType, fromCurrency);
-  if (!currencyData) throw createError(400, "Invalid wallet type");
+  if (!currencyData) {
+    ctx?.fail("Invalid wallet type");
+    throw createError(400, "Invalid wallet type");
+  }
 
   // Calculate fee to check total deduction needed
+  ctx?.step("Calculating transfer fees");
   const cacheManager = CacheManager.getInstance();
   const settings = await cacheManager.getSettings();
   const walletTransferFeePercentage = settings.get("walletTransferFeePercentage") || 0;
@@ -193,10 +216,13 @@ export default async (data: Handler) => {
   const totalDeduction = parsedAmount; // Fee is deducted from the amount, not added
 
   // Check if wallet has sufficient balance for the transfer
+  ctx?.step("Checking source wallet balance");
   if (fromWallet.balance < totalDeduction) {
+    ctx?.fail(`Insufficient balance: ${fromWallet.balance} < ${totalDeduction}`);
     throw createError(400, "Insufficient balance to cover transfer");
   }
 
+  ctx?.step("Executing transfer transaction");
   const transaction = await performTransaction(
     transferType,
     fromWallet,
@@ -212,6 +238,7 @@ export default async (data: Handler) => {
   );
 
   if (transferType === "client") {
+    ctx?.step("Sending transfer notification emails");
     const userPk = await models.user.findByPk(user.id);
     await sendTransferEmails(
       userPk,
@@ -222,6 +249,8 @@ export default async (data: Handler) => {
       transaction
     );
   }
+
+  ctx?.success(`Transfer completed: ${parsedAmount} ${fromCurrency} from ${fromType} to ${toCurrency || fromCurrency} ${toType}`);
 
   return {
     message: "Transfer initiated successfully",
@@ -252,7 +281,7 @@ async function handleClientTransfer(
       toWallet = await getWalletByUserIdAndCurrency(clientId, currency);
     } catch (error) {
       // If ECO extension is not available, fall back to regular wallet lookup/creation
-      console.warn("ECO extension not available, falling back to regular wallet:", error.message);
+      logger.warn("TRANSFER", "ECO extension not available, falling back to regular wallet", error);
       
       toWallet = await models.wallet.findOne({
         where: { userId: clientId, currency, type: walletType },
@@ -361,6 +390,7 @@ async function performTransaction(
 
   // Handle currency conversion if currencies are different
   if (fromCurrency !== toCurrency) {
+    logger.info("TRANSFER", `Calculating exchange rate from ${fromCurrency} to ${toCurrency}`);
     // Get exchange rate and validate both currencies have prices
     const exchangeRate = await getExchangeRate(
       fromCurrency,
@@ -371,6 +401,7 @@ async function performTransaction(
 
     // Convert the amount after fee deduction
     targetReceiveAmount = (parsedAmount - transferFeeAmount) * exchangeRate;
+    logger.info("TRANSFER", `Converted amount: ${parsedAmount - transferFeeAmount} ${fromCurrency} = ${targetReceiveAmount} ${toCurrency} (rate: ${exchangeRate})`);
   }
 
   const totalDeducted = parsedAmount;
@@ -380,6 +411,8 @@ async function performTransaction(
   }
 
   return await sequelize.transaction(async (t) => {
+    logger.info("TRANSFER", "Starting database transaction");
+
     const requiresLedgerUpdate = requiresPrivateLedgerUpdate(
       transferType,
       fromType,
@@ -387,8 +420,10 @@ async function performTransaction(
     );
 
     const transferStatus = requiresLedgerUpdate ? "PENDING" : "COMPLETED";
+    logger.info("TRANSFER", `Transfer status: ${transferStatus} (ledger update required: ${requiresLedgerUpdate})`);
 
     if (!requiresLedgerUpdate) {
+      logger.info("TRANSFER", "Processing complete transfer (no ledger update required)");
       // For transfers that don't require private ledger updates
       await handleCompleteTransfer({
         fromWallet,
@@ -402,6 +437,7 @@ async function performTransaction(
         t,
       });
     } else {
+      logger.info("TRANSFER", "Processing pending transfer (ledger update required)");
       // For transfers that require private ledger updates
       await handlePendingTransfer({
         fromWallet,
@@ -414,6 +450,7 @@ async function performTransaction(
       });
     }
 
+    logger.info("TRANSFER", "Creating outgoing transfer transaction record");
     const fromTransfer = await createTransferTransaction(
       userId,
       fromWallet.id,
@@ -429,6 +466,7 @@ async function performTransaction(
       t
     );
 
+    logger.info("TRANSFER", "Creating incoming transfer transaction record");
     const toTransfer = await createTransferTransaction(
       transferType === "client" ? clientId! : userId,
       toWallet.id,
@@ -445,6 +483,7 @@ async function performTransaction(
     );
 
     if (transferFeeAmount > 0) {
+      logger.info("TRANSFER", `Recording admin profit: ${transferFeeAmount} ${fromCurrency}`);
       await recordAdminProfit({
         userId,
         transferFeeAmount,
@@ -456,6 +495,7 @@ async function performTransaction(
       });
     }
 
+    logger.info("TRANSFER", "Database transaction completed successfully");
     return { fromTransfer, toTransfer };
   });
 }
@@ -544,6 +584,7 @@ async function handleCompleteTransfer({
   t,
 }: any) {
   if (fromType === "ECO" && transferType === "client") {
+    logger.info("TRANSFER", "Handling ECO client balance transfer");
     await handleEcoClientBalanceTransfer({
       fromWallet,
       toWallet,
@@ -553,6 +594,7 @@ async function handleCompleteTransfer({
       t,
     });
   } else {
+    logger.info("TRANSFER", "Handling non-client transfer");
     await handleNonClientTransfer({
       fromWallet,
       toWallet,
@@ -573,9 +615,11 @@ async function handleEcoClientBalanceTransfer({
   currencyData,
   t,
 }: any) {
+  logger.info("TRANSFER", "Parsing ECO wallet addresses");
   const fromAddresses = parseAddresses(fromWallet.address);
   const toAddresses = parseAddresses(toWallet.address);
 
+  logger.info("TRANSFER", `Distributing ${parsedAmount} ${fromCurrency} across chains`);
   let remainingAmount = parsedAmount;
   for (const [chain, chainInfo] of getSortedChainBalances(fromAddresses)) {
     if (remainingAmount <= 0) break;
@@ -585,10 +629,13 @@ async function handleEcoClientBalanceTransfer({
       remainingAmount
     );
 
+    logger.info("TRANSFER", `Transferring ${transferableAmount} from chain: ${chain}`);
+
     (chainInfo as { balance: number }).balance -= transferableAmount;
     toAddresses[chain] = toAddresses[chain] || { balance: 0 };
     toAddresses[chain].balance += transferableAmount;
 
+    logger.info("TRANSFER", `Updating private ledger for sender wallet on chain: ${chain}`);
     await updatePrivateLedger(
       fromWallet.id,
       0,
@@ -597,6 +644,7 @@ async function handleEcoClientBalanceTransfer({
       -transferableAmount,
       t
     );
+    logger.info("TRANSFER", `Updating private ledger for recipient wallet on chain: ${chain}`);
     await updatePrivateLedger(
       toWallet.id,
       0,
@@ -610,9 +658,11 @@ async function handleEcoClientBalanceTransfer({
   }
 
   if (remainingAmount > 0) {
+    logger.error("TRANSFER", `Insufficient chain balance: ${remainingAmount} ${fromCurrency} remaining`);
     throw createError(400, "Insufficient chain balance across all addresses.");
   }
 
+  logger.info("TRANSFER", "Updating wallet balances");
   await updateWalletBalances(
     fromWallet,
     toWallet,
@@ -633,6 +683,8 @@ async function handleNonClientTransfer({
   t,
 }: any) {
   if (fromWallet.type === "ECO" && toWallet.type === "ECO") {
+    logger.info("TRANSFER", "Processing ECO to ECO wallet transfer");
+    logger.info("TRANSFER", "Deducting from source ECO wallet");
     const deductionDetails = await deductFromEcoWallet(
       fromWallet,
       parsedAmount,
@@ -640,9 +692,11 @@ async function handleNonClientTransfer({
       t
     );
 
+    logger.info("TRANSFER", "Adding to destination ECO wallet");
     await addToEcoWallet(toWallet, deductionDetails, fromCurrency, t);
   }
 
+  logger.info("TRANSFER", `Updating wallet balances (deduct: ${parsedAmount}, add: ${targetReceiveAmount})`);
   await updateWalletBalances(
     fromWallet,
     toWallet,
@@ -659,6 +713,7 @@ async function deductFromEcoWallet(
   currency: string,
   t: any
 ) {
+  logger.info("TRANSFER", `Deducting ${amount} ${currency} from ECO wallet`);
   const addresses = parseAddresses(wallet.address);
   let remainingAmount = amount;
   const deductionDetails: Record<string, any>[] = [];
@@ -673,6 +728,8 @@ async function deductFromEcoWallet(
         remainingAmount
       );
 
+      logger.info("TRANSFER", `Deducting ${transferableAmount} ${currency} from chain: ${chain}`);
+
       // Deduct the transferable amount from the sender's address balance
       addresses[chain].balance -= transferableAmount;
 
@@ -680,6 +737,7 @@ async function deductFromEcoWallet(
       deductionDetails.push({ chain, amount: transferableAmount });
 
       // Update the private ledger for the wallet
+      logger.info("TRANSFER", `Updating private ledger for deduction on chain: ${chain}`);
       await updatePrivateLedger(
         wallet.id,
         0,
@@ -693,12 +751,15 @@ async function deductFromEcoWallet(
     }
   }
 
-  if (remainingAmount > 0)
+  if (remainingAmount > 0) {
+    logger.error("TRANSFER", `Insufficient chain balance: ${remainingAmount} ${currency} remaining`);
     throw createError(
       400,
       "Insufficient chain balance to complete the transfer"
     );
+  }
 
+  logger.info("TRANSFER", "Updating wallet address data");
   // Update the wallet with the new addresses and balance
   await wallet.update(
     {
@@ -707,6 +768,7 @@ async function deductFromEcoWallet(
     { transaction: t }
   );
 
+  logger.info("TRANSFER", `Successfully deducted from ${deductionDetails.length} chain(s)`);
   // Return the deduction details for use in the addition function
   return deductionDetails;
 }
@@ -717,13 +779,17 @@ async function addToEcoWallet(
   currency: string,
   t: any
 ) {
+  logger.info("TRANSFER", `Adding to ECO wallet across ${deductionDetails.length} chain(s)`);
   const addresses = parseAddresses(wallet.address);
 
   for (const detail of deductionDetails) {
     const { chain, amount } = detail;
 
+    logger.info("TRANSFER", `Adding ${amount} ${currency} to chain: ${chain}`);
+
     // Initialize chain if it doesn't exist
     if (!addresses[chain]) {
+      logger.info("TRANSFER", `Initializing new chain entry: ${chain}`);
       addresses[chain] = {
         address: null, // Set to null or assign a valid address if available
         network: null, // Set to null or assign the appropriate network
@@ -735,9 +801,11 @@ async function addToEcoWallet(
     addresses[chain].balance += amount;
 
     // Update the private ledger for the wallet
+    logger.info("TRANSFER", `Updating private ledger for addition on chain: ${chain}`);
     await updatePrivateLedger(wallet.id, 0, currency, chain, amount);
   }
 
+  logger.info("TRANSFER", "Updating wallet address data");
   // Update the wallet with the new addresses and balance
   await wallet.update(
     {
@@ -745,6 +813,7 @@ async function addToEcoWallet(
     },
     { transaction: t }
   );
+  logger.info("TRANSFER", "Successfully added to ECO wallet");
 }
 
 async function handlePendingTransfer({
@@ -756,20 +825,26 @@ async function handlePendingTransfer({
   currencyData,
   t,
 }: any) {
+  logger.info("TRANSFER", `Calculating new source wallet balance (current: ${fromWallet.balance}, deducting: ${totalDeducted})`);
   const newFromBalance = calculateNewBalance(
     fromWallet.balance,
     -totalDeducted,
     currencyData
   );
+  logger.info("TRANSFER", `Updating source wallet balance to: ${newFromBalance}`);
   await fromWallet.update({ balance: newFromBalance }, { transaction: t });
 
   if (transferStatus === "COMPLETED") {
+    logger.info("TRANSFER", `Calculating new destination wallet balance (current: ${toWallet.balance}, adding: ${targetReceiveAmount})`);
     const newToBalance = calculateNewBalance(
       toWallet.balance,
       targetReceiveAmount,
       currencyData
     );
+    logger.info("TRANSFER", `Updating destination wallet balance to: ${newToBalance}`);
     await toWallet.update({ balance: newToBalance }, { transaction: t });
+  } else {
+    logger.info("TRANSFER", "Transfer is pending, destination wallet balance not updated yet");
   }
 }
 
@@ -782,7 +857,7 @@ export function parseAddresses(address: any): { [key: string]: any } {
     try {
       return JSON.parse(address);
     } catch (error) {
-      console.error("Failed to parse address JSON:", error);
+      logger.error("TRANSFER", "Failed to parse address JSON", error);
       return {};
     }
   }

@@ -1,5 +1,5 @@
 import client, { scyllaKeyspace, initialize as initializeEcosystem } from "@b/api/(ext)/ecosystem/utils/scylla/client";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 // AI Market Maker uses the same keyspace as ecosystem trading
 // This ensures all AI market maker data is in the same keyspace as ecosystem orders
@@ -143,7 +143,7 @@ export async function initializeAiMarketMakerTables(): Promise<void> {
       } catch (err: any) {
         // Ignore "already exists" errors
         if (!err.message?.includes("already exists")) {
-          logError("ai-market-maker-scylla", err, __filename);
+          logger.error("AI_MARKET_MAKER", "Failed to create table in ScyllaDB", err);
         }
       }
     }
@@ -155,15 +155,15 @@ export async function initializeAiMarketMakerTables(): Promise<void> {
       } catch (err: any) {
         // Ignore "already exists" errors
         if (!err.message?.includes("already exists")) {
-          logError("ai-market-maker-scylla", err, __filename);
+          logger.error("AI_MARKET_MAKER", "Failed to create materialized view in ScyllaDB", err);
         }
       }
     }
 
     initialized = true;
-    console.info("\x1b[36mAI Market Maker Scylla tables initialized successfully\x1b[0m");
+    logger.groupItem("AI_MM", "Database tables initialized", "success");
   } catch (error) {
-    logError("ai-market-maker-scylla", error, __filename);
+    logger.groupItem("AI_MM", `Failed to initialize database tables: ${error instanceof Error ? error.message : error}`, "error");
     throw error;
   }
 }

@@ -15,7 +15,7 @@ export default function GeneralSettingsSection({
   settings,
   onUpdate,
 }: GeneralSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   return (
     <div className="space-y-6">
       <Card className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-800">
@@ -38,7 +38,7 @@ export default function GeneralSettingsSection({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="defaultTaxRate" className="text-gray-700 dark:text-gray-300">
-                  {t("default_tax_rate_(%)")}
+                  {`${t("default_tax_rate")} (%)`}
                 </Label>
                 <Input
                   id="defaultTaxRate"
@@ -47,7 +47,7 @@ export default function GeneralSettingsSection({
                   onChange={(e) =>
                     onUpdate("ecommerceDefaultTaxRate", Number(e.target.value))
                   }
-                  placeholder="Enter default tax rate"
+                  placeholder={t("enter_default_tax_rate")}
                   min="0"
                   max="100"
                   step="0.01"
@@ -95,7 +95,7 @@ export default function GeneralSettingsSection({
                       Number(e.target.value)
                     )
                   }
-                  placeholder="Enter default shipping cost"
+                  placeholder={t("enter_default_shipping_cost")}
                   min="0"
                   step="0.01"
                   disabled={!settings["ecommerceShippingEnabled"]}

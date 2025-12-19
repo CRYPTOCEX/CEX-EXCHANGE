@@ -19,7 +19,7 @@ export default function TradingButtons({
   isMobile = false,
   darkMode = true,
 }: TradingButtonsProps) {
-  const t = useTranslations("common");
+  const tCommon = useTranslations("common");
   return (
     <div
       className={`p-4 space-y-3 border-t ${darkMode ? "border-zinc-800" : "border-zinc-200"}`}
@@ -31,7 +31,7 @@ export default function TradingButtons({
           className={`flex-1 bg-green-600 hover:bg-green-700 text-white py-3 px-5 rounded-md flex items-center justify-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
         >
           <ArrowUp size={18} />
-          <span>{t("RISE")}</span>
+          <span>{tCommon("rise")}</span>
         </button>
         <button
           onClick={() => handlePlaceOrder("FALL")}
@@ -39,7 +39,7 @@ export default function TradingButtons({
           className={`flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-5 rounded-md flex items-center justify-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
         >
           <ArrowDown size={18} />
-          <span>{t("FALL")}</span>
+          <span>{tCommon("fall")}</span>
         </button>
       </div>
     </div>

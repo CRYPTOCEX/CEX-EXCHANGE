@@ -17,7 +17,8 @@ interface ValidationFieldsProps {
 }
 
 export function ValidationFields({ field, onUpdate }: ValidationFieldsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const availableTypes = getAvailableValidationTypes(field.type);
 
   if (availableTypes.length === 0) {
@@ -51,7 +52,7 @@ export function ValidationFields({ field, onUpdate }: ValidationFieldsProps) {
     <div className="space-y-5">
       <div className="bg-gray-50 p-3 rounded-md border border-gray-200 dark:bg-zinc-900 dark:border-zinc-800">
         <h3 className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-3">
-          {t("validation_rules")}
+          {tCommon("validation_rules")}
         </h3>
 
         {/* Field-specific validation settings */}
@@ -86,7 +87,7 @@ export function ValidationFields({ field, onUpdate }: ValidationFieldsProps) {
                       className="bg-white border-gray-300 text-gray-900 focus-visible:ring-primary dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
                     />
                     <div className="bg-gray-100 text-gray-700 text-xs flex items-center px-2 rounded-r-md border border-l-0 border-gray-300 dark:bg-zinc-700 dark:text-zinc-300 dark:border-zinc-600">
-                      {t("chars")}
+                      {tCommon("chars")}
                     </div>
                   </div>
                 </div>
@@ -114,7 +115,7 @@ export function ValidationFields({ field, onUpdate }: ValidationFieldsProps) {
                       className="bg-white border-gray-300 text-gray-900 focus-visible:ring-primary dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
                     />
                     <div className="bg-gray-100 text-gray-700 text-xs flex items-center px-2 rounded-r-md border border-l-0 border-gray-300 dark:bg-zinc-700 dark:text-zinc-300 dark:border-zinc-600">
-                      {t("chars")}
+                      {tCommon("chars")}
                     </div>
                   </div>
                 </div>
@@ -126,7 +127,7 @@ export function ValidationFields({ field, onUpdate }: ValidationFieldsProps) {
                     htmlFor="field-pattern"
                     className="text-xs text-gray-500 dark:text-zinc-400 flex items-center gap-1"
                   >
-                    {t("pattern_(regex)")}
+                    {`${t("pattern_regex")} (Regex)`}
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTriggerAlias asChild>
@@ -146,11 +147,11 @@ export function ValidationFields({ field, onUpdate }: ValidationFieldsProps) {
                     onChange={(e) =>
                       handleBasicChange("pattern", e.target.value || undefined)
                     }
-                    placeholder="e.g. ^[A-Za-z0-9]+$"
+                    placeholder={t("e_g_a_za_z0_9")}
                     className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
                   />
                   <p className="text-xs text-gray-500 dark:text-zinc-500">
-                    {t("example_^a-za-z0-9+$_for_characters_only")}
+                    {t("example_a_za_z0_9_for_characters_only")}
                   </p>
                 </div>
               )}
@@ -258,7 +259,7 @@ export function ValidationFields({ field, onUpdate }: ValidationFieldsProps) {
               htmlFor="field-maxSize"
               className="text-xs text-gray-500 dark:text-zinc-400"
             >
-              {t("maximum_file_size_(kb)")}
+              {t("maximum_file_size_kb")}
             </Label>
             <div className="flex">
               <Input
@@ -281,7 +282,7 @@ export function ValidationFields({ field, onUpdate }: ValidationFieldsProps) {
                 className="bg-white border-gray-300 text-gray-900 focus-visible:ring-primary dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
               />
               <div className="bg-gray-100 text-gray-700 text-xs flex items-center px-2 rounded-r-md border border-l-0 border-gray-300 dark:bg-zinc-700 dark:text-zinc-300 dark:border-zinc-600">
-                {'KB'}
+                KB
               </div>
             </div>
           </div>
@@ -306,7 +307,7 @@ export function ValidationFields({ field, onUpdate }: ValidationFieldsProps) {
                   <span>
                     {t("must_be_at_least")}
                     {field.validation.minLength}
-                    {t("characters")}
+                    {tCommon("characters")}
                   </span>
                 </div>
               )}
@@ -316,7 +317,7 @@ export function ValidationFields({ field, onUpdate }: ValidationFieldsProps) {
                   <span>
                     {t("must_be_at_most")}
                     {field.validation.maxLength}
-                    {t("characters")}
+                    {tCommon("characters")}
                   </span>
                 </div>
               )}

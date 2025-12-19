@@ -1,9 +1,12 @@
 import { models } from "@b/db";
+import { logger } from "@b/utils/console";
 
 export const metadata = {
   summary: "Update default page content",
   operationId: "updateDefaultPageContent",
   tags: ["Admin", "Default Editor"],
+  logModule: "ADMIN_CMS",
+  logTitle: "Update default editor",
   parameters: [
     {
       index: 0,
@@ -66,8 +69,10 @@ export const metadata = {
 };
 
 export default async (data) => {
-  const { params, query, body } = data;
+  const { params, query, body, ctx } = data;
   const { pageId } = params;
+
+  ctx?.step("Validating page parameters");
   // Get pageSource from body first, then query, then default
   const pageSource = body.pageSource || query.pageSource || 'default';
   const { title, content, meta, status } = body;
@@ -91,12 +96,14 @@ export default async (data) => {
   }
 
   try {
+    ctx?.step("Processing page content update");
+
     // Parse variables if it comes as a JSON string
     if (variables && typeof variables === 'string') {
       try {
         variables = JSON.parse(variables);
       } catch (e) {
-        console.error("Failed to parse variables string:", e.message);
+        logger.error("EDITOR", "Failed to parse variables string", e);
         variables = {};
       }
     }
@@ -114,7 +121,7 @@ export default async (data) => {
             .join('');
           variables = JSON.parse(jsonString);
         } catch (e) {
-          console.error("Failed to reconstruct variables from character indices:", e.message);
+          logger.error("EDITOR", "Failed to reconstruct variables from character indices", e);
           variables = {};
         }
       }
@@ -134,14 +141,16 @@ export default async (data) => {
     }
 
     // Find existing page
+    ctx?.step("Finding existing page");
     const existingPage = await models.defaultPage.findOne({
       where: { pageId, pageSource }
     });
 
     if (!existingPage) {
       // Create new page if it doesn't exist
+      ctx?.step("Creating new page");
       const isHomePage = pageId === 'home';
-      
+
       const newPage = await models.defaultPage.create({
         pageId,
         pageSource,
@@ -154,6 +163,7 @@ export default async (data) => {
       });
 
       // No caching - data is always fresh
+      ctx?.success(`Page created successfully: ${pageId} (${pageSource})`);
       return {
         success: true,
         lastModified: newPage.updatedAt.toISOString(),
@@ -183,8 +193,9 @@ export default async (data) => {
     }
 
     // Update the page
+    ctx?.step("Updating page content");
     const updateData: any = {};
-    
+
     if (title) updateData.title = title;
     if (meta) updateData.meta = meta;
     if (status) updateData.status = status;
@@ -201,6 +212,7 @@ export default async (data) => {
     await existingPage.update(updateData);
 
     // No caching - data is always fresh
+    ctx?.success(`Page updated successfully: ${pageId} (${pageSource})`);
     return {
       success: true,
       lastModified: existingPage.updatedAt.toISOString(),
@@ -208,7 +220,8 @@ export default async (data) => {
     };
 
   } catch (error) {
-    console.error("Error updating page content:", error.message);
+    logger.error("EDITOR", "Error updating page content", error);
+    ctx?.fail("Failed to update page content");
     return {
       error: "Failed to update page content",
       status: 500

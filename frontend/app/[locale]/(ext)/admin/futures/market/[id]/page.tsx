@@ -14,6 +14,7 @@ import FuturesMetadataStep from "@/app/[locale]/(ext)/admin/futures/market/compo
 import FuturesFeesStep from "@/app/[locale]/(ext)/admin/futures/market/components/step-3";
 import Stepper from "@/components/ui/stepper";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 /* ----------------- Types and Initial Values ----------------- */
 
@@ -66,7 +67,8 @@ const initialFormValues: FuturesMarketForm = {
 const TOTAL_STEPS = 2;
 
 const EditFuturesMarket = () => {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   const router = useRouter();
   const { id } = useParams();
   const [formData, setFormData] =
@@ -206,12 +208,12 @@ const EditFuturesMarket = () => {
   ];
 
   if (isLoadingData) {
-    return <p className="p-5">{t("loading_market_data")}.</p>;
+    return <p className={`container ${PAGE_PADDING}`}>{t("loading_market_data")}.</p>;
   }
 
   return (
     <div
-      className="p-5 space-y-6"
+      className={`container ${PAGE_PADDING} space-y-6`}
       onKeyDown={(e) => {
         if (e.key === "Enter" && step < TOTAL_STEPS) {
           e.preventDefault();
@@ -219,11 +221,11 @@ const EditFuturesMarket = () => {
       }}
     >
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">{t("edit_futures_market")}</h1>
+        <h1 className="text-2xl font-bold">{tExtAdmin("edit_futures_market")}</h1>
         <Link href="/admin/futures/market">
           <Button variant="outline">
             <Icon icon="akar-icons:arrow-left" className="mr-2" />
-            {t("Back")}
+            {t("back")}
           </Button>
         </Link>
       </div>
@@ -236,6 +238,7 @@ const EditFuturesMarket = () => {
         onNext={nextStep}
         onSubmit={handleFinalSubmit}
         isSubmitting={isSubmitting}
+        showStepDescription={true}
       >
         {step === 1 && (
           <FuturesBasicInfoStep

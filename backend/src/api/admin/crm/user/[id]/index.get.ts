@@ -10,6 +10,7 @@ import { userSchema } from "../utils";
 import { models } from "@b/db";
 import { CacheManager } from "@b/utils/cache";
 import { Op, fn, col, literal } from "sequelize";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Retrieves detailed information of a specific user by UUID with extension data",
@@ -43,6 +44,7 @@ export const metadata: OperationObject = {
   },
   requiresAuth: true,
   permission: "view.user",
+  demoMask: ["email", "phone"],
 };
 
 // Helper function to get extension-specific data
@@ -164,7 +166,7 @@ const getExtensionData = async (userId: string, extensions: Map<string, any>) =>
           positions: futuresPositionsResult.rows || [],
         };
       } catch (error) {
-        console.warn("Failed to fetch futures data from ScyllaDB:", error.message);
+        logger.warn("FUTURES", `Failed to fetch futures data from ScyllaDB: ${error.message}`);
         extensionData.futuresData = {
           recentOrders: [],
           positions: [],
@@ -189,7 +191,7 @@ const getExtensionData = async (userId: string, extensions: Map<string, any>) =>
           recentOrders: ecosystemOrdersResult.rows || [],
         };
       } catch (error) {
-        console.warn("Failed to fetch ecosystem data from ScyllaDB:", error.message);
+        logger.warn("ECOSYSTEM", `Failed to fetch ecosystem data from ScyllaDB: ${error.message}`);
         extensionData.ecosystemData = {
           recentOrders: [],
         };
@@ -233,7 +235,7 @@ const getExtensionData = async (userId: string, extensions: Map<string, any>) =>
             attributes: ["name", "symbol", "status"],
           },
         ],
-        attributes: ["id", "amount", "currency", "status", "createdAt"],
+        attributes: ["id", "amount", "price", "status", "createdAt"],
         limit: 10,
         order: [["createdAt", "DESC"]],
       }) || [];
@@ -292,7 +294,7 @@ const getExtensionData = async (userId: string, extensions: Map<string, any>) =>
     }
 
   } catch (error) {
-    console.error("Error fetching extension data:", error);
+    logger.error("USER", "Error fetching extension data", error);
     // Don't fail the entire request if extension data fails
   }
   

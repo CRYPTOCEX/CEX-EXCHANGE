@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function TokenSimulatorPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_ico");
   return (
-    <div className="container py-10">
+    <div className="container py-10 pt-20">
       <div className="flex flex-col space-y-2 mb-8">
         <h1 className="text-3xl font-bold">{t("token_economics_simulator")}</h1>
         <p className="text-muted-foreground max-w-3xl">

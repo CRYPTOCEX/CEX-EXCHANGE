@@ -40,14 +40,4 @@ export const ecommerceCategoryUpdateSchema = {
   required: ["name", "description", "status"],
 };
 
-export const ecommerceCategoryStoreSchema = {
-  description: `Category created or updated successfully`,
-  content: {
-    "application/json": {
-      schema: {
-        type: "object",
-        properties: baseEcommerceCategorySchema,
-      },
-    },
-  },
-};
+export const ecommerceCategoryStoreSchema = baseEcommerceCategorySchema;

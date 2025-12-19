@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Keyboard, ChevronUp, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 type OrderType = "CALL" | "PUT";
 interface TradingShortcutsProps {
   onPlaceOrder: (type: OrderType) => void;
@@ -19,6 +20,7 @@ export default function TradingShortcuts({
   onQuickAmount,
   darkMode = true,
 }: TradingShortcutsProps) {
+  const t = useTranslations("binary_components");
   const [isOpen, setIsOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -152,7 +154,7 @@ export default function TradingShortcuts({
                 <div className="flex justify-between items-center mb-4">
                   <h3 className={`font-medium text-lg flex items-center gap-2`}>
                     <Keyboard size={18} className={styles.accent} />
-                    Keyboard Shortcuts
+                    {t("keyboard_shortcuts")}
                   </h3>
                   <motion.button
                     onClick={() => setIsOpen(false)}
@@ -199,9 +201,9 @@ export default function TradingShortcuts({
                         C
                       </div>
                       <div>
-                        <div className="font-medium">Place CALL order</div>
+                        <div className="font-medium">{t("place_call_order")}</div>
                         <div className={`text-xs ${styles.muted} mt-1`}>
-                          Buy when price will rise
+                          {t("buy_when_price_will_rise")}
                         </div>
                       </div>
                     </div>
@@ -224,9 +226,9 @@ export default function TradingShortcuts({
                         P
                       </div>
                       <div>
-                        <div className="font-medium">Place PUT order</div>
+                        <div className="font-medium">{t("place_put_order")}</div>
                         <div className={`text-xs ${styles.muted} mt-1`}>
-                          Sell when price will fall
+                          {t("sell_when_price_will_fall")}
                         </div>
                       </div>
                     </div>
@@ -238,7 +240,7 @@ export default function TradingShortcuts({
                     className={`${styles.subtitle} mb-3 text-sm font-medium flex items-center gap-1.5`}
                   >
                     <span className="w-1.5 h-1.5 bg-[#00C896] rounded-full"></span>
-                    Amount Control
+                    {t("amount_control")}
                   </h4>
                   <div className="grid grid-cols-2 gap-4">
                     <motion.div
@@ -257,9 +259,9 @@ export default function TradingShortcuts({
                         <ChevronUp size={20} className={styles.accent} />
                       </div>
                       <div>
-                        <div className="font-medium">Increase amount</div>
+                        <div className="font-medium">{t("increase_amount")}</div>
                         <div className={`text-xs ${styles.muted} mt-1`}>
-                          Arrow Up
+                          {t("arrow_up")}
                         </div>
                       </div>
                     </motion.div>
@@ -280,9 +282,9 @@ export default function TradingShortcuts({
                         <ChevronDown size={20} className={styles.accent} />
                       </div>
                       <div>
-                        <div className="font-medium">Decrease amount</div>
+                        <div className="font-medium">{t("decrease_amount")}</div>
                         <div className={`text-xs ${styles.muted} mt-1`}>
-                          Arrow Down
+                          {t("arrow_down")}
                         </div>
                       </div>
                     </motion.div>
@@ -294,7 +296,7 @@ export default function TradingShortcuts({
                     className={`${styles.subtitle} mb-3 text-sm font-medium flex items-center gap-1.5`}
                   >
                     <span className="w-1.5 h-1.5 bg-[#00C896] rounded-full"></span>
-                    Quick Amount
+                    {t("quick_amount")}
                   </h4>
                   <div className="grid grid-cols-4 gap-3">
                     {[
@@ -350,13 +352,13 @@ export default function TradingShortcuts({
                     >
                       K
                     </kbd>{" "}
-                    anytime to show this panel or{" "}
+                    {t("anytime_to_show_this_panel_or")}{" "}
                     <kbd
                       className={`px-1.5 py-0.5 ${styles.keyBadge} rounded text-xs`}
                     >
                       Esc
                     </kbd>{" "}
-                    to close it
+                    {t("to_close_it")}
                   </div>
                 </div>
               </motion.div>
@@ -372,7 +374,7 @@ export default function TradingShortcuts({
       <motion.button
         onClick={() => setIsOpen(true)}
         className={`flex items-center gap-1.5 text-sm ${styles.button} py-2 px-3 rounded-md transition-colors border shadow-sm`}
-        title="Keyboard Shortcuts"
+        title={t("keyboard_shortcuts")}
         whileHover={{
           scale: 1.03,
         }}

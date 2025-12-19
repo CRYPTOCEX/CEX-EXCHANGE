@@ -21,6 +21,7 @@ import { useRouter } from "@/i18n/routing";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { MarkdownRenderer, isMarkdownContent } from "@/lib/markdown-renderer";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 interface UpdateData {
   status: boolean;
@@ -30,7 +31,8 @@ interface UpdateData {
   version: string;
 }
 export default function BlockchainDetailsPage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
   const router = useRouter();
   const { productId } = useParams();
   const { theme } = useTheme();
@@ -235,7 +237,7 @@ export default function BlockchainDetailsPage() {
     updateData.message !== "You have the latest version of Bicrypto." &&
     updateData.message !== "";
   return (
-    <div className="container py-6 space-y-8">
+    <div className={`container space-y-8 ${PAGE_PADDING}`}>
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="flex flex-col space-y-1">
@@ -280,7 +282,7 @@ export default function BlockchainDetailsPage() {
             onClick={() => router.push("/admin/ecosystem")}
           >
             <Icon icon="material-symbols:arrow-back" className="mr-2 h-5 w-5" />
-            {t("Back")}
+            {t("back")}
           </Button>
         </div>
       </div>
@@ -320,7 +322,7 @@ export default function BlockchainDetailsPage() {
                 <div className="space-y-3">
                   <Card className="p-4 border bg-accent/10">
                     <p className="text-sm">
-                      {t("please_backup_your_before_upgrading")}.
+                      {tExtAdmin("please_backup_your_before_upgrading")}.
                     </p>
                   </Card>
                   {updateData.message && (
@@ -340,7 +342,7 @@ export default function BlockchainDetailsPage() {
                       {t("update_notes")}
                     </h3>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      {t("there_are_no_this_time")}.
+                      {tExtAdmin("there_are_no_this_time")}.
                     </p>
                   </Card>
                 </>
@@ -405,7 +407,7 @@ export default function BlockchainDetailsPage() {
                 disabled={isUpdateChecking}
                 loading={isUpdateChecking}
               >
-                {t("check_for_updates")}
+                {tExtAdmin("check_for_updates")}
               </Button>
             </div>
           </Card>
@@ -421,12 +423,12 @@ export default function BlockchainDetailsPage() {
                 <Input
                   value={purchaseCode}
                   onChange={(e) => setPurchaseCode(e.target.value)}
-                  placeholder="Enter your purchase code"
+                  placeholder={t("enter_your_purchase_code")}
                 />
                 <Input
                   value={envatoUsername}
                   onChange={(e) => setEnvatoUsername(e.target.value)}
-                  placeholder="Enter your Envato username"
+                  placeholder={t("enter_your_envato_username")}
                 />
               </div>
               <Button

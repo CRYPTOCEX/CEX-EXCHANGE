@@ -2,7 +2,7 @@ import { AlertTriangle, Clock, Sparkles, Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function WatchlistEmptyState() {
-  const t = useTranslations("ext");
+  const t = useTranslations("trade_components");
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 flex flex-col items-center justify-center p-4">
@@ -34,7 +34,7 @@ export function WatchlistEmptyState() {
             {/* Updates in real-time */}
             <div className="flex items-center justify-center mt-4 space-x-1.5 text-xs text-muted-foreground/70 dark:text-zinc-500">
               <Clock className="h-3.5 w-3.5" />
-              <span>{t("updates_in_real-time")}</span>
+              <span>{t("updates_in_real_time")}</span>
             </div>
           </div>
 

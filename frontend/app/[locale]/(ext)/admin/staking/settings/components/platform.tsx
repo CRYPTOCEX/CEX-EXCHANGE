@@ -26,7 +26,7 @@ export default function StakingPlatformSettingsSection({
   validationErrors = {},
   hasSubmitted = false,
 }: StakingPlatformSettingsSectionProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
   const safeSettings = {
     DefaultAdminFee: settings.DefaultAdminFee ?? 0,
     DefaultEarlyWithdrawalFee: settings.DefaultEarlyWithdrawalFee ?? 0,
@@ -53,12 +53,12 @@ export default function StakingPlatformSettingsSection({
           <Input
             id="defaultAdminFee"
             type="number"
-            label="Default Admin Fee (%)"
+            label={`${t("default_admin_fee")} (%)`}
             value={safeSettings.DefaultAdminFee}
             onChange={(e) =>
               onUpdate("DefaultAdminFee", Number(e.target.value))
             }
-            placeholder="Enter default admin fee"
+            placeholder={t("enter_default_admin_fee")}
             min="0"
             max="100"
             step="0.1"
@@ -73,12 +73,12 @@ export default function StakingPlatformSettingsSection({
           <Input
             id="defaultEarlyWithdrawalFee"
             type="number"
-            label="Default Early Withdrawal Fee (%)"
+            label={`${t("default_early_withdrawal_fee")} (%)`}
             value={safeSettings.DefaultEarlyWithdrawalFee}
             onChange={(e) =>
               onUpdate("DefaultEarlyWithdrawalFee", Number(e.target.value))
             }
-            placeholder="Enter early withdrawal fee"
+            placeholder={t("enter_early_withdrawal_fee")}
             min="0"
             max="100"
             step="0.1"
@@ -95,7 +95,7 @@ export default function StakingPlatformSettingsSection({
       <div className="flex items-center justify-between border p-4 rounded-lg">
         <div>
           <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-            {t("auto-compound_by_default")}
+            {t("auto_compound_by_default")}
           </span>
           <p className="text-xs text-muted-foreground">
             {t("when_enabled_new_compound_returns")}.

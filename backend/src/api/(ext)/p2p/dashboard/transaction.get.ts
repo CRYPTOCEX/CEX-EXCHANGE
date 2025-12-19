@@ -8,6 +8,8 @@ export const metadata = {
     "Retrieves recent trade transactions for the authenticated user.",
   operationId: "getP2PTransactions",
   tags: ["P2P", "Dashboard"],
+  logModule: "P2P",
+  logTitle: "Get transactions",
   responses: {
     200: { description: "Transactions retrieved successfully." },
     401: unauthorizedResponse,
@@ -16,9 +18,11 @@ export const metadata = {
   requiresAuth: true,
 };
 
-export default async (data: { user?: any }) => {
-  const { user } = data;
+export default async (data: { user?: any; ctx?: any }) => {
+  const { user, ctx } = data;
   if (!user?.id) throw new Error("Unauthorized");
+
+  ctx?.step("Fetching recent transactions");
   try {
     const transactions = await models.p2pTrade.findAll({
       where: {
@@ -28,8 +32,11 @@ export default async (data: { user?: any }) => {
       limit: 10,
       raw: true,
     });
+
+    ctx?.success(`Retrieved ${transactions.length} transactions`);
     return transactions;
   } catch (err: any) {
+    ctx?.fail(err.message || "Failed to retrieve transactions");
     throw new Error("Internal Server Error: " + err.message);
   }
 };

@@ -1,9 +1,17 @@
 import { updateRecordResponses, updateStatus } from "@b/utils/query";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  notFoundResponse,
+  badRequestResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata: OperationObject = {
-  summary: "Bulk updates the status of ecommerce categories",
+  summary: "Bulk updates ecommerce category status",
+  description:
+    "Updates the status (active/inactive) of multiple ecommerce categories simultaneously. Set status to true to activate categories or false to deactivate them.",
   operationId: "bulkUpdateEcommerceCategoryStatus",
-  tags: ["Admin", "Ecommerce Categories"],
+  tags: ["Admin", "Ecommerce", "Category"],
   requestBody: {
     required: true,
     content: {
@@ -27,13 +35,43 @@ export const metadata: OperationObject = {
       },
     },
   },
-  responses: updateRecordResponses("Ecommerce Category"),
+  responses: {
+    200: {
+      description: "Category status updated successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              message: {
+                type: "string",
+                description: "Success message",
+              },
+            },
+          },
+        },
+      },
+    },
+    400: badRequestResponse,
+    401: unauthorizedResponse,
+    404: notFoundResponse("Ecommerce category"),
+    500: serverErrorResponse,
+  },
   requiresAuth: true,
   permission: "edit.ecommerce.category",
+  logModule: "ADMIN_ECOM",
+  logTitle: "Bulk update category status",
 };
 
 export default async (data: Handler) => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { ids, status } = body;
-  return updateStatus("ecommerceCategory", ids, status);
+
+  ctx?.step(`Validating ${ids.length} category IDs`);
+  ctx?.step(`Updating status to ${status} for ${ids.length} categories`);
+
+  const result = await updateStatus("ecommerceCategory", ids, status);
+
+  ctx?.success(`Successfully updated status for ${ids.length} categories`);
+  return result;
 };

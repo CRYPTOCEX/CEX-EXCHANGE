@@ -12,11 +12,14 @@ import {
   LabeledTextarea,
 } from "../../structure-tab/ui-components";
 import type { SettingsProps } from "../settings-map";
+import { useTranslations } from "next-intl";
 export function TestimonialSettings({
   element,
   settings,
   onSettingChange,
 }: SettingsProps) {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const testimonials = settings.testimonials || [
     {
@@ -57,7 +60,7 @@ export function TestimonialSettings({
       <div className="flex items-center gap-4">
         <LabeledSelect
           id="displayType"
-          label="Display Type"
+          label={t("display_type")}
           value={settings.displayType || "card"}
           onValueChange={(value) => onSettingChange("displayType", value)}
           options={[
@@ -124,7 +127,7 @@ export function TestimonialSettings({
                       />
                       <LabeledInput
                         id={`role-${index}`}
-                        label="Role/Company"
+                        label={t("role_company")}
                         value={testimonial.role}
                         onChange={(e) =>
                           updateTestimonial(index, "role", e.target.value)
@@ -146,7 +149,7 @@ export function TestimonialSettings({
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Rating (0-5)</Label>
+                      <Label className="text-xs">{`${tCommon("rating")} (0-5)`}</Label>
                       <div className="flex items-center gap-2">
                         <Slider
                           min={0}
@@ -245,7 +248,7 @@ export function TestimonialSettings({
           })}
           {testimonials.length === 0 && (
             <div className="text-center py-4 text-gray-500 text-sm">
-              No testimonials added yet
+              {t("no_testimonials_added_yet")}
             </div>
           )}
         </div>

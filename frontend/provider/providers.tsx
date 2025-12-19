@@ -13,6 +13,7 @@ import { WebSocketProvider } from "./websocket.provider";
 import { ExtensionChecker } from "@/lib/extensions";
 import FloatingChatProvider from "@/components/global/floating-chat-provider";
 import { useSettingsSync } from "@/hooks/use-settings-sync";
+import applyGoogleTranslateDOMPatch from "@/utils/applyGoogleTranslateDOMPatch";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -73,9 +74,13 @@ const ConfigInitializer = ({
   return null;
 };
 
-// Add error handler component
+// Add error handler component and DOM patches
 function GlobalErrorHandler() {
   useEffect(() => {
+    // Apply DOM patches for Google Translate and other third-party tools
+    // This prevents "removeChild" errors during locale changes
+    applyGoogleTranslateDOMPatch();
+
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       console.error("Unhandled promise rejection:", event.reason);
       // Prevent the default browser behavior which might crash the app
@@ -130,7 +135,7 @@ const Providers = ({
         attribute="class"
         enableSystem={defaultTheme === "system"}
         defaultTheme={defaultTheme}
-        disableTransitionOnChange={false}
+        disableTransitionOnChange={true}
       >
         <ConfigInitializer
           profile={profile}

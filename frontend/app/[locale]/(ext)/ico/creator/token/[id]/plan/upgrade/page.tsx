@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useLaunchPlanStore } from "@/store/ico/launch-plan-store";
 import { generateFeatureComparison } from "@/app/[locale]/(ext)/ico/creator/launch/components/stepped-launch-form/utils";
+import { useTranslations } from "next-intl";
 
 // A helper to parse a plan's features if they are a string.
 function parseFeatures(features: any): Record<string, any> {
@@ -107,6 +108,7 @@ function PlanCard({
   upgradeComplete,
   handleUpgrade,
 }: PlanCardProps) {
+  const tCommon = useTranslations("common");
   const isCurrentPlan = plan.id === currentPlanId;
   const isSelected = selectedPlan?.id === plan.id;
   const isPro = plan.id === "pro";
@@ -166,12 +168,12 @@ function PlanCard({
             upgradeComplete ? (
               <>
                 <Check className="mr-2 h-4 w-4" />
-                Upgraded!
+                {tCommon("upgraded")}
               </>
             ) : (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
+                {tCommon('processing')}
               </>
             )
           ) : isCurrentPlan ? (
@@ -185,6 +187,8 @@ function PlanCard({
   );
 }
 export default function PlanUpgradePage() {
+  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -235,7 +239,7 @@ export default function PlanUpgradePage() {
   const showCompare = plans.length > 1;
   const featureComparison = showCompare ? generateFeatureComparison(plans) : [];
   return (
-    <div className="container pt-10 pb-24 max-w-7xl">
+    <div className="container pb-24 max-w-7xl pt-20">
       {/* Page header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -245,12 +249,12 @@ export default function PlanUpgradePage() {
           >
             <Button variant="ghost" size="sm" className="mb-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to {tokenId ? "Token" : "Dashboard"}
+              {tCommon("back_to")} {tokenId ? "Token" : "Dashboard"}
             </Button>
           </Link>
-          <h1 className="text-4xl font-bold">Upgrade Your Plan</h1>
+          <h1 className="text-4xl font-bold">{tCommon("upgrade_your_plan")}</h1>
           <p className="text-muted-foreground mt-2 text-lg">
-            Choose the plan that best fits your project's needs.
+            {tCommon("choose_the_plan_that_best_fits_your_projects_needs_1")}
           </p>
         </div>
         <div className="hidden md:block">
@@ -261,7 +265,7 @@ export default function PlanUpgradePage() {
                   <Shield className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Current Plan</p>
+                  <p className="text-sm font-medium">{tCommon("current_plan")}</p>
                   <p className="text-xl font-bold">
                     {currentPlanDetails?.name || "N/A"}
                   </p>
@@ -275,7 +279,7 @@ export default function PlanUpgradePage() {
       {reason && (
         <Alert className="mb-8 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50">
           <AlertTitle className="text-amber-800 dark:text-amber-400">
-            Upgrade Required
+            {tCommon("upgrade_required")}
           </AlertTitle>
           <AlertDescription className="text-amber-700 dark:text-amber-300">
             {reason}
@@ -293,12 +297,12 @@ export default function PlanUpgradePage() {
         >
           <div className="flex justify-between items-center mb-4">
             <TabsList className="grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="cards">Plan Options</TabsTrigger>
-              <TabsTrigger value="comparison">Compare Features</TabsTrigger>
+              <TabsTrigger value="cards">{tCommon("plan_options")}</TabsTrigger>
+              <TabsTrigger value="comparison">{tCommon("compare_features")}</TabsTrigger>
             </TabsList>
             {selectedPlan && (
               <div className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-full text-sm">
-                <span>Selected:</span>
+                <span>{tCommon("selected")}:</span>
                 <Badge variant="outline" className="font-semibold">
                   {selectedPlan.name}
                 </Badge>
@@ -412,7 +416,7 @@ export default function PlanUpgradePage() {
             {selectedPlan && selectedPlan.id !== currentPlanId && (
               <div className="mt-6 flex justify-center">
                 <Button onClick={() => handleUpgrade(selectedPlan.id)}>
-                  Upgrade to {selectedPlan.name} for ${selectedPlan.price}
+                  {tCommon("upgrade_to")} {selectedPlan.name} {t("for")}{selectedPlan.price}
                 </Button>
               </div>
             )}
@@ -443,30 +447,27 @@ export default function PlanUpgradePage() {
           <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
             <Sparkles className="h-6 w-6 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">Unlock More Features</h3>
+          <h3 className="text-lg font-semibold mb-2">{tCommon("unlock_more_features")}</h3>
           <p className="text-muted-foreground text-sm">
-            Upgrade your plan to access advanced features and increase your
-            project's potential.
+            {t("upgrade_your_plan_to_access_advanced")}
           </p>
         </div>
         <div className="flex flex-col items-center text-center p-6 rounded-lg border bg-card">
           <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
             <Users className="h-6 w-6 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">Grow Your Team</h3>
+          <h3 className="text-lg font-semibold mb-2">{tCommon("grow_your_team")}</h3>
           <p className="text-muted-foreground text-sm">
-            Add more team members and collaborate effectively with higher tier
-            plans.
+            {t("add_more_team_members_and_collaborate")}
           </p>
         </div>
         <div className="flex flex-col items-center text-center p-6 rounded-lg border bg-card">
           <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
             <BarChart4 className="h-6 w-6 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">Advanced Analytics</h3>
+          <h3 className="text-lg font-semibold mb-2">{tCommon("advanced_analytics")}</h3>
           <p className="text-muted-foreground text-sm">
-            Gain deeper insights into your token performance with detailed
-            analytics.
+            {t("gain_deeper_insights_into_your_token")}
           </p>
         </div>
       </div>
@@ -475,21 +476,19 @@ export default function PlanUpgradePage() {
         <div className="flex items-start space-x-2">
           <Info className="h-5 w-5 text-muted-foreground mt-0.5" />
           <div>
-            <h4 className="font-medium mb-2">Why choose the right plan?</h4>
+            <h4 className="font-medium mb-2">{tCommon("why_choose_the_right_plan")}</h4>
             <p className="text-sm text-muted-foreground mb-2">
-              Your plan determines important limits and features throughout the
-              token launch process:
+              {t("your_plan_determines_important_limits_and")}:
             </p>
             <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
-              <li>The number of team members you can showcase</li>
-              <li>How many roadmap items you can create</li>
-              <li>The number of offering phases you can configure</li>
-              <li>Access to marketing support and security audits</li>
-              <li>Priority listing and custom tokenomics options</li>
+              <li>{tCommon("the_number_of_team_members_you_can_showcase")}</li>
+              <li>{tCommon("how_many_roadmap_items_you_can_create")}</li>
+              <li>{tCommon("the_number_of_offering_phases_you_can_configure")}</li>
+              <li>{tCommon("access_to_marketing_support_and_security_audits")}</li>
+              <li>{tCommon("priority_listing_and_custom_tokenomics_options")}</li>
             </ul>
             <p className="text-sm text-muted-foreground mt-2">
-              You can upgrade your plan later, but choosing the right plan now
-              will save you time and ensure a smoother launch experience.
+              {t("you_can_upgrade_your_plan_later")}
             </p>
           </div>
         </div>

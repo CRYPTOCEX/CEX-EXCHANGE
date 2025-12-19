@@ -8,6 +8,8 @@ export const metadata = {
   operationId: "getStakingPoolById",
   tags: ["Staking", "Admin", "Pools"],
   requiresAuth: true,
+  logModule: "ADMIN_STAKE",
+  logTitle: "Get Staking Pool",
   parameters: [
     {
       index: 0,
@@ -36,8 +38,8 @@ export const metadata = {
   permission: "view.staking.pool",
 };
 
-export default async (data: { user?: any; params?: any }) => {
-  const { user, params } = data;
+export default async (data: { user?: any; params?: any, ctx }) => {
+  const { user, params, ctx } = data;
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -49,6 +51,7 @@ export default async (data: { user?: any; params?: any }) => {
   }
 
   try {
+    ctx?.step("Fetching data");
     const pool = await models.stakingPool.findOne({
       where: { id: poolId },
       attributes: {
@@ -86,6 +89,7 @@ export default async (data: { user?: any; params?: any }) => {
       throw createError({ statusCode: 404, message: "Pool not found" });
     }
 
+    ctx?.success("Operation completed successfully");
     return pool;
   } catch (error) {
     if (error.statusCode === 404) {

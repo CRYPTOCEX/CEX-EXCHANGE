@@ -40,7 +40,8 @@ export default function TeamMemberGridItem({
   onEdit,
   onDelete,
 }: TeamMemberGridItemProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
+  const tExt = useTranslations("ext");
   return (
     <motion.div
       variants={itemVariants}
@@ -78,7 +79,7 @@ export default function TeamMemberGridItem({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={onEdit}>
                   <Edit className="h-4 w-4 mr-2" />
-                  {t("Edit")}
+                  {t("edit")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -86,7 +87,7 @@ export default function TeamMemberGridItem({
                   onSelect={onDelete}
                 >
                   <Trash2 className="h-4 w-4 mr-2 text-destructive" />
-                  {t("Delete")}
+                  {t("delete")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -151,7 +152,7 @@ export default function TeamMemberGridItem({
                     </Button>
                   </a>
                 </TooltipTrigger>
-                <TooltipContent>{t("LinkedIn")}</TooltipContent>
+                <TooltipContent>{tExt("linkedin")}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           )}
@@ -173,7 +174,7 @@ export default function TeamMemberGridItem({
                     </Button>
                   </a>
                 </TooltipTrigger>
-                <TooltipContent>{t("Website")}</TooltipContent>
+                <TooltipContent>{t("website")}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           )}
@@ -195,7 +196,7 @@ export default function TeamMemberGridItem({
                     </Button>
                   </a>
                 </TooltipTrigger>
-                <TooltipContent>{t("GitHub")}</TooltipContent>
+                <TooltipContent>{t("github")}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           )}

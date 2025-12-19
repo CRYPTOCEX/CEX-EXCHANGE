@@ -5,6 +5,7 @@ import {
   LabeledTextarea,
 } from "../../structure-tab/ui-components";
 import type { SettingsProps } from "../settings-map";
+import { useTranslations } from "next-intl";
 
 export function QuoteSettings({
   element,
@@ -12,11 +13,12 @@ export function QuoteSettings({
   onSettingChange,
   onElementUpdate,
 }: SettingsProps) {
+  const t = useTranslations("dashboard_admin");
   return (
     <div className="space-y-4">
       <LabeledTextarea
         id="quoteText"
-        label="Quote Text"
+        label={t("quote_text")}
         value={element.content || ""}
         onChange={(e) =>
           onElementUpdate({ ...element, content: e.target.value })
@@ -28,14 +30,14 @@ export function QuoteSettings({
         label="Author"
         value={settings.author || ""}
         onChange={(e) => onSettingChange("author", e.target.value)}
-        placeholder="Quote author"
+        placeholder={t("quote_author")}
       />
       <LabeledInput
         id="quoteRole"
-        label="Role/Source"
+        label={t("role_source")}
         value={settings.role || ""}
         onChange={(e) => onSettingChange("role", e.target.value)}
-        placeholder="Author role or source"
+        placeholder={t("author_role_or_source")}
       />
     </div>
   );

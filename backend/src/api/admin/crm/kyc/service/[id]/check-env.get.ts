@@ -1,4 +1,5 @@
 import { createError } from "@b/utils/error";
+import { logger } from "@b/utils/console";
 
 async function checkSumSubEnv(): Promise<{
   success: boolean;
@@ -82,6 +83,8 @@ export const metadata = {
     "Checks if the required environment variables for a verification service are configured.",
   operationId: "checkVerificationServiceEnv",
   tags: ["KYC", "Verification Services"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Check verification service env",
   parameters: [
     {
       index: 0,
@@ -120,24 +123,36 @@ export const metadata = {
   },
 };
 
-export default async (data: { params: { id: string } }): Promise<any> => {
-  try {
-    const { id } = data.params;
+export default async (data: Handler): Promise<any> => {
+  const { params, ctx } = data;
 
+  try {
+    const { id } = params;
+    ctx?.step(`Checking environment variables for ${id}`);
+
+    let result;
     if (id.startsWith("sumsub")) {
-      return await checkSumSubEnv();
+      result = await checkSumSubEnv();
     } else if (id.startsWith("gemini")) {
-      return await checkGeminiEnv();
+      result = await checkGeminiEnv();
     } else if (id.startsWith("deepseek")) {
-      return await checkDeepSeekEnv();
+      result = await checkDeepSeekEnv();
     } else {
       throw createError({
         statusCode: 404,
         message: "Verification service not found",
       });
     }
+
+    if (result.success) {
+      ctx?.success("Environment variables configured correctly");
+    } else {
+      ctx?.warn(`Missing environment variables: ${result.missingEnvVars.join(", ")}`);
+    }
+    return result;
   } catch (error: any) {
-    console.error("Error in checkVerificationServiceEnv:", error);
+    ctx?.fail("Failed to check environment variables");
+    logger.error("KYC", "Error in checkVerificationServiceEnv", error);
     throw createError({
       statusCode: error.statusCode || 500,
       message:

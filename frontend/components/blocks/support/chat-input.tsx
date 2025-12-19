@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import { useTranslations } from "next-intl";
 
 interface ChatInputProps {
   value: string;
@@ -32,6 +33,7 @@ export function ChatInput({
   isReplying,
   ticketClosed,
 }: ChatInputProps) {
+  const t = useTranslations("common");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,7 +72,7 @@ export function ChatInput({
                 <Input
                   value={value}
                   onChange={onChange}
-                  placeholder="Type your message..."
+                  placeholder={t("type_your_message_ellipsis")}
                   className="text-sm bg-input text-foreground placeholder:text-muted-foreground w-full"
                   disabled={isDisabled}
                 />

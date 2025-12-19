@@ -13,7 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminDashboardStore } from "@/store/p2p/admin-dashboard-store";
 import { useTranslations } from "next-intl";
 export function AdminRecentActivity() {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const {
     recentActivity,
     isLoadingRecentActivity,
@@ -55,7 +56,7 @@ export function AdminRecentActivity() {
               {t("error_loading_recent_activity")}
             </h3>
             <div className="mt-2 text-sm text-red-700">
-              <p>{t("please_try_refreshing_the_page")}</p>
+              <p>{tCommon("please_try_refreshing_the_page")}</p>
             </div>
           </div>
         </div>
@@ -109,7 +110,7 @@ export function AdminRecentActivity() {
                 <AlertTriangle className="h-5 w-5 text-amber-500" />
               )}
               {activity.type === "payment" && (
-                <CreditCard className="h-5 w-5 text-purple-500" />
+                <CreditCard className="h-5 w-5 text-blue-500" />
               )}
             </div>
           </div>

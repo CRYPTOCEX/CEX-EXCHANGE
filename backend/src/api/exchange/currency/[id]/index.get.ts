@@ -2,6 +2,7 @@
 
 import { models } from "@b/db";
 import { RedisSingleton } from "@b/utils/redis";
+import { logger } from "@b/utils/console";
 const redis = RedisSingleton.getInstance();
 
 import {
@@ -16,6 +17,8 @@ export const metadata: OperationObject = {
   operationId: "getCurrency",
   tags: ["Currencies"],
   description: "Retrieves details of a specific currency by ID.",
+  logModule: "EXCHANGE",
+  logTitle: "Get Currency Details",
   parameters: [
     {
       name: "id",
@@ -44,18 +47,27 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { id } = data.params;
+  const { params, ctx } = data;
+  const { id } = params;
+
+  ctx?.step(`Fetching currency ${id}`);
   try {
     const cachedCurrencies = await redis.get("exchangeCurrencies");
     if (cachedCurrencies) {
       const currencies = JSON.parse(cachedCurrencies);
       const currency = currencies.find((c) => c.id === Number(id));
-      if (currency) return currency;
+      if (currency) {
+        ctx?.success("Currency retrieved from cache");
+        return currency;
+      }
     }
   } catch (err) {
-    console.error("Redis error:", err);
+    logger.error("EXCHANGE", "Redis error", err);
   }
-  return await getCurrency(Number(id));
+
+  const currency = await getCurrency(Number(id));
+  ctx?.success("Currency retrieved successfully");
+  return currency;
 };
 
 export async function getCurrency(

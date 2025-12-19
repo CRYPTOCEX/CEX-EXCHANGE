@@ -5,6 +5,7 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
+import { logger } from "@b/utils/console";
 
 export const metadata: OperationObject = {
   summary: "Validate recipient for transfer",
@@ -123,7 +124,7 @@ export default async (data: Handler) => {
       },
     };
   } catch (error) {
-    console.error("Error validating recipient:", error);
+    logger.error("TRANSFER", "Error validating recipient", error);
     throw createError({
       statusCode: 500,
       message: "Failed to validate recipient",

@@ -28,7 +28,8 @@ export function AnswerQuestionDialog({
   question,
   onAnswer,
 }: AnswerQuestionDialogProps) {
-  const t = useTranslations("ext");
+  const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [answer, setAnswer] = useState(question.answer || "");
@@ -65,7 +66,7 @@ export function AnswerQuestionDialog({
 
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label>{t("Question")}</Label>
+            <Label>{t("question")}</Label>
             <div className="p-3 bg-muted rounded-md">{question.question}</div>
           </div>
 
@@ -74,14 +75,14 @@ export function AnswerQuestionDialog({
             <RichTextEditor
               value={answer}
               onChange={setAnswer}
-              placeholder="Write your answer here..."
+              placeholder={t("write_your_answer_here_ellipsis")}
             />
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("Cancel")}
+            {tCommon("cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? "Sending..." : "Send Answer"}

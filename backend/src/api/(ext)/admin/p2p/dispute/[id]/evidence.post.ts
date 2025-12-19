@@ -1,12 +1,20 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import {
+  unauthorizedResponse,
+  serverErrorResponse,
+  notFoundResponse,
+  badRequestResponse,
+} from "@b/utils/schema/errors";
 
 export const metadata = {
-  summary: "Add Evidence to a P2P Dispute",
-  description: "Adds evidence to an existing dispute by admin.",
+  summary: "Add evidence to P2P dispute",
+  description: "Uploads and attaches evidence files (images only) to a P2P dispute. Evidence is stored with admin information and timestamps for audit trail.",
   operationId: "addEvidenceToAdminP2PDispute",
-  tags: ["Admin", "Disputes", "P2P"],
+  tags: ["Admin", "P2P", "Dispute"],
   requiresAuth: true,
+  logModule: "ADMIN_P2P",
+  logTitle: "Add evidence to dispute",
   parameters: [
     {
       index: 0,
@@ -38,19 +46,20 @@ export const metadata = {
   },
   responses: {
     200: { description: "Evidence added successfully." },
-    401: { description: "Unauthorized." },
-    404: { description: "Dispute not found." },
-    500: { description: "Internal Server Error." },
+    401: unauthorizedResponse,
+    404: notFoundResponse("Resource"),
+    500: serverErrorResponse,
   },
   permission: "edit.p2p.dispute",
 };
 
 export default async (data) => {
-  const { params, body, user } = data;
+  const { params, body, user, ctx } = data;
   const { id } = params;
   const { fileUrl, fileName, fileType, title, description } = body;
 
   try {
+    ctx?.step("Fetching dispute");
     const dispute = await models.p2pDispute.findByPk(id, {
       include: [
         {
@@ -87,18 +96,23 @@ export default async (data) => {
       ],
     });
 
-    if (!dispute)
+    if (!dispute) {
+      ctx?.fail("Dispute not found");
       throw createError({ statusCode: 404, message: "Dispute not found" });
+    }
 
+    ctx?.step("Validating file type");
     // Validate file type - only allow images
     const allowedImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
     if (fileType && !allowedImageTypes.includes(fileType.toLowerCase())) {
+      ctx?.fail("Invalid file type");
       throw createError({
         statusCode: 400,
         message: "Only image files are allowed (JPEG, PNG, GIF, WebP)"
       });
     }
 
+    ctx?.step("Adding evidence");
     // Parse evidence if it's a string
     let existingEvidence = dispute.evidence;
     if (typeof existingEvidence === "string") {
@@ -128,6 +142,7 @@ export default async (data) => {
       createdAt: new Date().toISOString(),
     });
 
+    ctx?.step("Saving dispute");
     dispute.evidence = existingEvidence;
     await dispute.save();
 
@@ -163,6 +178,7 @@ export default async (data) => {
       timestamp: e.createdAt || e.timestamp,
     })) : [];
 
+    ctx?.success("Evidence added successfully");
     return {
       ...plainDispute,
       messages,
@@ -173,6 +189,7 @@ export default async (data) => {
     if (err.statusCode) {
       throw err;
     }
+    ctx?.fail("Failed to add evidence");
     throw createError({
       statusCode: 500,
       message: "Internal Server Error: " + err.message,

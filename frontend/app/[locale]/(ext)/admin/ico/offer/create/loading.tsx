@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CreateOfferingLoading() {
   return (
-    <div className="container py-8">
+    <div className="container pt-20 py-8">
       <div className="mb-8">
         <Skeleton className="h-8 w-64 mb-2" />
         <Skeleton className="h-4 w-96" />

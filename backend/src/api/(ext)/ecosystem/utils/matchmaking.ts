@@ -9,7 +9,7 @@ import type { Order, OrderBook } from "./scylla/queries";
 import { insertTrade } from "./scylla/queries";
 import { updateWalletBalance, updateWalletForFill } from "./wallet";
 import { handleTradesBroadcast, handleOrderBroadcast } from "./ws";
-import { logError } from "@b/utils/logger";
+import { logger } from "@b/utils/console";
 
 // ============================================
 // AI Bot Position & PnL Tracking
@@ -40,7 +40,7 @@ async function recordBotRealTrade(
     // Get the bot from database
     const bot = await models.aiBot.findByPk(botId);
     if (!bot) {
-      console.warn(`[Bot PnL] Bot ${botId} not found, skipping trade recording`);
+      logger.warn("BOT_PNL", `Bot ${botId} not found, skipping trade recording`);
       return;
     }
 
@@ -128,15 +128,13 @@ async function recordBotRealTrade(
 
     await bot.update(updates);
 
-    console.info(
-      `[Bot PnL] Bot ${botId} ${side} ${amount.toFixed(4)} @ ${price.toFixed(6)} | ` +
-      `Position: ${currentPosition.toFixed(4)} -> ${newPosition.toFixed(4)} | ` +
-      `PnL: ${realizedPnL.toFixed(4)} | Profitable: ${isProfitable}`
+    logger.info(
+      "BOT_PNL",
+      `Bot ${botId} ${side} ${amount.toFixed(4)} @ ${price.toFixed(6)} | Position: ${currentPosition.toFixed(4)} -> ${newPosition.toFixed(4)} | PnL: ${realizedPnL.toFixed(4)} | Profitable: ${isProfitable}`
     );
   } catch (error) {
     // Don't fail the trade if bot tracking fails
-    logError("record_bot_real_trade", error, __filename);
-    console.error(`[Bot PnL] Failed to record trade for bot ${botId}:`, error);
+    logger.error("BOT_PNL", `Failed to record trade for bot ${botId}`, error);
   }
 }
 
@@ -283,13 +281,12 @@ export const matchAndCalculateOrders = async (
           aiUserErrorCount++;
           const now = Date.now();
           if (now - lastAiUserErrorTime > AI_ERROR_LOG_INTERVAL) {
-            console.warn(`[Matchmaking] System/AI user wallet errors: ${aiUserErrorCount} in the last minute. Suppressing to reduce log noise.`);
+            logger.warn("MATCHING", `System/AI user wallet errors: ${aiUserErrorCount} in the last minute. Suppressing to reduce log noise.`);
             lastAiUserErrorTime = now;
             aiUserErrorCount = 0;
           }
         } else {
-          logError("match_calculate_orders", error, __filename);
-          console.error(`Failed to process matched orders: ${error}`);
+          logger.error("MATCHING", "Failed to process matched orders", error);
         }
         // Remove from processed orders so they can be tried again
         processedOrders.delete(buyOrder.id);
@@ -437,7 +434,7 @@ export async function processMatchedOrders(
         tradePrice,
         amountToFillNum,
         sellOrder.userId
-      ).catch(err => console.error("[Bot PnL] Error recording bot trade:", err));
+      ).catch(err => logger.error("BOT_PNL", "Error recording bot trade", err));
     }
   }
   // ============================================
@@ -486,7 +483,7 @@ export async function processMatchedOrders(
         tradePrice,
         amountToFillNum,
         buyOrder.userId
-      ).catch(err => console.error("[Bot PnL] Error recording bot trade:", err));
+      ).catch(err => logger.error("BOT_PNL", "Error recording bot trade", err));
     }
   }
   // ============================================
@@ -551,7 +548,7 @@ export async function processMatchedOrders(
     buyTradeDetail.amount,
     "BUY",
     false // Not an AI trade
-  ).catch((err) => console.error("Failed to insert trade to trades table:", err));
+  ).catch((err) => logger.error("MATCHING", "Failed to insert trade to trades table", err));
 
   // Broadcast the trades
   handleTradesBroadcast(buyOrder.symbol, [buyTradeDetail, sellTradeDetail]);
@@ -563,6 +560,29 @@ export async function processMatchedOrders(
   // Update the orderbook entries
   updateOrderBook(bookUpdates, buyOrder, currentOrderBook, amountToFill);
   updateOrderBook(bookUpdates, sellOrder, currentOrderBook, amountToFill);
+
+  // Trigger copy trading fill handling (async, non-blocking)
+  // This will update copy trading records when leader or follower orders are filled
+  triggerCopyTradingFill(
+    buyOrder.id,
+    buyOrder.userId,
+    buyOrder.symbol,
+    buyOrder.side as "BUY" | "SELL",
+    fromBigInt(amountToFill),
+    fromBigInt(finalPrice),
+    fromBigInt(removeTolerance((buyOrder.fee * BigInt(Math.floor(buyFillRatio * 1e18))) / SCALING_FACTOR)),
+    buyOrder.status === "CLOSED" ? "FILLED" : "PARTIALLY_FILLED"
+  );
+  triggerCopyTradingFill(
+    sellOrder.id,
+    sellOrder.userId,
+    sellOrder.symbol,
+    sellOrder.side as "BUY" | "SELL",
+    fromBigInt(amountToFill),
+    fromBigInt(finalPrice),
+    fromBigInt(removeTolerance(sellProportionalFee)),
+    sellOrder.status === "CLOSED" ? "FILLED" : "PARTIALLY_FILLED"
+  );
 }
 
 export function addTradeToOrder(order: Order, trade: TradeDetail) {
@@ -578,17 +598,11 @@ export function addTradeToOrder(order: Order, trade: TradeDetail) {
       } else if (Array.isArray(order.trades)) {
         trades = order.trades;
       } else {
-        logError(
-          "add_trade_to_order",
-          new Error("Invalid trades format"),
-          __filename
-        );
-        console.error("Invalid trades format, resetting trades:", order.trades);
+        logger.error("MATCHING", `Invalid trades format, resetting trades: ${JSON.stringify(order.trades)}`, new Error("Invalid trades format"));
         trades = [];
       }
     } catch (e) {
-      logError("add_trade_to_order", e, __filename);
-      console.error("Error parsing trades", e);
+      logger.error("MATCHING", "Error parsing trades", e);
       trades = [];
     }
   }
@@ -665,12 +679,7 @@ export function validateOrder(order: Order): boolean {
     !(order.createdAt instanceof Date) ||
     !(order.updatedAt instanceof Date)
   ) {
-    logError(
-      "validate_order",
-      new Error("Order validation failed"),
-      __filename
-    );
-    console.error("Order validation failed: ", order);
+    logger.error("MATCHING", "Order validation failed", new Error(`Order validation failed: ${JSON.stringify(order)}`));
     return false;
   }
   return true;
@@ -710,7 +719,38 @@ export async function getUserEcosystemWalletByCurrency(
 
     return wallet;
   } catch (error) {
-    logError("get_user_wallet", error, __filename);
+    logger.error("ECOSYSTEM", "Failed to get user ecosystem wallet by currency", error);
     throw error;
+  }
+}
+
+/**
+ * Trigger copy trading fill handling (non-blocking)
+ * This is called when any order is filled to check if it's a copy trading order
+ */
+async function triggerCopyTradingFill(
+  orderId: string,
+  userId: string,
+  symbol: string,
+  side: "BUY" | "SELL",
+  filledAmount: number,
+  filledPrice: number,
+  fee: number,
+  status: "FILLED" | "PARTIALLY_FILLED"
+): Promise<void> {
+  try {
+    const { triggerCopyTradingOrderFilled } = await import("@b/utils/safe-imports");
+    triggerCopyTradingOrderFilled(
+      orderId,
+      userId,
+      symbol,
+      side,
+      filledAmount,
+      filledPrice,
+      fee,
+      status
+    ).catch(() => {});
+  } catch (importError) {
+    // Copy trading module not available, skip silently
   }
 }

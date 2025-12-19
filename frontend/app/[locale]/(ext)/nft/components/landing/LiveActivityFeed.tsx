@@ -32,7 +32,8 @@ interface ActivityItem {
 }
 
 export default function LiveActivityFeed() {
-  const t = useTranslations("nft");
+  const t = useTranslations("ext");
+  const tExtNft = useTranslations("ext_nft");
   const [isPaused, setIsPaused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const { ref, inView } = useInView({
@@ -119,8 +120,8 @@ export default function LiveActivityFeed() {
   };
 
   return (
-    <section ref={ref} className="py-20 bg-muted/20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section ref={ref} className="py-20">
+      <div className="container">
         {/* Section Header */}
         <div className="flex items-center justify-between mb-10">
           <div>
@@ -149,7 +150,7 @@ export default function LiveActivityFeed() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-muted-foreground"
             >
-              {t("real_time_nft_marketplace_activity")}
+              {tExtNft("real_time_nft_marketplace_activity")}
             </motion.p>
           </div>
         </div>

@@ -6,6 +6,8 @@ export const metadata = {
   description: "Retrieves all enabled token type configurations for users.",
   operationId: "getEnabledTokenTypes",
   tags: ["ICO", "TokenTypes"],
+  logModule: "ICO",
+  logTitle: "Get Token Types",
   responses: {
     200: {
       description: "Enabled token type configurations retrieved successfully.",

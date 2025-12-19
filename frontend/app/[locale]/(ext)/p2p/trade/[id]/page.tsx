@@ -11,12 +11,12 @@ import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 export default function TradePage() {
-  const t = useTranslations("ext");
+  const t = useTranslations("common");
   const params = useParams();
   const id = params?.id as string;
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
+    <div className="flex min-h-screen w-full flex-col pt-16">
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -26,7 +26,7 @@ export default function TradePage() {
               </Button>
             </Link>
             <h1 className="text-2xl font-bold tracking-tight">
-              {t("trade_#")}
+              {`| ${t("trade")} `}
               {id}
             </h1>
           </div>

@@ -13,6 +13,8 @@ export const metadata: OperationObject = {
     "Retrieves detailed information of a specific forex investment by ID",
   operationId: "getForexInvestmentById",
   tags: ["Forex", "Investments"],
+  logModule: "FOREX",
+  logTitle: "Get Forex Investment",
   parameters: [
     {
       index: 0,
@@ -43,7 +45,9 @@ export const metadata: OperationObject = {
 };
 
 export default async (data) => {
-  const { params, user } = data;
+  const {  params, user , ctx } = data;
+
+    ctx?.step("Fetching Forex Investment");
 
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -77,6 +81,9 @@ export default async (data) => {
     if (!investment) {
       throw createError({ statusCode: 404, message: "Forex investment not found" });
     }
+
+    ctx?.success("Get Forex Investment fetched successfully");
+
 
     return investment;
   } catch (error) {

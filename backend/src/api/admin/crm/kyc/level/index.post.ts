@@ -6,6 +6,8 @@ export const metadata = {
   description: "Creates a new KYC level with the provided details.",
   operationId: "createKycLevel",
   tags: ["KYC", "Levels"],
+  logModule: "ADMIN_CRM",
+  logTitle: "Create KYC level",
   requestBody: {
     required: true,
     content: {
@@ -64,9 +66,10 @@ export const metadata = {
 };
 
 export default async (data: Handler): Promise<any> => {
-  const { body } = data;
+  const { body, ctx } = data;
   const { name, description, level, fields, features, serviceId, status } =
     body;
+
   if (!name || level === undefined || !status) {
     throw createError({ statusCode: 400, message: "Missing required fields" });
   }
@@ -74,16 +77,18 @@ export default async (data: Handler): Promise<any> => {
   // Validate serviceId if provided and not empty
   let validatedServiceId = null;
   if (serviceId && serviceId.trim() !== '') {
+    ctx?.step("Validating verification service");
     const service = await models.kycVerificationService.findByPk(serviceId);
     if (!service) {
-      throw createError({ 
-        statusCode: 400, 
-        message: `Invalid serviceId: ${serviceId}. Service does not exist.` 
+      throw createError({
+        statusCode: 400,
+        message: `Invalid serviceId: ${serviceId}. Service does not exist.`
       });
     }
     validatedServiceId = serviceId;
   }
 
+  ctx?.step(`Creating KYC level: ${name}`);
   const newLevel = await models.kycLevel.create({
     name,
     description,
@@ -93,5 +98,7 @@ export default async (data: Handler): Promise<any> => {
     serviceId: validatedServiceId, // Use validated serviceId or null
     status,
   });
+
+  ctx?.success("KYC level created successfully");
   return { message: "KYC level created successfully.", item: newLevel };
 };

@@ -27,6 +27,8 @@ export const metadata: OperationObject = {
   operationId: "loginUser",
   tags: ["Auth"],
   requiresAuth: false,
+  logModule: "LOGIN",
+  logTitle: "User login",
   requestBody: {
     required: true,
     content: {
@@ -102,27 +104,52 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
+  const { body, ctx } = data;
+  const { email, password, recaptchaToken } = body;
+
   try {
-    const { email, password, recaptchaToken } = data.body;
+    ctx?.step("Validating credentials format");
+    if (!email || !password) {
+      ctx?.fail("Missing email or password");
+      throw createError({
+        statusCode: 400,
+        message: "Email and password are required",
+      });
+    }
 
     // Check reCAPTCHA at runtime
-    if (isRecaptchaEnabled()) await verifyRecaptchaOrThrow(recaptchaToken);
+    if (isRecaptchaEnabled()) {
+      ctx?.step("Verifying reCAPTCHA");
+      await verifyRecaptchaOrThrow(recaptchaToken);
+    }
 
+    ctx?.step(`Looking up user: ${email}`);
     const user = await findUserWith2FA(email); // Includes status validation
+
+    ctx?.step("Checking email verification status");
     await handleEmailVerificationIfRequired(user);
 
+    ctx?.step("Verifying password");
     await verifyPasswordOrThrow(user, password);
+
+    ctx?.step("Validating login attempts");
     await handleLoginAttempts(user);
 
     if (await isTwoFactorAuthenticationRequired(user)) {
-      return await handleTwoFactorAuthentication(user);
+      ctx?.step("2FA required, sending verification code", "warn");
+      return await handleTwoFactorAuthentication(user, ctx);
     }
 
-    return await returnUserWithTokens({
+    ctx?.step("Generating session tokens");
+    const result = await returnUserWithTokens({
       user,
       message: "You have been logged in successfully",
     });
+
+    ctx?.success(`User ${email} logged in successfully`);
+    return result;
   } catch (error) {
+    ctx?.fail(error.message || "Login failed");
     throw createError({
       statusCode: error.statusCode || 500,
       message: error.message || "An unexpected error occurred",
@@ -248,19 +275,24 @@ async function isTwoFactorAuthenticationRequired(user: any) {
   );
 }
 
-async function handleTwoFactorAuthentication(user: any) {
+async function handleTwoFactorAuthentication(user: any, ctx?: any) {
   const type = user.twoFactor?.type;
   authenticator.options = { window: 2 };
   const otp = authenticator.generate(user.twoFactor.secret);
 
+  ctx?.step(`Generating 2FA code for type: ${type}`);
+
   switch (type) {
     case "SMS":
+      ctx?.step("Sending SMS OTP");
       await sendSmsOtp(user.phone, otp);
       break;
     case "EMAIL":
+      ctx?.step("Sending email OTP");
       await sendEmailOtp(user.email, user.firstName, otp);
       break;
     case "APP":
+      ctx?.step("APP OTP ready for verification");
       // Handle APP OTP logic here if required
       break;
     default:

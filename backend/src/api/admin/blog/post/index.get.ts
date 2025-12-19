@@ -40,12 +40,18 @@ export const metadata: OperationObject = {
   },
   permission: "view.blog.post",
   requiresAuth: true,
+  demoMask: ["items.author.user.email"],
+  logModule: "ADMIN_BLOG",
+  logTitle: "List blog posts",
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, ctx } = data;
 
-  return getFiltered({
+  ctx?.step("Parsing query parameters");
+
+  ctx?.step("Fetching blog posts with filters");
+  const result = await getFiltered({
     model: models.post,
     query,
     sortField: query.sortField || "createdAt",
@@ -68,4 +74,7 @@ export default async (data: Handler) => {
       },
     ],
   });
+
+  ctx?.success("Blog posts retrieved successfully");
+  return result;
 };

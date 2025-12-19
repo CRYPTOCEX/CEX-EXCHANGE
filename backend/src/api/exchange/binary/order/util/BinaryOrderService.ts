@@ -9,7 +9,8 @@ import {
   getBinaryOrder,
   getBinaryOrdersByStatus,
 } from "../utils";
-import { broadcastLog } from "@b/utils/crons/broadcast";
+import { broadcastLog } from "@b/cron/broadcast";
+import { logger } from "@b/utils/console";
 
 export class BinaryOrderService {
   private static orderIntervals = new Map<string, NodeJS.Timeout>();
@@ -142,10 +143,7 @@ export class BinaryOrderService {
       try {
         ticker = await exchange.fetchTicker(`${currency}/${pair}`);
       } catch (err: any) {
-        console.error(
-          `Error fetching market data for ${currency}/${pair}:`,
-          err
-        );
+        logger.error("BINARY", `Error fetching market data for ${currency}/${pair}: ${err.message}`);
         throw createError({
           statusCode: 500,
           message: "Error fetching market data from exchange",
@@ -213,22 +211,20 @@ export class BinaryOrderService {
 
       const order = await getBinaryOrder(userId, orderId);
       if (!order) {
-        console.error(`Order ${orderId} not found for user ${userId}.`);
+        logger.error("BINARY", `Order ${orderId} not found for user ${userId}.`);
         return;
       }
 
       const ticker = await exchange.fetchTicker(symbol);
       const closePrice = ticker?.last;
       if (closePrice == null) {
-        console.error(`No close price found for ${symbol}. Order: ${orderId}`);
+        logger.error("BINARY", `No close price found for ${symbol}. Order: ${orderId}`);
         return;
       }
 
       // Idempotency check
       if (order.status !== "PENDING") {
-        console.error(
-          `Order ${orderId} already processed with status ${order.status}. Skipping.`
-        );
+        logger.error("BINARY", `Order ${orderId} already processed with status ${order.status}. Skipping.`);
         return;
       }
 
@@ -274,7 +270,7 @@ export class BinaryOrderService {
       await this.updateBinaryOrder(order.id, updateData);
       this.orderIntervals.delete(order.id);
     } catch (error) {
-      console.error(`Error processing order ${orderId}:`, error);
+      logger.error("BINARY", `Error processing order ${orderId}: ${error}`);
     }
   }
 
@@ -298,11 +294,7 @@ export class BinaryOrderService {
         const ohlcv = await exchange.fetchOHLCV(symbol, timeframe, from, limit);
 
         if (!ohlcv || ohlcv.length === 0) {
-          console.warn(
-            `No OHLCV data for ${symbol} between ${new Date(from)} and ${new Date(
-              until
-            )}. Assuming no more data.`
-          );
+          logger.warn("BINARY", `No OHLCV data for ${symbol} between ${new Date(from)} and ${new Date(until)}. Assuming no more data.`);
           break;
         }
 
@@ -322,13 +314,13 @@ export class BinaryOrderService {
 
         const lastCandleTime = ohlcv[ohlcv.length - 1][0];
         if (lastCandleTime <= from) {
-          console.warn("No progress in OHLCV time. Stopping fetch loop.");
+          logger.warn("BINARY", "No progress in OHLCV time. Stopping fetch loop.");
           break;
         }
         from = lastCandleTime + 60_000;
       }
     } catch (err) {
-      console.error(`Error fetching OHLC data for TURBO check:`, err);
+      logger.error("BINARY", `Error fetching OHLC data for TURBO check: ${err}`);
       breached = true;
     }
 
@@ -354,11 +346,7 @@ export class BinaryOrderService {
         const ohlcv = await exchange.fetchOHLCV(symbol, timeframe, from, limit);
 
         if (!ohlcv || ohlcv.length === 0) {
-          console.warn(
-            `No OHLCV data for ${symbol} between ${new Date(from)} and ${new Date(
-              until
-            )}.`
-          );
+          logger.warn("BINARY", `No OHLCV data for ${symbol} between ${new Date(from)} and ${new Date(until)}.`);
           break;
         }
 
@@ -373,14 +361,14 @@ export class BinaryOrderService {
 
         const lastCandleTime = ohlcv[ohlcv.length - 1][0];
         if (lastCandleTime <= from) {
-          console.warn("No progress in OHLCV time. Stopping fetch loop.");
+          logger.warn("BINARY", "No progress in OHLCV time. Stopping fetch loop.");
           break;
         }
 
         from = lastCandleTime + 60_000;
       }
     } catch (err) {
-      console.error(`Error fetching OHLC data for TOUCH_NO_TOUCH:`, err);
+      logger.error("BINARY", `Error fetching OHLC data for TOUCH_NO_TOUCH: ${err}`);
     }
 
     return touched;
@@ -397,9 +385,7 @@ export class BinaryOrderService {
     }
 
     if (["CANCELED", "WIN", "LOSS", "DRAW"].includes(order.status)) {
-      console.error(
-        `Order ${orderId} is already ${order.status}. Cannot cancel again.`
-      );
+      logger.error("BINARY", `Order ${orderId} is already ${order.status}. Cannot cancel again.`);
       return { message: "Order already processed or canceled." };
     }
 
@@ -697,20 +683,17 @@ export class BinaryOrderService {
               title: "Binary Order Completed",
               message: `Your binary order for ${order.symbol} has been completed with a status of ${order.status}`,
               type: "system",
-              link: `/binary/orders/${order.id}`,
+              link: `/binary?symbol=${encodeURIComponent(order.symbol)}`,
               actions: [
                 {
-                  label: "View Order",
-                  link: `/binary/orders/${order.id}`,
+                  label: "View Trade",
+                  link: `/binary?symbol=${encodeURIComponent(order.symbol)}`,
                   primary: true,
                 },
               ],
             });
           } catch (error) {
-            console.error(
-              `Error sending binary order email for user ${user.id}, order ${order.id}:`,
-              error
-            );
+            logger.error("BINARY", `Error sending binary order email for user ${user.id}, order ${order.id}: ${error}`);
           }
         }
       }
@@ -726,9 +709,7 @@ export class BinaryOrderService {
     const delay = closedAt - currentTimeUtc;
 
     if (delay < 0) {
-      console.warn(
-        `Order ${order.id} closedAt is in the past. Processing immediately.`
-      );
+      logger.warn("BINARY", `Order ${order.id} closedAt is in the past. Processing immediately.`);
       this.processOrder(userId, order.id, order.symbol);
       return;
     }
@@ -853,9 +834,7 @@ function determineCallPutStatus(
   const profitPercentage = order.profitPercentage || 85; // Fallback to 85% if not set
   const { strikePrice } = order;
   if (!strikePrice) {
-    console.error(
-      `CALL_PUT order ${order.id} missing strikePrice. Defaulting to LOSS.`
-    );
+    logger.error("BINARY", `CALL_PUT order ${order.id} missing strikePrice. Defaulting to LOSS.`);
     updateData.status = "LOSS";
     updateData.profit = order.amount; // Store the loss amount
     return updateData;
@@ -892,9 +871,7 @@ function determineTurboStatus(
 ) {
   const { barrier, payoutPerPoint } = order;
   if (!barrier || !payoutPerPoint) {
-    console.error(
-      `TURBO order ${order.id} missing barrier or payoutPerPoint. Defaulting to LOSS.`
-    );
+    logger.error("BINARY", `TURBO order ${order.id} missing barrier or payoutPerPoint. Defaulting to LOSS.`);
     updateData.status = "LOSS";
     updateData.profit = order.amount; // Store the loss amount
     return updateData;
