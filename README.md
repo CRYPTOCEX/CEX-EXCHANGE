@@ -1,6 +1,6 @@
 # This is the CEX Code for team to develop frontend & backend🧑‍💻
 -----
-
+new addons : copy trading + ai market maker + merchants  gateway 
 ## ✅ Prerequisites
 
 Before you begin, ensure you have the following:
