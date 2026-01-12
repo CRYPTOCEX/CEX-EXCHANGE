@@ -6,7 +6,7 @@ interface icoTokenOfferingAttributes {
   name: string;
   symbol: string;
   icon: string;
-  status: "ACTIVE" | "SUCCESS" | "FAILED" | "UPCOMING" | "PENDING" | "REJECTED" | "DISABLED";
+  status: "ACTIVE" | "SUCCESS" | "FAILED" | "UPCOMING" | "PENDING" | "REJECTED" | "DISABLED" | "CANCELLED";
   purchaseWalletCurrency: string;
   purchaseWalletType: string;
   tokenPrice: number;
@@ -24,6 +24,9 @@ interface icoTokenOfferingAttributes {
   isFlagged: boolean;
   featured?: boolean;
   website?: string;
+  cancelledAt?: Date;
+  cancelledBy?: string;
+  cancellationReason?: string;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;

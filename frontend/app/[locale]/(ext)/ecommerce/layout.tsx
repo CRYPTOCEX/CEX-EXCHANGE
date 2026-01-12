@@ -77,6 +77,8 @@ export default function EcommerceLayout({ children }: { children: ReactNode }) {
         colorSchema={colorSchema}
         adminPath={adminPath}
         rightControls={<EcommerceHeaderControls />}
+        translationNamespace="ext_ecommerce"
+        translationNavPrefix="nav"
       />
       <ExtensionLayoutWrapper landingPath="/ecommerce" mainClassName="flex-1 w-full">
         {children}

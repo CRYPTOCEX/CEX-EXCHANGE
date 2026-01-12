@@ -409,7 +409,7 @@ export default function InvestmentDashboardClient() {
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
                       <BarChart3 className="w-4 h-4 text-white" />
                     </div>
-                    {tInvestment("recent_investments")}
+                    {tCommon("recent_investments")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

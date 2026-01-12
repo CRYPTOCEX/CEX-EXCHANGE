@@ -129,7 +129,7 @@ export default function TopPlanSpotlightSection({
                 <div className="absolute -top-4 left-8">
                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30">
                     <Star className="w-4 h-4 fill-current" />
-                    <span className="text-sm font-bold">#1 Performing Plan</span>
+                    <span className="text-sm font-bold">#1 {t("performing_plan")}</span>
                   </div>
                 </div>
 
@@ -163,7 +163,7 @@ export default function TopPlanSpotlightSection({
                         <div className="flex items-center gap-2 mb-1">
                           <TrendingUp className="w-4 h-4 text-teal-500" />
                           <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                            Win Rate
+                            {tCommon("win_rate")}
                           </span>
                         </div>
                         <p className="text-2xl font-bold text-teal-600 dark:text-teal-400">
@@ -201,13 +201,13 @@ export default function TopPlanSpotlightSection({
                       <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                         <DollarSign className="w-4 h-4" />
                         <span>
-                          Min: <strong>${plan.minAmount}</strong>
+                          {tCommon("min")} <strong>${plan.minAmount}</strong>
                         </span>
                         {plan.maxAmount && (
                           <>
                             <span>-</span>
                             <span>
-                              Max: <strong>${plan.maxAmount}</strong>
+                              {tCommon("max")} <strong>${plan.maxAmount}</strong>
                             </span>
                           </>
                         )}
@@ -257,7 +257,7 @@ export default function TopPlanSpotlightSection({
 
                       {/* Center content */}
                       <div className="absolute inset-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex flex-col items-center justify-center text-white shadow-2xl shadow-emerald-500/30">
-                        <span className="text-sm font-medium opacity-80">Up to</span>
+                        <span className="text-sm font-medium opacity-80">{tExt("up_to")}</span>
                         <span className="text-4xl font-bold">{plan.maxProfit}%</span>
                         <span className="text-sm font-medium opacity-80">Returns</span>
                       </div>

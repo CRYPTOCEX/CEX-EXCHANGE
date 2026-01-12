@@ -55,7 +55,7 @@ export function TokenPhaseCard({
           <Clock className="h-4 w-4 text-muted-foreground" />
           <div>
             <span className="text-muted-foreground">
-              {tExt("time_remaining")}:{" "}
+              {tCommon("time_remaining")}:{" "}
             </span>
             <span className="font-medium">
               {phase.endsIn} {tCommon("days")}

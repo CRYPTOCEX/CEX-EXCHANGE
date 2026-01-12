@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import ConvertToFaqClient from "./client";
+import { getTranslations } from "next-intl/server";
 
 export default function ConvertToFaqPage() {
   return (

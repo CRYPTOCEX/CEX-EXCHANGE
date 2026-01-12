@@ -660,7 +660,7 @@ export default function AffiliateRewardsClient() {
       <Dialog open={isClaimDialogOpen} onOpenChange={setIsClaimDialogOpen}>
         <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t("claim_reward")}</DialogTitle>
+            <DialogTitle>{tCommon("claim_reward")}</DialogTitle>
             <DialogDescription>
               {t("claim_your_reward_and_add_it")}
             </DialogDescription>
@@ -699,7 +699,7 @@ export default function AffiliateRewardsClient() {
               onClick={() => handleClaimReward(selectedReward?.id || "")}
               className="w-full sm:w-auto"
             >
-              {t("claim_reward")}
+              {tCommon("claim_reward")}
             </Button>
           </DialogFooter>
         </DialogContent>

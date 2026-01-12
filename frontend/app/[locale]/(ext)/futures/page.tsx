@@ -247,11 +247,11 @@ export default function FuturesMarketPage() {
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-red-100 dark:from-orange-950/50 dark:to-red-950/50 border border-orange-200 dark:border-orange-800/50 rounded-full px-4 py-2 text-sm font-medium text-orange-700 dark:text-orange-300 mb-4 md:mb-6"
               >
                 <Rocket className="w-4 h-4" />
-                Futures Trading
+                {t("futures_trading")}
               </motion.div>
 
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-4 md:mb-6">
-                Trade with
+                {t("trade_with")}
                 <span className="bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 bg-clip-text text-transparent">
                   {" "}
                   Leverage
@@ -259,9 +259,7 @@ export default function FuturesMarketPage() {
               </h1>
 
               <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-300 max-w-3xl mx-auto leading-relaxed mb-6 md:mb-8">
-                Trade perpetual futures contracts with up to 150x leverage.
-                Advanced risk management, real-time PnL tracking, and deep
-                liquidity.
+                {t("trade_perpetual_futures_contracts_with_up")}
               </p>
 
               {/* Market Stats */}
@@ -345,7 +343,7 @@ export default function FuturesMarketPage() {
                 {/* Search Input */}
                 <div className="relative flex-1 max-w-md">
                   <Input
-                    placeholder="Search futures markets..."
+                    placeholder={t("search_futures_markets_ellipsis")}
                     value={searchTerm}
                     icon={"mdi:search"}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -383,7 +381,7 @@ export default function FuturesMarketPage() {
                         )}
                       >
                         <Target className="w-4 h-4 mr-2" />
-                        All Markets
+                        {t("all_markets")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setSelectedFilter("high_leverage")}
@@ -486,10 +484,10 @@ export default function FuturesMarketPage() {
                       <Search className="w-6 h-6 md:w-8 md:h-8 text-zinc-400" />
                     </div>
                     <h3 className="text-lg md:text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                      No futures markets found
+                      {t("no_futures_markets_found")}
                     </h3>
                     <p className="text-sm md:text-base text-zinc-600 dark:text-zinc-400">
-                      Try adjusting your search or filter criteria
+                      {t("try_adjusting_your_search_or_filter_criteria")}
                     </p>
                   </div>
                 ) : (
@@ -634,7 +632,7 @@ export default function FuturesMarketPage() {
                         href={`/trade?symbol=${processedMarkets[0].currency}-${processedMarkets[0].pair}&type=futures`}
                         className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 rounded-lg font-medium text-white transition-all duration-300 shadow-lg hover:shadow-xl"
                       >
-                        Start Trading
+                        {t("start_trading")}
                       </Link>
                     )}
                   </div>
@@ -644,7 +642,7 @@ export default function FuturesMarketPage() {
                       href="/register"
                       className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 rounded-lg font-medium text-white transition-all duration-300 shadow-lg hover:shadow-xl"
                     >
-                      Create Free Account
+                      {t("create_free_account")}
                     </Link>
                     {processedMarkets.length > 0 && (
                       <Link
@@ -656,7 +654,7 @@ export default function FuturesMarketPage() {
                             : "border-gray-200 bg-white hover:bg-gray-50 text-gray-800"
                         )}
                       >
-                        View Demo
+                        {t("view_demo")}
                       </Link>
                     )}
                   </div>

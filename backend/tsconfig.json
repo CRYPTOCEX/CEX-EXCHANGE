@@ -14,6 +14,7 @@
     "allowSyntheticDefaultImports": true,
     "incremental": true,
     "strictNullChecks": true,
+    "removeComments": true,
     "paths": {
       "@/*": ["./*"],
       "@b/*": ["./src/*"],

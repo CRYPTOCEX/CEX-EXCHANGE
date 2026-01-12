@@ -129,31 +129,26 @@ const TradingViewChartBase = ({
   metadata,
 }: TradingViewChartProps) => {
   const t = useTranslations("components_blocks");
-  // Derive market type from URL if not provided explicitly
-  const [derivedMarketType, setDerivedMarketType] = useState<"spot" | "eco" | "futures">(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const typeParam = urlParams.get('type');
-      if (typeParam === 'spot-eco') return 'eco';
-      if (typeParam === 'futures') return 'futures';
-      return 'spot';
-    }
-    return marketTypeProp || 'spot';
-  });
 
-  // Update derived market type when URL changes
-  useEffect(() => {
+  // Determine market type: prefer prop, then URL, then default to spot
+  const marketType = useMemo(() => {
+    // If prop is explicitly passed, use it
+    if (marketTypeProp) {
+      return marketTypeProp;
+    }
+    // Otherwise derive from URL
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const typeParam = urlParams.get('type');
-      if (typeParam === 'spot-eco') setDerivedMarketType('eco');
-      else if (typeParam === 'futures') setDerivedMarketType('futures');
-      else if (typeParam === 'spot') setDerivedMarketType('spot');
-      else if (marketTypeProp) setDerivedMarketType(marketTypeProp);
+      if (typeParam === 'spot-eco') return 'eco' as const;
+      if (typeParam === 'futures') return 'futures' as const;
     }
+    return 'spot' as const;
   }, [marketTypeProp]);
 
-  const marketType = marketTypeProp || derivedMarketType;
+  // Track initialization to prevent duplicate calls
+  const initializingRef = useRef(false);
+  const lastInitKeyRef = useRef<string>("");
 
   const [chartReady, setChartReady] = useState(false);
   const [tvWidget, setTvWidget] = useState<any>(null);
@@ -235,8 +230,6 @@ const TradingViewChartBase = ({
   const DataFeed = useMemo(() => {
     if (!symbol) return null;
 
-    const isEco = marketType === "eco";
-    const historyPath = isEco ? `/api/ecosystem/chart` : `/api/exchange/chart`;
     const pricescale = getTradingViewPricescale(metadata);
 
     return {
@@ -367,11 +360,12 @@ const TradingViewChartBase = ({
 
         try {
           // Determine API endpoint based on market type
-          const apiEndpoint = marketType === "eco" 
-            ? "/api/ecosystem/chart" 
+          const apiEndpoint = marketType === "eco"
+            ? "/api/ecosystem/chart"
             : marketType === "futures"
             ? "/api/futures/chart"
             : "/api/exchange/chart";
+
 
           // Define duration mapping for the main exchange API
           const intervalDurations: Record<string, number> = {
@@ -679,101 +673,126 @@ const TradingViewChartBase = ({
     };
   }, []);
 
-  // Track previous symbol to detect actual changes
-  const prevSymbolRef = useRef<string>("");
-  const prevMarketTypeRef = useRef<string>("");
-  
-  // Handle symbol changes - cleanup is handled by market-switching-cleanup event
+  // Reset lastInitKeyRef when marketType changes to force reinitialization
   useEffect(() => {
-    if (!symbol) return;
-    
-    // Update refs
-    prevSymbolRef.current = symbol;
-    prevMarketTypeRef.current = marketType;
-    
-  }, [symbol, marketType]);
+    // When marketType changes, clear the last init key to force a new initialization
+    lastInitKeyRef.current = "";
+  }, [marketType]);
 
-  async function initTradingView() {
-    // Cleanup existing widget
-    if (tvWidget) {
-      try {
-        tvWidget.remove();
-      } catch (error) {
-        console.warn("Error removing existing TradingView widget:", error);
+  useEffect(() => {
+    if (!symbol || !isTradingViewLoaded) return;
+
+    // Create a unique key for this initialization
+    const initKey = `${symbol}-${marketType}`;
+
+    // Prevent duplicate initializations
+    if (initializingRef.current) {
+      return;
+    }
+
+    // Skip if we've already initialized with the same key
+    if (lastInitKeyRef.current === initKey) {
+      return;
+    }
+
+    const initTradingView = async () => {
+      initializingRef.current = true;
+
+      // Cleanup existing widget
+      if (tvWidget) {
+        try {
+          tvWidget.remove();
+        } catch (error) {
+          console.warn("Error removing existing TradingView widget:", error);
+        }
+        setTvWidget(null);
+        setChartReady(false);
       }
-      setTvWidget(null);
-    }
 
-    if (!symbol || typeof symbol !== 'string') {
-      console.error("Valid symbol is required for TradingView");
-      return;
-    }
+      if (!symbol || typeof symbol !== 'string') {
+        console.error("Valid symbol is required for TradingView");
+        initializingRef.current = false;
+        return;
+      }
 
-    // Check if TradingView is loaded
-    if (!window.TradingView || !window.TradingView.widget) {
-      console.error("TradingView library not loaded");
-      return;
-    }
-    
-    // Symbol format is handled by the formatSymbolForAPI function in datafeed
+      // Check if TradingView is loaded
+      if (!window.TradingView || !window.TradingView.widget) {
+        console.error("TradingView library not loaded");
+        initializingRef.current = false;
+        return;
+      }
 
-    const datafeed = DataFeed;
-    if (!datafeed) return;
+      // DataFeed is already created with the correct marketType via useMemo
+      if (!DataFeed) {
+        initializingRef.current = false;
+        return;
+      }
 
-    const widgetOptions = {
-      fullscreen: false,
-      autosize: true,
-      symbol: symbol,
-      interval: "60",
-      container: "tv_chart_container",
-      datafeed: datafeed,
-      library_path: "/lib/chart/charting_library/charting_library/",
-      locale: "en",
-      theme: isDark ? "Dark" : "Light",
-      timezone: "Etc/UTC",
-      client_id: "chart",
-      disabled_features: disabled_features,
-      enabled_features: enabled_features,
-      overrides: {
-        "mainSeriesProperties.showCountdown": true,
-        "highLowAvgPrice.highLowPriceLinesVisible": true,
-        "mainSeriesProperties.highLowAvgPrice.highLowPriceLabelsVisible": true,
-        "mainSeriesProperties.showPriceLine": true,
-        "paneProperties.background": isDark ? "#18181b" : "#ffffff",
-        "paneProperties.backgroundType": "solid",
-      },
-      // custom_css_url: "/lib/chart/themed.css", // Commented out as file doesn't exist
+      const widgetOptions = {
+        fullscreen: false,
+        autosize: true,
+        symbol: symbol,
+        interval: "60",
+        container: "tv_chart_container",
+        datafeed: DataFeed,
+        library_path: "/lib/chart/charting_library/charting_library/",
+        locale: "en",
+        theme: isDark ? "Dark" : "Light",
+        timezone: "Etc/UTC",
+        client_id: "chart",
+        disabled_features: disabled_features,
+        enabled_features: enabled_features,
+        overrides: {
+          "mainSeriesProperties.showCountdown": true,
+          "highLowAvgPrice.highLowPriceLinesVisible": true,
+          "mainSeriesProperties.highLowAvgPrice.highLowPriceLabelsVisible": true,
+          "mainSeriesProperties.showPriceLine": true,
+          "paneProperties.background": isDark ? "#18181b" : "#ffffff",
+          "paneProperties.backgroundType": "solid",
+        },
+      };
+
+      try {
+        const tv = new window.TradingView.widget(widgetOptions);
+        setTvWidget(tv);
+        lastInitKeyRef.current = initKey;
+
+        tv.onChartReady(() => {
+          try {
+            setChartReady(true);
+            initializingRef.current = false;
+
+            // Force resize after chart is ready to ensure proper sizing on all devices
+            // This fixes issues on tablets where the chart container size isn't picked up correctly
+            setTimeout(() => {
+              window.dispatchEvent(new Event('resize'));
+            }, 100);
+            // Additional resize after a longer delay for slower devices
+            setTimeout(() => {
+              window.dispatchEvent(new Event('resize'));
+            }, 500);
+
+            if (onChartContextReady) {
+              onChartContextReady({
+                widget: tv,
+                symbol,
+                timeFrame,
+                theme: isDark ? "dark" : "light",
+              });
+            }
+          } catch (error) {
+            console.error("TradingView onChartReady callback error:", error);
+            initializingRef.current = false;
+          }
+        });
+      } catch (error) {
+        console.error("❌ Failed to create TradingView widget:", error);
+        initializingRef.current = false;
+      }
     };
 
-    try {
-      const tv = new window.TradingView.widget(widgetOptions);
-      setTvWidget(tv);
-
-      tv.onChartReady(() => {
-        try {
-          setChartReady(true);
-          if (onChartContextReady) {
-            onChartContextReady({
-              widget: tv,
-              symbol,
-              timeFrame,
-              theme: isDark ? "dark" : "light",
-            });
-          }
-        } catch (error) {
-          console.error("TradingView onChartReady callback error:", error);
-        }
-      });
-    } catch (error) {
-      console.error("❌ Failed to create TradingView widget:", error);
-    }
-  }
-
-  useEffect(() => {
-    if (symbol && isTradingViewLoaded) {
-      initTradingView();
-    }
-  }, [symbol, isTradingViewLoaded]);
+    initTradingView();
+  }, [symbol, isTradingViewLoaded, marketType, DataFeed]);
 
   // Only change theme without reinitializing the entire widget
   useEffect(() => {
@@ -789,7 +808,7 @@ const TradingViewChartBase = ({
   // Show loading state while TradingView is loading
   if (isTradingViewLoading) {
     return (
-      <div className="w-full h-full bg-black flex items-center justify-center">
+      <div className="w-full h-full flex-1 min-h-0 bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
           <p className="text-white text-sm">{t("loading_tradingview_ellipsis")}</p>
@@ -801,7 +820,7 @@ const TradingViewChartBase = ({
   // Show error state if TradingView failed to load
   if (tradingViewError) {
     return (
-      <div className="w-full h-full bg-black flex items-center justify-center">
+      <div className="w-full h-full flex-1 min-h-0 bg-black flex items-center justify-center">
         <div className="text-center text-red-400">
           <p className="text-sm mb-2">{t("failed_to_load_tradingview")}</p>
           <p className="text-xs text-gray-500">{t("falling_back_to_native_chart_ellipsis")}</p>
@@ -811,11 +830,11 @@ const TradingViewChartBase = ({
   }
 
   return (
-    <div className="w-full h-full relative">
-      <div id="tv_chart_container" className="w-full h-full"></div>
+    <div className="w-full h-full relative flex flex-col">
+      <div id="tv_chart_container" className="absolute inset-0"></div>
       {/* Show loading overlay if chart is not ready */}
       {!chartReady && (
-        <div className="absolute inset-0 bg-black flex items-center justify-center">
+        <div className="absolute inset-0 bg-black flex items-center justify-center z-10">
           <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full"></div>
         </div>
       )}

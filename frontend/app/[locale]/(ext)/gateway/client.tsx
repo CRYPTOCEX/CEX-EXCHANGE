@@ -503,7 +503,7 @@ export default function GatewayLandingClient() {
         ]}
         theme={{ primary: "indigo", secondary: "cyan" }}
         variant="default"
-        title="Why Choose Us"
+        title={tCommon("why_choose_us")}
       />
 
       {/* Supported Currencies Section - NEW */}

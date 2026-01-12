@@ -245,7 +245,7 @@ export default function PreviewDefaultPage() {
         {pageContent?.meta && (
           <div className="max-w-4xl mx-auto mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">SEO Preview</h3>
+              <h3 className="text-lg font-semibold mb-4">{t("seo_preview")}</h3>
               <div className="space-y-3">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">{tDashboard("page_title")}</label>

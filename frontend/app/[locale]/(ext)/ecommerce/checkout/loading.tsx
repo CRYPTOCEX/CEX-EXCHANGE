@@ -1,8 +1,6 @@
 import { Loader2, ArrowLeft } from "lucide-react";
-import { useTranslations } from "next-intl";
 
 export default function CheckoutLoading() {
-  const t = useTranslations("ext_ecommerce");
   return (
     <div className="bg-white dark:bg-zinc-900 dark:text-zinc-100 pt-20">
       <div className="container px-4 py-16 sm:px-6 lg:px-8">
@@ -82,7 +80,6 @@ export default function CheckoutLoading() {
         {/* Loading indicator */}
         <div className="flex flex-col items-center justify-center py-16">
           <Loader2 className={`h-12 w-12 animate-spin text-amber-600 dark:text-amber-400 mb-4`} />
-          <p className="text-gray-600 dark:text-zinc-400 text-lg">{t("loading_checkout_ellipsis")}</p>
         </div>
       </div>
     </div>

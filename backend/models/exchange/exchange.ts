@@ -8,12 +8,15 @@ export default class exchange
   id!: string;
   name!: string;
   title!: string;
+  description?: string;
   status?: boolean;
   username?: string;
   licenseStatus?: boolean;
   version?: string;
   productId?: string;
   type?: string;
+  link?: string;
+  proxyUrl?: string;
 
   public static initModel(sequelize: Sequelize.Sequelize): typeof exchange {
     return exchange.init(
@@ -39,6 +42,11 @@ export default class exchange
             notEmpty: { msg: "title: Title must not be empty" },
           },
           comment: "Display title of the exchange",
+        },
+        description: {
+          type: DataTypes.TEXT,
+          allowNull: true,
+          comment: "Description of the exchange provider",
         },
         status: {
           type: DataTypes.BOOLEAN,
@@ -94,6 +102,16 @@ export default class exchange
             notEmpty: { msg: "type: Type must not be empty" },
           },
           comment: "Type of exchange (spot, futures, etc.)",
+        },
+        link: {
+          type: DataTypes.STRING(500),
+          allowNull: true,
+          comment: "Envato product URL for this exchange provider",
+        },
+        proxyUrl: {
+          type: DataTypes.STRING(500),
+          allowNull: true,
+          comment: "Proxy URL for exchange API requests (e.g., http://user:pass@host:port or socks5://host:port)",
         },
       },
       {

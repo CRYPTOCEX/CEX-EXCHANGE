@@ -17,18 +17,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, ThumbsUp, ThumbsDown, HelpCircle, Calendar, Sparkles, BarChart3 } from "lucide-react";
+import { Eye, ThumbsUp, ThumbsDown, HelpCircle, Calendar, Sparkles, BarChart3, FileText } from "lucide-react";
 import { useFAQAdminStore } from "@/store/faq/admin";
 import { useAnalyticsStore } from "@/store/faq/analytics-store";
 
 // Import the professional analytics components
-import { KpiCard } from "@/components/blocks/data-table/analytics/kpi";
 import ChartCard from "@/components/blocks/data-table/analytics/charts/line";
 import BarChart from "@/components/blocks/data-table/analytics/charts/bar";
 import { StatusDistribution } from "@/components/blocks/data-table/analytics/charts/donut";
 import { useTranslations } from "next-intl";
 import { HeroSection } from "@/components/ui/hero-section";
 import { motion } from "framer-motion";
+import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 type TimeframeOption = "weekly" | "monthly" | "yearly";
 
@@ -224,58 +224,23 @@ export function FAQAnalyticsDashboard() {
     }));
   }, [analytics.categoryDistribution]);
 
-  // Memoize KPI data for the professional KPI cards
-  const kpiData = useMemo(() => {
-    if (!analytics) return [];
+  // Helper to extract sparkline data from views over time
+  const getViewsSparklineData = useCallback(() => {
+    if (!viewsOverTimeData || viewsOverTimeData.length === 0) return undefined;
+    return viewsOverTimeData.map(item => item.views);
+  }, [viewsOverTimeData]);
 
-    return [
-      {
-        id: "total-views",
-        title: "Total Views",
-        value: analytics.totalViews || 0,
-        change: analytics.viewsComparison?.percentageChange || 0,
-        trend: viewsOverTimeData.map((item) => ({
-          date: item.date,
-          value: item.views,
-        })),
-        icon: "Eye",
-        variant: "info" as const,
-      },
-      {
-        id: "positive-feedback",
-        title: "Positive Feedback",
-        value: Math.round(analytics.positiveRatingPercentage || 0),
-        change: analytics.feedbackComparison?.positive?.percentageChange || 0,
-        trend: timeSeriesData.map((item) => ({
-          date: item.date,
-          value: item.positive,
-        })),
-        icon: "ThumbsUp",
-        variant: "success" as const,
-      },
-      {
-        id: "negative-feedback",
-        title: "Negative Feedback",
-        value: Math.round(analytics.negativeRatingPercentage || 0),
-        change: analytics.feedbackComparison?.negative?.percentageChange || 0,
-        trend: timeSeriesData.map((item) => ({
-          date: item.date,
-          value: item.negative,
-        })),
-        icon: "ThumbsDown",
-        variant: "danger" as const,
-      },
-      {
-        id: "active-faqs",
-        title: "Active FAQs",
-        value: analytics.activeFaqs || 0,
-        change: 0, // Would need historical data
-        trend: [],
-        icon: "HelpCircle",
-        variant: "warning" as const,
-      },
-    ];
-  }, [analytics, viewsOverTimeData, timeSeriesData]);
+  // Helper to extract positive feedback sparkline data
+  const getPositiveFeedbackSparklineData = useCallback(() => {
+    if (!timeSeriesData || timeSeriesData.length === 0) return undefined;
+    return timeSeriesData.map(item => item.positive);
+  }, [timeSeriesData]);
+
+  // Helper to extract negative feedback sparkline data
+  const getNegativeFeedbackSparklineData = useCallback(() => {
+    if (!timeSeriesData || timeSeriesData.length === 0) return undefined;
+    return timeSeriesData.map(item => item.negative);
+  }, [timeSeriesData]);
 
   // Memoize chart configurations with proper timeframe context
   const chartConfigs = useMemo(
@@ -388,10 +353,10 @@ export function FAQAnalyticsDashboard() {
                 </div>
                 <div>
                   <p className="font-medium text-foreground">
-                    {analytics.totalViews?.toLocaleString() || "0"} Total Views
+                    {analytics.totalViews?.toLocaleString() || "0"} {tCommon("total_views")}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {analytics.activeFaqs || 0} active FAQs in your knowledge base
+                    {analytics.activeFaqs || 0} {t("active_faqs_in_your_knowledge_base")}
                   </p>
                 </div>
               </div>
@@ -402,28 +367,44 @@ export function FAQAnalyticsDashboard() {
 
       {/* Main Content Container */}
       <div className="container mx-auto py-8 space-y-8">
-        {/* KPI Cards using professional analytics components */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
-        >
-          {kpiData.map((kpi) => (
-            <KpiCard
-              key={kpi.id}
-              id={kpi.id}
-              title={kpi.title}
-              value={kpi.value}
-              change={kpi.change}
-              trend={kpi.trend}
-              variant={kpi.variant}
-              icon={kpi.icon}
-              loading={false}
-              timeframe={getChartTimeframe(timeframe)}
-            />
-          ))}
-        </motion.div>
+        {/* KPI Cards using StatsCard components */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <StatsCard
+            label={tCommon("total_views")}
+            value={(analytics.totalViews || 0).toLocaleString()}
+            icon={Eye}
+            index={0}
+            change={analytics.viewsComparison?.percentageChange ? `${analytics.viewsComparison.percentageChange > 0 ? "+" : ""}${analytics.viewsComparison.percentageChange.toFixed(1)}%` : undefined}
+            sparklineData={getViewsSparklineData()}
+            {...statsCardColors.blue}
+          />
+          <StatsCard
+            label={t("positive_feedback")}
+            value={`${Math.round(analytics.positiveRatingPercentage || 0)}%`}
+            icon={ThumbsUp}
+            index={1}
+            change={analytics.feedbackComparison?.positive?.percentageChange ? `${analytics.feedbackComparison.positive.percentageChange > 0 ? "+" : ""}${analytics.feedbackComparison.positive.percentageChange.toFixed(1)}%` : undefined}
+            sparklineData={getPositiveFeedbackSparklineData()}
+            {...statsCardColors.green}
+          />
+          <StatsCard
+            label={t("negative_feedback")}
+            value={`${Math.round(analytics.negativeRatingPercentage || 0)}%`}
+            icon={ThumbsDown}
+            index={2}
+            change={analytics.feedbackComparison?.negative?.percentageChange ? `${analytics.feedbackComparison.negative.percentageChange > 0 ? "+" : ""}${analytics.feedbackComparison.negative.percentageChange.toFixed(1)}%` : undefined}
+            sparklineData={getNegativeFeedbackSparklineData()}
+            {...statsCardColors.red}
+          />
+          <StatsCard
+            label={tCommon("active_faqs")}
+            value={analytics.activeFaqs || 0}
+            icon={FileText}
+            index={3}
+            description={`${analytics.totalFaqs || 0} ${tCommon("total")}`}
+            {...statsCardColors.amber}
+          />
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -464,7 +445,7 @@ export function FAQAnalyticsDashboard() {
             <CardHeader>
               <CardTitle>{t("top_performing_faqs")}</CardTitle>
               <CardDescription>
-                FAQs with the most views and positive feedback
+                {t("faqs_with_the_most_views_and_positive_feedback")}
               </CardDescription>
             </CardHeader>
             <CardContent>

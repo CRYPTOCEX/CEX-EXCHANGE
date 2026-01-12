@@ -18,6 +18,7 @@ import {
   LayoutGrid,
   List,
   Filter,
+  RefreshCw,
 } from "lucide-react";
 import { Link, useRouter } from "@/i18n/routing";
 import { $fetch } from "@/lib/api";
@@ -184,6 +185,7 @@ export function SettingsPage({
   const [draftSettings, setDraftSettings] = useState<Record<string, any>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"tabs" | "all">("tabs");
+  const [isClearingCache, setIsClearingCache] = useState(false);
 
   const validFieldKeys = useMemo(() => new Set(fields.map((field) => field.key)), [fields]);
 
@@ -424,12 +426,35 @@ export function SettingsPage({
     setHasChanges(false);
   };
 
+  const handleClearCache = async () => {
+    setIsClearingCache(true);
+    try {
+      const { data, error } = await $fetch<{
+        success: boolean;
+        message: string;
+        settingsCount: number;
+      }>({
+        url: "/api/admin/system/settings/cache",
+        method: "POST",
+      });
+
+      if (data?.success) {
+        // Reload the page to get fresh settings
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Failed to clear cache:", error);
+    } finally {
+      setIsClearingCache(false);
+    }
+  };
+
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
     setViewMode("tabs");
     const newSearchParams = new URLSearchParams(searchParams.toString());
     newSearchParams.set("tab", tabId);
-    router.replace(`?${newSearchParams.toString()}`, { scroll: false });
+    router.replace(`?${newSearchParams.toString()}`);
   };
 
   const activeTabData = tabs.find((tab) => tab.id === activeTab);
@@ -564,6 +589,25 @@ export function SettingsPage({
                     <TooltipContent>All Settings</TooltipContent>
                   </Tooltip>
                 </div>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-10 w-10 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={handleClearCache}
+                      disabled={isClearingCache}
+                    >
+                      {isClearingCache ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Clear Settings Cache</TooltipContent>
+                </Tooltip>
               </div>
             </div>
 

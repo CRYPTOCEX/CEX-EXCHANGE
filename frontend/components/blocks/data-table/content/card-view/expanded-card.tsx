@@ -272,6 +272,10 @@ export const ExpandedCard = forwardRef<HTMLDivElement, ExpandedCardProps>(
                 // Compound columns will receive the nested object (e.g., row.agent or row.user)
                 const cellValue = getNestedValue(row, column.key);
 
+                // Check if this column should be full width
+                const isFullWidth = column.fullWidth ||
+                  ["textarea", "editor", "compound"].includes(column.type || "");
+
                 return (
                   <div
                     key={column.key}
@@ -280,7 +284,9 @@ export const ExpandedCard = forwardRef<HTMLDivElement, ExpandedCardProps>(
                       "bg-muted/30 dark:bg-muted/20",
                       "border border-border/30",
                       "transition-all duration-200",
-                      "hover:bg-muted/50 hover:border-border/50"
+                      "hover:bg-muted/50 hover:border-border/50",
+                      // Full width support
+                      isFullWidth && "col-span-1 sm:col-span-2"
                     )}
                   >
                     {sourceType === "card" ? (

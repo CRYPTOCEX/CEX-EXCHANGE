@@ -224,7 +224,7 @@ export function useFormConfig() {
         },
         {
           id: "trading-settings",
-          title: t("trading_settings"),
+          title: tCommon("trading_settings"),
           icon: DollarSign,
           priority: 3,
           fields: [
@@ -273,7 +273,7 @@ export function useFormConfig() {
         },
         {
           id: "trading-settings",
-          title: t("trading_settings"),
+          title: tCommon("trading_settings"),
           icon: DollarSign,
           priority: 2,
           fields: [

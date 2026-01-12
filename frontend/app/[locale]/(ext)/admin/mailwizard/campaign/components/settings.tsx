@@ -21,6 +21,7 @@ import { useTranslations } from "next-intl";
 
 export function CampaignSettings() {
   const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const {
     campaign,
     setCampaign,
@@ -69,7 +70,7 @@ export function CampaignSettings() {
             onChange={(e) =>
               setCampaign({ ...campaign, subject: e.target.value })
             }
-            placeholder={t("enter_email_subject")}
+            placeholder={tCommon("enter_email_subject_ellipsis")}
           />
 
           {/* Speed */}
@@ -96,7 +97,7 @@ export function CampaignSettings() {
               }
             >
               <SelectTrigger id="template" title="Template">
-                <SelectValue placeholder={t("select_a_template")} />
+                <SelectValue placeholder={tCommon("select_a_template")} />
               </SelectTrigger>
               <SelectContent>
                 {templates.map((template) => (

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { $fetch } from "@/lib/api";
 import { useRouter, Link } from "@/i18n/routing";
-import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
 /* Reusable Multi-step components */
 import BasicInfoStep from "@/app/[locale]/(ext)/admin/ecosystem/market/components/step-1";
@@ -13,6 +12,13 @@ import LimitsStep from "@/app/[locale]/(ext)/admin/ecosystem/market/components/s
 import Stepper from "@/components/ui/stepper";
 import { useTranslations } from "next-intl";
 import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
+import {
+  ArrowLeft,
+  Coins,
+  Percent,
+  Hash,
+  Gauge,
+} from "lucide-react";
 
 /* ----------------- Types and Initial Values ----------------- */
 export type Metadata = {
@@ -28,6 +34,7 @@ export type Metadata = {
     cost: { min: number; max: number };
   };
 };
+
 export interface MarketForm {
   currency: string;
   pair: string;
@@ -35,10 +42,13 @@ export interface MarketForm {
   isHot: boolean;
   metadata: Metadata;
 }
+
 export interface TokenOption {
   label: string;
   value: string;
+  symbol: string;
 }
+
 const initialFormValues: MarketForm = {
   currency: "",
   pair: "",
@@ -55,7 +65,9 @@ const initialFormValues: MarketForm = {
     },
   },
 };
+
 const TOTAL_STEPS = 4;
+
 const CreateEcosystemMarket = () => {
   const t = useTranslations("ext_admin");
   const tCommon = useTranslations("common");
@@ -65,6 +77,7 @@ const CreateEcosystemMarket = () => {
   const [tokenOptions, setTokenOptions] = useState<TokenOption[]>([]);
   const [isLoadingTokens, setIsLoadingTokens] = useState(true);
   const [step, setStep] = useState(1);
+
   useEffect(() => {
     const fetchTokenOptions = async () => {
       try {
@@ -80,6 +93,7 @@ const CreateEcosystemMarket = () => {
         const formatted: TokenOption[] = data.map((token: any) => ({
           label: token.name,
           value: token.id,
+          symbol: token.name.split("-")[0].trim(),
         }));
         setTokenOptions(formatted);
       } catch (err: any) {
@@ -90,9 +104,11 @@ const CreateEcosystemMarket = () => {
     };
     fetchTokenOptions();
   }, []);
+
   const updateField = (field: keyof MarketForm, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
   const updateNestedField = (path: string, value: any) => {
     const keys = path.split(".");
     setFormData((prev) => {
@@ -106,6 +122,7 @@ const CreateEcosystemMarket = () => {
       return updated;
     });
   };
+
   const handleFinalSubmit = async () => {
     if (step !== TOTAL_STEPS) return;
     setIsSubmitting(true);
@@ -116,7 +133,7 @@ const CreateEcosystemMarket = () => {
         body: formData,
       });
       if (!error) {
-        toast.success("Ecosystem market created successfully");
+        toast.success(t("market_created_successfully"));
         router.push("/admin/ecosystem/market");
       }
     } catch (err: any) {
@@ -125,22 +142,42 @@ const CreateEcosystemMarket = () => {
       setIsSubmitting(false);
     }
   };
+
   const nextStep = () => {
     if (step === 1 && (!formData.currency || !formData.pair)) {
-      toast.error("Please select both a currency and a pair to proceed.");
+      toast.error(t("please_select_currency_and_pair"));
       return;
     }
     if (step < TOTAL_STEPS) setStep(step + 1);
   };
+
   const prevStep = () => {
     if (step > 1) setStep(step - 1);
   };
+
   const stepLabels = [
-    { label: "Basic Info", description: "Currency, Pair, & flags" },
-    { label: "Metadata", description: "Taker & Maker fees" },
-    { label: "Precision", description: "Decimals settings" },
-    { label: "Limits & Submit", description: "Finalize your market" },
+    {
+      label: tCommon("basic_info"),
+      description: t("currency_pair_flags"),
+      icon: <Coins className="h-4 w-4" />,
+    },
+    {
+      label: tCommon("metadata"),
+      description: t("taker_maker_fees"),
+      icon: <Percent className="h-4 w-4" />,
+    },
+    {
+      label: tCommon("precision"),
+      description: t("decimal_settings"),
+      icon: <Hash className="h-4 w-4" />,
+    },
+    {
+      label: tCommon("limits"),
+      description: t("finalize_market"),
+      icon: <Gauge className="h-4 w-4" />,
+    },
   ];
+
   return (
     <div
       className={`container ${PAGE_PADDING}`}
@@ -150,18 +187,26 @@ const CreateEcosystemMarket = () => {
         }
       }}
     >
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">{t("create_ecosystem_market")}</h1>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">{t("create_ecosystem_market")}</h1>
+          {formData.currency && formData.pair && (
+            <p className="text-muted-foreground mt-1">
+              {tokenOptions.find((t) => t.value === formData.currency)?.symbol || formData.currency}/
+              {tokenOptions.find((t) => t.value === formData.pair)?.symbol || formData.pair}
+            </p>
+          )}
+        </div>
         <Link href="/admin/ecosystem/market">
-          <Button variant="outline">
-            <Icon
-              icon="akar-icons:arrow-left"
-              className="mr-2 cursor-pointer"
-            />
+          <Button variant="outline" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
             {tCommon("back")}
           </Button>
         </Link>
       </div>
+
+      {/* Stepper */}
       <Stepper
         direction="horizontal"
         currentStep={step}
@@ -171,8 +216,10 @@ const CreateEcosystemMarket = () => {
         onNext={nextStep}
         onSubmit={handleFinalSubmit}
         isSubmitting={isSubmitting}
+        variant="timeline"
+        colorScheme="default"
+        animation="slide"
         showStepDescription={true}
-        showProgress={false}
       >
         {step === 1 && (
           <BasicInfoStep
@@ -204,4 +251,5 @@ const CreateEcosystemMarket = () => {
     </div>
   );
 };
+
 export default CreateEcosystemMarket;

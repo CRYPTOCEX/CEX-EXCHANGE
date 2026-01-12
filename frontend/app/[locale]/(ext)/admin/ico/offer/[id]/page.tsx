@@ -26,6 +26,7 @@ import {
   Star,
   Calendar,
   Check,
+  Pencil,
 } from "lucide-react";
 import {
   Dialog,
@@ -36,6 +37,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   Tooltip,
@@ -78,7 +82,19 @@ export default function OfferingDetailPage() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [flagDialogOpen, setFlagDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [showAllMetrics, setShowAllMetrics] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    symbol: "",
+    website: "",
+    targetAmount: 0,
+    tokenPrice: 0,
+    description: "",
+    blockchain: "",
+    totalSupply: 0,
+    featured: false,
+  });
   const {
     offering,
     offerMetrics,
@@ -90,6 +106,7 @@ export default function OfferingDetailPage() {
     flagOffering,
     unflagOffering,
     emergencyCancelOffering,
+    updateOffering,
     errorOffer,
   } = useAdminOfferStore();
   useEffect(() => {
@@ -137,12 +154,45 @@ export default function OfferingDetailPage() {
         description: `Successfully cancelled and refunded ${result?.data?.successfulRefunds || 0} investors`,
       });
       setCancelDialogOpen(false);
-      // Optionally redirect to list or refresh
-      await fetchCurrentOffer(id);
+      // Store automatically refetches offering data after cancel
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to cancel ICO offering",
+        variant: "destructive",
+      });
+    }
+    setProcessingAction(null);
+  };
+  const openEditDialog = () => {
+    if (!offering) return;
+    setEditFormData({
+      name: offering.name || "",
+      symbol: offering.symbol || "",
+      website: offering.website || "",
+      targetAmount: offering.targetAmount || 0,
+      tokenPrice: offering.tokenPrice || 0,
+      description: offering.tokenDetail?.description || "",
+      blockchain: offering.tokenDetail?.blockchain || "",
+      totalSupply: offering.tokenDetail?.totalSupply || 0,
+      featured: offering.featured || false,
+    });
+    setEditDialogOpen(true);
+  };
+  const handleUpdateOffering = async () => {
+    if (!offering) return;
+    setProcessingAction("update");
+    try {
+      await updateOffering(offering.id, editFormData);
+      toast({
+        title: "Success",
+        description: "Offering updated successfully",
+      });
+      setEditDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update offering",
         variant: "destructive",
       });
     }
@@ -155,8 +205,13 @@ export default function OfferingDetailPage() {
       case "PENDING":
         return "bg-yellow-500/50 border-yellow-500/40";
       case "COMPLETED":
+      case "SUCCESS":
         return "bg-blue-500/50 border-blue-500/40";
       case "REJECTED":
+        return "bg-red-500/50 border-red-500/40";
+      case "CANCELLED":
+        return "bg-orange-500/50 border-orange-500/40";
+      case "FAILED":
         return "bg-red-500/50 border-red-500/40";
       default:
         return "bg-gray-500/50 border-gray-500/40";
@@ -164,18 +219,22 @@ export default function OfferingDetailPage() {
   };
   if (errorOffer) {
     return (
-      <div className="container py-8">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{errorOffer}</AlertDescription>
-        </Alert>
-        <div className="mt-4">
-          <Button onClick={() => router.push("/admin/ico/offer")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {tCommon("back_to_offerings")}
-          </Button>
-        </div>
+      <div className="min-h-[calc(100vh-48px)] flex items-center justify-center">
+        <Card className="w-full max-w-md mx-4 border-destructive/50">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+              <AlertCircle className="h-8 w-8 text-destructive" />
+            </div>
+            <CardTitle className="text-xl text-destructive">{tCommon("error")}</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-muted-foreground">{errorOffer}</p>
+            <Button onClick={() => router.push("/admin/ico/offer")} className="w-full">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {tCommon("back_to_offerings")}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -401,6 +460,25 @@ export default function OfferingDetailPage() {
             </Alert>
           )}
 
+          {/* Alert for cancelled offerings */}
+          {offering.status === "CANCELLED" && offering.cancellationReason && (
+            <Alert
+              variant="destructive"
+              className="border-l-4 border-l-orange-500 bg-orange-500/10"
+            >
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>{t("ico_cancelled")}</AlertTitle>
+              <AlertDescription className="mt-1">
+                <p>{offering.cancellationReason}</p>
+                {offering.cancelledAt && (
+                  <p className="text-xs mt-2 opacity-70">
+                    {tCommon("cancelled_on")}: {formatDate(offering.cancelledAt)}
+                  </p>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Admin Action Buttons */}
           <Card>
             <CardHeader>
@@ -409,6 +487,18 @@ export default function OfferingDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-3">
+                {/* Edit Offering Button - Available for most statuses */}
+                {["PENDING", "ACTIVE", "UPCOMING", "SUCCESS"].includes(offering.status) && (
+                  <Button
+                    variant="outline"
+                    onClick={openEditDialog}
+                    disabled={processingAction === "update"}
+                  >
+                    <Pencil className="h-4 w-4 mr-2" />
+                    {processingAction === "update" ? "Saving..." : tCommon("edit")}
+                  </Button>
+                )}
+
                 {offering.status === "PENDING" && (
                   <>
                     <Button
@@ -432,7 +522,7 @@ export default function OfferingDetailPage() {
                   </>
                 )}
 
-                {["APPROVED", "ACTIVE"].includes(offering.status) && (
+                {offering.status === "ACTIVE" && (
                   <Button
                     variant={offering.isPaused ? "default" : "outline"}
                     onClick={handlePauseResume}
@@ -472,7 +562,7 @@ export default function OfferingDetailPage() {
                 )}
 
                 {/* Emergency Cancel - SuperAdmin Only */}
-                {["ACTIVE", "APPROVED"].includes(offering.status) && (
+                {offering.status === "ACTIVE" && (
                   <Button
                     variant="destructive"
                     onClick={() => setCancelDialogOpen(true)}
@@ -631,7 +721,7 @@ export default function OfferingDetailPage() {
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              SuperAdmin only. Requires detailed reason for audit trail.
+              {t("superadmin_only_requires_detailed_reason_for")}
             </AlertDescription>
           </Alert>
           <Textarea
@@ -657,6 +747,149 @@ export default function OfferingDetailPage() {
               {processingAction === "cancel"
                 ? "Cancelling..."
                 : "Emergency Cancel & Refund All"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Offering Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5" />
+              {tCommon("edit")} {tExt("offering")}
+            </DialogTitle>
+            <DialogDescription>
+              {t("update_offering_details")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-name">{tCommon("name")}</Label>
+                <Input
+                  id="edit-name"
+                  value={editFormData.name}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, name: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-symbol">{tExt("token_symbol")}</Label>
+                <Input
+                  id="edit-symbol"
+                  value={editFormData.symbol}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, symbol: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-website">{tExt("website")}</Label>
+              <Input
+                id="edit-website"
+                type="url"
+                value={editFormData.website}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, website: e.target.value })
+                }
+                placeholder="https://example.com"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-targetAmount">{tExt("target_amount")}</Label>
+                <Input
+                  id="edit-targetAmount"
+                  type="number"
+                  min="0"
+                  value={editFormData.targetAmount}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      targetAmount: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-tokenPrice">{tExt("token_price")}</Label>
+                <Input
+                  id="edit-tokenPrice"
+                  type="number"
+                  step="0.0001"
+                  min="0"
+                  value={editFormData.tokenPrice}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      tokenPrice: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-blockchain">{tExt("blockchain")}</Label>
+                <Input
+                  id="edit-blockchain"
+                  value={editFormData.blockchain}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, blockchain: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-totalSupply">{tExt("total_supply")}</Label>
+                <Input
+                  id="edit-totalSupply"
+                  type="number"
+                  min="0"
+                  value={editFormData.totalSupply}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      totalSupply: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-description">{tCommon("description")}</Label>
+              <Textarea
+                id="edit-description"
+                value={editFormData.description}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, description: e.target.value })
+                }
+                className="min-h-[100px]"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="edit-featured"
+                checked={editFormData.featured}
+                onCheckedChange={(checked) =>
+                  setEditFormData({ ...editFormData, featured: checked })
+                }
+              />
+              <Label htmlFor="edit-featured">{tCommon("featured")}</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              {tCommon("cancel")}
+            </Button>
+            <Button
+              onClick={handleUpdateOffering}
+              disabled={processingAction === "update"}
+            >
+              {processingAction === "update" ? `${tCommon("saving")}...` : tCommon("save")}
             </Button>
           </DialogFooter>
         </DialogContent>

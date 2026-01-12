@@ -1,6 +1,14 @@
-import { NAV_COLOR_SCHEMAS } from "@/app/[locale]/(ext)/theme-config";
+import { NAV_COLOR_SCHEMAS } from "@/lib/nav-color-schema";
 
 export const menu: MenuItem[] = [
+  {
+    key: "dashboard",
+    title: "Dashboard",
+    description:
+      "Overview of AI investment performance, plan metrics, and ROI analytics.",
+    href: "/admin/ai/investment",
+    icon: "lucide:layout-dashboard",
+  },
   {
     key: "plans",
     title: "Plans",

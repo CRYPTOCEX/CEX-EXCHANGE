@@ -3,6 +3,7 @@ import type { ElementType, ReactNode } from "react";
 export type FieldType =
   | "switch"
   | "text"
+  | "input"  // Generic input field - use inputType to specify HTML input type
   | "number"
   | "range"
   | "url"
@@ -39,11 +40,16 @@ export interface FieldDefinition {
   max?: number;
   step?: number;
   suffix?: string; // e.g., "%" for percentages, "min" for minutes
+  placeholder?: string; // Custom placeholder text for input fields
+  inputType?: "text" | "number" | "email" | "password" | "url"; // HTML input type override
   fileSize?: { width: number; height: number };
   preview?: Record<string, Record<string, string>>;
   fullWidth?: boolean;
   // For custom field type - render a custom component
   customRender?: React.ComponentType<CustomComponentProps>;
+  // Optional addon module path that must be available for this field to show
+  // e.g., "@/components/(ext)/chart-engine" - field will be hidden if addon is not installed
+  addonRequired?: string;
 }
 
 export interface TabDefinition {

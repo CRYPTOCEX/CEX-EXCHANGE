@@ -506,7 +506,7 @@ export default function CopyTradingLanding() {
         ]}
         theme={{ primary: "indigo", secondary: "violet" }}
         variant="default"
-        title={t("why_trust_us")}
+        title={tExt("why_trust_us")}
       />
 
       {/* How It Works Section */}

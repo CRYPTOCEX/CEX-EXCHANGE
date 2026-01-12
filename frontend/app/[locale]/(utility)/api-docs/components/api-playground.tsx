@@ -47,6 +47,7 @@ import type { ParsedEndpoint, ParameterObject, SchemaObject } from "../types/ope
 import { isReferenceObject } from "../types/openapi";
 import { useUserStore } from "@/store/user";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 interface APIPlaygroundProps {
   endpoint: ParsedEndpoint;
@@ -87,6 +88,8 @@ function generateDefaultValue(schema: SchemaObject | undefined, name: string): s
 }
 
 export function APIPlayground({ endpoint, baseUrl, className }: APIPlaygroundProps) {
+  const t = useTranslations("utility_api-docs");
+  const tCommon = useTranslations("common");
   const { operation, path, method } = endpoint;
 
   // User API keys from store
@@ -297,10 +300,10 @@ export function APIPlayground({ endpoint, baseUrl, className }: APIPlaygroundPro
           <div>
             <CardTitle className="flex items-center gap-2">
               <Send className="h-5 w-5" />
-              API Playground
+              {t("api_playground")}
             </CardTitle>
             <CardDescription>
-              Test this endpoint directly from the browser
+              {t("test_this_endpoint_directly_from_the_browser")}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -311,7 +314,7 @@ export function APIPlayground({ endpoint, baseUrl, className }: APIPlaygroundPro
       <CardContent className="space-y-6">
         {/* URL Preview */}
         <div className="space-y-2">
-          <Label className="text-xs text-muted-foreground">Request URL</Label>
+          <Label className="text-xs text-muted-foreground">{t("request_url")}</Label>
           <div className="font-mono text-sm bg-muted p-3 rounded-lg break-all">
             {buildUrl()}
           </div>
@@ -329,7 +332,7 @@ export function APIPlayground({ endpoint, baseUrl, className }: APIPlaygroundPro
             <AccordionContent className="pb-4 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Auth Type</Label>
+                  <Label>{t("auth_type")}</Label>
                   <Select
                     value={authType}
                     onValueChange={(v) => {
@@ -342,9 +345,9 @@ export function APIPlayground({ endpoint, baseUrl, className }: APIPlaygroundPro
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">No Auth</SelectItem>
-                      <SelectItem value="apiKey">API Key</SelectItem>
-                      <SelectItem value="bearer">Bearer Token</SelectItem>
+                      <SelectItem value="none">{t("no_auth")}</SelectItem>
+                      <SelectItem value="apiKey">{tCommon("api_key")}</SelectItem>
+                      <SelectItem value="bearer">{t("bearer_token")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -376,19 +379,19 @@ export function APIPlayground({ endpoint, baseUrl, className }: APIPlaygroundPro
                   {user?.id ? (
                     <>
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm">Your API Keys</Label>
+                        <Label className="text-sm">{tCommon("your_api_keys")}</Label>
                         <Link
                           href="/user/profile?tab=api"
                           className="text-xs text-primary hover:underline flex items-center gap-1"
                         >
-                          Manage Keys
+                          {t("manage_keys")}
                           <ExternalLink className="h-3 w-3" />
                         </Link>
                       </div>
                       {apiKeyLoading ? (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Loader2 className="h-3 w-3 animate-spin" />
-                          Loading your API keys...
+                          {t("loading_your_api_keys_ellipsis")}
                         </div>
                       ) : apiKeys.length > 0 ? (
                         <Select
@@ -402,11 +405,11 @@ export function APIPlayground({ endpoint, baseUrl, className }: APIPlaygroundPro
                           }}
                         >
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select an API key..." />
+                            <SelectValue placeholder={t("select_an_api_key_ellipsis")} />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectGroup>
-                              <SelectLabel>Your API Keys</SelectLabel>
+                              <SelectLabel>{tCommon("your_api_keys")}</SelectLabel>
                               {apiKeys.map((key) => (
                                 <SelectItem key={key.id} value={key.id}>
                                   <div className="flex items-center gap-2">
@@ -423,12 +426,12 @@ export function APIPlayground({ endpoint, baseUrl, className }: APIPlaygroundPro
                         </Select>
                       ) : (
                         <div className="text-sm text-muted-foreground">
-                          No API keys found.{" "}
+                          {t("no_api_keys_found")}{" "}
                           <Link
                             href="/user/profile?tab=api"
                             className="text-primary hover:underline"
                           >
-                            Create one
+                            {t("create_one")}
                           </Link>
                         </div>
                       )}
@@ -439,9 +442,9 @@ export function APIPlayground({ endpoint, baseUrl, className }: APIPlaygroundPro
                         href="/login"
                         className="text-primary hover:underline font-medium"
                       >
-                        Sign in
+                        {tCommon("sign_in")}
                       </Link>{" "}
-                      to use your saved API keys, or enter one manually above.
+                      {t("to_use_your_saved_api_keys")}
                     </div>
                   )}
                 </div>
@@ -542,7 +545,7 @@ export function APIPlayground({ endpoint, baseUrl, className }: APIPlaygroundPro
               <AccordionTrigger className="hover:no-underline py-4">
                 <span className="flex items-center gap-2">
                   <FileJson className="h-4 w-4" />
-                  Request Body
+                  {t("request_body")}
                 </span>
               </AccordionTrigger>
               <AccordionContent className="pb-4">
@@ -567,12 +570,12 @@ export function APIPlayground({ endpoint, baseUrl, className }: APIPlaygroundPro
           {requestState.loading ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Sending...
+              {tCommon("sending_ellipsis")}
             </>
           ) : (
             <>
               <Play className="h-4 w-4 mr-2" />
-              Send Request
+              {t("send_request")}
             </>
           )}
         </Button>
@@ -622,7 +625,7 @@ export function APIPlayground({ endpoint, baseUrl, className }: APIPlaygroundPro
                         : JSON.stringify(requestState.response.body, null, 2)
                     }
                     language="json"
-                    title="Response Body"
+                    title={t("response_body")}
                   />
                 </ScrollArea>
               )

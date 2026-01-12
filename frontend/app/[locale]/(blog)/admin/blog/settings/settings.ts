@@ -3,11 +3,18 @@ import {
   FileText,
   Layout,
   Search,
+  Settings,
 } from "lucide-react";
 import { FieldDefinition, TabDefinition, TabColors } from "@/components/admin/settings";
 
 // Tab definitions for blog settings
 export const BLOG_TABS: TabDefinition[] = [
+  {
+    id: "general",
+    label: "General",
+    icon: Settings,
+    description: "Configure general blog settings",
+  },
   {
     id: "authors",
     label: "Authors",
@@ -36,6 +43,14 @@ export const BLOG_TABS: TabDefinition[] = [
 
 // Tab colors for blog settings
 export const BLOG_TAB_COLORS: Record<string, TabColors> = {
+  general: {
+    bg: "bg-slate-500/10",
+    text: "text-slate-500",
+    border: "border-slate-500/20",
+    gradient: "from-slate-500/20 via-slate-400/10 to-transparent",
+    glow: "shadow-slate-500/20",
+    iconBg: "bg-gradient-to-br from-slate-500 to-gray-600",
+  },
   authors: {
     bg: "bg-blue-500/10",
     text: "text-blue-500",
@@ -72,6 +87,33 @@ export const BLOG_TAB_COLORS: Record<string, TabColors> = {
 
 // Field definitions for blog settings
 export const BLOG_FIELD_DEFINITIONS: FieldDefinition[] = [
+  // General Settings
+  {
+    key: "blogStatus",
+    label: "Enable Blog",
+    type: "switch",
+    description: "Enable blog functionality on the platform",
+    category: "general",
+    subcategory: "Blog Status",
+  },
+  {
+    key: "blogPostLayout",
+    label: "Blog Post Layout",
+    type: "select",
+    description: "Select the layout for blog posts",
+    category: "general",
+    subcategory: "Appearance",
+    options: [
+      { label: "Default", value: "DEFAULT" },
+      { label: "Modern", value: "MODERN" },
+      { label: "Classic", value: "CLASSIC" },
+    ],
+    showIf: (values) => {
+      const val = values.blogStatus;
+      return val === "true" || (typeof val === 'boolean' && val === true);
+    },
+  },
+
   // Author Settings
   {
     key: "enableAuthorApplications",
@@ -193,6 +235,8 @@ export const BLOG_FIELD_DEFINITIONS: FieldDefinition[] = [
 
 // Default settings values
 export const BLOG_DEFAULT_SETTINGS: Record<string, any> = {
+  blogStatus: "true",
+  blogPostLayout: "DEFAULT",
   enableAuthorApplications: true,
   autoApproveAuthors: false,
   maxPostsPerAuthor: 0,

@@ -22,7 +22,7 @@ export function useAnalytics() {
         items: [
           {
             id: "total_products",
-            title: t("total_products"),
+            title: tCommon("total_products"),
             metric: "total",
             model: "ecommerceProduct",
             icon: "mdi:storefront",

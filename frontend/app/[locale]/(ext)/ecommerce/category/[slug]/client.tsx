@@ -431,7 +431,7 @@ export default function CategoryDetailClient() {
                 <Package className={`h-12 w-12 text-amber-600 dark:text-amber-400`} />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-zinc-100 mb-3">
-                {tExt("no_products_found")}
+                {tCommon("no_products_found")}
               </h3>
               <p className="text-gray-600 dark:text-zinc-400 max-w-md mx-auto mb-8 text-lg">
                 {searchQuery

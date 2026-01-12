@@ -352,7 +352,7 @@ export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
                       <Target className="w-6 h-6 text-white" />
                     </div>
                     <span className="text-orange-500 text-sm font-medium">
-                      {t("plans")}
+                      {tCommon("plans")}
                     </span>
                   </div>
                   <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">

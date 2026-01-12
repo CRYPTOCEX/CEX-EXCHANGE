@@ -249,7 +249,7 @@ export function TagDetailClient() {
                 className="inline-flex items-center text-sm text-white/80 hover:text-white transition-colors duration-200 group"
               >
                 <ArrowLeft className="mr-1.5 h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-x-1" />
-                {t("all_tags")}
+                {tCommon("all_tags")}
               </Link>
             </div>
 

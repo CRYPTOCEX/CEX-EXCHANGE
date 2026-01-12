@@ -67,7 +67,7 @@ export default function TokenDetailsStep({
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
-          label={tExt("token_name")}
+          label={tCommon("token_name")}
           placeholder={t("e_g_ethereum")}
           value={formData.name}
           onChange={(e) => updateFormData("name", e.target.value)}

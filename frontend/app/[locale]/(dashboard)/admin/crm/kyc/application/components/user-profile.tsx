@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { getTranslations } from "next-intl/server";
 
 interface UserProfileProps {
   user: any;
@@ -166,6 +167,7 @@ export const ContactInformation = ({
   copiedField,
   onCopy,
 }: Pick<UserProfileProps, "user" | "copiedField" | "onCopy">) => {
+  const t = useTranslations("common");
   const tCommon = useTranslations("common");
   return (
     <Card className="overflow-hidden rounded-xl border-zinc-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-shadow duration-300 print-border">
@@ -233,7 +235,7 @@ export const ContactInformation = ({
                   {tCommon("phone_number")}
                 </p>
                 <div className="font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                  {user.phone || <span className="text-zinc-400 dark:text-zinc-500 font-normal">Not provided</span>}
+                  {user.phone || <span className="text-zinc-400 dark:text-zinc-500 font-normal">{t("not_provided")}</span>}
                   {user.phone && (
                     <Button
                       variant="ghost"
@@ -291,7 +293,7 @@ export const ContactInformation = ({
                       </div>
                     </>
                   ) : (
-                    <span className="text-zinc-400 dark:text-zinc-500 font-normal">Not provided</span>
+                    <span className="text-zinc-400 dark:text-zinc-500 font-normal">{t("not_provided")}</span>
                   )}
                 </div>
               </div>

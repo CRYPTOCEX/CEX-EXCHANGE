@@ -31,6 +31,7 @@ import { Link } from "@/i18n/routing";
 
 export default function AdminMerchantsPage() {
   const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { toast } = useToast();
   const columns = useColumns();
   const formConfig = useFormConfig();
@@ -140,11 +141,11 @@ export default function AdminMerchantsPage() {
           <>
             <DropdownMenuItem onClick={() => handleAction("approve", row, refresh)}>
               <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
-              Approve Merchant
+              {t("approve_merchant")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleAction("reject", row, refresh)}>
               <XCircle className="mr-2 h-4 w-4 text-red-500" />
-              Reject Merchant
+              {t("reject_merchant")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
@@ -152,19 +153,19 @@ export default function AdminMerchantsPage() {
         {row.status === "ACTIVE" && (
           <DropdownMenuItem onClick={() => handleAction("suspend", row, refresh)}>
             <Ban className="mr-2 h-4 w-4 text-orange-500" />
-            Suspend Merchant
+            {t("suspend_merchant")}
           </DropdownMenuItem>
         )}
         {row.status === "SUSPENDED" && (
           <DropdownMenuItem onClick={() => handleAction("approve", row, refresh)}>
             <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
-            Reactivate Merchant
+            {t("reactivate_merchant")}
           </DropdownMenuItem>
         )}
         {row.verificationStatus !== "VERIFIED" && (
           <DropdownMenuItem onClick={() => handleAction("verify", row, refresh)}>
             <Shield className="mr-2 h-4 w-4 text-blue-500" />
-            Verify Merchant
+            {t("verify_merchant")}
           </DropdownMenuItem>
         )}
       </>
@@ -189,8 +190,8 @@ export default function AdminMerchantsPage() {
         canDelete={true}
         canView={true}
         viewLink="/admin/gateway/merchant/[id]"
-        title="Gateway Merchants"
-        description="Manage registered merchant accounts"
+        title={t("gateway_merchants")}
+        description={t("manage_registered_merchant_accounts")}
         itemTitle="Merchant"
         columns={columns}
         formConfig={formConfig}
@@ -227,7 +228,7 @@ export default function AdminMerchantsPage() {
           </DialogHeader>
           <div className="py-4">
             <p>
-              Are you sure you want to {confirmDialog.type} merchant{" "}
+              {tCommon("are_you_sure_you_want_to")} {confirmDialog.type} merchant{" "}
               <strong>{confirmDialog.merchantName}</strong>?
             </p>
           </div>

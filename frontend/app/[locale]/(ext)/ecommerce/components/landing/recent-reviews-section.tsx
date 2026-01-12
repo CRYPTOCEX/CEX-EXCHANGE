@@ -39,6 +39,7 @@ interface RecentReviewsSectionProps {
 }
 
 function ReviewCard({ review, index }: { review: Review; index: number }) {
+  const t = useTranslations("ext_ecommerce");
   const initials = review.user.firstName
     .split(" ")
     .map((n) => n[0])
@@ -98,7 +99,7 @@ function ReviewCard({ review, index }: { review: Review; index: number }) {
                 <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
               </div>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                Verified Buyer
+                {t("verified_buyer")}
               </span>
             </div>
           </div>

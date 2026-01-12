@@ -319,7 +319,7 @@ export function TradeSettingsStep() {
                   onValueChange={handleAutoCancelDurationChange}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={t("select_duration")} />
+                    <SelectValue placeholder={tCommon("select_duration")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="15">{`15 ${tCommon('minutes')}`}</SelectItem>

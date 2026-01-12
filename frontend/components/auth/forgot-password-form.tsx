@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Mail,
   ArrowLeft,
@@ -15,10 +15,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { $fetch } from "@/lib/api";
 import { useTranslations } from "next-intl";
-
-const recaptchaEnabled =
-  process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_STATUS === "true";
-const recaptchaSiteKey = process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SITE_KEY;
+import { usePowCaptcha } from "@/hooks/use-pow-captcha";
 
 interface ForgotPasswordFormProps {
   onSuccess?: () => void;
@@ -34,6 +31,8 @@ export default function ForgotPasswordForm({
   const t = useTranslations("components_auth");
   const tCommon = useTranslations("common");
   const { toast } = useToast();
+  const { solveAndGetSolution, isLoading: powLoading } = usePowCaptcha();
+
   const [email, setEmail] = useState("");
   const [token, setToken] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,62 +41,6 @@ export default function ForgotPasswordForm({
   const [emailFocused, setEmailFocused] = useState(false);
   const [tokenFocused, setTokenFocused] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [script, setScript] = useState<HTMLScriptElement | null>(null);
-
-  // Initialize recaptcha if enabled
-  useEffect(() => {
-    if (typeof window !== "undefined" && recaptchaEnabled && recaptchaSiteKey) {
-      try {
-        // Check if script already exists
-        const existingScript = document.querySelector(`script[src*="recaptcha/api.js"]`);
-        if (existingScript) {
-          console.log("reCAPTCHA script already loaded");
-          return;
-        }
-
-        const scriptElement = document.createElement("script");
-        scriptElement.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`;
-        scriptElement.async = true;
-        scriptElement.defer = true;
-        document.body.appendChild(scriptElement);
-        setScript(scriptElement);
-
-        scriptElement.onload = () => {
-          console.log("reCAPTCHA script loaded successfully");
-          const { grecaptcha } = window as any;
-          if (grecaptcha) {
-            grecaptcha.ready(() => {
-              console.log("reCAPTCHA is ready for use");
-            });
-          }
-        };
-
-        scriptElement.onerror = () => {
-          console.error("Failed to load reCAPTCHA script");
-        };
-      } catch (err) {
-        console.error("Error loading reCAPTCHA:", err);
-      }
-    } else {
-      if (!recaptchaSiteKey && recaptchaEnabled) {
-        console.error("reCAPTCHA is enabled but site key is missing");
-      }
-    }
-
-    return () => {
-      try {
-        if (script && script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
-        const recaptchaContainer = document.querySelector(".grecaptcha-badge");
-        if (recaptchaContainer && recaptchaContainer.parentNode) {
-          recaptchaContainer.parentNode.removeChild(recaptchaContainer);
-        }
-      } catch (err) {
-        console.error("Error cleaning up reCAPTCHA:", err);
-      }
-    };
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,66 +48,26 @@ export default function ForgotPasswordForm({
     setError(null);
 
     try {
-      // Generate reCAPTCHA token if enabled
-      let recaptchaToken = null;
-      if (recaptchaEnabled && typeof window !== "undefined") {
-        try {
-          // Wait for grecaptcha to be available (max 5 seconds)
-          let attempts = 0;
-          const maxAttempts = 10;
-          while (attempts < maxAttempts) {
-            const { grecaptcha } = window as any;
-            if (grecaptcha && grecaptcha.ready) {
-              await new Promise((resolve) => {
-                grecaptcha.ready(() => {
-                  resolve(true);
-                });
-              });
-              recaptchaToken = await grecaptcha.execute(recaptchaSiteKey, {
-                action: "password_reset",
-              });
-              console.log("reCAPTCHA token generated:", recaptchaToken ? "Success" : "Failed");
-              break;
-            }
-            attempts++;
-            if (attempts < maxAttempts) {
-              console.log(`Waiting for reCAPTCHA to load... Attempt ${attempts}/${maxAttempts}`);
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
-          }
-          
-          if (!recaptchaToken) {
-            console.error("reCAPTCHA not loaded after maximum attempts");
-            toast({
-              title: "reCAPTCHA Loading Error",
-              description: "reCAPTCHA failed to load. Please refresh the page and try again.",
-              variant: "destructive",
-            });
-            setLoading(false);
-            return;
-          }
-        } catch (recaptchaError) {
-          console.error("reCAPTCHA error:", recaptchaError);
-          toast({
-            title: "reCAPTCHA Error",
-            description: "Failed to verify reCAPTCHA. Please try again.",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
-        }
+      // Solve PoW captcha if enabled
+      let powSolution = null;
+      try {
+        powSolution = await solveAndGetSolution("reset");
+      } catch (powError) {
+        console.error("PoW captcha error:", powError);
+        toast({
+          title: "Security verification failed",
+          description: "Please try again.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
       }
 
-      // Call the forgot password API endpoint
-      const requestBody: any = { email };
-      if (recaptchaEnabled && recaptchaToken) {
-        requestBody.recaptchaToken = recaptchaToken;
-      }
-
+      // Call the forgot password API endpoint with PoW solution
       const result = await $fetch({
         url: "/api/auth/reset",
         method: "POST",
-        body: requestBody,
+        body: { email, powSolution: powSolution || undefined },
         successMessage: "Reset link sent",
       });
 
@@ -397,7 +300,7 @@ export default function ForgotPasswordForm({
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="border-0 pl-10 py-6 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                disabled={loading}
+                disabled={loading || powLoading}
                 onFocus={() => setEmailFocused(true)}
                 onBlur={() => setEmailFocused(false)}
               />
@@ -412,9 +315,9 @@ export default function ForgotPasswordForm({
           <Button
             type="submit"
             className="w-full py-6 text-base relative overflow-hidden btn-glow transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
-            disabled={loading}
+            disabled={loading || powLoading}
           >
-            {loading ? (
+            {(loading || powLoading) ? (
               <span className="flex items-center justify-center">
                 <svg
                   className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"

@@ -192,19 +192,21 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: tDashboardAdmin("basic_information"),
+          title: tCommon("basic_information"),
           icon: CreditCard,
           priority: 1,
           fields: [
             {
               key: "icon",
               required: true,
+              compoundKey: "paymentMethod",
             },
             {
               key: "name",
               required: true,
+              compoundKey: "paymentMethod",
             },
-            { key: "description", required: false },
+            { key: "description", required: false, compoundKey: "paymentMethod" },
           ],
         },
         {
@@ -256,19 +258,21 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: tDashboardAdmin("basic_information"),
+          title: tCommon("basic_information"),
           icon: CreditCard,
           priority: 1,
           fields: [
             {
               key: "icon",
               required: true,
+              compoundKey: "paymentMethod",
             },
             {
               key: "name",
               required: true,
+              compoundKey: "paymentMethod",
             },
-            { key: "description", required: false },
+            { key: "description", required: false, compoundKey: "paymentMethod" },
           ],
         },
         {

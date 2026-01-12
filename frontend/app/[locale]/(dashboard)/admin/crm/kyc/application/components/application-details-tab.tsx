@@ -309,7 +309,7 @@ export const ApplicationDetailsTab = ({
                 <div className="max-w-md mx-auto">
                   <Lightbox
                     src={identityData["passport-scan"]}
-                    alt="ID Document Scan"
+                    alt={tDashboard("id_document_scan")}
                     className="w-full h-auto object-contain max-h-[300px]"
                     wrapperClassName="overflow-hidden rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-1 shadow-sm hover:shadow-md transition-all duration-200"
                   />
@@ -325,7 +325,7 @@ export const ApplicationDetailsTab = ({
                 <div className="max-w-md mx-auto">
                   <Lightbox
                     src={identityData["passport-selfie"]}
-                    alt="ID Selfie Verification"
+                    alt={tDashboard("id_selfie_verification")}
                     className="w-full h-auto object-contain max-h-[300px]"
                     wrapperClassName="overflow-hidden rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-1 shadow-sm hover:shadow-md transition-all duration-200"
                   />
@@ -343,6 +343,7 @@ export const ApplicationDetailsTab = ({
 
   // Render a field
   const renderField = (field: KycField) => {
+  const tCommon = useTranslations("common");
     const fieldValue = applicationData[field.id];
     const fieldIcon = getFieldIcon(field.type);
 
@@ -467,6 +468,7 @@ export const ApplicationDetailsTab = ({
 
   // Render section fields
   const renderSectionFields = (section: KycField, sectionIndex: number) => {
+  const tCommon = useTranslations("common");
     const isExpanded = expandedSections[section.id] !== false;
 
     return (

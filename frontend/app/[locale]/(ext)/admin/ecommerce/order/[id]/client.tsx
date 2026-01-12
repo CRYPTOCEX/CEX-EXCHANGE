@@ -1168,7 +1168,7 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
                     onClick={() => handleStatusSelectChange("CANCELLED")}
                   >
                     <AlertCircle className="mr-2 h-4 w-4" />
-                    {tExtAdmin("cancel_order")}
+                    {tCommon("cancel_order")}
                   </Button>
                 )}
               </div>

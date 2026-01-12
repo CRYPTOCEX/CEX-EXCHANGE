@@ -112,13 +112,18 @@ export default function AuditLogPage() {
       case "LEADER":
         return Shield;
       case "FOLLOWER":
+      case "copyTradingFollower":
         return User;
       case "TRADE":
+      case "copyTradingTrade":
         return TrendingUp;
       case "TRANSACTION":
         return DollarSign;
       case "SETTING":
+      case "SETTINGS":
         return Settings;
+      case "ALLOCATION":
+        return DollarSign;
       default:
         return Shield;
     }
@@ -128,22 +133,47 @@ export default function AuditLogPage() {
     switch (action) {
       case "APPROVE":
       case "ACTIVATE":
+      case "TRADE_OPEN":
+      case "TRADE_CREATED":
         return CheckCircle2;
       case "REJECT":
       case "DELETE":
+      case "TRADE_CANCELLED":
         return XCircle;
       case "SUSPEND":
       case "REVERSE":
+      case "DAILY_LOSS_LIMIT_REACHED":
+      case "STOP_LOSS_TRIGGERED":
         return AlertTriangle;
       case "START":
       case "RESUME":
+      case "ADMIN_RESUME":
         return Play;
       case "RECALCULATE":
+      case "RECALCULATE_STATS":
         return RefreshCw;
       case "UPDATE":
+      case "ADMIN_UPDATE":
+      case "LIMITS_UPDATED":
         return Edit;
       case "CREATE":
+      case "ALLOCATE":
+      case "FOLLOW":
         return Plus;
+      case "ORDER_FILLED":
+      case "TRADE_CLOSED":
+      case "TRADE_CLOSE":
+      case "TAKE_PROFIT_TRIGGERED":
+        return TrendingUp;
+      case "PROFIT_DISTRIBUTED":
+        return DollarSign;
+      case "PAUSE":
+      case "ADMIN_FORCE_STOP":
+      case "UNFOLLOW":
+      case "DEALLOCATE":
+        return XCircle;
+      case "DAILY_LIMITS_RESET":
+        return RefreshCw;
       default:
         return Edit;
     }
@@ -155,17 +185,38 @@ export default function AuditLogPage() {
       case "ACTIVATE":
       case "START":
       case "RESUME":
+      case "ADMIN_RESUME":
+      case "TRADE_OPEN":
+      case "TRADE_CREATED":
+      case "TAKE_PROFIT_TRIGGERED":
+      case "PROFIT_DISTRIBUTED":
         return "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
       case "REJECT":
       case "DELETE":
+      case "TRADE_CANCELLED":
+      case "PAUSE":
+      case "ADMIN_FORCE_STOP":
+      case "UNFOLLOW":
+      case "DEALLOCATE":
         return "text-red-500 bg-red-500/10 border-red-500/20";
       case "SUSPEND":
       case "REVERSE":
+      case "DAILY_LOSS_LIMIT_REACHED":
+      case "STOP_LOSS_TRIGGERED":
         return "text-amber-500 bg-amber-500/10 border-amber-500/20";
       case "UPDATE":
       case "RECALCULATE":
+      case "RECALCULATE_STATS":
+      case "ADMIN_UPDATE":
+      case "LIMITS_UPDATED":
+      case "ORDER_FILLED":
+      case "TRADE_CLOSED":
+      case "TRADE_CLOSE":
+      case "DAILY_LIMITS_RESET":
         return "text-blue-500 bg-blue-500/10 border-blue-500/20";
       case "CREATE":
+      case "ALLOCATE":
+      case "FOLLOW":
         return "text-violet-500 bg-violet-500/10 border-violet-500/20";
       default:
         return "text-zinc-500 bg-zinc-500/10 border-zinc-500/20";
@@ -177,13 +228,18 @@ export default function AuditLogPage() {
       case "LEADER":
         return "bg-indigo-500/10 text-indigo-600 border-indigo-500/20";
       case "FOLLOWER":
+      case "copyTradingFollower":
         return "bg-blue-500/10 text-blue-600 border-blue-500/20";
       case "TRADE":
+      case "copyTradingTrade":
         return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
       case "TRANSACTION":
         return "bg-amber-500/10 text-amber-600 border-amber-500/20";
       case "SETTING":
+      case "SETTINGS":
         return "bg-violet-500/10 text-violet-600 border-violet-500/20";
+      case "ALLOCATION":
+        return "bg-cyan-500/10 text-cyan-600 border-cyan-500/20";
       default:
         return "bg-zinc-500/10 text-zinc-600 border-zinc-500/20";
     }
@@ -258,9 +314,12 @@ export default function AuditLogPage() {
                 <SelectItem value="ALL">{tCommon("all")}</SelectItem>
                 <SelectItem value="LEADER">Leader</SelectItem>
                 <SelectItem value="FOLLOWER">Follower</SelectItem>
+                <SelectItem value="copyTradingFollower">Follower (Legacy)</SelectItem>
                 <SelectItem value="TRADE">Trade</SelectItem>
+                <SelectItem value="copyTradingTrade">Trade (Legacy)</SelectItem>
                 <SelectItem value="TRANSACTION">Transaction</SelectItem>
-                <SelectItem value="SETTING">Setting</SelectItem>
+                <SelectItem value="ALLOCATION">Allocation</SelectItem>
+                <SelectItem value="SETTINGS">Settings</SelectItem>
               </SelectContent>
             </Select>
             <Select value={selectedAction} onValueChange={setSelectedAction}>
@@ -277,6 +336,18 @@ export default function AuditLogPage() {
                 <SelectItem value="CREATE">Create</SelectItem>
                 <SelectItem value="UPDATE">Update</SelectItem>
                 <SelectItem value="DELETE">Delete</SelectItem>
+                <SelectItem value="FOLLOW">Follow</SelectItem>
+                <SelectItem value="UNFOLLOW">Unfollow</SelectItem>
+                <SelectItem value="PAUSE">Pause</SelectItem>
+                <SelectItem value="RESUME">Resume</SelectItem>
+                <SelectItem value="ALLOCATE">Allocate</SelectItem>
+                <SelectItem value="DEALLOCATE">Deallocate</SelectItem>
+                <SelectItem value="TRADE_CREATED">Trade Created</SelectItem>
+                <SelectItem value="TRADE_CANCELLED">Trade Cancelled</SelectItem>
+                <SelectItem value="TRADE_CLOSED">Trade Closed</SelectItem>
+                <SelectItem value="ORDER_FILLED">Order Filled</SelectItem>
+                <SelectItem value="PROFIT_DISTRIBUTED">Profit Distributed</SelectItem>
+                <SelectItem value="DAILY_LOSS_LIMIT_REACHED">Daily Loss Limit</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -350,7 +421,7 @@ export default function AuditLogPage() {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap mb-2">
                                   <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
-                                    {log.action.replace("_", " ")}
+                                    {log.action ? log.action.replace(/_/g, " ") : "Unknown Action"}
                                   </h3>
                                   <Badge
                                     className={`border ${getEntityTypeColor(
@@ -359,7 +430,7 @@ export default function AuditLogPage() {
                                     variant="outline"
                                   >
                                     <EntityIcon className="h-3 w-3 mr-1" />
-                                    {log.entityType}
+                                    {log.entityType || "Unknown"}
                                   </Badge>
                                 </div>
 

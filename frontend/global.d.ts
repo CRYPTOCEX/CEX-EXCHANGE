@@ -1,15 +1,5 @@
-// Type augmentation for next-intl 4.0
-import { formats } from '@/i18n/request';
-import { routing } from '@/i18n/routing';
-import en from './messages/en.json';
-
-declare module 'next-intl' {
-  interface AppConfig {
-    Messages: typeof en;
-    Formats: typeof formats;
-    Locale: (typeof routing.locales)[number];
-}
-}
+// Custom i18n type augmentation
+import type { Namespace } from '@/i18n/types';
 
 // SVG module declarations
 declare module "*.svg" {
@@ -24,8 +14,6 @@ declare global {
     dataLayer: any[];
     gtag: (...args: any[]) => void;
   }
-
-  type IntlMessages = typeof en;
 
   namespace JSX {
     interface IntrinsicElements {

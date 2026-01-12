@@ -78,6 +78,7 @@ import { useLocale } from "next-intl";
 import AffiliateDashboardLoading from "./loading";
 import { DashboardHero } from "./components/dashboard-hero";
 import { useTranslations } from "next-intl";
+import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 // Define chart data types
 interface ReferralChartItem {
@@ -517,12 +518,7 @@ export default function AffiliateDashboardClient() {
     (item) => item.earnings > 0
   );
 
-  // KYC status & feature check
-  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
-  const hasAffiliateAccess = hasKyc() && canAccessFeature("affiliate_mlm");
-  if (kycEnabled && !hasAffiliateAccess) {
-    return <KycRequiredNotice feature="affiliate_mlm" />;
-  }
+  // Note: KYC is checked when user tries to use affiliate features, not for viewing the dashboard
   if (isLoading || loading) {
     return <AffiliateDashboardLoading />;
   }
@@ -634,7 +630,7 @@ export default function AffiliateDashboardClient() {
                   className="cursor-pointer"
                 >
                   <QrCode className="h-4 w-4 mr-2" />
-                  <span>QR Code</span>
+                  <span>{tCommon("qr_code")}</span>
                 </DropdownMenuItem>
 
                 {/* QR Code Dialog - Separate from dropdown to prevent auto-closing */}
@@ -712,67 +708,79 @@ export default function AffiliateDashboardClient() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
           <StatsCard
-            title={tExt("total_referrals")}
-            value={stats?.totalReferrals.toString() || "0"}
+            label={tExt("total_referrals")}
+            value={stats?.totalReferrals || 0}
             description={t("all_time_referred_users")}
-            icon={<Users className="h-5 w-5 text-blue-600" />}
-          trend={
-            dashboardData.previousStats
-              ? calculateTrend(
-                  stats.totalReferrals,
-                  dashboardData.previousStats.totalReferrals
-                )
-              : stats.weeklyGrowth
-          }
-          trendLabel="vs last period"
-        />
+            icon={Users}
+            index={0}
+            change={
+              dashboardData.previousStats
+                ? calculateTrend(
+                    stats.totalReferrals,
+                    dashboardData.previousStats.totalReferrals
+                  )
+                : stats.weeklyGrowth
+            }
+            changeLabel="vs last period"
+            isPercent
+            {...statsCardColors.blue}
+          />
 
-        <StatsCard
-          title={t("active_referrals")}
-          value={stats?.activeReferrals.toString() || "0"}
-          description={t("currently_active_users")}
-          icon={<CheckCircle2 className="h-5 w-5 text-green-500" />}
-          trend={
-            dashboardData.previousStats
-              ? calculateTrend(
-                  stats.activeReferrals,
-                  dashboardData.previousStats.activeReferrals
-                )
-              : 0
-          }
-          trendLabel="vs last period"
-        />
+          <StatsCard
+            label={t("active_referrals")}
+            value={stats?.activeReferrals || 0}
+            description={t("currently_active_users")}
+            icon={CheckCircle2}
+            index={1}
+            change={
+              dashboardData.previousStats
+                ? calculateTrend(
+                    stats.activeReferrals,
+                    dashboardData.previousStats.activeReferrals
+                  )
+                : 0
+            }
+            changeLabel="vs last period"
+            isPercent
+            {...statsCardColors.green}
+          />
 
-        <StatsCard
-          title={t("pending_referrals")}
-          value={stats?.pendingReferrals.toString() || "0"}
-          description={t("awaiting_activation")}
-          icon={<Clock className={`h-5 w-5 text-yellow-500`} />}
-          trend={
-            dashboardData.previousStats
-              ? calculateTrend(
-                  stats.pendingReferrals,
-                  dashboardData.previousStats.pendingReferrals
-                )
-              : 0
-          }
-          trendLabel="vs last period"
-        />
+          <StatsCard
+            label={t("pending_referrals")}
+            value={stats?.pendingReferrals || 0}
+            description={t("awaiting_activation")}
+            icon={Clock}
+            index={2}
+            change={
+              dashboardData.previousStats
+                ? calculateTrend(
+                    stats.pendingReferrals,
+                    dashboardData.previousStats.pendingReferrals
+                  )
+                : 0
+            }
+            changeLabel="vs last period"
+            isPercent
+            {...statsCardColors.amber}
+          />
 
-        <StatsCard
-          title={tExt("conversion_rate")}
-          value={`${stats?.conversionRate || 0}%`}
-          description={t("pending_to_active_conversion")}
-          icon={<TrendingUp className="h-5 w-5 text-blue-600" />}
-          trend={
-            dashboardData.previousStats
-              ? calculateTrend(
-                  stats.conversionRate,
-                  dashboardData.previousStats.conversionRate
-                )
-              : 0
-          }
-          trendLabel="vs last period"
+          <StatsCard
+            label={tExt("conversion_rate")}
+            value={`${stats?.conversionRate || 0}%`}
+            description={t("pending_to_active_conversion")}
+            icon={TrendingUp}
+            index={3}
+            change={
+              dashboardData.previousStats
+                ? calculateTrend(
+                    stats.conversionRate,
+                    dashboardData.previousStats.conversionRate
+                  )
+                : 0
+            }
+            changeLabel="vs last period"
+            isPercent
+            {...statsCardColors.purple}
           />
         </div>
 
@@ -1067,6 +1075,7 @@ export default function AffiliateDashboardClient() {
                       paddingAngle={2}
                       dataKey="value"
                       labelLine={false}
+                      style={{}}
                       label={({
                         cx,
                         cy,
@@ -1100,10 +1109,11 @@ export default function AffiliateDashboardClient() {
                     >
                       {rewardSourceData.map((entry, index) => (
                         <Cell
-                          key={`cell-${index}`}
+                          key={`cell-${entry.name}-${index}`}
                           fill={entry.color}
                           stroke="rgba(255,255,255,0.2)"
                           strokeWidth={1}
+                          style={{}}
                         />
                       ))}
                     </Pie>
@@ -1319,70 +1329,6 @@ function StatusBadge({ status }: { status: string }) {
       {getStatusIcon()}
       <span>{status}</span>
     </Badge>
-  );
-}
-
-// Update the StatsCard component to use real trend data
-function StatsCard({
-  title,
-  value,
-  description,
-  icon,
-  trend,
-  trendLabel,
-}: {
-  title: string;
-  value: string;
-  description: string;
-  icon: React.ReactNode;
-  trend?: number;
-  trendLabel?: string;
-}) {
-  return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">
-              {title}
-            </p>
-            <p className="text-lg sm:text-xl lg:text-2xl font-bold mt-1 truncate">
-              {value}
-            </p>
-
-            {trend !== undefined && (
-              <div className="flex items-center gap-1 mt-1 flex-wrap">
-                <div
-                  className={`flex items-center ${trend >= 0 ? "text-green-500" : "text-red-500"}`}
-                >
-                  {trend >= 0 ? (
-                    <TrendingUp className="h-3 w-3 mr-1 flex-shrink-0" />
-                  ) : (
-                    <ArrowUpDown className="h-3 w-3 mr-1 flex-shrink-0" />
-                  )}
-                  <span className="text-xs font-medium">
-                    {trend >= 0 ? "+" : ""}
-                    {trend}%
-                  </span>
-                </div>
-                {trendLabel && (
-                  <span className="text-xs text-muted-foreground hidden xs:inline">
-                    {trendLabel}
-                  </span>
-                )}
-              </div>
-            )}
-
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">
-              {description}
-            </p>
-          </div>
-          <div className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 rounded-full bg-linear-to-br from-blue-600/20 to-amber-600/20 flex items-center justify-center flex-shrink-0">
-            {icon}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 

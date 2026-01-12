@@ -283,7 +283,7 @@ export default function DesignV3({ state, actions, paymentIntentId }: CheckoutDe
 
             <div className="px-6 md:px-8 py-4 bg-white/[0.02] border-t border-white/5">
               <div className="flex items-center justify-center gap-6 text-white/20 text-xs">
-                <div className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /><span>SSL Secured</span></div>
+                <div className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /><span>{t("ssl_secured")}</span></div>
                 <div className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /><span>Encrypted</span></div>
                 <div className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /><span>Protected</span></div>
               </div>

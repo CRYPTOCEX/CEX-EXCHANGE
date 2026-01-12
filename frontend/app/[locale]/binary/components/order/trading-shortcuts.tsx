@@ -1,18 +1,30 @@
 "use client";
 
+import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Keyboard, ChevronUp, ChevronDown } from "lucide-react";
+import { Keyboard, X, ArrowUp, ArrowDown, Command, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
-type OrderType = "CALL" | "PUT";
+
 interface TradingShortcutsProps {
-  onPlaceOrder: (type: OrderType) => void;
+  onPlaceOrder: (type: "CALL" | "PUT") => void;
   onIncreaseAmount: () => void;
   onDecreaseAmount: () => void;
   onQuickAmount: (amount: number) => void;
   darkMode?: boolean;
 }
+
+interface ShortcutGroup {
+  title: string;
+  icon: React.ReactNode;
+  shortcuts: Array<{
+    keys: string[];
+    description: string;
+    action?: () => void;
+  }>;
+}
+
 export default function TradingShortcuts({
   onPlaceOrder,
   onIncreaseAmount,
@@ -21,344 +33,278 @@ export default function TradingShortcuts({
   darkMode = true,
 }: TradingShortcutsProps) {
   const t = useTranslations("binary_components");
+  const tCommon = useTranslations("common");
   const [isOpen, setIsOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
 
-  // Check if component is mounted to prevent SSR issues
+  // Check if component is mounted
   useEffect(() => {
     setIsMounted(true);
+    return () => setIsMounted(false);
   }, []);
 
-  // Handle keyboard shortcuts
+  // Shortcut definitions
+  const shortcutGroups: ShortcutGroup[] = [
+    {
+      title: "Trading",
+      icon: <Zap size={14} className="text-emerald-500" />,
+      shortcuts: [
+        { keys: ["C"], description: "Place RISE order", action: () => onPlaceOrder("CALL") },
+        { keys: ["P"], description: "Place FALL order", action: () => onPlaceOrder("PUT") },
+      ],
+    },
+    {
+      title: "Amount",
+      icon: <ArrowUp size={14} className="text-blue-500" />,
+      shortcuts: [
+        { keys: ["↑"], description: "Increase amount", action: onIncreaseAmount },
+        { keys: ["↓"], description: "Decrease amount", action: onDecreaseAmount },
+        { keys: ["1"], description: "Set $100", action: () => onQuickAmount(100) },
+        { keys: ["2"], description: "Set $500", action: () => onQuickAmount(500) },
+        { keys: ["3"], description: "Set $1000", action: () => onQuickAmount(1000) },
+        { keys: ["4"], description: "Set $2000", action: () => onQuickAmount(2000) },
+      ],
+    },
+    {
+      title: "Navigation",
+      icon: <Command size={14} className="text-amber-500" />,
+      shortcuts: [
+        { keys: ["K"], description: "Toggle shortcuts panel" },
+        { keys: ["Esc"], description: "Close panel" },
+      ],
+    },
+  ];
+
+  // Listen for keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Only process if not in an input field
-      if (
-        document.activeElement?.tagName === "INPUT" ||
-        document.activeElement?.tagName === "TEXTAREA"
-      )
+      // Guard against undefined e.key (can happen with IME input or certain keyboard events)
+      if (!e.key) return;
+
+      // Toggle shortcuts panel with K
+      if (e.key.toLowerCase() === "k" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const activeElement = document.activeElement;
+        const isInputFocused =
+          activeElement instanceof HTMLInputElement ||
+          activeElement instanceof HTMLTextAreaElement ||
+          activeElement instanceof HTMLSelectElement;
+
+        if (!isInputFocused) {
+          e.preventDefault();
+          setIsOpen((prev) => !prev);
+          return;
+        }
+      }
+
+      // Close with Escape
+      if (e.key === "Escape" && isOpen) {
+        setIsOpen(false);
         return;
-      if (e.key === "c" || e.key === "C") {
+      }
+
+      // Only process other shortcuts when panel is closed
+      if (isOpen) return;
+
+      const activeElement = document.activeElement;
+      const isInputFocused =
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement ||
+        activeElement instanceof HTMLSelectElement;
+
+      if (isInputFocused) return;
+
+      // Trading shortcuts - only trigger if no modifier keys are pressed
+      // This prevents Ctrl+C (copy) and Cmd+C from triggering trades
+      if (e.key.toLowerCase() === "c" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
         onPlaceOrder("CALL");
-      } else if (e.key === "p" || e.key === "P") {
+      } else if (e.key.toLowerCase() === "p" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
         onPlaceOrder("PUT");
-      } else if (e.key === "ArrowUp") {
+      }
+      // Amount shortcuts
+      else if (e.key === "ArrowUp") {
+        e.preventDefault();
         onIncreaseAmount();
-        e.preventDefault();
       } else if (e.key === "ArrowDown") {
-        onDecreaseAmount();
         e.preventDefault();
-      } else if (e.key === "1") {
+        onDecreaseAmount();
+      }
+      // Quick amount shortcuts
+      else if (e.key === "1") {
+        e.preventDefault();
         onQuickAmount(100);
       } else if (e.key === "2") {
+        e.preventDefault();
         onQuickAmount(500);
       } else if (e.key === "3") {
+        e.preventDefault();
         onQuickAmount(1000);
       } else if (e.key === "4") {
+        e.preventDefault();
         onQuickAmount(2000);
-      } else if (e.key === "k" || e.key === "K") {
-        setIsOpen(true);
-      } else if (e.key === "Escape" && isOpen) {
-        setIsOpen(false);
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onPlaceOrder, onIncreaseAmount, onDecreaseAmount, onQuickAmount, isOpen]);
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onPlaceOrder, onIncreaseAmount, onDecreaseAmount, onQuickAmount]);
 
   // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        popupRef.current &&
-        !popupRef.current.contains(event.target as Node)
-      ) {
+      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Theme-based style variables
-  const styles = {
-    button: darkMode
-      ? "bg-black hover:bg-zinc-900 border-zinc-800 text-white"
-      : "bg-gray-100 hover:bg-gray-200 border-gray-200 text-gray-800",
-    modal: darkMode
-      ? "bg-black border-zinc-800 text-white"
-      : "bg-white border-gray-200 text-gray-800",
-    card: darkMode
-      ? "bg-zinc-900/70 hover:bg-zinc-800/70"
-      : "bg-gray-100 hover:bg-gray-200",
-    accent: darkMode ? "text-[#00C896]" : "text-green-600",
-    callButton: "bg-green-600 text-white",
-    putButton: "bg-red-600 text-white",
-    keyButton: darkMode ? "bg-black text-white" : "bg-gray-700 text-white",
-    keyBadge: darkMode ? "bg-black" : "bg-gray-200 text-gray-700",
-    border: darkMode ? "border-zinc-800/70" : "border-gray-200",
-    subtitle: darkMode ? "text-gray-300" : "text-gray-500",
-    muted: darkMode ? "text-gray-400" : "text-gray-500",
-  };
   const renderModal = () => {
     if (!isMounted || !isOpen) return null;
+
     return createPortal(
       <AnimatePresence>
         {isOpen && (
           <>
             {/* Backdrop */}
             <motion.div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999]"
-              initial={{
-                opacity: 0,
-              }}
-              animate={{
-                opacity: 1,
-              }}
-              exit={{
-                opacity: 0,
-              }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
             />
 
             {/* Modal Container */}
             <div
               className="fixed inset-0 z-[1000] flex items-center justify-center p-4"
-              style={{
-                pointerEvents: "none",
-              }}
+              style={{ pointerEvents: "none" }}
             >
               <motion.div
                 ref={popupRef}
-                className={`${styles.modal} border rounded-lg shadow-xl p-4 w-[400px] max-h-[90vh] overflow-y-auto`}
-                style={{
-                  pointerEvents: "auto",
-                }}
-                initial={{
-                  opacity: 0,
-                  scale: 0.95,
-                }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                }}
-                exit={{
-                  opacity: 0,
-                  scale: 0.95,
-                }}
-                transition={{
-                  duration: 0.2,
-                }}
+                className={`relative w-[340px] max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl ${
+                  darkMode
+                    ? "bg-zinc-900/95 backdrop-blur-xl border border-zinc-800/80"
+                    : "bg-white/95 backdrop-blur-xl border border-gray-200"
+                }`}
+                style={{ pointerEvents: "auto" }}
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
               >
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className={`font-medium text-lg flex items-center gap-2`}>
-                    <Keyboard size={18} className={styles.accent} />
-                    {t("keyboard_shortcuts")}
-                  </h3>
-                  <motion.button
+                {/* Header */}
+                <div className={`flex items-center justify-between px-4 py-3 border-b ${
+                  darkMode ? "border-zinc-800/50" : "border-gray-200"
+                }`}>
+                  <div className="flex items-center gap-2.5">
+                    <div className={`p-2 rounded-xl ${darkMode ? "bg-emerald-500/10" : "bg-emerald-50"}`}>
+                      <Keyboard size={16} className="text-emerald-500" />
+                    </div>
+                    <div>
+                      <h3 className={`text-sm font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>
+                        {tCommon("keyboard_shortcuts")}
+                      </h3>
+                      <p className={`text-[10px] ${darkMode ? "text-zinc-500" : "text-gray-400"}`}>
+                        {t("quick_actions_for_faster_trading")}
+                      </p>
+                    </div>
+                  </div>
+                  <button
                     onClick={() => setIsOpen(false)}
-                    className={`${styles.muted} hover:${darkMode ? "text-white" : "text-gray-800"} p-1 rounded-full hover:bg-opacity-50 ${darkMode ? "hover:bg-zinc-800" : "hover:bg-gray-200"}`}
-                    whileHover={{
-                      scale: 1.1,
-                    }}
-                    whileTap={{
-                      scale: 0.9,
-                    }}
+                    className={`p-2 rounded-xl transition-all duration-200 cursor-pointer ${
+                      darkMode
+                        ? "text-zinc-500 hover:text-white hover:bg-zinc-800"
+                        : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                    }`}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </motion.button>
+                    <X size={16} />
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-5">
-                  <motion.div
-                    className={`${styles.card} p-3 rounded-md transition-colors`}
-                    whileHover={{
-                      scale: 1.03,
-                      y: -2,
-                    }}
-                    whileTap={{
-                      scale: 0.98,
-                    }}
-                  >
-                    <div className="flex items-center">
-                      <div
-                        className={`${styles.callButton} w-12 h-12 rounded-md flex items-center justify-center font-bold mr-3 shadow-lg`}
-                      >
-                        C
-                      </div>
-                      <div>
-                        <div className="font-medium">{t("place_call_order")}</div>
-                        <div className={`text-xs ${styles.muted} mt-1`}>
-                          {t("buy_when_price_will_rise")}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    className={`${styles.card} p-3 rounded-md transition-colors`}
-                    whileHover={{
-                      scale: 1.03,
-                      y: -2,
-                    }}
-                    whileTap={{
-                      scale: 0.98,
-                    }}
-                  >
-                    <div className="flex items-center">
-                      <div
-                        className={`${styles.putButton} w-12 h-12 rounded-md flex items-center justify-center font-bold mr-3 shadow-lg`}
-                      >
-                        P
-                      </div>
-                      <div>
-                        <div className="font-medium">{t("place_put_order")}</div>
-                        <div className={`text-xs ${styles.muted} mt-1`}>
-                          {t("sell_when_price_will_fall")}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-
-                <div className="mb-5">
-                  <h4
-                    className={`${styles.subtitle} mb-3 text-sm font-medium flex items-center gap-1.5`}
-                  >
-                    <span className="w-1.5 h-1.5 bg-[#00C896] rounded-full"></span>
-                    {t("amount_control")}
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4">
+                {/* Content */}
+                <div className="px-4 py-3 overflow-y-auto max-h-[60vh] space-y-4">
+                  {shortcutGroups.map((group, groupIndex) => (
                     <motion.div
-                      className={`${styles.card} p-3 rounded-md flex items-center transition-colors`}
-                      whileHover={{
-                        scale: 1.03,
-                        y: -2,
-                      }}
-                      whileTap={{
-                        scale: 0.98,
-                      }}
+                      key={group.title}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: groupIndex * 0.05 }}
                     >
-                      <div
-                        className={`${styles.keyButton} w-10 h-10 rounded-md flex items-center justify-center font-bold mr-3 shadow-md`}
-                      >
-                        <ChevronUp size={20} className={styles.accent} />
-                      </div>
-                      <div>
-                        <div className="font-medium">{t("increase_amount")}</div>
-                        <div className={`text-xs ${styles.muted} mt-1`}>
-                          {t("arrow_up")}
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className={`p-1.5 rounded-lg ${
+                          darkMode ? "bg-zinc-800" : "bg-gray-100"
+                        }`}>
+                          {group.icon}
                         </div>
+                        <span className={`text-[11px] font-semibold uppercase tracking-wide ${
+                          darkMode ? "text-zinc-400" : "text-gray-500"
+                        }`}>
+                          {group.title}
+                        </span>
                       </div>
-                    </motion.div>
-
-                    <motion.div
-                      className={`${styles.card} p-3 rounded-md flex items-center transition-colors`}
-                      whileHover={{
-                        scale: 1.03,
-                        y: -2,
-                      }}
-                      whileTap={{
-                        scale: 0.98,
-                      }}
-                    >
-                      <div
-                        className={`${styles.keyButton} w-10 h-10 rounded-md flex items-center justify-center font-bold mr-3 shadow-md`}
-                      >
-                        <ChevronDown size={20} className={styles.accent} />
-                      </div>
-                      <div>
-                        <div className="font-medium">{t("decrease_amount")}</div>
-                        <div className={`text-xs ${styles.muted} mt-1`}>
-                          {t("arrow_down")}
-                        </div>
-                      </div>
-                    </motion.div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4
-                    className={`${styles.subtitle} mb-3 text-sm font-medium flex items-center gap-1.5`}
-                  >
-                    <span className="w-1.5 h-1.5 bg-[#00C896] rounded-full"></span>
-                    {t("quick_amount")}
-                  </h4>
-                  <div className="grid grid-cols-4 gap-3">
-                    {[
-                      {
-                        key: "1",
-                        amount: 100,
-                      },
-                      {
-                        key: "2",
-                        amount: 500,
-                      },
-                      {
-                        key: "3",
-                        amount: 1000,
-                      },
-                      {
-                        key: "4",
-                        amount: 2000,
-                      },
-                    ].map((item) => {
-                      return (
-                        <motion.div
-                          key={item.key}
-                          className={`${styles.card} p-2 rounded-md text-center transition-colors`}
-                          whileHover={{
-                            scale: 1.05,
-                            y: -2,
-                          }}
-                          whileTap={{
-                            scale: 0.95,
-                          }}
-                          onClick={() => onQuickAmount(item.amount)}
-                        >
+                      <div className={`rounded-xl overflow-hidden ${
+                        darkMode ? "bg-zinc-800/50" : "bg-gray-50"
+                      }`}>
+                        {group.shortcuts.map((shortcut, index) => (
                           <div
-                            className={`${styles.keyButton} w-10 h-10 rounded-md flex items-center justify-center font-bold mx-auto mb-2 shadow-md`}
+                            key={index}
+                            className={`flex items-center justify-between px-3 py-2.5 ${
+                              index !== group.shortcuts.length - 1
+                                ? darkMode ? "border-b border-zinc-700/50" : "border-b border-gray-200"
+                                : ""
+                            } ${
+                              shortcut.action
+                                ? `cursor-pointer transition-colors ${
+                                    darkMode ? "hover:bg-zinc-700/50" : "hover:bg-gray-100"
+                                  }`
+                                : ""
+                            }`}
+                            onClick={() => shortcut.action?.()}
                           >
-                            {item.key}
+                            <span className={`text-xs ${darkMode ? "text-zinc-300" : "text-gray-600"}`}>
+                              {shortcut.description}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              {shortcut.keys.map((key, keyIndex) => (
+                                <kbd
+                                  key={keyIndex}
+                                  className={`px-2 py-1 rounded-lg text-[10px] font-mono font-semibold min-w-[28px] text-center ${
+                                    darkMode
+                                      ? "bg-zinc-700 text-zinc-200 border border-zinc-600 shadow-sm"
+                                      : "bg-white text-gray-700 border border-gray-300 shadow-sm"
+                                  }`}
+                                >
+                                  {key}
+                                </kbd>
+                              ))}
+                            </div>
                           </div>
-                          <div className="text-sm font-medium">
-                            ${item.amount}
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
 
-                <div className={`mt-5 pt-4 border-t ${styles.border}`}>
-                  <div className={`text-xs ${styles.muted} text-center`}>
-                    Press{" "}
-                    <kbd
-                      className={`px-1.5 py-0.5 ${styles.keyBadge} rounded text-xs`}
-                    >
+                {/* Footer */}
+                <div className={`px-4 py-3 border-t ${
+                  darkMode ? "border-zinc-800/50 bg-zinc-900/50" : "border-gray-200 bg-gray-50"
+                }`}>
+                  <div className="flex items-center justify-center gap-2">
+                    <kbd className={`px-2 py-1 rounded-lg text-[10px] font-mono font-semibold ${
+                      darkMode
+                        ? "bg-zinc-800 text-zinc-400 border border-zinc-700"
+                        : "bg-white text-gray-500 border border-gray-300"
+                    }`}>
                       K
-                    </kbd>{" "}
-                    {t("anytime_to_show_this_panel_or")}{" "}
-                    <kbd
-                      className={`px-1.5 py-0.5 ${styles.keyBadge} rounded text-xs`}
-                    >
-                      Esc
-                    </kbd>{" "}
-                    {t("to_close_it")}
+                    </kbd>
+                    <span className={`text-[10px] ${darkMode ? "text-zinc-500" : "text-gray-400"}`}>
+                      {t("to_toggle_this_panel")}
+                    </span>
                   </div>
                 </div>
               </motion.div>
@@ -369,22 +315,30 @@ export default function TradingShortcuts({
       document.body
     );
   };
+
   return (
     <>
-      <motion.button
+      <button
         onClick={() => setIsOpen(true)}
-        className={`flex items-center gap-1.5 text-sm ${styles.button} py-2 px-3 rounded-md transition-colors border shadow-sm`}
-        title={t("keyboard_shortcuts")}
-        whileHover={{
-          scale: 1.03,
-        }}
-        whileTap={{
-          scale: 0.97,
-        }}
+        className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
+          darkMode
+            ? "bg-zinc-900/60 hover:bg-zinc-800 border border-zinc-800/50 hover:border-zinc-700"
+            : "bg-gray-100 hover:bg-gray-200 border border-gray-200 hover:border-gray-300"
+        } active:scale-95`}
+        title={tCommon("keyboard_shortcuts")}
       >
-        <Keyboard size={16} className={styles.accent} />
-        <span className="font-medium">Keys</span>
-      </motion.button>
+        <div className={`p-1 rounded-md ${darkMode ? "bg-emerald-500/10" : "bg-emerald-50"}`}>
+          <Keyboard size={12} className="text-emerald-500" />
+        </div>
+        <span className={`text-[10px] font-semibold ${darkMode ? "text-zinc-400" : "text-gray-500"}`}>
+          Keys
+        </span>
+        <kbd className={`text-[9px] px-1.5 py-0.5 rounded font-mono ${
+          darkMode ? "bg-zinc-800 text-zinc-500" : "bg-gray-200 text-gray-500"
+        }`}>
+          K
+        </kbd>
+      </button>
 
       {renderModal()}
     </>

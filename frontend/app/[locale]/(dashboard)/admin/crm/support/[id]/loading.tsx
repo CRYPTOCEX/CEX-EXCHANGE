@@ -1,6 +1,5 @@
 import { ArrowLeft, Shield, Zap, User, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ export default function Loading() {
       <div className="mb-6">
         <Button variant="outline" className="gap-2" disabled>
           <ArrowLeft className="h-4 w-4" />
-          Back to Support
+          <Skeleton className="h-4 w-24" />
         </Button>
       </div>
 
@@ -88,7 +87,7 @@ export default function Loading() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                     <Shield className="h-4 w-4 text-blue-500" />
-                    Admin Conversation
+                    <Skeleton className="h-4 w-32" />
                   </CardTitle>
                 </div>
               </CardHeader>
@@ -116,11 +115,11 @@ export default function Loading() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                     <Shield className="h-5 w-5 text-blue-500" />
-                    Admin Conversation
+                    <Skeleton className="h-5 w-40" />
                   </CardTitle>
                   <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                    <span>Live conversation</span>
+                    <Skeleton className="h-4 w-28" />
                   </div>
                 </div>
               </CardHeader>
@@ -149,7 +148,7 @@ export default function Loading() {
                 <CardHeader className="pb-4">
                   <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                     <User className="h-5 w-5 text-blue-500" />
-                    Customer Info
+                    <Skeleton className="h-4 w-28" />
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -172,7 +171,7 @@ export default function Loading() {
                 <CardHeader className="pb-4">
                   <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                     <Shield className="h-5 w-5 text-blue-500" />
-                    Assigned Agent
+                    <Skeleton className="h-4 w-28" />
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -191,7 +190,7 @@ export default function Loading() {
                 <CardHeader>
                   <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                     <Clock className="h-5 w-5 text-blue-500" />
-                    Progress Timeline
+                    <Skeleton className="h-4 w-32" />
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">

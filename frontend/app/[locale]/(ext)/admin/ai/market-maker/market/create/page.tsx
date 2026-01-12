@@ -223,7 +223,7 @@ export default function CreateAiMarketPage() {
                   icon="mdi:loading"
                   className="w-12 h-12 text-cyan-500 animate-spin mb-4"
                 />
-                <p className="text-muted-foreground">{t("loading_markets_ellipsis")}</p>
+                <p className="text-muted-foreground">{tCommon("loading_markets_ellipsis")}</p>
               </div>
             ) : ecosystemMarkets.length === 0 ? (
               <div className="text-center py-12">
@@ -291,7 +291,7 @@ export default function CreateAiMarketPage() {
                               </h4>
                               {hasAiMarketMaker && (
                                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
-                                  AI Market Maker exists
+                                  {t("ai_market_maker_exists")}
                                 </p>
                               )}
                             </div>
@@ -487,7 +487,7 @@ export default function CreateAiMarketPage() {
                     className="mb-2"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>AI Only</span>
+                    <span>{t("ai_only")}</span>
                     <span>Mixed</span>
                     <span>{t("fully_real")}</span>
                   </div>

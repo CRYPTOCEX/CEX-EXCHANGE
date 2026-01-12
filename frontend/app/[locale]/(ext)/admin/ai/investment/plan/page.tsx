@@ -24,7 +24,7 @@ export default function AiInvestmentPlanPage() {
       canEdit
       canDelete
       canView
-      title="AI Investment Plans"
+      title={t("ai_investment_plans")}
       description={t("create_and_manage_ai_driven_investment")}
       itemTitle="AI Plan"
       columns={columns}

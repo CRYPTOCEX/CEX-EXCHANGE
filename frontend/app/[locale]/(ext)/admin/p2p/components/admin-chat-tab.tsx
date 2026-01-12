@@ -325,7 +325,7 @@ export function AdminChatTab({
                 disabled={isSubmitting || !messageText?.trim()}
               >
                 <Send className="mr-2 h-4 w-4" />
-                {isSubmitting ? t("sending") : t("send_message")}
+                {isSubmitting ? tCommon("sending_ellipsis") : t("send_message")}
               </Button>
             </div>
           </div>

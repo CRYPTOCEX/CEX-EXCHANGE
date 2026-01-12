@@ -1,6 +1,12 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+// Re-export symbol utilities
+export * from "./utils/symbol-utils";
+
+// Re-export cleanup utilities
+export * from "./utils/cleanup-utils";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

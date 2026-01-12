@@ -26,8 +26,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, Layers, Shield, User } from "lucide-react";
 import { useTranslations } from "next-intl";
-const t = useTranslations("dashboard_admin");
-  const tCommon = useTranslations("common");
+
 interface FieldValueProps {
   field: KycField;
   value: any;
@@ -229,7 +228,7 @@ export const FieldValue = ({
                 <div className="overflow-hidden rounded-md border border-gray-200 bg-white p-1 shadow-sm hover:shadow-md transition-all duration-200">
                   <img
                     src={identityData["passport-scan"] || "/placeholder.svg"}
-                    alt="ID Document Scan"
+                    alt={t("id_document_scan")}
                     className="aspect-video w-full max-w-md rounded object-cover hover:scale-[1.01] transition-all"
                     onClick={() => onViewImage(identityData["passport-scan"])}
                   />
@@ -274,7 +273,7 @@ export const FieldValue = ({
                 <div className="overflow-hidden rounded-md border border-gray-200 bg-white p-1 shadow-sm hover:shadow-md transition-all duration-200">
                   <img
                     src={identityData["passport-selfie"] || "/placeholder.svg"}
-                    alt="ID Selfie Verification"
+                    alt={t("id_selfie_verification")}
                     className="aspect-video w-full max-w-md rounded object-cover hover:scale-[1.01] transition-all"
                     onClick={() => onViewImage(identityData["passport-selfie"])}
                   />

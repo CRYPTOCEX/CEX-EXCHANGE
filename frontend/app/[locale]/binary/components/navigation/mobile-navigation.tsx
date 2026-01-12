@@ -1,9 +1,10 @@
 "use client";
 
 import { Symbol } from "@/store/trade/use-binary-store";
-import { LineChart, Wallet, BarChart3 } from "lucide-react";
+import { LineChart, Wallet, BarChart2, BookOpen, Trophy, Target, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
+import { useState, useEffect } from "react";
 
 interface MobileNavigationProps {
   activePanel: "chart" | "order" | "positions";
@@ -17,110 +18,160 @@ interface MobileNavigationProps {
     strength: "strong" | "medium" | "weak";
   };
   balance: number;
+  tradingMode?: "demo" | "real";
+  // New callbacks for footer buttons
+  onAnalyticsClick?: () => void;
+  onPatternLibraryClick?: () => void;
+  onLeaderboardClick?: () => void;
+  onChallengesClick?: () => void;
+  onSettingsClick?: () => void;
+  // Active states
+  isAnalyticsOpen?: boolean;
+  isPatternLibraryOpen?: boolean;
+  isLeaderboardOpen?: boolean;
+  isChallengesOpen?: boolean;
+  isSettingsOpen?: boolean;
+  completedTradesCount?: number;
 }
 
 export default function MobileNavigation({
   activePanel,
   setActivePanel,
   activePositionsCount,
-  currentPrice,
-  symbol,
-  priceMovement,
-  balance,
+  tradingMode = "demo",
+  onAnalyticsClick,
+  onPatternLibraryClick,
+  onLeaderboardClick,
+  onChallengesClick,
+  onSettingsClick,
+  isAnalyticsOpen = false,
+  isPatternLibraryOpen = false,
+  isLeaderboardOpen = false,
+  isChallengesOpen = false,
+  isSettingsOpen = false,
+  completedTradesCount = 0,
 }: MobileNavigationProps) {
   const t = useTranslations("common");
-  const { theme } = useTheme();
-  const isDarkMode = theme === "dark";
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Default to dark during SSR
+  const isDarkMode = mounted ? resolvedTheme === "dark" : true;
+
+  // Base button styles
+  const getButtonClass = (isActive: boolean) => `
+    flex-1 relative flex flex-col items-center justify-center gap-0.5 transition-colors border-r last:border-r-0
+    ${isActive
+      ? isDarkMode
+        ? "bg-zinc-900 text-white border-zinc-800"
+        : "bg-zinc-100 text-zinc-900 border-zinc-200"
+      : isDarkMode
+        ? "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50 border-zinc-800"
+        : "text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 border-zinc-200"
+    }
+  `;
 
   return (
-    <div className="w-full flex-shrink-0">
-      {/* Glass-morphism effect background */}
+    <div className="w-full shrink-0">
+      {/* Flat navigation bar - matching desktop design language */}
       <div
-        className={`relative backdrop-blur-md border-t pt-3 pb-safe-or-2 px-3 ${
+        className={`border-t ${
           isDarkMode
-            ? "bg-zinc-900/80 border-zinc-800"
-            : "bg-white/80 border-zinc-200"
+            ? "bg-black border-zinc-800"
+            : "bg-white border-zinc-200"
         }`}
       >
-        {/* Navigation buttons */}
-        <div className="flex justify-around items-center">
+        {/* Navigation buttons container */}
+        <div className="flex h-12">
+          {/* Chart Tab */}
           <button
             onClick={() => setActivePanel("chart")}
-            className={`relative flex flex-col items-center px-4 py-2 rounded-lg transition-all duration-200 ${
-              activePanel === "chart"
-                ? isDarkMode
-                  ? "bg-zinc-800 text-white shadow-lg shadow-zinc-800/20"
-                  : "bg-zinc-200 text-zinc-900 shadow-lg shadow-zinc-200/20"
-                : isDarkMode
-                  ? "text-zinc-400"
-                  : "text-zinc-600"
-            }`}
+            className={getButtonClass(activePanel === "chart" && !isAnalyticsOpen && !isPatternLibraryOpen && !isLeaderboardOpen && !isChallengesOpen && !isSettingsOpen)}
           >
-            <div
-              className={`absolute -top-1 left-1/2 transform -translate-x-1/2 w-8 h-1 rounded-full ${
-                activePanel === "chart" ? "bg-blue-500" : "bg-transparent"
-              }`}
-            ></div>
-            <LineChart
-              size={20}
-              className={`transition-transform duration-200 ${activePanel === "chart" ? "scale-110" : ""}`}
-            />
-            <span className="text-xs mt-1 font-medium">{t("chart")}</span>
+            <div className={`absolute top-0 left-0 right-0 h-0.5 ${activePanel === "chart" && !isAnalyticsOpen && !isPatternLibraryOpen && !isLeaderboardOpen && !isChallengesOpen && !isSettingsOpen ? "bg-blue-500" : "bg-transparent"}`} />
+            <LineChart size={16} />
+            <span className="text-[9px] font-medium">{t("chart")}</span>
           </button>
 
+          {/* Trade Tab */}
           <button
             onClick={() => setActivePanel("order")}
-            className={`relative flex flex-col items-center px-4 py-2 rounded-lg transition-all duration-200 ${
-              activePanel === "order"
-                ? isDarkMode
-                  ? "bg-zinc-800 text-white shadow-lg shadow-zinc-800/20"
-                  : "bg-zinc-200 text-zinc-900 shadow-lg shadow-zinc-200/20"
-                : isDarkMode
-                  ? "text-zinc-400"
-                  : "text-zinc-600"
-            }`}
+            className={getButtonClass(activePanel === "order" && !isAnalyticsOpen && !isPatternLibraryOpen && !isLeaderboardOpen && !isChallengesOpen && !isSettingsOpen)}
           >
-            <div
-              className={`absolute -top-1 left-1/2 transform -translate-x-1/2 w-8 h-1 rounded-full ${
-                activePanel === "order" ? "bg-green-500" : "bg-transparent"
-              }`}
-            ></div>
-            <Wallet
-              size={20}
-              className={`transition-transform duration-200 ${activePanel === "order" ? "scale-110" : ""}`}
-            />
-            <span className="text-xs mt-1 font-medium">{t("trade")}</span>
-          </button>
-
-          <button
-            onClick={() => setActivePanel("positions")}
-            className={`relative flex flex-col items-center px-4 py-2 rounded-lg transition-all duration-200 ${
-              activePanel === "positions"
-                ? isDarkMode
-                  ? "bg-zinc-800 text-white shadow-lg shadow-zinc-800/20"
-                  : "bg-zinc-200 text-zinc-900 shadow-lg shadow-zinc-200/20"
-                : isDarkMode
-                  ? "text-zinc-400"
-                  : "text-zinc-600"
-            }`}
-          >
-            <div
-              className={`absolute -top-1 left-1/2 transform -translate-x-1/2 w-8 h-1 rounded-full ${
-                activePanel === "positions" ? "bg-orange-500" : "bg-transparent"
-              }`}
-            ></div>
+            <div className={`absolute top-0 left-0 right-0 h-0.5 ${activePanel === "order" && !isAnalyticsOpen && !isPatternLibraryOpen && !isLeaderboardOpen && !isChallengesOpen && !isSettingsOpen ? "bg-green-500" : "bg-transparent"}`} />
             {activePositionsCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full text-[10px] flex items-center justify-center animate-pulse">
-                {activePositionsCount}
+              <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-0.5 bg-orange-500 text-[8px] font-bold text-white flex items-center justify-center">
+                {activePositionsCount > 99 ? "99+" : activePositionsCount}
               </span>
             )}
-            <BarChart3
-              size={20}
-              className={`transition-transform duration-200 ${activePanel === "positions" ? "scale-110" : ""}`}
-            />
-            <span className="text-xs mt-1 font-medium">{t("positions")}</span>
+            <Wallet size={16} />
+            <span className="text-[9px] font-medium">{t("trade")}</span>
+          </button>
+
+          {/* Analytics Tab (replaces Positions) */}
+          <button
+            onClick={onAnalyticsClick}
+            className={getButtonClass(isAnalyticsOpen)}
+          >
+            <div className={`absolute top-0 left-0 right-0 h-0.5 ${isAnalyticsOpen ? "bg-blue-500" : "bg-transparent"}`} />
+            {completedTradesCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-0.5 bg-blue-500 text-[8px] font-bold text-white flex items-center justify-center">
+                {completedTradesCount > 99 ? "99+" : completedTradesCount}
+              </span>
+            )}
+            <BarChart2 size={16} />
+            <span className="text-[9px] font-medium">Analytics</span>
+          </button>
+
+          {/* Pattern Library Tab */}
+          <button
+            onClick={onPatternLibraryClick}
+            className={getButtonClass(isPatternLibraryOpen)}
+          >
+            <div className={`absolute top-0 left-0 right-0 h-0.5 ${isPatternLibraryOpen ? "bg-purple-500" : "bg-transparent"}`} />
+            <BookOpen size={16} />
+            <span className="text-[9px] font-medium">Patterns</span>
+          </button>
+
+          {/* Leaderboard Tab */}
+          <button
+            onClick={onLeaderboardClick}
+            className={getButtonClass(isLeaderboardOpen)}
+          >
+            <div className={`absolute top-0 left-0 right-0 h-0.5 ${isLeaderboardOpen ? "bg-amber-500" : "bg-transparent"}`} />
+            <Trophy size={16} />
+            <span className="text-[9px] font-medium">Leaders</span>
+          </button>
+
+          {/* Challenges Tab (only in demo mode) */}
+          {tradingMode === "demo" && (
+            <button
+              onClick={onChallengesClick}
+              className={getButtonClass(isChallengesOpen)}
+            >
+              <div className={`absolute top-0 left-0 right-0 h-0.5 ${isChallengesOpen ? "bg-green-500" : "bg-transparent"}`} />
+              <Target size={16} />
+              <span className="text-[9px] font-medium">Challenge</span>
+            </button>
+          )}
+
+          {/* Settings Tab */}
+          <button
+            onClick={onSettingsClick}
+            className={getButtonClass(isSettingsOpen)}
+          >
+            <div className={`absolute top-0 left-0 right-0 h-0.5 ${isSettingsOpen ? "bg-purple-500" : "bg-transparent"}`} />
+            <Settings size={16} />
+            <span className="text-[9px] font-medium">Settings</span>
           </button>
         </div>
+
+        {/* Safe area padding for devices with home indicator */}
+        <div className="h-safe-area-bottom" />
       </div>
     </div>
   );

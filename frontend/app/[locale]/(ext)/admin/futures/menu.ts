@@ -1,6 +1,14 @@
-import { NAV_COLOR_SCHEMAS } from "@/app/[locale]/(ext)/theme-config";
+import { NAV_COLOR_SCHEMAS } from "@/lib/nav-color-schema";
 
 export const menu: MenuItem[] = [
+  {
+    key: "dashboard",
+    title: "Dashboard",
+    description:
+      "Overview of futures trading activity, positions, and market performance.",
+    href: "/admin/futures",
+    icon: "lucide:layout-dashboard",
+  },
   {
     key: "markets",
     title: "Markets",

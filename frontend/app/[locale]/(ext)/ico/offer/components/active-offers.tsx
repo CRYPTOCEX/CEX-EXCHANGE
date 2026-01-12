@@ -168,7 +168,7 @@ function OfferingCard({ offering }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-muted/30 p-3 rounded-lg">
                 <p className="text-xs text-muted-foreground mb-1">
-                  {t("time_remaining")}
+                  {tCommon("time_remaining")}
                 </p>
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4 text-primary" />

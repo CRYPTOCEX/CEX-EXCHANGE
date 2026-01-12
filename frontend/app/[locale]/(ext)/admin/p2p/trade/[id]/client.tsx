@@ -608,7 +608,7 @@ export default function AdminTradeDetailsClient() {
                           <Clock className="h-5 w-5 text-red-600 dark:text-red-400" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs text-muted-foreground">{tExt("time_remaining")}</p>
+                          <p className="text-xs text-muted-foreground">{tCommon("time_remaining")}</p>
                           <p className="font-semibold text-red-600 dark:text-red-400">{trade.timeRemaining}</p>
                         </div>
                       </div>

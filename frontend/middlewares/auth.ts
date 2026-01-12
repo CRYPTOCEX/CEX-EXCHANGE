@@ -3,8 +3,7 @@ import type { NextRequest, NextFetchEvent } from "next/server";
 import { verifyToken } from "@/lib/token/access-token";
 import { MiddlewareFactory } from "../types/MiddlewareFactory";
 import permissions from "@/middlewares/permissions.json";
-import createIntlMiddleware from "next-intl/middleware";
-import { routing } from "@/i18n/routing";
+import { config as i18nConfig } from "@/i18n/config";
 
 const dev = process.env.NODE_ENV !== "production";
 const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || 4000;
@@ -167,15 +166,9 @@ async function refreshToken(request: NextRequest) {
 
 const AUTH_PAGES = ["/auth"];
 const defaultUserPath = process.env.NEXT_PUBLIC_DEFAULT_USER_PATH || "/user";
-const isMaintenance =
-  process.env.NEXT_PUBLIC_MAINTENANCE_STATUS === "true" || false;
+// Maintenance mode is now handled by a separate maintenance server
+// that runs automatically when the main server is stopped
 
-// Create intl middleware instance for proper locale handling
-const intlMiddleware = createIntlMiddleware({
-  ...routing,
-  localeDetection: true,
-  localePrefix: "always",
-});
 
 // === PERMISSIONS MATCHER ===
 function matchPermission(strippedPath: string): string | null {
@@ -207,7 +200,7 @@ async function hasPermission(roleId: number, strippedPath: string) {
 export const authMiddleware: MiddlewareFactory =
   (next) => async (request: NextRequest, event: NextFetchEvent) => {
     const { pathname } = request.nextUrl;
-    const locales = process.env.NEXT_PUBLIC_LANGUAGES?.split(/[,\s]+/).map(code => code.trim()).filter(code => code.length > 0) || [];
+    const locales = i18nConfig.locales;
     // Extract locale from path, e.g. /en/admin
     let strippedPath = pathname;
     let currentLocale: string | null = null;
@@ -267,30 +260,7 @@ export const authMiddleware: MiddlewareFactory =
       }
     }
 
-    // --- Maintenance Mode ---
-    if (isMaintenance && strippedPath !== "/maintenance") {
-      if (!isTokenValid) {
-        const url = request.nextUrl.clone();
-        url.pathname = currentLocale
-          ? `/${currentLocale}/maintenance`
-          : `/maintenance`;
-        return NextResponse.redirect(url);
-      } else {
-        const roleId = payload?.sub?.role;
-        const userRole = roleId ? rolesCache?.[roleId] : null;
-        if (
-          !userRole ||
-          (userRole.name !== "Super Admin" &&
-            !userRole.permissions.includes("access.admin"))
-        ) {
-          const url = request.nextUrl.clone();
-          url.pathname = currentLocale
-            ? `/${currentLocale}/maintenance`
-            : `/maintenance`;
-          return NextResponse.redirect(url);
-        }
-      }
-    }
+    // Maintenance mode removed - handled by separate maintenance server
 
     // If logged in and tries to access auth page, redirect to defaultUserPath
     if (
@@ -343,7 +313,6 @@ export const authMiddleware: MiddlewareFactory =
       }
     }
 
-    // For all other cases, call intlMiddleware to ensure proper locale handling
-    // This prevents DOM manipulation errors during locale changes
-    return intlMiddleware(request);
+    // Continue to next middleware
+    return next(request, event);
   };

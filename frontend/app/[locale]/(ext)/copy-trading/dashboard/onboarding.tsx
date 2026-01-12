@@ -62,6 +62,7 @@ export default function LeaderOnboarding({
 }: LeaderOnboardingProps) {
   const t = useTranslations("ext_copy-trading");
   const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const [currentStep, setCurrentStep] = useState(0);
 
   // Calculate completed steps
@@ -177,7 +178,7 @@ export default function LeaderOnboarding({
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
-                    {tExt("getting_started")} {leaderProfile.displayName}!
+                    {tCommon("getting_started")} {leaderProfile.displayName}!
                   </h2>
                   <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-0">
                     {t("new_leader")}

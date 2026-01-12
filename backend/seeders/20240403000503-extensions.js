@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require("uuid");
 
 const predefinedExtensions = [
   {
-    productId: "B96677A0",
+    productId: "35988984",
     name: "ai_investment",
     title: "AI Investments",
     description:
@@ -13,7 +13,7 @@ const predefinedExtensions = [
     image: "/img/extensions/ai-investment.png",
   },
   {
-    productId: "EB4AADC3",
+    productId: "40071914",
     name: "ecosystem",
     title: "EcoSystem & Native Trading",
     description:
@@ -22,7 +22,7 @@ const predefinedExtensions = [
     image: "/img/extensions/ecosystem.png",
   },
   {
-    productId: "F8C1C44E",
+    productId: "36668679",
     name: "forex",
     title: "Forex & Investment",
     description:
@@ -31,7 +31,7 @@ const predefinedExtensions = [
     image: "/img/extensions/forex.png",
   },
   {
-    productId: "61433370",
+    productId: "36120046",
     name: "ico",
     title: "Token ICO",
     description:
@@ -40,7 +40,7 @@ const predefinedExtensions = [
     image: "/img/extensions/ico.png",
   },
   {
-    productId: "5868429E",
+    productId: "37434481",
     name: "staking",
     title: "Staking Crypto",
     description:
@@ -49,7 +49,7 @@ const predefinedExtensions = [
     image: "/img/extensions/staking.png",
   },
   {
-    productId: "90AC59FB",
+    productId: "39166202",
     name: "knowledge_base",
     title: "Knowledge Base & FAQs",
     description:
@@ -58,7 +58,7 @@ const predefinedExtensions = [
     image: "/img/extensions/knowledge-base.png",
   },
   {
-    productId: "6FCAE834",
+    productId: "44624493",
     name: "ecommerce",
     title: "Ecommerce",
     description:
@@ -67,7 +67,7 @@ const predefinedExtensions = [
     image: "/img/extensions/ecommerce.png",
   },
   {
-    productId: "F47D081C",
+    productId: "37548018",
     name: "wallet_connect",
     title: "Wallet Connect",
     description:
@@ -76,7 +76,7 @@ const predefinedExtensions = [
     image: "/img/extensions/wallet-connect.png",
   },
   {
-    productId: "DBFE65CA",
+    productId: "44593497",
     name: "p2p",
     title: "Peer To Peer Exchange",
     description:
@@ -85,7 +85,7 @@ const predefinedExtensions = [
     image: "/img/extensions/p2p.png",
   },
   {
-    productId: "D29FD60F",
+    productId: "36667808",
     name: "mlm",
     title: "Multi Level Marketing",
     description:
@@ -94,7 +94,7 @@ const predefinedExtensions = [
     image: "/img/extensions/mlm.png",
   },
   {
-    productId: "02B81D43",
+    productId: "45613491",
     name: "mailwizard",
     title: "MailWizard",
     description:
@@ -103,17 +103,7 @@ const predefinedExtensions = [
     image: "/img/extensions/mailwizard.png",
   },
   {
-    productId: "C4160F60",
-    name: "swap",
-    title: "Swap",
-    description:
-      "Facilitate cryptocurrency swapping with ease and reliability.",
-    link: null,
-    image: "/img/extensions/swap.png",
-  },
-  // futures
-  {
-    productId: "A94B6354",
+    productId: "46094641",
     name: "futures",
     title: "Futures",
     description:
@@ -121,60 +111,74 @@ const predefinedExtensions = [
     link: "https://codecanyon.net/item/futures-leverage-trading-addon-for-bicrypto/46094641",
     image: "/img/extensions/futures.png",
   },
-  // nft
   {
-    productId: "C472374E",
+    productId: "60962133",
     name: "nft",
     title: "NFT Marketplace",
     description:
       "Create, sell, and trade NFTs with our user-friendly marketplace.",
-    link: "",
+    link: "https://codecanyon.net/item/nft-marketplace-addon-for-bicrypto-ecosystem-wallet-connect/60962133",
     image: "/img/extensions/nft.png",
   },
-  // ai trading
   {
-    productId: "AI7RAD1NG",
+    productId: "61007981",
     name: "ai_market_maker",
     title: "AI Market Maker",
     description:
       "AI-powered market making system with automated trading bots, liquidity management, and intelligent price discovery for ecosystem markets.",
-    link: "",
+    link: "https://codecanyon.net/item/ai-market-maker-automated-trading-bots-liquidity-management-price-stabilization-for-ecosystem/61007981",
     image: "/img/extensions/ai-market-maker.png",
   },
-  // payment gateway
   {
-    productId: "B80789E1",
+    productId: "61043226",
     name: "gateway",
     title: "Payment Gateway",
     description:
       "Accept cryptocurrency payments from any website with our Payment Gateway addon. Supports multi-wallet payments, automatic currency conversion, and merchant dashboards.",
-    link: "",
+    link: "https://codecanyon.net/item/payment-gateway-addon-multiwallet-payments-merchant-onboarding-woocommerce-plugin-for-bicrypto/61043226",
     image: "/img/extensions/gateway.png",
   },
-  // copy trading
   {
-    productId: "0B418556",
+    productId: "61107157",
     name: "copy_trading",
     title: "Copy Trading",
     description:
       "Enable social trading by allowing users to follow and automatically copy trades from successful traders. Features include leader profiles, follower management, profit sharing, and real-time trade replication.",
-    link: "",
+    link: "https://codecanyon.net/item/copy-trading-for-bicrypto-social-trading-signal-providers-automated-portfolio-mirroring-addon/61107157",
     image: "/img/extensions/copy-trading.png",
+  },
+  {
+    productId: "61364182",
+    name: "chart_engine",
+    title: "Chart Engine",
+    description:
+      "Premium charting engine optimized for binary trading with order visualization, P/L zones, expiry countdown timers, limit order alerts, and advanced price action features. Seamless integration with all order types.",
+    link: "https://codecanyon.net/item/chart-engine-binary-trading-visualization-plzones-order-markers-countdown-addon-for-bicrypto/61200000",
+    image: "/img/extensions/chart-engine.png",
+  },
+  {
+    productId: "61364183",
+    name: "binary_ai_engine",
+    title: "Binary AI Engine",
+    description:
+      "Advanced AI-powered binary options trading engine with adaptive win rates, ML optimization, A/B testing, cohort analysis, and external price correlation monitoring.",
+    link: null,
+    image: "/img/extensions/binary-ai-engine.png",
   },
 ];
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // Fetch existing extensions from the database
+    // Fetch existing extensions from the database by name
     const existingExtensions = await queryInterface.sequelize.query(
-      "SELECT productId FROM extension",
+      "SELECT name FROM extension",
       { type: queryInterface.sequelize.QueryTypes.SELECT }
     );
 
     // Convert the result to a set for faster lookups
-    const existingProductIds = new Set(
-      existingExtensions.map((ext) => ext.productId)
+    const existingNames = new Set(
+      existingExtensions.map((ext) => ext.name)
     );
 
     // Separate new and existing extensions
@@ -182,7 +186,7 @@ module.exports = {
     const updateExtensions = [];
 
     predefinedExtensions.forEach((ext) => {
-      if (existingProductIds.has(ext.productId)) {
+      if (existingNames.has(ext.name)) {
         updateExtensions.push(ext);
       } else {
         newExtensions.push({
@@ -198,24 +202,25 @@ module.exports = {
       await queryInterface.bulkInsert("extension", newExtensions);
     }
 
-    // Update existing extensions
+    // Update existing extensions by name (updates productId, title, description, link, image)
+    // Does NOT update status or version
     for (const ext of updateExtensions) {
       await queryInterface.sequelize.query(
         `UPDATE extension SET
-          name = :name,
+          productId = :productId,
           title = :title,
           description = :description,
           link = :link,
           image = :image
-        WHERE productId = :productId`,
+        WHERE name = :name`,
         {
           replacements: {
-            name: ext.name,
+            productId: ext.productId,
             title: ext.title,
             description: ext.description,
             link: ext.link,
             image: ext.image,
-            productId: ext.productId,
+            name: ext.name,
           },
         }
       );

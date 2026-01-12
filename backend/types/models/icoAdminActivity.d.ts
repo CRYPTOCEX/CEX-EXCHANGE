@@ -4,6 +4,7 @@ interface icoAdminActivityAttributes {
   offeringId: string;
   offeringName: string;
   adminId: string;
+  details?: string;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;

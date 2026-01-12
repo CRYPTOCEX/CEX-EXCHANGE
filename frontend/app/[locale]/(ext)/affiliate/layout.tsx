@@ -12,6 +12,8 @@ export default function AffiliateLayout({ children }: { children: ReactNode }) {
         menu={menu}
         colorSchema={colorSchema}
         adminPath={adminPath}
+        translationNamespace="ext_affiliate"
+        translationNavPrefix="nav"
       />
       <ExtensionLayoutWrapper landingPath="/affiliate">
         {children}

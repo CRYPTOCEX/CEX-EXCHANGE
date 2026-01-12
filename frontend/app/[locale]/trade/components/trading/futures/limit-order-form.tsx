@@ -269,7 +269,7 @@ export default function LimitOrderForm({
         body: orderData,
       });
 
-      setSuccessMessage(t("order_placed_successfully"));
+      setSuccessMessage(tCommon("order_placed_successfully"));
       setAmount("");
       setLimitPrice("");
       setStopLoss("");
@@ -301,7 +301,7 @@ export default function LimitOrderForm({
 
       {/* Price input */}
       <div className="space-y-1.5">
-        <Label className="text-xs">{t("limit_price")}</Label>
+        <Label className="text-xs">{tCommon("limit_price")}</Label>
         <div className="relative">
           <Input
             type="number"

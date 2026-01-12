@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, ArrowUpRight, ArrowDownRight, Loader2 } from "lucide-react";
 import type { Symbol } from "@/store/trade/use-binary-store";
+import { calculateNextExpiryTime } from "@/utils/time-sync";
 import {
   Dialog,
   DialogContent,
@@ -53,8 +54,8 @@ export default function TradeConfirmation({
   const [showDetails, setShowDetails] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Calculate expiry time
-  const expiryTime = new Date(Date.now() + expiryMinutes * 60 * 1000);
+  // Calculate expiry time - aligned to next expiry boundary
+  const expiryTime = calculateNextExpiryTime(expiryMinutes);
   const formattedExpiryTime = expiryTime.toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",

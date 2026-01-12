@@ -1,9 +1,7 @@
 import { Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTranslations } from "next-intl";
 
 export default function AccountLoading() {
-  const t = useTranslations("ext_forex");
   return (
     <div className="min-h-screen bg-linear-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
       {/* Decorative background glows */}
@@ -68,9 +66,6 @@ export default function AccountLoading() {
           <Loader2
             className={`h-12 w-12 animate-spin text-emerald-600 dark:text-emerald-400 mb-4`}
           />
-          <p className="text-gray-600 dark:text-zinc-400 text-lg">
-            {t("loading_accounts_ellipsis")}
-          </p>
         </div>
       </div>
     </div>

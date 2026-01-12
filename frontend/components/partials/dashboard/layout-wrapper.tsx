@@ -29,8 +29,8 @@ export const LayoutWrapper = ({
         }}
         transition={{
           type: "tween",
-          ease: "easeInOut",
-          duration: 0.5,
+          ease: "easeOut",
+          duration: 0.2,
         }}
       >
         <main>{children}</main>

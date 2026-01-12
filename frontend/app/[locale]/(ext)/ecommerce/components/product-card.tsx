@@ -145,7 +145,7 @@ const ExpandedProductCard = forwardRef<
                 {(product.inventoryQuantity ?? 1) === 0 && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
                     <span className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
-                      Out of Stock
+                      {t("out_of_stock")}
                     </span>
                   </div>
                 )}
@@ -192,7 +192,7 @@ const ExpandedProductCard = forwardRef<
               {/* Category */}
               {product.category && (
                 <div className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mb-2 sm:mb-3">
-                  Category:{" "}
+                  {tCommon("category")}{" "}
                   <span className="font-medium text-zinc-700 dark:text-zinc-300">
                     {product.category.name}
                   </span>
@@ -270,7 +270,7 @@ const ExpandedProductCard = forwardRef<
               {/* Quantity Selector */}
               <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
                 <span className="text-xs sm:text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Quantity:
+                  {t("quantity")}
                 </span>
                 <div className="flex items-center border border-zinc-300 dark:border-zinc-600 rounded-lg">
                   <button
@@ -427,6 +427,7 @@ function ProductCardInner({
   onExpand,
   isActiveCard,
 }: ProductCardProps) {
+  const t = useTranslations("ext");
   const tCommon = useTranslations("common");
   const [isHovered, setIsHovered] = useState(false);
   const { addToCart, addToWishlist, isInWishlist } = useEcommerceStore();
@@ -579,7 +580,7 @@ function ProductCardInner({
           {(product.inventoryQuantity ?? 1) === 0 && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
               <span className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
-                Out of Stock
+                {t("out_of_stock")}
               </span>
             </div>
           )}

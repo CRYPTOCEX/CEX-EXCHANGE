@@ -1,11 +1,12 @@
-// RootLayout.tsx
+// RootLayout.tsx (Updated for Custom i18n)
 import React from "react";
 import "../globals.css";
 import "simplebar-react/dist/simplebar.min.css";
 import Providers from "@/provider/providers";
 import DirectionProvider from "@/provider/direction.provider";
-import { routing } from "@/i18n/routing";
-import { IntlProvider } from "@/components/providers/intl-provider";
+import { config } from "@/i18n/config";
+import { TranslationProvider } from "next-intl";
+import { loadAllNamespaces, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { getUserProfile } from "@/lib/fetchers/user";
 import { getSettings } from "@/lib/fetchers/settings";
@@ -13,7 +14,6 @@ import ConditionalLayoutProvider from "@/components/layout/conditional-layout-pr
 import { SettingsStatus } from "@/components/development/settings-status";
 import { GlobalAuthDetector } from "@/components/auth/global-auth-detector";
 import { Geist, Geist_Mono } from "next/font/google";
-import { getTranslations } from "next-intl/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,15 +32,6 @@ export const metadata = {
   },
   description: process.env.NEXT_PUBLIC_SITE_DESCRIPTION || "My App Description",
 };
-
-async function loadTranslations(locale: string) {
-  try {
-    return (await import(`../../messages/${locale}.json`)).default;
-  } catch (error) {
-    console.error(`Error loading translations for locale: ${locale}`, error);
-    return null;
-  }
-}
 
 // Type for settings result with fallback flag
 type SettingsResult = {
@@ -142,30 +133,26 @@ interface RootLayoutProps {
 export default async function RootLayout(
   props: RootLayoutProps
 ): Promise<React.JSX.Element> {
-  const t = await getTranslations("layout");
-  const tCommon = await getTranslations("common");
+  const t = await getTranslations("common");
   try {
     const params = await props.params;
     const { children } = props;
     const { locale } = params;
 
     // Validate locale first
-    if (!routing.locales.includes(locale)) {
+    if (!config.locales.includes(locale)) {
       // Only log in development to avoid noise from bot attacks
       if (process.env.NODE_ENV === "development") {
         console.warn(
-          `Invalid locale: ${locale}. Available locales: ${routing.locales.join(", ")}`
+          `Invalid locale: ${locale}. Available locales: ${config.locales.join(", ")}`
         );
       }
       notFound();
     }
 
-    // Load translations with better error handling
-    const messages = await loadTranslations(locale);
-    if (!messages) {
-      console.error(`Failed to load translations for locale: ${locale}`);
-      // Provide fallback with empty messages instead of failing
-    }
+    // Load ALL namespaces for the root layout
+    // Since we're using single-file format (messages/{locale}.json), load everything at once
+    const messages = await loadAllNamespaces(locale);
 
     // Fetch global configuration with improved error handling
     const isDevelopment = process.env.NODE_ENV === "development";
@@ -226,25 +213,28 @@ export default async function RootLayout(
     return (
       <html lang={locale} suppressHydrationWarning data-scroll-behavior="smooth" className="notranslate" translate="no">
         <head>
+          {/* PWA Manifest */}
+          <link rel="manifest" href="/manifest.json" />
+          <meta name="mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="default" />
           {/* Favicons - files are replaced directly via admin upload */}
           <link rel="icon" type="image/webp" sizes="16x16" href="/img/logo/favicon-16x16.webp" />
           <link rel="icon" type="image/webp" sizes="32x32" href="/img/logo/favicon-32x32.webp" />
           <link rel="icon" type="image/webp" sizes="96x96" href="/img/logo/favicon-96x96.webp" />
           <link rel="apple-touch-icon" sizes="180x180" href="/img/logo/apple-icon-180x180.webp" />
-          {/* Conditionally load TradingView library if chart type is set to TradingView */}
-          {settings?.chartType === "TRADINGVIEW" && (
-            <script
-              src="/lib/chart/charting_library/charting_library/charting_library.standalone.js"
-              async
-            />
-          )}
+          {/* Preload TradingView library for trading charts */}
+          <script
+            src="/lib/chart/charting_library/charting_library/charting_library.standalone.js"
+            async
+          />
         </head>
-        <body 
+        <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
           style={{ "--radius": "0.5rem" } as React.CSSProperties}
           suppressHydrationWarning
         >
-          <IntlProvider locale={locale} messages={messages || {}}>
+          <TranslationProvider locale={locale} messages={messages}>
             <Providers
               profile={profile}
               settings={settings}
@@ -258,12 +248,13 @@ export default async function RootLayout(
                 </ConditionalLayoutProvider>
               </DirectionProvider>
             </Providers>
-          </IntlProvider>
+          </TranslationProvider>
         </body>
       </html>
     );
   } catch (error) {
     // Return a minimal fallback layout that won't cause additional errors
+    // Note: In the error case, we can't load translations, so use hardcoded strings
     return (
       <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className="notranslate" translate="no">
         <body className="min-h-screen bg-background font-sans antialiased">
@@ -271,11 +262,10 @@ export default async function RootLayout(
             <div className="text-center">
               <h1 className="text-2xl font-bold">{t("application_error")}</h1>
               <p className="text-muted-foreground mt-2">
-                {t("failed_to_initialize_the_application")} {tCommon("please_try_refreshing_the_page")}
+                {t("failed_to_initialize_the_application_please")}
               </p>
               <p className="text-xs text-muted-foreground mt-4">
-                {tCommon("error")}:{" "}
-                {error instanceof Error ? error.message : "Unknown error"}
+                {t("error")} {error instanceof Error ? error.message : "Unknown error"}
               </p>
             </div>
           </div>

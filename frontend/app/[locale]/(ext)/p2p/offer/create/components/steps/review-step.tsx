@@ -396,7 +396,7 @@ export function ReviewStep() {
                     </p>
                     {!tradeData.tradeSettings?.autoCancel && (
                       <Badge variant="outline" className="text-xs">
-                        {t("default")}
+                        {tCommon("default")}
                       </Badge>
                     )}
                   </div>
@@ -418,7 +418,7 @@ export function ReviewStep() {
                     </p>
                     {!tradeData.tradeSettings?.visibility && (
                       <Badge variant="outline" className="text-xs">
-                        {t("default")}
+                        {tCommon("default")}
                       </Badge>
                     )}
                   </div>

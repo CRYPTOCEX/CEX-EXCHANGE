@@ -56,6 +56,8 @@ interface PoolVarietySectionProps {
 type TabType = "high-apr" | "flexible" | "coming-soon";
 
 function HighAprCard({ pool, index }: { pool: HighAprPool; index: number }) {
+  const t = useTranslations("ext_staking");
+  const tExt = useTranslations("ext");
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -97,7 +99,7 @@ function HighAprCard({ pool, index }: { pool: HighAprPool; index: number }) {
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-1.5 text-zinc-500">
               <Clock className="w-3.5 h-3.5" />
-              <span>{pool.lockPeriod} days lock</span>
+              <span>{pool.lockPeriod} {tExt("days_lock")}</span>
             </div>
             <Badge variant="outline" className="text-xs">
               {pool.earningFrequency.toLowerCase()}
@@ -168,6 +170,8 @@ function FlexibleCard({ pool, index }: { pool: FlexiblePool; index: number }) {
 }
 
 function UpcomingCard({ pool, index }: { pool: UpcomingPool; index: number }) {
+  const t = useTranslations("ext_staking");
+  const tCommon = useTranslations("common");
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -202,7 +206,7 @@ function UpcomingCard({ pool, index }: { pool: UpcomingPool; index: number }) {
                 variant="outline"
                 className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
               >
-                Coming Soon
+                {tCommon("coming_soon")}
               </Badge>
             </div>
             <p className="text-sm text-zinc-500">{pool.symbol}</p>
@@ -212,7 +216,7 @@ function UpcomingCard({ pool, index }: { pool: UpcomingPool; index: number }) {
               <TrendingUp className="w-4 h-4" />
               <span className="text-xl font-bold">{pool.apr}%</span>
             </div>
-            <p className="text-xs text-zinc-400">Est. APR</p>
+            <p className="text-xs text-zinc-400">{t("est_apr")}</p>
           </div>
         </div>
         {pool.description && (
@@ -255,12 +259,13 @@ export default function PoolVarietySection({
 }: PoolVarietySectionProps) {
   const t = useTranslations("ext_staking");
   const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const [activeTab, setActiveTab] = useState<TabType>("high-apr");
 
   const tabs = [
     {
       id: "high-apr" as TabType,
-      label: t("highest_apr") || "Highest APR",
+      label: tCommon("highest_apr") || "Highest APR",
       icon: TrendingUp,
       count: highestAprPools.length,
     },

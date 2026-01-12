@@ -5,23 +5,25 @@ const Exchanges = [
   {
     name: "kucoin",
     title: "KuCoin",
-    productId: "6D0DD3C8",
-    version: "1.0.0",
+    description: "Integrate KuCoin exchange for spot trading with real-time market data, order execution, and balance management.",
+    productId: "37179816",
+    link: "https://codecanyon.net/item/kucoin-exchange-provider-for-bicrypto/37179816",
     type: "spot",
   },
   {
     name: "binance",
     title: "Binance",
-    productId: "EBAC01EE",
-    version: "1.0.0",
+    description: "Connect to Binance, the world's largest cryptocurrency exchange, for high-liquidity spot trading and comprehensive market data.",
+    productId: "38650585",
+    link: "https://codecanyon.net/item/binance-exchange-provider-for-bicrypto/38650585",
     type: "spot",
   },
-  // xt
   {
     name: "xt",
     title: "XT",
-    productId: "498D443A",
-    version: "1.0.0",
+    description: "Integrate XT exchange for global digital asset trading with real-time prices, order management, and multi-currency support.",
+    productId: "54510301",
+    link: "https://codecanyon.net/item/xt-exchange-provider-for-bicrypto-trading-platform/54510301",
     type: "spot",
   },
 ];
@@ -29,7 +31,7 @@ const Exchanges = [
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface) {
-    // Fetch existing exchanges to prevent duplicates
+    // Fetch existing exchanges to check by name
     const existingExchanges = await queryInterface.sequelize.query(
       "SELECT name FROM exchange",
       { type: queryInterface.sequelize.QueryTypes.SELECT }
@@ -39,17 +41,48 @@ module.exports = {
       existingExchanges.map((exchange) => exchange.name)
     );
 
-    // Filter out exchanges that already exist and assign a UUID to each new one
-    const newExchanges = Exchanges.filter(
-      (exchange) => !existingExchangeNames.has(exchange.name)
-    ).map((exchange) => ({
-      ...exchange,
-      id: uuidv4(), // Assign a new UUID
-    }));
+    // Separate new and existing exchanges
+    const newExchanges = [];
+    const updateExchanges = [];
 
-    // Only proceed with insertion if there are new exchanges
+    Exchanges.forEach((exchange) => {
+      if (existingExchangeNames.has(exchange.name)) {
+        updateExchanges.push(exchange);
+      } else {
+        newExchanges.push({
+          ...exchange,
+          id: uuidv4(),
+        });
+      }
+    });
+
+    // Perform bulk insert for new exchanges
     if (newExchanges.length > 0) {
       await queryInterface.bulkInsert("exchange", newExchanges, {});
+    }
+
+    // Update existing exchanges by name (updates productId, title, description, link, type)
+    // Does NOT update status or version
+    for (const exchange of updateExchanges) {
+      await queryInterface.sequelize.query(
+        `UPDATE exchange SET
+          productId = :productId,
+          title = :title,
+          description = :description,
+          link = :link,
+          type = :type
+        WHERE name = :name`,
+        {
+          replacements: {
+            productId: exchange.productId,
+            title: exchange.title,
+            description: exchange.description,
+            link: exchange.link,
+            type: exchange.type,
+            name: exchange.name,
+          },
+        }
+      );
     }
   },
 

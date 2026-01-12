@@ -1,4 +1,8 @@
 import { create } from "zustand";
+import { $fetch } from "@/lib/api";
+
+// Module-level lock to prevent duplicate triggers
+const triggerInProgress: Record<string, boolean> = {};
 
 // Define types
 export interface CronJob {
@@ -62,6 +66,9 @@ interface CronState {
 
   // Derived state
   getFilteredJobs: () => CronJob[];
+
+  // API actions
+  triggerCronJob: (cronName: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export const useCronStore = create<CronState>((set, get) => ({
@@ -132,6 +139,38 @@ export const useCronStore = create<CronState>((set, get) => ({
     }
 
     return filtered;
+  },
+
+  // API actions
+  triggerCronJob: async (cronName: string) => {
+    // Prevent duplicate triggers using module-level lock
+    if (triggerInProgress[cronName]) {
+      return { success: false, error: "Trigger already in progress" };
+    }
+
+    triggerInProgress[cronName] = true;
+
+    try {
+      const { error } = await $fetch({
+        url: "/api/admin/system/cron/trigger",
+        method: "POST",
+        body: { cronName },
+      });
+
+      if (error) {
+        return { success: false, error };
+      }
+
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      return { success: false, error: errorMessage };
+    } finally {
+      // Clear the lock after a short delay to prevent rapid re-triggers
+      setTimeout(() => {
+        delete triggerInProgress[cronName];
+      }, 1000);
+    }
   },
 }));
 

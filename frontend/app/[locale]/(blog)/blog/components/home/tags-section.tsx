@@ -53,13 +53,13 @@ export function TagsSection() {
           {t("popular_tags")}
         </Badge>
         <h2 className="text-4xl md:text-5xl font-bold text-zinc-900 dark:text-white mb-4">
-          Explore by{" "}
+          {t("explore_by")}{" "}
           <span className="bg-linear-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
             Topic
           </span>
         </h2>
         <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-          Find articles that match your interests
+          {t("find_articles_that_match_your_interests")}
         </p>
       </motion.div>
 

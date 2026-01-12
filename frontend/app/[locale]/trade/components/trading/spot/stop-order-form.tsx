@@ -328,7 +328,7 @@ export default function StopOrderForm({
       {stopType === "stop-limit" && (
         <div className="space-y-1">
           <label className="text-xs font-medium text-muted-foreground dark:text-zinc-400">
-            {t("limit_price")}
+            {tCommon("limit_price")}
           </label>
           <div className="relative">
             <input

@@ -13,7 +13,8 @@ import { getCryptoImageUrl, handleImageError } from "@/utils/image-fallback";
 import { useTranslations } from "next-intl";
 import { HeroSection } from "@/components/ui/hero-section";
 import { motion } from "framer-motion";
-import { Sparkles, Zap } from "lucide-react";
+import { Sparkles, Zap, DollarSign, BarChart3, Store, Bot, TrendingUp, ArrowLeftRight } from "lucide-react";
+import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 interface OverviewData {
   totalMarkets: number;
@@ -35,83 +36,6 @@ interface OverviewData {
   alerts?: string[];
 }
 
-const StatCard = ({
-  title,
-  value,
-  subtitle,
-  icon,
-  iconBg,
-  iconColor,
-  trend,
-  loading,
-}: {
-  title: string;
-  value: string | number;
-  subtitle?: string;
-  icon: string;
-  iconBg: string;
-  iconColor: string;
-  trend?: { value: number; positive: boolean };
-  loading?: boolean;
-}) => {
-  if (loading) {
-    return (
-      <Card className="relative overflow-hidden border bg-card">
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-8 w-32" />
-              <Skeleton className="h-3 w-20" />
-            </div>
-            <Skeleton className="h-14 w-14 rounded-2xl" />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300 border bg-card">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <h3 className="text-3xl font-bold tracking-tight text-foreground">
-              {value}
-            </h3>
-            {subtitle && (
-              <p className="text-xs text-muted-foreground">{subtitle}</p>
-            )}
-            {trend && (
-              <div
-                className={`flex items-center gap-1 text-sm font-medium ${
-                  trend.positive ? "text-green-500" : "text-red-500"
-                }`}
-              >
-                <Icon
-                  icon={
-                    trend.positive ? "mdi:trending-up" : "mdi:trending-down"
-                  }
-                  className="w-4 h-4"
-                />
-                <span>
-                  {trend.positive ? "+" : ""}
-                  {trend.value.toFixed(2)}%
-                </span>
-              </div>
-            )}
-          </div>
-          <div
-            className={`flex items-center justify-center w-14 h-14 rounded-2xl ${iconBg} group-hover:scale-110 transition-transform duration-300`}
-          >
-            <Icon icon={icon} className={`w-7 h-7 ${iconColor}`} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
 
 const MarketCard = ({
   market,
@@ -407,42 +331,34 @@ export const DashboardClient: React.FC = () => {
           </div>
         }
         bottomSlot={
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard
-              title={tCommon("total_tvl")}
-              value={`${(totalTVL / 1000).toFixed(1)}K`}
-              subtitle={tCommon("total_value_locked")}
-              icon="mdi:currency-usd"
-              iconBg="bg-cyan-600"
-              iconColor="text-white"
-              loading={loading}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+            <StatsCard
+              label={tCommon("total_tvl")}
+              value={`$${(totalTVL / 1000).toFixed(1)}K`}
+              icon={DollarSign}
+              index={0}
+              {...statsCardColors.cyan}
             />
-            <StatCard
-              title={`24h ${tCommon("volume")}`}
-              value={`${(total24hVolume / 1000).toFixed(1)}K`}
-              subtitle={tCommon("trading_volume")}
-              icon="mdi:chart-line"
-              iconBg="bg-purple-500"
-              iconColor="text-white"
-              loading={loading}
+            <StatsCard
+              label={`24h ${tCommon("volume")}`}
+              value={`$${(total24hVolume / 1000).toFixed(1)}K`}
+              icon={BarChart3}
+              index={1}
+              {...statsCardColors.purple}
             />
-            <StatCard
-              title={tCommon("active_markets")}
+            <StatsCard
+              label={tCommon("active_markets")}
               value={`${activeMarkets}/${totalMarkets}`}
-              subtitle={`${pausedMarkets} paused, ${stoppedMarkets} stopped`}
-              icon="mdi:store"
-              iconBg="bg-cyan-600"
-              iconColor="text-white"
-              loading={loading}
+              icon={Store}
+              index={2}
+              {...statsCardColors.cyan}
             />
-            <StatCard
-              title={tCommon("active_bots")}
+            <StatsCard
+              label={tCommon("active_bots")}
               value={`${activeBots}/${totalBots}`}
-              subtitle={tCommon("currently_running")}
-              icon="mdi:robot"
-              iconBg="bg-purple-500"
-              iconColor="text-white"
-              loading={loading}
+              icon={Bot}
+              index={3}
+              {...statsCardColors.purple}
             />
           </div>
         }
@@ -490,28 +406,22 @@ export const DashboardClient: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5"
         >
-          <StatCard
-            title={tCommon("total_p_l")}
+          <StatsCard
+            label={tCommon("total_p_l")}
             value={`${totalPnL >= 0 ? "+" : ""}${totalPnL.toFixed(2)}`}
-            icon="mdi:chart-line"
-            iconBg={totalPnL >= 0 ? "bg-green-500" : "bg-red-500"}
-            iconColor="text-white"
-            trend={{
-              value: pnlPercent,
-              positive: pnlPercent >= 0,
-            }}
-            loading={loading}
+            change={`${pnlPercent >= 0 ? "+" : ""}${pnlPercent.toFixed(2)}%`}
+            icon={TrendingUp}
+            index={0}
+            {...(totalPnL >= 0 ? statsCardColors.green : statsCardColors.red)}
           />
-          <StatCard
-            title={tCommon("recent_trades")}
+          <StatsCard
+            label={tCommon("recent_trades")}
             value={recentTradeCount}
-            subtitle="Last 24 hours"
-            icon="mdi:swap-horizontal"
-            iconBg="bg-linear-to-br from-cyan-500 to-purple-500"
-            iconColor="text-white"
-            loading={loading}
+            icon={ArrowLeftRight}
+            index={1}
+            {...statsCardColors.cyan}
           />
         </motion.div>
 

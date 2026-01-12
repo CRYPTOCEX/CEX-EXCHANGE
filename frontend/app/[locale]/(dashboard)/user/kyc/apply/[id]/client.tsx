@@ -71,6 +71,23 @@ export function KycApplicationClient() {
       }
 
       const parsedLevelData = parseKycLevel(levelData);
+
+      // Check if level has fields - redirect if not configured
+      if (
+        !parsedLevelData.fields ||
+        !Array.isArray(parsedLevelData.fields) ||
+        parsedLevelData.fields.length === 0
+      ) {
+        toast({
+          title: "Level Not Configured",
+          description:
+            "This verification level is not yet configured. Please contact support.",
+          variant: "destructive",
+        });
+        router.push("/user/kyc");
+        return;
+      }
+
       setLevel(parsedLevelData);
 
       // Convert KYC fields to form fields

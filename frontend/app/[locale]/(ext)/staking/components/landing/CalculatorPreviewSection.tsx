@@ -41,6 +41,7 @@ function RewardCard({
   symbol: string;
   index: number;
 }) {
+  const t = useTranslations("ext_staking");
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -52,7 +53,7 @@ function RewardCard({
       <div className="relative p-6 rounded-2xl bg-white/80 dark:bg-zinc-900/80 border border-violet-200/50 dark:border-violet-800/50 hover:border-violet-500/50 dark:hover:border-violet-600/50 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/10">
         {/* Stake Amount */}
         <div className="text-center mb-6">
-          <p className="text-sm text-zinc-500 mb-1">If you stake</p>
+          <p className="text-sm text-zinc-500 mb-1">{t("if_you_stake")}</p>
           <div className="text-3xl font-bold text-zinc-900 dark:text-white">
             {example.amount.toLocaleString()} {symbol}
           </div>
@@ -156,7 +157,7 @@ export default function CalculatorPreviewSection({
           </p>
           {calculatorPreview && (
             <div className="flex items-center justify-center gap-2 mt-4">
-              <span className="text-sm text-zinc-500">Based on</span>
+              <span className="text-sm text-zinc-500">{t("based_on")}</span>
               <Badge
                 variant="outline"
                 className="bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/30"

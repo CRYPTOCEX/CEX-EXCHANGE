@@ -132,7 +132,7 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "channels",
-          title: t("notification_channels"),
+          title: tCommon("notification_channels"),
           icon: Bell,
           priority: 2,
           fields: [{ key: "email" }, { key: "sms" }, { key: "push" }],

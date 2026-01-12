@@ -348,7 +348,7 @@ export default function FAQDetailContent() {
                             className="border-zinc-300 dark:border-zinc-700 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-300 dark:hover:bg-rose-950/30"
                           >
                             <ThumbsDown className="h-4 w-4 mr-2" />
-                            {t("needs_improvement")}
+                            {tCommon("needs_improvement")}
                           </Button>
                         </div>
                       </motion.div>

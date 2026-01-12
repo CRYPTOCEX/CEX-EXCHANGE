@@ -80,7 +80,7 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "duration-configuration",
-          title: tExtAdmin("duration_configuration"),
+          title: tCommon("duration_configuration"),
           icon: Clock,
           priority: 1,
           fields: [
@@ -109,7 +109,7 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "duration-configuration",
-          title: tExtAdmin("duration_configuration"),
+          title: tCommon("duration_configuration"),
           icon: Clock,
           priority: 1,
           fields: [

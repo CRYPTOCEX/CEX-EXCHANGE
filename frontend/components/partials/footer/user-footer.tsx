@@ -19,7 +19,6 @@ const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "Bicrypto";
 const siteDescription =
   process.env.NEXT_PUBLIC_SITE_DESCRIPTION ||
   "The most trusted cryptocurrency platform with advanced trading tools and secure storage.";
-const binaryEnabled = process.env.NEXT_PUBLIC_BINARY_STATUS === "true";
 
 // Social link interface matching the settings configuration
 interface SocialLink {
@@ -92,7 +91,7 @@ export function SiteFooter() {
     if (showSpotTrading) {
       tradingLinks.push({ name: "Spot Trading", href: "/trade" });
     }
-    if (binaryEnabled) {
+    if (getSetting("binaryStatus")) {
       tradingLinks.push({ name: "Binary Options", href: "/binary" });
     }
     if (hasExtension("futures")) {

@@ -4,52 +4,39 @@ const { v4: uuidv4 } = require("uuid");
 
 const predefinedEcosystemBlockchains = [
   {
-    productId: "AC6A4329",
+    productId: "54514052",
     chain: "SOL",
     name: "Solana Blockchain for Ecosystem Addon",
     description:
       "Integrate Solana blockchain into your ecosystem for seamless trading and deposits and withdrawals.",
-    link: "",
+    link: "https://codecanyon.net/item/solana-blockchain-for-ecosystem-addon/54514052",
     image: "/img/blockchains/sol.png",
   },
-  // tron
   {
-    productId: "AC6A4330",
+    productId: "54577641",
     chain: "TRON",
     name: "Tron Blockchain for Ecosystem Addon",
     description:
       "Integrate Tron blockchain into your ecosystem for seamless trading and deposits and withdrawals.",
-    link: "",
+    link: "https://codecanyon.net/item/tron-trx-blockchain-for-ecosystem-addon/54577641",
     image: "/img/blockchains/trx.png",
   },
-  // xmr
   {
-    productId: "AC6A4331",
+    productId: "54578959",
     chain: "XMR",
     name: "Monero Blockchain for Ecosystem Addon",
     description:
       "Integrate Monero blockchain into your ecosystem for seamless trading and deposits and withdrawals.",
-    link: "",
+    link: "https://codecanyon.net/item/monero-xmr-blockchain-for-ecosystem-addon/54578959",
     image: "/img/blockchains/xmr.png",
   },
-  // MO
   {
-    productId: "2ED90A72",
-    chain: "MO",
-    name: "MO Chain for Ecosystem Addon",
-    description:
-      "Integrate MO Chain into your ecosystem for seamless trading and deposits and withdrawals.",
-    link: "",
-    image: "/img/crypto/mo.webp",
-  },
-  // ton
-  {
-    productId: "AC6A4332",
+    productId: "55715370",
     chain: "TON",
     name: "TON Blockchain for Ecosystem Addon",
     description:
       "Integrate TON blockchain into your ecosystem for seamless trading and deposits and withdrawals.",
-    link: "",
+    link: "https://codecanyon.net/item/ton-ton-blockchain-for-ecosystem-addon/55715370",
     image: "/img/blockchains/ton.png",
   },
 ];
@@ -57,15 +44,15 @@ const predefinedEcosystemBlockchains = [
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // Fetch existing ecosystemblockchains from the database
+    // Fetch existing ecosystemblockchains from the database by chain
     const existingEcosystemBlockchains = await queryInterface.sequelize.query(
-      "SELECT productId FROM ecosystem_blockchain",
+      "SELECT chain FROM ecosystem_blockchain",
       { type: queryInterface.sequelize.QueryTypes.SELECT }
     );
 
     // Convert the result to a set for faster lookups
-    const existingProductIds = new Set(
-      existingEcosystemBlockchains.map((ext) => ext.productId)
+    const existingChains = new Set(
+      existingEcosystemBlockchains.map((ext) => ext.chain)
     );
 
     // Separate new and existing ecosystemblockchains
@@ -73,7 +60,7 @@ module.exports = {
     const updateEcosystemBlockchains = [];
 
     predefinedEcosystemBlockchains.forEach((ext) => {
-      if (existingProductIds.has(ext.productId)) {
+      if (existingChains.has(ext.chain)) {
         updateEcosystemBlockchains.push(ext);
       } else {
         newEcosystemBlockchains.push({
@@ -92,24 +79,25 @@ module.exports = {
       );
     }
 
-    // Update existing ecosystemblockchains
+    // Update existing ecosystemblockchains by chain (updates productId, name, description, link, image)
+    // Does NOT update status or version
     for (const ext of updateEcosystemBlockchains) {
       await queryInterface.sequelize.query(
         `UPDATE ecosystem_blockchain SET
+          productId = :productId,
           name = :name,
-          chain = :chain,
           description = :description,
           link = :link,
           image = :image
-        WHERE productId = :productId`,
+        WHERE chain = :chain`,
         {
           replacements: {
+            productId: ext.productId,
             name: ext.name,
-            chain: ext.chain,
             description: ext.description,
             link: ext.link,
             image: ext.image,
-            productId: ext.productId,
+            chain: ext.chain,
           },
         }
       );

@@ -135,7 +135,7 @@ export default function MerchantRegisterClient() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="slug">URL Slug *</Label>
+                <Label htmlFor="slug">{t("url_slug")}</Label>
                 <Input
                   id="slug"
                   name="slug"

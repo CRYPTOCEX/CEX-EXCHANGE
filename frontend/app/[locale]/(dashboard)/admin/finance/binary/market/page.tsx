@@ -6,12 +6,11 @@ import { Download, Loader2, TrendingUp } from "lucide-react";
 import { $fetch } from "@/lib/api";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { useColumns, useFormConfig } from "./columns";
+import { useColumns } from "./columns";
 import { useTableStore } from "@/components/blocks/data-table/store";
 
 export default function BinaryMarketPage() {
   const columns = useColumns();
-  const formConfig = useFormConfig();
   const t = useTranslations("dashboard_admin");
   const [isImporting, setIsImporting] = useState(false);
 
@@ -55,13 +54,14 @@ export default function BinaryMarketPage() {
       canCreate
       canEdit
       canDelete
-      canView
+      canView={false}
       isParanoid={false}
       title={t("binary_markets")}
       description={t("binary_markets_description")}
       itemTitle="Market"
       columns={columns}
-      formConfig={formConfig}
+      createLink="/admin/finance/binary/market/create"
+      editLink="/admin/finance/binary/market/[id]/edit"
       design={{
         animation: "orbs",
         icon: TrendingUp,

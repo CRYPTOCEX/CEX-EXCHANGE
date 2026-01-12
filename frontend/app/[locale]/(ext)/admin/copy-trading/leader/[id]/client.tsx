@@ -552,7 +552,7 @@ export default function LeaderDetailClient() {
                   </Table>
                 ) : (
                   <div className="text-center py-16 text-zinc-400">
-                    {t("no_trades_yet")}
+                    {tCommon("no_trades_yet")}
                   </div>
                 )}
               </CardContent>

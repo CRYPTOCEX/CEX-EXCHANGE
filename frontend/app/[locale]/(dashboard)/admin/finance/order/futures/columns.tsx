@@ -83,7 +83,7 @@ export function useColumns(): ColumnDefinition[] {
     },
     {
       key: "type",
-      title: tDashboardAdmin("order_type"),
+      title: tCommon("order_type"),
       type: "select",
       icon: ArrowLeftRight,
       description: tDashboardAdmin("market_or_limit_order_type"),
@@ -225,7 +225,7 @@ export function useColumns(): ColumnDefinition[] {
     },
     {
       key: "remaining",
-      title: tDashboardAdmin("remaining"),
+      title: tCommon("remaining"),
       type: "number",
       icon: DollarSign,
       description: tDashboardAdmin("amount_remaining_to_be_filled"),

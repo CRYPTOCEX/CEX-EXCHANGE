@@ -7,22 +7,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { ArrowLeft, RefreshCw } from "lucide-react";
-import { useTranslations } from "next-intl";
 
 export default function TransactionLoading() {
-  const t = useTranslations("ext_admin");
-  const tExt = useTranslations("ext");
   return (
     <div className="container mx-auto pt-20 pb-20 space-y-6 max-w-7xl">
       {/* Header Section */}
       <div className="flex flex-col space-y-4">
         {/* Breadcrumb */}
         <div className="flex items-center text-sm text-muted-foreground">
-          <div className="flex items-center hover:text-primary transition-colors">
+          <div className="flex items-center">
             <ArrowLeft className="w-4 h-4 mr-1" />
-            <span>{t("back_to_transactions")}</span>
+            <Skeleton className="h-4 w-32" />
           </div>
         </div>
 
@@ -34,10 +30,7 @@ export default function TransactionLoading() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              {tExt("refresh")}
-            </Button>
+            <Skeleton className="h-9 w-24" />
           </div>
         </div>
       </div>
@@ -159,10 +152,10 @@ export default function TransactionLoading() {
       <Tabs defaultValue="related">
         <TabsList>
           <TabsTrigger value="related" disabled>
-            {t("related_transactions")}
+            <Skeleton className="h-4 w-32" />
           </TabsTrigger>
           <TabsTrigger value="notes" disabled>
-            {tExt("notes")}
+            <Skeleton className="h-4 w-16" />
           </TabsTrigger>
         </TabsList>
 

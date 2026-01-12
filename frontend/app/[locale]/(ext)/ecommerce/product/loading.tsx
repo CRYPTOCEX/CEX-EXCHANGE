@@ -1,8 +1,6 @@
-import { Loader2, ShoppingBag, Search, Filter, Grid3X3 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Loader2, ShoppingBag } from "lucide-react";
 
 export default function ProductsLoading() {
-  const t = useTranslations("ext_ecommerce");
   return (
     <div className={`bg-linear-to-b from-white to-gray-50 dark:from-zinc-900 dark:to-zinc-800 min-h-screen pb-12 pt-24`}>
       {/* Subtle decorative background glows */}
@@ -74,7 +72,6 @@ export default function ProductsLoading() {
         {/* Loading indicator */}
         <div className="flex flex-col items-center justify-center py-16">
           <Loader2 className={`h-12 w-12 animate-spin text-amber-600 dark:text-amber-400 mb-4`} />
-          <p className="text-gray-600 dark:text-zinc-400 text-lg">{t("loading_products_ellipsis")}</p>
         </div>
       </div>
     </div>

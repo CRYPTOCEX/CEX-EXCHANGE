@@ -6,16 +6,32 @@ export function formatCurrency(amount: number, currency: string = "USD"): string
   const numericAmount = Number(amount);
   if (isNaN(numericAmount)) return `${currency} 0.00`;
 
+  // Determine appropriate decimal places based on the value
+  // For small numbers (< 0.01), show more decimals to display the actual value
+  let maxDecimals = 2;
+  if (currency === "BTC") {
+    maxDecimals = 8;
+  } else if (numericAmount > 0 && numericAmount < 0.01) {
+    // For very small values, calculate how many decimals needed
+    const decimalStr = numericAmount.toString();
+    const decimalMatch = decimalStr.match(/\.0*[1-9]/);
+    if (decimalMatch) {
+      maxDecimals = Math.min(8, decimalMatch[0].length);
+    } else {
+      maxDecimals = 4;
+    }
+  }
+
   try {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: currency.toUpperCase(),
       minimumFractionDigits: 2,
-      maximumFractionDigits: currency === "BTC" ? 8 : 2,
+      maximumFractionDigits: maxDecimals,
     }).format(numericAmount);
   } catch (error) {
     // Fallback for unsupported currencies
-    return `${currency} ${numericAmount.toFixed(currency === "BTC" ? 8 : 2)}`;
+    return `${currency} ${numericAmount.toFixed(maxDecimals)}`;
   }
 }
 
@@ -23,8 +39,23 @@ export function formatNumber(num: number): string {
   return new Intl.NumberFormat("en-US").format(num);
 }
 
-export function formatDate(dateInput?: string | Date): string {
+export function formatDate(dateInput?: string | Date | null): string {
+  if (!dateInput) return "N/A";
+
+  // If it's a string that looks like a quarter (Q1 2024, Q4 2023, etc.), return as-is
+  if (typeof dateInput === "string" && /^Q[1-4]\s*\d{4}$/i.test(dateInput.trim())) {
+    return dateInput;
+  }
+
   const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+
+  // Check if the date is valid
+  if (!date || isNaN(date.getTime())) {
+    // If it's a string, return it as-is (might be a custom date format)
+    if (typeof dateInput === "string") return dateInput;
+    return "N/A";
+  }
+
   return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "short",

@@ -15,7 +15,11 @@ import { Link } from "@/i18n/routing";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
-const ProfileInfo = () => {
+interface ProfileInfoProps {
+  square?: boolean;
+}
+
+const ProfileInfo = ({ square = false }: ProfileInfoProps) => {
   const t = useTranslations("components");
   const { user, logout } = useUserStore();
   const router = useRouter();
@@ -53,13 +57,17 @@ const ProfileInfo = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="cursor-pointer">
-        <div className="flex items-center">
-          <Avatar className="h-9 w-9 border-2 border-white shadow-sm hover:shadow-md transition-shadow duration-200">
+        <div className={`flex items-center ${square ? "h-10 w-10 justify-center" : ""}`}>
+          <Avatar className={square
+            ? "h-10 w-10 rounded-none"
+            : "h-9 w-9 border-2 border-white shadow-sm hover:shadow-md transition-shadow duration-200"
+          }>
             <AvatarImage
               src={user?.avatar || "/img/avatars/placeholder.webp"}
               alt={`Avatar of ${user ? user.firstName + " " + user.lastName : "Guest User"}`}
+              className={square ? "rounded-none" : ""}
             />
-            <AvatarFallback className="bg-primary text-primary-foreground font-medium text-sm">
+            <AvatarFallback className={`bg-primary text-primary-foreground font-medium text-sm ${square ? "rounded-none" : ""}`}>
               {getUserInitials()}
             </AvatarFallback>
           </Avatar>

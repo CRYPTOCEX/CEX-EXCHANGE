@@ -299,6 +299,7 @@ export function VerificationTab({
 
   // Format the AI response with proper line breaks and styling
   const formatAIResponse = (data: any) => {
+  const t = useTranslations("dashboard_admin");
     if (!data) return null;
 
     // If data is a string, just display it directly
@@ -1121,7 +1122,7 @@ export function VerificationTab({
                                 <div className="mt-4">
                                   <h4 className="text-sm font-medium mb-2 flex items-center gap-1.5">
                                     <Shield className="h-4 w-4 text-indigo-500" />
-                                    AI Analysis
+                                    {t("ai_analysis")}
                                   </h4>
                                   <div className="bg-indigo-50 dark:bg-indigo-950/20 p-4 rounded-lg text-sm print:bg-transparent print:p-0">
                                     {formatAIResponse(doc.aiResponse)}
@@ -1163,7 +1164,7 @@ export function VerificationTab({
                           <div className="mt-4">
                             <h4 className="text-sm font-medium mb-2 flex items-center gap-1.5">
                               <Shield className="h-4 w-4 text-indigo-500" />
-                              AI Analysis
+                              {t("ai_analysis")}
                             </h4>
                             <div className="bg-indigo-50 dark:bg-indigo-950/20 p-4 rounded-lg text-sm print:bg-transparent print:p-0">
                               {formatAIResponse(

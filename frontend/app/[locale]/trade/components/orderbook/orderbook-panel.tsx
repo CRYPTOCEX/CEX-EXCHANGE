@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import {
   BarChart2,
   Clock,
   ChevronDown,
   ChevronUp,
   Percent,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { Tabs, TabsList, TabTrigger, TabContent } from "../ui/custom-tabs";
 import { cn } from "@/lib/utils";
@@ -21,6 +23,7 @@ import {
 } from "@/services/market-data-ws";
 import { ConnectionStatus } from "@/services/ws-manager";
 import { useTranslations } from "next-intl";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface OrderBookPanelProps {
   symbol?: Symbol;
@@ -43,6 +46,219 @@ const PRICE_UPDATE_DEBOUNCE = 200; // Increased from 100
 // Update throttling
 const ORDERBOOK_UPDATE_THROTTLE = 100; // Throttle orderbook updates
 const TRADES_UPDATE_THROTTLE = 500; // Throttle trades updates
+
+// Animation variants
+const rowVariants = {
+  initial: { opacity: 0, x: -5 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: 5 },
+};
+
+const priceIndicatorVariants = {
+  initial: { scale: 0.95, opacity: 0 },
+  animate: { scale: 1, opacity: 1 },
+  pulse: {
+    scale: [1, 1.02, 1],
+    transition: { duration: 0.3 },
+  },
+};
+
+// Animated depth bar component
+const AnimatedDepthBar = memo(function AnimatedDepthBar({
+  depth,
+  side,
+}: {
+  depth: number;
+  side: "bid" | "ask";
+}) {
+  return (
+    <motion.div
+      className={cn(
+        "absolute inset-y-0",
+        side === "bid" ? "right-0 bg-green-100/50 dark:bg-green-500/10" : "left-0 bg-red-100/50 dark:bg-red-500/10"
+      )}
+      initial={{ width: 0 }}
+      animate={{ width: `${depth}%` }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+    />
+  );
+});
+
+// Animated price indicator
+const AnimatedPriceIndicator = memo(function AnimatedPriceIndicator({
+  price,
+  direction,
+  formatPrice,
+}: {
+  price: number;
+  direction: "up" | "down" | null;
+  formatPrice: (price: number) => string;
+}) {
+  return (
+    <motion.div
+      variants={priceIndicatorVariants}
+      initial="initial"
+      animate="animate"
+      className={cn(
+        "border-y px-4 py-3 text-center flex-shrink-0 transition-all duration-300",
+        direction === "up"
+          ? "border-green-500 bg-green-500/10 text-green-600 dark:text-green-500"
+          : direction === "down"
+            ? "border-red-500 bg-red-500/10 text-red-600 dark:text-red-500"
+            : "border-zinc-300 dark:border-zinc-600 bg-zinc-100/30 dark:bg-zinc-800/30 text-zinc-600 dark:text-zinc-400"
+      )}
+    >
+      <motion.div
+        className="flex items-center justify-center space-x-2"
+        animate={direction ? { scale: [1, 1.05, 1] } : {}}
+        transition={{ duration: 0.3 }}
+      >
+        <AnimatePresence mode="wait">
+          {direction === "up" && (
+            <motion.div
+              key="up"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
+              <TrendingUp className="h-4 w-4" />
+            </motion.div>
+          )}
+          {direction === "down" && (
+            <motion.div
+              key="down"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+            >
+              <TrendingDown className="h-4 w-4" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <motion.span
+          key={price}
+          initial={{ opacity: 0.5 }}
+          animate={{ opacity: 1 }}
+          className="text-lg font-bold"
+        >
+          {formatPrice(price)}
+        </motion.span>
+      </motion.div>
+    </motion.div>
+  );
+});
+
+// Animated orderbook row
+const AnimatedOrderbookRow = memo(function AnimatedOrderbookRow({
+  price,
+  amount,
+  cumulative,
+  depth,
+  side,
+  isHighlighted,
+  showCumulativeVolume,
+  formatPrice,
+  formatAmount,
+  formatTotal,
+  onMouseEnter,
+  onMouseLeave,
+  index,
+}: {
+  price: number;
+  amount: number;
+  cumulative: number;
+  depth: number;
+  side: "bid" | "ask";
+  isHighlighted: boolean;
+  showCumulativeVolume: boolean;
+  formatPrice: (price: number) => string;
+  formatAmount: (amount: number) => string;
+  formatTotal: (total: number) => string;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+  index: number;
+}) {
+  const isBid = side === "bid";
+
+  return (
+    <motion.div
+      variants={rowVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={{ duration: 0.15, delay: Math.min(index * 0.01, 0.1) }}
+      className={cn(
+        "grid grid-cols-3 py-1 px-1 border-b border-zinc-100 dark:border-zinc-900 relative cursor-pointer",
+        isHighlighted && "bg-zinc-100 dark:bg-zinc-800/70"
+      )}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
+    >
+      <AnimatedDepthBar depth={depth} side={side} />
+      <motion.div
+        className={cn(
+          "text-[10px] font-medium relative z-10 text-center",
+          isBid ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500"
+        )}
+      >
+        {formatPrice(price)}
+      </motion.div>
+      <div className="text-[10px] text-zinc-800 dark:text-zinc-300 relative z-10 text-center">
+        {formatAmount(amount)}
+      </div>
+      <div className="text-[10px] text-zinc-800 dark:text-zinc-300 relative z-10 text-center">
+        {showCumulativeVolume ? formatAmount(cumulative) : formatTotal(price * amount)}
+      </div>
+    </motion.div>
+  );
+});
+
+// Animated trade row
+const AnimatedTradeRow = memo(function AnimatedTradeRow({
+  trade,
+  isHighlighted,
+  formatPrice,
+  index,
+}: {
+  trade: TradeData;
+  isHighlighted: boolean;
+  formatPrice: (price: number) => string;
+  index: number;
+}) {
+  const isBuy = trade.side === "buy";
+  const tradeTime = new Date(trade.timestamp).toLocaleTimeString();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.2, delay: Math.min(index * 0.02, 0.2) }}
+      className={cn(
+        "grid grid-cols-3 py-1.5 px-2 border-b border-zinc-200 dark:border-zinc-800 transition-colors",
+        isHighlighted && "bg-zinc-50 dark:bg-zinc-800/70"
+      )}
+      whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
+    >
+      <motion.div
+        className={cn(
+          "text-xs font-medium text-center",
+          isBuy ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500"
+        )}
+        animate={isHighlighted ? { scale: [1, 1.05, 1] } : {}}
+        transition={{ duration: 0.3 }}
+      >
+        {formatPrice(trade.price)}
+      </motion.div>
+      <div className="text-xs text-zinc-800 dark:text-zinc-300 text-center">
+        {trade.amount.toFixed(4)}
+      </div>
+      <div className="text-xs text-zinc-600 dark:text-zinc-500 text-center">
+        {tradeTime}
+      </div>
+    </motion.div>
+  );
+});
 
 export default function OrderBookPanel({
   symbol = "BTCUSDT",
@@ -840,6 +1056,7 @@ export default function OrderBookPanel({
 
   // Mobile order book layout
   const renderMobileOrderbook = () => {
+  const tCommon = useTranslations("common");
     if (!processedOrderbook) return null;
 
     const maxDisplayItems = 15; // Show more items like desktop
@@ -969,7 +1186,7 @@ export default function OrderBookPanel({
             value="orderbook"
             icon={<BarChart2 className="h-3 w-3" />}
           >
-            {t("order_book")}
+            {tCommon("order_book")}
           </TabTrigger>
           <TabTrigger value="trades" icon={<Clock className="h-3 w-3" />}>
             {tCommon("recent_trades")}

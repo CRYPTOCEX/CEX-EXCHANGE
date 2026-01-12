@@ -17,6 +17,7 @@ export default function LimitPriceInput({
   userSetLimitPrice,
 }: LimitPriceInputProps) {
   const t = useTranslations("trade_components");
+  const tCommon = useTranslations("common");
   // Handle limit price change
   const handleLimitPriceChange = (value: string) => {
     userSetLimitPrice.current = true;
@@ -31,7 +32,7 @@ export default function LimitPriceInput({
   return (
     <div className="mb-4">
       <label className="block text-xs text-muted-foreground mb-1">
-        {t("limit_price")}
+        {tCommon("limit_price")}
       </label>
       <div className="relative">
         <Input

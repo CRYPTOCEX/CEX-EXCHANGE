@@ -9,7 +9,6 @@ import {
   FolderOpen,
   Tag,
   Eye,
-  Plus,
   ChevronRight,
   Clock,
   Bookmark,
@@ -32,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 export function AdminDashboardClient() {
   const t = useTranslations("blog_admin");
@@ -128,36 +128,36 @@ export function AdminDashboardClient() {
           <TabsContent value="overview" className="space-y-8">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <StatsCard
-                title={t("published_posts")}
+                label={t("published_posts")}
                 value={publishedPosts}
-                icon={<FileText className="h-5 w-5" />}
-                color="primary"
-                link="/admin/blog/post"
-                linkText="View all posts"
+                icon={FileText}
+                index={0}
+                onClick={() => router.push("/admin/blog/post")}
+                {...statsCardColors.blue}
               />
               <StatsCard
-                title={t("draft_posts")}
+                label={t("draft_posts")}
                 value={draftPosts}
-                icon={<Bookmark className="h-5 w-5" />}
-                color="warning"
-                link="/admin/blog/post?status=DRAFT"
-                linkText="View drafts"
+                icon={Bookmark}
+                index={1}
+                onClick={() => router.push("/admin/blog/post?status=DRAFT")}
+                {...statsCardColors.amber}
               />
               <StatsCard
-                title={t("active_authors")}
+                label={t("active_authors")}
                 value={approvedAuthors}
-                icon={<Users className="h-5 w-5" />}
-                color="success"
-                link="/admin/blog/author"
-                linkText="Manage authors"
+                icon={Users}
+                index={2}
+                onClick={() => router.push("/admin/blog/author")}
+                {...statsCardColors.green}
               />
               <StatsCard
-                title={t("pending_authors")}
+                label={t("pending_authors")}
                 value={pendingAuthors}
-                icon={<Clock className="h-5 w-5" />}
-                color="purple"
-                link="/admin/blog/author?status=PENDING"
-                linkText="Review applications"
+                icon={Clock}
+                index={3}
+                onClick={() => router.push("/admin/blog/author?status=PENDING")}
+                {...statsCardColors.purple}
               />
             </div>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -338,36 +338,36 @@ export function AdminDashboardClient() {
           <TabsContent value="content" className="space-y-8">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <StatsCard
-                title={tCommon("total_posts")}
+                label={tCommon("total_posts")}
                 value={posts.publishedCount}
-                icon={<FileText className="h-5 w-5" />}
-                color="primary"
-                link="/admin/blog/post"
-                linkText="Manage posts"
+                icon={FileText}
+                index={0}
+                onClick={() => router.push("/admin/blog/post")}
+                {...statsCardColors.blue}
               />
               <StatsCard
-                title="Categories"
+                label="Categories"
                 value={categories.count}
-                icon={<FolderOpen className="h-5 w-5" />}
-                color="warning"
-                link="/admin/blog/category"
-                linkText="Manage categories"
+                icon={FolderOpen}
+                index={1}
+                onClick={() => router.push("/admin/blog/category")}
+                {...statsCardColors.amber}
               />
               <StatsCard
-                title="Tags"
+                label="Tags"
                 value={tags.count}
-                icon={<Tag className="h-5 w-5" />}
-                color="success"
-                link="/admin/blog/tag"
-                linkText="Manage tags"
+                icon={Tag}
+                index={2}
+                onClick={() => router.push("/admin/blog/tag")}
+                {...statsCardColors.green}
               />
               <StatsCard
-                title="Authors"
+                label="Authors"
                 value={approvedAuthors}
-                icon={<Users className="h-5 w-5" />}
-                color="purple"
-                link="/admin/blog/author"
-                linkText="Manage authors"
+                icon={Users}
+                index={3}
+                onClick={() => router.push("/admin/blog/author")}
+                {...statsCardColors.purple}
               />
             </div>
             <div className="grid grid-cols-1 gap-6">
@@ -448,69 +448,6 @@ export function AdminDashboardClient() {
   );
 }
 
-// Stats Card Component
-function StatsCard({
-  title,
-  value,
-  icon,
-  color,
-  link,
-  linkText,
-}: {
-  title: string;
-  value: React.ReactNode;
-  icon: React.ReactNode;
-  color: "primary" | "warning" | "success" | "purple";
-  link?: string;
-  linkText?: string;
-}) {
-  const colorMap = {
-    primary: {
-      bg: "bg-primary/10",
-      text: "text-primary",
-      border: "border-primary/20",
-    },
-    warning: {
-      bg: "bg-yellow-500/10",
-      text: "text-yellow-600 dark:text-yellow-400",
-      border: "border-yellow-500/20",
-    },
-    success: {
-      bg: "bg-green-500/10",
-      text: "text-green-600 dark:text-green-400",
-      border: "border-green-500/20",
-    },
-    purple: {
-      bg: "bg-purple-500/10",
-      text: "text-purple-600 dark:text-purple-400",
-      border: "border-purple-500/20",
-    },
-  };
-  const colors = colorMap[color];
-  return (
-    <Card className="border-border/40 shadow-sm hover:shadow-md transition-shadow">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <div
-          className={`p-2 rounded-full ${colors.bg} ${colors.border} border`}
-        >
-          <div className={colors.text}>{icon}</div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {link && linkText && (
-          <Link href={link}>
-            <p className="text-xs text-muted-foreground hover:text-primary transition-colors mt-1 inline-flex items-center gap-1">
-              {linkText}
-              <ChevronRight className="h-3 w-3" />
-            </p>
-          </Link>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
 function DashboardSkeleton() {
   return (
     <div className="space-y-8">

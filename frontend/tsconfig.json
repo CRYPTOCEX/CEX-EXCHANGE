@@ -32,9 +32,9 @@
     "noUnusedParameters": false,
     "noImplicitAny": false,
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"],
+      "next-intl": ["./i18n/next-intl-compat"],
+      "next-intl/server": ["./i18n/next-intl-compat/server"]
     }
   },
   "include": [

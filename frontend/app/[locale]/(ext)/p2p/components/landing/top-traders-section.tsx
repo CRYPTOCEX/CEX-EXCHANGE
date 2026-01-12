@@ -37,6 +37,7 @@ interface TopTradersSectionProps {
 }
 
 function TraderCard({ trader, index }: { trader: TopTrader; index: number }) {
+  const t = useTranslations("ext_p2p");
   const gradient = { from: "#3b82f6", to: "#8b5cf6" };
 
   // Rating color based on score
@@ -157,7 +158,7 @@ function TraderCard({ trader, index }: { trader: TopTrader; index: number }) {
           size="sm"
           className="w-full rounded-lg group/btn hover:bg-blue-500/10"
         >
-          View Offers
+          {t("view_offers")}
           <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
         </Button>
       </Link>
@@ -266,7 +267,7 @@ export default function TopTradersSection({
                   }}
                 >
                   <Users className="w-4 h-4 mr-2" />
-                  Become a Trader
+                  {t("become_a_trader")}
                 </Button>
               </Link>
               <Link href="/p2p/offer">
@@ -274,7 +275,7 @@ export default function TopTradersSection({
                   variant="outline"
                   className="rounded-xl border-2 border-zinc-300 dark:border-zinc-700 hover:border-blue-500"
                 >
-                  View All Traders
+                  {t("view_all_traders")}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>

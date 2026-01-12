@@ -280,7 +280,7 @@ export default function BlockchainDiversitySection({
                   <span className="font-semibold text-cyan-600 dark:text-cyan-400">
                     {totalTokenTypes}
                   </span>{" "}
-                  Token Types
+                  {tExt("token_types")}
                 </span>
               </div>
             </div>

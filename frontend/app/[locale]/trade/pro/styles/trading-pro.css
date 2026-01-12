@@ -1,0 +1,1028 @@
+@import "./variables.css";
+@import "./animations.css";
+
+/* Base styles */
+.tp-workspace {
+  font-family: var(--tp-font-sans);
+  font-size: var(--tp-text-base);
+  color: var(--tp-text-primary);
+  background-color: var(--tp-bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Panel styles */
+.tp-panel {
+  background-color: var(--tp-bg-secondary);
+  border: 1px solid var(--tp-border);
+}
+
+.tp-panel-header {
+  background-color: var(--tp-bg-tertiary);
+  border-bottom: 1px solid var(--tp-border);
+}
+
+.tp-panel-content {
+  overflow: hidden;
+}
+
+/* Resizer */
+.tp-resizer {
+  position: relative;
+  z-index: var(--tp-z-panel);
+}
+
+.tp-resizer::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 20px;
+  background-color: var(--tp-border);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity var(--tp-transition-fast);
+}
+
+.tp-resizer:hover::after {
+  opacity: 1;
+}
+
+/* Vertical text for collapsed panels */
+.writing-mode-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+}
+
+/* Scrollbar styles */
+.tp-workspace ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.tp-workspace ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tp-workspace ::-webkit-scrollbar-thumb {
+  background-color: var(--tp-border);
+  border-radius: 3px;
+}
+
+.tp-workspace ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--tp-text-muted);
+}
+
+/* Hidden scrollbar but still scrollable */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Skeleton loading */
+.tp-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--tp-bg-tertiary) 25%,
+    var(--tp-bg-elevated) 50%,
+    var(--tp-bg-tertiary) 75%
+  );
+  background-size: 200% 100%;
+  animation: tp-skeleton-shimmer 1.5s infinite;
+}
+
+/* Header skeleton */
+.tp-header-skeleton {
+  height: 48px;
+  background-color: var(--tp-bg-tertiary);
+}
+
+/* Panel skeleton */
+.tp-panel-skeleton {
+  height: 100%;
+  background-color: var(--tp-bg-secondary);
+}
+
+/* Color utility classes */
+.tp-text-green {
+  color: var(--tp-green);
+}
+
+.tp-text-red {
+  color: var(--tp-red);
+}
+
+.tp-text-blue {
+  color: var(--tp-blue);
+}
+
+.tp-bg-green {
+  background-color: var(--tp-green);
+}
+
+.tp-bg-red {
+  background-color: var(--tp-red);
+}
+
+.tp-bg-blue {
+  background-color: var(--tp-blue);
+}
+
+/* Button base styles */
+.tp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  transition: all var(--tp-transition-fast);
+  cursor: pointer;
+}
+
+.tp-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Global cursor pointer for all clickable elements in trading-pro */
+.tp-workspace button:not(:disabled),
+.tp-workspace [role="button"]:not([aria-disabled="true"]),
+.tp-workspace a,
+.tp-workspace input[type="checkbox"],
+.tp-workspace input[type="radio"],
+.tp-workspace select,
+.tp-workspace label[for],
+.tp-header button:not(:disabled) {
+  cursor: pointer;
+}
+
+.tp-btn-primary {
+  background-color: var(--tp-blue);
+  color: white;
+}
+
+.tp-btn-primary:hover:not(:disabled) {
+  background-color: var(--tp-blue-dim);
+}
+
+.tp-btn-buy {
+  background-color: var(--tp-green);
+  color: white;
+}
+
+.tp-btn-buy:hover:not(:disabled) {
+  background-color: var(--tp-green-dim);
+}
+
+.tp-btn-sell {
+  background-color: var(--tp-red);
+  color: white;
+}
+
+.tp-btn-sell:hover:not(:disabled) {
+  background-color: var(--tp-red-dim);
+}
+
+.tp-btn-ghost {
+  background-color: transparent;
+  color: var(--tp-text-secondary);
+}
+
+.tp-btn-ghost:hover:not(:disabled) {
+  background-color: var(--tp-bg-elevated);
+  color: var(--tp-text-primary);
+}
+
+/* Input styles */
+.tp-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: var(--tp-text-sm);
+  color: var(--tp-text-primary);
+  background-color: var(--tp-bg-tertiary);
+  border: 1px solid var(--tp-border);
+  border-radius: 0.375rem;
+  transition: border-color var(--tp-transition-fast);
+}
+
+.tp-input:focus {
+  outline: none;
+  border-color: var(--tp-blue);
+}
+
+.tp-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Monospace numbers */
+.tp-mono {
+  font-family: var(--tp-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Grid layout helper - Uses flexbox for main row to support dynamic panel collapsing */
+.tp-grid-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background-color: var(--tp-border);
+  height: 100%;
+  position: relative; /* For overlay positioning (pattern library, etc.) */
+}
+
+/* Main trading row - flexbox for dynamic panel sizing */
+.tp-main-row {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: 1px;
+}
+
+/* Orders row at bottom */
+.tp-orders-row {
+  display: flex;
+  gap: 1px;
+}
+
+.tp-grid-layout > *,
+.tp-main-row > *,
+.tp-orders-row > * {
+  background-color: var(--tp-bg-secondary);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Panel size assignments - Main row panels */
+.tp-main-row > [data-panel-id="markets"] {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.tp-main-row > [data-panel-id="chart"] {
+  flex: 1;
+  min-width: 300px;
+  overflow: hidden;
+}
+
+/* Ensure chart fills its container properly */
+[data-panel-id="chart"] {
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+[data-panel-id="chart"] .tp-panel-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Chart inner containers should fill available space */
+[data-panel-id="chart"] .tp-panel-content > div {
+  flex: 1;
+  min-height: 0;
+}
+
+.tp-main-row > [data-panel-id="orderbook"] {
+  width: 260px;
+  flex-shrink: 0;
+}
+
+.tp-main-row > [data-panel-id="trading"] {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+/* Orders row panels */
+.tp-orders-row > [data-panel-id="orders"],
+.tp-orders-row > [data-panel-id="positions"] {
+  flex: 1;
+  min-height: 160px;
+  max-height: 240px;
+}
+
+/* Collapsed panel styles - shrink to minimal size */
+.tp-main-row > .tp-panel-collapsed {
+  width: 28px !important;
+  min-width: 28px !important;
+  flex-shrink: 0 !important;
+}
+
+.tp-orders-row > .tp-panel-collapsed {
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+}
+
+/* Panel content should fill available space */
+.tp-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.tp-panel-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* =============================================================================
+   RESPONSIVE BREAKPOINTS
+   - Mobile: < 640px
+   - Tablet: 640px - 1023px
+   - Small Desktop: 1024px - 1279px
+   - Desktop: >= 1280px
+   ============================================================================= */
+
+/* Mobile: < 640px - Single column layout */
+@media (max-width: 639px) {
+  .tp-main-row {
+    flex-direction: column;
+  }
+
+  /* Hide markets panel on mobile */
+  .tp-main-row > [data-panel-id="markets"] {
+    display: none;
+  }
+
+  .tp-main-row > [data-panel-id="chart"] {
+    height: 300px;
+    flex: none;
+  }
+
+  .tp-main-row > [data-panel-id="trading"] {
+    width: 100% !important;
+    height: 380px;
+    flex: none;
+  }
+
+  .tp-main-row > [data-panel-id="orderbook"] {
+    width: 100% !important;
+    height: 250px;
+    flex: none;
+  }
+
+  .tp-orders-row > [data-panel-id="orders"] {
+    min-height: 180px;
+    max-height: 180px;
+  }
+
+}
+
+/* Tablet: 640px - 1023px - Chart on top, orderbook+trading side by side below */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .tp-grid-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  /* Chart section takes most space */
+  .tp-chart-section {
+    flex: 1 1 0%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--tp-bg-secondary);
+    overflow: hidden;
+  }
+
+  .tp-chart-section > [data-panel-id="chart"] {
+    flex: 1 1 0%;
+    width: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tp-chart-section > [data-panel-id="chart"] .tp-panel-content {
+    flex: 1 1 0%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tp-chart-section > [data-panel-id="chart"] .tp-panel-content > div {
+    flex: 1 1 0%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Ensure TradingView container fills space */
+  .tp-chart-section > [data-panel-id="chart"] .tp-panel-content > div > div {
+    flex: 1 1 0%;
+    min-height: 0;
+    height: 100%;
+  }
+
+  /* TradingView specific container - ensure proper height */
+  .tp-chart-section #tv_chart_container {
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+
+  /* Chart Engine specific - ensure proper height */
+  .tp-chart-section .bg-chart-base {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+  }
+
+  /* Bottom panels row - orderbook and trading side by side */
+  .tp-bottom-panels-row {
+    display: flex;
+    gap: 1px;
+    flex-shrink: 0;
+    min-height: 200px;
+    max-height: 240px;
+  }
+
+  /* Orders row collapsed by default on tablet */
+  .tp-orders-row {
+    flex-shrink: 0;
+  }
+
+  .tp-bottom-panels-row > [data-panel-id="orderbook"],
+  .tp-bottom-panels-row > [data-panel-id="trading"] {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* When ONE panel is collapsed on tablet, show as small vertical bar */
+  .tp-bottom-panels-row > .tp-panel-collapsed {
+    width: 28px !important;
+    min-width: 28px !important;
+    flex: 0 0 28px !important;
+  }
+
+  /* When BOTH panels are collapsed (class added by JS), show horizontally */
+  .tp-bottom-panels-row.tp-all-collapsed {
+    min-height: 32px !important;
+    max-height: 32px !important;
+    height: 32px !important;
+  }
+
+  .tp-bottom-panels-row.tp-all-collapsed > .tp-panel-collapsed {
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+    height: 32px !important;
+  }
+
+  /* Make the collapsed content horizontal (icon beside text) */
+  .tp-bottom-panels-row.tp-all-collapsed .tp-collapsed-content {
+    flex-direction: row !important;
+  }
+
+  .tp-bottom-panels-row.tp-all-collapsed .tp-collapsed-title {
+    writing-mode: horizontal-tb !important;
+    transform: none !important;
+  }
+
+  .tp-orders-row > [data-panel-id="orders"] {
+    min-height: 120px;
+    max-height: 160px;
+  }
+}
+
+/* Small Desktop: 1024px - 1279px - Compact 4-column layout */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  /* Small desktop panel sizes */
+  .tp-main-row > [data-panel-id="markets"] {
+    width: 180px;
+  }
+
+  .tp-main-row > [data-panel-id="orderbook"] {
+    width: 220px;
+  }
+
+  .tp-main-row > [data-panel-id="trading"] {
+    width: 260px;
+  }
+
+  .tp-orders-row > [data-panel-id="orders"] {
+    min-height: 160px;
+    max-height: 200px;
+  }
+}
+
+/* Large Desktop: >= 1280px - Full layout */
+@media (min-width: 1280px) {
+  /* Large desktop panel sizes */
+  .tp-main-row > [data-panel-id="markets"] {
+    width: 220px;
+  }
+
+  .tp-main-row > [data-panel-id="orderbook"] {
+    width: 260px;
+  }
+
+  .tp-main-row > [data-panel-id="trading"] {
+    width: 300px;
+  }
+
+  .tp-orders-row > [data-panel-id="orders"] {
+    min-height: 180px;
+    max-height: 220px;
+  }
+}
+
+/* Extra Large Desktop: >= 1536px - Wider panels */
+@media (min-width: 1536px) {
+  .tp-main-row > [data-panel-id="markets"] {
+    width: 250px;
+  }
+
+  .tp-main-row > [data-panel-id="orderbook"] {
+    width: 300px;
+  }
+
+  .tp-main-row > [data-panel-id="trading"] {
+    width: 340px;
+  }
+
+  .tp-orders-row > [data-panel-id="orders"] {
+    min-height: 200px;
+    max-height: 240px;
+  }
+}
+
+/* Ultra Wide: >= 1920px - Maximum panel widths */
+@media (min-width: 1920px) {
+  .tp-main-row > [data-panel-id="markets"] {
+    width: 280px;
+  }
+
+  .tp-main-row > [data-panel-id="orderbook"] {
+    width: 340px;
+  }
+
+  .tp-main-row > [data-panel-id="trading"] {
+    width: 380px;
+  }
+
+  .tp-orders-row > [data-panel-id="orders"] {
+    min-height: 220px;
+    max-height: 260px;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE HEADER
+   ============================================================================= */
+
+/* Mobile header: compact - keep same height, just adjust text sizes */
+@media (max-width: 639px) {
+  .tp-header .tp-symbol-display {
+    font-size: 14px;
+  }
+
+  .tp-header .tp-price-display {
+    font-size: 16px;
+  }
+
+  /* Hide non-essential header items on mobile */
+  .tp-header .tp-market-stats {
+    display: none;
+  }
+}
+
+/* Tablet header */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .tp-header .tp-market-stats {
+    gap: 8px;
+  }
+
+  .tp-header .tp-market-stats > *:nth-child(n+4) {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE PANELS
+   ============================================================================= */
+
+/* Mobile panel headers - more compact */
+@media (max-width: 639px) {
+  .tp-panel-header {
+    padding: 6px 8px;
+    min-height: 32px;
+  }
+
+  .tp-panel-header h3 {
+    font-size: 11px;
+  }
+
+  /* Collapsed panels on mobile - full width horizontal bar */
+  .tp-main-row > .tp-panel-collapsed {
+    width: 100% !important;
+    min-width: 100% !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    flex: none !important;
+  }
+
+  .tp-panel-collapsed .writing-mode-vertical {
+    writing-mode: horizontal-tb;
+    transform: none;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE TRADING FORM
+   ============================================================================= */
+
+@media (max-width: 639px) {
+  /* Stack buy/sell buttons on mobile */
+  .tp-trading-form .tp-order-type-tabs {
+    flex-wrap: wrap;
+  }
+
+  .tp-trading-form .tp-amount-buttons {
+    gap: 4px;
+  }
+
+  .tp-trading-form .tp-amount-buttons button {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE ORDERBOOK
+   ============================================================================= */
+
+@media (max-width: 639px) {
+  .tp-orderbook-row {
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+
+  .tp-orderbook-header {
+    font-size: 9px;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .tp-orderbook-row {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+
+  .tp-orderbook-header {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  /* Ensure orderbook panel uses all available space efficiently */
+  .tp-orderbook-panel {
+    font-size: 11px;
+  }
+
+  /* Compact tabs for tablet orderbook */
+  .tp-orderbook-panel button {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE ORDERS PANEL
+   ============================================================================= */
+
+@media (max-width: 639px) {
+  .tp-orders-panel {
+    font-size: 10px;
+  }
+
+  .tp-orders-panel table {
+    font-size: 10px;
+  }
+
+  .tp-orders-panel th,
+  .tp-orders-panel td {
+    padding: 4px 6px;
+  }
+
+  /* Hide less important columns on mobile */
+  .tp-orders-panel .hide-mobile {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE MARKETS PANEL
+   ============================================================================= */
+
+@media (max-width: 1023px) {
+  /* Markets panel hidden on mobile/tablet via grid */
+  .tp-markets-panel {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   TOUCH-FRIENDLY ADJUSTMENTS
+   ============================================================================= */
+
+@media (pointer: coarse) {
+  /* Larger touch targets for touch devices */
+  .tp-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .tp-input {
+    min-height: 44px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  /* Default select sizing for touch - but allow overrides for data-dense components */
+  select:not(.tp-orderbook-select) {
+    min-height: 44px;
+  }
+
+  /* Orderbook-specific select - compact for data-dense UI */
+  .tp-orderbook-select {
+    min-height: 24px !important;
+    height: 24px !important;
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+  }
+
+  /* Orderbook rows - balanced between touch-friendly and data-dense */
+  .tp-orderbook-row {
+    min-height: 24px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  /* Orderbook header - compact */
+  .tp-orderbook-header {
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  /* Larger tab buttons */
+  .tp-tab-button {
+    min-height: 40px;
+    padding: 8px 16px;
+  }
+}
+
+/* =============================================================================
+   LANDSCAPE MOBILE ADJUSTMENTS
+   ============================================================================= */
+
+@media (max-width: 896px) and (orientation: landscape) {
+  /* Hide markets panel in landscape */
+  .tp-main-row > [data-panel-id="markets"] {
+    display: none;
+  }
+
+  .tp-main-row > [data-panel-id="chart"] {
+    flex: 1;
+  }
+
+  .tp-main-row > [data-panel-id="trading"] {
+    width: 280px !important;
+    min-width: 260px;
+    max-width: 320px;
+  }
+
+  .tp-main-row > [data-panel-id="orderbook"] {
+    width: auto !important;
+    flex: 1;
+  }
+
+  .tp-orders-row > [data-panel-id="orders"] {
+    flex: 1;
+    min-height: 120px;
+    max-height: 160px;
+  }
+
+}
+
+/* =============================================================================
+   DARK MODE SPECIFIC RESPONSIVE ADJUSTMENTS
+   ============================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  /* Ensure proper contrast on smaller screens */
+  @media (max-width: 639px) {
+    .tp-panel {
+      border-color: var(--tp-border);
+    }
+  }
+}
+
+/* =============================================================================
+   LITE MODE LAYOUTS
+   ============================================================================= */
+
+.tp-layout-lite .tp-main-row {
+  flex: 1;
+}
+
+.tp-layout-lite .tp-main-row > [data-panel-id="chart"] {
+  flex: 1;
+}
+
+.tp-layout-lite .tp-main-row > [data-panel-id="trading"] {
+  width: 350px;
+  flex-shrink: 0;
+}
+
+/* Hide other panels in lite mode */
+.tp-layout-lite .tp-main-row > [data-panel-id="markets"],
+.tp-layout-lite .tp-main-row > [data-panel-id="orderbook"] {
+  display: none;
+}
+
+.tp-layout-lite .tp-orders-row {
+  display: none;
+}
+
+/* Lite mode - Mobile */
+@media (max-width: 639px) {
+  .tp-layout-lite .tp-main-row {
+    flex-direction: column;
+  }
+
+  .tp-layout-lite .tp-main-row > [data-panel-id="chart"] {
+    flex: 1;
+    min-height: 250px;
+  }
+
+  .tp-layout-lite .tp-main-row > [data-panel-id="trading"] {
+    width: 100% !important;
+    min-height: 320px;
+    flex: none;
+  }
+}
+
+/* Lite mode - Tablet */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .tp-layout-lite .tp-main-row > [data-panel-id="trading"] {
+    width: 350px;
+    min-width: 300px;
+    max-width: 350px;
+  }
+}
+
+/* =============================================================================
+   SAFE AREA INSETS (for notched devices)
+   ============================================================================= */
+
+@supports (padding: env(safe-area-inset-top)) {
+  .tp-workspace {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* =============================================================================
+   PRINT STYLES (hide trading interface when printing)
+   ============================================================================= */
+
+@media print {
+  .tp-workspace {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   MOBILE APP LAYOUT (dedicated mobile trading experience)
+   ============================================================================= */
+
+.tp-mobile-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--tp-bg-primary);
+}
+
+/* Safe area handling for mobile */
+.safe-area-inset {
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.h-safe-area-inset-bottom {
+  height: env(safe-area-inset-bottom, 0);
+}
+
+/* Mobile tab bar - fixed at bottom */
+.tp-mobile-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--tp-z-modal);
+}
+
+/* Animation for mobile sheets/panels */
+@keyframes slide-in-from-bottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: forwards;
+}
+
+.slide-in-from-bottom {
+  animation-name: slide-in-from-bottom;
+}
+
+/* Mobile panel transitions */
+.tp-mobile-panel {
+  transition: transform 0.2s ease-out;
+}
+
+/* Hide scrollbar on mobile for cleaner look */
+.tp-mobile-layout .scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.tp-mobile-layout .scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile touch feedback */
+.tp-mobile-layout button:active,
+.tp-mobile-layout [role="button"]:active {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+/* Mobile chart container */
+.tp-mobile-layout .chart-container {
+  height: 100%;
+  width: 100%;
+  touch-action: pan-x pan-y;
+}
+
+/* Mobile orderbook optimizations */
+.tp-mobile-layout .tp-orderbook-row {
+  min-height: 28px;
+  font-size: 11px;
+}
+
+/* Mobile trading form optimizations */
+.tp-mobile-layout .tp-trading-form {
+  padding: 12px;
+}
+
+.tp-mobile-layout .tp-trading-form .tp-input {
+  min-height: 48px;
+  font-size: 16px;
+}
+
+.tp-mobile-layout .tp-trading-form .tp-btn {
+  min-height: 52px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Mobile orders list */
+.tp-mobile-layout .tp-orders-panel {
+  font-size: 12px;
+}
+
+.tp-mobile-layout .tp-orders-panel th,
+.tp-mobile-layout .tp-orders-panel td {
+  padding: 8px 6px;
+}

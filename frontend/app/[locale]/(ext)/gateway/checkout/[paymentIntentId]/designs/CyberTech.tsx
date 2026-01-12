@@ -36,6 +36,7 @@ const LoadingDots = () => (
 export default function DesignV5({ state, actions, paymentIntentId }: CheckoutDesignProps) {
   const t = useTranslations("ext_gateway");
   const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const { session, customerWallet, walletLoading, loading, error, processing, success, redirectUrl, timeLeft, isAuthenticated, multiWallet } = state;
   const { handleConfirmPayment, handleCancel, formatTime, formatCurrency, addWalletAllocation, removeWalletAllocation, updateWalletAllocation, autoAllocateWallets, clearAllocations } = actions;
 
@@ -101,7 +102,7 @@ export default function DesignV5({ state, actions, paymentIntentId }: CheckoutDe
             </motion.div>
           </div>
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="space-y-4 mb-10">
-            <div className="inline-block px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-mono mb-2">TRANSACTION COMPLETE</div>
+            <div className="inline-block px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-mono mb-2">{t("transaction_complete")}</div>
             <h1 className="text-3xl font-medium text-white">{t("payment_verified")}</h1>
             <div className="text-4xl font-light text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">{formatCurrency(session?.amount || 0, session?.currency || "USD")}</div>
             <p className="text-slate-400">to <span className="text-white">{session?.merchant.name}</span></p>
@@ -154,7 +155,7 @@ export default function DesignV5({ state, actions, paymentIntentId }: CheckoutDe
             </div>
 
             <div className="p-8 text-center border-b border-slate-700/50 bg-gradient-to-b from-slate-800/30 to-transparent">
-              <p className="text-slate-500 text-xs font-mono tracking-widest mb-3">AMOUNT DUE</p>
+              <p className="text-slate-500 text-xs font-mono tracking-widest mb-3">{t("amount_due")}</p>
               <div className="text-5xl font-light text-white mb-4">{formatCurrency(session?.amount || 0, session?.currency || "USD")}</div>
               {session?.description && <p className="text-slate-400 text-sm max-w-sm mx-auto">{session.description}</p>}
               {session?.lineItems && session.lineItems.length > 0 && (
@@ -189,7 +190,7 @@ export default function DesignV5({ state, actions, paymentIntentId }: CheckoutDe
                   </div>
                   <Link href={`/login?redirect=/gateway/checkout/${paymentIntentId}`} className="block cursor-pointer">
                     <button className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-medium rounded-xl transition-all shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer">
-                      <Lock className="w-4 h-4" /> SIGN IN <ChevronRight className="w-4 h-4" />
+                      <Lock className="w-4 h-4" /> {tCommon("sign_in")} <ChevronRight className="w-4 h-4" />
                     </button>
                   </Link>
                   <div className="relative">
@@ -198,7 +199,7 @@ export default function DesignV5({ state, actions, paymentIntentId }: CheckoutDe
                   </div>
                   <Link href={`/register?redirect=/gateway/checkout/${paymentIntentId}`} className="block cursor-pointer">
                     <button className="w-full py-4 bg-slate-800/50 border border-slate-700/50 text-slate-300 font-medium rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                      <Sparkles className="w-4 h-4 text-cyan-400" /> CREATE ACCOUNT
+                      <Sparkles className="w-4 h-4 text-cyan-400" /> {tCommon("create_account")}
                     </button>
                   </Link>
                 </div>
@@ -222,7 +223,7 @@ export default function DesignV5({ state, actions, paymentIntentId }: CheckoutDe
                       ? "bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white shadow-lg shadow-cyan-500/25 cursor-pointer"
                       : "bg-slate-800/50 text-slate-600 cursor-not-allowed"}`}>
                     {processing ? <><Loader2 className="w-5 h-5 animate-spin" /> PROCESSING <LoadingDots /></>
-                      : <><Lock className="w-4 h-4" /> CONFIRM PAYMENT</>}
+                      : <><Lock className="w-4 h-4" /> {tExt("confirm_payment")}</>}
                   </button>
                 </div>
               ) : customerWallet ? (
@@ -245,10 +246,10 @@ export default function DesignV5({ state, actions, paymentIntentId }: CheckoutDe
                   </div>
                   {!customerWallet.sufficient && (
                     <div className="space-y-4">
-                      <p className="text-slate-500 text-sm text-center font-mono">REQUIRED: <span className="text-cyan-400">+{formatCurrency(session!.amount - customerWallet.balance, session!.currency)}</span></p>
+                      <p className="text-slate-500 text-sm text-center font-mono">{tCommon("required")} <span className="text-cyan-400">+{formatCurrency(session!.amount - customerWallet.balance, session!.currency)}</span></p>
                       <Link href={`/finance/deposit?type=${session?.walletType?.toLowerCase()}&currency=${session?.currency}`} className="block cursor-pointer">
                         <button className="w-full py-3 bg-slate-800/50 border border-cyan-500/30 text-cyan-400 font-medium rounded-xl hover:bg-cyan-500/10 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                          <Zap className="w-4 h-4" /> DEPOSIT FUNDS
+                          <Zap className="w-4 h-4" /> {tExt("deposit_funds")}
                         </button>
                       </Link>
                     </div>
@@ -258,7 +259,7 @@ export default function DesignV5({ state, actions, paymentIntentId }: CheckoutDe
                       ? "bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white shadow-lg shadow-cyan-500/25 cursor-pointer"
                       : "bg-slate-800/50 text-slate-600 cursor-not-allowed"}`}>
                     {processing ? <><Loader2 className="w-5 h-5 animate-spin" /> PROCESSING <LoadingDots /></>
-                      : <><Lock className="w-4 h-4" /> CONFIRM PAYMENT</>}
+                      : <><Lock className="w-4 h-4" /> {tExt("confirm_payment")}</>}
                   </button>
                 </div>
               ) : (
@@ -269,7 +270,7 @@ export default function DesignV5({ state, actions, paymentIntentId }: CheckoutDe
                       <div><p className="text-slate-500 text-xs font-mono tracking-wider">{session?.walletType} WALLET</p><p className="text-slate-400">{t("not_available")}</p></div>
                     </div>
                   </div>
-                  <p className="text-slate-500 text-sm text-center font-mono">DEPOSIT <span className="text-cyan-400">{formatCurrency(session?.amount || 0, session?.currency || "USD")}</span> TO CONTINUE</p>
+                  <p className="text-slate-500 text-sm text-center font-mono">DEPOSIT <span className="text-cyan-400">{formatCurrency(session?.amount || 0, session?.currency || "USD")}</span> {t("to_continue")}</p>
                   <Link href={`/finance/deposit?type=${session?.walletType?.toLowerCase()}&currency=${session?.currency}`} className="block cursor-pointer">
                     <button className="w-full py-5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-medium rounded-xl transition-all shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer">
                       <Banknote className="w-5 h-5" /> DEPOSIT {session?.currency}

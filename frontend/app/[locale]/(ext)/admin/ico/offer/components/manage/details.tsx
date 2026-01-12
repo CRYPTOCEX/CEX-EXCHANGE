@@ -13,6 +13,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
   CircleDollarSign,
   Clock,
   ExternalLink,
@@ -22,8 +32,10 @@ import {
   Layers,
   LinkIcon,
   Milestone,
+  Plus,
   Shield,
   Tag,
+  Trash2,
   Wallet,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
@@ -33,12 +45,82 @@ import { useAdminOfferStore } from "@/store/ico/admin/admin-offer-store";
 import InvestorsList from "./transaction";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/ico/utils";
 import { useTranslations } from "next-intl";
+import { useToast } from "@/hooks/use-toast";
 export const TokenDetailsSection = () => {
   const t = useTranslations("ext_admin");
   const tExt = useTranslations("ext");
   const tCommon = useTranslations("common");
-  const { offering, offerMetrics } = useAdminOfferStore();
+  const { toast } = useToast();
+  const { offering, offerMetrics, addPhase, deletePhase } = useAdminOfferStore();
   const [activeTab, setActiveTab] = useState("overview");
+  const [addPhaseDialogOpen, setAddPhaseDialogOpen] = useState(false);
+  const [isAddingPhase, setIsAddingPhase] = useState(false);
+  const [newPhase, setNewPhase] = useState({
+    name: "",
+    tokenPrice: "",
+    allocation: "",
+    duration: "7",
+  });
+  const [deletePhaseDialogOpen, setDeletePhaseDialogOpen] = useState(false);
+  const [phaseToDelete, setPhaseToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeletingPhase, setIsDeletingPhase] = useState(false);
+
+  const handleAddPhase = async () => {
+    if (!offering?.id) return;
+    if (!newPhase.name.trim()) {
+      toast({ title: "Error", description: "Phase name is required", variant: "destructive" });
+      return;
+    }
+    const tokenPrice = parseFloat(newPhase.tokenPrice);
+    const allocation = parseFloat(newPhase.allocation);
+    const duration = parseInt(newPhase.duration);
+    if (isNaN(tokenPrice) || tokenPrice <= 0) {
+      toast({ title: "Error", description: "Token price must be positive", variant: "destructive" });
+      return;
+    }
+    if (isNaN(allocation) || allocation <= 0) {
+      toast({ title: "Error", description: "Allocation must be positive", variant: "destructive" });
+      return;
+    }
+    if (isNaN(duration) || duration <= 0) {
+      toast({ title: "Error", description: "Duration must be positive", variant: "destructive" });
+      return;
+    }
+
+    setIsAddingPhase(true);
+    try {
+      await addPhase(offering.id, {
+        name: newPhase.name,
+        tokenPrice,
+        allocation,
+        duration,
+      });
+      toast({ title: "Success", description: "Phase added successfully" });
+      setAddPhaseDialogOpen(false);
+      setNewPhase({ name: "", tokenPrice: "", allocation: "", duration: "7" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to add phase", variant: "destructive" });
+    } finally {
+      setIsAddingPhase(false);
+    }
+  };
+
+  const handleDeletePhase = async () => {
+    if (!offering?.id || !phaseToDelete) return;
+
+    setIsDeletingPhase(true);
+    try {
+      await deletePhase(offering.id, phaseToDelete.id);
+      toast({ title: "Success", description: `Phase "${phaseToDelete.name}" deleted successfully` });
+      setDeletePhaseDialogOpen(false);
+      setPhaseToDelete(null);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to delete phase", variant: "destructive" });
+    } finally {
+      setIsDeletingPhase(false);
+    }
+  };
+
   const calculateProgress = () => {
     if (!offerMetrics?.currentRaised || !offering.targetAmount) return 0;
     return Math.min(
@@ -86,7 +168,7 @@ export const TokenDetailsSection = () => {
                       <div className="flex items-center gap-2">
                         <Tag className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                          {tExt("token_name")}
+                          {tCommon("token_name")}
                         </span>
                       </div>
                       <span className="font-medium">{offering.name}</span>
@@ -270,10 +352,20 @@ export const TokenDetailsSection = () => {
         <TabsContent value="phases" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>{tExt("offering_phases")}</CardTitle>
-              <CardDescription>
-                {t("token_sale_phases_and_allocations")}
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>{tExt("offering_phases")}</CardTitle>
+                  <CardDescription>
+                    {t("token_sale_phases_and_allocations")}
+                  </CardDescription>
+                </div>
+                {["ACTIVE", "PENDING", "UPCOMING", "SUCCESS"].includes(offering.status) && (
+                  <Button onClick={() => setAddPhaseDialogOpen(true)} size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    {tCommon("add")} {tExt("phase")}
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {offering.phases && offering.phases.length > 0 ? (
@@ -281,105 +373,191 @@ export const TokenDetailsSection = () => {
                   <div className="relative">
                     <div className="absolute top-0 bottom-0 left-[15px] w-[1px] bg-border" />
                     <div className="space-y-8">
-                      {offering.phases.map((phase: any, index: number) => {
-                        return (
-                          <div key={phase.id} className="relative pl-10">
-                            <div className="absolute left-0 w-[30px] h-[30px] rounded-full bg-primary/10 border border-primary flex items-center justify-center">
-                              <div className="w-2 h-2 rounded-full bg-primary" />
-                            </div>
-                            <Card>
-                              <CardContent className="p-6">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                  <div>
-                                    <h3 className="text-lg font-bold">
-                                      {phase.name}
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground">
-                                      {tCommon("duration")}: {phase.duration} days
-                                    </p>
-                                  </div>
-                                  <Badge
-                                    variant="outline"
-                                    className="md:self-start"
-                                  >
-                                    {formatCurrency(phase.tokenPrice)} {tExt("per_token")}
-                                  </Badge>
-                                </div>
+                      {(() => {
+                        // Sort phases by startDate if available, otherwise by sequence
+                        const sortedPhases = [...offering.phases].sort((a: any, b: any) => {
+                          // If both have startDate, sort by startDate
+                          if (a.startDate && b.startDate) {
+                            return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+                          }
+                          // Fall back to sequence
+                          return (a.sequence || 0) - (b.sequence || 0);
+                        });
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                                  <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                      <span className="text-sm text-muted-foreground">
-                                        Allocation
-                                      </span>
-                                      <span className="text-sm font-medium">
-                                        {formatNumber(phase.allocation)}{" "}
-                                        {offering.symbol}
-                                      </span>
+                        // Use stored dates if available, otherwise calculate from offering start
+                        let currentDate = new Date(offering.startDate);
+                        const phasesWithDates = sortedPhases.map((phase: any) => {
+                          // Use stored dates if available (new phases have them)
+                          if (phase.startDate && phase.endDate) {
+                            const startDate = new Date(phase.startDate);
+                            const endDate = new Date(phase.endDate);
+                            currentDate = new Date(endDate); // Update for next phase calculation
+                            return { ...phase, startDate, endDate };
+                          }
+                          // Fall back to calculated dates for old phases
+                          const startDate = new Date(currentDate);
+                          const endDate = new Date(currentDate);
+                          endDate.setDate(endDate.getDate() + (phase.duration || 0));
+                          currentDate = new Date(endDate);
+                          return { ...phase, startDate, endDate };
+                        });
+
+                        const now = new Date();
+
+                        return phasesWithDates.map((phase: any) => {
+                          const isActive = now >= phase.startDate && now < phase.endDate;
+                          const isCompleted = now >= phase.endDate;
+                          const isUpcoming = now < phase.startDate;
+
+                          return (
+                            <div key={phase.id} className="relative pl-10">
+                              <div className={cn(
+                                "absolute left-0 w-[30px] h-[30px] rounded-full border flex items-center justify-center",
+                                isActive
+                                  ? "bg-green-500/10 border-green-500"
+                                  : isCompleted
+                                    ? "bg-muted border-muted-foreground/30"
+                                    : "bg-primary/10 border-primary"
+                              )}>
+                                <div className={cn(
+                                  "w-2 h-2 rounded-full",
+                                  isActive
+                                    ? "bg-green-500 animate-pulse"
+                                    : isCompleted
+                                      ? "bg-muted-foreground/50"
+                                      : "bg-primary"
+                                )} />
+                              </div>
+                              <Card className={cn(isActive && "ring-1 ring-green-500/50")}>
+                                <CardContent className="p-6">
+                                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div>
+                                      <div className="flex items-center gap-2">
+                                        <h3 className="text-lg font-bold">
+                                          {phase.name}
+                                        </h3>
+                                        {isActive && (
+                                          <Badge variant="default" className="bg-green-500 text-white">
+                                            Active
+                                          </Badge>
+                                        )}
+                                        {isCompleted && (
+                                          <Badge variant="secondary">
+                                            Completed
+                                          </Badge>
+                                        )}
+                                        {isUpcoming && (
+                                          <Badge variant="outline">
+                                            Upcoming
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1">
+                                        <p className="text-sm text-muted-foreground">
+                                          {formatDate(phase.startDate)} → {formatDate(phase.endDate)}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                          ({phase.duration} days)
+                                        </p>
+                                      </div>
                                     </div>
-                                    <div className="flex items-center justify-between mb-2">
-                                      <span className="text-sm text-muted-foreground">
-                                        Remaining
-                                      </span>
-                                      <span className="text-sm font-medium">
-                                        {formatNumber(phase.remaining)}{" "}
-                                        {offering.symbol}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center justify-between mb-2">
-                                      <span className="text-sm text-muted-foreground">
-                                        Sold
-                                      </span>
-                                      <span className="text-sm font-medium">
-                                        {formatNumber(
-                                          phase.allocation - phase.remaining
-                                        )}{" "}
-                                        {offering.symbol}
-                                      </span>
+                                    <div className="flex items-center gap-2 md:self-start">
+                                      <Badge variant="outline">
+                                        {formatCurrency(phase.tokenPrice)} {tExt("per_token")}
+                                      </Badge>
+                                      {/* Only show delete if no tokens sold and offering is editable */}
+                                      {phase.allocation === phase.remaining &&
+                                        ["ACTIVE", "PENDING", "UPCOMING", "SUCCESS"].includes(offering.status) && (
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                            onClick={() => {
+                                              setPhaseToDelete({ id: phase.id, name: phase.name });
+                                              setDeletePhaseDialogOpen(true);
+                                            }}
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        )}
                                     </div>
                                   </div>
 
-                                  <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                      <span className="text-sm font-medium">
-                                        {t("sales_progress")}
-                                      </span>
-                                      <span className="text-sm text-muted-foreground">
-                                        {(
-                                          ((phase.allocation -
-                                            phase.remaining) /
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                                    <div>
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm text-muted-foreground">
+                                          Allocation
+                                        </span>
+                                        <span className="text-sm font-medium">
+                                          {formatNumber(phase.allocation)}{" "}
+                                          {offering.symbol}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm text-muted-foreground">
+                                          Remaining
+                                        </span>
+                                        <span className="text-sm font-medium">
+                                          {formatNumber(phase.remaining)}{" "}
+                                          {offering.symbol}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm text-muted-foreground">
+                                          Sold
+                                        </span>
+                                        <span className="text-sm font-medium">
+                                          {formatNumber(
+                                            phase.allocation - phase.remaining
+                                          )}{" "}
+                                          {offering.symbol}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm font-medium">
+                                          {t("sales_progress")}
+                                        </span>
+                                        <span className="text-sm text-muted-foreground">
+                                          {(
+                                            ((phase.allocation -
+                                              phase.remaining) /
+                                              phase.allocation) *
+                                            100
+                                          ).toFixed(1)}
+                                          %
+                                        </span>
+                                      </div>
+                                      <Progress
+                                        value={
+                                          ((phase.allocation - phase.remaining) /
                                             phase.allocation) *
                                           100
-                                        ).toFixed(1)}
-                                        %
-                                      </span>
-                                    </div>
-                                    <Progress
-                                      value={
-                                        ((phase.allocation - phase.remaining) /
-                                          phase.allocation) *
-                                        100
-                                      }
-                                      className="h-2"
-                                    />
-                                    <div className="flex items-center justify-between mt-2">
-                                      <span className="text-xs text-muted-foreground">
-                                        {formatNumber(
-                                          phase.allocation - phase.remaining
-                                        )}{" "}
-                                        sold
-                                      </span>
-                                      <span className="text-xs text-muted-foreground">
-                                        {formatNumber(phase.allocation)} total
-                                      </span>
+                                        }
+                                        className="h-2"
+                                      />
+                                      <div className="flex items-center justify-between mt-2">
+                                        <span className="text-xs text-muted-foreground">
+                                          {formatNumber(
+                                            phase.allocation - phase.remaining
+                                          )}{" "}
+                                          sold
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {formatNumber(phase.allocation)} total
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </div>
-                        );
-                      })}
+                                </CardContent>
+                              </Card>
+                            </div>
+                          );
+                        });
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -416,7 +594,7 @@ export const TokenDetailsSection = () => {
                             className={cn(
                               "absolute left-0 w-[30px] h-[30px] rounded-full border flex items-center justify-center",
                               item.completed
-                                ? "bg-green-50 border-green-200"
+                                ? "bg-green-500/10 border-green-500/20"
                                 : "bg-muted border-border"
                             )}
                           >
@@ -440,7 +618,7 @@ export const TokenDetailsSection = () => {
                                     {item.completed && (
                                       <Badge
                                         variant="outline"
-                                        className="bg-green-50 text-green-700 border-green-200"
+                                        className="bg-green-500/10 text-green-500 border-green-500/20"
                                       >
                                         Completed
                                       </Badge>
@@ -561,6 +739,105 @@ export const TokenDetailsSection = () => {
           <InvestorsList id={offering.id} />
         </TabsContent>
       </Tabs>
+
+      {/* Add Phase Dialog */}
+      <Dialog open={addPhaseDialogOpen} onOpenChange={setAddPhaseDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{tCommon("add")} {tExt("phase")}</DialogTitle>
+            <DialogDescription>
+              {t("add_a_new_phase_to_extend_the_ico")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="phase-name">{tCommon("name")}</Label>
+              <Input
+                id="phase-name"
+                placeholder={`${tExt("phase")} ${(offering?.phases?.length || 0) + 1}`}
+                value={newPhase.name}
+                onChange={(e) => setNewPhase({ ...newPhase, name: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="phase-price">{tExt("token_price")}</Label>
+              <Input
+                id="phase-price"
+                type="number"
+                step="0.0001"
+                min="0"
+                placeholder="0.0000"
+                value={newPhase.tokenPrice}
+                onChange={(e) => setNewPhase({ ...newPhase, tokenPrice: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="phase-allocation">{tExt("allocation")}</Label>
+              <Input
+                id="phase-allocation"
+                type="number"
+                min="0"
+                placeholder="0"
+                value={newPhase.allocation}
+                onChange={(e) => setNewPhase({ ...newPhase, allocation: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                {tExt("number_of_tokens_for_this_phase")}
+              </p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="phase-duration">{tCommon("duration")} ({tCommon("days")})</Label>
+              <Input
+                id="phase-duration"
+                type="number"
+                min="1"
+                placeholder="7"
+                value={newPhase.duration}
+                onChange={(e) => setNewPhase({ ...newPhase, duration: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddPhaseDialogOpen(false)}>
+              {tCommon("cancel")}
+            </Button>
+            <Button onClick={handleAddPhase} disabled={isAddingPhase}>
+              {isAddingPhase ? `${tCommon("adding")}...` : tCommon("add")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Phase Confirmation Dialog */}
+      <Dialog open={deletePhaseDialogOpen} onOpenChange={setDeletePhaseDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{tCommon("delete")} {tExt("phase")}</DialogTitle>
+            <DialogDescription>
+              {t("are_you_sure_you_want_to_delete_phase")} &quot;{phaseToDelete?.name}&quot;?
+              {t("this_action_cannot_be_undone")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeletePhaseDialogOpen(false);
+                setPhaseToDelete(null);
+              }}
+            >
+              {tCommon("cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeletePhase}
+              disabled={isDeletingPhase}
+            >
+              {isDeletingPhase ? `${tCommon("deleting")}...` : tCommon("delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

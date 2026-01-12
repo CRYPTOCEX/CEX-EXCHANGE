@@ -88,9 +88,7 @@ export default function GettingStartedSection() {
                 {t("welcome_to_ai_market_maker")}
               </h2>
               <p className="text-muted-600 dark:text-muted-400 mb-4">
-                AI Market Maker is a powerful tool that automates trading activity on your ecosystem markets.
-                It uses intelligent bots to provide liquidity, maintain healthy spreads, and create natural
-                price movement - all while protecting your capital with built-in risk management.
+                {t("ai_market_maker_is_a_powerful")}
               </p>
               <div className="flex flex-wrap gap-4">
                 <div className="flex items-center gap-2">

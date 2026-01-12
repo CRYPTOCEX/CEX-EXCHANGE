@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
   ArrowUpRight,
   ArrowRight,
@@ -66,7 +66,7 @@ import {
   TrendingDown,
   Scale,
 } from "lucide-react";
-import Image from "next/image";
+// Image import removed - using native img tags to prevent Next.js image optimization re-requests
 import { motion, useScroll, useTransform, useInView, useSpring, MotionValue, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { tickersWs } from "@/services/tickers-ws";
@@ -156,53 +156,30 @@ function NoiseOverlay() {
   );
 }
 
-// Mesh gradient background - continuous across sections
+// Mesh gradient background - using CSS animations for better performance
 function MeshBackground() {
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background" />
 
-      <motion.div
-        animate={{
-          scale: [1, 1.1, 1],
-          x: [0, 30, 0],
-          y: [0, -20, 0],
-        }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 rounded-full opacity-30 blur-[120px]"
+      {/* Use CSS animations instead of framer-motion for background blobs */}
+      <div
+        className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 rounded-full opacity-30 blur-[120px] animate-blob-1"
         style={{ background: "radial-gradient(circle, rgba(59, 130, 246, 0.5) 0%, transparent 70%)" }}
       />
 
-      <motion.div
-        animate={{
-          scale: [1, 1.2, 1],
-          x: [0, -40, 0],
-          y: [0, 30, 0],
-        }}
-        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut", delay: 5 }}
-        className="absolute top-1/4 -right-1/4 w-1/2 h-1/2 rounded-full opacity-30 blur-[120px]"
+      <div
+        className="absolute top-1/4 -right-1/4 w-1/2 h-1/2 rounded-full opacity-30 blur-[120px] animate-blob-2"
         style={{ background: "radial-gradient(circle, rgba(139, 92, 246, 0.5) 0%, transparent 70%)" }}
       />
 
-      <motion.div
-        animate={{
-          scale: [1, 1.15, 1],
-          x: [0, 20, 0],
-          y: [0, -40, 0],
-        }}
-        transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 10 }}
-        className="absolute top-1/2 left-1/3 w-1/3 h-1/3 rounded-full opacity-25 blur-[100px]"
+      <div
+        className="absolute top-1/2 left-1/3 w-1/3 h-1/3 rounded-full opacity-25 blur-[100px] animate-blob-3"
         style={{ background: "radial-gradient(circle, rgba(6, 182, 212, 0.5) 0%, transparent 70%)" }}
       />
 
-      <motion.div
-        animate={{
-          scale: [1, 1.1, 1],
-          x: [0, -30, 0],
-          y: [0, 20, 0],
-        }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut", delay: 7 }}
-        className="absolute bottom-1/4 left-1/4 w-1/3 h-1/3 rounded-full opacity-20 blur-[100px]"
+      <div
+        className="absolute bottom-1/4 left-1/4 w-1/3 h-1/3 rounded-full opacity-20 blur-[100px] animate-blob-4"
         style={{ background: "radial-gradient(circle, rgba(236, 72, 153, 0.4) 0%, transparent 70%)" }}
       />
 
@@ -252,75 +229,52 @@ function GlassCard({ children, className, delay = 0, hover = true }: {
   );
 }
 
-// Custom hook for section scroll animations
+// Custom hook for section scroll animations - optimized with Intersection Observer
 function useSectionScroll(ref: React.RefObject<HTMLElement | null>) {
-  const [scrollState, setScrollState] = useState({ opacity: 0, y: 80, scale: 0.9 });
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const element = ref.current;
     if (!element) return;
 
-    const handleScroll = () => {
-      const rect = element.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-
-      // Calculate how far the element is through the viewport
-      // 0 = element top is at bottom of viewport
-      // 1 = element bottom is at top of viewport
-      const elementHeight = rect.height;
-      const totalScrollDistance = windowHeight + elementHeight;
-      const scrolled = windowHeight - rect.top;
-      const progress = Math.max(0, Math.min(1, scrolled / totalScrollDistance));
-
-      // Map progress to animation values
-      // 0-0.15: fade in, 0.15-0.85: visible, 0.85-1: fade out
-      let opacity, y, scale;
-
-      if (progress < 0.15) {
-        // Entering
-        const t = progress / 0.15;
-        opacity = t;
-        y = 80 * (1 - t);
-        scale = 0.9 + 0.1 * t;
-      } else if (progress > 0.85) {
-        // Exiting
-        const t = (progress - 0.85) / 0.15;
-        opacity = 1 - t;
-        y = -80 * t;
-        scale = 1 - 0.1 * t;
-      } else {
-        // Fully visible
-        opacity = 1;
-        y = 0;
-        scale = 1;
+    // Use Intersection Observer instead of scroll events for better performance
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          setIsVisible(entry.isIntersecting);
+        });
+      },
+      {
+        threshold: 0.1, // Trigger when 10% of element is visible
+        rootMargin: '50px 0px', // Start animation slightly before element enters viewport
       }
+    );
 
-      setScrollState({ opacity, y, scale });
-    };
-
-    handleScroll(); // Initial calculation
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll, { passive: true });
+    observer.observe(element);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
+      observer.disconnect();
     };
   }, [ref]);
 
-  return scrollState;
+  // Return simple visible/hidden states - let CSS handle the transition
+  return {
+    opacity: isVisible ? 1 : 0,
+    y: isVisible ? 0 : 40,
+    scale: 1, // Remove scale animation to reduce GPU load
+  };
 }
 
 // Section wrapper with scroll animations
 function Section({ children, className, id }: { children: React.ReactNode; className?: string; id?: string }) {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const { opacity, y, scale } = useSectionScroll(sectionRef);
+  const { opacity, y } = useSectionScroll(sectionRef);
 
   return (
     <section ref={sectionRef} id={id} className={cn("relative py-24 lg:py-32 overflow-hidden", className)}>
       <motion.div
-        animate={{ opacity, y, scale }}
-        transition={{ duration: 0.1, ease: "linear" }}
+        animate={{ opacity, y }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
         className="will-change-transform"
       >
         {children}
@@ -329,10 +283,10 @@ function Section({ children, className, id }: { children: React.ReactNode; class
   );
 }
 
-// Premium ticker
-function PremiumTicker({ assets }: { assets: any[] }) {
+// Premium ticker - memoized to prevent re-renders from WebSocket updates
+const PremiumTicker = React.memo(function PremiumTicker({ assets }: { assets: any[] }) {
   if (!assets.length) return null;
-  const tickerAssets = [...assets, ...assets, ...assets];
+  const tickerAssets = useMemo(() => [...assets, ...assets, ...assets], [assets]);
 
   return (
     <div className="relative overflow-hidden py-6">
@@ -350,11 +304,12 @@ function PremiumTicker({ assets }: { assets: any[] }) {
             className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 shrink-0"
           >
             <div className="w-8 h-8 rounded-full overflow-hidden bg-zinc-800 ring-2 ring-white/10">
-              <Image
+              <img
                 src={getCryptoImageUrl(asset.currency || asset.name || "generic")}
                 alt={asset.name || "crypto"}
                 width={32}
                 height={32}
+                loading="lazy"
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   const target = e.currentTarget;
@@ -368,7 +323,7 @@ function PremiumTicker({ assets }: { assets: any[] }) {
             <div className="flex flex-col">
               <span className="font-semibold text-sm">{asset.name || asset.currency}</span>
               <span className="font-mono text-xs text-muted-foreground">
-                ${asset.price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
+                {asset.price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 }) || "0.00"}
               </span>
             </div>
             <span className={cn(
@@ -384,10 +339,10 @@ function PremiumTicker({ assets }: { assets: any[] }) {
       </motion.div>
     </div>
   );
-}
+});
 
-// Live Markets Grid for Spot/Ecosystem sections
-function LiveMarketsGrid({ assets, gradient, linkBase, settings, isEco = false }: {
+// Live Markets Grid for Spot/Ecosystem sections - memoized to prevent re-renders
+const LiveMarketsGrid = React.memo(function LiveMarketsGrid({ assets, gradient, linkBase, settings, isEco = false }: {
   assets: any[];
   gradient: string;
   linkBase: string;
@@ -425,7 +380,7 @@ function LiveMarketsGrid({ assets, gradient, linkBase, settings, isEco = false }
         <Link
           key={asset.symbol || index}
           href={isEco
-            ? `/ecosystem/${asset.currency}/${asset.pair}`
+            ? `/trade?symbol=${asset.currency}-${asset.pair}&type=spot-eco`
             : buildMarketLink(settings, asset.currency, asset.pair)
           }
         >
@@ -465,7 +420,7 @@ function LiveMarketsGrid({ assets, gradient, linkBase, settings, isEco = false }
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-mono font-bold">${formatPrice(asset.price || 0)}</span>
+              <span className="font-mono font-bold">{formatPrice(asset.price || 0)}</span>
               <span className={cn(
                 "text-xs font-semibold px-2 py-0.5 rounded-full",
                 (asset.change24h || 0) >= 0
@@ -480,7 +435,7 @@ function LiveMarketsGrid({ assets, gradient, linkBase, settings, isEco = false }
       ))}
     </div>
   );
-}
+});
 
 // Format helpers
 function formatNumber(num: number): string {
@@ -500,6 +455,7 @@ function formatValue(value: number): string {
 
 // Spot Trading Section
 function SpotTradingSection({ feature, topAssets, settings }: { feature: any; topAssets: any[]; settings: any }) {
+  const t = useTranslations("common");
   const sectionRef = useRef<HTMLDivElement>(null);
   const { opacity, y, scale } = useSectionScroll(sectionRef);
 
@@ -508,7 +464,7 @@ function SpotTradingSection({ feature, topAssets, settings }: { feature: any; to
   return (
     <section ref={sectionRef} className="relative py-32 overflow-hidden">
       {/* Floating shapes background */}
-      <FloatingShapes theme={{ primary: "blue", secondary: "cyan" }} count={8} />
+      <FloatingShapes theme={{ primary: "blue", secondary: "cyan" }} count={3} />
 
       <motion.div
         animate={{ opacity, y, scale }}
@@ -550,11 +506,11 @@ function SpotTradingSection({ feature, topAssets, settings }: { feature: any; to
               )}
             >
               <CandlestickChart className="w-4 h-4" />
-              Spot Trading
+              {t("spot_trading")}
             </motion.span>
 
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Trade with{" "}
+              {t("trade_with")}{" "}
               <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
                 precision
               </span>
@@ -564,7 +520,7 @@ function SpotTradingSection({ feature, topAssets, settings }: { feature: any; to
               "text-xl text-muted-foreground mb-8 leading-relaxed",
               !hasItems && "max-w-xl mx-auto"
             )}>
-              Execute trades instantly with our advanced spot trading engine. Real-time charts, deep liquidity, and professional tools.
+              {t("execute_trades_instantly_with_our_advanced")}
             </p>
 
             {/* Stats from API */}
@@ -608,7 +564,7 @@ function SpotTradingSection({ feature, topAssets, settings }: { feature: any; to
                 whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center gap-3 h-14 px-8 rounded-2xl font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-600 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-shadow"
               >
-                Start Trading
+                {t("start_trading")}
                 <ArrowRight className="w-5 h-5" />
               </motion.button>
             </Link>
@@ -632,8 +588,8 @@ function SpotTradingSection({ feature, topAssets, settings }: { feature: any; to
                           <TrendingUp className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <div className="font-bold">Live Spot Markets</div>
-                          <div className="text-sm text-muted-foreground">Real-time prices</div>
+                          <div className="font-bold">{t("live_spot_markets")}</div>
+                          <div className="text-sm text-muted-foreground">{t("real_time_prices")}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10">
@@ -657,7 +613,7 @@ function SpotTradingSection({ feature, topAssets, settings }: { feature: any; to
                         whileHover={{ x: 5 }}
                         className="flex items-center justify-center gap-2 text-sm text-blue-400 hover:text-blue-300 font-semibold py-3 rounded-xl bg-blue-500/10 hover:bg-blue-500/15 transition-colors"
                       >
-                        View all markets
+                        {t("view_all_markets")}
                         <ChevronRight className="w-4 h-4" />
                       </motion.div>
                     </Link>
@@ -674,13 +630,14 @@ function SpotTradingSection({ feature, topAssets, settings }: { feature: any; to
 
 // Binary Options Section with real data
 function BinaryOptionsSection({ feature }: { feature: any }) {
+  const t = useTranslations("common");
   const sectionRef = useRef<HTMLDivElement>(null);
   const { opacity, y, scale } = useSectionScroll(sectionRef);
 
   return (
     <section ref={sectionRef} className="relative py-32 overflow-hidden">
       {/* Floating shapes */}
-      <FloatingShapes theme={{ primary: "purple", secondary: "pink" }} count={8} />
+      <FloatingShapes theme={{ primary: "purple", secondary: "pink" }} count={3} />
 
       <motion.div animate={{ opacity, y, scale }} transition={{ duration: 0.1, ease: "linear" }} className="container mx-auto px-4 md:px-6 relative z-10 will-change-transform">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -699,10 +656,10 @@ function BinaryOptionsSection({ feature }: { feature: any }) {
                   <div className="text-center mb-8">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 text-purple-400 mb-4">
                       <Timer className="w-4 h-4" />
-                      <span className="font-mono font-bold">Select Duration</span>
+                      <span className="font-mono font-bold">{t("select_duration")}</span>
                     </div>
-                    <h4 className="text-2xl font-bold mb-2">Predict Market Movement</h4>
-                    <div className="text-sm text-muted-foreground">Will the price go UP or DOWN?</div>
+                    <h4 className="text-2xl font-bold mb-2">{t("predict_market_movement")}</h4>
+                    <div className="text-sm text-muted-foreground">{t("will_the_price_go_up_or_down")}</div>
                   </div>
 
                   <div className="flex gap-4">
@@ -738,7 +695,7 @@ function BinaryOptionsSection({ feature }: { feature: any }) {
           >
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-purple-400 mb-6">
               <Target className="w-4 h-4" />
-              Binary Options
+              {t("binary_options")}
             </span>
 
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
@@ -749,7 +706,7 @@ function BinaryOptionsSection({ feature }: { feature: any }) {
             </h2>
 
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              Simple yes or no predictions on market movements. Fixed risk, high potential returns, and instant settlements.
+              {t("simple_yes_or_no_predictions_on_market_movements")}
             </p>
 
             {/* Stats from API */}
@@ -783,7 +740,7 @@ function BinaryOptionsSection({ feature }: { feature: any }) {
                 whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center gap-3 h-14 px-8 rounded-2xl font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg shadow-purple-500/25"
               >
-                Start Predicting
+                {t("start_predicting")}
                 <ArrowRight className="w-5 h-5" />
               </motion.button>
             </Link>
@@ -796,6 +753,7 @@ function BinaryOptionsSection({ feature }: { feature: any }) {
 
 // Futures Trading Section
 function FuturesTradingSection({ feature }: { feature: any }) {
+  const t = useTranslations("common");
   const sectionRef = useRef<HTMLDivElement>(null);
   const { opacity, y, scale } = useSectionScroll(sectionRef);
 
@@ -806,7 +764,7 @@ function FuturesTradingSection({ feature }: { feature: any }) {
   return (
     <section ref={sectionRef} className="relative py-32 overflow-hidden">
       {/* Floating shapes */}
-      <FloatingShapes theme={{ primary: "orange", secondary: "red" }} count={8} />
+      <FloatingShapes theme={{ primary: "orange", secondary: "red" }} count={3} />
 
       <motion.div animate={{ opacity, y, scale }} transition={{ duration: 0.1, ease: "linear" }} className="container mx-auto px-4 md:px-6 relative z-10 will-change-transform">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -822,7 +780,7 @@ function FuturesTradingSection({ feature }: { feature: any }) {
               <GlassCard hover={false}>
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h4 className="text-lg font-bold">Leverage Calculator</h4>
+                    <h4 className="text-lg font-bold">{t("leverage_calculator")}</h4>
                     <span className="px-3 py-1 rounded-full bg-orange-500/20 text-orange-400 text-xs font-medium">
                       Interactive
                     </span>
@@ -850,14 +808,14 @@ function FuturesTradingSection({ feature }: { feature: any }) {
                   <div className="space-y-4">
                     <div className="p-4 rounded-xl bg-white/5">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Your Margin</span>
+                        <span className="text-sm text-muted-foreground">{t("your_margin")}</span>
                         <span className="font-bold">${baseAmount.toLocaleString()}</span>
                       </div>
                     </div>
 
                     <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm text-muted-foreground">Position Size</span>
+                        <span className="text-sm text-muted-foreground">{t("position_size")}</span>
                         <motion.span
                           key={selectedLeverage}
                           initial={{ scale: 1.2, opacity: 0 }}
@@ -868,7 +826,7 @@ function FuturesTradingSection({ feature }: { feature: any }) {
                         </motion.span>
                       </div>
                       <div className="text-xs text-muted-foreground text-right">
-                        with {selectedLeverage}x leverage
+                        with {selectedLeverage}{t("x_leverage")}
                       </div>
                     </div>
 
@@ -891,18 +849,18 @@ function FuturesTradingSection({ feature }: { feature: any }) {
           >
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 text-orange-400 mb-6">
               <Rocket className="w-4 h-4" />
-              Futures Trading
+              {t("futures_trading")}
             </span>
 
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Amplify your{" "}
+              {t("amplify_your")}{" "}
               <span className="bg-gradient-to-r from-orange-400 via-red-400 to-orange-500 bg-clip-text text-transparent">
                 trades
               </span>
             </h2>
 
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              Trade perpetual futures with up to 150x leverage. Advanced risk management, real-time PnL, and deep liquidity.
+              {t("trade_perpetual_futures_with_up_to_150x_leverage")}
             </p>
 
             {/* Stats from API */}
@@ -936,7 +894,7 @@ function FuturesTradingSection({ feature }: { feature: any }) {
                 whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center gap-3 h-14 px-8 rounded-2xl font-semibold text-white bg-gradient-to-r from-orange-600 to-red-600 shadow-lg shadow-orange-500/25"
               >
-                Trade Futures
+                {t("trade_futures")}
                 <ArrowRight className="w-5 h-5" />
               </motion.button>
             </Link>
@@ -949,6 +907,7 @@ function FuturesTradingSection({ feature }: { feature: any }) {
 
 // Ecosystem Section with eco markets
 function EcosystemSection({ feature, ecoMarkets, settings }: { feature: any; ecoMarkets: any[]; settings: any }) {
+  const t = useTranslations("common");
   const sectionRef = useRef<HTMLDivElement>(null);
   const { opacity, y, scale } = useSectionScroll(sectionRef);
 
@@ -957,7 +916,7 @@ function EcosystemSection({ feature, ecoMarkets, settings }: { feature: any; eco
   return (
     <section ref={sectionRef} className="relative py-32 overflow-hidden">
       {/* Floating shapes */}
-      <FloatingShapes theme={{ primary: "emerald", secondary: "teal" }} count={8} />
+      <FloatingShapes theme={{ primary: "emerald", secondary: "teal" }} count={3} />
 
       <motion.div animate={{ opacity, y, scale }} transition={{ duration: 0.1, ease: "linear" }} className="container mx-auto px-4 md:px-6 relative z-10 will-change-transform">
         <div className={cn(
@@ -989,7 +948,7 @@ function EcosystemSection({ feature, ecoMarkets, settings }: { feature: any; eco
               !hasItems && "mx-auto"
             )}>
               <Hexagon className="w-4 h-4" />
-              Native Tokens
+              {t("native_tokens")}
             </span>
 
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
@@ -1003,7 +962,7 @@ function EcosystemSection({ feature, ecoMarkets, settings }: { feature: any; eco
               "text-xl text-muted-foreground mb-8 leading-relaxed",
               !hasItems && "max-w-xl mx-auto"
             )}>
-              Trade native blockchain tokens with direct wallet integration. Lower fees, full custody, and multi-chain support.
+              {t('trade_native_blockchain_tokens_with_direct')}
             </p>
 
             {/* Stats from API */}
@@ -1043,7 +1002,7 @@ function EcosystemSection({ feature, ecoMarkets, settings }: { feature: any; eco
                 whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center gap-3 h-14 px-8 rounded-2xl font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 shadow-lg shadow-emerald-500/25"
               >
-                Explore Ecosystem
+                {t("start_trading")}
                 <ArrowRight className="w-5 h-5" />
               </motion.button>
             </Link>
@@ -1067,8 +1026,8 @@ function EcosystemSection({ feature, ecoMarkets, settings }: { feature: any; eco
                           <Layers className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <div className="font-bold">Native Token Markets</div>
-                          <div className="text-sm text-muted-foreground">Decentralized trading</div>
+                          <div className="font-bold">{t("native_token_markets")}</div>
+                          <div className="text-sm text-muted-foreground">{t("decentralized_trading")}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10">
@@ -1093,7 +1052,7 @@ function EcosystemSection({ feature, ecoMarkets, settings }: { feature: any; eco
                         whileHover={{ x: 5 }}
                         className="flex items-center justify-center gap-2 text-sm text-emerald-400 hover:text-emerald-300 font-semibold py-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/15 transition-colors"
                       >
-                        Explore ecosystem
+                        {t("start_trading")}
                         <ChevronRight className="w-4 h-4" />
                       </motion.div>
                     </Link>
@@ -1110,6 +1069,7 @@ function EcosystemSection({ feature, ecoMarkets, settings }: { feature: any; eco
 
 // Staking Section with real data
 function StakingSection({ feature, data }: { feature: any; data: any }) {
+  const t = useTranslations("common");
   const sectionRef = useRef<HTMLDivElement>(null);
   const { opacity, y, scale } = useSectionScroll(sectionRef);
 
@@ -1120,7 +1080,7 @@ function StakingSection({ feature, data }: { feature: any; data: any }) {
   return (
     <section ref={sectionRef} className="relative py-32 overflow-hidden">
       {/* Floating shapes */}
-      <FloatingShapes theme={{ primary: "green", secondary: "emerald" }} count={8} />
+      <FloatingShapes theme={{ primary: "green", secondary: "emerald" }} count={3} />
 
       <motion.div animate={{ opacity, y, scale }} transition={{ duration: 0.1, ease: "linear" }} className="container mx-auto px-4 md:px-6 relative z-10 will-change-transform">
         <div className={cn(
@@ -1149,7 +1109,7 @@ function StakingSection({ feature, data }: { feature: any; data: any }) {
                         <BadgePercent className="w-12 h-12 text-white" />
                       </motion.div>
                       <div className="text-sm text-muted-foreground mb-2">
-                        Highest APR
+                        {t("highest_apr")}
                       </div>
                       <div className="text-5xl font-bold text-green-400">
                         {highestApr?.toFixed?.(1) || highestApr || "0"}%
@@ -1208,7 +1168,7 @@ function StakingSection({ feature, data }: { feature: any; data: any }) {
               !hasItems && "mx-auto"
             )}>
               <Percent className="w-4 h-4" />
-              Staking Pools
+              {t("staking_pools")}
             </span>
 
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
@@ -1222,7 +1182,7 @@ function StakingSection({ feature, data }: { feature: any; data: any }) {
               "text-xl text-muted-foreground mb-8 leading-relaxed",
               !hasItems && "max-w-xl mx-auto"
             )}>
-              Stake your assets and earn competitive yields. Flexible or locked staking with auto-compounding rewards.
+              {t("stake_your_assets_and_earn_competitive_yields")}
             </p>
 
             {/* Stats from API */}
@@ -1262,7 +1222,7 @@ function StakingSection({ feature, data }: { feature: any; data: any }) {
                 whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center gap-3 h-14 px-8 rounded-2xl font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 shadow-lg shadow-green-500/25"
               >
-                Start Staking
+                {t("start_staking")}
                 <ArrowRight className="w-5 h-5" />
               </motion.button>
             </Link>
@@ -1275,6 +1235,7 @@ function StakingSection({ feature, data }: { feature: any; data: any }) {
 
 // Generic Extension Section for other extensions
 function GenericExtensionSection({ feature, index }: { feature: any; index: number }) {
+  const t = useTranslations("common");
   const sectionRef = useRef<HTMLDivElement>(null);
   const { opacity, y, scale } = useSectionScroll(sectionRef);
   const isEven = index % 2 === 0;
@@ -1295,7 +1256,7 @@ function GenericExtensionSection({ feature, index }: { feature: any; index: numb
   return (
     <section ref={sectionRef} className="relative py-32 overflow-hidden">
       {/* Floating shapes */}
-      <FloatingShapes theme={theme} count={8} />
+      <FloatingShapes theme={theme} count={3} />
 
       <motion.div animate={{ opacity, y, scale }} transition={{ duration: 0.1, ease: "linear" }} className="container mx-auto px-4 md:px-6 relative z-10 will-change-transform">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -1361,7 +1322,7 @@ function GenericExtensionSection({ feature, index }: { feature: any; index: numb
                   `bg-gradient-to-r ${feature.gradient}`
                 )}
               >
-                Learn More
+                {t("learn_more")}
                 <ArrowRight className="w-5 h-5" />
               </motion.button>
             </Link>
@@ -1406,6 +1367,7 @@ function GenericExtensionSection({ feature, index }: { feature: any; index: numb
 
 // User Portfolio Summary component
 function UserPortfolioSummary() {
+  const t = useTranslations("common");
   const { user } = useUserStore();
   const {
     totalBalance,
@@ -1446,8 +1408,8 @@ function UserPortfolioSummary() {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="font-bold text-lg text-foreground">Welcome back, {user?.firstName || 'Trader'}!</h3>
-            <p className="text-sm text-muted-foreground">Your portfolio overview</p>
+            <h3 className="font-bold text-lg text-foreground">{t("welcome_back")} {user?.firstName || 'Trader'}!</h3>
+            <p className="text-sm text-muted-foreground">{t("your_portfolio_overview")}</p>
           </div>
           <button
             onClick={() => setShowBalance(!showBalance)}
@@ -1460,7 +1422,7 @@ function UserPortfolioSummary() {
         {/* Total Balance with PnL */}
         <div className="p-4 rounded-2xl bg-muted/30 dark:bg-white/5 border border-border/50 mb-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground font-medium">Total Balance</span>
+            <span className="text-sm text-muted-foreground font-medium">{t("total_balance")}</span>
             <div className={cn(
               "flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full",
               totalChangePercent >= 0
@@ -1490,7 +1452,7 @@ function UserPortfolioSummary() {
               whileTap={{ scale: 0.98 }}
               className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold text-sm"
             >
-              My Wallets
+              {t("my_wallets")}
             </motion.button>
           </Link>
           <Link href="/market">
@@ -1499,7 +1461,7 @@ function UserPortfolioSummary() {
               whileTap={{ scale: 0.98 }}
               className="w-full py-3 rounded-xl bg-muted/50 dark:bg-white/10 hover:bg-muted dark:hover:bg-white/15 font-semibold text-sm text-foreground transition-colors border border-border/50"
             >
-              Trade Now
+              {t("trade_now")}
             </motion.button>
           </Link>
         </div>
@@ -1524,6 +1486,10 @@ export default function DefaultHomePage() {
   const hasFetchedEcoMarkets = useRef(false);
   const hasFetchedMarkets = useRef(false);
 
+  // Ref for ticker data to avoid frequent state updates
+  const tickersRef = useRef<Record<string, any>>({});
+  const tickerUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const { user } = useUserStore();
   const { settings, extensions } = useConfigStore();
   const heroRef = useRef<HTMLDivElement>(null);
@@ -1545,7 +1511,6 @@ export default function DefaultHomePage() {
   const { scrollYProgress } = useScroll({
     target: isScrollReady ? heroRef : undefined,
     offset: ["start start", "end start"],
-    layoutEffect: false, // Use effect instead of layoutEffect to prevent hydration issues
   });
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 200]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
@@ -1620,15 +1585,46 @@ export default function DefaultHomePage() {
   useEffect(() => {
     let spotUnsubscribe: (() => void) | null = null;
 
-    // Wait for settings to be loaded before deciding
-    if (settings === undefined) return;
-
+    // isSpotEnabled will be false when settings is undefined or spotWallets is not enabled
     if (!isSpotEnabled) {
       setIsLoading(false);
-      return;
+      return () => {
+        // Reset on cleanup even when disabled
+        hasFetchedMarkets.current = false;
+      };
     }
 
-    if (hasFetchedMarkets.current) return;
+    if (hasFetchedMarkets.current) {
+      // Already fetched, but still need to ensure WebSocket is subscribed
+      // This can happen after a re-mount in React Strict Mode
+      tickersWs.initialize();
+      let hasReceivedData = false;
+      spotUnsubscribe = tickersWs.subscribeToSpotData((newTickers) => {
+        tickersRef.current = newTickers;
+        // Immediately update on first data received
+        if (!hasReceivedData && Object.keys(newTickers).length > 0) {
+          hasReceivedData = true;
+          setTickers({ ...newTickers });
+          return;
+        }
+        // Update state periodically
+        if (!tickerUpdateTimeoutRef.current) {
+          tickerUpdateTimeoutRef.current = setTimeout(() => {
+            setTickers({ ...tickersRef.current });
+            tickerUpdateTimeoutRef.current = null;
+          }, 3000);
+        }
+      });
+
+      return () => {
+        if (spotUnsubscribe) spotUnsubscribe();
+        if (tickerUpdateTimeoutRef.current) {
+          clearTimeout(tickerUpdateTimeoutRef.current);
+          tickerUpdateTimeoutRef.current = null;
+        }
+      };
+    }
+
     hasFetchedMarkets.current = true;
 
     const fetchMarkets = async () => {
@@ -1657,8 +1653,26 @@ export default function DefaultHomePage() {
 
     try {
       tickersWs.initialize();
-      spotUnsubscribe = tickersWs.subscribeToSpotData((tickers) => {
-        setTickers({ ...tickers });
+      let hasReceivedInitialData = false;
+
+      spotUnsubscribe = tickersWs.subscribeToSpotData((newTickers) => {
+        // Store latest tickers in ref (no re-render)
+        tickersRef.current = newTickers;
+
+        // Immediately update on first data received
+        if (!hasReceivedInitialData && Object.keys(newTickers).length > 0) {
+          hasReceivedInitialData = true;
+          setTickers({ ...newTickers });
+          return;
+        }
+
+        // Throttle subsequent state updates to every 3 seconds to prevent excessive re-renders
+        if (!tickerUpdateTimeoutRef.current) {
+          tickerUpdateTimeoutRef.current = setTimeout(() => {
+            setTickers({ ...tickersRef.current });
+            tickerUpdateTimeoutRef.current = null;
+          }, 3000);
+        }
       });
     } catch (wsError) {
       console.error("WebSocket initialization error:", wsError);
@@ -1666,8 +1680,16 @@ export default function DefaultHomePage() {
 
     return () => {
       if (spotUnsubscribe) spotUnsubscribe();
+      if (tickerUpdateTimeoutRef.current) {
+        clearTimeout(tickerUpdateTimeoutRef.current);
+        tickerUpdateTimeoutRef.current = null;
+      }
+      // Reset the ref so the effect can run again on remount (React Strict Mode)
+      hasFetchedMarkets.current = false;
     };
-  }, [isSpotEnabled, settings]);
+    // Note: Only depend on isSpotEnabled, not settings object, to prevent unnecessary re-runs
+    // when settings object reference changes but values remain the same
+  }, [isSpotEnabled]);
 
   const topAssets = useMemo(() => {
     if (!markets.length) return [];
@@ -1743,7 +1765,7 @@ export default function DefaultHomePage() {
       {/* Hero Section */}
       <section ref={heroRef} className="relative min-h-screen flex items-center pt-20" style={{ position: 'relative' }}>
         {/* Hero floating shapes */}
-        <FloatingShapes theme={{ primary: "blue", secondary: "purple" }} count={10} />
+        <FloatingShapes theme={{ primary: "blue", secondary: "purple" }} count={3} />
 
         <motion.div
           style={{ y: heroY, opacity: heroOpacity }}
@@ -1851,8 +1873,8 @@ export default function DefaultHomePage() {
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-6">
                         <div>
-                          <h3 className="font-bold text-lg">Live Markets</h3>
-                          <p className="text-sm text-muted-foreground">Top performing assets</p>
+                          <h3 className="font-bold text-lg">{t("live_markets")}</h3>
+                          <p className="text-sm text-muted-foreground">{t("top_performing_assets")}</p>
                         </div>
                         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10">
                           <span className="relative flex h-2 w-2">
@@ -1892,11 +1914,12 @@ export default function DefaultHomePage() {
                               >
                                 <div className="flex items-center gap-3">
                                   <div className="w-12 h-12 rounded-full overflow-hidden bg-zinc-800 ring-2 ring-white/10 group-hover:ring-blue-500/50 transition-all">
-                                    <Image
+                                    <img
                                       src={getCryptoImageUrl(asset.currency || "generic")}
                                       alt={asset.currency || "crypto"}
                                       width={48}
                                       height={48}
+                                      loading="lazy"
                                       className="w-full h-full object-cover"
                                       onError={(e) => {
                                         const target = e.currentTarget;
@@ -1913,7 +1936,7 @@ export default function DefaultHomePage() {
                                   </div>
                                 </div>
                                 <div className="text-right">
-                                  <div className="font-mono font-bold">${formatPrice(asset.price)}</div>
+                                  <div className="font-mono font-bold">{formatPrice(asset.price)}</div>
                                   <div className={cn(
                                     "text-sm font-semibold flex items-center justify-end gap-1",
                                     asset.change24h >= 0 ? "text-emerald-400" : "text-red-400"
@@ -1933,7 +1956,7 @@ export default function DefaultHomePage() {
                           whileHover={{ x: 5 }}
                           className="flex items-center justify-center gap-2 text-sm text-blue-400 hover:text-blue-300 font-semibold py-4 rounded-2xl bg-blue-500/10 hover:bg-blue-500/15 transition-colors"
                         >
-                          View all markets
+                          {t("view_all_markets")}
                           <ChevronRight className="w-4 h-4" />
                         </motion.div>
                       </Link>
@@ -1943,22 +1966,6 @@ export default function DefaultHomePage() {
               </motion.div>
             )}
           </div>
-        </motion.div>
-
-        {/* Scroll Indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 12, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-6 h-10 rounded-full border-2 border-white/20 flex items-start justify-center p-2"
-          >
-            <motion.div className="w-1.5 h-3 bg-white/40 rounded-full" />
-          </motion.div>
         </motion.div>
       </section>
 
@@ -1974,7 +1981,7 @@ export default function DefaultHomePage() {
 
       {/* Why Choose Us Section */}
       <Section>
-        <FloatingShapes theme={{ primary: "blue", secondary: "purple" }} count={6} />
+        <FloatingShapes theme={{ primary: "blue", secondary: "purple" }} count={3} />
         <div className="container mx-auto px-4 md:px-6 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div
@@ -2076,7 +2083,7 @@ export default function DefaultHomePage() {
 
       {/* Getting Started Section */}
       <Section>
-        <FloatingShapes theme={{ primary: "purple", secondary: "cyan" }} count={6} />
+        <FloatingShapes theme={{ primary: "purple", secondary: "cyan" }} count={3} />
         <div className="container mx-auto px-4 md:px-6 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -2146,7 +2153,7 @@ export default function DefaultHomePage() {
       {/* CTA Section */}
       <section className="relative py-24 lg:py-32 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-600/10 to-transparent" />
-        <FloatingShapes theme={{ primary: "blue", secondary: "indigo" }} count={8} />
+        <FloatingShapes theme={{ primary: "blue", secondary: "indigo" }} count={3} />
 
         <div className="container mx-auto px-4 md:px-6 relative z-10">
           <motion.div

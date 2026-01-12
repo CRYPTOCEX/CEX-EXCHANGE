@@ -685,7 +685,7 @@ export default function EditOfferClient() {
 
                 {/* Amount Limits */}
                 <div className="border-t pt-6 space-y-4">
-                  <h3 className="text-lg font-medium">{t("trading_limits")}</h3>
+                  <h3 className="text-lg font-medium">{tExt("trading_limits")}</h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
@@ -1015,7 +1015,7 @@ export default function EditOfferClient() {
                                   </AlertDialogTrigger>
                                   <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                                     <AlertDialogHeader>
-                                      <AlertDialogTitle>{t("delete_payment_method")}</AlertDialogTitle>
+                                      <AlertDialogTitle>{tCommon("delete_payment_method")}</AlertDialogTitle>
                                       <AlertDialogDescription>
                                         {t("are_you_sure_delete_payment_method")} <strong>{method.name}</strong>? {tCommon("this_action_cannot_be_undone")}
                                       </AlertDialogDescription>
@@ -1221,7 +1221,7 @@ export default function EditOfferClient() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
-                  <Label>{tExt("current_status")}</Label>
+                  <Label>{tCommon("current_status")}</Label>
                   <RadioGroup
                     value={formData?.status || "ACTIVE"}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as "ACTIVE" | "PAUSED" }))}

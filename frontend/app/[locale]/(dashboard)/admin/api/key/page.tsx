@@ -26,7 +26,7 @@ export default function ApiKeyPage() {
       canDelete={true}
       canView={true}
       isParanoid={true}
-      title="API Key Management"
+      title={t("api_key_management")}
       description={t("manage_api_keys_for_external_integrations")}
       itemTitle="API Key"
       columns={columns}

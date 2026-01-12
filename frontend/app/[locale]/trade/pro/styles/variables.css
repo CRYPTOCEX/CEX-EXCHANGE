@@ -1,0 +1,106 @@
+/* Trading Pro CSS Variables */
+
+/* Light mode values (default when not .dark) */
+:root {
+  /* Background colors - Light theme */
+  --tp-bg-primary: #ffffff;
+  --tp-bg-secondary: #f9fafb;
+  --tp-bg-tertiary: #f3f4f6;
+  --tp-bg-elevated: #e5e7eb;
+
+  /* Border colors */
+  --tp-border: #d1d5db;
+  --tp-border-subtle: #e5e7eb;
+
+  /* Text colors */
+  --tp-text-primary: #111827;
+  --tp-text-secondary: #4b5563;
+  --tp-text-muted: #9ca3af;
+  --tp-text-disabled: #d1d5db;
+
+  /* Accent colors - for light mode */
+  --tp-green: #16a34a;
+  --tp-green-dim: #15803d;
+  --tp-green-bg: rgba(22, 163, 74, 0.1);
+
+  --tp-red: #dc2626;
+  --tp-red-dim: #b91c1c;
+  --tp-red-bg: rgba(220, 38, 38, 0.1);
+
+  --tp-blue: #2563eb;
+  --tp-blue-dim: #1d4ed8;
+  --tp-blue-bg: rgba(37, 99, 235, 0.1);
+
+  --tp-yellow: #ca8a04;
+  --tp-orange: #ea580c;
+}
+
+/* Dark mode - when .dark class is on html element */
+.dark {
+  /* Background colors - Dark theme */
+  --tp-bg-primary: #0a0a0a;
+  --tp-bg-secondary: #111111;
+  --tp-bg-tertiary: #171717;
+  --tp-bg-elevated: #1a1a1a;
+
+  /* Border colors */
+  --tp-border: #262626;
+  --tp-border-subtle: #1f1f1f;
+
+  /* Text colors */
+  --tp-text-primary: #ffffff;
+  --tp-text-secondary: #a3a3a3;
+  --tp-text-muted: #525252;
+  --tp-text-disabled: #404040;
+
+  /* Accent colors - for dark mode */
+  --tp-green: #22c55e;
+  --tp-green-dim: #16a34a;
+  --tp-green-bg: rgba(34, 197, 94, 0.1);
+
+  --tp-red: #ef4444;
+  --tp-red-dim: #dc2626;
+  --tp-red-bg: rgba(239, 68, 68, 0.1);
+
+  --tp-blue: #3b82f6;
+  --tp-blue-dim: #2563eb;
+  --tp-blue-bg: rgba(59, 130, 246, 0.1);
+
+  --tp-yellow: #eab308;
+  --tp-orange: #f97316;
+}
+
+/* Shared variables (both themes) */
+:root {
+  /* Typography */
+  --tp-font-mono: "JetBrains Mono", "SF Mono", "Fira Code", "Consolas", monospace;
+  --tp-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+
+  /* Font sizes */
+  --tp-text-xs: 0.625rem;
+  --tp-text-sm: 0.75rem;
+  --tp-text-base: 0.8125rem;
+  --tp-text-lg: 0.875rem;
+  --tp-text-xl: 1rem;
+
+  /* Spacing */
+  --tp-space-1: 0.25rem;
+  --tp-space-2: 0.5rem;
+  --tp-space-3: 0.75rem;
+  --tp-space-4: 1rem;
+  --tp-space-6: 1.5rem;
+  --tp-space-8: 2rem;
+
+  /* Transitions */
+  --tp-transition-fast: 100ms ease-out;
+  --tp-transition-normal: 200ms ease-out;
+  --tp-transition-slow: 300ms ease-out;
+
+  /* Z-index layers */
+  --tp-z-panel: 10;
+  --tp-z-dropdown: 100;
+  --tp-z-modal: 200;
+  --tp-z-tooltip: 300;
+  --tp-z-toast: 400;
+}

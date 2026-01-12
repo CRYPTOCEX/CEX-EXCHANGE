@@ -95,7 +95,7 @@ export function useAnalytics() {
       items: [
         {
           id: "total_views",
-          title: t("total_views"),
+          title: tCommon("total_views"),
           metric: "views",
           model: "post",
           icon: "mdi:eye",
@@ -291,7 +291,7 @@ export function useAnalytics() {
           metrics: ["views"],
           timeframes: ["24h", "7d", "30d", "3m", "6m", "y"],
           labels: {
-            views: t("total_views"),
+            views: tCommon("total_views"),
           },
         },
       ],

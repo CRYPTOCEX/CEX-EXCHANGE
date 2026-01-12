@@ -24,6 +24,7 @@ export default function FuturesTradingForm({
 }: FuturesTradingFormProps) {
   const t = useTranslations("common");
   const tTradeComponents = useTranslations("trade_components");
+  const tCommon = useTranslations("common");
   const [orderType, setOrderType] = useState<"market" | "limit">("market");
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [marketInfo, setMarketInfo] = useState<FuturesMarket | null>(null);
@@ -285,7 +286,7 @@ export default function FuturesTradingForm({
       <div className="px-3 py-1.5 bg-yellow-500/10 border-b border-yellow-500/20 flex items-center">
         <Zap className="h-3.5 w-3.5 text-yellow-500 mr-1.5" />
         <span className="text-xs font-medium text-yellow-600 dark:text-yellow-400">
-          {tTradeComponents("futures_trading")}
+          {tCommon("futures_trading")}
         </span>
         <Badge className="ml-auto bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/30 text-[10px]">
           {symbol}

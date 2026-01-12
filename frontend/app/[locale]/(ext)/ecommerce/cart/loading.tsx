@@ -1,8 +1,6 @@
 import { Loader2, ChevronRight } from "lucide-react";
-import { useTranslations } from "next-intl";
 
 export default function CartLoading() {
-  const t = useTranslations("ext_ecommerce");
   return (
     <div className={`bg-linear-to-b from-amber-50 to-white dark:from-zinc-900 dark:to-zinc-800 min-h-screen pb-12 pt-24`}>
       {/* Subtle decorative background glows */}
@@ -130,7 +128,6 @@ export default function CartLoading() {
         {/* Loading indicator */}
         <div className="flex flex-col items-center justify-center py-16 mt-8">
           <Loader2 className={`h-12 w-12 animate-spin text-amber-500 dark:text-amber-400 mb-4`} />
-          <p className="text-gray-600 dark:text-zinc-400 text-lg">{t("loading_your_cart_ellipsis")}</p>
         </div>
       </div>
     </div>

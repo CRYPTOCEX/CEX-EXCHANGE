@@ -653,8 +653,8 @@ export function ApplicationDetailsClient() {
     if (!fields || !Array.isArray(fields) || fields.length === 0) {
       return (
         <div className="text-center py-12">
-          <div className="bg-slate-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <FileText className="h-8 w-8 text-slate-400" />
+          <div className="bg-slate-50 dark:bg-zinc-800 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <FileText className="h-8 w-8 text-slate-400 dark:text-zinc-500" />
           </div>
           <h3 className="text-lg font-medium mb-2">
             {tCommon("no_application_data")}
@@ -797,7 +797,7 @@ export function ApplicationDetailsClient() {
       return (
         <div className="text-center py-16">
           <div className="bg-slate-50 dark:bg-zinc-800 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-            <FileText className="h-10 w-10 text-slate-400" />
+            <FileText className="h-10 w-10 text-slate-400 dark:text-zinc-500" />
           </div>
           <h3 className="text-lg font-medium mb-2">
             {tCommon("no_documents_found")}
@@ -1046,10 +1046,10 @@ export function ApplicationDetailsClient() {
                 className={cn(
                   "p-2 rounded-full mr-3 flex-shrink-0",
                   application.status === "REJECTED"
-                    ? "bg-red-100"
+                    ? "bg-red-100 dark:bg-red-900/50"
                     : application.status === "ADDITIONAL_INFO_REQUIRED"
-                      ? "bg-orange-100"
-                      : "bg-blue-100"
+                      ? "bg-orange-100 dark:bg-orange-900/50"
+                      : "bg-blue-100 dark:bg-blue-900/50"
                 )}
               >
                 <Info
@@ -1142,10 +1142,10 @@ export function ApplicationDetailsClient() {
                         : verificationStatus}
                     </Badge>
                   </div>
-                  <div className="bg-slate-100 p-1 rounded-full">
+                  <div className="bg-slate-100 dark:bg-zinc-800 p-1 rounded-full">
                     <Progress
                       value={verificationProgress}
-                      className="h-2.5 bg-slate-200"
+                      className="h-2.5 bg-slate-200 dark:bg-zinc-700"
                     />
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground mt-1.5 px-1">
@@ -1162,7 +1162,7 @@ export function ApplicationDetailsClient() {
                   </h4>
                   <div className="space-y-4">
                     <VerificationStep
-                      icon={<FileText className="h-4 w-4 text-slate-600" />}
+                      icon={<FileText className="h-4 w-4 text-slate-600 dark:text-zinc-400" />}
                       title={t("application_submitted")}
                       description={t("your_kyc_application_has_been_received")}
                       status="completed"
@@ -1182,7 +1182,7 @@ export function ApplicationDetailsClient() {
                       }
                     />
                     <VerificationStep
-                      icon={<User className="h-4 w-4 text-slate-600" />}
+                      icon={<User className="h-4 w-4 text-slate-600 dark:text-zinc-400" />}
                       title={t("admin_review")}
                       description={t("your_application_is_being_reviewed_by_our_team")}
                       status={
@@ -1251,7 +1251,7 @@ export function ApplicationDetailsClient() {
                       <div
                         className={cn(
                           "p-2 rounded-full mr-3 flex-shrink-0",
-                          check.passed ? "bg-green-100" : "bg-red-100"
+                          check.passed ? "bg-green-100 dark:bg-green-900/50" : "bg-red-100 dark:bg-red-900/50"
                         )}
                       >
                         {check.passed ? (
@@ -1311,7 +1311,7 @@ export function ApplicationDetailsClient() {
                       </h5>
                       <span className="text-sm font-bold">{`${confidenceScore}%`}</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 dark:bg-zinc-700 rounded-full h-2">
                       <div
                         className={cn(
                           "h-2 rounded-full",
@@ -1459,7 +1459,7 @@ export function ApplicationDetailsClient() {
           </Button>
           <Skeleton className="h-8 w-64" />
         </div>
-        <Card className="border border-slate-200">
+        <Card className="border border-slate-200 dark:border-zinc-700 dark:bg-zinc-900">
           <CardHeader>
             <Skeleton className="h-8 w-48 mb-2" />
             <Skeleton className="h-4 w-full" />
@@ -1489,7 +1489,7 @@ export function ApplicationDetailsClient() {
             </Button>
           </a>
         </div>
-        <Card className="border border-red-200 bg-gradient-to-r from-red-50 to-red-100">
+        <Card className="border border-red-200 dark:border-red-800 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30">
           <CardHeader>
             <CardTitle className="flex items-center">
               <XCircle className="h-5 w-5 text-red-500 mr-2" />
@@ -1594,8 +1594,8 @@ export function ApplicationDetailsClient() {
                 </TabsContent>
 
                 <TabsContent value="details">
-                  <Card className="border border-slate-200">
-                    <CardHeader className="bg-gradient-to-r from-slate-50 to-white border-b">
+                  <Card className="border border-slate-200 dark:border-zinc-700 dark:bg-zinc-900">
+                    <CardHeader className="bg-gradient-to-r from-slate-50 to-white dark:from-zinc-800 dark:to-zinc-900 border-b dark:border-zinc-700">
                       <CardTitle className="flex items-center">
                         <div className="bg-primary/10 p-1.5 rounded-md mr-2">
                           <FileText className="h-5 w-5 text-primary" />
@@ -1632,8 +1632,8 @@ export function ApplicationDetailsClient() {
                 </TabsContent>
 
                 <TabsContent value="documents">
-                  <Card className="border border-slate-200">
-                    <CardHeader className="bg-gradient-to-r from-slate-50 to-white border-b">
+                  <Card className="border border-slate-200 dark:border-zinc-700 dark:bg-zinc-900">
+                    <CardHeader className="bg-gradient-to-r from-slate-50 to-white dark:from-zinc-800 dark:to-zinc-900 border-b dark:border-zinc-700">
                       <CardTitle className="flex items-center">
                         <div className="bg-primary/10 p-1.5 rounded-md mr-2">
                           <Layers className="h-5 w-5 text-primary" />

@@ -1,9 +1,21 @@
 "use client";
-import { Shield, ClipboardList, CheckSquare, CalendarIcon, TrendingUp, Flame, Network } from "lucide-react";
 import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+  Shield,
+  ClipboardList,
+  CheckSquare,
+  CalendarIcon,
+  TrendingUp,
+  Flame,
+  Network,
+  Percent,
+  Hash,
+  Gauge,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  ArrowDownUp,
+  DollarSign,
+  Coins,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
 import type { FormConfig } from "@/components/blocks/data-table/types/table";
@@ -12,6 +24,7 @@ export function useColumns(): ColumnDefinition[] {
   const tCommon = useTranslations("common");
   const tDashboardAdmin = useTranslations("dashboard_admin");
   const tExtAdmin = useTranslations("ext_admin");
+  const t = useTranslations("ext");
   return [
     {
       key: "id",
@@ -72,7 +85,7 @@ export function useColumns(): ColumnDefinition[] {
       render: {
         type: "badge",
         config: {
-          variant: (value: boolean) => value ? "info" : "secondary",
+          variant: (value: boolean) => (value ? "info" : "secondary"),
           labels: {
             true: "Trending",
             false: "Not Trending",
@@ -94,101 +107,13 @@ export function useColumns(): ColumnDefinition[] {
       render: {
         type: "badge",
         config: {
-          variant: (value: boolean) => value ? "warning" : "secondary",
+          variant: (value: boolean) => (value ? "warning" : "secondary"),
           labels: {
             true: "Hot",
             false: "Not Hot",
           },
         },
       },
-    },
-    {
-      key: "metadata",
-      title: tCommon("metadata"),
-      type: "custom",
-      icon: ClipboardList,
-      sortable: false,
-      searchable: false,
-      filterable: false,
-      description: tExtAdmin("trading_fees_precision_settings_and_market"),
-      render: {
-        type: "custom",
-        render: (value: any) => {
-          const t = useTranslations("common");
-          const tExtAdmin = useTranslations("ext_admin");
-          const tDashboardAdmin = useTranslations("dashboard_admin");
-          if (!value) {
-            return (
-              <span className="text-sm text-muted-foreground">N/A</span>
-            );
-          }
-
-          return (
-            <Card>
-              <CardContent className="p-5 space-y-3">
-                {/* Taker */}
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">{tExtAdmin("taker")}</Badge>
-                  <span className="text-sm">{value.taker}</span>
-                </div>
-
-                {/* Maker */}
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">{tExtAdmin("maker")}</Badge>
-                  <span className="text-sm">{value.maker}</span>
-                </div>
-
-                {/* Precision */}
-                {value.precision && (
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{tCommon("precision")}</Badge>
-                    <span className="text-sm">
-                      {tCommon("amount")}
-                      {value.precision.amount}
-                      {tCommon("price")} {value.precision.price}
-                    </span>
-                  </div>
-                )}
-
-                {/* Limits */}
-                {value.limits && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">{tCommon("limits")}</h4>
-                    <table className="w-full border-collapse text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="py-1 pr-2 text-left font-medium">
-                            {tCommon("type")}
-                          </th>
-                          <th className="py-1 pr-2 text-left font-medium">
-                            {tCommon("min")}
-                          </th>
-                          <th className="py-1 pr-2 text-left font-medium">
-                            {tCommon("max")}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {Object.entries(value.limits).map(
-                          ([key, limit]: [string, any]) => (
-                            <tr key={key} className="border-b last:border-none">
-                              <td className="py-1 pr-2 capitalize">{key}</td>
-                              <td className="py-1 pr-2">{limit.min ?? "-"}</td>
-                              <td className="py-1 pr-2">{limit.max ?? "-"}</td>
-                            </tr>
-                          )
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        },
-      },
-      priority: 3,
-      expandedOnly: true,
     },
     {
       key: "createdAt",
@@ -202,6 +127,148 @@ export function useColumns(): ColumnDefinition[] {
       render: { type: "date", format: "PPP" },
       priority: 3,
       expandedOnly: true,
+    },
+    {
+      key: "metadata",
+      title: tCommon("metadata"),
+      type: "custom",
+      icon: ClipboardList,
+      sortable: false,
+      searchable: false,
+      filterable: false,
+      description: tExtAdmin("trading_fees_precision_settings_and_market"),
+      render: {
+        type: "custom",
+        render: (value: any) => {
+          if (!value) {
+            return (
+              <span className="text-sm text-muted-foreground">N/A</span>
+            );
+          }
+
+          return (
+            <div className="w-full space-y-4">
+              {/* Trading Fees Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Taker Fee */}
+                <div className="flex items-center gap-3 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
+                    <ArrowDownToLine className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">{tCommon("taker_fee")}</p>
+                    <p className="text-lg font-semibold">{value.taker}%</p>
+                  </div>
+                </div>
+
+                {/* Maker Fee */}
+                <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                  <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
+                    <ArrowUpFromLine className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">{tCommon("maker_fee")}</p>
+                    <p className="text-lg font-semibold">{value.maker}%</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Precision Section */}
+              {value.precision && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="flex items-center gap-3 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                    <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0">
+                      <Hash className="h-5 w-5 text-purple-500" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">{tCommon("amount_precision")}</p>
+                      <p className="text-lg font-semibold">{value.precision.amount} <span className="text-sm font-normal text-muted-foreground">decimals</span></p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-3 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
+                    <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center shrink-0">
+                      <DollarSign className="h-5 w-5 text-cyan-500" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">{tCommon("price_precision")}</p>
+                      <p className="text-lg font-semibold">{value.precision.price} <span className="text-sm font-normal text-muted-foreground">decimals</span></p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Limits Section */}
+              {value.limits && (
+                <div className="p-4 bg-muted/30 rounded-lg border">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Gauge className="h-4 w-4 text-primary" />
+                    <h4 className="text-sm font-semibold">{t("trading_limits")}</h4>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {/* Amount Limits */}
+                    <div className="p-3 bg-background rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <ArrowDownUp className="h-4 w-4 text-purple-500" />
+                        <span className="text-xs font-medium text-muted-foreground uppercase">Amount</span>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">{tCommon("min")}</span>
+                          <span className="font-mono">{value.limits.amount?.min ?? 0}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">{tCommon("max")}</span>
+                          <span className="font-mono">{value.limits.amount?.max || "∞"}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Price Limits */}
+                    <div className="p-3 bg-background rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <DollarSign className="h-4 w-4 text-cyan-500" />
+                        <span className="text-xs font-medium text-muted-foreground uppercase">Price</span>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">{tCommon("min")}</span>
+                          <span className="font-mono">{value.limits.price?.min ?? 0}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">{tCommon("max")}</span>
+                          <span className="font-mono">{value.limits.price?.max || "∞"}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Cost Limits */}
+                    <div className="p-3 bg-background rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Coins className="h-4 w-4 text-green-500" />
+                        <span className="text-xs font-medium text-muted-foreground uppercase">Cost</span>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">{tCommon("min")}</span>
+                          <span className="font-mono">{value.limits.cost?.min ?? 0}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">{tCommon("max")}</span>
+                          <span className="font-mono">{value.limits.cost?.max || "∞"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        },
+      },
+      priority: 3,
+      expandedOnly: true,
+      fullWidth: true,
     },
   ];
 }
@@ -227,19 +294,14 @@ export function useFormConfig(): FormConfig {
           title: tExtAdmin("market_features"),
           icon: TrendingUp,
           priority: 2,
-          fields: [
-            { key: "isTrending" },
-            { key: "isHot" },
-          ],
+          fields: [{ key: "isTrending" }, { key: "isHot" }],
         },
         {
           id: "status",
           title: tCommon("status"),
           icon: CheckSquare,
           priority: 3,
-          fields: [
-            { key: "status" },
-          ],
+          fields: [{ key: "status" }],
         },
       ],
     },
@@ -250,19 +312,14 @@ export function useFormConfig(): FormConfig {
           title: tExtAdmin("market_features"),
           icon: TrendingUp,
           priority: 1,
-          fields: [
-            { key: "isTrending" },
-            { key: "isHot" },
-          ],
+          fields: [{ key: "isTrending" }, { key: "isHot" }],
         },
         {
           id: "status",
           title: tCommon("status"),
           icon: CheckSquare,
           priority: 2,
-          fields: [
-            { key: "status" },
-          ],
+          fields: [{ key: "status" }],
         },
       ],
     },

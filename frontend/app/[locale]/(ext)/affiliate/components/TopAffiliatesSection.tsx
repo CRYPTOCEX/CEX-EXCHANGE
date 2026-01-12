@@ -49,6 +49,7 @@ function AffiliateCard({
   affiliate: TopAffiliate;
   index: number;
 }) {
+  const tExt = useTranslations("ext");
   const colors = rankColors[affiliate.rank as keyof typeof rankColors] || {
     bg: "from-blue-500/10 to-blue-400/10",
     border: "border-blue-500/20",
@@ -100,7 +101,7 @@ function AffiliateCard({
                 {formatEarnings(affiliate.totalEarnings)}
               </motion.div>
               <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                Total Earned
+                {tExt("total_earned")}
               </div>
             </div>
           </div>
@@ -182,12 +183,12 @@ export default function TopAffiliatesSection({
             >
               <Trophy className="w-4 h-4 text-amber-500 mr-2" />
               <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                Top Performers
+                {tExt("top_performers")}
               </span>
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
               <span className="bg-gradient-to-r from-blue-600 to-amber-600 bg-clip-text text-transparent">
-                Our Success Stories
+                {t("our_success_stories")}
               </span>
             </h2>
           </div>
@@ -256,7 +257,7 @@ export default function TopAffiliatesSection({
         >
           <p className="text-zinc-600 dark:text-zinc-400">
             <Star className="w-4 h-4 inline mr-1 text-amber-500" />
-            You could be next! Start your affiliate journey today.
+            {t("you_could_be_next_start_your")}
           </p>
         </motion.div>
       </div>

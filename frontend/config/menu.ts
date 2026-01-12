@@ -231,15 +231,23 @@ export const adminMenu: MenuItem[] = [
             description:
               "Manage exchange integrations with liquidity providers, API configurations, and performance monitoring.",
           },
-        ],
+          {
+            key: "admin-trading-settings",
+            title: "Trading Settings",
+            href: "/admin/trading/settings",
+            icon: "ph:chart-line-up-duotone",
+            description:
+              "Configure advanced trading interface with layouts, hotkeys, and analytics settings.",
           },
+        ],
+      },
           {
             key: "admin-binary-trading",
             title: "Binary Options",
             icon: "humbleicons:exchange-vertical",
         href: "/admin/finance/binary",
             description:
-              "Binary options trading system with market setup, duration management, and payout configuration.",
+              "Binary options trading system with market setup and settings configuration.",
             permission: ["access.binary.market", "access.binary.duration"],
             child: [
               {
@@ -249,16 +257,16 @@ export const adminMenu: MenuItem[] = [
                 permission: "access.binary.market",
                 icon: "ri:exchange-2-line",
                 description:
-                  "Configure binary options markets with asset pairs, trading parameters, and market hours.",
+                  "Configure binary options markets with asset pairs and trading parameters.",
               },
               {
-                key: "admin-binary-durations",
-                title: "Trading Durations",
-                href: "/admin/finance/binary/duration",
+                key: "admin-binary-settings",
+                title: "Binary Settings",
+                href: "/admin/finance/binary/settings",
                 permission: "access.binary.duration",
-                icon: "ph:clock-duotone",
+                icon: "ph:gear-duotone",
                 description:
-                  "Set trading timeframes and payout percentages for binary options with risk management controls.",
+                  "Configure trading durations, payouts, order types, and risk management.",
           },
         ],
       },
@@ -318,7 +326,6 @@ export const adminMenu: MenuItem[] = [
             href: "/admin/finance/order/binary",
             icon: "tabler:binary-tree",
             permission: "access.binary.order",
-            env: process.env.NEXT_PUBLIC_BINARY_STATUS,
             description:
               "Monitor and manage binary options orders with execution tracking and settlement processing.",
           },
@@ -497,7 +504,7 @@ export const adminMenu: MenuItem[] = [
             icon: "ph:chart-line-duotone",
             extension: "futures",
             permission: "access.futures.market",
-            href: "/admin/futures/market",
+            href: "/admin/futures",
             description:
               "Professional futures trading platform with margin management, risk controls, and institutional execution.",
             features: [
@@ -515,7 +522,7 @@ export const adminMenu: MenuItem[] = [
             icon: "ph:currency-dollar-simple-duotone",
             extension: "forex",
             permission: "access.forex.account",
-            href: "/admin/forex/account",
+            href: "/admin/forex",
             description:
               "Professional forex trading with MetaTrader integration, algorithmic trading, and institutional liquidity.",
             features: [
@@ -581,6 +588,24 @@ export const adminMenu: MenuItem[] = [
               "Real-Time Monitoring",
             ],
           },
+          {
+            key: "admin-binary-ai-engine",
+            title: "Binary AI Engine",
+            icon: "ph:brain-duotone",
+            extension: "binary_ai_engine",
+            permission: "access.binary.ai.engine",
+            href: "/admin/ai/binary-engine",
+            description:
+              "AI-powered binary options trading engine with adaptive win rates, ML optimization, and multi-tier user management.",
+            features: [
+              "ML-Based Win Rate Optimization",
+              "Multi-Tier User Management",
+              "A/B Testing Framework",
+              "User Cohort Analysis",
+              "External Price Correlation",
+              "Time-Based Analytics",
+            ],
+          },
         ],
       },
       {
@@ -597,7 +622,7 @@ export const adminMenu: MenuItem[] = [
             icon: "ph:robot-duotone",
             extension: "ai_investment",
             permission: "access.ai.investment",
-            href: "/admin/ai/investment/plan",
+            href: "/admin/ai/investment",
             description:
               "Artificial intelligence-powered investment management with machine learning algorithms and automated portfolio optimization.",
             features: [
@@ -827,8 +852,17 @@ export const adminMenu: MenuItem[] = [
         icon: "ph:chat-circle-duotone",
         description:
           "Platform communication management including notifications, announcements, and user messaging systems.",
-        permission: ["access.notification.template", "access.system.announcement"],
+        permission: ["access.notification.template", "access.system.announcement", "access.notification.settings"],
         child: [
+          {
+            key: "admin-notification-service",
+            title: "Notification Service",
+            href: "/admin/system/notification",
+            permission: "access.notification.settings",
+            icon: "ph:bell-ringing-duotone",
+            description:
+              "Multi-channel notification service with real-time monitoring, health checks, and testing tools for IN_APP, EMAIL, SMS, and PUSH notifications.",
+          },
           {
             key: "admin-notification-templates",
             title: "Notification Templates",
@@ -933,7 +967,7 @@ export const userMenu: MenuItem[] = [
         title: "Binary Options",
         href: "/binary",
         icon: "mdi:chart-line",
-        env: process.env.NEXT_PUBLIC_BINARY_STATUS,
+        settings: ["binaryStatus"],
         description:
           "Trade binary options with sophisticated analytics, risk management tools, and streamlined execution for time-sensitive strategies.",
       },
@@ -1083,7 +1117,7 @@ export const userMenu: MenuItem[] = [
      title: "Insights",
      href: "/blog",
      icon: "fluent:content-view-28-regular",
-     env: process.env.NEXT_PUBLIC_BLOG_STATUS,
+     settings: ["blogStatus"],
      description:
        "Professional market analysis, trading insights, and industry news from our team of financial experts and market researchers.",
    },
@@ -1106,7 +1140,13 @@ function isItemVisible(
 
   const hasRequiredExtension = !item.extension || hasExtension(item.extension);
   const hasRequiredSetting =
-    !item.settings || item.settings.every((s) => getSetting(s) === "true");
+    !item.settings || item.settings.every((s) => {
+      const value = getSetting(s);
+      // Handle both string "true" and boolean true (settings are converted to booleans in the store)
+      if (value === "true" || value === "1") return true;
+      if (typeof value === 'boolean') return value === true;
+      return false;
+    });
   const hasRequiredSettingConditions =
     !item.settingConditions ||
     Object.entries(item.settingConditions).every(

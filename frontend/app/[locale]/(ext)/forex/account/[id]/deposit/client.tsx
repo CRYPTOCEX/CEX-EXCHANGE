@@ -326,6 +326,8 @@ function DepositClientContent() {
 
   // Add a new function to render the success step after the renderConfirmStep function
   function renderSuccessStep() {
+  const t = useTranslations("ext");
+  const tCommon = useTranslations("common");
     if (!deposit || !selectedCurrency) return null;
     return (
       <>
@@ -465,6 +467,8 @@ function DepositClientContent() {
 
   // Render the step content
   function renderStepContent() {
+  const tCommon = useTranslations("common");
+  const t = useTranslations("ext");
     if (deposit) {
       return renderSuccessStep();
     }
@@ -673,6 +677,7 @@ function DepositClientContent() {
 
   // Render "Enter Amount" step
   function renderAmountStep() {
+  const tCommon = useTranslations("common");
     if (!selectedCurrency) return null;
     return (
       <>
@@ -756,6 +761,8 @@ function DepositClientContent() {
 
   // Render "Confirmation" step
   function renderConfirmStep() {
+  const tCommon = useTranslations("common");
+  const t = useTranslations("ext");
     if (!selectedCurrency) return null;
     return (
       <>

@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # =============================================================================
-# 🚀 Bicrypto V5 Advanced Installer
+# 🚀 Bicrypto V6 Advanced Installer
 # =============================================================================
 # An intelligent, robust, and user-friendly installation script
 # Supports multiple Linux distributions with comprehensive error handling
 # =============================================================================
+
 set -euo pipefail  # Exit on any error
 
 # Color codes for enhanced output
@@ -49,12 +50,12 @@ print_banner() {
 ║    ██████╔╝██║╚██████╗██║  ██║   ██║   ██║        ██║   ╚██████╔╝            ║
 ║    ╚═════╝ ╚═╝ ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚═╝        ╚═╝    ╚═════╝             ║
 ║                                                                              ║
-║                      🚀 ADVANCED INSTALLER V5                                ║
+║                      🚀 ADVANCED INSTALLER V6                                ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 EOF
     echo -e "${NC}"
-    echo -e "${WHITE}${BOLD}Welcome to Bicrypto V5 Professional Installation Suite${NC}"
+    echo -e "${WHITE}${BOLD}Welcome to Bicrypto V6 Professional Installation Suite${NC}"
     echo -e "${BLUE}Version: ${SCRIPT_VERSION} | $(date '+%Y-%m-%d %H:%M:%S')${NC}"
     echo ""
 }
@@ -1448,11 +1449,11 @@ EOF
     fi
     
     # Run build as root (store-dir is only needed for install, not for scripts)
-    if ! pnpm build:all; then
+    if ! pnpm build:frontend; then
         print_warning "Build failed, checking for Sharp-related issues..."
-        
+
         # Check if the error is Sharp-related
-        local build_error=$(pnpm build:all 2>&1 | head -100)
+        local build_error=$(pnpm build:frontend 2>&1 | head -100)
         
         if echo "$build_error" | grep -q "sharp.*module\|v2 microarchitecture"; then
             print_info "Build failed due to Sharp module. Attempting workaround..."
@@ -1478,7 +1479,7 @@ EOF
             
             # Retry build with modifications
             print_info "Retrying build without Sharp..."
-            if ! pnpm build:all; then
+            if ! pnpm build:frontend; then
                 print_error "Application build failed even after Sharp workaround"
                 print_info "You may need to manually configure the build process"
                 
@@ -1776,7 +1777,7 @@ setup_process_manager() {
     cat > ecosystem.config.js << EOF
 module.exports = {
   apps: [{
-    name: 'bicrypto-v5',
+    name: 'bicrypto-v6',
     script: 'pnpm',
     args: 'start',
     cwd: '$(pwd)',
@@ -1855,7 +1856,7 @@ EOF
     local startup_script="/usr/local/bin/bicrypto-start"
     cat > "$startup_script" << EOF
 #!/bin/bash
-# Bicrypto V5 Application Startup Script
+# Bicrypto V6 Application Startup Script
 
 APP_DIR="$(pwd)"
 APP_USER="$app_user"
@@ -1870,7 +1871,7 @@ start_app() {
 }
 
 # Start the application
-echo "Starting Bicrypto V5 application..."
+echo "Starting Bicrypto V6 application..."
 start_app
 EOF
     chmod +x "$startup_script"
@@ -1881,7 +1882,7 @@ EOF
         print_info "Creating systemd service for auto-start..."
         cat > /etc/systemd/system/bicrypto.service << EOF
 [Unit]
-Description=Bicrypto V5 Application
+Description=Bicrypto V6 Application
 After=network.target
 
 [Service]
@@ -1936,7 +1937,7 @@ export NODE_ENV=production
 cd "$(pwd)"
 
 # Start the application and capture the PID
-echo "Starting Bicrypto V5 application as user: $app_user"
+echo "Starting Bicrypto V6 application as user: $app_user"
 echo "Working directory: \$(pwd)"
 echo "Node.js version: \$(node -v 2>/dev/null || echo 'Not found')"
 echo "pnpm version: \$(pnpm -v 2>/dev/null || echo 'Not found')"
@@ -2080,7 +2081,7 @@ show_installation_summary() {
 EOF
     echo -e "${NC}"
     
-    echo -e "${WHITE}${BOLD}🚀 Bicrypto V5 is now ready!${NC}\n"
+    echo -e "${WHITE}${BOLD}🚀 Bicrypto V6 is now ready!${NC}\n"
     
     echo -e "${CYAN}${BOLD}📋 INSTALLATION SUMMARY${NC}"
     echo -e "${BLUE}═══════════════════════════════════════════════════════════════════════════════${NC}"
@@ -2116,10 +2117,10 @@ EOF
     echo -e "${YELLOW}• Keep your system and dependencies updated regularly${NC}"
     echo -e "${BLUE}═══════════════════════════════════════════════════════════════════════════════${NC}\n"
     
-    echo -e "${WHITE}${BOLD}📞 Support: ${BLUE}https://support.mash3div.com${NC}"
-    echo -e "${WHITE}${BOLD}📖 Documentation: ${BLUE}https://docs.bicrypto.com${NC}\n"
+    echo -e "${WHITE}${BOLD}📞 Support: ${BLUE}https://support.mashdiv.com${NC}"
+    echo -e "${WHITE}${BOLD}📖 Documentation: ${BLUE}https://docs.mashdiv.com${NC}\n"
     
-    echo -e "${GREEN}${BOLD}Thank you for choosing Bicrypto V5! 🚀${NC}\n"
+    echo -e "${GREEN}${BOLD}Thank you for choosing Bicrypto V6! 🚀${NC}\n"
 }
 
 # =============================================================================
@@ -2137,7 +2138,7 @@ main() {
     print_banner
     
     # Confirm installation
-    echo -e "${YELLOW}${BOLD}This will install Bicrypto V5 with all required dependencies.${NC}"
+    echo -e "${YELLOW}${BOLD}This will install Bicrypto V6 with all required dependencies.${NC}"
     echo -e "${WHITE}The installation process will take 10-15 minutes.${NC}\n"
     
     read -p "$(echo -e ${WHITE}Continue with installation? [Y/n]: ${NC})" -n 1 -r
@@ -2406,7 +2407,6 @@ clean_build_artifacts() {
     print_success "Build artifacts cleaned successfully"
     print_info "You can now run the installer or build commands again"
 }
-
 # =============================================================================
 # 🔧 Sharp Module Fix Function
 # =============================================================================
@@ -2586,7 +2586,7 @@ EOF
     echo -e "${WHITE}Image optimization is disabled but the application will function normally.${NC}"
     echo -e "\n${YELLOW}Next steps:${NC}"
     echo -e "  1. ${CYAN}pnpm install${NC} - Reinstall dependencies"
-    echo -e "  2. ${CYAN}pnpm build:all${NC} - Build the application"
+    echo -e "  2. ${CYAN}pnpm build:frontend${NC} - Build the application"
     echo -e "  3. ${CYAN}pnpm start${NC} - Start the application"
     echo -e "${BLUE}═══════════════════════════════════════════════════════════════════════════════${NC}\n"
 }
@@ -2614,7 +2614,7 @@ case "${1:-}" in
         exit 0
         ;;
     --help|-h)
-        echo -e "${WHITE}${BOLD}Bicrypto V5 Installer${NC}"
+        echo -e "${WHITE}${BOLD}Bicrypto V6 Installer${NC}"
         echo -e "${CYAN}Usage: $0 [OPTIONS]${NC}"
         echo ""
         echo -e "${WHITE}Options:${NC}"

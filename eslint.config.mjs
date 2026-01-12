@@ -3,11 +3,29 @@ import pluginJs from "@eslint/js";
 import tseslint from "typescript-eslint";
 import pluginReact from "eslint-plugin-react";
 import pluginNext from "@next/eslint-plugin-next";
+import pluginReactHooks from "eslint-plugin-react-hooks";
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   {
-    ignores: ["**/public/**", "**/node_modules/**", "**/.next/**", "**/lib/**", "frontend/public/**"]
+    ignores: [
+      "**/public/**",
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/lib/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/out/**",
+      "**/.turbo/**",
+      "**/coverage/**",
+      "frontend/public/**",
+      "frontend/components/(ext)/chart-engine/**",
+      "frontend/i18n/generated/**",
+      "frontend/i18n/loader.ts",
+      "frontend/i18n/webpack-plugin-i18n-keys.js",
+      "frontend/i18n/webpack-plugin-i18n.js",
+      "backend/dist/**",
+    ]
   },
   {
     files: ["**/*.{ts,tsx}"],
@@ -19,12 +37,15 @@ export default [
   {
     plugins: {
       "@next/next": pluginNext,
+      "react-hooks": pluginReactHooks,
     },
     rules: {
       ...pluginNext.configs.recommended.rules,
       ...pluginNext.configs["core-web-vitals"].rules,
       "@next/next/no-img-element": "off", // Disable img element warnings
       "@next/next/no-html-link-for-pages": "off", // Disable anchor tag warnings
+      "react-hooks/rules-of-hooks": "off", // Disabled - many render helpers use hooks intentionally
+      "react-hooks/exhaustive-deps": "off", // Disabled to prevent infinite loop issues with function dependencies
     },
   },
   {
@@ -59,6 +80,13 @@ export default [
       "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/no-require-imports": "off",
       "no-useless-catch": "off",
+    },
+  },
+  // Restricted imports for routing - applies to all files except i18n implementation
+  {
+    files: ["**/*.{ts,tsx}"],
+    ignores: ["**/i18n/routing.tsx", "**/i18n/server-routing.ts"],
+    rules: {
       "no-restricted-imports": [
         "error",
         {

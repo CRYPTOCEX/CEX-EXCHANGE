@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/card";
 import {
   ArrowLeft,
-  Clock,
   DollarSign,
   Percent,
   ArrowDownCircle,
@@ -15,13 +14,8 @@ import {
   Shield,
   Layers,
 } from "lucide-react";
-import { Link } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
 
 export default function DepositMethodLoading() {
-  const t = useTranslations("admin");
-  const tCommon = useTranslations("common");
-
   return (
     <div className="min-h-screen pt-20 pb-24">
       {/* Hero section with gradient background */}
@@ -29,13 +23,10 @@ export default function DepositMethodLoading() {
         <div className="absolute inset-0 bg-gradient-to-b from-primary/90 via-primary/70 to-primary-foreground/5 z-0"></div>
 
         <div className="container mx-auto relative z-10 pt-8 pb-12">
-          <Link
-            href="/admin/finance/deposit/method"
-            className="text-sm text-background/70 hover:text-background mb-4 flex items-center w-fit"
-          >
+          <div className="text-sm text-background/70 mb-4 flex items-center w-fit">
             <ArrowLeft className="mr-1 h-4 w-4" />
-            {t("back_to_methods")}
-          </Link>
+            <Skeleton className="h-4 w-28 bg-background/20" />
+          </div>
 
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             {/* Method Icon */}
@@ -51,17 +42,17 @@ export default function DepositMethodLoading() {
             {/* Method Info */}
             <div className="flex-grow">
               <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-                <Skeleton className="h-10 w-64" />
+                <Skeleton className="h-10 w-64 bg-background/20" />
                 <div className="flex items-center gap-2">
-                  <Skeleton className="h-8 w-24 rounded-full" />
-                  <Skeleton className="h-8 w-8 rounded-md" />
+                  <Skeleton className="h-8 w-24 rounded-full bg-background/20" />
+                  <Skeleton className="h-8 w-8 rounded-md bg-background/20" />
                 </div>
               </div>
 
               <div className="mt-2 max-w-2xl">
-                <Skeleton className="h-4 w-full mb-1" />
-                <Skeleton className="h-4 w-5/6 mb-1" />
-                <Skeleton className="h-4 w-4/6" />
+                <Skeleton className="h-4 w-full mb-1 bg-background/20" />
+                <Skeleton className="h-4 w-5/6 mb-1 bg-background/20" />
+                <Skeleton className="h-4 w-4/6 bg-background/20" />
               </div>
 
               {/* Stats Grid */}
@@ -70,10 +61,10 @@ export default function DepositMethodLoading() {
                 <div className="bg-background/10 backdrop-blur-sm rounded-lg p-3 border border-background/10">
                   <div className="text-background/70 text-sm flex items-center gap-1.5">
                     <DollarSign className="h-3.5 w-3.5" />
-                    <span>{tCommon("fixed_fee")}</span>
+                    <Skeleton className="h-4 w-16 bg-background/20" />
                   </div>
                   <div className="mt-1">
-                    <Skeleton className="h-6 w-20" />
+                    <Skeleton className="h-6 w-20 bg-background/20" />
                   </div>
                 </div>
 
@@ -81,10 +72,10 @@ export default function DepositMethodLoading() {
                 <div className="bg-background/10 backdrop-blur-sm rounded-lg p-3 border border-background/10">
                   <div className="text-background/70 text-sm flex items-center gap-1.5">
                     <Percent className="h-3.5 w-3.5" />
-                    <span>{tCommon("percentage_fee")}</span>
+                    <Skeleton className="h-4 w-24 bg-background/20" />
                   </div>
                   <div className="mt-1">
-                    <Skeleton className="h-6 w-16" />
+                    <Skeleton className="h-6 w-16 bg-background/20" />
                   </div>
                 </div>
 
@@ -92,10 +83,10 @@ export default function DepositMethodLoading() {
                 <div className="bg-background/10 backdrop-blur-sm rounded-lg p-3 border border-background/10">
                   <div className="text-background/70 text-sm flex items-center gap-1.5">
                     <ArrowDownCircle className="h-3.5 w-3.5" />
-                    <span>{tCommon("min_amount")}</span>
+                    <Skeleton className="h-4 w-20 bg-background/20" />
                   </div>
                   <div className="mt-1">
-                    <Skeleton className="h-6 w-24" />
+                    <Skeleton className="h-6 w-24 bg-background/20" />
                   </div>
                 </div>
 
@@ -103,10 +94,10 @@ export default function DepositMethodLoading() {
                 <div className="bg-background/10 backdrop-blur-sm rounded-lg p-3 border border-background/10">
                   <div className="text-background/70 text-sm flex items-center gap-1.5">
                     <ArrowUpCircle className="h-3.5 w-3.5" />
-                    <span>{tCommon("max_amount")}</span>
+                    <Skeleton className="h-4 w-20 bg-background/20" />
                   </div>
                   <div className="mt-1">
-                    <Skeleton className="h-6 w-24" />
+                    <Skeleton className="h-6 w-24 bg-background/20" />
                   </div>
                 </div>
               </div>
@@ -117,28 +108,26 @@ export default function DepositMethodLoading() {
           <div className="mt-8 bg-background/20 backdrop-blur-sm rounded-lg p-4 border border-background/10">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-background">
-                  {t("fee_structure_overview")}
-                </h3>
-                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-6 w-44 bg-background/30" />
+                <Skeleton className="h-5 w-20 rounded-full bg-background/20" />
               </div>
               <div className="flex items-center gap-1.5">
-                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-5 w-32 bg-background/20" />
               </div>
             </div>
-            <Skeleton className="h-2.5 w-full rounded-full" />
+            <Skeleton className="h-2.5 w-full rounded-full bg-background/20" />
 
             <div className="flex flex-wrap gap-4 mt-4 justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1.5 text-background/80">
                   <Shield className="h-4 w-4" />
-                  <span>{tCommon("custom_fields")}</span>
-                  <Skeleton className="h-4 w-8" />
+                  <Skeleton className="h-4 w-24 bg-background/20" />
+                  <Skeleton className="h-4 w-8 bg-background/20" />
                 </div>
                 <div className="flex items-center gap-1.5 text-background/80">
                   <Layers className="h-4 w-4" />
-                  <span>{tCommon("status")}</span>
-                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-12 bg-background/20" />
+                  <Skeleton className="h-4 w-16 bg-background/20" />
                 </div>
               </div>
             </div>

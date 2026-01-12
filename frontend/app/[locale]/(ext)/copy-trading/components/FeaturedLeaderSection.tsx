@@ -300,7 +300,7 @@ export default function FeaturedLeaderSection({
                 <div className="p-4 rounded-xl bg-zinc-100/80 dark:bg-zinc-800/50 border border-zinc-200/50 dark:border-zinc-700/50">
                   <div className="flex items-center gap-2 text-xs text-zinc-500 mb-2">
                     <BarChart3 className="w-3.5 h-3.5" />
-                    {tExt("total_trades")}
+                    {tCommon("total_trades")}
                   </div>
                   <div className="text-2xl font-bold text-zinc-900 dark:text-white">
                     {leader.totalTrades}

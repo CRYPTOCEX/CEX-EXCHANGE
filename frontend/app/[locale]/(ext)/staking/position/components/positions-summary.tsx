@@ -13,6 +13,7 @@ export function PositionsSummary({ positions }: PositionsSummaryProps) {
   const t = useTranslations("ext");
   const tCommon = useTranslations("common");
   const tExtStaking = useTranslations("ext_staking");
+  const tExt = useTranslations("ext");
   const summary = useMemo(() => {
     // Separate positions by status
     const activePositions = positions.filter((p) => p.status === "ACTIVE");
@@ -129,7 +130,7 @@ export function PositionsSummary({ positions }: PositionsSummaryProps) {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground mb-1">
-                {tExtStaking("pending_withdrawals")}
+                {tExt("pending_withdrawals")}
               </p>
               <p className="text-2xl font-bold">
                 {summary.pendingWithdrawalAmount.toFixed(2)}

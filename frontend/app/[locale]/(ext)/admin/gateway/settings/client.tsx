@@ -44,6 +44,7 @@ const GATEWAY_SETTINGS_CONFIG: SettingsPageConfig = {
 };
 
 export default function AdminGatewaySettingsPage() {
+  const t = useTranslations("ext_admin");
   const tCommon = useTranslations("common");
   const { settings, setSettings, settingsFetched } = useConfigStore();
 
@@ -64,7 +65,7 @@ export default function AdminGatewaySettingsPage() {
           <div className="text-center">
             <p className="text-lg font-medium">{tCommon("loading")}...</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Please wait while we fetch your settings
+              {tCommon("please_wait_while_we_fetch_your_settings")}
             </p>
           </div>
         </motion.div>

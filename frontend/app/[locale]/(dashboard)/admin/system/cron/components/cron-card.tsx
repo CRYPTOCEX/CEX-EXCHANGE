@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -10,22 +10,38 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
-import { Clock, Tag, Code } from "lucide-react";
-import { CronJob } from "@/store/cron";
+import { Clock, Tag, Code, Play, Loader2 } from "lucide-react";
+import { CronJob, useCronStore } from "@/store/cron";
 import { useTranslations } from "next-intl";
 
 interface CronCardProps {
   cron: CronJob;
   onClick?: () => void;
+  onTrigger?: (cronName: string) => Promise<void>;
 }
 
 // Use memo to prevent unnecessary re-renders
 const CronCard = memo(function CronCard({ cron, onClick }: CronCardProps) {
   const t = useTranslations("common");
   const tDashboardAdmin = useTranslations("dashboard_admin");
+  const { triggerCronJob } = useCronStore();
+  const [isTriggering, setIsTriggering] = useState(false);
+
+  const handleTrigger = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+    if (isTriggering || cron.status === "running") return;
+    setIsTriggering(true);
+    try {
+      await triggerCronJob(cron.name);
+    } finally {
+      setIsTriggering(false);
+    }
+  };
+
   const formatPeriod = (ms: number) => {
     const seconds = ms / 1000;
     if (seconds < 60) return `${seconds}s`;
@@ -146,21 +162,36 @@ const CronCard = memo(function CronCard({ cron, onClick }: CronCardProps) {
           </div>
         </CardContent>
         <CardFooter className="pt-2 p-3 sm:p-4">
-          <div className="w-full flex items-center gap-2">
-            <div
-              className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full flex-shrink-0 ${
-                cron.status === "running"
-                  ? "status-running"
-                  : cron.status === "completed"
-                    ? "status-completed"
-                    : cron.status === "failed"
-                      ? "status-failed"
-                      : "status-idle"
-              }`}
-            ></div>
-            <span className="text-xs text-muted-foreground capitalize truncate">
-              {cron.status || "idle"}
-            </span>
+          <div className="w-full flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full flex-shrink-0 ${
+                  cron.status === "running"
+                    ? "status-running"
+                    : cron.status === "completed"
+                      ? "status-completed"
+                      : cron.status === "failed"
+                        ? "status-failed"
+                        : "status-idle"
+                }`}
+              ></div>
+              <span className="text-xs text-muted-foreground capitalize truncate">
+                {cron.status || "idle"}
+              </span>
+            </div>
+            <Button
+              size="xs"
+              variant="outline"
+              onClick={handleTrigger}
+              disabled={isTriggering || cron.status === "running"}
+              className="h-6 px-2 text-xs"
+            >
+              {isTriggering || cron.status === "running" ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Play className="h-3 w-3" />
+              )}
+            </Button>
           </div>
         </CardFooter>
       </Card>

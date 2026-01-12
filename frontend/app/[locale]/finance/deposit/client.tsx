@@ -136,7 +136,6 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
   };
 
   const renderCustomField = (field: any) => {
-    const tCommon = useTranslations("common");
     const value = customFields[field.name] || "";
     const error = errors[field.name];
 
@@ -191,14 +190,14 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
                   className="w-64 h-64 object-contain"
                 />
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center">
-                  {tCommon("scan_this_qr_code_to_complete_your_payment")}
+                  {t("scan_this_qr_code_to_complete_your_payment")}
                 </p>
               </div>
             ) : (
               <div className="flex items-center justify-center p-8 border border-dashed border-zinc-300 dark:border-zinc-600 rounded-lg bg-zinc-50 dark:bg-zinc-800/50">
                 <div className="text-center">
                   <QrCode className="h-12 w-12 text-zinc-400 dark:text-zinc-600 mx-auto mb-2" />
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">{tCommon("no_qr_code_available")}</p>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">{t("no_qr_code_available")}</p>
                 </div>
               </div>
             )}
@@ -338,6 +337,7 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
 
 export function DepositForm() {
   const t = useTranslations("common");
+  const tCommon = useTranslations("common");
   const tComponentsBlocks = useTranslations("components_blocks");
   const tExt = useTranslations("ext");
   const tExtAdmin = useTranslations("ext_admin");
@@ -551,6 +551,8 @@ export function DepositForm() {
       wsManager.connect(wsUrl, connectionId);
 
       const handleDepositUpdate = (data: any) => {
+  const t = useTranslations("common");
+  const tExtAdmin = useTranslations("ext_admin");
         const shouldUnlockAddress =
           selectedDepositMethod?.contractType === "NO_PERMIT" &&
           depositAddress?.address;
@@ -1505,11 +1507,11 @@ export function DepositForm() {
       if (chain.name && typeof chain.name === 'string' && chain.name !== chain.id) {
         return chain.name;
       }
-      
+
       // Create a user-friendly name based on the chain ID
       if (chain.id) {
         const id = String(chain.id);
-        
+
         // Handle common patterns
         if (id.includes('_NATIVE')) {
           return id.replace('_NATIVE', ' Native');
@@ -1524,10 +1526,10 @@ export function DepositForm() {
           // Handle other patterns like ETH_ERC20 -> ETH (ERC20)
           return `${parts[0]} (${parts[1]})`;
         }
-        
+
         return id;
       }
-      
+
       return typeof chain.chain === 'string' ? chain.chain : 'Unknown Network';
     } catch (error) {
       console.error('Error in getNetworkDisplayName:', error, chain);
@@ -2501,7 +2503,7 @@ export function DepositForm() {
                   <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-semibold">
                     4
                   </span>
-                  {tExtAdmin("enter_amount")}
+                  {tCommon("enter_amount")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -2527,7 +2529,7 @@ export function DepositForm() {
                     selectedDepositMethod.limits?.withdraw?.min ||
                     selectedDepositMethod.limits?.deposit?.min) && (
                     <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      {tExtCopyTrading("minimum")} {extractAmountValue(
+                      {tExt("minimum")} {extractAmountValue(
                         selectedDepositMethod.minAmount ||
                         selectedDepositMethod.limits?.withdraw?.min ||
                         selectedDepositMethod.limits?.deposit?.min, 
@@ -2817,7 +2819,7 @@ export function DepositForm() {
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 bg-yellow-600 dark:bg-yellow-400 rounded-full"></div>
-                            <span>{tExtCopyTrading("minimum")}: <strong>{extractAmountValue(selectedDepositMethod?.limits?.deposit?.min, selectedCurrency)} {selectedCurrency}</strong></span>
+                            <span>{tExt("minimum")}: <strong>{extractAmountValue(selectedDepositMethod?.limits?.deposit?.min, selectedCurrency)} {selectedCurrency}</strong></span>
                           </div>
                         </div>
                         <div className="space-y-2">
@@ -2846,7 +2848,7 @@ export function DepositForm() {
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center justify-center gap-4">
                       <div className="text-center">
-                        <div className="text-sm text-blue-700 dark:text-blue-300 mb-2">{tExt("time_remaining")}</div>
+                        <div className="text-sm text-blue-700 dark:text-blue-300 mb-2">{tCommon("time_remaining")}</div>
                         <Countdown
                           initialTimeInSeconds={depositStartTime ? Math.max(0, DEPOSIT_TIME_LIMIT - Math.floor((Date.now() - depositStartTime) / 1000)) : DEPOSIT_TIME_LIMIT}
                           onExpire={handleCountdownExpire}
@@ -3060,7 +3062,7 @@ export function DepositForm() {
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center justify-center gap-4">
                       <div className="text-center">
-                        <div className="text-sm text-blue-700 dark:text-blue-300 mb-2">{tExt("time_remaining")}</div>
+                        <div className="text-sm text-blue-700 dark:text-blue-300 mb-2">{tCommon("time_remaining")}</div>
                         <Countdown
                           initialTimeInSeconds={depositStartTime ? Math.max(0, DEPOSIT_TIME_LIMIT - Math.floor((Date.now() - depositStartTime) / 1000)) : DEPOSIT_TIME_LIMIT}
                           onExpire={handleCountdownExpire}

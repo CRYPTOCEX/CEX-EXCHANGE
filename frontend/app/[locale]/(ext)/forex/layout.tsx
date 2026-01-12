@@ -23,6 +23,8 @@ export default function RootLayout({
         menu={menu}
         colorSchema={colorSchema}
         adminPath={adminPath}
+        translationNamespace="ext_forex"
+        translationNavPrefix="nav"
       />
       <ExtensionLayoutWrapper landingPath="/forex" mainClassName="flex-1 mx-auto">
         {children}

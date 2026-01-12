@@ -10,6 +10,8 @@ import {
   TrendingUp,
   TrendingDown,
   X,
+  DollarSign,
+  Ban,
 } from "lucide-react";
 import type { Order } from "@/store/trade/use-binary-store";
 import { tickersWs } from "@/services/tickers-ws";
@@ -17,8 +19,19 @@ import type { TickerData } from "@/app/[locale]/trade/components/markets/types";
 import {
   extractQuoteCurrency,
   extractBaseCurrency,
+  useBinaryStore,
 } from "@/store/trade/use-binary-store";
 import { useTranslations } from "next-intl";
+import { CancelOrderModal } from "../modals/cancel-order-modal";
+import { CashOutModal } from "../modals/cash-out-modal";
+import { getAudioFeedback } from "@/components/binary/audio-feedback";
+import { useTradingSettingsStore } from "@/store/trade/use-trading-settings-store";
+import type { OrderSide } from "@/types/binary-trading";
+
+// Helper function to determine if an order side is bullish (upward direction)
+function isBullishSide(side: OrderSide | string): boolean {
+  return side === "RISE" || side === "HIGHER" || side === "TOUCH" || side === "CALL" || side === "UP";
+}
 
 interface ActivePositionsProps {
   orders: Order[];
@@ -50,6 +63,14 @@ export default function ActivePositions({
   const [animateProfit, setAnimateProfit] = useState<Record<string, boolean>>({});
   const [tickerData, setTickerData] = useState<Record<string, TickerData>>({});
 
+  // Modal state for cancel and cash out
+  const [cancelModalOrder, setCancelModalOrder] = useState<Order | null>(null);
+  const [cashOutModalOrder, setCashOutModalOrder] = useState<Order | null>(null);
+
+  // Get store actions
+  const cancelOrder = useBinaryStore((state) => state.cancelOrder);
+  const closeOrderEarly = useBinaryStore((state) => state.closeOrderEarly);
+
   // Refs for cleanup and optimization
   const isMountedRef = useRef(true);
   const prevPriceRef = useRef<number>(0);
@@ -58,6 +79,12 @@ export default function ActivePositions({
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const tickerUnsubscribeRef = useRef<(() => void) | null>(null);
   const animationTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Ref to track which seconds have been played for countdown sounds (per order)
+  const lastPlayedSecondRef = useRef<Record<string, number>>({});
+
+  // Get audio settings from store
+  const audioConfig = useTradingSettingsStore((state) => state.audio);
 
   // Memoized active orders to prevent unnecessary recalculations
   const activeOrders = useMemo(() => {
@@ -136,16 +163,71 @@ export default function ActivePositions({
     return typeof price === "number" ? price : currentPrice;
   }, [tickerData, currentPrice]);
 
-  // Memoized profit/loss calculation
+  // Memoized profit/loss calculation - supports all order types
   const calculateProfitLoss = useCallback((order: Order, symbolPrice: number): number => {
     const profitPercentage = order.profitPercentage || 85; // Use order's profit percentage or default to 85
-    return order.side === "RISE"
-      ? symbolPrice > order.entryPrice
-        ? (order.amount * profitPercentage) / 100
-        : -order.amount
-      : symbolPrice < order.entryPrice
-        ? (order.amount * profitPercentage) / 100
-        : -order.amount;
+    const potentialProfit = (order.amount * profitPercentage) / 100;
+    const potentialLoss = -order.amount;
+
+    // Determine if currently winning based on order type and side
+    let isWinning: boolean;
+
+    switch (order.type) {
+      case "HIGHER_LOWER":
+        // HIGHER wins if price > barrier, LOWER wins if price < barrier
+        if (order.barrier) {
+          isWinning = order.side === "HIGHER"
+            ? symbolPrice > order.barrier
+            : symbolPrice < order.barrier;
+        } else {
+          isWinning = isBullishSide(order.side)
+            ? symbolPrice > order.entryPrice
+            : symbolPrice < order.entryPrice;
+        }
+        break;
+      case "TOUCH_NO_TOUCH":
+        // TOUCH wins if price is near barrier, NO_TOUCH wins if price stays away
+        if (order.barrier) {
+          const distance = Math.abs(symbolPrice - order.barrier);
+          const distancePercent = (distance / order.barrier) * 100;
+          const isTouching = distancePercent < 0.1; // Within 0.1% of barrier
+          isWinning = order.side === "TOUCH" ? isTouching : !isTouching;
+        } else {
+          isWinning = false;
+        }
+        break;
+      case "CALL_PUT":
+        // CALL wins if price > strike, PUT wins if price < strike
+        if (order.strikePrice) {
+          isWinning = order.side === "CALL"
+            ? symbolPrice > order.strikePrice
+            : symbolPrice < order.strikePrice;
+        } else {
+          isWinning = isBullishSide(order.side)
+            ? symbolPrice > order.entryPrice
+            : symbolPrice < order.entryPrice;
+        }
+        break;
+      case "TURBO":
+        // UP wins if price > barrier, DOWN wins if price < barrier
+        if (order.barrier) {
+          isWinning = order.side === "UP"
+            ? symbolPrice > order.barrier
+            : symbolPrice < order.barrier;
+        } else {
+          isWinning = isBullishSide(order.side)
+            ? symbolPrice > order.entryPrice
+            : symbolPrice < order.entryPrice;
+        }
+        break;
+      default:
+        // RISE_FALL: RISE wins if price > entry, FALL wins if price < entry
+        isWinning = isBullishSide(order.side)
+          ? symbolPrice > order.entryPrice
+          : symbolPrice < order.entryPrice;
+    }
+
+    return isWinning ? potentialProfit : potentialLoss;
   }, []);
 
   // Memoized time formatting
@@ -264,10 +346,10 @@ export default function ActivePositions({
             const isIncreasing =
               dataPoints[dataPoints.length - 1] > dataPoints[dataPoints.length - 2];
 
-            // Animate if profit is increasing for RISE or decreasing for FALL
+            // Animate if profit is increasing for bullish sides or decreasing for bearish sides
             if (
-              (order.side === "RISE" && isIncreasing) ||
-              (order.side === "FALL" && !isIncreasing)
+              (isBullishSide(order.side) && isIncreasing) ||
+              (!isBullishSide(order.side) && !isIncreasing)
             ) {
               newAnimateProfit[order.id] = true;
             }
@@ -306,6 +388,13 @@ export default function ActivePositions({
       }
     };
 
+    // FIXED: Clear any existing interval before creating new one
+    // This prevents timer stacking when effect dependencies change
+    if (updateIntervalRef.current) {
+      clearInterval(updateIntervalRef.current);
+      updateIntervalRef.current = null;
+    }
+
     // Set up throttled interval
     updateIntervalRef.current = setInterval(updateProfitLossData, 1000);
 
@@ -320,10 +409,12 @@ export default function ActivePositions({
     };
   }, [activeOrders.length, getCurrentPrice, calculateProfitLoss]);
 
-  // Optimized time left updates
+  // Optimized time left updates with countdown tick sounds
   useEffect(() => {
     if (activeOrders.length === 0) {
       setTimeLeft({});
+      // Clean up played seconds tracker when no orders
+      lastPlayedSecondRef.current = {};
       return;
     }
 
@@ -332,14 +423,39 @@ export default function ActivePositions({
 
       const now = Date.now();
       const newTimeLeft: Record<string, string> = {};
-      
+
       activeOrdersRef.current.forEach((order) => {
         // Only show time for orders that haven't expired
         if (order.expiryTime > now) {
           newTimeLeft[order.id] = formatTimeLeft(order.expiryTime);
+
+          // Calculate remaining seconds for countdown tick sounds
+          const remainingMs = order.expiryTime - now;
+          const remainingSeconds = Math.ceil(remainingMs / 1000);
+
+          // Check if countdown tick sounds are enabled
+          if (audioConfig.enabled && audioConfig.sounds.countdown_tick) {
+            const lastPlayed = lastPlayedSecondRef.current[order.id];
+
+            // Only play if we haven't played for this second already
+            if (lastPlayed !== remainingSeconds) {
+              // Play countdown tick for seconds 5, 4, 3, 2 (not 1 - that's final)
+              if (remainingSeconds <= 5 && remainingSeconds > 1) {
+                getAudioFeedback(audioConfig).playCountdownTick();
+                lastPlayedSecondRef.current[order.id] = remainingSeconds;
+              }
+              // Play final countdown sound at 1 second
+              else if (remainingSeconds === 1) {
+                getAudioFeedback(audioConfig).playCountdownFinal();
+                lastPlayedSecondRef.current[order.id] = remainingSeconds;
+              }
+            }
+          }
         } else {
           // Order has expired, show 00:00 briefly before it's removed
           newTimeLeft[order.id] = "00:00";
+          // Clean up played seconds tracker for expired orders
+          delete lastPlayedSecondRef.current[order.id];
         }
       });
 
@@ -355,7 +471,7 @@ export default function ActivePositions({
     return () => {
       clearInterval(timeInterval);
     };
-  }, [activeOrders.length, formatTimeLeft]);
+  }, [activeOrders.length, formatTimeLeft, audioConfig]);
 
   // Memoized positions change handler
   const handlePositionsChange = useCallback(() => {
@@ -384,6 +500,44 @@ export default function ActivePositions({
     return parts[1] || "USDT"; // Default to USDT if parsing fails
   }, []);
 
+  // Modal handlers
+  const handleOpenCancelModal = useCallback((order: Order, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCancelModalOrder(order);
+  }, []);
+
+  const handleOpenCashOutModal = useCallback((order: Order, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCashOutModalOrder(order);
+  }, []);
+
+  const handleCancelOrder = useCallback(async (orderId: string) => {
+    const result = await cancelOrder(orderId);
+    return result.success;
+  }, [cancelOrder]);
+
+  const handleCashOutOrder = useCallback(async (orderId: string) => {
+    const result = await closeOrderEarly(orderId);
+    return {
+      success: result.success,
+      cashoutAmount: result.cashoutAmount,
+      penalty: result.penalty,
+    };
+  }, [closeOrderEarly]);
+
+  // Check if an order can be cancelled (> 10 seconds to expiry)
+  const canCancelOrder = useCallback((order: Order) => {
+    const timeUntilExpiry = order.expiryTime - Date.now();
+    return timeUntilExpiry > 10000;
+  }, []);
+
+  // Check if an order can be cashed out (> 30s from entry, > 10s to expiry)
+  const canCashOutOrder = useCallback((order: Order) => {
+    const timeFromEntry = Date.now() - order.createdAt;
+    const timeUntilExpiry = order.expiryTime - Date.now();
+    return timeFromEntry >= 30000 && timeUntilExpiry >= 10000;
+  }, []);
+
   // Render empty state if no active orders
   if (activeOrders.length === 0) {
     return (
@@ -397,7 +551,7 @@ export default function ActivePositions({
   }
 
   return (
-    <div className={`${className} ${themeClasses.panelBgClass} ${themeClasses.borderClass} border-r flex flex-col transition-all duration-200 ${isCollapsed ? 'w-16' : 'w-80'}`}>
+    <div data-tutorial="active-positions" className={`${className} ${themeClasses.panelBgClass} ${themeClasses.borderClass} border-r flex flex-col transition-all duration-200 ${isCollapsed ? 'w-16' : 'w-80'}`}>
       {/* Header */}
       <div className={`${isCollapsed ? 'p-2' : 'p-4'} ${themeClasses.borderClass} border-b flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} transition-all duration-200`}>
         {!isCollapsed && (
@@ -452,7 +606,7 @@ export default function ActivePositions({
                   {/* Order Header */}
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
-                      {order.side === "RISE" ? (
+                      {isBullishSide(order.side) ? (
                         <ArrowUpCircle className={`w-4 h-4 ${themeClasses.riseColorClass}`} />
                       ) : (
                         <ArrowDownCircle className={`w-4 h-4 ${themeClasses.fallColorClass}`} />
@@ -461,8 +615,8 @@ export default function ActivePositions({
                         {order.symbol}
                       </span>
                       <span className={`text-xs px-2 py-1 rounded ${
-                        order.side === "RISE" 
-                          ? 'bg-green-500/20 text-green-400' 
+                        isBullishSide(order.side)
+                          ? 'bg-green-500/20 text-green-400'
                           : 'bg-red-500/20 text-red-400'
                       }`}>
                         {order.side}
@@ -583,12 +737,58 @@ export default function ActivePositions({
                       </svg>
                     </div>
                   )}
+
+                  {/* Action Buttons */}
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={(e) => handleOpenCashOutModal(order, e)}
+                      disabled={!canCashOutOrder(order)}
+                      className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-all
+                        ${canCashOutOrder(order)
+                          ? isProfitable
+                            ? "bg-green-500/20 text-green-400 hover:bg-green-500/30"
+                            : "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
+                          : "bg-zinc-700/30 text-zinc-500 cursor-not-allowed"
+                        }`}
+                    >
+                      <DollarSign className="w-3 h-3" />
+                      {tBinaryComponents("cash_out") || "Cash Out"}
+                    </button>
+                    <button
+                      onClick={(e) => handleOpenCancelModal(order, e)}
+                      disabled={!canCancelOrder(order)}
+                      className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-all
+                        ${canCancelOrder(order)
+                          ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                          : "bg-zinc-700/30 text-zinc-500 cursor-not-allowed"
+                        }`}
+                    >
+                      <Ban className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
       )}
+
+      {/* Cancel Order Modal */}
+      <CancelOrderModal
+        order={cancelModalOrder}
+        isOpen={cancelModalOrder !== null}
+        onClose={() => setCancelModalOrder(null)}
+        onConfirm={handleCancelOrder}
+      />
+
+      {/* Cash Out Modal */}
+      <CashOutModal
+        order={cashOutModalOrder}
+        isOpen={cashOutModalOrder !== null}
+        onClose={() => setCashOutModalOrder(null)}
+        onConfirm={handleCashOutOrder}
+        currentPrice={currentPrice}
+      />
     </div>
   );
 }

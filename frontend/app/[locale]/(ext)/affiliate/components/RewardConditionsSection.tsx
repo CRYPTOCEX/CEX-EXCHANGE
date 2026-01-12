@@ -137,6 +137,7 @@ export default function RewardConditionsSection({
   isLoading,
 }: RewardConditionsSectionProps) {
   const t = useTranslations("ext_affiliate");
+  const tCommon = useTranslations("common");
 
   if (isLoading) {
     return (
@@ -240,7 +241,7 @@ export default function RewardConditionsSection({
               href="/affiliate/condition"
               className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
             >
-              View all {conditions.length} commission types
+              {tCommon("view_all")} {conditions.length} {t("commission_types")}
             </a>
           </motion.div>
         )}

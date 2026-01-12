@@ -1,3 +1,205 @@
+/* ============================================================================
+   TRADING FONTS - JetBrains Mono for numbers
+   ============================================================================ */
+
+/* JetBrains Mono imported via globals.css to satisfy CSS @import ordering rules */
+
+/* Base trading font class - use for all numbers */
+.font-trading {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  font-feature-settings: 'tnum' 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Price display - current price, order prices */
+.price-display {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Amount display - order amounts, balances */
+.amount-display {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Timer/countdown display */
+.timer-display {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+/* Percentage display */
+.percent-display {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================================
+   CHART FONT SIZES - Consistent scale
+   ============================================================================ */
+
+.text-chart-2xs { font-size: 9px; line-height: 1.2; }
+.text-chart-xs { font-size: 10px; line-height: 1.3; }
+.text-chart-sm { font-size: 11px; line-height: 1.4; }
+.text-chart-base { font-size: 12px; line-height: 1.5; }
+.text-chart-md { font-size: 13px; line-height: 1.5; }
+.text-chart-lg { font-size: 14px; line-height: 1.5; }
+.text-chart-xl { font-size: 16px; line-height: 1.4; }
+.text-chart-2xl { font-size: 18px; line-height: 1.3; }
+
+/* ============================================================================
+   CHART COLORS - Consistent palette
+   Phase 4: Standardized color system for binary chart components
+   ============================================================================ */
+
+/* ============================================================================
+   DARK MODE - Backgrounds
+   ============================================================================ */
+.dark .bg-chart-base { background-color: #09090b; }       /* zinc-950 - Canvas/base */
+.dark .bg-chart-primary { background-color: #0d0d0f; }    /* Custom - Main panels */
+.dark .bg-chart-secondary { background-color: #18181b; }  /* zinc-900 - Elevated surfaces */
+.dark .bg-chart-tertiary { background-color: #27272a; }   /* zinc-800 - Cards, inputs */
+.dark .bg-chart-hover { background-color: #3f3f46; }      /* zinc-700 - Hover states */
+.dark .bg-chart-active { background-color: #52525b; }     /* zinc-600 - Active states */
+
+/* Dark mode background with opacity variants */
+.dark .bg-chart-secondary\/50 { background-color: rgba(24, 24, 27, 0.5); }
+.dark .bg-chart-secondary\/80 { background-color: rgba(24, 24, 27, 0.8); }
+.dark .bg-chart-tertiary\/50 { background-color: rgba(39, 39, 42, 0.5); }
+.dark .bg-chart-tertiary\/80 { background-color: rgba(39, 39, 42, 0.8); }
+
+/* Panel-specific backgrounds */
+.dark .bg-chart-panel { background-color: #0d0d0f; }      /* Main panel bg */
+.dark .bg-chart-panel-header { background-color: #18181b; }
+.dark .bg-chart-panel-footer { background-color: #18181b; }
+.dark .bg-chart-input { background-color: #27272a; }      /* Input fields */
+.dark .bg-chart-dropdown { background-color: #1c1c1e; }   /* Dropdowns, selects */
+
+/* ============================================================================
+   DARK MODE - Text Colors
+   ============================================================================ */
+.dark .text-chart-primary { color: #fafafa; }    /* zinc-50 - Primary text */
+.dark .text-chart-secondary { color: #a1a1aa; }  /* zinc-400 - Secondary text */
+.dark .text-chart-muted { color: #71717a; }      /* zinc-500 - Muted/subtle */
+.dark .text-chart-dim { color: #52525b; }        /* zinc-600 - Dimmed text */
+.dark .text-chart-disabled { color: #3f3f46; }   /* zinc-700 - Disabled text */
+
+/* ============================================================================
+   DARK MODE - Border Colors
+   ============================================================================ */
+.dark .border-chart-default { border-color: #27272a; }    /* zinc-800 */
+.dark .border-chart-subtle { border-color: rgba(39, 39, 42, 0.5); }
+.dark .border-chart-strong { border-color: #3f3f46; }     /* zinc-700 */
+
+/* ============================================================================
+   LIGHT MODE - Backgrounds
+   ============================================================================ */
+.bg-chart-base { background-color: #ffffff; }
+.bg-chart-primary { background-color: #ffffff; }
+.bg-chart-secondary { background-color: #f4f4f5; }        /* zinc-100 */
+.bg-chart-tertiary { background-color: #e4e4e7; }         /* zinc-200 */
+.bg-chart-hover { background-color: #d4d4d8; }            /* zinc-300 */
+.bg-chart-active { background-color: #a1a1aa; }           /* zinc-400 */
+
+/* Light mode background with opacity variants */
+.bg-chart-secondary\/50 { background-color: rgba(244, 244, 245, 0.5); }
+.bg-chart-secondary\/80 { background-color: rgba(244, 244, 245, 0.8); }
+.bg-chart-tertiary\/50 { background-color: rgba(228, 228, 231, 0.5); }
+.bg-chart-tertiary\/80 { background-color: rgba(228, 228, 231, 0.8); }
+
+/* Panel-specific backgrounds */
+.bg-chart-panel { background-color: #ffffff; }
+.bg-chart-panel-header { background-color: #f4f4f5; }
+.bg-chart-panel-footer { background-color: #f4f4f5; }
+.bg-chart-input { background-color: #f4f4f5; }
+.bg-chart-dropdown { background-color: #ffffff; }
+
+/* ============================================================================
+   LIGHT MODE - Text Colors
+   ============================================================================ */
+.text-chart-primary { color: #09090b; }          /* zinc-950 */
+.text-chart-secondary { color: #52525b; }        /* zinc-600 */
+.text-chart-muted { color: #71717a; }            /* zinc-500 */
+.text-chart-dim { color: #a1a1aa; }              /* zinc-400 */
+.text-chart-disabled { color: #d4d4d8; }         /* zinc-300 */
+
+/* ============================================================================
+   LIGHT MODE - Border Colors
+   ============================================================================ */
+.border-chart-default { border-color: #e4e4e7; }          /* zinc-200 */
+.border-chart-subtle { border-color: rgba(228, 228, 231, 0.5); }
+.border-chart-strong { border-color: #d4d4d8; }           /* zinc-300 */
+
+/* ============================================================================
+   SEMANTIC BACKGROUND COLORS (both modes)
+   ============================================================================ */
+.bg-chart-success { background-color: rgba(34, 197, 94, 0.1); }
+.bg-chart-success-solid { background-color: #22c55e; }
+.bg-chart-error { background-color: rgba(239, 68, 68, 0.1); }
+.bg-chart-error-solid { background-color: #ef4444; }
+.bg-chart-warning { background-color: rgba(245, 158, 11, 0.1); }
+.bg-chart-warning-solid { background-color: #f59e0b; }
+.bg-chart-info { background-color: rgba(59, 130, 246, 0.1); }
+.bg-chart-info-solid { background-color: #3b82f6; }
+
+/* ============================================================================
+   TRADING COLORS - Profit/Loss
+   ============================================================================ */
+
+/* Bullish/Profit colors */
+.text-bullish { color: #22c55e; }
+.bg-bullish { background-color: rgba(34, 197, 94, 0.1); }
+.border-bullish { border-color: rgba(34, 197, 94, 0.2); }
+
+/* Bearish/Loss colors */
+.text-bearish { color: #ef4444; }
+.bg-bearish { background-color: rgba(239, 68, 68, 0.1); }
+.border-bearish { border-color: rgba(239, 68, 68, 0.2); }
+
+/* Alert colors */
+.text-alert { color: #f59e0b; }
+.bg-alert { background-color: rgba(245, 158, 11, 0.1); }
+.border-alert { border-color: rgba(245, 158, 11, 0.2); }
+
+/* ============================================================================
+   CHART BORDER RADIUS - Consistent rounded corners
+   Phase 7: Standardized border radius scale
+   ============================================================================ */
+
+/* Small elements (badges, tags) - 6px */
+.rounded-chart-sm { border-radius: 6px; }
+
+/* Standard elements (buttons, inputs) - 8px */
+.rounded-chart-md { border-radius: 8px; }
+
+/* Large elements (panels, cards) - 12px */
+.rounded-chart-lg { border-radius: 12px; }
+
+/* Extra large elements - 16px */
+.rounded-chart-xl { border-radius: 16px; }
+
+/* ============================================================================
+   CHART TRANSITIONS - Consistent animation timing
+   Phase 8: Standardized transition durations
+   ============================================================================ */
+
+.transition-chart-fast { transition-duration: 100ms; }
+.transition-chart-normal { transition-duration: 150ms; }
+.transition-chart-slow { transition-duration: 200ms; }
+
+/* Standard easing function */
+.ease-chart { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* ============================================================================
+   ORIGINAL CHART STYLES
+   ============================================================================ */
+
 /* Chart specific styles */
 .chart-container {
   position: relative;

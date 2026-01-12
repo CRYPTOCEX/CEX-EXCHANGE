@@ -99,10 +99,10 @@ export function RangeFilter({
 
   return (
     <FilterWrapper label={label} description={description}>
-      <div className="flex items-center gap-2 w-full md:w-auto">
-        <div>
+      <div className="flex flex-col gap-2 w-full lg:flex-row lg:items-center">
+        <div className="w-full lg:w-auto shrink-0">
           <Select value={operator} onValueChange={handleOperatorChange}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full lg:w-16">
               <SelectValue placeholder={t("select_operator")} />
             </SelectTrigger>
             <SelectContent>
@@ -114,48 +114,53 @@ export function RangeFilter({
             </SelectContent>
           </Select>
         </div>
-        {operator === "between" ? (
-          <>
+        <div className={cn(
+          "flex gap-2 w-full lg:flex-1 lg:min-w-0",
+          operator === "between" ? "flex-col sm:flex-row sm:items-center" : "items-center"
+        )}>
+          {operator === "between" ? (
+            <>
+              <Input
+                type="number"
+                value={range[0]}
+                placeholder={t("from")}
+                onChange={(e) =>
+                  handleRangeChange([Number(e.target.value), range[1]])
+                }
+                min={min}
+                max={max}
+                className="w-full sm:flex-1 sm:min-w-0"
+              />
+              <Input
+                type="number"
+                value={range[1]}
+                placeholder={t("to")}
+                onChange={(e) =>
+                  handleRangeChange([range[0], Number(e.target.value)])
+                }
+                min={min}
+                max={max}
+                className="w-full sm:flex-1 sm:min-w-0"
+              />
+            </>
+          ) : (
             <Input
               type="number"
-              value={range[0]}
-              placeholder={t("from")}
-              onChange={(e) =>
-                handleRangeChange([Number(e.target.value), range[1]])
-              }
+              value={singleValue}
+              placeholder={t("value")}
+              onChange={(e) => handleSingleValueChange(Number(e.target.value))}
               min={min}
               max={max}
-              className="flex-1"
+              className="w-full lg:flex-1 lg:min-w-0"
             />
-            <Input
-              type="number"
-              value={range[1]}
-              placeholder={t("to")}
-              onChange={(e) =>
-                handleRangeChange([range[0], Number(e.target.value)])
-              }
-              min={min}
-              max={max}
-              className="flex-1"
-            />
-          </>
-        ) : (
-          <Input
-            type="number"
-            value={singleValue}
-            placeholder={t("value")}
-            onChange={(e) => handleSingleValueChange(Number(e.target.value))}
-            min={min}
-            max={max}
-            className="flex-1"
-          />
-        )}
+          )}
+        </div>
         {showResetButton && (
           <Button
             variant="ghost"
             size="icon"
             aria-label={tComponentsBlocks("reset_filter")}
-            className="h-5 w-5 ml-auto"
+            className="h-5 w-5 shrink-0 self-end lg:self-center"
             onClick={(e) => {
               e.stopPropagation();
               reset();

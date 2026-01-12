@@ -1,5 +1,5 @@
 "use client";
-import { Shield, ClipboardList, DollarSign, Wallet, Network, Database } from "lucide-react";
+import { Shield, ClipboardList, DollarSign, Network, Database } from "lucide-react";
 import type { FormConfig } from "@/components/blocks/data-table/types/table";
 
 import { useTranslations } from "next-intl";
@@ -123,7 +123,6 @@ export function useColumns(): ColumnDefinition[] {
 }
 
 export function useFormConfig(): FormConfig {
-  const tCommon = useTranslations("common");
   const tExtAdmin = useTranslations("ext_admin");
   return {
     create: {
@@ -145,69 +144,6 @@ export function useFormConfig(): FormConfig {
                 method: "GET",
                 url: "/api/admin/ecosystem/wallet/master/options",
               },
-            },
-          ],
-        },
-        {
-          id: "wallet-info",
-          title: tCommon("wallet_information"),
-          icon: Wallet,
-          priority: 2,
-          fields: [
-            {
-              key: "currency",
-              required: true,
-              maxLength: 255,
-            },
-            {
-              key: "address",
-              required: true,
-              maxLength: 255,
-            },
-          ],
-        },
-        {
-          id: "wallet-config",
-          title: tExtAdmin("wallet_configuration"),
-          icon: Database,
-          priority: 3,
-          fields: [
-            {
-              key: "balance",
-              required: true,
-              min: 0,
-            },
-            {
-              key: "lastIndex",
-              required: true,
-              min: 0,
-            },
-            {
-              key: "status",
-              required: true,
-            },
-          ],
-        },
-      ],
-    },
-    edit: {
-      title: tExtAdmin("edit_master_wallet"),
-      description: tExtAdmin("update_master_wallet_balance_and_operational"),
-      groups: [
-        {
-          id: "wallet-config",
-          title: tExtAdmin("wallet_configuration"),
-          icon: Database,
-          priority: 1,
-          fields: [
-            {
-              key: "balance",
-              required: true,
-              min: 0,
-            },
-            {
-              key: "status",
-              required: true,
             },
           ],
         },

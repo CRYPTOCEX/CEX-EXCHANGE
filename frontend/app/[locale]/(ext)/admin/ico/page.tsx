@@ -27,6 +27,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
+import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 export default function AdminDashboard() {
   const t = useTranslations("ext_admin");
@@ -80,127 +81,39 @@ export default function AdminDashboard() {
           </p>
         </div>
         {/* Key Metrics */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {/* Total Offerings */}
-          <Card className="relative overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {tExt("total_offerings")}
-              </CardTitle>
-              <ListChecks className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-7 w-20" />
-              ) : (
-                <div className="text-2xl font-bold">
-                  {numOrZero(stats?.totalOfferings)}
-                </div>
-              )}
-              <div className="text-xs text-muted-foreground">
-                {isLoading ? (
-                  <Skeleton className="h-4 w-28 mt-1" />
-                ) : (
-                  <span className="flex items-center gap-1">
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                    <span>
-                      +{numOrZero(stats?.offeringGrowth)}
-                      % {tExt("from_last_month")}
-                    </span>
-                  </span>
-                )}
-              </div>
-            </CardContent>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-primary/40 to-primary"></div>
-          </Card>
-          {/* Pending Approval */}
-          <Card className="relative overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {tExt("pending_approval")}
-              </CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-7 w-20" />
-              ) : (
-                <div className="text-2xl font-bold">
-                  {numOrZero(stats?.pendingOfferings)}
-                </div>
-              )}
-              <div className="text-xs text-muted-foreground">
-                {isLoading ? (
-                  <Skeleton className="h-4 w-28 mt-1" />
-                ) : (
-                  <span>{t("requires_your_attention")}</span>
-                )}
-              </div>
-            </CardContent>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-yellow-500/40 to-yellow-500"></div>
-          </Card>
-          {/* Total Raised */}
-          <Card className="relative overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {tExt("total_raised")}
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-7 w-20" />
-              ) : (
-                <div className="text-2xl font-bold">{formattedTotalRaised}</div>
-              )}
-              <div className="text-xs text-muted-foreground">
-                {isLoading ? (
-                  <Skeleton className="h-4 w-28 mt-1" />
-                ) : (
-                  <span className="flex items-center gap-1">
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                    <span>
-                      +{numOrZero(stats?.raiseGrowth)}
-                      % {tExt("from_last_month")}
-                    </span>
-                  </span>
-                )}
-              </div>
-            </CardContent>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-green-500/40 to-green-500"></div>
-          </Card>
-          {/* Success Rate */}
-          <Card className="relative overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {tCommon("success_rate")}
-              </CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-7 w-20" />
-              ) : (
-                <div className="text-2xl font-bold">
-                  {numOrZero(stats?.successRate)}%
-                </div>
-              )}
-              <div className="text-xs text-muted-foreground">
-                {isLoading ? (
-                  <Skeleton className="h-4 w-28 mt-1" />
-                ) : (
-                  <span className="flex items-center gap-1">
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                    <span>
-                      +{numOrZero(stats?.successRateGrowth)}
-                      % {tExt("from_last_month")}
-                    </span>
-                  </span>
-                )}
-              </div>
-            </CardContent>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-blue-500/40 to-blue-500"></div>
-          </Card>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <StatsCard
+            label={tExt("total_offerings")}
+            value={numOrZero(stats?.totalOfferings)}
+            icon={ListChecks}
+            index={0}
+            change={`+${numOrZero(stats?.offeringGrowth)}% ${tExt("from_last_month")}`}
+            {...statsCardColors.purple}
+          />
+          <StatsCard
+            label={tExt("pending_approval")}
+            value={numOrZero(stats?.pendingOfferings)}
+            icon={Clock}
+            index={1}
+            description={t("requires_your_attention")}
+            {...statsCardColors.amber}
+          />
+          <StatsCard
+            label={tExt("total_raised")}
+            value={formattedTotalRaised}
+            icon={DollarSign}
+            index={2}
+            change={`+${numOrZero(stats?.raiseGrowth)}% ${tExt("from_last_month")}`}
+            {...statsCardColors.green}
+          />
+          <StatsCard
+            label={tCommon("success_rate")}
+            value={`${numOrZero(stats?.successRate)}%`}
+            icon={BarChart3}
+            index={3}
+            change={`+${numOrZero(stats?.successRateGrowth)}% ${tExt("from_last_month")}`}
+            {...statsCardColors.blue}
+          />
         </div>
         {/* Quick Actions */}
         <div className="grid gap-4 md:grid-cols-2">

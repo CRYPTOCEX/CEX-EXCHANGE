@@ -18,9 +18,10 @@ export default function PlatformFeaturesSection({
   onUpdate,
 }: PlatformFeaturesSectionProps) {
   const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium">{t("platform_features")}</h3>
+      <h3 className="text-lg font-medium">{tCommon("platform_features")}</h3>
       <div className="space-y-4">
         <div className="flex items-center space-x-2">
           <Switch

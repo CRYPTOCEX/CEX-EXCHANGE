@@ -6,7 +6,8 @@ import { type Config, WagmiProvider, cookieToInitialState } from "wagmi";
 import { createAppKit } from '@reown/appkit/react';
 import { useAppKitAccount } from "@reown/appkit/react";
 import { config, networks, projectId, wagmiAdapter } from "@/config/wallet";
-import { mainnet } from '@reown/appkit/networks';
+import { mainnet, type AppKitNetwork } from '@reown/appkit/networks';
+import type { CreateAppKit } from '@reown/appkit';
 import { useWalletStore } from "@/store/nft/wallet-store";
 
 // Set up queryClient
@@ -27,21 +28,17 @@ console.log('[wallet.tsx] projectId length:', projectId?.length);
 if (!projectId) {
   console.error("AppKit Initialization Error: Project ID is missing.");
 } else {
-  const appKitConfig = {
+  const appKitConfig: CreateAppKit = {
     adapters: [wagmiAdapter],
     projectId: projectId,
-    networks: networks,
-    defaultNetwork: mainnet,
+    networks: networks as [AppKitNetwork, ...AppKitNetwork[]],
+    defaultNetwork: mainnet as AppKitNetwork,
     metadata,
     features: {
       analytics: true,
       onramp: false,
       swaps: false,
-    },
-    // Disable auto-reconnect on page load
-    enableWalletConnect: true,
-    enableInjected: true,
-    enableCoinbase: false,
+    }
   };
 
   console.log('[wallet.tsx] Creating AppKit with config:', appKitConfig);

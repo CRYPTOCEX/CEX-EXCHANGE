@@ -225,7 +225,7 @@ export function StructureTab() {
 
           <LabeledSelect
             id="element-tag"
-            label="HTML Tag"
+            label={t("html_tag")}
             value={elementTag}
             onValueChange={handleTagChange}
             options={tagOptions}

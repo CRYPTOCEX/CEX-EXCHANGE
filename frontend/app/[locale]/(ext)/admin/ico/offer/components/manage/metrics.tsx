@@ -31,7 +31,10 @@ export function OfferingComparisonMetrics({
   const t = useTranslations("ext");
   const tExtAdmin = useTranslations("ext_admin");
   const tCommon = useTranslations("common");
-  const { offerMetrics, platformMetrics } = useAdminOfferStore();
+  const { offering, offerMetrics, platformMetrics } = useAdminOfferStore();
+
+  // Get the currency from the offering, default to USD
+  const currency = offering?.purchaseWalletCurrency || "USD";
 
   // If either metric is not loaded, show a skeleton.
   if (!offerMetrics || !platformMetrics) {
@@ -81,9 +84,9 @@ export function OfferingComparisonMetrics({
     val: number,
     type: "number" | "currency" | "days" | "rate"
   ) => {
-    if (type === "currency") return `$${val.toLocaleString()}`;
+    if (type === "currency") return `${val.toLocaleString()} ${currency}`;
     if (type === "days") return `${val} days`;
-    if (type === "rate") return `$${val.toLocaleString()}/day`;
+    if (type === "rate") return `${val.toLocaleString()} ${currency}/day`;
     return val.toLocaleString();
   };
 
@@ -133,8 +136,7 @@ export function OfferingComparisonMetrics({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger className="text-xs text-muted-foreground whitespace-nowrap">
-                {tCommon("avg")}
-                {formatValue(platformVal, format)}
+                {tCommon("avg")} {formatValue(platformVal, format)}
               </TooltipTrigger>
               <TooltipContent>
                 <p className="max-w-xs text-xs">{tooltip}</p>

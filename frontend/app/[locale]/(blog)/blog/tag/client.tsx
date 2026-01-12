@@ -338,7 +338,7 @@ export function TagsClient() {
         {/* Alphabetical Tags Section */}
         <div className="space-y-12">
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-            {t("all_tags")}
+            {tCommon("all_tags")}
           </h2>
 
           {/* Alphabet navigation */}

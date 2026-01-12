@@ -57,6 +57,7 @@ interface ActiveTradesProps {
 export function ActiveTrades({ trades = [] }: ActiveTradesProps) {
   const t = useTranslations("ext_p2p");
   const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const router = useRouter();
 
   const viewTradeDetails = (id: string, tab?: string) => {
@@ -215,7 +216,7 @@ export function ActiveTrades({ trades = [] }: ActiveTradesProps) {
                       onClick={() => viewTradeDetails(trade.id, "payment")}
                     >
                       <CheckCircle2 className="mr-2 h-4 w-4" />
-                      {t("confirm_payment")}
+                      {tExt("confirm_payment")}
                     </Button>
                   </>
                 )}

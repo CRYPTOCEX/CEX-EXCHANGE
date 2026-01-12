@@ -18,7 +18,7 @@ interface ChartPanelProps {
 export default function ChartPanel({ symbol, onPriceUpdate, metadata, marketType: propMarketType }: ChartPanelProps) {
   const t = useTranslations("trade_components");
   const [currentPrice, setCurrentPrice] = useState<number>(0);
-  const [selectedTimeframe, setSelectedTimeframe] = useState<TimeFrame>("1h");
+  const [selectedTimeframe, setSelectedTimeframe] = useState<TimeFrame>("1m");
   const [isLayoutReady, setIsLayoutReady] = useState(false);
   const [chartKey, setChartKey] = useState<string>(`chart-${symbol}`);
   const searchParams = useSearchParams();
@@ -48,14 +48,14 @@ export default function ChartPanel({ symbol, onPriceUpdate, metadata, marketType
     }
   };
 
-  // Handle symbol changes and force chart remount
+  // Handle symbol or marketType changes and force chart remount
   useEffect(() => {
-    // Reset layout ready state when symbol changes to force remount
+    // Reset layout ready state when symbol or marketType changes to force remount
     setIsLayoutReady(false);
-    
-    // Update chart key to force complete remount
-    setChartKey(`chart-${symbol}-${Date.now()}`);
-    
+
+    // Update chart key to force complete remount - include marketType
+    setChartKey(`chart-${symbol}-${marketType}-${Date.now()}`);
+
     // Reset current price for new symbol
     setCurrentPrice(0);
 
@@ -79,7 +79,7 @@ export default function ChartPanel({ symbol, onPriceUpdate, metadata, marketType
     }, 300);
 
     return () => clearTimeout(initTimer);
-  }, [symbol]);
+  }, [symbol, marketType]);
 
   // Listen for market switching cleanup events
   useEffect(() => {
@@ -160,6 +160,8 @@ export default function ChartPanel({ symbol, onPriceUpdate, metadata, marketType
           marketType={marketType}
           onPriceUpdate={onPriceUpdate}
           metadata={metadata}
+          isSpotContext={marketType === "spot" || marketType === "eco"}
+          isFuturesContext={marketType === "futures"}
         />
       )}
       {!isLayoutReady && (

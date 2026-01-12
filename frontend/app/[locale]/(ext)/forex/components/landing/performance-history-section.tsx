@@ -38,6 +38,8 @@ function BarChart({
   data: PerformanceMonth[];
   isLoading?: boolean;
 }) {
+  const t = useTranslations("ext_forex");
+  const tCommon = useTranslations("common");
   if (isLoading) {
     // Fixed heights for skeleton to avoid hydration mismatch
     const skeletonHeights = ['45%', '70%', '55%', '85%', '60%', '75%'];
@@ -79,12 +81,12 @@ function BarChart({
             <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-20 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
               <div className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-3 py-2 rounded-lg text-xs whitespace-nowrap shadow-lg">
                 <p className="font-semibold">{month.month}</p>
-                <p>Invested: {formatCurrency(month.totalInvested)}</p>
+                <p>{tCommon("invested")} {formatCurrency(month.totalInvested)}</p>
                 <p className={isPositive ? "text-emerald-400" : "text-red-400"}>
-                  Profit: {isPositive ? "+" : ""}
+                  {tCommon("profit")} {isPositive ? "+" : ""}
                   {formatCurrency(month.totalProfit)}
                 </p>
-                <p>Return: {month.avgReturn}%</p>
+                <p>{t("return")} {month.avgReturn}%</p>
               </div>
             </div>
 

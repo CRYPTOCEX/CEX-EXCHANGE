@@ -492,7 +492,7 @@ export default function AffiliateClient() {
         ]}
         theme={{ primary: "blue", secondary: "amber" }}
         variant="default"
-        title="Why Join Us"
+        title={t("why_join_us")}
       />
 
       {/* Stats Section */}

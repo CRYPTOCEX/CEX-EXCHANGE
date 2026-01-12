@@ -111,14 +111,7 @@ export default function Client({ children }: ClientProps) {
     };
   }, []);
 
-  // Gating: block unless user has KYC & view_ecommerce feature
-  const kycEnabled =
-    settings?.kycStatus === true || settings?.kycStatus === "true";
-  const hasAccess = hasKyc() && canAccessFeature("view_ecommerce");
-
-  if (kycEnabled && !hasAccess) {
-    return <KycRequiredNotice feature="view_ecommerce" />;
-  }
+  // Note: KYC is checked when user tries to purchase, not for viewing the landing page
 
   const stats = landingData?.stats;
 
@@ -382,7 +375,7 @@ export default function Client({ children }: ClientProps) {
         scrollIndicator={{
           enabled: true,
           style: "mouse",
-          text: t("scroll_to_explore"),
+          text: tCommon("scroll_to_explore"),
         }}
         animation={{
           enabled: true,
@@ -419,7 +412,7 @@ export default function Client({ children }: ClientProps) {
         ]}
         theme={{ primary: "amber", secondary: "emerald" }}
         variant="default"
-        title="Why Shop With Us"
+        title={t("why_shop_with_us")}
       />
 
       {/* Active Deals Section - NEW */}

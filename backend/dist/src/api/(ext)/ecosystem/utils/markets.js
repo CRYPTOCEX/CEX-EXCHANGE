@@ -1,0 +1,1 @@
+"use strict";async function getEcoSystemMarkets(){return db_1.models.ecosystemMarket.findAll({where:{status:!0}})}Object.defineProperty(exports,"__esModule",{value:!0});exports.getEcoSystemMarkets=getEcoSystemMarkets;const db_1=require("@b/db");

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { $fetch } from "@/lib/api";
 import { platformFeatures } from "@/app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/feature-management";
 import { COUNTRY_OPTIONS } from "@/utils/countries";
+import { IDENTITY_TYPES } from "@/app/[locale]/(dashboard)/user/kyc/components/dynamic-form/identity-field";
 
 export const parseKycLevel = (level: any) => {
   // Parse features array or string
@@ -337,12 +338,8 @@ export const useLevelBuilderStore = create<LevelBuilderState>((set, get) => ({
         newField.multiple = false;
         break;
       case "IDENTITY":
-        (newField as any).documentTypes = [
-          { value: "passport", label: "Passport" },
-          { value: "drivers-license", label: "Driver's License" },
-          { value: "national-id", label: "National ID Card" },
-        ];
-        (newField as any).defaultDocumentType = "passport";
+        (newField as any).identityTypes = IDENTITY_TYPES;
+        (newField as any).defaultType = IDENTITY_TYPES[0].value;
         (newField as any).requireSelfie = true;
         (newField as any).verificationService = "sumsub-1";
         break;

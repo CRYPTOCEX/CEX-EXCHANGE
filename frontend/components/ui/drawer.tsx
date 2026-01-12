@@ -57,8 +57,9 @@ function DrawerContent({
       if (child.type === DrawerDescription) return true;
 
       // Check nested children (like inside DrawerHeader)
-      if (child.props?.children) {
-        const nestedChildren = React.Children.toArray(child.props.children);
+      const childProps = child.props as { children?: React.ReactNode };
+      if (childProps?.children) {
+        const nestedChildren = React.Children.toArray(childProps.children);
         return nestedChildren.some((nested) =>
           React.isValidElement(nested) && nested.type === DrawerDescription
         );

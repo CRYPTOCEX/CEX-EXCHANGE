@@ -51,7 +51,11 @@ const getNotificationColor = (type: string) => {
   }
 };
 
-export function NotificationBell() {
+interface NotificationBellProps {
+  variant?: "default" | "binary";
+}
+
+export function NotificationBell({ variant = "default" }: NotificationBellProps) {
   const t = useTranslations("common");
   const tComponents = useTranslations("components");
   const {
@@ -106,7 +110,12 @@ export function NotificationBell() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative w-10 h-10 rounded-xl transition-all duration-200 border text-zinc-600 hover:text-zinc-900 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:border-zinc-800 dark:hover:border-zinc-700 dark:hover:bg-zinc-800/50"
+          className={cn(
+            "relative w-10 h-10 transition-all duration-200",
+            variant === "binary"
+              ? "rounded-none border-r border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              : "rounded-xl border text-zinc-600 hover:text-zinc-900 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:border-zinc-800 dark:hover:border-zinc-700 dark:hover:bg-zinc-800/50"
+          )}
         >
           <motion.div
             animate={
@@ -128,14 +137,20 @@ export function NotificationBell() {
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0, opacity: 0 }}
-                className="absolute -top-1 -right-1"
+                className={variant === "binary" ? "absolute top-0 right-0" : "absolute -top-1 -right-1"}
               >
-                <Badge
-                  variant="destructive"
-                  className="h-5 w-5 p-0 flex items-center justify-center text-xs font-bold rounded-full bg-red-500 text-white border-2 border-white dark:border-zinc-900"
-                >
-                  {stats.unread > 99 ? "99+" : stats.unread}
-                </Badge>
+                {variant === "binary" ? (
+                  <span className="min-w-4 h-4 flex items-center justify-center px-0.5 text-[8px] font-bold bg-red-500 text-white rounded-full shadow-sm">
+                    {stats.unread > 99 ? "99+" : stats.unread}
+                  </span>
+                ) : (
+                  <Badge
+                    variant="destructive"
+                    className="h-5 w-5 p-0 flex items-center justify-center text-xs font-bold rounded-full bg-red-500 text-white border-2 border-white dark:border-zinc-900"
+                  >
+                    {stats.unread > 99 ? "99+" : stats.unread}
+                  </Badge>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

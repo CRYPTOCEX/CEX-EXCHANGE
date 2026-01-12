@@ -183,7 +183,7 @@ export function useColumns() {
     },
     {
       key: "totalVolume",
-      title: tExt("total_volume"),
+      title: tCommon("total_volume"),
       type: "number",
       icon: DollarSign,
       sortable: true,

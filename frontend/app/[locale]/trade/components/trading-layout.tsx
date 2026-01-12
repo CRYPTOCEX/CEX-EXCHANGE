@@ -2,14 +2,13 @@
 
 import React from "react";
 
-import { useState, useEffect, memo, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PanelGroup } from "./panel/panel-group";
 import { Panel } from "./panel/panel";
 import { ResizeHandle } from "./panel/resize-handle";
 import { LayoutProvider, useLayout } from "./layout/layout-context";
 import TradingHeader from "./header/trading-header";
-import MobileLayout from "./layout/mobile-layout";
 import StatusBar from "./status/status-bar";
 import { LineChart, ClipboardList, DollarSign, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,14 +18,15 @@ import { CollapsedPanel } from "./panel/collapsed-panel";
 import { useSearchParams } from "next/navigation";
 import { usePathname } from "@/i18n/routing";
 
-// Import individual panel components
+// Import panel components directly - dynamic imports cause issues with Turbopack
 import MarketsPanel from "./markets/markets-panel";
 import ChartPanel from "./chart/chart-panel";
 import OrderBookPanel from "./orderbook/orderbook-panel";
 import TradingFormPanel from "./trading/trading-form-panel";
 import OrdersPanel from "./orders/orders-panel";
 import AlertsPanel from "./alerts/alerts-panel";
-// import TradesPanel from "./trades/trades-panel"
+import MobileLayout from "./layout/mobile-layout";
+
 // Update the Symbol import at the top
 import type { Symbol } from "@/store/trade/use-binary-store";
 
@@ -46,14 +46,14 @@ import { marketService } from "@/services/market-service";
 import { useTranslations, useLocale } from "next-intl";
 import { useUserStore } from "@/store/user";
 
-// Replace the existing memoized component declarations with this component registry
+// Panel component registry is no longer using memo since components are now dynamically imported
 const PanelComponentRegistry = {
-  markets: memo(MarketsPanel),
-  chart: memo(ChartPanel),
-  orderbook: memo(OrderBookPanel),
-  trading: memo(TradingFormPanel),
-  orders: memo(OrdersPanel),
-  alerts: memo(AlertsPanel),
+  markets: MarketsPanel,
+  chart: ChartPanel,
+  orderbook: OrderBookPanel,
+  trading: TradingFormPanel,
+  orders: OrdersPanel,
+  alerts: AlertsPanel,
   // Add any other panel components here
 };
 
@@ -915,11 +915,10 @@ export default function TradingLayout() {
     // Initialize AI investment store
     initializeAiInvestmentStore();
 
-    // Cleanup function
-    return () => {
-      // Clean up any resources if needed
-      marketDataWs.cleanup();
-    };
+    // NOTE: We intentionally do NOT call marketDataWs.cleanup() here
+    // The WebSocket service is a singleton that should persist across component remounts
+    // Calling cleanup() in React StrictMode's double-render causes connection issues
+    // Individual subscriptions should handle their own cleanup via unsubscribe functions
   }, []);
 
   // Initialize orders WebSocket when user is available

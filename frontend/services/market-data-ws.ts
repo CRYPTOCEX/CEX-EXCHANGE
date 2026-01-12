@@ -98,6 +98,9 @@ function getCurrentCandleTimestamp(interval: string): number {
   return Math.floor(now / intervalMs) * intervalMs;
 }
 
+// Use a symbol key on globalThis to ensure singleton persists across HMR in Next.js
+const MARKET_DATA_WS_KEY = Symbol.for("__marketDataWs__");
+
 // Define the market data WebSocket service
 export class MarketDataWebSocketService {
   private static instance: MarketDataWebSocketService;
@@ -112,6 +115,9 @@ export class MarketDataWebSocketService {
 
   // Track active stream subscriptions to prevent duplicates
   private activeStreamSubscriptions: Map<string, Set<string>> = new Map();
+
+  // Track which market types have status listeners registered to prevent duplicates
+  private statusListenersRegistered: Set<MarketType> = new Set();
 
   // Debounce unsubscribe to prevent spam when components remount quickly
   private unsubscribeTimers: Map<string, NodeJS.Timeout> = new Map();
@@ -148,10 +154,17 @@ export class MarketDataWebSocketService {
     });
   }
 
-  // Get singleton instance
+  // Get singleton instance - uses globalThis to survive HMR in development
   public static getInstance(): MarketDataWebSocketService {
+    // Check globalThis first (survives HMR)
+    if ((globalThis as any)[MARKET_DATA_WS_KEY]) {
+      return (globalThis as any)[MARKET_DATA_WS_KEY];
+    }
+
     if (!MarketDataWebSocketService.instance) {
       MarketDataWebSocketService.instance = new MarketDataWebSocketService();
+      // Store in globalThis for HMR persistence
+      (globalThis as any)[MARKET_DATA_WS_KEY] = MarketDataWebSocketService.instance;
     }
     return MarketDataWebSocketService.instance;
   }
@@ -236,20 +249,34 @@ export class MarketDataWebSocketService {
       return;
     }
 
-    // Connect to the WebSocket server
-    wsManager.connect(url, marketType);
+    // IMPORTANT: Add to connectedMarketTypes BEFORE calling connect
+    // This prevents race conditions where multiple components call ensureConnection
+    // simultaneously and both pass the check before either adds to the Set
     this.connectedMarketTypes.add(marketType);
 
-    // Add a status listener to monitor connection state
-    wsManager.addStatusListener((status) => {
-      // Update connection status
-      this.connectionStatusMap.set(marketType, status);
+    // Connect to the WebSocket server
+    wsManager.connect(url, marketType);
 
-      // If connection is established, process pending subscriptions
-      if (status === ConnectionStatus.CONNECTED) {
-        this.processPendingSubscriptions(marketType);
-      }
-    }, marketType);
+    // Add a status listener to monitor connection state (only once per market type)
+    if (!this.statusListenersRegistered.has(marketType)) {
+      this.statusListenersRegistered.add(marketType);
+      wsManager.addStatusListener((status) => {
+        // Update connection status
+        this.connectionStatusMap.set(marketType, status);
+
+        // If connection is established, process pending subscriptions
+        if (status === ConnectionStatus.CONNECTED) {
+          this.processPendingSubscriptions(marketType);
+        }
+
+        // If connection fails permanently (after all reconnect attempts),
+        // remove from connectedMarketTypes to allow new connection attempts
+        if (status === ConnectionStatus.ERROR) {
+          this.connectedMarketTypes.delete(marketType);
+          this.statusListenersRegistered.delete(marketType);
+        }
+      }, marketType);
+    }
   }
 
   // Process pending subscriptions for a market type
@@ -906,6 +933,7 @@ export class MarketDataWebSocketService {
     this.connectedMarketTypes.clear();
     this.subscriptionSent.clear();
     this.activeStreamSubscriptions.forEach((set) => set.clear());
+    this.statusListenersRegistered.clear();
 
     // Clear pending subscriptions
     this.pendingSubscriptions.forEach((set) => set.clear());

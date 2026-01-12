@@ -19,7 +19,8 @@ export default class icoTokenOffering
     | "UPCOMING"
     | "PENDING"
     | "REJECTED"
-    | "DISABLED";
+    | "DISABLED"
+    | "CANCELLED";
   purchaseWalletCurrency!: string;
   purchaseWalletType!: string;
   tokenPrice!: number;
@@ -37,6 +38,9 @@ export default class icoTokenOffering
   isFlagged!: boolean;
   featured?: boolean;
   website?: string;
+  cancelledAt?: Date;
+  cancelledBy?: string;
+  cancellationReason?: string;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
@@ -114,7 +118,8 @@ export default class icoTokenOffering
             "UPCOMING",
             "PENDING",
             "REJECTED",
-            "DISABLED"
+            "DISABLED",
+            "CANCELLED"
           ),
           allowNull: false,
           validate: {
@@ -128,6 +133,7 @@ export default class icoTokenOffering
                   "PENDING",
                   "REJECTED",
                   "DISABLED",
+                  "CANCELLED",
                 ],
               ],
               msg: "status: Invalid status value",
@@ -246,6 +252,18 @@ export default class icoTokenOffering
         },
         website: {
           type: DataTypes.STRING(191),
+          allowNull: true,
+        },
+        cancelledAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+        },
+        cancelledBy: {
+          type: DataTypes.UUID,
+          allowNull: true,
+        },
+        cancellationReason: {
+          type: DataTypes.TEXT,
           allowNull: true,
         },
       },

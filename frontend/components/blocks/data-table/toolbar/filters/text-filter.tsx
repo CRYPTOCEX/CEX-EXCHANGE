@@ -95,13 +95,13 @@ export function TextFilter({
 
   return (
     <FilterWrapper label={label} description={description}>
-      <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
-        <div className="w-full md:w-auto shrink-0">
+      <div className="flex flex-col gap-2 w-full lg:flex-row lg:items-center">
+        <div className="w-full lg:w-auto shrink-0">
           <Select
             value={operator}
             onValueChange={(newOp) => handleChange(value, newOp)}
           >
-            <SelectTrigger className="w-full md:w-auto">
+            <SelectTrigger className="w-full lg:w-28">
               <SelectValue placeholder={tCommon("select_operator")} />
             </SelectTrigger>
             <SelectContent>
@@ -117,7 +117,7 @@ export function TextFilter({
             </SelectContent>
           </Select>
         </div>
-        <div className="relative w-full md:w-auto flex-1">
+        <div className="relative w-full lg:flex-1 lg:min-w-0">
           {Icon && (
             <Icon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           )}

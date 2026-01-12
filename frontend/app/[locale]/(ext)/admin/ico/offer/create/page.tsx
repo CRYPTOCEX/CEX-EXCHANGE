@@ -1,11 +1,8 @@
-import type { Metadata } from "next";
+"use client";
+
 import { AdminLaunchForm } from "@/app/[locale]/(ext)/admin/ico/offer/components/admin-launch-form";
 import { useTranslations } from "next-intl";
 
-export const metadata: Metadata = {
-  title: "Create New Offering | Admin TokenLaunch",
-  description: "Create a new token offering on the TokenLaunch platform",
-};
 export default function CreateOfferingPage() {
   const t = useTranslations("ext_admin");
   const tCommon = useTranslations("common");

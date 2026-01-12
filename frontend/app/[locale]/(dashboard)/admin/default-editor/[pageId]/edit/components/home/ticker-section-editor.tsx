@@ -5,12 +5,14 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { TrendingUp, Activity } from "lucide-react";
 import { EditorProps } from "./types";
+import { useTranslations } from "next-intl";
 
 export const TickerSectionEditor = React.memo(function TickerSectionEditor({
   variables,
   getValue,
   updateVariable
 }: EditorProps) {
+  const t = useTranslations("dashboard_admin");
   const handleEnabledChange = useCallback((checked: boolean) => {
     updateVariable('ticker.enabled', checked);
   }, [updateVariable]);
@@ -22,16 +24,16 @@ export const TickerSectionEditor = React.memo(function TickerSectionEditor({
       <div className="p-4 border rounded-lg">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <TrendingUp className="w-5 h-5" />
-          Live Ticker Settings
+          {t("live_ticker_settings")}
         </h3>
 
         <div className="flex items-center justify-between">
           <div>
             <Label htmlFor="ticker-enabled" className="text-base font-medium">
-              Show Live Ticker
+              {t("show_live_ticker")}
             </Label>
             <p className="text-sm text-muted-foreground mt-1">
-              Display scrolling live market prices below the hero section
+              {t("display_scrolling_live_market_prices_below")}
             </p>
           </div>
           <Switch
@@ -44,7 +46,7 @@ export const TickerSectionEditor = React.memo(function TickerSectionEditor({
 
       {/* Preview */}
       <div className="p-4 border rounded-lg bg-gradient-to-br from-zinc-900/50 to-zinc-800/50">
-        <h4 className="text-sm font-medium mb-4 text-muted-foreground">Ticker Preview</h4>
+        <h4 className="text-sm font-medium mb-4 text-muted-foreground">{t("ticker_preview")}</h4>
 
         {isEnabled ? (
           <div className="relative overflow-hidden rounded-xl py-4 bg-black/30">
@@ -71,7 +73,7 @@ export const TickerSectionEditor = React.memo(function TickerSectionEditor({
           <div className="flex items-center justify-center h-20 rounded-xl bg-black/30 border border-dashed border-white/10">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Activity className="w-5 h-5" />
-              <span>Ticker is disabled</span>
+              <span>{t("ticker_is_disabled")}</span>
             </div>
           </div>
         )}

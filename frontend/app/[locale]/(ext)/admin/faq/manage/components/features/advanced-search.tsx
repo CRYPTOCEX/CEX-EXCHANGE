@@ -68,7 +68,7 @@ export function AdvancedSearch({
   showFilters,
   onToggleFilters,
 }: AdvancedSearchProps) {
-  const t = useTranslations("common");
+  const tCommon = useTranslations("common");
   const [filters, setFilters] = useState<SearchFilters>({
     query: "",
     category: undefined,
@@ -129,7 +129,7 @@ export function AdvancedSearch({
     <div className="flex flex-col sm:flex-row gap-4">
       <div className="relative flex-1">
         <Input
-          placeholder={t("search_faqs_ellipsis")}
+          placeholder={tCommon("search_faqs_ellipsis")}
           className="pl-8"
           value={filters.query}
           onChange={(e) => setFilters({ ...filters, query: e.target.value })}
@@ -156,7 +156,7 @@ export function AdvancedSearch({
           onClick={() => onToggleFilters(!showFilters)}
         >
           <SlidersHorizontal className="h-4 w-4" />
-          <span>{t("filters")}</span>
+          <span>{tCommon("filters")}</span>
           {activeFiltersCount > 0 && (
             <Badge variant="secondary" className="ml-1 h-5 px-1.5">
               {activeFiltersCount}
@@ -164,12 +164,12 @@ export function AdvancedSearch({
           )}
         </Button>
 
-        <Button size="default" onClick={handleSearch}>{t("search")}</Button>
+        <Button size="default" onClick={handleSearch}>{tCommon("search")}</Button>
 
         {(filters.query || activeFiltersCount > 0) && (
           <Button variant="ghost" size="default" onClick={handleClear}>
             <X className="h-4 w-4 mr-2" />
-            {t("clear")}
+            {tCommon("clear")}
           </Button>
         )}
       </div>

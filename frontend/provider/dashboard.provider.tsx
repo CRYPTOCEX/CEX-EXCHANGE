@@ -55,6 +55,13 @@ const DashBoardLayoutProvider = ({
     "/admin/content/media",
     "/admin/system/notification/template/[id]",
     "/admin/system/settings",
+    "/admin/system/license",
+    "/admin/system/extension",
+    "/admin/system/extension/[id]",
+    "/admin/system/update",
+    "/admin/finance/binary/settings",
+    "/admin/system/notification/template",
+    "/admin/trading/settings"
   ];
 
   // Check if the current path should exclude the layout components using our helper.
@@ -97,7 +104,7 @@ const DashBoardLayoutProvider = ({
     };
 
     return { layoutSettings };
-  }, [settings, extensions, profile, location]); // Add location to dependencies
+  }, [settings]); // Only depends on settings - location was incorrectly added here causing re-renders
 
   // Update the global store with the computed menu and theme settings.
   useLayoutEffect(() => {

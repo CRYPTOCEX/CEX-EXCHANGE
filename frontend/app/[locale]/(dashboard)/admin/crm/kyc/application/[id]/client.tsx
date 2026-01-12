@@ -299,7 +299,7 @@ export default function ApplicationDetailClient({
             <div className="absolute inset-0 w-12 h-12 rounded-full border-2 border-transparent border-t-primary" />
           </motion.div>
           <p className="text-sm text-muted-foreground">
-            Loading application...
+            {t("loading_application_ellipsis")}
           </p>
         </motion.div>
       </div>
@@ -322,14 +322,13 @@ export default function ApplicationDetailClient({
             {error || "Application not found"}
           </h2>
           <p className="text-sm text-muted-foreground">
-            The application you&apos;re looking for doesn&apos;t exist or you
-            don&apos;t have permission to view it.
+            {t("the_application_youre_looking_for_doesnt")}
           </p>
           <div className="flex gap-2">
             <Link href="/admin/crm/kyc/application">
               <Button variant="outline">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Applications
+                {t("back_to_applications")}
               </Button>
             </Link>
             {error && (
@@ -500,7 +499,7 @@ export default function ApplicationDetailClient({
               ) : (
                 <div className="flex items-center gap-2 text-slate-400">
                   <ShieldOff className="h-4 w-4" />
-                  <span className="text-sm">Manual Verification</span>
+                  <span className="text-sm">{tCommon("manual_verification")}</span>
                 </div>
               )}
             </motion.div>

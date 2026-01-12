@@ -29,6 +29,11 @@ class MarketService {
   private futuresPromise: Promise<any[]> | null = null;
   private ecoPromise: Promise<any[]> | null = null;
 
+  // Last fetch timestamps to prevent rapid re-fetches (e.g., from React StrictMode)
+  private lastSpotFetchTime = 0;
+  private lastFuturesFetchTime = 0;
+  private static readonly FETCH_COOLDOWN_MS = 5000; // 5 seconds cooldown
+
   private constructor() {}
 
   public static getInstance(): MarketService {
@@ -40,8 +45,14 @@ class MarketService {
 
   // Fetch spot markets
   public async getSpotMarkets(): Promise<any[]> {
-    // Return cached data if already fetched
+    // Return cached data if already fetched (even if empty)
     if (this.spotDataFetched) {
+      return this.spotMarkets;
+    }
+
+    // Prevent rapid re-fetches (e.g., from React StrictMode double-mounting)
+    const now = Date.now();
+    if (now - this.lastSpotFetchTime < MarketService.FETCH_COOLDOWN_MS) {
       return this.spotMarkets;
     }
 
@@ -52,6 +63,7 @@ class MarketService {
 
     // Start fetching
     this.isLoadingSpot = true;
+    this.lastSpotFetchTime = now;
     this.spotPromise = this.fetchSpotMarkets();
 
     try {
@@ -62,7 +74,10 @@ class MarketService {
       return markets;
     } finally {
       this.isLoadingSpot = false;
-      this.spotPromise = null;
+      // Don't clear promise immediately to prevent race conditions
+      setTimeout(() => {
+        this.spotPromise = null;
+      }, 100);
     }
   }
 
@@ -73,8 +88,14 @@ class MarketService {
       return [];
     }
 
-    // Return cached data if already fetched
+    // Return cached data if already fetched (even if empty)
     if (this.futuresDataFetched) {
+      return this.futuresMarkets;
+    }
+
+    // Prevent rapid re-fetches (e.g., from React StrictMode double-mounting)
+    const now = Date.now();
+    if (now - this.lastFuturesFetchTime < MarketService.FETCH_COOLDOWN_MS) {
       return this.futuresMarkets;
     }
 
@@ -85,6 +106,7 @@ class MarketService {
 
     // Start fetching
     this.isLoadingFutures = true;
+    this.lastFuturesFetchTime = now;
     this.futuresPromise = this.fetchFuturesMarkets();
 
     try {
@@ -95,7 +117,10 @@ class MarketService {
       return markets;
     } finally {
       this.isLoadingFutures = false;
-      this.futuresPromise = null;
+      // Don't clear promise immediately to prevent race conditions
+      setTimeout(() => {
+        this.futuresPromise = null;
+      }, 100);
     }
   }
 
@@ -149,6 +174,16 @@ class MarketService {
   // Check if futures markets are loading
   public isFuturesMarketsLoading(): boolean {
     return this.isLoadingFutures;
+  }
+
+  // Check if spot markets data has been fetched (even if empty)
+  public isSpotDataFetched(): boolean {
+    return this.spotDataFetched;
+  }
+
+  // Check if futures markets data has been fetched (even if empty)
+  public isFuturesDataFetched(): boolean {
+    return this.futuresDataFetched;
   }
 
   // Private method to fetch spot markets from API

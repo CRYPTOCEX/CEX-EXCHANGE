@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { EditorProps } from "./types";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 // Icon mapping
 const iconMap: Record<string, any> = {
@@ -114,6 +115,8 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
   getValue,
   updateVariable
 }: EditorProps) {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   // Initialize with exactly 4 features (matching frontend display limit)
   const features = getValue('features') || DEFAULT_FEATURES;
 
@@ -138,16 +141,16 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
         <div className="space-y-4 xl:col-span-1">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <LayoutGrid className="w-5 h-5 text-primary" />
-            Features Section
+            {t("features_section")}
           </h3>
 
           <div>
-            <Label htmlFor="features-badge">Badge Text</Label>
+            <Label htmlFor="features-badge">{t("badge_text")}</Label>
             <Input
               id="features-badge"
               value={getValue('featuresSection.badge') || ''}
               onChange={(e) => updateVariable('featuresSection.badge', e.target.value)}
-              placeholder="e.g., Why Choose Us"
+              placeholder={tCommon("eg") + ", " + tCommon("why_choose_us")}
             />
           </div>
 
@@ -158,7 +161,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
                 id="features-title"
                 value={getValue('featuresSection.title') || ''}
                 onChange={(e) => updateVariable('featuresSection.title', e.target.value)}
-                placeholder="e.g., Built for"
+                placeholder={tCommon("eg") + ", " + tCommon("built_for")}
               />
             </div>
             <div>
@@ -167,7 +170,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
                 id="features-subtitle"
                 value={getValue('featuresSection.subtitle') || ''}
                 onChange={(e) => updateVariable('featuresSection.subtitle', e.target.value)}
-                placeholder="e.g., Professional Traders"
+                placeholder={tCommon("eg") + ", " + t("professional_traders")}
               />
             </div>
           </div>
@@ -179,7 +182,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
               value={getValue('featuresSection.description') || ''}
               onChange={(e) => updateVariable('featuresSection.description', e.target.value)}
               rows={2}
-              placeholder="Explain why users should choose your platform"
+              placeholder={t("explain_why_users_should_choose_your_platform")}
             />
           </div>
         </div>
@@ -212,7 +215,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-semibold">Features (4 Total)</h3>
-          <p className="text-sm text-muted-foreground">Edit the 4 key features shown in "Why Choose Us" section</p>
+          <p className="text-sm text-muted-foreground">{t("edit_the_4_key_features_shown")}</p>
         </div>
 
         {/* Feature Cards */}
@@ -237,7 +240,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
                       <Input
                         value={feature.title || ''}
                         onChange={(e) => updateFeature(index, 'title', e.target.value)}
-                        placeholder="Feature title"
+                        placeholder={t("feature_title")}
                         className="h-9"
                       />
                     </div>
@@ -285,7 +288,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
                       <Input
                         value={feature.description || ''}
                         onChange={(e) => updateFeature(index, 'description', e.target.value)}
-                        placeholder="Brief feature description"
+                        placeholder={t("brief_feature_description")}
                         className="h-9"
                       />
                     </div>
@@ -300,7 +303,7 @@ export const FeaturesSectionEditor = React.memo(function FeaturesSectionEditor({
       {/* Full Section Preview */}
       <div className="space-y-2">
         <div className="text-xs font-medium text-muted-foreground flex items-center justify-between">
-          <span>SECTION PREVIEW</span>
+          <span>{t("section_preview")}</span>
           <Badge variant="secondary" className="text-xs">
             {displayFeatures.length} features
           </Badge>

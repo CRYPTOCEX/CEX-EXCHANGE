@@ -31,7 +31,7 @@ export default Footer;
 const FooterContent = () => {
   const t = useTranslations("components");
   return (
-    <div className="block md:flex md:justify-between text-muted-foreground">
+    <div className="container block md:flex md:justify-between text-muted-foreground">
       <p className="sm:mb-0 text-xs md:text-sm">
         {t("copyright")} {new Date().getFullYear()} {siteName} {t("all_rights_reserved")}
       </p>

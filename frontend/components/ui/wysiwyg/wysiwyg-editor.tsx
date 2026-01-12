@@ -58,6 +58,90 @@ const deviceSizes: Record<DeviceType, { width: number; label: string }> = {
   mobile: { width: 375, label: "Mobile" },
 };
 
+/**
+ * Convert CSS class-based HTML to inline styles for email preview.
+ * This mirrors the backend mailer.ts convertToInlineStyles function.
+ */
+function convertToInlineStyles(html: string): string {
+  // Define inline style mappings for common email template classes
+  const styleMap: Record<string, string> = {
+    // Transaction/Info Cards - Using table display for email client compatibility
+    'transaction-card': 'background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin: 24px 0;',
+    'transaction-row': 'display: table; width: 100%; table-layout: fixed; padding: 12px 0; border-bottom: 1px solid #e5e7eb;',
+    'transaction-row-last': 'display: table; width: 100%; table-layout: fixed; padding: 12px 0; border-bottom: none;',
+    'transaction-label': 'display: table-cell; width: 40%; color: #6b7280; font-size: 14px; vertical-align: middle;',
+    'transaction-value': 'display: table-cell; width: 60%; color: #111827; font-size: 14px; font-weight: 600; text-align: right; vertical-align: middle;',
+    'transaction-value positive': 'display: table-cell; width: 60%; color: #059669; font-size: 14px; font-weight: 600; text-align: right; vertical-align: middle;',
+    'transaction-value negative': 'display: table-cell; width: 60%; color: #dc2626; font-size: 14px; font-weight: 600; text-align: right; vertical-align: middle;',
+
+    // Info Card
+    'info-card': 'background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin: 24px 0;',
+    'info-card-title': 'font-size: 16px; font-weight: 600; color: #111827; margin-bottom: 12px;',
+    'info-card-content': 'color: #6b7280; font-size: 14px; line-height: 1.6;',
+
+    // Highlight Box
+    'highlight-box': 'background: linear-gradient(135deg, #ede9fe 0%, #dbeafe 100%); border: 1px solid #c7d2fe; border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;',
+    'highlight-value': 'font-size: 32px; font-weight: 700; color: #111827; margin-bottom: 4px; font-family: monospace; letter-spacing: 0.05em;',
+    'highlight-label': 'color: #6b7280; font-size: 14px; font-weight: 500;',
+
+    // Buttons
+    'btn': 'display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; text-align: center;',
+    'btn-secondary': 'display: inline-block; padding: 14px 32px; background-color: #f3f4f6; color: #374151; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; text-align: center; border: 1px solid #e5e7eb;',
+    'btn-success': 'display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; text-align: center;',
+
+    // Alerts
+    'alert': 'padding: 16px 20px; border-radius: 8px; margin: 20px 0; font-size: 14px; line-height: 1.6;',
+    'alert alert-info': 'padding: 16px 20px; border-radius: 8px; margin: 20px 0; font-size: 14px; line-height: 1.6; background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;',
+    'alert alert-success': 'padding: 16px 20px; border-radius: 8px; margin: 20px 0; font-size: 14px; line-height: 1.6; background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #047857;',
+    'alert alert-warning': 'padding: 16px 20px; border-radius: 8px; margin: 20px 0; font-size: 14px; line-height: 1.6; background-color: #fffbeb; border: 1px solid #fde68a; color: #b45309;',
+    'alert alert-error': 'padding: 16px 20px; border-radius: 8px; margin: 20px 0; font-size: 14px; line-height: 1.6; background-color: #fef2f2; border: 1px solid #fecaca; color: #dc2626;',
+
+    // Code Block
+    'code-block': 'background-color: #1f2937; border-radius: 8px; padding: 16px 20px; font-family: monospace; font-size: 13px; color: #e5e7eb; margin: 16px 0; overflow-x: auto;',
+
+    // Stats - Using table display for email client compatibility with spacing
+    'stats-grid': 'display: table; width: 100%; margin: 24px 0; border-spacing: 12px 0; border-collapse: separate;',
+    'stat-card': 'display: table-cell; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; text-align: center; width: 50%; vertical-align: top;',
+    'stat-value': 'font-size: 24px; font-weight: 700; color: #6366f1; margin-bottom: 4px;',
+    'stat-label': 'font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;',
+
+    // Divider
+    'divider': 'height: 1px; background-color: #e5e7eb; margin: 24px 0;',
+
+    // Security Badge
+    'security-badge': 'display: inline-block; padding: 8px 16px; background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 50px; color: #059669; font-size: 13px; font-weight: 500;',
+  };
+
+  let result = html;
+
+  // Process compound classes first (longer matches), then single classes
+  const sortedClasses = Object.keys(styleMap).sort((a, b) => b.length - a.length);
+
+  for (const className of sortedClasses) {
+    const inlineStyle = styleMap[className];
+    // Match class="className" or class='className' and add inline styles
+    const classRegex = new RegExp(`class=["']${className.replace(/\s+/g, '\\s+')}["']`, 'gi');
+    result = result.replace(classRegex, `style="${inlineStyle}"`);
+  }
+
+  // Also handle h1, h2, h3, p tags with default styling for better email rendering
+  result = result.replace(/<h1(?![^>]*style)/gi, '<h1 style="color: #111827; font-size: 24px; font-weight: 700; margin: 0 0 16px 0; line-height: 1.3;"');
+  result = result.replace(/<h2(?![^>]*style)/gi, '<h2 style="color: #111827; font-size: 20px; font-weight: 600; margin: 24px 0 12px 0; line-height: 1.3;"');
+  result = result.replace(/<h3(?![^>]*style)/gi, '<h3 style="color: #374151; font-size: 16px; font-weight: 600; margin: 20px 0 8px 0; line-height: 1.3;"');
+  result = result.replace(/<p(?![^>]*style)/gi, '<p style="color: #4b5563; font-size: 15px; line-height: 1.7; margin: 0 0 16px 0;"');
+
+  // Remove border from the last transaction-row in each transaction-card
+  result = result.replace(
+    /(<div[^>]*style="[^"]*display:\s*table[^"]*border-bottom:\s*1px\s+solid\s+#e5e7eb[^"]*"[^>]*>[\s\S]*?<\/div>)\s*(<\/div>\s*(?:<div class="alert|<p|<\/td|$))/gi,
+    (match, row, after) => {
+      const updatedRow = row.replace(/border-bottom:\s*1px\s+solid\s+#e5e7eb;?/gi, 'border-bottom: none;');
+      return updatedRow + after;
+    }
+  );
+
+  return result;
+}
+
 // Default format state
 const defaultFormatState: FormatState = {
   bold: false,
@@ -1101,10 +1185,12 @@ export const WysiwygEditor = forwardRef<WysiwygEditorRef, WysiwygEditorProps>(fu
         return sampleData[variable] || match;
       });
 
-      return wrapper;
+      // Convert class-based styles to inline styles for email client compatibility
+      return convertToInlineStyles(wrapper);
     }
 
-    return content;
+    // Convert class-based styles to inline styles even without wrapper
+    return convertToInlineStyles(content);
   }, [value, emailPreview]);
 
   // Compute container classes based on props
@@ -1469,7 +1555,7 @@ export const WysiwygEditor = forwardRef<WysiwygEditorRef, WysiwygEditorProps>(fu
         {viewMode === "html" && (
           <textarea
             className={cn(
-              "w-full h-full p-4 font-mono text-sm resize-none outline-none transition-colors",
+              "w-full p-4 font-mono text-sm resize-none outline-none transition-colors absolute inset-0",
               "bg-muted/30 dark:bg-muted/20",
               "text-foreground dark:text-foreground",
               "placeholder:text-muted-foreground"

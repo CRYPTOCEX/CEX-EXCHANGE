@@ -257,16 +257,16 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: tDashboardAdmin("basic_information"),
+          title: tCommon("basic_information"),
           icon: Sparkles,
           priority: 1,
           fields: [
-            { key: "title", required: true, validation: (value) => {
+            { key: "title", compoundKey: "compoundTitle", required: true, validation: (value) => {
               if (!value || value.trim().length === 0) return "Title cannot be empty";
               if (value.length > 191) return "Title must not exceed 191 characters";
               return null;
             }},
-            { key: "image", required: false, validation: (value) => {
+            { key: "image", compoundKey: "compoundTitle", required: false, validation: (value) => {
               if (value && value.length > 191) return "Image path must not exceed 191 characters";
               return null;
             }},
@@ -330,16 +330,16 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: tDashboardAdmin("basic_information"),
+          title: tCommon("basic_information"),
           icon: Sparkles,
           priority: 1,
           fields: [
-            { key: "title", required: true, validation: (value) => {
+            { key: "title", compoundKey: "compoundTitle", required: true, validation: (value) => {
               if (!value || value.trim().length === 0) return "Title cannot be empty";
               if (value.length > 191) return "Title must not exceed 191 characters";
               return null;
             }},
-            { key: "image", required: false, validation: (value) => {
+            { key: "image", compoundKey: "compoundTitle", required: false, validation: (value) => {
               if (value && value.length > 191) return "Image path must not exceed 191 characters";
               return null;
             }},

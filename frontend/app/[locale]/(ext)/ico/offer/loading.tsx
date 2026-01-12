@@ -1,9 +1,7 @@
 import { Loader2, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTranslations } from "next-intl";
 
 export default function OffersLoading() {
-  const t = useTranslations("ext_ico");
   return (
     <div className="min-h-screen bg-linear-to-b from-background via-muted/20 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
       {/* Decorative background glows */}
@@ -124,7 +122,6 @@ export default function OffersLoading() {
       {/* Loading indicator */}
       <div className="flex flex-col items-center justify-center py-16">
         <Loader2 className={"h-12 w-12 animate-spin text-teal-600 dark:text-teal-400 mb-4"} />
-        <p className="text-gray-600 dark:text-zinc-400 text-lg">{t("loading_token_offerings_ellipsis")}</p>
       </div>
     </div>
   );

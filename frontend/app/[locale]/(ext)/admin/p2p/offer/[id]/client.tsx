@@ -782,7 +782,7 @@ export default function OfferViewClient({ id }: OfferViewClientProps) {
                             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                               {offer.stats?.totalTrades || 0}
                             </p>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{tExt("total_trades")}</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{tCommon("total_trades")}</p>
                           </div>
                           <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                             <p className="text-2xl font-bold text-green-600 dark:text-green-400">

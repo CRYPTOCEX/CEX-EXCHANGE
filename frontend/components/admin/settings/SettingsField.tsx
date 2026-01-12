@@ -42,6 +42,7 @@ interface SettingsFieldProps {
   field: FieldDefinition;
   value: string | File;
   onChange: (key: string, value: string | File | null) => void;
+  disabled?: boolean;
 }
 
 // Field type icons with colors
@@ -70,6 +71,7 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
   field,
   value = "",
   onChange,
+  disabled = false,
 }) => {
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const { theme } = useTheme();
@@ -105,7 +107,7 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
               >
                 {field.label}
               </Label>
-              {field.description && (
+              {field.description && !disabled && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -126,7 +128,7 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
                 </TooltipProvider>
               )}
             </div>
-            {field.description && (
+            {field.description && !disabled && (
               <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
                 {field.description}
               </p>
@@ -148,6 +150,7 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
     }
 
     case "text":
+    case "input":
     case "url":
     case "number": {
       // Convert value to string for display, handling numbers, strings, null, undefined
@@ -165,7 +168,7 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
                 {field.label}
               </Label>
             </div>
-            {field.description && (
+            {field.description && !disabled && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -190,16 +193,18 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
               value={displayValue}
               onChange={(e) => onChange(field.key, e.target.value)}
               type={
-                field.type === "url"
-                  ? "url"
-                  : field.type === "number"
-                    ? "number"
-                    : "text"
+                field.inputType
+                  ? field.inputType
+                  : field.type === "url"
+                    ? "url"
+                    : field.type === "number"
+                      ? "number"
+                      : "text"
               }
               min={field.min}
               max={field.max}
               step={field.step}
-              placeholder={`Enter ${field.label.toLowerCase()}`}
+              placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
               className={cn(
                 "h-10 transition-all",
                 "focus:ring-2 focus:ring-primary/20",
@@ -246,7 +251,7 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
               </Label>
             </div>
             <div className="flex items-center gap-2">
-              {field.description && (
+              {field.description && !disabled && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -322,7 +327,7 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
                 {field.label}
               </Label>
             </div>
-            {field.description && (
+            {field.description && !disabled && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -344,10 +349,14 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
           <Select
             value={selectValue}
             onValueChange={(newValue) => onChange(field.key, newValue)}
+            disabled={disabled}
           >
             <SelectTrigger
               id={field.key}
-              className="h-10 focus:ring-2 focus:ring-primary/20"
+              className={cn(
+                "h-10 focus:ring-2 focus:ring-primary/20",
+                disabled && "opacity-50 cursor-not-allowed"
+              )}
             >
               <SelectValue
                 placeholder={`Select ${field.label.toLowerCase()}`}

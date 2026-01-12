@@ -675,7 +675,7 @@ export default function FAQClient() {
                   {tCommon("browse_by_category")}
                 </Badge>
                 <h2 className="text-4xl md:text-5xl font-bold text-zinc-900 dark:text-white mb-4">
-                  Find Answers by{" "}
+                  {t("find_answers_by")}{" "}
                   <span className="bg-linear-to-r from-sky-600 to-blue-600 dark:from-sky-400 dark:to-blue-400 bg-clip-text text-transparent">
                     Category
                   </span>

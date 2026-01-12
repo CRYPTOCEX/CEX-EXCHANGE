@@ -12,13 +12,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { useExtensionStore } from "@/store/extension";
 import { useTranslations } from "next-intl";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
 
 export function LicenseVerification() {
   const t = useTranslations("common");
   const tDashboardAdmin = useTranslations("dashboard_admin");
   const [purchaseCode, setPurchaseCode] = useState("");
   const [envatoUsername, setEnvatoUsername] = useState("");
+  const [notificationEmail, setNotificationEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { activateLicense, error } = useExtensionStore();
 
@@ -28,7 +29,7 @@ export function LicenseVerification() {
     }
 
     setIsSubmitting(true);
-    await activateLicense(purchaseCode, envatoUsername);
+    await activateLicense(purchaseCode, envatoUsername, notificationEmail.trim() || undefined);
     setIsSubmitting(false);
   };
 
@@ -69,6 +70,24 @@ export function LicenseVerification() {
             placeholder={t("enter_your_envato_username")}
             disabled={isSubmitting}
           />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="notification-email" className="text-sm font-medium flex items-center gap-2">
+            <Mail className="h-4 w-4" />
+            {tDashboardAdmin("notification_email")}
+            <span className="text-xs text-muted-foreground font-normal">({t("optional")})</span>
+          </label>
+          <Input
+            id="notification-email"
+            type="email"
+            value={notificationEmail}
+            onChange={(e) => setNotificationEmail(e.target.value)}
+            placeholder="your@email.com"
+            disabled={isSubmitting}
+          />
+          <p className="text-xs text-muted-foreground">
+            {tDashboardAdmin("receive_update_notifications")}
+          </p>
         </div>
         <Button
           className="w-full"

@@ -204,7 +204,7 @@ export function TeamMemberForm({
                       Role
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="CEO, Developer, etc." {...field} />
+                      <Input placeholder={t("ceo_developer_etc")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -301,7 +301,7 @@ export function TeamMemberForm({
                           strokeLinejoin="round"
                         />
                       </svg>
-                      LinkedIn URL
+                      {t("linkedin_url")}
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
@@ -432,7 +432,7 @@ export function TeamMemberForm({
                           strokeLinejoin="round"
                         />
                       </svg>
-                      GitHub URL
+                      {t("github_url")}
                     </FormLabel>
                     <FormControl>
                       <div className="relative">

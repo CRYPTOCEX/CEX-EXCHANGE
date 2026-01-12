@@ -45,7 +45,7 @@ export function useColumns(): ColumnDefinition[] {
         type: "compound",
         config: {
           image: {
-            key: "image",
+            key: "icon",
             type: "image",
             fallback: (row) =>
               row.currency
@@ -210,7 +210,8 @@ export function useFormConfig(): FormConfig {
           priority: 1,
           fields: [
             {
-              key: "image",
+              key: "icon",
+              compoundKey: "token",
               fallback: (row) =>
                 row?.currency
                   ? `/img/crypto/${row.currency.toLowerCase()}.webp`
@@ -218,6 +219,7 @@ export function useFormConfig(): FormConfig {
             },
             {
               key: "name",
+              compoundKey: "token",
               required: true,
               maxLength: 255,
               validation: (value: string) => {
@@ -231,6 +233,7 @@ export function useFormConfig(): FormConfig {
             },
             {
               key: "currency",
+              compoundKey: "token",
               required: true,
               maxLength: 255,
             },
@@ -314,7 +317,8 @@ export function useFormConfig(): FormConfig {
           priority: 1,
           fields: [
             {
-              key: "image",
+              key: "icon",
+              compoundKey: "token",
               fallback: (row) =>
                 row?.currency
                   ? `/img/crypto/${row.currency.toLowerCase()}.webp`

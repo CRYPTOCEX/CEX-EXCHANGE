@@ -23,7 +23,7 @@ export function useAnalytics() {
         items: [
           {
             id: "total_trades",
-            title: tExt("total_trades"),
+            title: tCommon("total_trades"),
             metric: "total",
             model: "copyTradingTrade",
             icon: "mdi:swap-horizontal",

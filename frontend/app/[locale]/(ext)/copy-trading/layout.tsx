@@ -12,7 +12,13 @@ export default function CopyTradingLayout({
 }: CopyTradingLayoutProps) {
   return (
     <>
-      <SiteHeader menu={menu} colorSchema={colorSchema} adminPath={adminPath} />
+      <SiteHeader
+        menu={menu}
+        colorSchema={colorSchema}
+        adminPath={adminPath}
+        translationNamespace="ext_copy-trading"
+        translationNavPrefix="nav"
+      />
       <ExtensionLayoutWrapper landingPath="/copy-trading">
         {children}
       </ExtensionLayoutWrapper>

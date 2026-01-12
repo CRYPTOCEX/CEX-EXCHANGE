@@ -231,13 +231,7 @@ export default function IcoLanding() {
     };
   }, []);
 
-  const kycEnabled =
-    settings?.kycStatus === true || settings?.kycStatus === "true";
-  const hasAccess = hasKyc() && canAccessFeature("view_ico");
-
-  if (kycEnabled && !hasAccess) {
-    return <KycRequiredNotice feature="view_ico" />;
-  }
+  // Note: KYC is checked when user tries to invest, not for viewing the landing page
 
   // Format number helper
   const formatNumber = (num: number) => {
@@ -656,7 +650,7 @@ export default function IcoLanding() {
         ]}
         theme={{ primary: "teal", secondary: "cyan" }}
         variant="default"
-        title="Why Trust Us"
+        title={tExt("why_trust_us")}
       />
 
       {/* Upcoming Offerings Section - NEW */}
@@ -779,7 +773,7 @@ export default function IcoLanding() {
               >
                 <Flame className="w-4 h-4 text-amber-500" />
                 <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                  Trending Now
+                  {tExt("trending_now")}
                 </span>
               </motion.div>
 
@@ -798,8 +792,7 @@ export default function IcoLanding() {
 
               {/* Subtitle */}
               <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-xl">
-                Discover our handpicked selection of innovative token offerings
-                with the highest potential
+                {t("discover_our_handpicked_selection_of_innovative")}
               </p>
 
               {/* Decorative element */}
@@ -842,7 +835,7 @@ export default function IcoLanding() {
                   variant="outline"
                   className="rounded-xl group border-2 border-zinc-300 dark:border-zinc-700 hover:border-teal-500 dark:hover:border-teal-500 hover:bg-teal-500/5 transition-all duration-300"
                 >
-                  View All Projects
+                  {t("view_all_projects")}
                   <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </motion.div>
@@ -889,7 +882,7 @@ export default function IcoLanding() {
                     <Flame className="h-8 w-8 text-red-500" />
                   </div>
                   <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">
-                    Unable to Load Projects
+                    {t("unable_to_load_projects")}
                   </h3>
                   <p className="text-zinc-500 mb-6">{projectsError}</p>
                   <Button
@@ -897,7 +890,7 @@ export default function IcoLanding() {
                     onClick={() => window.location.reload()}
                     className="rounded-xl"
                   >
-                    Try Again
+                    {tCommon("try_again")}
                   </Button>
                 </div>
               </Card>
@@ -967,7 +960,7 @@ export default function IcoLanding() {
                       transition={{ delay: 0.3 }}
                     >
                       <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white mb-4">
-                        Be the First to{" "}
+                        {t("be_the_first_to")}{" "}
                         <span
                           className="bg-clip-text text-transparent"
                           style={{
@@ -978,9 +971,7 @@ export default function IcoLanding() {
                         </span>
                       </h3>
                       <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-8 max-w-lg mx-auto leading-relaxed">
-                        Our platform is ready for innovative projects. Launch
-                        your token offering and connect with investors
-                        worldwide.
+                        {t("our_platform_is_ready_for_innovative_projects")}
                       </p>
                     </motion.div>
 
@@ -1028,7 +1019,7 @@ export default function IcoLanding() {
                           }}
                         >
                           <Rocket className="mr-2 w-5 h-5" />
-                          Launch Your Token
+                          {t("launch_your_token")}
                         </Button>
                       </Link>
                       <Link href="/ico/offer">
@@ -1037,7 +1028,7 @@ export default function IcoLanding() {
                           variant="outline"
                           className="h-14 px-8 rounded-2xl font-semibold border-2 w-full sm:w-auto"
                         >
-                          Browse All Projects
+                          {t("browse_all_projects")}
                           <ArrowRight className="ml-2 w-5 h-5" />
                         </Button>
                       </Link>
@@ -1174,7 +1165,7 @@ export default function IcoLanding() {
                     }}
                   >
                     <span className="flex items-center">
-                      Explore All Projects
+                      {t("explore_all_projects")}
                       <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                     </span>
                   </Button>

@@ -58,7 +58,7 @@ export function ChangePageDialog({
         <DialogHeader>
           <DialogTitle>{t("move_faqs_to_another_page")}</DialogTitle>
           <DialogDescription>
-            {t("move_all")} {faqCount} FAQs from <strong>{currentPage.name}</strong> {t("to_another_page_1")}
+            {t("move_all")} {faqCount} {t("faqs_from")} <strong>{currentPage.name}</strong> {t("to_another_page_1")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">

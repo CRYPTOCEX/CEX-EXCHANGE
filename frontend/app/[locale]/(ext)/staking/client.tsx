@@ -214,14 +214,7 @@ export default function StakingLanding() {
     };
   }, []);
 
-  // KYC/feature gating logic
-  const kycEnabled =
-    settings?.kycStatus === true || settings?.kycStatus === "true";
-  const hasStakingAccess = hasKyc() && canAccessFeature("view_staking");
-
-  if (kycEnabled && !hasStakingAccess) {
-    return <KycRequiredNotice feature="view_staking" />;
-  }
+  // Note: KYC is checked when user tries to stake, not for viewing the landing page
 
   // Theme colors - violet/indigo for staking
   const gradient = { from: "#8b5cf6", to: "#6366f1" };
@@ -591,7 +584,7 @@ export default function StakingLanding() {
           ]}
           theme={{ primary: "violet", secondary: "indigo" }}
           variant="default"
-          title="Why Trust Us"
+          title={tExt("why_trust_us")}
         />
 
         {/* How It Works Section */}

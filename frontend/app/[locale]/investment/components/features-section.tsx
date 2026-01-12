@@ -134,7 +134,7 @@ export function FeaturesSection() {
             </motion.div>
 
             <h2 className="text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-              {t("built_for")}{" "}
+              {tCommon("built_for")}{" "}
               <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
                 {t("smart_investors")}
               </span>

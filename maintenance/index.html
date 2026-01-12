@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Scheduled Maintenance | We'll Be Back Soon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #6366f1;
+      --accent-light: #818cf8;
+      --accent-glow: rgba(99, 102, 241, 0.5);
+      --success: #22c55e;
+      --warning: #eab308;
+      --bg-primary: #030712;
+      --bg-secondary: #0f172a;
+      --glass: rgba(15, 23, 42, 0.6);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      height: 100%;
+      width: 100%;
+      background: var(--bg-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-primary);
+      overflow: hidden;
+      position: fixed;
+      inset: 0;
+    }
+
+    /* Animated mesh gradient background */
+    .mesh-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .mesh-bg::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background:
+        radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.1) 0%, transparent 35%),
+        radial-gradient(circle at 60% 60%, rgba(236, 72, 153, 0.08) 0%, transparent 35%);
+      animation: meshMove 20s ease-in-out infinite;
+    }
+
+    .noise-overlay {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+    }
+
+    /* Floating orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.5;
+      animation: orbFloat 15s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      top: 10%;
+      left: 10%;
+      animation-delay: 0s;
+    }
+
+    .orb-2 {
+      width: 300px;
+      height: 300px;
+      background: linear-gradient(135deg, #3b82f6, #06b6d4);
+      bottom: 20%;
+      right: 15%;
+      animation-delay: -5s;
+    }
+
+    .orb-3 {
+      width: 250px;
+      height: 250px;
+      background: linear-gradient(135deg, #ec4899, #f43f5e);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation-delay: -10s;
+      opacity: 0.3;
+    }
+
+    /* Main layout - Full page app */
+    .app-container {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      min-height: 100%;
+    }
+
+    /* Glass card */
+    .main-card {
+      background: var(--glass);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 1px solid var(--glass-border);
+      border-radius: 32px;
+      padding: 3rem;
+      max-width: 560px;
+      width: 100%;
+      text-align: center;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        0 0 100px rgba(99, 102, 241, 0.1);
+      animation: cardAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    /* Animated logo */
+    .logo-wrap {
+      margin-bottom: 2rem;
+      position: relative;
+      display: flex;
+      justify-content: center;
+    }
+
+    .logo-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 110px;
+      height: 110px;
+    }
+
+    .logo-ring svg {
+      width: 100%;
+      height: 100%;
+      animation: logoSpin 8s linear infinite;
+    }
+
+    .logo-ring svg circle {
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-dasharray: 180 360;
+      transform-origin: center;
+    }
+
+    .logo-ring svg .ring-outer {
+      stroke: url(#ringGradient);
+    }
+
+    .logo-ring svg .ring-inner {
+      stroke: url(#ringGradient2);
+      stroke-dasharray: 120 360;
+      animation: ringPulse 3s ease-in-out infinite;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 50%, #ec4899 100%);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow:
+        0 0 40px var(--accent-glow),
+        0 20px 40px rgba(0, 0, 0, 0.3);
+      animation: logoPulse 4s ease-in-out infinite;
+    }
+
+    .logo svg {
+      width: 40px;
+      height: 40px;
+      stroke: white;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    /* Status pill */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(234, 179, 8, 0.1);
+      border: 1px solid rgba(234, 179, 8, 0.25);
+      padding: 10px 20px;
+      border-radius: 100px;
+      margin-bottom: 1.75rem;
+      animation: pillPulse 3s ease-in-out infinite;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--warning);
+      border-radius: 50%;
+      animation: dotBlink 1.5s ease-in-out infinite;
+      box-shadow: 0 0 10px var(--warning);
+    }
+
+    .status-text {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--warning);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    /* Typography */
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 0.875rem;
+      background: linear-gradient(135deg, #fff 0%, #e2e8f0 50%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .description {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 2rem;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Countdown timer */
+    .countdown-section {
+      margin-bottom: 2rem;
+    }
+
+    .countdown-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 0.875rem;
+    }
+
+    .countdown {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .countdown-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .countdown-value {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      width: 68px;
+      height: 74px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.15s ease;
+    }
+
+    .countdown-value.tick {
+      transform: scale(1.05);
+    }
+
+    .countdown-value::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .countdown-unit {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 0.5rem;
+    }
+
+    .countdown-separator {
+      font-size: 1.75rem;
+      color: var(--text-muted);
+      align-self: center;
+      margin-bottom: 1.25rem;
+      animation: separatorBlink 1s ease-in-out infinite;
+    }
+
+    /* Progress bar */
+    .progress-section {
+      margin-bottom: 1.75rem;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.625rem;
+    }
+
+    .progress-label {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .progress-percent {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-light);
+    }
+
+    .progress-track {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light), #8b5cf6);
+      border-radius: 3px;
+      transition: width 0.5s ease-out;
+      position: relative;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -50%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.1) 20%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0.1) 80%,
+        transparent 100%
+      );
+      animation: progressShine 2s ease-in-out infinite;
+    }
+
+    /* Status items */
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.875rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .status-item {
+      padding: 0.875rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .status-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .status-item-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.625rem;
+    }
+
+    .status-item-icon svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    .status-item-icon.secure {
+      background: rgba(34, 197, 94, 0.1);
+    }
+
+    .status-item-icon.secure svg {
+      stroke: var(--success);
+    }
+
+    .status-item-icon.update {
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    .status-item-icon.update svg {
+      stroke: var(--accent-light);
+      animation: iconSpin 1.5s ease-in-out infinite;
+    }
+
+    .status-item-icon.clock {
+      background: rgba(234, 179, 8, 0.1);
+    }
+
+    .status-item-icon.clock svg {
+      stroke: var(--warning);
+    }
+
+    .status-item-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.2rem;
+    }
+
+    .status-item-desc {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    /* Footer links */
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.75rem;
+    }
+
+    .footer-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.8rem;
+      transition: color 0.2s ease;
+    }
+
+    .footer-link:hover {
+      color: var(--accent-light);
+    }
+
+    .footer-link svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    /* Animations */
+    @keyframes meshMove {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      25% { transform: translate(2%, 2%) rotate(1deg); }
+      50% { transform: translate(0%, 4%) rotate(0deg); }
+      75% { transform: translate(-2%, 2%) rotate(-1deg); }
+    }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    @keyframes cardAppear {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes logoSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes ringPulse {
+      0%, 100% { stroke-dasharray: 120 360; opacity: 0.5; }
+      50% { stroke-dasharray: 160 360; opacity: 0.8; }
+    }
+
+    @keyframes logoPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 40px var(--accent-glow), 0 20px 40px rgba(0, 0, 0, 0.3); }
+      50% { transform: scale(1.02); box-shadow: 0 0 60px var(--accent-glow), 0 25px 50px rgba(0, 0, 0, 0.4); }
+    }
+
+    @keyframes pillPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.2); }
+      50% { box-shadow: 0 0 0 8px rgba(234, 179, 8, 0); }
+    }
+
+    @keyframes dotBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    @keyframes separatorBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    @keyframes progressShine {
+      0% { left: -50%; }
+      100% { left: 150%; }
+    }
+
+    @keyframes iconSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .container {
+        padding: 1rem;
+        justify-content: center;
+      }
+
+      .main-card {
+        padding: 2rem 1.25rem;
+        border-radius: 24px;
+        max-width: 100%;
+      }
+
+      .logo-wrap {
+        margin-bottom: 1.5rem;
+      }
+
+      .logo-ring {
+        width: 90px;
+        height: 90px;
+      }
+
+      .logo {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+      }
+
+      .logo svg {
+        width: 32px;
+        height: 32px;
+      }
+
+      .status-pill {
+        padding: 8px 16px;
+        margin-bottom: 1.25rem;
+      }
+
+      .status-text {
+        font-size: 0.65rem;
+      }
+
+      h1 {
+        font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .description {
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .countdown-section {
+        margin-bottom: 1.5rem;
+      }
+
+      .countdown {
+        gap: 0.5rem;
+      }
+
+      .countdown-value {
+        width: 52px;
+        height: 58px;
+        font-size: 1.5rem;
+        border-radius: 10px;
+      }
+
+      .countdown-separator {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+      }
+
+      .countdown-unit {
+        font-size: 0.55rem;
+      }
+
+      .progress-section {
+        margin-bottom: 1.25rem;
+      }
+
+      .status-grid {
+        grid-template-columns: 1fr;
+        gap: 0.625rem;
+      }
+
+      .status-item {
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        text-align: left;
+        padding: 0.75rem;
+      }
+
+      .status-item-icon {
+        margin: 0;
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+      }
+
+      .status-item-icon svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      .status-item-content {
+        flex: 1;
+      }
+
+      .footer-links {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: center;
+      }
+
+      .orb-1 { width: 200px; height: 200px; }
+      .orb-2 { width: 150px; height: 150px; }
+      .orb-3 { width: 120px; height: 120px; }
+    }
+
+    @media (max-height: 700px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .main-card {
+        padding: 1.5rem;
+      }
+
+      .logo-wrap {
+        margin-bottom: 1.25rem;
+      }
+
+      .logo-ring {
+        width: 80px;
+        height: 80px;
+      }
+
+      .logo {
+        width: 56px;
+        height: 56px;
+      }
+
+      .logo svg {
+        width: 28px;
+        height: 28px;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .description {
+        margin-bottom: 1.25rem;
+        font-size: 0.9rem;
+      }
+
+      .countdown-value {
+        width: 52px;
+        height: 56px;
+        font-size: 1.5rem;
+      }
+
+      .status-grid {
+        margin-bottom: 1.25rem;
+      }
+    }
+
+    /* Safe area for notched devices */
+    @supports (padding: env(safe-area-inset-top)) {
+      .app-container {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background -->
+  <div class="mesh-bg">
+    <div class="noise-overlay"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="app-container">
+    <div class="container">
+      <div class="main-card">
+        <!-- Logo -->
+        <div class="logo-wrap">
+          <div class="logo-ring">
+            <svg viewBox="0 0 110 110">
+              <defs>
+                <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#6366f1"/>
+                  <stop offset="50%" stop-color="#8b5cf6"/>
+                  <stop offset="100%" stop-color="#6366f1"/>
+                </linearGradient>
+                <linearGradient id="ringGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="rgba(139, 92, 246, 0.5)"/>
+                  <stop offset="100%" stop-color="rgba(59, 130, 246, 0.5)"/>
+                </linearGradient>
+              </defs>
+              <circle class="ring-outer" cx="55" cy="55" r="52"/>
+              <circle class="ring-inner" cx="55" cy="55" r="44"/>
+            </svg>
+          </div>
+          <div class="logo">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" stroke-linejoin="round" stroke-linecap="round"/>
+              <path d="M2 17l10 5 10-5" stroke-linejoin="round" stroke-linecap="round"/>
+              <path d="M2 12l10 5 10-5" stroke-linejoin="round" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Status Badge -->
+        <div class="status-pill">
+          <span class="status-dot"></span>
+          <span class="status-text">Maintenance in Progress</span>
+        </div>
+
+        <!-- Heading -->
+        <h1>We'll Be Back Shortly</h1>
+        <p class="description">
+          We're currently performing scheduled maintenance to improve your experience.
+          Your data is safe and we'll be back online soon.
+        </p>
+
+        <!-- Countdown -->
+        <div class="countdown-section">
+          <div class="countdown-label">Estimated Time Remaining</div>
+          <div class="countdown">
+            <div class="countdown-item">
+              <div class="countdown-value" id="hours">00</div>
+              <div class="countdown-unit">Hours</div>
+            </div>
+            <span class="countdown-separator">:</span>
+            <div class="countdown-item">
+              <div class="countdown-value" id="minutes">15</div>
+              <div class="countdown-unit">Minutes</div>
+            </div>
+            <span class="countdown-separator">:</span>
+            <div class="countdown-item">
+              <div class="countdown-value" id="seconds">00</div>
+              <div class="countdown-unit">Seconds</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-section">
+          <div class="progress-header">
+            <span class="progress-label">Upgrade Progress</span>
+            <span class="progress-percent" id="progress-text">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-bar" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Status Grid -->
+        <div class="status-grid">
+          <div class="status-item">
+            <div class="status-item-icon secure">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <polyline points="9 12 11 14 15 10"/>
+              </svg>
+            </div>
+            <div class="status-item-content">
+              <div class="status-item-title">Data Secured</div>
+              <div class="status-item-desc">All data protected</div>
+            </div>
+          </div>
+
+          <div class="status-item">
+            <div class="status-item-icon update">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                <polyline points="21 3 21 9 15 9"/>
+              </svg>
+            </div>
+            <div class="status-item-content">
+              <div class="status-item-title">Upgrading</div>
+              <div class="status-item-desc">System update</div>
+            </div>
+          </div>
+
+          <div class="status-item">
+            <div class="status-item-icon clock">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div class="status-item-content">
+              <div class="status-item-title" id="time-remaining">~15 mins</div>
+              <div class="status-item-desc">Time remaining</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const STORAGE_KEY = 'maintenance_state';
+      const DEFAULT_DURATION = 15 * 60 * 1000; // 15 minutes in ms
+      const REFRESH_CHECK_INTERVAL = 60000; // Check if maintenance is done every 60 seconds
+
+      // Get or initialize state from localStorage
+      function getState() {
+        try {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            const state = JSON.parse(stored);
+            // Validate state has required fields and isn't expired
+            if (state.endTime && state.startTime && state.endTime > Date.now()) {
+              return state;
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to read maintenance state:', e);
+        }
+
+        // Initialize new state
+        const now = Date.now();
+        const newState = {
+          startTime: now,
+          endTime: now + DEFAULT_DURATION,
+          progress: 0
+        };
+        saveState(newState);
+        return newState;
+      }
+
+      function saveState(state) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+          console.warn('Failed to save maintenance state:', e);
+        }
+      }
+
+      // DOM elements
+      const hoursEl = document.getElementById('hours');
+      const minutesEl = document.getElementById('minutes');
+      const secondsEl = document.getElementById('seconds');
+      const progressBar = document.getElementById('progress-bar');
+      const progressText = document.getElementById('progress-text');
+      const timeRemainingEl = document.getElementById('time-remaining');
+
+      let state = getState();
+      let lastSeconds = -1;
+
+      function updateCountdown() {
+        const now = Date.now();
+        const remaining = Math.max(0, state.endTime - now);
+        const totalSeconds = Math.ceil(remaining / 1000);
+
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        // Update display
+        hoursEl.textContent = String(hours).padStart(2, '0');
+        minutesEl.textContent = String(minutes).padStart(2, '0');
+        secondsEl.textContent = String(seconds).padStart(2, '0');
+
+        // Add tick animation
+        if (seconds !== lastSeconds) {
+          lastSeconds = seconds;
+          secondsEl.classList.add('tick');
+          setTimeout(() => secondsEl.classList.remove('tick'), 150);
+        }
+
+        // Update time remaining text
+        if (hours > 0) {
+          timeRemainingEl.textContent = `~${hours}h ${minutes}m`;
+        } else if (minutes > 0) {
+          timeRemainingEl.textContent = `~${minutes} mins`;
+        } else {
+          timeRemainingEl.textContent = `~${seconds}s`;
+        }
+
+        // If countdown finished, check if maintenance is done
+        if (remaining <= 0) {
+          checkMaintenanceDone();
+        }
+      }
+
+      function updateProgress() {
+        const now = Date.now();
+        const total = state.endTime - state.startTime;
+        const elapsed = now - state.startTime;
+
+        // Calculate progress based on time elapsed
+        // Start at a base progress and increase over time
+        // Cap at 95% until maintenance is actually done
+        let baseProgress = Math.min(95, (elapsed / total) * 100);
+
+        // Add some randomness to make it feel more realistic
+        // but ensure it never decreases
+        if (baseProgress > state.progress) {
+          // Small random increment on top
+          const randomBoost = Math.random() * 3;
+          state.progress = Math.min(95, baseProgress + randomBoost);
+          saveState(state);
+        }
+
+        const displayProgress = Math.floor(state.progress);
+        progressBar.style.width = displayProgress + '%';
+        progressText.textContent = displayProgress + '%';
+      }
+
+      function checkMaintenanceDone() {
+        // Silently fetch the page to check if maintenance is over
+        fetch(window.location.href, {
+          method: 'HEAD',
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
+        })
+        .then(response => {
+          // If we get a response, try reloading the page
+          // The server should redirect or show different content when done
+          window.location.reload();
+        })
+        .catch(() => {
+          // If fetch fails, extend the countdown a bit
+          state.endTime = Date.now() + (5 * 60 * 1000); // Add 5 more minutes
+          saveState(state);
+        });
+      }
+
+      // Initial updates
+      updateCountdown();
+      updateProgress();
+
+      // Start intervals
+      setInterval(updateCountdown, 1000);
+      setInterval(updateProgress, 5000);
+
+      // Periodic check if maintenance is done (every 60 seconds)
+      setInterval(checkMaintenanceDone, REFRESH_CHECK_INTERVAL);
+    })();
+  </script>
+</body>
+</html>

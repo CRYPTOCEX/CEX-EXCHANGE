@@ -9,9 +9,8 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 export default async function FAQDetailPage() {
-  const t = await getTranslations("ext");
+  const t = await getTranslations({ locale: "en", namespace: "ext" });
   return (
-
-        <FAQDetailContent />
+    <FAQDetailContent />
   );
 }

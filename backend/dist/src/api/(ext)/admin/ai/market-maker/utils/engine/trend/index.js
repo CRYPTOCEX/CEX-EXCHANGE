@@ -1,0 +1,1 @@
+"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.TrendManager=void 0;var TrendManager_1=require("./TrendManager");Object.defineProperty(exports,"TrendManager",{enumerable:!0,get:function(){return TrendManager_1.TrendManager}});

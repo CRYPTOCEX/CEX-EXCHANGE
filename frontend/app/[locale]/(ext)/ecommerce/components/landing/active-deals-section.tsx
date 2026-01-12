@@ -39,6 +39,7 @@ interface ActiveDealsSectionProps {
 }
 
 function DealCard({ deal, index }: { deal: Deal; index: number }) {
+  const t = useTranslations("ext_ecommerce");
   const validUntil = new Date(deal.discount.validUntil);
   const now = new Date();
   const daysLeft = Math.ceil(
@@ -93,7 +94,7 @@ function DealCard({ deal, index }: { deal: Deal; index: number }) {
           <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 mb-3">
             <Tag className="w-4 h-4 text-amber-600 dark:text-amber-400" />
             <span className="text-xs text-zinc-600 dark:text-zinc-400">
-              Use code:
+              {t("use_code")}
             </span>
             <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
               {deal.discount.code}

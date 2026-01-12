@@ -22,7 +22,7 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 3000,
-        NEXT_PUBLIC_SITE_URL: "https://mash3div.com",
+        NEXT_PUBLIC_SITE_URL: "https://mashdiv.com",
         NEXT_PUBLIC_BACKEND_PORT: "4000",
         NEXT_PUBLIC_FRONTEND_PORT: "3000",
         NEXT_PUBLIC_SITE_NAME: "Bicrypto",
@@ -31,7 +31,7 @@ module.exports = {
       env_production: {
         NODE_ENV: "production",
         PORT: 3000,
-        NEXT_PUBLIC_SITE_URL: "https://mash3div.com",
+        NEXT_PUBLIC_SITE_URL: "https://mashdiv.com",
         NEXT_PUBLIC_BACKEND_PORT: "4000", 
         NEXT_PUBLIC_FRONTEND_PORT: "3000",
         NEXT_PUBLIC_SITE_NAME: "Bicrypto",

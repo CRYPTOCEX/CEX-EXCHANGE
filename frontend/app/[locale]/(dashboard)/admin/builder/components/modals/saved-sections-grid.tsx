@@ -121,7 +121,7 @@ export function SavedSectionsGrid({
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold flex items-center">
             <Sparkles className="w-5 h-5 mr-2 text-purple-500" />
-            AI Section Generator
+            {t("ai_section_generator")}
           </h2>
           <Button
             variant="outline"
@@ -191,7 +191,7 @@ export function SavedSectionsGrid({
           </div>
           <div className="text-left">
             <span className="text-sm font-medium block dark:text-zinc-100">
-              AI Generator
+              {t("ai_generator")}
             </span>
             <span className="text-xs text-muted-foreground">
               {t("create_with_ai")}

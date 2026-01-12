@@ -45,6 +45,7 @@ function ActivityItemCard({
   activity: ActivityItem;
   index: number;
 }) {
+  const t = useTranslations("ext_affiliate");
   const IconComponent = conditionIcons[activity.conditionType] || DollarSign;
 
   return (
@@ -65,7 +66,7 @@ function ActivityItemCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-zinc-900 dark:text-white">
-              Someone earned
+              {t("someone_earned")}
             </span>
             <motion.span
               className="text-sm font-bold text-green-600 dark:text-green-400"
@@ -123,12 +124,12 @@ export default function LiveActivityFeed({
               >
                 <Activity className="w-4 h-4 text-green-500 mr-2 animate-pulse" />
                 <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                  Live Activity
+                  {tExt("live_activity")}
                 </span>
               </Badge>
               <h2 className="text-3xl font-bold tracking-tight mb-4">
                 <span className="bg-gradient-to-r from-blue-600 to-amber-600 bg-clip-text text-transparent">
-                  Real-Time Earnings
+                  {t("real_time_earnings")}
                 </span>
               </h2>
             </div>
@@ -205,7 +206,7 @@ export default function LiveActivityFeed({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
             </span>
-            <span>Activity from the last 30 days</span>
+            <span>{t("activity_from_the_last_30_days")}</span>
           </motion.div>
         </div>
       </div>

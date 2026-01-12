@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @plugin 'tailwindcss-animate';
@@ -343,6 +344,59 @@
 }
 .animate-stripes {
   animation: progress-bar-stripes 1s linear infinite;
+}
+
+/* Background blob animations - CPU efficient CSS animations */
+@keyframes blob-1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(30px, -20px) scale(1.1);
+  }
+}
+@keyframes blob-2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-40px, 30px) scale(1.2);
+  }
+}
+@keyframes blob-3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(20px, -40px) scale(1.15);
+  }
+}
+@keyframes blob-4 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-30px, 20px) scale(1.1);
+  }
+}
+.animate-blob-1 {
+  animation: blob-1 20s ease-in-out infinite;
+  will-change: transform;
+}
+.animate-blob-2 {
+  animation: blob-2 25s ease-in-out infinite;
+  animation-delay: 5s;
+  will-change: transform;
+}
+.animate-blob-3 {
+  animation: blob-3 30s ease-in-out infinite;
+  animation-delay: 10s;
+  will-change: transform;
+}
+.animate-blob-4 {
+  animation: blob-4 22s ease-in-out infinite;
+  animation-delay: 7s;
+  will-change: transform;
 }
 
 /* Page minimum height adjustments */

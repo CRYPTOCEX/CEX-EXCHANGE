@@ -147,13 +147,13 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: tDashboardAdmin("basic_information"),
+          title: tCommon("basic_information"),
           icon: Tag,
           priority: 1,
           fields: [
-            { key: "name", required: true, maxLength: 191 },
-            { key: "slug", required: true, maxLength: 191 },
-            { key: "image", required: false, maxLength: 191 },
+            { key: "name", compoundKey: "category", required: true, maxLength: 191 },
+            { key: "slug", compoundKey: "category", required: true, maxLength: 191 },
+            { key: "image", compoundKey: "category", required: false, maxLength: 191 },
             { key: "description", required: true, maxLength: 191 },
           ],
         },
@@ -172,13 +172,13 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: tDashboardAdmin("basic_information"),
+          title: tCommon("basic_information"),
           icon: Tag,
           priority: 1,
           fields: [
-            { key: "name", required: true, maxLength: 191 },
-            { key: "slug", required: true, maxLength: 191 },
-            { key: "image", required: false, maxLength: 191 },
+            { key: "name", compoundKey: "category", required: true, maxLength: 191 },
+            { key: "slug", compoundKey: "category", required: true, maxLength: 191 },
+            { key: "image", compoundKey: "category", required: false, maxLength: 191 },
             { key: "description", required: true, maxLength: 191 },
           ],
         },

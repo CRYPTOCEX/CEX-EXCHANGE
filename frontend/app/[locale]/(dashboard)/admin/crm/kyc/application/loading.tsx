@@ -1,21 +1,14 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useTranslations } from "next-intl";
 
 export default function Loading() {
-  const t = useTranslations("dashboard_admin");
-  const tCommon = useTranslations("common");
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {t("kyc_applications")}
-          </h1>
-          <p className="text-muted-foreground">
-            {t("manage_and_review_user_kyc_submissions")}
-          </p>
+          <Skeleton className="h-9 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
         </div>
         <Skeleton className="h-10 w-40" />
       </div>
@@ -39,12 +32,20 @@ export default function Loading() {
 
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="grid grid-cols-5 w-full md:w-auto">
-          <TabsTrigger value="all">{tCommon("all")}</TabsTrigger>
-          <TabsTrigger value="pending">{tCommon("pending")}</TabsTrigger>
-          <TabsTrigger value="approved">{tCommon("approved")}</TabsTrigger>
-          <TabsTrigger value="rejected">{tCommon("rejected")}</TabsTrigger>
+          <TabsTrigger value="all">
+            <Skeleton className="h-4 w-8" />
+          </TabsTrigger>
+          <TabsTrigger value="pending">
+            <Skeleton className="h-4 w-16" />
+          </TabsTrigger>
+          <TabsTrigger value="approved">
+            <Skeleton className="h-4 w-16" />
+          </TabsTrigger>
+          <TabsTrigger value="rejected">
+            <Skeleton className="h-4 w-16" />
+          </TabsTrigger>
           <TabsTrigger value="additional_info_required">
-            {t("needs_info")}
+            <Skeleton className="h-4 w-20" />
           </TabsTrigger>
         </TabsList>
 
@@ -53,7 +54,7 @@ export default function Loading() {
             <CardHeader className="pb-3">
               <div className="flex justify-between items-center">
                 <div>
-                  <CardTitle>{t("applications")}</CardTitle>
+                  <Skeleton className="h-6 w-32" />
                   <Skeleton className="h-4 w-32 mt-1" />
                 </div>
                 <Skeleton className="h-9 w-32" />
@@ -63,9 +64,7 @@ export default function Loading() {
               <div className="flex justify-center items-center py-12">
                 <div className="flex flex-col items-center gap-2">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  <p className="text-sm text-muted-foreground">
-                    {t("loading_applications")}.
-                  </p>
+                  <Skeleton className="h-4 w-32" />
                 </div>
               </div>
             </CardContent>

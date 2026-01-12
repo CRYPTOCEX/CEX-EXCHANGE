@@ -274,7 +274,7 @@ export default function MerchantDashboardClient() {
             <Link href="/gateway/settings?tab=api-keys">
               <Button variant="outline">
                 <Key className="h-4 w-4 mr-2" />
-                API Keys
+                {tCommon("api_keys")}
               </Button>
             </Link>
           </div>

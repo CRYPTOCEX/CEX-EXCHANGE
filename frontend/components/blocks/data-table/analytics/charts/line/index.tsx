@@ -86,7 +86,7 @@ export const ChartCard: React.FC<ChartCardProps> = React.memo(
 
     return (
       <Card
-        className={cn("bg-transparent rounded-xl border relative", className)}
+        className={cn("bg-transparent rounded-lg border relative", className)}
         aria-labelledby={`${chartKey}-title`}
       >
         <motion.div
@@ -114,19 +114,19 @@ export const ChartCard: React.FC<ChartCardProps> = React.memo(
             {loading ? (
               <motion.div
                 variants={chartAreaVariants}
-                className="mt-6 h-[400px] flex items-center justify-center"
+                className="mt-4 h-[200px] md:h-[240px] flex items-center justify-center"
               >
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
               </motion.div>
             ) : !hasData ? (
               <motion.div
                 variants={chartAreaVariants}
-                className="mt-6 h-[400px] flex items-center justify-center"
+                className="mt-4 h-[200px] md:h-[240px] flex items-center justify-center"
               >
                 <p className="text-muted-foreground">{tCommon("no_data_available")}</p>
               </motion.div>
             ) : (
-              <motion.div variants={chartAreaVariants} className="mt-6 h-[400px]">
+              <motion.div variants={chartAreaVariants} className="mt-4 h-[200px] md:h-[240px]">
                 <ChartContent
                   chartKey={chartKey}
                   config={config}

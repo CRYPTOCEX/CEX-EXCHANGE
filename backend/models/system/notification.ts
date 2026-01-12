@@ -9,12 +9,15 @@ export default class notification
   userId!: string;
   relatedId?: string;
   title!: string;
-  type!: "investment" | "message" | "user" | "alert" | "system";
+  type!: string;
   message!: string;
   details?: string;
   link?: string;
   actions?: any;
   read!: boolean;
+  idempotencyKey?: string;
+  channels?: any;
+  priority?: "LOW" | "NORMAL" | "HIGH" | "URGENT";
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
@@ -53,18 +56,11 @@ export default class notification
           },
         },
         type: {
-          type: DataTypes.ENUM(
-            "investment",
-            "message",
-            "user",
-            "alert",
-            "system"
-          ),
+          type: DataTypes.STRING(50),
           allowNull: false,
           validate: {
-            isIn: {
-              args: [["investment", "message", "user", "alert", "system"]],
-              msg: "type: Invalid notification type",
+            notEmpty: {
+              msg: "type: Notification type must not be empty",
             },
           },
         },
@@ -94,6 +90,20 @@ export default class notification
           allowNull: false,
           defaultValue: false,
         },
+        idempotencyKey: {
+          type: DataTypes.STRING(255),
+          allowNull: true,
+          field: "idempotency_key",
+        },
+        channels: {
+          type: DataTypes.JSON,
+          allowNull: true,
+        },
+        priority: {
+          type: DataTypes.ENUM("LOW", "NORMAL", "HIGH", "URGENT"),
+          allowNull: true,
+          defaultValue: "NORMAL",
+        },
       },
       {
         sequelize,
@@ -115,7 +125,19 @@ export default class notification
             name: "type_index",
             fields: [{ name: "type" }],
           },
+          {
+            name: "idempotency_key_index",
+            fields: [{ name: "idempotency_key" }],
+          },
         ],
+        hooks: {
+          beforeValidate: (instance: notification) => {
+            // Convert type to lowercase to support case-insensitive input
+            if (instance.type) {
+              instance.type = instance.type.toLowerCase();
+            }
+          },
+        },
       }
     );
   }

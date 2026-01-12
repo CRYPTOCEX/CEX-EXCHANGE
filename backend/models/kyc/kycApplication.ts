@@ -34,7 +34,6 @@ export default class kycApplication
           allowNull: false,
           validate: {
             notNull: { msg: "userId: User ID cannot be null" },
-            isUUID: { args: 4, msg: "userId: Must be a valid UUID" },
           },
           comment: "ID of the user submitting the KYC application",
         },
@@ -43,7 +42,6 @@ export default class kycApplication
           allowNull: false,
           validate: {
             notNull: { msg: "levelId: Level ID cannot be null" },
-            isUUID: { args: 4, msg: "levelId: Must be a valid UUID" },
           },
           comment: "ID of the KYC level being applied for",
         },

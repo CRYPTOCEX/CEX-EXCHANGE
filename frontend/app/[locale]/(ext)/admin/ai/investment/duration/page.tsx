@@ -24,7 +24,7 @@ export default function AiInvestmentDurationPage() {
       canEdit
       canDelete
       canView
-      title="AI Investment Durations"
+      title={t("ai_investment_durations")}
       description={t("manage_ai_powered_investment_duration_settings")}
       itemTitle="Duration"
       columns={columns}

@@ -251,7 +251,7 @@ export default function DepositDetailClient() {
         amount: parseFloat(amount),
         fee: parseFloat(fee),
         description,
-        referenceId,
+        ...(referenceId && { referenceId }),
       };
 
       if (newStatus === "REJECTED") {

@@ -29,7 +29,8 @@ import {
 } from "recharts";
 import { format } from "date-fns";
 import { HeroSection } from "@/components/ui/hero-section";
-import { BarChart3, Sparkles } from "lucide-react";
+import { BarChart3, Sparkles, DollarSign, TrendingUp, Store } from "lucide-react";
+import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 interface OverviewData {
   totalMarkets: number;
@@ -380,52 +381,35 @@ export default function AnalyticsPage() {
           </Button>
         }
         bottomSlot={
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="bg-card/50 backdrop-blur border-cyan-500/20">
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">
-                  {tCommon("total_tvl")}
-                </p>
-                <p className="text-2xl font-bold text-foreground">
-                  {((overview?.totalTVL || 0) / 1000).toFixed(1)}K
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/50 backdrop-blur border-purple-500/20">
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">{`24h ${tCommon("volume")}`}</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {((overview?.total24hVolume || 0) / 1000).toFixed(1)}K
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/50 backdrop-blur border-cyan-500/20">
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">
-                  {tCommon("total_p_l")}
-                </p>
-                <p
-                  className={`text-2xl font-bold ${
-                    (overview?.totalPnL || 0) >= 0
-                      ? "text-green-500"
-                      : "text-red-500"
-                  }`}
-                >
-                  {(overview?.totalPnL || 0) >= 0 ? "+" : ""}
-                  {(overview?.totalPnL || 0).toFixed(2)}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/50 backdrop-blur border-purple-500/20">
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">
-                  {tCommon("active_markets")}
-                </p>
-                <p className="text-2xl font-bold text-foreground">
-                  {overview?.activeMarkets || 0} / {overview?.totalMarkets || 0}
-                </p>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+            <StatsCard
+              label={tCommon("total_tvl")}
+              value={`$${((overview?.totalTVL || 0) / 1000).toFixed(1)}K`}
+              icon={DollarSign}
+              index={0}
+              {...statsCardColors.cyan}
+            />
+            <StatsCard
+              label={`24h ${tCommon("volume")}`}
+              value={`$${((overview?.total24hVolume || 0) / 1000).toFixed(1)}K`}
+              icon={BarChart3}
+              index={1}
+              {...statsCardColors.purple}
+            />
+            <StatsCard
+              label={tCommon("total_p_l")}
+              value={`${(overview?.totalPnL || 0) >= 0 ? "+" : ""}${(overview?.totalPnL || 0).toFixed(2)}`}
+              icon={TrendingUp}
+              index={2}
+              {...((overview?.totalPnL || 0) >= 0 ? statsCardColors.green : statsCardColors.red)}
+            />
+            <StatsCard
+              label={tCommon("active_markets")}
+              value={`${overview?.activeMarkets || 0}/${overview?.totalMarkets || 0}`}
+              icon={Store}
+              index={3}
+              {...statsCardColors.purple}
+            />
           </div>
         }
       />
@@ -438,7 +422,7 @@ export default function AnalyticsPage() {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-muted-foreground mb-2">
-                  {t("select_market")}
+                  {tCommon("select_market")}
                 </label>
                 <Select
                   value={selectedMarket}
@@ -474,7 +458,7 @@ export default function AnalyticsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1h">{t("last_hour")}</SelectItem>
-                    <SelectItem value="24h">{t("last_24_hours")}</SelectItem>
+                    <SelectItem value="24h">{tCommon("last_24_hours")}</SelectItem>
                     <SelectItem value="7d">{tCommon("last_7_days")}</SelectItem>
                     <SelectItem value="30d">
                       {tCommon("last_30_days")}
@@ -623,7 +607,7 @@ export default function AnalyticsPage() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">
-                      {tExt("total_trades")}
+                      {tCommon("total_trades")}
                     </p>
                     <p className="text-2xl font-bold text-foreground">
                       {performance.metrics.totalTrades.toLocaleString()}
@@ -821,7 +805,7 @@ export default function AnalyticsPage() {
                         <div className="grid grid-cols-2 gap-4">
                           <div className="p-3 bg-secondary/50 rounded-xl text-center">
                             <p className="text-xs text-muted-foreground">
-                              {tExt("total_trades")}
+                              {tCommon("total_trades")}
                             </p>
                             <p className="text-lg font-bold text-foreground">
                               {pnlReport.breakdown.tradeCount}

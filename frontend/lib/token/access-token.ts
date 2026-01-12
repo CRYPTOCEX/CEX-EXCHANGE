@@ -9,6 +9,11 @@ function getTokenSecret(): string {
 }
 
 export async function verifyToken(accessToken: string): Promise<any> {
+  // Return null early if no token provided
+  if (!accessToken) {
+    return null;
+  }
+
   try {
     const tokenSecret = getTokenSecret();
     const result = await jwtVerify(
@@ -18,10 +23,18 @@ export async function verifyToken(accessToken: string): Promise<any> {
     );
     return result.payload;
   } catch (error: any) {
-    if (error.code === "ERR_JWT_EXPIRED") {
-      console.warn("Token expired:", error.message);
-    } else {
-      console.error("Token verify error:", error.message);
+    // Only log in development, and only for unexpected errors
+    if (process.env.NODE_ENV === "development") {
+      if (error.code === "ERR_JWT_EXPIRED") {
+        // Token expired is normal - don't log as error
+      } else if (error.code === "ERR_JWS_SIGNATURE_VERIFICATION_FAILED") {
+        // Signature verification failed - could be old/invalid token, not an error
+      } else if (error.code === "ERR_JWS_INVALID") {
+        // Invalid JWS - malformed token, not an error
+      } else {
+        // Only log truly unexpected errors
+        console.warn("Token verify issue:", error.code || error.message);
+      }
     }
     return null;
   }

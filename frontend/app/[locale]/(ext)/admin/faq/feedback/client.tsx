@@ -133,7 +133,7 @@ export default function AdminFeedbackClient() {
                 </div>
                 <div>
                   <p className="font-medium text-foreground">
-                    {feedbacks.length} Total Feedback
+                    {feedbacks.length} {t("total_feedback")}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     <span className="text-green-600 dark:text-green-400">
@@ -141,7 +141,7 @@ export default function AdminFeedbackClient() {
                     </span>
                     {" / "}
                     <span className="text-red-600 dark:text-red-400">
-                      {unhelpfulCount} not helpful
+                      {unhelpfulCount} {tCommon("not_helpful")}
                     </span>
                   </p>
                 </div>

@@ -127,7 +127,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
                     <Clock className="h-4 w-4 text-blue-500" />
                     <span className="font-medium">
                       {pool.lockPeriod}
-                      {t("days_lock")}
+                      {tExt("days_lock")}
                     </span>
                   </div>
                 </TooltipTrigger>

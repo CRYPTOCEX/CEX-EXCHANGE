@@ -17,6 +17,7 @@ interface HeroSectionProps {
 
 export function HeroSection({ posts, isLoading }: HeroSectionProps) {
   const t = useTranslations("blog_blog");
+  const tCommon = useTranslations("common");
   const [activePostIndex, setActivePostIndex] = useState(0);
 
   // Auto-rotate featured posts every 5 seconds
@@ -269,7 +270,7 @@ export function HeroSection({ posts, isLoading }: HeroSectionProps) {
           onClick={scrollToContent}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-500 dark:text-white/60 hover:text-zinc-700 dark:hover:text-white transition-colors duration-300 cursor-pointer"
         >
-          <span className="text-sm font-medium">Scroll to explore</span>
+          <span className="text-sm font-medium">{tCommon("scroll_to_explore")}</span>
           <ChevronDown className="w-6 h-6 animate-bounce" />
         </motion.button>
       </div>

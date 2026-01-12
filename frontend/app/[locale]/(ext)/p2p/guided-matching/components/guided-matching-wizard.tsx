@@ -1251,7 +1251,7 @@ export function GuidedMatchingWizard({
                           <div className="text-center">
                             <p className="font-medium">{t("verified_only")}</p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              KYC verified traders
+                              {t("kyc_verified_traders")}
                             </p>
                           </div>
                         </div>

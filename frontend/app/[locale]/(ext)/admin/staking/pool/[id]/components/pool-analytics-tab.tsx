@@ -250,7 +250,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
               <span>
                 {t("active_out_of")}
                 {positions.length}
-                {t("total_positions")}
+                {tCommon("total_positions")}
               </span>
             </div>
           </CardContent>
@@ -404,6 +404,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
+                        style={{}}
                         data={distributions.earningsDistribution}
                         cx="50%"
                         cy="50%"
@@ -419,6 +420,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                         {distributions.earningsDistribution.map(
                           (entry, index) => (
                             <Cell
+                              style={{}}
                               key={`cell-${index}`}
                               fill={COLORS[index % COLORS.length]}
                             />
@@ -565,6 +567,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
+                        style={{}}
                         data={distributions.earningsByType}
                         cx="50%"
                         cy="50%"
@@ -579,6 +582,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                       >
                         {distributions.earningsByType.map((entry, index) => (
                           <Cell
+                            style={{}}
                             key={`cell-${index}`}
                             fill={COLORS[index % COLORS.length]}
                           />
@@ -699,6 +703,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
+                        style={{}}
                         data={distributions.userRetention}
                         cx="50%"
                         cy="50%"
@@ -713,6 +718,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                       >
                         {distributions.userRetention.map((entry, index) => (
                           <Cell
+                            style={{}}
                             key={`cell-${index}`}
                             fill={COLORS[index % COLORS.length]}
                           />

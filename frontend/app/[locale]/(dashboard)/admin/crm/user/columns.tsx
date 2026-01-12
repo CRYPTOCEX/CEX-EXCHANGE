@@ -482,13 +482,14 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: t("basic_information"),
+          title: tCommon("basic_information"),
           icon: User,
           priority: 1,
           fields: [
-            "avatar",
+            { key: "avatar", compoundKey: "user" },
             {
               key: "firstName",
+              compoundKey: "user",
               required: true,
               validation: (value) => {
                 if (!value) return "First name is required";
@@ -499,6 +500,7 @@ export function useFormConfig(): FormConfig {
             },
             {
               key: "lastName",
+              compoundKey: "user",
               required: true,
               validation: (value) => {
                 if (!value) return "Last name is required";
@@ -509,6 +511,7 @@ export function useFormConfig(): FormConfig {
             },
             {
               key: "email",
+              compoundKey: "user",
               required: true,
               validation: (value) => {
                 if (!value) return "Email is required";
@@ -675,13 +678,14 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: t("basic_information"),
+          title: tCommon("basic_information"),
           icon: User,
           priority: 1,
           fields: [
-            "avatar",
+            { key: "avatar", compoundKey: "user" },
             {
               key: "firstName",
+              compoundKey: "user",
               required: true,
               validation: (value) => {
                 if (!value) return "First name is required";
@@ -692,6 +696,7 @@ export function useFormConfig(): FormConfig {
             },
             {
               key: "lastName",
+              compoundKey: "user",
               required: true,
               validation: (value) => {
                 if (!value) return "Last name is required";
@@ -702,6 +707,7 @@ export function useFormConfig(): FormConfig {
             },
             {
               key: "email",
+              compoundKey: "user",
               required: true,
               validation: (value) => {
                 if (!value) return "Email is required";

@@ -64,6 +64,46 @@
     "permission": "access.ai.market.maker.settings"
   },
   {
+    "path": "/admin/ai/binary-engine",
+    "permission": "access.ai.binary.engine"
+  },
+  {
+    "path": "/admin/ai/binary-engine/dashboard",
+    "permission": "access.ai.binary.engine"
+  },
+  {
+    "path": "/admin/ai/binary-engine/engine",
+    "permission": "access.ai.binary.engine"
+  },
+  {
+    "path": "/admin/ai/binary-engine/engine/[id]",
+    "permission": "view.ai.binary.engine"
+  },
+  {
+    "path": "/admin/ai/binary-engine/engine/create",
+    "permission": "create.ai.binary.engine"
+  },
+  {
+    "path": "/admin/ai/binary-engine/tiers",
+    "permission": "access.ai.binary.engine.tiers"
+  },
+  {
+    "path": "/admin/ai/binary-engine/cooldowns",
+    "permission": "access.ai.binary.engine.cooldowns"
+  },
+  {
+    "path": "/admin/ai/binary-engine/snapshots",
+    "permission": "access.ai.binary.engine.snapshots"
+  },
+  {
+    "path": "/admin/ai/binary-engine/simulations",
+    "permission": "access.ai.binary.engine.simulations"
+  },
+  {
+    "path": "/admin/ai/binary-engine/settings",
+    "permission": "access.ai.binary.engine.settings"
+  },
+  {
     "path": "/admin/api/key",
     "permission": "access.api.key"
   },
@@ -248,10 +288,6 @@
     "permission": "access.admin"
   },
   {
-    "path": "/admin/finance/binary/duration",
-    "permission": "access.binary.duration"
-  },
-  {
     "path": "/admin/finance/binary/market",
     "permission": "access.binary.market"
   },
@@ -382,6 +418,10 @@
   {
     "path": "/admin/forex/withdraw/[id]",
     "permission": "access.forex.withdraw"
+  },
+  {
+    "path": "/admin/futures",
+    "permission": "access.futures.market"
   },
   {
     "path": "/admin/futures/market",
@@ -597,10 +637,6 @@
   },
   {
     "path": "/admin/system/notification/template",
-    "permission": "access.notification.template"
-  },
-  {
-    "path": "/admin/system/notification/template/[id]",
     "permission": "access.notification.template"
   },
   {

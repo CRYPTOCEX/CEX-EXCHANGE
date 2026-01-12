@@ -133,10 +133,10 @@ export default function AdminQuestionsClient() {
                 </div>
                 <div>
                   <p className="font-medium text-foreground">
-                    {questions.length} Total Questions
+                    {questions.length} {t("total_questions")}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {pendingCount} pending, {answeredCount} answered
+                    {pendingCount} {tCommon("pending")} {answeredCount} answered
                   </p>
                 </div>
               </div>

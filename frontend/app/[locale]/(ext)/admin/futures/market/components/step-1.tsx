@@ -43,7 +43,7 @@ const FuturesBasicInfoStep: React.FC<FuturesBasicInfoStepProps> = ({
 
   return (
     <Card className="p-5 space-y-3">
-      <h2 className="text-lg font-semibold mb-2">{tDashboardAdmin("basic_information")}</h2>
+      <h2 className="text-lg font-semibold mb-2">{tCommon("basic_information")}</h2>
       <div className="grid grid-cols-2 gap-5">
         {/* Currency */}
         <Select

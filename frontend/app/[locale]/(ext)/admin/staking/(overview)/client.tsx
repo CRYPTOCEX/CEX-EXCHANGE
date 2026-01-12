@@ -10,11 +10,11 @@ import { useStakingAdminActivityStore } from "@/store/staking/admin/activity";
 import { useStakingAdminAnalyticsStore } from "@/store/staking/admin/analytics";
 import { useTranslations } from "next-intl";
 import { HeroSection } from "@/components/ui/hero-section";
-import { StatsGroup } from "@/components/ui/stats-group";
 import { Sparkles, Layers, TrendingUp, Target, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/routing";
 import { motion } from "framer-motion";
+import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 export default function StakingOverviewClient() {
   const t = useTranslations("common");
@@ -127,33 +127,32 @@ export default function StakingOverviewClient() {
           colors: ["#8b5cf6", "#6366f1"],
           size: 8,
         }}
-      >
-        <StatsGroup
-          stats={[
-            {
-              icon: Layers,
-              label: t("active_pools"),
-              value: activePools,
-              iconColor: "text-violet-500",
-              iconBgColor: "bg-violet-500/10",
-            },
-            {
-              icon: Target,
-              label: t("active_positions"),
-              value: activePositions,
-              iconColor: "text-indigo-500",
-              iconBgColor: "bg-indigo-500/10",
-            },
-            {
-              icon: TrendingUp,
-              label: t("total_earnings"),
-              value: `$${totalEarnings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-              iconColor: "text-violet-500",
-              iconBgColor: "bg-violet-500/10",
-            },
-          ]}
-        />
-      </HeroSection>
+        bottomSlot={
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5">
+            <StatsCard
+              label={t("active_pools")}
+              value={activePools}
+              icon={Layers}
+              index={0}
+              {...statsCardColors.purple}
+            />
+            <StatsCard
+              label={t("active_positions")}
+              value={activePositions}
+              icon={Target}
+              index={1}
+              {...statsCardColors.blue}
+            />
+            <StatsCard
+              label={t("total_earnings")}
+              value={`$${totalEarnings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              icon={TrendingUp}
+              index={2}
+              {...statsCardColors.green}
+            />
+          </div>
+        }
+      />
 
       <div className="container mx-auto py-8 space-y-8">
         {isLoading && <div>{t("loading")}.</div>}

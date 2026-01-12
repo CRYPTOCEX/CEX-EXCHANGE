@@ -23,7 +23,7 @@ export default function EcosystemUtxoPage() {
       pageSize={12}
       canView
       isParanoid={false}
-      title="UTXO Management"
+      title={t("utxo_management")}
       description={t("manage_unspent_transaction_outputs")}
       itemTitle="UTXO"
       columns={columns}

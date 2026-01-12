@@ -111,7 +111,7 @@ export function OverviewTab() {
         <Separator />
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">{tExt("getting_started")}</h3>
+          <h3 className="text-lg font-medium">{tCommon("getting_started")}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-muted/30 p-4 rounded-lg border relative">
               <div className="absolute -top-3 -left-3 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-medium">

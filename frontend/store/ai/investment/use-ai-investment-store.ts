@@ -50,9 +50,15 @@ interface AiInvestmentState {
   investmentAmount: number;
   apiError: string | null;
 
+  // Fetch tracking (to prevent duplicate calls)
+  _lastPlansFetch: number;
+  _lastInvestmentsFetch: number;
+  _plansFetchInProgress: boolean;
+  _investmentsFetchInProgress: boolean;
+
   // Actions
-  fetchInvestments: () => Promise<void>;
-  fetchPlans: () => Promise<void>;
+  fetchInvestments: (force?: boolean) => Promise<void>;
+  fetchPlans: (force?: boolean) => Promise<void>;
   createInvestment: (data: {
     planId: string;
     durationId?: string;
@@ -86,10 +92,25 @@ export const useAiInvestmentStore = create<AiInvestmentState>()(
         investmentAmount: 0,
         apiError: null,
 
+        // Fetch tracking
+        _lastPlansFetch: 0,
+        _lastInvestmentsFetch: 0,
+        _plansFetchInProgress: false,
+        _investmentsFetchInProgress: false,
+
         // Actions
-        fetchInvestments: async () => {
+        fetchInvestments: async (force = false) => {
+          const COOLDOWN_MS = 2000; // 2 second cooldown
+          const now = Date.now();
+          const state = get();
+
+          // Prevent duplicate fetches unless forced
+          if (!force && (state._investmentsFetchInProgress || now - state._lastInvestmentsFetch < COOLDOWN_MS)) {
+            return;
+          }
+
           try {
-            set({ isLoadingInvestments: true, apiError: null });
+            set({ isLoadingInvestments: true, apiError: null, _investmentsFetchInProgress: true });
 
             const { data, error } = await $fetch({
               url: "/api/ai/investment/log",
@@ -99,7 +120,7 @@ export const useAiInvestmentStore = create<AiInvestmentState>()(
             if (!error) {
               // Ensure data is an array
               const investments = Array.isArray(data) ? data : [];
-              set({ investments });
+              set({ investments, _lastInvestmentsFetch: Date.now() });
             } else {
               console.error("Failed to fetch AI investments:", error);
               set({ apiError: `Failed to fetch investments: ${error}` });
@@ -110,13 +131,26 @@ export const useAiInvestmentStore = create<AiInvestmentState>()(
             console.error("Error fetching AI investments:", error);
             set({ apiError: `Error fetching investments: ${errorMessage}` });
           } finally {
-            set({ isLoadingInvestments: false });
+            set({ isLoadingInvestments: false, _investmentsFetchInProgress: false });
           }
         },
 
-        fetchPlans: async () => {
+        fetchPlans: async (force = false) => {
+          const COOLDOWN_MS = 2000; // 2 second cooldown
+          const now = Date.now();
+          const state = get();
+
+          // Prevent duplicate fetches unless forced
+          // Also skip if we already have plans and this isn't forced
+          if (!force && (state._plansFetchInProgress || now - state._lastPlansFetch < COOLDOWN_MS)) {
+            return;
+          }
+          if (!force && state.plans.length > 0) {
+            return;
+          }
+
           try {
-            set({ isLoadingPlans: true, apiError: null });
+            set({ isLoadingPlans: true, apiError: null, _plansFetchInProgress: true });
 
             // Fetch from API
             const { data, error } = await $fetch({
@@ -128,7 +162,7 @@ export const useAiInvestmentStore = create<AiInvestmentState>()(
             if (!error && data) {
               // Validate the data structure
               if (Array.isArray(data)) {
-                set({ plans: data });
+                set({ plans: data, _lastPlansFetch: Date.now() });
 
                 // Select first plan if none selected and plans exist
                 if (data.length > 0 && !get().selectedPlanId) {
@@ -147,8 +181,7 @@ export const useAiInvestmentStore = create<AiInvestmentState>()(
                 const plansArray = Array.isArray(extractedPlans)
                   ? extractedPlans
                   : [];
-                console.log("Extracted plans from object:", plansArray);
-                set({ plans: plansArray });
+                set({ plans: plansArray, _lastPlansFetch: Date.now() });
 
                 // Select first plan if none selected and plans exist
                 if (plansArray.length > 0 && !get().selectedPlanId) {
@@ -188,7 +221,7 @@ export const useAiInvestmentStore = create<AiInvestmentState>()(
               apiError: `Error fetching plans: ${errorMessage}`,
             });
           } finally {
-            set({ isLoadingPlans: false });
+            set({ isLoadingPlans: false, _plansFetchInProgress: false });
           }
         },
 

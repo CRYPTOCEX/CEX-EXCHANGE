@@ -12,10 +12,11 @@ interface binaryOrderAttributes {
   strikePrice?: number;
   payoutPerPoint?: number;
   profitPercentage?: number;
-  status: "PENDING" | "WIN" | "LOSS" | "DRAW" | "CANCELED";
+  status: "PENDING" | "WIN" | "LOSS" | "DRAW" | "CANCELED" | "ERROR";
   isDemo: boolean;
   closedAt: Date;
   closePrice?: number;
+  metadata?: Record<string, any>;
   createdAt?: Date;
   deletedAt?: Date;
   updatedAt?: Date;

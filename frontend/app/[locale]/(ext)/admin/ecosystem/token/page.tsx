@@ -22,10 +22,10 @@ export default function EcosystemTokenPage() {
         <p>{t("ensure_your_environment_variables_are_properly")} {t("for_example")}:</p>
         <div className="flex flex-wrap gap-2 mt-2">
           <code className="bg-blue-100 dark:bg-blue-900/50 text-blue-900 dark:text-blue-100 px-2 py-0.5 rounded text-xs font-mono">
-            BSC_NETWORK=mainnet
+            {t("bsc_network_mainnet")}
           </code>
           <code className="bg-blue-100 dark:bg-blue-900/50 text-blue-900 dark:text-blue-100 px-2 py-0.5 rounded text-xs font-mono">
-            ETH_NETWORK=mainnet
+            {t("eth_network_mainnet")}
           </code>
         </div>
         <p className="mt-2">{t("the_tokens_network_field_must_match")}</p>

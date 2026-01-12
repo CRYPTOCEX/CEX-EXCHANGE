@@ -141,8 +141,8 @@ export function useFormConfig() {
           icon: FolderTree,
           priority: 1,
           fields: [
-            { key: "image", required: false },
-            { key: "name", required: true, maxLength: 255 },
+            { key: "image", compoundKey: "compound", required: false },
+            { key: "name", compoundKey: "compound", required: true, maxLength: 255 },
             { key: "slug", required: true, maxLength: 255 },
             { key: "description", required: false },
           ],
@@ -159,8 +159,8 @@ export function useFormConfig() {
           icon: FolderTree,
           priority: 1,
           fields: [
-            { key: "image", required: false },
-            { key: "name", required: true, maxLength: 255 },
+            { key: "image", compoundKey: "compound", required: false },
+            { key: "name", compoundKey: "compound", required: true, maxLength: 255 },
             { key: "slug", required: true, maxLength: 255 },
             { key: "description", required: false },
           ],

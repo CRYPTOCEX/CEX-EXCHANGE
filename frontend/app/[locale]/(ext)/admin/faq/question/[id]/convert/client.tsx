@@ -174,11 +174,11 @@ export default function ConvertToFaqClient() {
       <div className="container mx-auto pb-8 pt-20">
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground">Question not found</p>
+            <p className="text-muted-foreground">{t("question_not_found")}</p>
             <Button asChild className="mt-4">
               <Link href="/admin/faq/question">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Questions
+                {t("back_to_questions")}
               </Link>
             </Button>
           </CardContent>
@@ -199,7 +199,7 @@ export default function ConvertToFaqClient() {
         <div>
           <h1 className="text-2xl font-bold">{t("convert_to_faq")}</h1>
           <p className="text-muted-foreground">
-            Create a new FAQ entry from this user question
+            {t("create_a_new_faq_entry_from_this_user_question")}
           </p>
         </div>
       </div>
@@ -208,7 +208,7 @@ export default function ConvertToFaqClient() {
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between">
-            <CardTitle className="text-lg">Original Question</CardTitle>
+            <CardTitle className="text-lg">{t("original_question")}</CardTitle>
             <Badge
               variant="outline"
               className={
@@ -250,7 +250,7 @@ export default function ConvertToFaqClient() {
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            FAQ Details
+            {t("faq_details")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -261,7 +261,7 @@ export default function ConvertToFaqClient() {
               id="faq-question"
               value={faqQuestion}
               onChange={(e) => setFaqQuestion(e.target.value)}
-              placeholder="Enter the FAQ question"
+              placeholder={t("enter_the_faq_question")}
             />
           </div>
 
@@ -332,12 +332,12 @@ export default function ConvertToFaqClient() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  {tCommon("creating_ellipsis")}
                 </>
               ) : (
                 <>
                   <PlusCircle className="mr-2 h-4 w-4" />
-                  Create FAQ
+                  {t("create_faq")}
                 </>
               )}
             </Button>

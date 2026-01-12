@@ -24,6 +24,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 interface PoolManagementProps {
   marketId: string;
@@ -33,51 +34,6 @@ interface PoolManagementProps {
   baseCurrency?: string;
 }
 
-interface BalanceCardProps {
-  label: string;
-  value: string;
-  subValue?: string;
-  icon: React.ElementType;
-  gradient: string;
-  trend?: "up" | "down";
-  currency?: string;
-}
-
-function BalanceCard({ label, value, subValue, icon: IconComponent, gradient, trend, currency }: BalanceCardProps) {
-  // Cards with gradient backgrounds don't need borders as they are visually distinct
-  return (
-    <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
-      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-5 group-hover:opacity-10 transition-opacity`} />
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1 min-w-0 flex-1 mr-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              {label}
-            </p>
-            <p className="text-2xl font-bold text-foreground truncate">
-              {value}
-            </p>
-            {currency && (
-              <p className="text-xs text-muted-foreground">{currency}</p>
-            )}
-            {subValue && (
-              <div className="flex items-center gap-1">
-                {trend === "up" && <ArrowUpRight className="w-3 h-3 text-green-500" />}
-                {trend === "down" && <ArrowDownRight className="w-3 h-3 text-red-500" />}
-                <span className={`text-sm ${trend === "up" ? "text-green-500" : trend === "down" ? "text-red-500" : "text-muted-foreground"}`}>
-                  {subValue}
-                </span>
-              </div>
-            )}
-          </div>
-          <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} shadow-lg shrink-0`}>
-            <IconComponent className="w-5 h-5 text-white" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 interface ActionCardProps {
   title: string;
@@ -273,7 +229,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white/5 rounded-xl p-4">
-              <p className="text-xs text-white/60 mb-1">{t("base")}{walletBalances?.base?.currency || baseCurrency || ""})</p>
+              <p className="text-xs text-white/60 mb-1">Base ({walletBalances?.base?.currency || baseCurrency || ""})</p>
               <p className="text-xl font-bold">
                 {loadingWallet ? (
                   <span className="text-white/50">{tCommon('loading')}</span>
@@ -283,7 +239,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
               </p>
             </div>
             <div className="bg-white/5 rounded-xl p-4">
-              <p className="text-xs text-white/60 mb-1">{t("quote")}{walletBalances?.quote?.currency || quoteCurrency || ""})</p>
+              <p className="text-xs text-white/60 mb-1">Quote ({walletBalances?.quote?.currency || quoteCurrency || ""})</p>
               <p className="text-xl font-bold">
                 {loadingWallet ? (
                   <span className="text-white/50">{tCommon('loading')}</span>
@@ -298,35 +254,35 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
 
       {/* Pool Balances */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <BalanceCard
-          label={t("base_balance")}
+        <StatsCard
+          label={`${t("base_balance")} (${baseCurrency})`}
           value={baseBalance.toFixed(6)}
-          currency={baseCurrency}
           icon={Coins}
-          gradient="from-purple-500 to-purple-600"
+          {...statsCardColors.purple}
+          index={0}
         />
-        <BalanceCard
-          label={t("quote_balance")}
+        <StatsCard
+          label={`${t("quote_balance")} (${quoteCurrency})`}
           value={quoteBalance.toLocaleString()}
-          currency={quoteCurrency}
           icon={DollarSign}
-          gradient="from-green-500 to-green-600"
+          {...statsCardColors.green}
+          index={1}
         />
-        <BalanceCard
-          label={tCommon("total_value_locked")}
+        <StatsCard
+          label={`${tCommon("total_value_locked")} (${quoteCurrency})`}
           value={tvl.toLocaleString()}
-          currency={quoteCurrency}
           icon={Wallet}
-          gradient="from-purple-500 to-purple-600"
+          {...statsCardColors.purple}
+          index={2}
         />
-        <BalanceCard
-          label={tCommon("total_p_l")}
+        <StatsCard
+          label={`${tCommon("total_p_l")} (${quoteCurrency})`}
           value={`${totalPnL >= 0 ? "+" : ""}${Math.abs(totalPnL).toFixed(2)}`}
-          currency={quoteCurrency}
-          subValue={`${totalPnL >= 0 ? "+" : ""}${tvl > 0 ? ((totalPnL / tvl) * 100).toFixed(2) : 0}%`}
+          change={tvl > 0 ? Number(((totalPnL / tvl) * 100).toFixed(2)) : 0}
+          isPercent={true}
           icon={totalPnL >= 0 ? TrendingUp : TrendingDown}
-          gradient={totalPnL >= 0 ? "from-green-500 to-green-600" : "from-red-500 to-red-600"}
-          trend={totalPnL >= 0 ? "up" : "down"}
+          {...(totalPnL >= 0 ? statsCardColors.green : statsCardColors.red)}
+          index={3}
         />
       </div>
 
@@ -467,7 +423,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
                 type="number"
                 value={depositAmount}
                 onChange={(e) => setDepositAmount(e.target.value)}
-                placeholder={t("enter_amount")}
+                placeholder={tCommon("enter_amount")}
                 className="h-12 pr-16"
                 aria-label={`Deposit amount in ${depositCurrency === "BASE" ? baseCurrency : quoteCurrency}`}
               />
@@ -551,7 +507,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
                 type="number"
                 value={withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
-                placeholder={t("enter_amount")}
+                placeholder={tCommon("enter_amount")}
                 className="h-12 pr-16"
                 aria-label={`Withdrawal amount in ${withdrawCurrency === "BASE" ? baseCurrency : quoteCurrency}`}
               />

@@ -16,6 +16,8 @@ interface Extension {
   licenseVersion?: string;
   licenseReleaseDate?: string;
   licenseSummary?: string;
+  licenseVerified?: boolean;
+  category?: "extension" | "blockchain" | "exchange";
 }
 
 interface UpdateData {
@@ -42,7 +44,8 @@ interface ExtensionStore {
   updateExtension: () => Promise<void>;
   activateLicense: (
     purchaseCode: string,
-    envatoUsername: string
+    envatoUsername: string,
+    notificationEmail?: string
   ) => Promise<void>;
   verifyLicense: (productId: string) => Promise<void>;
   setFilter: (filter: string) => void;
@@ -83,8 +86,27 @@ export const useExtensionStore = create<ExtensionStore>((set, get) => ({
       });
       if (error) throw new Error(error);
       if (data) {
-        // Sort extensions alphabetically by title
-        const sortedData = [...data].sort((a, b) =>
+        // Combine all product types: extensions, blockchains, and exchangeProviders
+        let allProducts: Extension[] = [];
+
+        // Handle old format (array) - legacy support
+        if (Array.isArray(data)) {
+          allProducts = data;
+        } else {
+          // New format with separate categories
+          if (data.extensions && Array.isArray(data.extensions)) {
+            allProducts.push(...data.extensions);
+          }
+          if (data.blockchains && Array.isArray(data.blockchains)) {
+            allProducts.push(...data.blockchains);
+          }
+          if (data.exchangeProviders && Array.isArray(data.exchangeProviders)) {
+            allProducts.push(...data.exchangeProviders);
+          }
+        }
+
+        // Sort products alphabetically by title
+        const sortedData = allProducts.sort((a, b) =>
           a.title.localeCompare(b.title)
         );
         set({ extensions: sortedData, filteredExtensions: sortedData });
@@ -134,6 +156,9 @@ export const useExtensionStore = create<ExtensionStore>((set, get) => ({
 
     set({ isUpdating: true, error: null });
     try {
+      // Determine the type based on the product category
+      const productType = currentExtension.category || "extension";
+
       const { data, error } = await $fetch({
         url: "/api/admin/system/update/download",
         method: "POST",
@@ -142,7 +167,7 @@ export const useExtensionStore = create<ExtensionStore>((set, get) => ({
           updateId: updateData.update_id,
           version: updateData.version,
           product: currentExtension.title,
-          type: "extension",
+          type: productType,
         },
       });
       if (error) throw new Error(error);
@@ -171,20 +196,24 @@ export const useExtensionStore = create<ExtensionStore>((set, get) => ({
     }
   },
 
-  activateLicense: async (purchaseCode: string, envatoUsername: string) => {
+  activateLicense: async (purchaseCode: string, envatoUsername: string, notificationEmail?: string) => {
     const { currentExtension } = get();
     if (!currentExtension) return;
 
     set({ error: null });
     try {
+      const body: Record<string, string> = {
+        productId: currentExtension.productId,
+        purchaseCode,
+        envatoUsername,
+      };
+      if (notificationEmail) {
+        body.notificationEmail = notificationEmail;
+      }
       const { data, error } = await $fetch({
         url: "/api/admin/system/license/activate",
         method: "POST",
-        body: {
-          productId: currentExtension.productId,
-          purchaseCode,
-          envatoUsername,
-        },
+        body,
       });
       if (error) throw new Error(error);
       if (data) {
@@ -245,22 +274,58 @@ export const useExtensionStore = create<ExtensionStore>((set, get) => ({
     const newStatus = !extension.status;
 
     try {
+      // Determine the correct API URL based on product category
+      let url = "";
+      const category = extension.category || "extension";
+
+      switch (category) {
+        case "blockchain":
+          url = `/api/admin/ecosystem/blockchain/${extension.productId}/status`;
+          break;
+        case "exchange":
+          url = `/api/admin/finance/exchange/provider/${extension.id}/status`;
+          break;
+        case "extension":
+        default:
+          url = `/api/admin/system/extension/${extension.productId}/status`;
+          break;
+      }
+
       // Call the API to update the extension status
       const { data, error } = await $fetch({
-        url: `/api/admin/system/extension/${extension.productId}/status`,
+        url,
         method: "PUT",
         body: { status: newStatus },
       });
       if (error) throw new Error(error);
 
       // On success, update the store state
+      // For exchanges, enabling one should disable others
       set((state) => ({
-        extensions: state.extensions.map((ext) =>
-          ext.id === id ? { ...ext, status: newStatus } : ext
-        ),
-        filteredExtensions: state.filteredExtensions.map((ext) =>
-          ext.id === id ? { ...ext, status: newStatus } : ext
-        ),
+        extensions: state.extensions.map((ext) => {
+          if (ext.id === id) {
+            return { ...ext, status: newStatus };
+          }
+          // If enabling an exchange, disable all other exchanges
+          if (category === "exchange" && newStatus && ext.category === "exchange") {
+            return { ...ext, status: false };
+          }
+          return ext;
+        }),
+        filteredExtensions: state.filteredExtensions.map((ext) => {
+          if (ext.id === id) {
+            return { ...ext, status: newStatus };
+          }
+          // If enabling an exchange, disable all other exchanges
+          if (category === "exchange" && newStatus && ext.category === "exchange") {
+            return { ...ext, status: false };
+          }
+          return ext;
+        }),
+        // Also update currentExtension if it's the one being toggled
+        currentExtension: state.currentExtension?.id === id
+          ? { ...state.currentExtension, status: newStatus }
+          : state.currentExtension,
       }));
 
       // Refresh the global settings/extensions cache to update menu
@@ -274,7 +339,7 @@ export const useExtensionStore = create<ExtensionStore>((set, get) => ({
         if (!settingsError && settingsData) {
           // Get the config store and update settings
           const configStore = useConfigStore.getState();
-          
+
           if (settingsData.settings) {
             const settingsObj = settingsData.settings.reduce(
               (acc: Record<string, any>, cur: { key: string; value: any }) => {
@@ -285,7 +350,7 @@ export const useExtensionStore = create<ExtensionStore>((set, get) => ({
             );
             configStore.setSettings(settingsObj);
           }
-          
+
           if (settingsData.extensions) {
             configStore.setExtensions(settingsData.extensions);
           }

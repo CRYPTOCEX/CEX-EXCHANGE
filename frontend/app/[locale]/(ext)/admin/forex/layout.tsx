@@ -1,16 +1,21 @@
+"use client";
+
 import type { ReactNode } from "react";
 import SiteHeader from "@/components/partials/header/site-header";
 import { LayoutWrapper } from "@/components/partials/dashboard/layout-wrapper";
 import Footer from "@/components/partials/footer";
 import { menu, colorSchema } from "./menu";
+import { LicenseGate } from "@/components/license/LicenseGate";
 
 export default function AdminForexLayout({ children }: { children: ReactNode }) {
   return (
-    <>
+    <LicenseGate extensionName="forex">
       <SiteHeader
         menu={menu}
         colorSchema={colorSchema}
         userPath="/forex"
+        translationNamespace="ext_admin_forex"
+        translationNavPrefix="nav"
       />
       <div className="content-wrapper transition-all duration-150">
         <div className="page-min-height-horizontal">
@@ -18,6 +23,6 @@ export default function AdminForexLayout({ children }: { children: ReactNode }) 
         </div>
       </div>
       <Footer />
-    </>
+    </LicenseGate>
   );
 }

@@ -856,7 +856,7 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
               }}
             >
               <CornerLeftUp className="h-3 w-3 mr-1" />
-              {t("top_left")}
+              {tCommon("top_left")}
             </Button>
             <Button
               variant="outline"
@@ -881,7 +881,7 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
               }}
             >
               <CornerRightDown className="h-3 w-3 mr-1" />
-              {t("bottom_right")}
+              {tCommon("bottom_right")}
             </Button>
           </div>
 

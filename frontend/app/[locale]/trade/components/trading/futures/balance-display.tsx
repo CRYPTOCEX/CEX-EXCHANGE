@@ -108,7 +108,7 @@ export default function BalanceDisplay({
                     walletData.unrealizedPnl >= 0 ? "text-green-600" : "text-red-600"
                   )}
                 >
-                  PnL: {walletData.unrealizedPnl >= 0 ? "+" : ""}
+                  {t("pnl")} {walletData.unrealizedPnl >= 0 ? "+" : ""}
                   {formatBalance(walletData.unrealizedPnl)} {walletData.currency}
                 </div>
               )}

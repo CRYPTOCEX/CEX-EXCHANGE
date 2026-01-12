@@ -1,7 +1,17 @@
 interface binaryDurationAttributes {
   id: string;
   duration: number;
+
+  // Type-specific profit percentages
+  profitPercentageRiseFall: number;
+  profitPercentageHigherLower: number;
+  profitPercentageTouchNoTouch: number;
+  profitPercentageCallPut: number;
+  profitPercentageTurbo: number;
+
+  // Deprecated - kept for backward compatibility
   profitPercentage: number;
+
   status: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -11,5 +21,14 @@ interface binaryDurationAttributes {
 interface binaryDurationCreationAttributes
   extends Optional<
     binaryDurationAttributes,
-    "id" | "createdAt" | "updatedAt" | "deletedAt"
+    | "id"
+    | "profitPercentageRiseFall"
+    | "profitPercentageHigherLower"
+    | "profitPercentageTouchNoTouch"
+    | "profitPercentageCallPut"
+    | "profitPercentageTurbo"
+    | "profitPercentage"
+    | "createdAt"
+    | "updatedAt"
+    | "deletedAt"
   > {}

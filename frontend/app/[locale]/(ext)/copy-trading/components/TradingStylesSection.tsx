@@ -172,6 +172,7 @@ export default function TradingStylesSection({
 }: TradingStylesSectionProps) {
   const t = useTranslations("ext_copy-trading");
   const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
 
   const styles = ["SCALPING", "DAY_TRADING", "SWING", "POSITION"];
 
@@ -198,7 +199,7 @@ export default function TradingStylesSection({
           >
             <Sparkles className="w-4 h-4 text-indigo-500 mr-2" />
             <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
-              {t("trading_styles") || "Trading Styles"}
+              {tExt("trading_styles") || "Trading Styles"}
             </span>
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white mb-4">

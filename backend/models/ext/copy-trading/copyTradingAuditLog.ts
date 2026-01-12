@@ -1,28 +1,16 @@
 import type * as Sequelize from "sequelize";
 import { DataTypes, Model } from "sequelize";
 
-export type AuditEntityType =
-  | "LEADER"
-  | "FOLLOWER"
-  | "TRADE"
-  | "TRANSACTION"
-  | "SETTINGS";
-export type AuditAction =
-  | "CREATE"
-  | "UPDATE"
-  | "DELETE"
-  | "APPROVE"
-  | "REJECT"
-  | "SUSPEND"
-  | "ACTIVATE"
-  | "FOLLOW"
-  | "UNFOLLOW"
-  | "PAUSE"
-  | "RESUME"
-  | "ALLOCATE"
-  | "DEALLOCATE"
-  | "FORCE_STOP"
-  | "RECALCULATE";
+// Using string types to allow flexible entity types and actions
+// Common entityType values: LEADER, FOLLOWER, TRADE, TRANSACTION, SETTINGS, ALLOCATION, copyTradingTrade, copyTradingFollower
+export type AuditEntityType = string;
+
+// Common action values: CREATE, UPDATE, DELETE, APPROVE, REJECT, SUSPEND, ACTIVATE, FOLLOW, UNFOLLOW,
+// PAUSE, RESUME, ALLOCATE, DEALLOCATE, FORCE_STOP, RECALCULATE, TRADE_CREATED, TRADE_CANCELLED,
+// TRADE_OPEN, TRADE_CLOSE, TRADE_CLOSED, ORDER_FILLED, PROFIT_DISTRIBUTED, DAILY_LOSS_LIMIT_REACHED,
+// DAILY_LIMITS_RESET, LIMITS_UPDATED, STOP_LOSS_TRIGGERED, TAKE_PROFIT_TRIGGERED, REVERSE,
+// ADMIN_FORCE_STOP, ADMIN_RESUME, ADMIN_UPDATE, RECALCULATE_STATS
+export type AuditAction = string;
 
 export interface copyTradingAuditLogAttributes {
   id: string;
@@ -88,13 +76,7 @@ export default class copyTradingAuditLog
           allowNull: false,
         },
         entityType: {
-          type: DataTypes.ENUM(
-            "LEADER",
-            "FOLLOWER",
-            "TRADE",
-            "TRANSACTION",
-            "SETTINGS"
-          ),
+          type: DataTypes.STRING(100),
           allowNull: false,
         },
         entityId: {
@@ -102,23 +84,7 @@ export default class copyTradingAuditLog
           allowNull: false,
         },
         action: {
-          type: DataTypes.ENUM(
-            "CREATE",
-            "UPDATE",
-            "DELETE",
-            "APPROVE",
-            "REJECT",
-            "SUSPEND",
-            "ACTIVATE",
-            "FOLLOW",
-            "UNFOLLOW",
-            "PAUSE",
-            "RESUME",
-            "ALLOCATE",
-            "DEALLOCATE",
-            "FORCE_STOP",
-            "RECALCULATE"
-          ),
+          type: DataTypes.STRING(100),
           allowNull: false,
         },
 

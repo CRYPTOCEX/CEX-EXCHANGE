@@ -139,7 +139,7 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: tDashboardAdmin("basic_information"),
+          title: tCommon("basic_information"),
           icon: Tag,
           priority: 1,
           fields: [
@@ -179,7 +179,7 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: tDashboardAdmin("basic_information"),
+          title: tCommon("basic_information"),
           icon: Tag,
           priority: 1,
           fields: [

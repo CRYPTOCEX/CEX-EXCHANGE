@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SettingsField } from "./SettingsField";
@@ -102,6 +102,7 @@ interface SettingsGroupProps {
     handleChange: (key: string, value: string | File | null) => void;
   }>>;
   subcategoryIcons?: Record<string, React.ElementType>;
+  availableAddons: Record<string, boolean>;
 }
 
 // Check if a field should be full width
@@ -110,6 +111,20 @@ const shouldBeFullWidth = (field: FieldDefinition): boolean => {
   if (field.preview) return true;
   if (field.type === "socialLinks") return true;
   return false;
+};
+
+// Extract addon name from module path for display
+const getAddonDisplayName = (modulePath: string): string => {
+  // Extract the addon name from paths like "@/components/(ext)/chart-engine"
+  const match = modulePath.match(/\(ext\)\/([^/]+)/);
+  if (match) {
+    // Convert kebab-case to Title Case
+    return match[1]
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+  return modulePath;
 };
 
 // Individual setting card with animation
@@ -122,6 +137,7 @@ const SettingCard = ({
   showCategoryBadge,
   tabs,
   formValues,
+  isAddonMissing,
 }: {
   field: FieldDefinition;
   value: any;
@@ -131,6 +147,7 @@ const SettingCard = ({
   showCategoryBadge?: boolean;
   tabs?: TabDefinition[];
   formValues?: Record<string, any>;
+  isAddonMissing?: boolean;
 }) => {
   const categoryLabel = tabs?.find(t => t.id === field.category)?.label || field.category;
   const isFullWidth = shouldBeFullWidth(field) || field.type === "custom";
@@ -170,15 +187,20 @@ const SettingCard = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.3 }}
-      whileHover={{ scale: 1.005 }}
+      whileHover={isAddonMissing ? undefined : { scale: 1.005 }}
       className={cn(
-        "group relative p-4 rounded-xl border bg-card/50 hover:bg-card hover:shadow-lg transition-all duration-300",
+        "group relative p-4 rounded-xl border transition-all duration-300",
+        isAddonMissing
+          ? "bg-muted/30 border-dashed opacity-60"
+          : "bg-card/50 hover:bg-card hover:shadow-lg",
         isLogosCategory && "flex flex-col min-h-[200px]",
         isFullWidth && !isLogosCategory && "md:col-span-2"
       )}
     >
       {/* Hover gradient effect */}
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+      {!isAddonMissing && (
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+      )}
 
       {/* Category badge for "All Settings" view */}
       {showCategoryBadge && (
@@ -189,11 +211,21 @@ const SettingCard = ({
         </div>
       )}
 
-      <div className="relative">
+      {/* Addon required badge */}
+      {isAddonMissing && field.addonRequired && (
+        <div className="absolute top-2 right-2">
+          <Badge variant="secondary" className="text-xs bg-amber-500/10 text-amber-600 border-amber-500/20">
+            Requires {getAddonDisplayName(field.addonRequired)} Addon
+          </Badge>
+        </div>
+      )}
+
+      <div className={cn("relative", isAddonMissing && "pointer-events-none select-none")}>
         <SettingsField
           field={field}
           value={value}
           onChange={onChange}
+          disabled={isAddonMissing}
         />
       </div>
     </motion.div>
@@ -212,12 +244,19 @@ const SettingsGroup: React.FC<SettingsGroupProps> = ({
   tabs,
   customComponents,
   subcategoryIcons,
+  availableAddons,
 }) => {
   const [isOpen, setIsOpen] = useState(true);
 
   const displayedFields = fields.filter(
     (field) => !field.showIf || field.showIf(formValues)
   );
+
+  // Check if a field's addon is missing
+  const isAddonMissing = (field: FieldDefinition): boolean => {
+    if (!field.addonRequired) return false;
+    return availableAddons[field.addonRequired] !== true;
+  };
 
   const isLogosCategory = fields.some((field) => field.category === "logos");
   const mergedIcons = { ...SUBCATEGORY_ICONS, ...subcategoryIcons };
@@ -330,6 +369,7 @@ const SettingsGroup: React.FC<SettingsGroupProps> = ({
                     showCategoryBadge={showCategoryBadges}
                     tabs={tabs}
                     formValues={formValues}
+                    isAddonMissing={isAddonMissing(field)}
                   />
                 ))}
 
@@ -355,6 +395,80 @@ const SettingsGroup: React.FC<SettingsGroupProps> = ({
   );
 };
 
+// Cache for addon availability checks to avoid re-checking
+// Cache is cleared on page reload and expires after 5 minutes
+const addonAvailabilityCache: Record<string, { available: boolean; timestamp: number }> = {};
+const ADDON_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Map addon paths to extension names for license checking
+const ADDON_TO_EXTENSION_NAME: Record<string, string> = {
+  "@/components/(ext)/chart-engine": "chart_engine",
+  "@/components/(ext)/trading-pro": "trading_pro",
+};
+
+// Check if an addon module is available AND licensed
+async function checkAddonAvailable(modulePath: string): Promise<boolean> {
+  // Check cache with TTL
+  const cached = addonAvailabilityCache[modulePath];
+  if (cached && Date.now() - cached.timestamp < ADDON_CACHE_TTL) {
+    return cached.available;
+  }
+
+  try {
+    // First, check if the addon files are installed using dynamic import with webpackIgnore
+    let addonInstalled = false;
+    switch (modulePath) {
+      case "@/components/(ext)/chart-engine":
+        try {
+          // @ts-ignore - Dynamic import with webpackIgnore to prevent build-time errors
+          await import(/* webpackIgnore: true */ "@/components/(ext)/chart-engine");
+          addonInstalled = true;
+        } catch {
+          addonInstalled = false;
+        }
+        break;
+      default:
+        // Unknown addon path - mark as unavailable
+        addonAvailabilityCache[modulePath] = { available: false, timestamp: Date.now() };
+        return false;
+    }
+
+    if (!addonInstalled) {
+      addonAvailabilityCache[modulePath] = { available: false, timestamp: Date.now() };
+      return false;
+    }
+
+    // Then, check if the addon is licensed via the extensions API
+    const extensionName = ADDON_TO_EXTENSION_NAME[modulePath];
+    if (extensionName) {
+      try {
+        const response = await fetch("/api/admin/system/extension");
+        if (response.ok) {
+          const data = await response.json();
+          // Check both extensions and root level items
+          const allItems = [...(data.extensions || []), ...(data.items || [])];
+          const extension = allItems.find((ext: any) => ext.name === extensionName);
+          if (!extension?.licenseVerified) {
+            // Addon is installed but not licensed
+            addonAvailabilityCache[modulePath] = { available: false, timestamp: Date.now() };
+            return false;
+          }
+        }
+      } catch {
+        // If we can't check license, assume not available
+        addonAvailabilityCache[modulePath] = { available: false, timestamp: Date.now() };
+        return false;
+      }
+    }
+
+    addonAvailabilityCache[modulePath] = { available: true, timestamp: Date.now() };
+    return true;
+  } catch {
+    addonAvailabilityCache[modulePath] = { available: false, timestamp: Date.now() };
+    return false;
+  }
+}
+
 export const SettingsTab: React.FC<SettingsTabProps> = ({
   tabId,
   tabLabel,
@@ -372,6 +486,41 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
   const tDashboardAdmin = useTranslations("dashboard_admin");
   const formValues = draftSettings;
 
+  // Track which addons are available
+  const [availableAddons, setAvailableAddons] = useState<Record<string, boolean>>({});
+  const [addonsChecked, setAddonsChecked] = useState(false);
+
+  // Check addon availability on mount
+  useEffect(() => {
+    const requiredAddons = new Set<string>();
+    fields.forEach((field) => {
+      if (field.addonRequired) {
+        requiredAddons.add(field.addonRequired);
+      }
+    });
+
+    if (requiredAddons.size === 0) {
+      setAddonsChecked(true);
+      return;
+    }
+
+    // Check all required addons
+    Promise.all(
+      Array.from(requiredAddons).map(async (addon) => {
+        const available = await checkAddonAvailable(addon);
+        return [addon, available] as const;
+      })
+    ).then((results) => {
+      const availability: Record<string, boolean> = {};
+      results.forEach(([addon, available]) => {
+        availability[addon] = available;
+      });
+      setAvailableAddons(availability);
+      setAddonsChecked(true);
+    });
+  }, [fields]);
+
+  // Group all fields (don't filter - we show disabled fields with addon requirement message)
   const groupedFields = useMemo(() => {
     return fields.reduce<Record<string, FieldDefinition[]>>((acc, field) => {
       const subcategory = field.subcategory || "General";
@@ -541,6 +690,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                   tabs={tabs}
                   customComponents={customComponents}
                   subcategoryIcons={subcategoryIcons}
+                  availableAddons={availableAddons}
                 />
               ))}
             </div>

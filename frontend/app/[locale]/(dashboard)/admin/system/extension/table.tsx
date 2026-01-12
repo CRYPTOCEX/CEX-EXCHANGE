@@ -4,7 +4,7 @@ import { useExtensionStore } from "@/store/extension";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -74,8 +74,9 @@ export function ExtensionTable() {
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead className="w-[60%]">Extension</TableHead>
-            <TableHead className="w-[20%]">Version</TableHead>
+            <TableHead className="w-[50%]">Extension</TableHead>
+            <TableHead className="w-[15%]">Version</TableHead>
+            <TableHead className="w-[15%]">License</TableHead>
             <TableHead className="w-[20%]">Status</TableHead>
           </TableRow>
         </TableHeader>
@@ -130,6 +131,30 @@ export function ExtensionTable() {
                     )}
                   </div>
                 </TableCell>
+                <TableCell onClick={() => window.location.href = `/admin/system/extension/${extension.productId}`}>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        {extension.licenseVerified ? (
+                          <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                            <CheckCircle2 className="h-4 w-4" />
+                            <span className="text-xs font-medium">{tCommon("verified")}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
+                            <XCircle className="h-4 w-4" />
+                            <span className="text-xs font-medium">{tCommon("not_verified")}</span>
+                          </div>
+                        )}
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {extension.licenseVerified
+                          ? t("license_is_activated_for_this_extension")
+                          : t("click_to_activate_license")}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-2">
                     {!extension.status && parseFloat(extension.version) <= 4 ? (
@@ -165,7 +190,7 @@ export function ExtensionTable() {
             );
           }) : (
             <TableRow>
-              <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                 {t("no_extensions_available")}
               </TableCell>
             </TableRow>

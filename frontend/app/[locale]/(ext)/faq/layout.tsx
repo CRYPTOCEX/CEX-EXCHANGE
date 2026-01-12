@@ -12,6 +12,8 @@ export default function FaqLayout({ children }: { children: ReactNode }) {
         menu={menu}
         colorSchema={colorSchema}
         adminPath={adminPath}
+        translationNamespace="ext_faq"
+        translationNavPrefix="nav"
       />
       <ExtensionLayoutWrapper landingPath="/faq">
         {children}

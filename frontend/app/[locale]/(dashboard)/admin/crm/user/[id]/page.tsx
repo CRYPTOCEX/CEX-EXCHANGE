@@ -217,6 +217,25 @@ export default function UserDetailPage() {
   const userEcommerceOrderColumns = useMemo(() => createUserSpecificColumns(ecommerceOrderColumns), [ecommerceOrderColumns]);
   const userForexTransactionColumns = useMemo(() => createUserSpecificColumns(forexTransactionColumns), [forexTransactionColumns]);
 
+  // Check which extension columns are available (not empty stubs)
+  // Extension addons return empty columns when not installed
+  const extensionColumnsAvailable = useMemo(() => ({
+    ico: icoTransactionColumns.length > 0,
+    p2p: p2pOfferColumns.length > 0 || p2pTradeColumns.length > 0,
+    staking: stakingPositionColumns.length > 0,
+    affiliate: affiliateReferralColumns.length > 0,
+    ecommerce: ecommerceOrderColumns.length > 0,
+    forex: forexTransactionColumns.length > 0,
+  }), [
+    icoTransactionColumns,
+    p2pOfferColumns,
+    p2pTradeColumns,
+    stakingPositionColumns,
+    affiliateReferralColumns,
+    ecommerceOrderColumns,
+    forexTransactionColumns,
+  ]);
+
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -235,7 +254,7 @@ export default function UserDetailPage() {
   const handleTabChange = (tabValue: string) => {
     const currentParams = new URLSearchParams(searchParams.toString());
     currentParams.set('tab', tabValue);
-    router.push(`${pathname}?${currentParams.toString()}`, { scroll: false });
+    router.push(`${pathname}?${currentParams.toString()}`);
   };
 
   // Function to handle category changes and switch to first tab in category
@@ -264,6 +283,7 @@ export default function UserDetailPage() {
       const { data, error } = await $fetch({
         url: `/api/admin/crm/user/${params.id}`,
         method: "GET",
+        silentSuccess: true,
       });
 
       if (error) {
@@ -786,12 +806,23 @@ export default function UserDetailPage() {
     }
   }, [activeTab, activeCategory]);
 
-  // Filter tabs based on extensions
+  // Filter tabs based on extensions AND column availability
+  // Tabs are hidden if: 1) extension not enabled in system, OR 2) addon columns not installed
   const availableTabs = tabConfigs.filter((tab) => {
     if (!tab.extension) {
       return true;
     }
-    return isExtensionAvailable(tab.extension);
+    // Check if extension is enabled in system settings
+    if (!isExtensionAvailable(tab.extension)) {
+      return false;
+    }
+    // Check if addon columns are installed (not empty stubs)
+    // Only check for extensions that have column stubs
+    const columnCheck = extensionColumnsAvailable[tab.key as keyof typeof extensionColumnsAvailable];
+    if (columnCheck !== undefined && !columnCheck) {
+      return false;
+    }
+    return true;
   });
 
   // Group tabs by category
@@ -885,7 +916,7 @@ export default function UserDetailPage() {
               </div>
             <div className="flex items-center space-x-2 mt-1">
                 <Badge variant="outline" className="text-xs">
-                  ID: {user.id}
+                  {tCommon("id")} {user.id}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
                   {user.role.name}
@@ -1157,7 +1188,7 @@ export default function UserDetailPage() {
             </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-sm">KYC Status</span>
+                <span className="text-sm">{t("kyc_status")}</span>
                       <Badge variant={getKycStatusColor(user.kyc?.status)}>
                         {user.kyc?.status || "Pending"}
                 </Badge>
@@ -1296,7 +1327,7 @@ export default function UserDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>KYC Status</CardTitle>
+                  <CardTitle>{t("kyc_status")}</CardTitle>
                   <CardDescription>
                     {t("know_your_customer_verification_information")}
                   </CardDescription>
@@ -1386,7 +1417,7 @@ export default function UserDetailPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <FileText className="h-4 w-4" />
-                        <span className="text-sm">KYC Documents</span>
+                        <span className="text-sm">{t("kyc_documents")}</span>
                       </div>
                       {user.kyc?.status === 'APPROVED' ? (
                         <CheckCircle className="h-4 w-4 text-green-600" />
@@ -1831,7 +1862,7 @@ export default function UserDetailPage() {
           <TabsContent value="ai" className="space-y-6">
         <Card>
           <CardHeader>
-                <CardTitle>AI Investment Portfolio</CardTitle>
+                <CardTitle>{t("ai_investment_portfolio")}</CardTitle>
                 <CardDescription>
                   {t("all_ai_powered_investment_plans_and")}
                 </CardDescription>
@@ -1866,7 +1897,7 @@ export default function UserDetailPage() {
           <TabsContent value="ico" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>ICO Transactions</CardTitle>
+                <CardTitle>{tCommon("ico_transactions")}</CardTitle>
                 <CardDescription>
                   {t("all_ico_transactions_and_token_purchases")}
                 </CardDescription>

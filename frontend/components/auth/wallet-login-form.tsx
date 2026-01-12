@@ -202,15 +202,36 @@ function WalletLoginButton({ onSuccess }: { onSuccess?: () => void }) {
       const data = await response.json();
 
       if (response.ok) {
-        // Update user state
-        if (data.user) {
-          setUser(data.user);
+        // Login was successful - now fetch the user profile
+        // The backend returns { message, cookies } not { user }
+        try {
+          const profileResponse = await fetch("/api/user/profile", {
+            method: "GET",
+            credentials: "include",
+          });
+
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            setUser(profileData);
+          }
+
           toast({
             title: "Login successful",
             description:
               "You have been successfully logged in with your wallet.",
           });
 
+          if (onSuccess) {
+            onSuccess();
+          }
+        } catch (profileError) {
+          console.error("Error fetching user profile:", profileError);
+          // Still call onSuccess since login worked, the user state will update on next page load
+          toast({
+            title: "Login successful",
+            description:
+              "You have been successfully logged in with your wallet.",
+          });
           if (onSuccess) {
             onSuccess();
           }

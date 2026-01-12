@@ -233,7 +233,7 @@ export function SearchFilters({
 
               <div className="flex justify-between">
                 <Button variant="outline" size="sm" onClick={handleReset}>
-                  {tExt("reset")}
+                  {tCommon("reset")}
                 </Button>
                 <Button size="sm" onClick={() => {}}>
                   {tExt("apply_filters")}

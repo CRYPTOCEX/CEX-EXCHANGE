@@ -212,7 +212,9 @@ export function DataTableFilters() {
   return (
     <div
       className={cn(
-        "grid gap-4 p-4 border rounded-md md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+        "grid gap-3 p-3 border rounded-md",
+        "sm:gap-4 sm:p-4",
+        "md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4",
         "ltr:text-left rtl:text-right"
       )}
     >

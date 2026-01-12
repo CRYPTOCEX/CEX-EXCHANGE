@@ -28,6 +28,7 @@ import { $fetch } from "@/lib/api";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
+import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 interface DashboardData {
   totalRevenue: number;
@@ -175,63 +176,45 @@ export default function DashboardClient() {
 
       {/* Key metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          title={t("total_revenue")}
-          value={`$${
-            stats?.totalRevenue?.toLocaleString("en-US", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }) || "0.00"
-          }`}
-          change={stats?.revenueChange || null}
-          isPositive={stats?.revenueChange ? stats.revenueChange > 0 : null}
-          icon={<DollarSign className="h-5 w-5 text-white" />}
-          iconBg="from-green-500 to-green-600"
+        <StatsCard
+          label={t("total_revenue")}
+          value={`$${stats?.totalRevenue?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}`}
+          icon={DollarSign}
+          index={0}
+          change={stats?.revenueChange ? `${stats.revenueChange > 0 ? "+" : ""}${stats.revenueChange.toFixed(1)}%` : undefined}
           description={`From ${stats?.totalOrders || 0} orders`}
-          isLoading={isLoading}
-          chartData={stats?.revenueChartData || null}
+          sparklineData={stats?.revenueChartData}
+          {...statsCardColors.green}
         />
-        <MetricCard
-          title={t("average_order")}
-          value={`$${
-            stats?.averageOrderValue?.toLocaleString("en-US", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }) || "0.00"
-          }`}
-          change={stats?.averageOrderChange || null}
-          isPositive={
-            stats?.averageOrderChange ? stats.averageOrderChange > 0 : null
-          }
-          icon={<ShoppingBag className="h-5 w-5 text-white" />}
-          iconBg="from-blue-500 to-blue-600"
+        <StatsCard
+          label={t("average_order")}
+          value={`$${stats?.averageOrderValue?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}`}
+          icon={ShoppingBag}
+          index={1}
+          change={stats?.averageOrderChange ? `${stats.averageOrderChange > 0 ? "+" : ""}${stats.averageOrderChange.toFixed(1)}%` : undefined}
           description={t("per_order")}
-          isLoading={isLoading}
-          chartData={stats?.orderValueChartData || null}
+          sparklineData={stats?.orderValueChartData}
+          {...statsCardColors.blue}
         />
-        <MetricCard
-          title={t("products_sold")}
+        <StatsCard
+          label={t("products_sold")}
           value={stats?.totalUnitsSold?.toLocaleString() || "0"}
-          change={stats?.unitsSoldChange || null}
-          isPositive={stats?.unitsSoldChange ? stats.unitsSoldChange > 0 : null}
-          icon={<Package className="h-5 w-5 text-white" />}
-          iconBg="from-purple-500 to-purple-600"
+          icon={Package}
+          index={2}
+          change={stats?.unitsSoldChange ? `${stats.unitsSoldChange > 0 ? "+" : ""}${stats.unitsSoldChange.toFixed(1)}%` : undefined}
           description={t("total_units")}
-          isLoading={isLoading}
-          chartData={stats?.unitsSoldChartData || null}
+          sparklineData={stats?.unitsSoldChartData}
+          {...statsCardColors.purple}
         />
-        <MetricCard
-          title={t("new_customers")}
+        <StatsCard
+          label={t("new_customers")}
           value={stats?.newCustomers?.toLocaleString() || "0"}
-          change={stats?.newCustomersChange || null}
-          isPositive={
-            stats?.newCustomersChange ? stats.newCustomersChange > 0 : null
-          }
-          icon={<Users className="h-5 w-5 text-white" />}
-          iconBg="from-amber-500 to-amber-600"
+          icon={Users}
+          index={3}
+          change={stats?.newCustomersChange ? `${stats.newCustomersChange > 0 ? "+" : ""}${stats.newCustomersChange.toFixed(1)}%` : undefined}
           description={t("first_time_buyers")}
-          isLoading={isLoading}
-          chartData={stats?.customersChartData || null}
+          sparklineData={stats?.customersChartData}
+          {...statsCardColors.amber}
         />
       </div>
 
@@ -638,7 +621,7 @@ export default function DashboardClient() {
                     <Package className="h-6 w-6 text-gray-500 dark:text-gray-400" />
                   </div>
                   <p className="text-gray-500 dark:text-gray-400 mb-2">
-                    {tExt("no_products_found")}
+                    {tCommon("no_products_found")}
                   </p>
                   <Link
                     href="/admin/ecommerce/product"
@@ -676,95 +659,6 @@ export default function DashboardClient() {
           iconBg="from-green-600 to-green-700"
           href="/admin/ecommerce/order"
         />
-      </div>
-    </div>
-  );
-}
-function MetricCard({
-  title,
-  value,
-  change,
-  isPositive,
-  icon,
-  iconBg,
-  description,
-  isLoading,
-  chartData,
-}) {
-  // Don't show change indicators if change is 0 or null/undefined
-  const shouldShowChange =
-    change !== null && change !== undefined && change !== 0;
-  return (
-    <div className="bg-white dark:bg-zinc-900/50 overflow-hidden rounded-lg border border-gray-200 dark:border-zinc-800">
-      <div className="p-4">
-        <div className="flex items-center">
-          <div
-            className={`flex-shrink-0 rounded-md p-2 bg-gradient-to-r ${iconBg}`}
-          >
-            {icon}
-          </div>
-          <div className="ml-3 flex-1">
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 truncate">
-              {title}
-            </p>
-            <div className="flex items-baseline">
-              {isLoading ? (
-                <div className="animate-pulse h-6 bg-gray-200 dark:bg-zinc-600 rounded w-20 mt-1"></div>
-              ) : (
-                <>
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {value}
-                  </p>
-                  {shouldShowChange && (
-                    <p
-                      className={`ml-2 flex items-baseline text-xs font-semibold ${isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-                    >
-                      {isPositive ? (
-                        <ChevronUp
-                          className="self-center flex-shrink-0 h-3 w-3 text-green-500 dark:text-green-400"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <ChevronDown
-                          className="self-center flex-shrink-0 h-3 w-3 text-red-500 dark:text-red-400"
-                          aria-hidden="true"
-                        />
-                      )}
-                      <span className="sr-only">
-                        {isPositive ? "Increased" : "Decreased"} by
-                      </span>
-                      {Math.abs(change).toFixed(1)}%
-                    </p>
-                  )}
-                </>
-              )}
-            </div>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {description}
-            </p>
-          </div>
-        </div>
-
-        {/* Mini chart */}
-        <div className="mt-3 h-10">
-          {chartData && chartData.length > 0 && (
-            <div className="flex items-end h-full space-x-1">
-              {chartData.map((value, i) => {
-                const maxValue = Math.max(...chartData);
-                const height = maxValue > 0 ? (value / maxValue) * 100 : 0;
-                return (
-                  <div
-                    key={i}
-                    className="flex-1 bg-indigo-100 dark:bg-indigo-900/20 rounded-sm hover:bg-indigo-200 dark:hover:bg-indigo-900/30 transition-colors"
-                    style={{
-                      height: `${height}%`,
-                    }}
-                  ></div>
-                );
-              })}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

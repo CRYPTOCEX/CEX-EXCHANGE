@@ -22,7 +22,7 @@ export default function ReviewStep({
         <h4 className="font-medium">{tExt("token_information")}</h4>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-muted-foreground">{tExt("token_name")}</p>
+            <p className="text-muted-foreground">{tCommon("token_name")}</p>
             <p className="font-medium">
               {formData.name} ({formData.symbol})
             </p>

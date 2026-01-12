@@ -4,8 +4,6 @@ import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Input } from "./input";
-import { useTranslations } from "next-intl";
 
 //
 // Default ShadCN Select components
@@ -65,7 +63,7 @@ const SelectTrigger = React.forwardRef<
     ref
   ) => {
     const triggerClasses = cn(
-      "border-input data-placeholder:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive flex h-9 w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-2xs transition-[color,box-shadow] outline-hidden focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+      "cursor-pointer border-input data-placeholder:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive flex h-9 w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-2xs transition-[color,box-shadow] outline-hidden focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
       error && "border-2 border-red-500 focus:ring-red-500 focus:ring-2",
       className
     );
@@ -120,12 +118,13 @@ function SelectContent({
   position = "popper",
   search = false,
   searchPlaceholder = "Search...",
+  noResultsText = "No results found",
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content> & {
   search?: boolean;
   searchPlaceholder?: string;
+  noResultsText?: string;
 }) {
-  const t = useTranslations("components");
   const [searchTerm, setSearchTerm] = React.useState("");
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -205,7 +204,7 @@ function SelectContent({
           {filteredChildren}
           {search && searchTerm && React.Children.count(filteredChildren) === 0 && (
             <div className="py-6 text-center text-sm text-muted-foreground">
-              {t("no_results_found")}
+              {noResultsText}
             </div>
           )}
         </SelectPrimitive.Viewport>
@@ -237,7 +236,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 ltr:pr-8 ltr:pl-2 rtl:pl-8 rtl:pr-2 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-pointer items-center gap-2 rounded-sm py-1.5 ltr:pr-8 ltr:pl-2 rtl:pl-8 rtl:pr-2 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

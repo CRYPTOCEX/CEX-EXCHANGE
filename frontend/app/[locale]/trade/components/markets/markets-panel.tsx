@@ -729,6 +729,7 @@ export default function MarketsPanel({
               marketType="spot"
               onSortVolume={() => handleSort("volume")}
               onSortPrice={() => handleSort("price")}
+              isInWatchlist={(symbol) => wishlistService.isInWishlist(symbol, "spot")}
             />
           </div>
         </TabContent>
@@ -760,6 +761,7 @@ export default function MarketsPanel({
               marketType="futures"
               onSortVolume={() => handleSort("volume")}
               onSortPrice={() => handleSort("price")}
+              isInWatchlist={(symbol) => wishlistService.isInWishlist(symbol, "futures")}
             />
           </div>
         </TabContent>

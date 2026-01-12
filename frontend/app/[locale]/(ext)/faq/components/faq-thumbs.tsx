@@ -215,7 +215,7 @@ export function FAQThumbs({ faqId, className }: FAQThumbsProps) {
                 )}
               >
                 <ThumbsDown className="h-5 w-5 mr-2" />
-                {t("needs_improvement")}
+                {tCommon("needs_improvement")}
               </Button>
             </div>
           </motion.div>

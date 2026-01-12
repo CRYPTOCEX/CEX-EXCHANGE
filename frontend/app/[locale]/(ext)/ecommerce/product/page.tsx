@@ -1,5 +1,4 @@
 import ProductsClient from "./client";
-import { useTranslations } from "next-intl";
 
 export const metadata = {
   title: "Products | E-commerce",
@@ -7,8 +6,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  const t = useTranslations("ext");
-  return (
-<ProductsClient />
-  );
+  return <ProductsClient />;
 }

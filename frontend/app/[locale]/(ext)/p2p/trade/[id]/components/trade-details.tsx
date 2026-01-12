@@ -196,7 +196,7 @@ export function TradeDetails({
                 <Clock className={`h-5 w-5 text-amber-700 dark:text-amber-400 mr-2`} />
                 <div>
                   <p className={`text-sm font-medium text-amber-700 dark:text-amber-400`}>
-                    {tExt("time_remaining")}
+                    {tCommon("time_remaining")}
                   </p>
                   <p className={`text-xs text-amber-700 dark:text-amber-400`}>
                     {t("complete_this_trade_step_before_time_expires")}

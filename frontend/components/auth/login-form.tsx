@@ -14,13 +14,9 @@ import { $fetch } from "@/lib/api";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import TwoFactorForm from "@/components/auth/two-factor-form";
+import { useSettings } from "@/hooks/use-settings";
+import { usePowCaptcha } from "@/hooks/use-pow-captcha";
 
-// Environment variables
-const recaptchaEnabled =
-  process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_STATUS === "true";
-const recaptchaSiteKey = process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SITE_KEY;
-const googleAuthStatus =
-  process.env.NEXT_PUBLIC_GOOGLE_AUTH_STATUS === "true";
 const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
 interface LoginFormProps {
@@ -45,13 +41,19 @@ export default function LoginForm({
   const login = useUserStore((state) => state.login);
   const isLoading = useUserStore((state) => state.isLoading);
   const error = useUserStore((state) => state.error);
+  const { settings } = useSettings();
+  const { solveAndGetSolution, isLoading: powLoading } = usePowCaptcha();
+
+  // Settings-based feature flags (handle both boolean and string values)
+  const googleAuthStatus =
+    settings?.googleAuthStatus === true ||
+    settings?.googleAuthStatus === "true";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [script, setScript] = useState<HTMLScriptElement | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
@@ -65,54 +67,6 @@ export default function LoginForm({
 
   // Track if Google button was clicked
   const googleButtonClicked = useRef(false);
-
-  // Initialize recaptcha if enabled
-  useEffect(() => {
-    if (typeof window !== "undefined" && recaptchaEnabled && recaptchaSiteKey) {
-      try {
-        // Check if script already exists
-        const existingScript = document.querySelector(`script[src*="recaptcha/api.js"]`);
-        if (existingScript) {
-          return;
-        }
-
-        const scriptElement = document.createElement("script");
-        scriptElement.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`;
-        scriptElement.async = true;
-        scriptElement.defer = true;
-        document.body.appendChild(scriptElement);
-        setScript(scriptElement);
-
-        scriptElement.onload = () => {
-          const { grecaptcha } = window as any;
-          if (grecaptcha) {
-            grecaptcha.ready(() => {
-              // reCAPTCHA is ready
-            });
-          }
-        };
-
-        // Silent error handling for reCAPTCHA script loading
-        scriptElement.onerror = () => {};
-      } catch (err) {
-        // Silent error handling
-      }
-    }
-
-    return () => {
-      try {
-        if (script && script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
-        const recaptchaContainer = document.querySelector(".grecaptcha-badge");
-        if (recaptchaContainer && recaptchaContainer.parentNode) {
-          recaptchaContainer.parentNode.removeChild(recaptchaContainer);
-        }
-      } catch (err) {
-        console.error("Error cleaning up reCAPTCHA:", err);
-      }
-    };
-  }, []);
 
   // Watch for errors from the store
   useEffect(() => {
@@ -145,55 +99,23 @@ export default function LoginForm({
         return;
       }
 
-      // Generate reCAPTCHA token if enabled
-      let recaptchaToken = null;
-      if (recaptchaEnabled && typeof window !== "undefined") {
-        try {
-          // Wait for grecaptcha to be available (max 5 seconds)
-          let attempts = 0;
-          const maxAttempts = 10;
-          while (attempts < maxAttempts) {
-            const { grecaptcha } = window as any;
-            if (grecaptcha && grecaptcha.ready) {
-              await new Promise((resolve) => {
-                grecaptcha.ready(() => {
-                  resolve(true);
-                });
-              });
-              recaptchaToken = await grecaptcha.execute(recaptchaSiteKey, {
-                action: "login",
-              });
-              break;
-            }
-            attempts++;
-            if (attempts < maxAttempts) {
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
-          }
-          
-          if (!recaptchaToken) {
-            toast({
-              title: "reCAPTCHA Loading Error",
-              description: "reCAPTCHA failed to load. Please refresh the page and try again.",
-              variant: "destructive",
-            });
-            setLocalLoading(false);
-            return;
-          }
-        } catch (recaptchaError) {
-          console.error("reCAPTCHA error:", recaptchaError);
-          toast({
-            title: "reCAPTCHA Error",
-            description: "Failed to verify reCAPTCHA. Please try again.",
-            variant: "destructive",
-          });
-          setLocalLoading(false);
-          return;
-        }
+      // Solve PoW captcha if enabled
+      let powSolution = null;
+      try {
+        powSolution = await solveAndGetSolution("login");
+      } catch (powError) {
+        console.error("PoW captcha error:", powError);
+        toast({
+          title: "Security verification failed",
+          description: "Please try again.",
+          variant: "destructive",
+        });
+        setLocalLoading(false);
+        return;
       }
 
-      // Call login with reCAPTCHA token
-      const success = await loginWithRecaptcha(email, password, recaptchaToken).catch((err) => {
+      // Call login with PoW solution
+      const success = await login(email, password, powSolution).catch((err) => {
         console.error("Login promise rejection:", err);
         return false;
       });
@@ -268,53 +190,6 @@ export default function LoginForm({
       });
     } finally {
       setLocalLoading(false);
-    }
-  };
-
-  // Helper function to call login with reCAPTCHA
-  const loginWithRecaptcha = async (email: string, password: string, recaptchaToken: string | null) => {
-    const { login } = useUserStore.getState();
-    
-    // If reCAPTCHA is enabled, always use the direct API call (with or without token)
-    if (recaptchaEnabled) {
-      const { data, error } = await $fetch({
-        url: "/api/auth/login",
-        method: "POST",
-        body: { email, password, recaptchaToken },
-        silentSuccess: true,
-      });
-
-      if (error) {
-        useUserStore.getState().setUser(null);
-        useUserStore.setState({ error, isLoading: false });
-        return false;
-      }
-
-      // Check if 2FA is required
-      if (data && data.twoFactor && data.twoFactor.enabled) {
-        return { requiresTwoFactor: true, ...data };
-      }
-
-      // Fetch user profile after successful login
-      try {
-        const { data: profileData, error: profileError } = await $fetch({
-          url: "/api/user/profile",
-          method: "GET",
-          silentSuccess: true,
-        });
-
-        if (profileData && !profileError) {
-          useUserStore.getState().setUser(profileData);
-          return true;
-        }
-      } catch (profileFetchError) {
-        console.warn("Error fetching user profile after login:", profileFetchError);
-      }
-
-      return true;
-    } else {
-      // Use the store's login function only if reCAPTCHA is completely disabled
-      return await login(email, password);
     }
   };
 
@@ -405,7 +280,7 @@ export default function LoginForm({
   }, []);
 
   // Determine if button should show loading state
-  const buttonLoading = localLoading || isLoading;
+  const buttonLoading = localLoading || isLoading || powLoading;
 
   const handleTwoFactorSuccess = () => {
     setShowTwoFactor(false);
@@ -547,9 +422,6 @@ export default function LoginForm({
           {localLoading ? "Signing in..." : "Sign in"}
         </Button>
 
-        {recaptchaEnabled && (
-          <div id="recaptcha-container" className="hidden"></div>
-        )}
       </form>
 
       {googleAuthStatus && (

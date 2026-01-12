@@ -124,7 +124,7 @@ export function useAnalytics() {
         },
         {
           id: "total_volume",
-          title: tExt("total_volume"),
+          title: tCommon("total_volume"),
           metric: "totalVolume",
           model: "copyTradingLeader",
           aggregation: { type: "sum", field: "totalVolume" },

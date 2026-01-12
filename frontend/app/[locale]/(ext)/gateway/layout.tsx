@@ -52,6 +52,8 @@ function GatewayLayoutContent({ children }: { children: ReactNode }) {
         rightControls={<ModeToggle />}
         adminPath={adminPath}
         colorSchema={colorSchema}
+        translationNamespace="ext_gateway"
+        translationNavPrefix="nav"
       />
       <ExtensionLayoutWrapper landingPath="/gateway" mainClassName="flex-1 mx-auto">
         {children}

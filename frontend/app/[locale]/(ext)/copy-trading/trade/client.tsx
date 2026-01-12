@@ -245,7 +245,7 @@ export default function TradeClient() {
               <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-transparent" />
               <div className="relative">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs text-zinc-500">{tExt("total_trades")}</span>
+                  <span className="text-xs text-zinc-500">{tCommon("total_trades")}</span>
                   <div className="p-1.5 rounded-lg bg-blue-500/10">
                     <BarChart3 className="h-3.5 w-3.5 text-blue-500" />
                   </div>
@@ -580,7 +580,7 @@ export default function TradeClient() {
                 <div className="w-20 h-20 mx-auto mb-6 bg-linear-to-br from-indigo-500/20 to-violet-500/20 rounded-2xl flex items-center justify-center">
                   <Activity className="h-10 w-10 text-indigo-500" />
                 </div>
-                <h3 className="text-2xl font-bold mb-2">{t("no_trades_found")}</h3>
+                <h3 className="text-2xl font-bold mb-2">{tCommon("no_trades_found")}</h3>
                 <p className="text-zinc-500 mb-8 max-w-md mx-auto">
                   {t("your_copy_trading_history_will_appear")}
                 </p>

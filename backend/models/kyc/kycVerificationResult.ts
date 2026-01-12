@@ -35,7 +35,6 @@ export default class kycVerificationResult
           allowNull: false,
           validate: {
             notNull: { msg: "applicationId: Application ID cannot be null" },
-            isUUID: { args: 4, msg: "applicationId: Must be a valid UUID" },
           },
           comment: "ID of the KYC application this result belongs to",
         },

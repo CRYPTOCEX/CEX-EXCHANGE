@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+"use client";
+
 import {
   Card,
   CardContent,
@@ -14,11 +15,6 @@ import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useTranslations } from "next-intl";
-
-export const metadata: Metadata = {
-  title: "Launch Your Token | TokenLaunch",
-  description: "Create and launch your own token offering on our platform",
-};
 
 export default function LaunchPage() {
   const t = useTranslations("ext_ico");

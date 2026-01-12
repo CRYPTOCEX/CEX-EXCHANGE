@@ -92,7 +92,7 @@ export default function DesignV4({ state, actions, paymentIntentId }: CheckoutDe
           </motion.div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="space-y-4 sm:space-y-6">
             <div className="flex items-center justify-center gap-2 text-white/30 text-xs sm:text-sm"><Loader2 className="w-4 h-4 animate-spin" /><span>{tCommon("redirecting_ellipsis")}</span></div>
-            {redirectUrl && <a href={redirectUrl} className="inline-flex items-center gap-2 text-amber-400/80 hover:text-amber-400 text-xs sm:text-sm tracking-wider transition-colors cursor-pointer">CONTINUE TO STORE <ArrowUpRight className="w-4 h-4" /></a>}
+            {redirectUrl && <a href={redirectUrl} className="inline-flex items-center gap-2 text-amber-400/80 hover:text-amber-400 text-xs sm:text-sm tracking-wider transition-colors cursor-pointer">{t("continue_to_store")} <ArrowUpRight className="w-4 h-4" /></a>}
           </motion.div>
         </motion.div>
       </div>

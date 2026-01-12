@@ -48,6 +48,7 @@ const SYSTEM_SETTINGS_CONFIG: SettingsPageConfig = {
 };
 
 export default function SystemSettingsPage() {
+  const t = useTranslations("dashboard_admin");
   const tCommon = useTranslations("common");
   const {
     settings: configSettings,
@@ -74,7 +75,7 @@ export default function SystemSettingsPage() {
               {tCommon("loading_settings_ellipsis")}...
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Please wait while we fetch your settings
+              {tCommon("please_wait_while_we_fetch_your_settings")}
             </p>
           </div>
         </motion.div>

@@ -1,13 +1,8 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { Link } from "@/i18n/routing";
 import { Search, Zap, Sparkles, TrendingUp, Shield } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { HeroSection } from "@/components/ui/hero-section";
-import { useTranslations } from "next-intl";
 
 export default function P2PDashboardLoading() {
-  const t = useTranslations("ext_p2p");
-  const tCommon = useTranslations("common");
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
       {/* Hero Section - Show actual hero, no loading needed */}
@@ -23,7 +18,6 @@ export default function P2PDashboardLoading() {
           { text: "Welcome Back, " },
           { text: "Trader", gradient: `from-blue-600 via-violet-500 to-blue-600` },
         ]}
-        description={t("your_p2p_crypto_trading_dashboard_with")}
         paddingTop="pt-24"
         paddingBottom="pb-12"
         layout="split"
@@ -49,18 +43,8 @@ export default function P2PDashboardLoading() {
         }}
         rightContent={
           <div className="flex flex-col gap-3 w-full sm:w-auto lg:mt-8">
-            <Link href="/p2p/offer">
-              <Button size="lg" className={`w-full sm:w-48 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg`}>
-                <Zap className="mr-2 h-5 w-5" />
-                {tCommon("start_trading")}
-              </Button>
-            </Link>
-            <Link href="/p2p/guide">
-              <Button size="lg" variant="outline" className={`w-full sm:w-48 border-2 border-blue-500/50 text-blue-600 dark:text-blue-400 hover:bg-blue-500/5 dark:hover:bg-blue-500/10 font-semibold rounded-xl shadow-lg`}>
-                <Search className="mr-2 h-5 w-5" />
-                {t("explore_features")}
-              </Button>
-            </Link>
+            <Skeleton className="h-12 w-full sm:w-48 rounded-xl" />
+            <Skeleton className="h-12 w-full sm:w-48 rounded-xl" />
           </div>
         }
       >
@@ -70,7 +54,7 @@ export default function P2PDashboardLoading() {
               <TrendingUp className={`h-4 w-4 text-blue-500`} />
             </div>
             <div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">{t('real_time_prices')}</p>
+              <Skeleton className="h-4 w-24" />
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -78,7 +62,7 @@ export default function P2PDashboardLoading() {
               <Shield className={`h-4 w-4 text-blue-500`} />
             </div>
             <div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">{t("secure_escrow")}</p>
+              <Skeleton className="h-4 w-24" />
             </div>
           </div>
         </div>

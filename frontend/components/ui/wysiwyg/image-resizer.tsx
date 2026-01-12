@@ -114,28 +114,32 @@ export function ImageResizer({
           // Only change height
           newHeight = startSize.current.height - deltaY;
           break;
-        case "bottom-right":
+        case "bottom-right": {
           // Corner: use diagonal movement, maintain aspect ratio
           // Use the larger delta to determine scale
           const brDelta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY * aspectRatio.current;
           newWidth = startSize.current.width + brDelta;
           newHeight = newWidth / aspectRatio.current;
           break;
-        case "bottom-left":
+        }
+        case "bottom-left": {
           const blDelta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : deltaY * aspectRatio.current;
           newWidth = startSize.current.width + blDelta;
           newHeight = newWidth / aspectRatio.current;
           break;
-        case "top-right":
+        }
+        case "top-right": {
           const trDelta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : -deltaY * aspectRatio.current;
           newWidth = startSize.current.width + trDelta;
           newHeight = newWidth / aspectRatio.current;
           break;
-        case "top-left":
+        }
+        case "top-left": {
           const tlDelta = Math.abs(deltaX) > Math.abs(deltaY) ? -deltaX : -deltaY * aspectRatio.current;
           newWidth = startSize.current.width + tlDelta;
           newHeight = newWidth / aspectRatio.current;
           break;
+        }
       }
 
       // Apply constraints

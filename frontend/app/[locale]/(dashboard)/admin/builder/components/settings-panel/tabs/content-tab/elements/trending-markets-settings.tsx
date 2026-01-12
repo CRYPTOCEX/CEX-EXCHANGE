@@ -21,7 +21,7 @@ export function TrendingMarketsSettings({
         <div className="space-y-2">
           <LabeledInput
             id="apiEndpoint"
-            label="API Endpoint"
+            label={t("api_endpoint")}
             value={settings.apiEndpoint || "/api/markets/ticker"}
             onChange={(e) => onSettingChange("apiEndpoint", e.target.value)}
             placeholder="/api/markets/ticker"
@@ -29,7 +29,7 @@ export function TrendingMarketsSettings({
 
           <LabeledInput
             id="wsEndpoint"
-            label="WebSocket Endpoint"
+            label={t("websocket_endpoint")}
             value={settings.wsEndpoint || "/api/markets/ticker/ws"}
             onChange={(e) => onSettingChange("wsEndpoint", e.target.value)}
             placeholder="/api/markets/ticker/ws"

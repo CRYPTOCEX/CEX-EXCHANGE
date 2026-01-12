@@ -250,7 +250,7 @@ export function IconPicker({ selectedIcon, onSelectIcon }: IconPickerProps) {
 
               {currentCategoryIcons.length === 0 && (
                 <div className="col-span-6 py-6 text-center text-sm text-muted-foreground">
-                  {t("no_icons_found")}. {t("try_a_different_search_term")}.
+                  {t("no_icons_found")}. {tCommon("try_a_different_search_term")}.
                 </div>
               )}
             </div>

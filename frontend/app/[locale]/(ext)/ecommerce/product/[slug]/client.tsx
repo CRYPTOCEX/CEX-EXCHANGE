@@ -541,7 +541,7 @@ export default function ProductDetailClient() {
               {checkingPurchase && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
                   <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                  {t("checking_ellipsis")}
+                  {tCommon("checking_ellipsis")}
                 </span>
               )}
               {hasPurchased && (

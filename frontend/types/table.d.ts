@@ -58,4 +58,6 @@ interface ColumnDefinition {
   disablePrefixSort?: boolean;
   /** @deprecated Use formConfig.groups[].fields[].uploadDir instead */
   uploadDir?: string;
+  /** If true, column spans full width in expanded/view modal */
+  fullWidth?: boolean;
 }

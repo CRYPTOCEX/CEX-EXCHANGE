@@ -615,7 +615,7 @@ export default function LeaderDetailPage() {
               <div className="relative">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm text-zinc-500">
-                    {tExt("total_trades")}
+                    {tCommon("total_trades")}
                   </span>
                   <div className="p-2 rounded-xl bg-amber-500/10">
                     <Activity className="h-4 w-4 text-amber-500" />
@@ -664,7 +664,7 @@ export default function LeaderDetailPage() {
                     {formatFiat((leader.totalVolume || 0) / 1000, "USD", 1)}K
                   </p>
                   <p className="text-xs text-zinc-500 mt-1">
-                    {tExt("total_volume")}
+                    {tCommon("total_volume")}
                   </p>
                 </div>
                 <div className="text-center p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50">
@@ -684,7 +684,7 @@ export default function LeaderDetailPage() {
                       : "N/A"}
                   </p>
                   <p className="text-xs text-zinc-500 mt-1">
-                    {t("max_drawdown")}
+                    {tCommon("max_drawdown")}
                   </p>
                 </div>
               </div>

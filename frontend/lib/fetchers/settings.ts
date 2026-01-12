@@ -77,7 +77,14 @@ export const getSettings = cache(async () => {
       };
     }
 
-    return { settings: data || {}, extensions: [], error: null };
+    // Convert settings array to object
+    const settingsObj = settingsToObject(data?.settings);
+
+    return {
+      settings: settingsObj || {},
+      extensions: data?.extensions || [],
+      error: null
+    };
   } catch (error: any) {
     // Silently handle connection errors (backend not ready during startup)
     if (!isConnectionError(error)) {

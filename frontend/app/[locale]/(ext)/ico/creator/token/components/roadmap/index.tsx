@@ -277,7 +277,7 @@ export default function TokenRoadmap({ tokenId }: TokenRoadmapProps) {
         <Alert className="border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300">
           <AlertDescription className="flex items-center gap-2">
             <Lock className="h-4 w-4" />
-            {t("youve_reached_the_your_plan")}.{" "}
+            {tCommon("youve_reached_the_maximum_number_of_1")}.{" "}
             <Link
               href={upgradeLink}
               className="inline-flex items-center gap-1 font-medium text-primary hover:underline"

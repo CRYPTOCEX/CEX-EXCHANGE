@@ -13,7 +13,10 @@ interface aiMarketMakerHistoryAttributes {
     | "STOP"
     | "CONFIG_CHANGE"
     | "EMERGENCY_STOP"
-    | "AUTO_PAUSE";
+    | "AUTO_PAUSE"
+    | "PHASE_CHANGE"
+    | "BIAS_CHANGE"
+    | "MOMENTUM_EVENT";
   details?: Record<string, any>;
   priceAtAction: number;
   poolValueAtAction: number;

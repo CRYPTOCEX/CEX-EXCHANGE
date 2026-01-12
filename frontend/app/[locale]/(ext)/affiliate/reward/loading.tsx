@@ -1,18 +1,12 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTranslations } from "next-intl";
 
 export default function AffiliateRewardsLoading() {
-  const t = useTranslations("ext_affiliate");
   return (
     <div className="container mx-auto px-4 py-6 pt-20 md:px-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">
-            {t("your_affiliate_rewards")}
-          </h1>
-          <p className="text-muted-foreground">
-            {t("track_and_manage_your_earnings")}
-          </p>
+          <Skeleton className="h-8 w-56 mb-2" />
+          <Skeleton className="h-4 w-48" />
         </div>
       </div>
 

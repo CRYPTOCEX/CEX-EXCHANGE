@@ -14,8 +14,8 @@ import { useAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useRouter } from "@/i18n/routing";
-import { Card, CardContent } from "@/components/ui/card";
 import { $fetch } from "@/lib/api";
+import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 interface Stats {
   totalTrades: number;
@@ -28,6 +28,7 @@ interface Stats {
 export default function TradePage() {
   const t = useTranslations("ext_admin");
   const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const columns = useColumns();
   const formConfig = useFormConfig();
@@ -57,98 +58,42 @@ export default function TradePage() {
 
   const StatsCards = () => (
     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{tExt("total_trades")}</p>
-              <p className="text-xl font-bold">
-                {stats.totalTrades.toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-              <TrendingUp className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t("leader_trades")}</p>
-              <p className="text-xl font-bold">
-                {stats.leaderTrades.toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-violet-100 dark:bg-violet-900/30 rounded-lg">
-              <TrendingDown className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t("follower_trades")}</p>
-              <p className="text-xl font-bold">
-                {stats.followerTrades.toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-              <BarChart3 className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{tExt("total_volume")}</p>
-              <p className="text-xl font-bold">
-                ${stats.totalVolume.toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div
-              className={`p-2 rounded-lg ${
-                stats.totalPnl >= 0
-                  ? "bg-green-100 dark:bg-green-900/30"
-                  : "bg-red-100 dark:bg-red-900/30"
-              }`}
-            >
-              <DollarSign
-                className={`h-5 w-5 ${
-                  stats.totalPnl >= 0
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-red-600 dark:text-red-400"
-                }`}
-              />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t("total_pnl")}</p>
-              <p
-                className={`text-xl font-bold ${
-                  stats.totalPnl >= 0 ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {stats.totalPnl >= 0 ? "+" : ""}$
-                {stats.totalPnl.toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <StatsCard
+        label={tCommon("total_trades")}
+        value={stats.totalTrades}
+        icon={Activity}
+        index={0}
+        {...statsCardColors.blue}
+      />
+      <StatsCard
+        label={t("leader_trades")}
+        value={stats.leaderTrades}
+        icon={TrendingUp}
+        index={1}
+        {...statsCardColors.purple}
+      />
+      <StatsCard
+        label={t("follower_trades")}
+        value={stats.followerTrades}
+        icon={TrendingDown}
+        index={2}
+        {...statsCardColors.purple}
+      />
+      <StatsCard
+        label={tCommon("total_volume")}
+        value={stats.totalVolume}
+        icon={BarChart3}
+        index={3}
+        isCurrency
+        {...statsCardColors.orange}
+      />
+      <StatsCard
+        label={t("total_pnl")}
+        value={`${stats.totalPnl >= 0 ? "+" : ""}$${stats.totalPnl.toLocaleString()}`}
+        icon={DollarSign}
+        index={4}
+        {...(stats.totalPnl >= 0 ? statsCardColors.green : statsCardColors.red)}
+      />
     </div>
   );
 

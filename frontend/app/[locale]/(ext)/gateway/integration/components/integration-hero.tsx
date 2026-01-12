@@ -3,12 +3,14 @@
 import { Sparkles } from "lucide-react";
 import { HeroSection } from "@/components/ui/hero-section";
 import { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 
 interface IntegrationHeroProps {
   rightContent?: ReactNode;
 }
 
 export function IntegrationHero({ rightContent }: IntegrationHeroProps) {
+  const t = useTranslations("ext_gateway");
   return (
     <HeroSection
       badge={{
@@ -22,7 +24,7 @@ export function IntegrationHero({ rightContent }: IntegrationHeroProps) {
         { text: "Developer " },
         { text: "Integration", gradient: "from-indigo-600 to-cyan-600" },
       ]}
-      description="API keys, webhooks, and integration guides for your payment gateway"
+      description={t("api_keys_webhooks_and_integration_guides")}
       paddingTop="pt-24"
       paddingBottom="pb-12"
       layout="split"

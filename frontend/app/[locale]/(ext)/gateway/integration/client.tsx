@@ -167,7 +167,7 @@ export default function IntegrationsClient() {
             <Link href="/gateway/docs">
               <Button variant="outline">
                 <FileCode className="h-4 w-4 mr-2" />
-                API Documentation
+                {tCommon("api_documentation")}
               </Button>
             </Link>
             <Link href="/gateway/settings?tab=api-keys">
@@ -369,7 +369,7 @@ export default function IntegrationsClient() {
               <TabsContent value="configuration" className="space-y-6">
                 <Alert>
                   <Info className="h-4 w-4" />
-                  <AlertTitle>API Keys Required</AlertTitle>
+                  <AlertTitle>{t("api_keys_required")}</AlertTitle>
                   <AlertDescription>
                     {t("youll_need_your_live_and_test_api_keys_from_the")}{" "}
                     <Link href="/gateway/settings?tab=api-keys" className="underline">
@@ -411,7 +411,7 @@ export default function IntegrationsClient() {
                       <div className="flex items-start gap-3">
                         <Key className="h-5 w-5 text-primary mt-0.5" />
                         <div>
-                          <h4 className="font-medium">API Keys</h4>
+                          <h4 className="font-medium">{tCommon("api_keys")}</h4>
                           <p className="text-sm text-muted-foreground mb-2">
                             {t("enter_your_live_and_test_api_keys")} {t("the_plugin_uses_the_appropriate_key")}
                           </p>
@@ -567,7 +567,7 @@ export default function IntegrationsClient() {
                   </AccordionItem>
 
                   <AccordionItem value="item-3">
-                    <AccordionTrigger>SSL/HTTPS errors</AccordionTrigger>
+                    <AccordionTrigger>{t("ssl_https_errors")}</AccordionTrigger>
                     <AccordionContent className="text-muted-foreground">
                       <ul className="list-disc list-inside space-y-2">
                         <li>{t("the_plugin_requires_your_site_to_use_https")}</li>
@@ -610,7 +610,7 @@ export default function IntegrationsClient() {
                     <Link href="/gateway/docs">
                       <Button variant="outline" size="sm">
                         <FileCode className="h-4 w-4 mr-2" />
-                        API Docs
+                        {t("api_docs")}
                       </Button>
                     </Link>
                   </div>

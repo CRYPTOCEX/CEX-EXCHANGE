@@ -1,31 +1,58 @@
 "use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useConfigStore } from '@/store/config';
+import { useShallow } from 'zustand/react/shallow';
 import { DEFAULT_SETTINGS } from '@/config/settings';
+
+// Module-level flag to prevent StrictMode double-initialization and HMR re-fetches
+// Using a global window property to persist across HMR in development
+const SETTINGS_SYNC_KEY = '__SETTINGS_SYNC_INITIALIZED__';
+
+function isSettingsSyncInitialized(): boolean {
+  if (typeof window === 'undefined') return false;
+  return (window as any)[SETTINGS_SYNC_KEY] === true;
+}
+
+function markSettingsSyncInitialized(): void {
+  if (typeof window !== 'undefined') {
+    (window as any)[SETTINGS_SYNC_KEY] = true;
+  }
+}
 
 /**
  * Hook to ensure settings are synchronized with fresh data
  * Implements optimistic updates with localStorage fallback
+ *
+ * IMPORTANT: This hook should only be called ONCE in the app, typically in providers.tsx.
+ * It uses a module-level flag to ensure settings are only fetched once per app load.
  */
 export const useSettingsSync = () => {
-  const {
-    settings,
-    settingsFetched,
-    setSettings,
-    setExtensions,
-    setSettingsFetched,
-    setSettingsError
-  } = useConfigStore();
-
-  const hasInitialized = useRef(false);
+  // Use shallow selector to minimize re-renders - only subscribe to what we need for the return value
+  const { settings, settingsFetched } = useConfigStore(
+    useShallow((state) => ({
+      settings: state.settings,
+      settingsFetched: state.settingsFetched,
+    }))
+  );
 
   useEffect(() => {
-    // Only run once per app load
-    if (hasInitialized.current || typeof window === 'undefined') return;
-    hasInitialized.current = true;
+    // Only run once per app load - using window property to persist across HMR and StrictMode remounts
+    if (isSettingsSyncInitialized() || typeof window === 'undefined') return;
+    markSettingsSyncInitialized();
 
     const fetchFreshSettings = async () => {
+      // Use getState() to avoid adding dependencies to useEffect
+      // This keeps the effect stable and only runs once
+      const store = useConfigStore.getState();
+
+      // Skip fetch if settings are already loaded from SSR
+      // This prevents duplicate fetches when SSR already provided settings
+      if (store.settingsFetched && store.settings && Object.keys(store.settings).length > 0) {
+        console.debug('Settings already loaded from SSR, skipping client fetch');
+        return;
+      }
+
       try {
         const response = await fetch('/api/settings', {
           method: 'GET',
@@ -75,27 +102,28 @@ export const useSettingsSync = () => {
             ? DEFAULT_SETTINGS
             : settingsObj;
 
-          setSettings(finalSettings);
-          setExtensions(data.extensions || []);
-          setSettingsFetched(true);
-          setSettingsError(null);
+          store.setSettings(finalSettings);
+          store.setExtensions(data.extensions || []);
+          store.setSettingsFetched(true);
+          store.setSettingsError(null);
         } else {
           throw new Error('Invalid settings data received');
         }
       } catch (error) {
         console.warn('Failed to fetch fresh settings:', error);
-        setSettingsError(error instanceof Error ? error.message : 'Unknown error');
+        store.setSettingsError(error instanceof Error ? error.message : 'Unknown error');
 
         // If we don't have any settings yet, try to load from localStorage
-        if (!settingsFetched && (!settings || Object.keys(settings).length === 0)) {
+        const currentState = useConfigStore.getState();
+        if (!currentState.settingsFetched && (!currentState.settings || Object.keys(currentState.settings).length === 0)) {
           try {
             const cached = localStorage.getItem('bicrypto-config-store');
             if (cached) {
               const parsed = JSON.parse(cached);
               if (parsed.state?.settings && Object.keys(parsed.state.settings).length > 0) {
-                setSettings(parsed.state.settings);
-                setExtensions(parsed.state?.extensions || []);
-                setSettingsFetched(true);
+                store.setSettings(parsed.state.settings);
+                store.setExtensions(parsed.state?.extensions || []);
+                store.setSettingsFetched(true);
                 console.info('Using cached settings from localStorage');
               }
             }
@@ -106,15 +134,8 @@ export const useSettingsSync = () => {
       }
     };
 
-    // If we already have settings from SSR, use them but fetch fresh data in background
-    if (settingsFetched && settings && Object.keys(settings).length > 0) {
-      // Background refresh
-      setTimeout(fetchFreshSettings, 100);
-    } else {
-      // Immediate fetch if no settings available
-      fetchFreshSettings();
-    }
-  }, []);
+    fetchFreshSettings();
+  }, []); // Empty dependency array - only run once, uses getState() for store access
 
   return {
     settings,

@@ -75,13 +75,16 @@ export default function AiInvestmentForm({
   const fetchWalletBalance = async () => {
     setIsLoadingBalance(true);
     try {
+      const walletType = isEco ? "ECO" : "SPOT";
       const { data, error } = await $fetch({
-        url: `/api/finance/wallet/spot/${baseCurrency}`,
+        url: `/api/finance/wallet/symbol?type=${walletType}&currency=${currency}&pair=${pair}`,
         silentSuccess: true,
       });
 
       if (!error && data) {
-        setAvailableBalance(Number.parseFloat(data.free) || 0);
+        // The API returns CURRENCY.balance for the base currency balance
+        const balance = data.CURRENCY?.balance ?? data.CURRENCY ?? 0;
+        setAvailableBalance(Number.parseFloat(balance) || 0);
       } else {
         console.error("Failed to fetch wallet balance:", error);
         setAvailableBalance(0);

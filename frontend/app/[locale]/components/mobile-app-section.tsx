@@ -642,7 +642,7 @@ export function MobileAppSection() {
                 <GlassCard>
                   <div className="p-3 px-5 flex items-center gap-2">
                     <Zap className="w-4 h-4 text-yellow-400" />
-                    <span className="text-sm font-medium">Instant Execution</span>
+                    <span className="text-sm font-medium">{t("instant_execution")}</span>
                   </div>
                 </GlassCard>
               </motion.div>

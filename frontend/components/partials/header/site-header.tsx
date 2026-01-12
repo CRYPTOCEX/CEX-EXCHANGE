@@ -64,6 +64,20 @@ export interface SiteHeaderProps {
 
   /** Additional class names */
   className?: string;
+
+  /**
+   * Translation namespace for menu items
+   * - For main admin/user menus: "menu" (default)
+   * - For extensions: e.g., "ext_p2p" or "ext_admin_p2p"
+   */
+  translationNamespace?: string;
+
+  /**
+   * Translation key prefix for navigation items within the namespace
+   * - For main menus: "" (default, keys like "admin.dashboard.title")
+   * - For extensions: "nav" (keys like "nav.home.title")
+   */
+  translationNavPrefix?: string;
 }
 
 export default function SiteHeader({
@@ -76,6 +90,8 @@ export default function SiteHeader({
   showBackButton,
   backButtonHref,
   className,
+  translationNamespace = "menu",
+  translationNavPrefix = "",
 }: SiteHeaderProps) {
   const t = useTranslations("common");
   const pathname = usePathname();
@@ -83,7 +99,7 @@ export default function SiteHeader({
   const { user, hasPermission } = useUserStore();
   const { settings } = useConfigStore();
   const { settings: hookSettings, extensions, settingsFetched } = useSettings();
-  const { getTitle } = useMenuTranslations();
+  const { getTitle, getDescription } = useMenuTranslations(translationNamespace, translationNavPrefix);
   const { mobileMenu, setMobileMenu } = useSidebar();
 
   // State

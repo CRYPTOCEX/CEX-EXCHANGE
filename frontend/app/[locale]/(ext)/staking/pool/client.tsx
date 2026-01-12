@@ -167,14 +167,14 @@ export default function StakingPoolsPage() {
       <HeroSection
         badge={{
           icon: <Sparkles className="h-3.5 w-3.5" />,
-          text: t("staking_pools"),
+          text: tCommon("staking_pools"),
           gradient: `from-violet-500/10 to-indigo-500/10`,
           iconColor: `text-violet-500`,
           textColor: `text-violet-600 dark:text-violet-400`,
         }}
         title={[
           { text: tCommon("discover") + " " },
-          { text: t("staking_pools"), gradient: `from-violet-600 via-indigo-500 to-violet-600 dark:from-violet-400 dark:via-indigo-400 dark:to-violet-400` },
+          { text: tCommon("staking_pools"), gradient: `from-violet-600 via-indigo-500 to-violet-600 dark:from-violet-400 dark:via-indigo-400 dark:to-violet-400` },
         ]}
         description={t("browse_and_select_passive_income")}
         paddingTop="pt-24"
@@ -270,7 +270,7 @@ export default function StakingPoolsPage() {
                   <SelectValue placeholder={tCommon("sort_by")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="apr_desc">{t("highest_apr")}</SelectItem>
+                  <SelectItem value="apr_desc">{tCommon("highest_apr")}</SelectItem>
                   <SelectItem value="apr_asc">{t("lowest_apr")}</SelectItem>
                   <SelectItem value="lock_asc">{t("shortest_lock_period")}</SelectItem>
                   <SelectItem value="lock_desc">{t("longest_lock_period")}</SelectItem>
@@ -383,7 +383,7 @@ export default function StakingPoolsPage() {
               )}
               {(aprRange[0] > 0 || aprRange[1] < 500) && (
                 <Badge variant="secondary" className="gap-1.5 pl-2.5 pr-1 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800">
-                  APR: {aprRange[0]}%-{aprRange[1]}%
+                  {tCommon("apr")} {aprRange[0]}%-{aprRange[1]}%
                   <button
                     onClick={() => setAprRange([0, 500])}
                     className="ml-1 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded p-0.5"

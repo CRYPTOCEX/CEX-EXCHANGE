@@ -130,9 +130,10 @@ export function WalletOverview() {
               outerRadius={80}
               paddingAngle={2}
               dataKey="value"
+              style={{}}
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
+                <Cell key={`cell-${entry.name}-${index}`} fill={entry.color} style={{}} />
               ))}
             </Pie>
             <Tooltip content={<CustomTooltip />} />

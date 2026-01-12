@@ -109,11 +109,9 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     
     // Prevent multiple simultaneous fetches
     if (isLoadingStats || hasFetchedStats) {
-      console.log("fetchStats skipped - already loading or fetched");
       return;
     }
-    
-    console.trace("fetchStats called from:");
+
     set({ isLoadingStats: true });
     
     try {

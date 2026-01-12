@@ -181,7 +181,7 @@ export default function LiveActivitySection({
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4 text-blue-500" />
                 <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Recent volume:{" "}
+                  {tExt("recent_volume")}{" "}
                   <span className="font-semibold text-blue-600 dark:text-blue-400">
                     ${totalVolume.toLocaleString()}
                   </span>

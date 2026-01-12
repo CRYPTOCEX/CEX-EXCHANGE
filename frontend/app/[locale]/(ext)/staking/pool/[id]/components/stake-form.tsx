@@ -47,7 +47,7 @@ export default function StakeForm({ pool }: StakeFormProps) {
     const fetchWalletBalance = async () => {
       setIsLoadingBalance(true);
       const { data, error } = await $fetch<{ balance: number }>({
-        url: `/api/finance/wallet/${pool.walletType}/${pool.token}`,
+        url: `/api/finance/wallet/${pool.walletType}/${pool.symbol}`,
         silentSuccess: true,
         silent: true,
       });
@@ -59,7 +59,7 @@ export default function StakeForm({ pool }: StakeFormProps) {
       setIsLoadingBalance(false);
     };
     fetchWalletBalance();
-  }, [pool.walletType, pool.token]);
+  }, [pool.walletType, pool.symbol]);
 
   const numericAmount = Number.parseFloat(amount || "0");
   const hasEnoughBalance = walletBalance !== null && numericAmount <= walletBalance;

@@ -151,7 +151,7 @@ export default function StakingPoolDetailClient() {
             ) : (
               <Button variant="outline" onClick={fetchData} size="sm">
                 <RefreshCw className="mr-2 h-4 w-4" />
-                {tExt("refresh")}
+                {tCommon("refresh")}
               </Button>
             )}
 

@@ -214,7 +214,7 @@ export default function StakingDashboard() {
                         </p>
                         <Link href="/staking/pool">
                           <Button className="rounded-xl">
-                            {t("start_staking")}
+                            {tCommon("start_staking")}
                             <ArrowRight className="ml-2 h-4 w-4" />
                           </Button>
                         </Link>

@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 
 export default function InvestorsList() {
   const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const columns = useColumns();
   return (
     <DataTable
@@ -26,7 +27,7 @@ export default function InvestorsList() {
       canView={true}
       viewLink="/admin/ico/transaction/[id]"
       isParanoid={true}
-      title="ICO Transactions"
+      title={tCommon("ico_transactions")}
       itemTitle="ICO Transaction"
       description={t("track_token_sale_contributions_and_transactions")}
       columns={columns}

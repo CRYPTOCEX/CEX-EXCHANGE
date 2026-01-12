@@ -20,6 +20,7 @@ import {
   Info
 } from "lucide-react";
 import { EditorProps } from "./types";
+import { useTranslations } from "next-intl";
 
 const AVAILABLE_EXTENSIONS = [
   { id: "spot", name: "Spot Trading", icon: CandlestickChart, description: "Exchange-based cryptocurrency trading", color: "from-blue-500 to-cyan-500" },
@@ -38,6 +39,7 @@ export const ExtensionSectionsEditor = React.memo(function ExtensionSectionsEdit
   getValue,
   updateVariable
 }: EditorProps) {
+  const t = useTranslations("dashboard_admin");
   const sectionConfig = getValue('extensionSections') || {};
 
   const getExtensionConfig = useCallback((extId: string) => {
@@ -98,18 +100,17 @@ export const ExtensionSectionsEditor = React.memo(function ExtensionSectionsEdit
       <div className="p-4 border rounded-lg">
         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
           <Layers className="w-5 h-5" />
-          Extension Sections
+          {t("extension_sections")}
         </h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Configure which extension sections appear on the landing page and their display order.
+          {t("configure_which_extension_sections_appear_on")}
         </p>
 
         <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 mb-4">
           <div className="flex items-start gap-2">
             <Info className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
             <p className="text-sm text-blue-400">
-              Extensions must be enabled in your platform settings to appear on the landing page.
-              This configuration only controls visibility for enabled extensions.
+              {t("extensions_must_be_enabled_in_your")}
             </p>
           </div>
         </div>
@@ -167,7 +168,7 @@ export const ExtensionSectionsEditor = React.memo(function ExtensionSectionsEdit
 
       {/* Preview */}
       <div className="p-4 border rounded-lg bg-gradient-to-br from-zinc-900/50 to-zinc-800/50">
-        <h4 className="text-sm font-medium mb-4 text-muted-foreground">Section Order Preview</h4>
+        <h4 className="text-sm font-medium mb-4 text-muted-foreground">{t("section_order_preview")}</h4>
 
         <div className="space-y-2">
           {sortedExtensions
@@ -188,7 +189,7 @@ export const ExtensionSectionsEditor = React.memo(function ExtensionSectionsEdit
             })}
           {sortedExtensions.filter(ext => getExtensionConfig(ext.id).enabled).length === 0 && (
             <div className="text-center py-4 text-muted-foreground text-sm">
-              No extension sections enabled
+              {t("no_extension_sections_enabled")}
             </div>
           )}
         </div>

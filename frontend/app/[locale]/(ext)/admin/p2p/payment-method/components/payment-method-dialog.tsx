@@ -187,14 +187,14 @@ export default function PaymentMethodDialog({
               <ImageUpload
                 onChange={(file) => setIconFile(file)}
                 value={iconFile}
-                title={t("payment_method_icon")}
+                title={tCommon("payment_method_icon")}
                 size="sm"
                 aspectRatio="square"
                 maxSize={1}
                 acceptedFormats={["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"]}
               />
               <p className="text-sm text-muted-foreground">
-                {t("upload_an_icon_for_this_payment")} ({t("upload_icon_requirements")})
+                {tCommon("upload_an_icon_for_this_payment")} ({t("upload_icon_requirements")})
               </p>
             </div>
           </div>
@@ -206,7 +206,7 @@ export default function PaymentMethodDialog({
               id="description"
               value={formData.description}
               onChange={(e) => handleChange("description", e.target.value)}
-              placeholder={t("brief_description_of_this_payment_method")}
+              placeholder={tCommon("brief_description_of_this_payment_method")}
               rows={2}
             />
           </div>
@@ -218,7 +218,7 @@ export default function PaymentMethodDialog({
               id="instructions"
               value={formData.instructions}
               onChange={(e) => handleChange("instructions", e.target.value)}
-              placeholder={t("detailed_instructions_for_users_on_how")}
+              placeholder={tCommon("detailed_instructions_for_users_on_how")}
               rows={3}
             />
           </div>
@@ -251,7 +251,7 @@ export default function PaymentMethodDialog({
               <div>
                 <Label>Available</Label>
                 <p className="text-sm text-muted-foreground">
-                  {t("users_can_select_this_payment_method")}
+                  {tCommon("users_can_select_this_payment_method")}
                 </p>
               </div>
               <Switch

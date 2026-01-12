@@ -86,7 +86,7 @@ export default function CreateApiKeyClient() {
             <CheckCircle2 className="h-12 w-12 text-emerald-500" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">API Keys Created Successfully</h1>
+            <h1 className="text-2xl font-bold">{t("api_keys_created_successfully")}</h1>
             <p className="text-muted-foreground mt-1">
               {t("save_your_keys_securely_the_secret")}
             </p>
@@ -245,7 +245,7 @@ export default function CreateApiKeyClient() {
           <div>
             <h1 className="text-2xl font-bold">{tCommon("create_api_key")}</h1>
             <p className="text-muted-foreground">
-              {tCommon("create_a_new")} {mode === "LIVE" ? "live" : "test"} API key pair for your integration
+              {tCommon("create_a_new")} {mode === "LIVE" ? "live" : "test"} {t("api_key_pair_for_your_integration")}
             </p>
           </div>
         </div>

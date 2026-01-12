@@ -485,8 +485,8 @@ export default function AdminSupportPage() {
           canEdit={false}
           canDelete={true}
           canView={true}
-          title="Support Tickets"
-          description="Manage customer support tickets and inquiries"
+          title={t("support_tickets")}
+          description={t("manage_customer_support_tickets_and_inquiries")}
           itemTitle="Support Ticket"
           columns={columns}
           analytics={analytics}

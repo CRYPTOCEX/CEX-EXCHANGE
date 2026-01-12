@@ -212,7 +212,7 @@ export default function TransactionDetailsPage() {
               {tCommon("transaction_details")}
             </h1>
             <p className="text-muted-foreground mt-1">
-              ID: {transaction.id} {tCommon("created")} {formatDate(transaction.createdAt)}
+              {tCommon("id")} {transaction.id} {tCommon("created")} {formatDate(transaction.createdAt)}
             </p>
           </div>
           <div className="flex items-center gap-2">

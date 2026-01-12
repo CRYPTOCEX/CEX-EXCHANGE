@@ -15,8 +15,6 @@ import {
   DollarSign,
   UserPlus,
   Percent,
-  ChevronUp,
-  ChevronDown,
   ArrowUpRight,
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
@@ -38,6 +36,7 @@ import {
 } from "recharts";
 import { useTranslations } from "next-intl";
 import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
+import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 // Types for dashboard data
 interface DashboardData {
@@ -282,37 +281,41 @@ export default function AdminDashboard() {
         </div>
         {/* Key Metrics */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <MetricCard
-            title={t("total_affiliates")}
+          <StatsCard
+            label={t("total_affiliates")}
             value={metrics.totalAffiliates.value.toString()}
-            change={`${metrics.totalAffiliates.change}%`}
-            trend={metrics.totalAffiliates.trend}
+            icon={Users}
+            index={0}
+            change={`${metrics.totalAffiliates.trend === "up" ? "+" : "-"}${metrics.totalAffiliates.change}%`}
             description={t("from_last_month")}
-            icon={<Users className="h-4 w-4 text-muted-foreground" />}
+            {...statsCardColors.purple}
           />
-          <MetricCard
-            title={tCommon("total_earnings")}
+          <StatsCard
+            label={tCommon("total_earnings")}
             value={`$${Number(metrics.totalEarnings.value).toLocaleString()}`}
-            change={`${metrics.totalEarnings.change}%`}
-            trend={metrics.totalEarnings.trend}
+            icon={DollarSign}
+            index={1}
+            change={`${metrics.totalEarnings.trend === "up" ? "+" : "-"}${metrics.totalEarnings.change}%`}
             description={t("from_last_month")}
-            icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+            {...statsCardColors.green}
           />
-          <MetricCard
-            title={t("total_referrals")}
+          <StatsCard
+            label={t("total_referrals")}
             value={metrics.totalReferrals.value.toString()}
-            change={`${metrics.totalReferrals.change}%`}
-            trend={metrics.totalReferrals.trend}
+            icon={UserPlus}
+            index={2}
+            change={`${metrics.totalReferrals.trend === "up" ? "+" : "-"}${metrics.totalReferrals.change}%`}
             description={t("from_last_month")}
-            icon={<UserPlus className="h-4 w-4 text-muted-foreground" />}
+            {...statsCardColors.blue}
           />
-          <MetricCard
-            title={t("conversion_rate")}
+          <StatsCard
+            label={t("conversion_rate")}
             value={`${metrics.conversionRate.value}%`}
-            change={`${metrics.conversionRate.change}%`}
-            trend={metrics.conversionRate.trend}
+            icon={Percent}
+            index={3}
+            change={`${metrics.conversionRate.trend === "up" ? "+" : "-"}${metrics.conversionRate.change}%`}
             description={t("from_last_month")}
-            icon={<Percent className="h-4 w-4 text-muted-foreground" />}
+            {...statsCardColors.amber}
           />
         </div>
         {/* Main Content */}
@@ -416,6 +419,7 @@ export default function AdminDashboard() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
+                      style={{}}
                       data={charts.affiliateStatus}
                       cx="50%"
                       cy="50%"
@@ -432,6 +436,7 @@ export default function AdminDashboard() {
                     >
                       {charts.affiliateStatus.map((entry, index) => (
                         <Cell
+                          style={{}}
                           key={`cell-${index}`}
                           fill={
                             STATUS_COLORS[
@@ -555,44 +560,5 @@ export default function AdminDashboard() {
         </Card>
       </div>
     </div>
-  );
-}
-// Helper component for metric cards
-function MetricCard({
-  title,
-  value,
-  change,
-  trend,
-  description,
-  icon,
-}: {
-  title: string;
-  value: string;
-  change: string;
-  trend: "up" | "down";
-  description: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        {icon}
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <div className="flex items-center text-xs">
-          <span className={trend === "up" ? "text-green-500" : "text-red-500"}>
-            {trend === "up" ? (
-              <ChevronUp className="h-3 w-3 inline mr-1" />
-            ) : (
-              <ChevronDown className="h-3 w-3 inline mr-1" />
-            )}
-            {change}
-          </span>
-          <span className="text-muted-foreground ml-1">{description}</span>
-        </div>
-      </CardContent>
-    </Card>
   );
 }

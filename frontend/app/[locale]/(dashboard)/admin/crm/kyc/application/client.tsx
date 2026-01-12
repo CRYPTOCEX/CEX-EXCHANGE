@@ -300,7 +300,7 @@ export default function ApplicationsClient() {
       <div className="shrink-0 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            KYC Applications
+            {t("kyc_applications")}
           </h1>
           <p className="text-muted-foreground">
             {t("manage_and_review_verification_applications")}
@@ -310,7 +310,7 @@ export default function ApplicationsClient() {
           className="md:w-auto"
           onClick={() => router.push("/admin/crm/kyc/level")}
         >
-          <Shield className="mr-2 h-4 w-4" /> KYC Levels
+          <Shield className="mr-2 h-4 w-4" /> {t("kyc_levels")}
         </Button>
       </div>
 

@@ -1,3 +1,5 @@
+"use client";
+
 import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";

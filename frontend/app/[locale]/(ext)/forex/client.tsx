@@ -133,14 +133,7 @@ export default function ForexClient() {
     };
   }, []);
 
-  // Check KYC
-  const kycEnabled =
-    settings?.kycStatus === true || settings?.kycStatus === "true";
-  const hasViewForex = hasKyc() && canAccessFeature("view_forex");
-
-  if (kycEnabled && !hasViewForex) {
-    return <KycRequiredNotice feature="view_forex" />;
-  }
+  // Note: KYC is checked when user tries to invest, not for viewing the landing page
 
   // Get trending plans
   const trendingPlans = plans.filter((plan) => plan.trending);
@@ -480,7 +473,7 @@ export default function ForexClient() {
         ]}
         theme={{ primary: "emerald", secondary: "teal" }}
         variant="default"
-        title="Why Trust Us"
+        title={tExt("why_trust_us")}
       />
 
       {/* Top Plan Spotlight Section - NEW */}
@@ -534,7 +527,7 @@ export default function ForexClient() {
       <ProcessSection
         header={{
           tag: {
-            text: tExt("getting_started"),
+            text: tCommon("getting_started"),
             icon: Sparkles,
           },
           title: `${tExt("simple_4_step")} ${t("investment_process")}`,

@@ -18,6 +18,7 @@ import { useTranslations } from "next-intl";
 export default function AffiliateNetworkClient() {
   const t = useTranslations("ext_affiliate");
   const tExt = useTranslations("ext");
+  const tCommon = useTranslations("common");
   const { networkData, loading, error, mlmSystem, fetchNetworkData } =
     useNetworkStore();
   const [activeTab, setActiveTab] = useState("tree");
@@ -70,7 +71,7 @@ export default function AffiliateNetworkClient() {
                   {networkData.user.firstName} {networkData.user.lastName}
                 </p>
                 <p className="text-xs md:text-sm text-muted-foreground">
-                  ID: {networkData.user.id}
+                  {tCommon("id")} {networkData.user.id}
                 </p>
               </div>
             </div>
@@ -168,7 +169,7 @@ export default function AffiliateNetworkClient() {
             <CardContent className="overflow-x-auto">
               <div className="space-y-4 min-w-[300px]">
                 <div>
-                  <h3 className="font-medium mb-2">MLM System Type</h3>
+                  <h3 className="font-medium mb-2">{tExt("mlm_system_type")}</h3>
                   <Badge className="text-sm">{mlmSystem}</Badge>
                 </div>
 

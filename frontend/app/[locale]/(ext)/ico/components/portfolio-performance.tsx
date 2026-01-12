@@ -222,7 +222,7 @@ export function PortfolioPerformance() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">
-                {t("sharpe_ratio")}
+                {tCommon("sharpe_ratio")}
               </p>
               <p className="font-medium">{metrics.sharpeRatio.toFixed(2)}</p>
             </div>

@@ -1,0 +1,1 @@
+"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.getEndDate=void 0;const getEndDate=(e,t,s=new Date)=>{switch(t){case"HOUR":s.setHours(s.getHours()+e);break;case"DAY":s.setDate(s.getDate()+e);break;case"WEEK":s.setDate(s.getDate()+7*e);break;case"MONTH":s.setMonth(s.getMonth()+e)}return s};exports.getEndDate=getEndDate;

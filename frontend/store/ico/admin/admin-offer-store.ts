@@ -67,6 +67,28 @@ interface AdminOfferStoreState {
   unflagOffering: (id: string) => Promise<void>;
   deleteOffering: (id: string) => Promise<void>;
   emergencyCancelOffering: (id: string, reason: string) => Promise<any>;
+  addPhase: (
+    id: string,
+    phase: { name: string; tokenPrice: number; allocation: number; duration: number }
+  ) => Promise<any>;
+  deletePhase: (id: string, phaseId: string) => Promise<any>;
+  updateOffering: (
+    id: string,
+    updates: {
+      name?: string;
+      symbol?: string;
+      icon?: string;
+      website?: string;
+      targetAmount?: number;
+      tokenPrice?: number;
+      startDate?: string;
+      endDate?: string;
+      description?: string;
+      blockchain?: string;
+      totalSupply?: number;
+      featured?: boolean;
+    }
+  ) => Promise<any>;
 }
 
 export interface IcoOfferResponse {
@@ -98,14 +120,19 @@ export const useAdminOfferStore = create<AdminOfferStoreState>((set) => ({
     if (data && !error) {
       const { offering, metrics, platformMetrics, fundingData, timeline } =
         data;
-      set({
+      // Only update fundingData if it's included in the response
+      // Otherwise keep existing data to avoid chart flickering/loading
+      const updateData: any = {
         offering,
         offerMetrics: metrics,
         platformMetrics,
-        fundingData: fundingData || null,
         timeline: timeline,
         isLoadingOffer: false,
-      });
+      };
+      if (fundingData !== undefined) {
+        updateData.fundingData = fundingData;
+      }
+      set(updateData);
     } else {
       set({
         errorOffer: error || "Failed to fetch offering",
@@ -249,10 +276,86 @@ export const useAdminOfferStore = create<AdminOfferStoreState>((set) => ({
       body: { reason },
     });
     if (data && !error) {
-      set({ offering: data.offering || data, isLoadingOffer: false });
+      // Refetch the offering to get full updated offering data
+      // The cancel-refund response only contains summary data, not the full offering
+      const store = useAdminOfferStore.getState();
+      await store.fetchCurrentOffer(id);
       return data;
     } else {
       const errMsg = error || "Failed to cancel offering and refund investors";
+      set({ errorOffer: errMsg, isLoadingOffer: false });
+      throw new Error(errMsg);
+    }
+  },
+
+  addPhase: async (
+    id: string,
+    phase: { name: string; tokenPrice: number; allocation: number; duration: number }
+  ) => {
+    set({ isLoadingOffer: true, errorOffer: null });
+    const { data, error } = await $fetch({
+      url: `/api/admin/ico/offer/${id}/phase`,
+      method: "POST",
+      body: phase,
+    });
+    if (data && !error) {
+      // Refetch the offering to get updated phases and end date
+      const store = useAdminOfferStore.getState();
+      await store.fetchCurrentOffer(id);
+      return data;
+    } else {
+      const errMsg = error || "Failed to add phase";
+      set({ errorOffer: errMsg, isLoadingOffer: false });
+      throw new Error(errMsg);
+    }
+  },
+
+  deletePhase: async (id: string, phaseId: string) => {
+    set({ isLoadingOffer: true, errorOffer: null });
+    const { data, error } = await $fetch({
+      url: `/api/admin/ico/offer/${id}/phase/${phaseId}`,
+      method: "DELETE",
+    });
+    if (data && !error) {
+      // Refetch the offering to get updated phases and end date
+      const store = useAdminOfferStore.getState();
+      await store.fetchCurrentOffer(id);
+      return data;
+    } else {
+      const errMsg = error || "Failed to delete phase";
+      set({ errorOffer: errMsg, isLoadingOffer: false });
+      throw new Error(errMsg);
+    }
+  },
+
+  updateOffering: async (
+    id: string,
+    updates: {
+      name?: string;
+      symbol?: string;
+      icon?: string;
+      website?: string;
+      targetAmount?: number;
+      tokenPrice?: number;
+      startDate?: string;
+      endDate?: string;
+      description?: string;
+      blockchain?: string;
+      totalSupply?: number;
+      featured?: boolean;
+    }
+  ) => {
+    set({ isLoadingOffer: true, errorOffer: null });
+    const { data, error } = await $fetch({
+      url: `/api/admin/ico/offer/${id}`,
+      method: "PUT",
+      body: updates,
+    });
+    if (data && !error) {
+      set({ offering: data.offering || data, isLoadingOffer: false });
+      return data;
+    } else {
+      const errMsg = error || "Failed to update offering";
       set({ errorOffer: errMsg, isLoadingOffer: false });
       throw new Error(errMsg);
     }

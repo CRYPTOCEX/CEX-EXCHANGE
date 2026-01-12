@@ -1,11 +1,10 @@
 "use client";
 
-import { useRef, useEffect, useState, type RefObject } from "react";
+import React, { useRef, useEffect, useState, type RefObject, memo } from "react";
 import { createPortal } from "react-dom";
-import { Clock, Minus, Plus, Timer, Check } from "lucide-react";
+import { Clock, Minus, Plus, ChevronDown, Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-// Update the ref type to accept HTMLDivElement | null
 interface ExpirySelectorProps {
   expiryMinutes: number;
   expiryTime: string;
@@ -16,10 +15,6 @@ interface ExpirySelectorProps {
   showExpiryDropdown: boolean;
   setShowExpiryDropdown: (show: boolean) => void;
   expiryButtonRef: RefObject<HTMLDivElement | null>;
-  expiryPopoverPosition?: {
-    top: number;
-    left: number;
-  };
   presetExpiryTimes: Array<{
     minutes: number;
     display: string;
@@ -29,8 +24,14 @@ interface ExpirySelectorProps {
   }>;
   isMobile?: boolean;
   darkMode?: boolean;
+  // When barrier/strike level is selected, hide profit badge or show different value
+  profitOverride?: number | null;
+  hideProfitBadge?: boolean;
 }
-export default function ExpirySelector({
+
+// PERFORMANCE: Wrapped in React.memo to prevent unnecessary re-renders
+// This component only needs to re-render when its props actually change
+const ExpirySelector = memo(function ExpirySelector({
   expiryMinutes,
   expiryTime,
   increaseExpiry,
@@ -43,19 +44,23 @@ export default function ExpirySelector({
   presetExpiryTimes,
   isMobile = false,
   darkMode = true,
+  profitOverride,
+  hideProfitBadge = false,
 }: ExpirySelectorProps) {
   const t = useTranslations("binary_components");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Mount check for portal rendering
   useEffect(() => {
     setIsMounted(true);
     return () => setIsMounted(false);
   }, []);
 
-  // Close dropdown when clicking outside
+  // FIXED: Only attach event listener when dropdown is open
+  // This prevents listener accumulation and unnecessary event handling when closed
   useEffect(() => {
+    if (!showExpiryDropdown) return; // Don't attach listener if dropdown is closed
+
     function handleClickOutside(event: MouseEvent) {
       if (
         dropdownRef.current &&
@@ -70,173 +75,172 @@ export default function ExpirySelector({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [setShowExpiryDropdown, expiryButtonRef]);
+  }, [showExpiryDropdown, setShowExpiryDropdown, expiryButtonRef]);
+
+  const currentIndex = presetExpiryTimes.findIndex((item) => item.minutes === expiryMinutes);
+  const canDecrease = presetExpiryTimes.length > 0 && currentIndex > 0;
+  const canIncrease = presetExpiryTimes.length > 0 && currentIndex < presetExpiryTimes.length - 1;
+  const baseDurationProfit = presetExpiryTimes.find((item) => item.minutes === expiryMinutes)?.profit || 85;
+  // Use override profit when barrier/strike level is selected, otherwise use duration profit
+  const currentProfit = profitOverride != null ? profitOverride : baseDurationProfit;
+
   return (
     <div className="relative flex-1">
       <div
         ref={expiryButtonRef}
-        className={`${darkMode ? "bg-zinc-900" : "bg-gray-100"} p-2 rounded-md cursor-pointer h-full ${darkMode ? "border border-[#2A2E39]" : "border border-gray-200"}`}
+        className={`relative overflow-hidden rounded-lg cursor-pointer transition-all duration-200 ${
+          darkMode
+            ? "bg-zinc-900/80 border border-zinc-800/60 hover:border-zinc-700"
+            : "bg-gray-50 border border-gray-200 hover:border-gray-300"
+        } ${showExpiryDropdown ? (darkMode ? "border-blue-500/40" : "border-blue-400") : ""}`}
         onClick={() => setShowExpiryDropdown(!showExpiryDropdown)}
       >
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <span
-              className={`${darkMode ? "text-gray-400" : "text-gray-500"} text-xs`}
-            >
+        <div className="p-2">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-0.5">
+            <span className={`text-[10px] font-medium uppercase tracking-wide ${
+              darkMode ? "text-zinc-500" : "text-gray-500"
+            }`}>
               Expiry
             </span>
+            <div className="flex items-center gap-0.5">
+              <button
+                className={`p-1 rounded transition-all cursor-pointer ${
+                  darkMode
+                    ? "hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300"
+                    : "hover:bg-gray-200 text-gray-400 hover:text-gray-600"
+                } ${!canDecrease ? "opacity-30 cursor-not-allowed!" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (canDecrease) decreaseExpiry();
+                }}
+                disabled={!canDecrease}
+              >
+                <Minus size={10} />
+              </button>
+              <button
+                className={`p-1 rounded transition-all cursor-pointer ${
+                  darkMode
+                    ? "hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300"
+                    : "hover:bg-gray-200 text-gray-400 hover:text-gray-600"
+                } ${!canIncrease ? "opacity-30 cursor-not-allowed!" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (canIncrease) increaseExpiry();
+                }}
+                disabled={!canIncrease}
+              >
+                <Plus size={10} />
+              </button>
+            </div>
           </div>
-          <div className="flex space-x-1">
-            <button
-              className={`${darkMode ? "bg-[#2A2E39]" : "bg-gray-200"} rounded w-5 h-5 flex items-center justify-center ${presetExpiryTimes.length === 0 || presetExpiryTimes.findIndex((item) => item.minutes === expiryMinutes) <= 0 ? "opacity-50 cursor-not-allowed" : darkMode ? "hover:bg-[#3A3E4A]" : "hover:bg-gray-300"}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (
-                  presetExpiryTimes.length > 0 &&
-                  presetExpiryTimes.findIndex(
-                    (item) => item.minutes === expiryMinutes
-                  ) > 0
-                ) {
-                  decreaseExpiry();
-                }
-              }}
-              disabled={
-                presetExpiryTimes.length === 0 ||
-                presetExpiryTimes.findIndex(
-                  (item) => item.minutes === expiryMinutes
-                ) <= 0
-              }
-            >
-              <Minus size={14} />
-            </button>
-            <button
-              className={`${darkMode ? "bg-[#2A2E39]" : "bg-gray-200"} rounded w-5 h-5 flex items-center justify-center ${presetExpiryTimes.length === 0 || presetExpiryTimes.findIndex((item) => item.minutes === expiryMinutes) >= presetExpiryTimes.length - 1 ? "opacity-50 cursor-not-allowed" : darkMode ? "hover:bg-[#3A3E4A]" : "hover:bg-gray-300"}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (
-                  presetExpiryTimes.length > 0 &&
-                  presetExpiryTimes.findIndex(
-                    (item) => item.minutes === expiryMinutes
-                  ) <
-                    presetExpiryTimes.length - 1
-                ) {
-                  increaseExpiry();
-                }
-              }}
-              disabled={
-                presetExpiryTimes.length === 0 ||
-                presetExpiryTimes.findIndex(
-                  (item) => item.minutes === expiryMinutes
-                ) >=
-                  presetExpiryTimes.length - 1
-              }
-            >
-              <Plus size={14} />
-            </button>
+
+          {/* Time */}
+          <div className="flex items-baseline gap-1">
+            <span className={`text-lg font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>
+              {expiryTime}
+            </span>
+            <ChevronDown size={12} className={`ml-auto transition-transform ${
+              darkMode ? "text-zinc-600" : "text-gray-400"
+            } ${showExpiryDropdown ? "rotate-180" : ""}`} />
           </div>
-        </div>
-        <div className="flex items-center mt-1">
-          <Clock
-            size={16}
-            className={`${darkMode ? "text-gray-400" : "text-gray-500"} mr-1`}
-          />
-          <span
-            className={`${darkMode ? "text-white" : "text-gray-800"} text-base font-bold min-w-[90px]`}
-          >
-            {expiryTime}
-          </span>
-        </div>
-        <div
-          className={`text-[12px] ${darkMode ? "text-gray-400" : "text-gray-500"} mt-1`}
-        >
-          {expiryMinutes} {expiryMinutes === 1 ? "minute" : "minutes"}
+
+          {/* Duration + profit */}
+          <div className="flex items-center justify-between mt-1">
+            <span className={`text-[10px] ${darkMode ? "text-zinc-600" : "text-gray-400"}`}>
+              <span className="text-blue-500 font-medium">{expiryMinutes}</span> min
+            </span>
+            {!hideProfitBadge && (
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                darkMode ? "bg-emerald-500/10 text-emerald-400" : "bg-emerald-50 text-emerald-600"
+              }`}>
+                +{currentProfit}%
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Portal-based dropdown for better mobile positioning */}
+      {/* Dropdown */}
       {showExpiryDropdown &&
         isMounted &&
         createPortal(
           <div
             ref={dropdownRef}
-            className={`fixed w-[260px] ${darkMode ? "bg-black border border-zinc-800" : "bg-white border border-gray-200"} rounded-md shadow-lg z-[9999] animate-in fade-in zoom-in-95 duration-100`}
+            className={`fixed w-[240px] rounded-xl shadow-2xl overflow-hidden z-[9999] animate-in fade-in slide-in-from-top-1 duration-150 ${
+              darkMode
+                ? "bg-zinc-900/98 backdrop-blur-xl border border-zinc-800"
+                : "bg-white/98 backdrop-blur-xl border border-gray-200"
+            }`}
             style={{
               top: expiryButtonRef.current
-                ? expiryButtonRef.current.getBoundingClientRect().bottom + 8
+                ? expiryButtonRef.current.getBoundingClientRect().bottom + 4
                 : 0,
-              ...(isMobile
-                ? {
-                    left: expiryButtonRef.current
-                      ? expiryButtonRef.current.getBoundingClientRect().left
-                      : 0,
-                    maxWidth: "calc(100vw - 20px)",
-                    width: "min(260px, calc(100vw - 20px))",
-                  }
-                : {
-                    right: expiryButtonRef.current
-                      ? window.innerWidth -
-                        expiryButtonRef.current.getBoundingClientRect().right +
-                        10
-                      : 0,
-                  }),
+              left: expiryButtonRef.current
+                ? Math.min(
+                    expiryButtonRef.current.getBoundingClientRect().left,
+                    window.innerWidth - 240 - 8 // Ensure dropdown doesn't overflow right
+                  )
+                : 0,
+              maxWidth: isMobile ? "calc(100vw - 16px)" : "240px",
             }}
           >
-            <div className="p-2">
-              <div
-                className={`text-xs font-medium ${darkMode ? "text-white" : "text-gray-800"} mb-2`}
-              >
-                {t("expiry_time")}
-              </div>
-              <div className="space-y-1">
-                {presetExpiryTimes.map((item) => {
-                  return (
-                    <button
-                      key={item.minutes}
-                      className={`w-full flex justify-between items-center p-2 rounded transition-colors ${expiryMinutes === item.minutes ? "bg-[#00C896]" : darkMode ? "bg-[#2A2E39] hover:bg-zinc-800" : "bg-gray-100 hover:bg-gray-200"}`}
-                      onClick={() => {
-                        setExpiryMinutes(item.minutes);
-                        setExpiryTime(item.display);
-                        setShowExpiryDropdown(false);
-                      }}
-                    >
-                      <div className="flex items-center">
-                        {expiryMinutes === item.minutes && (
-                          <Check size={14} className="mr-2 text-white" />
-                        )}
-                        <div className="flex flex-col items-start">
-                          <span
-                            className={`text-[14px] font-bold ${expiryMinutes === item.minutes ? "text-white" : darkMode ? "text-white" : "text-gray-800"}`}
-                          >
-                            {item.display}
-                          </span>
-                          <span
-                            className={`text-[11px] ${expiryMinutes === item.minutes ? "text-white" : darkMode ? "text-gray-400" : "text-gray-500"}`}
-                          >
-                            {item.minutes} min
-                          </span>
+            <div className="p-1.5 max-h-[220px] overflow-y-auto">
+              {presetExpiryTimes.map((item) => {
+                const isSelected = expiryMinutes === item.minutes;
+                return (
+                  <button
+                    key={item.minutes}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg transition-all cursor-pointer ${
+                      isSelected
+                        ? darkMode
+                          ? "bg-blue-500/15 text-blue-400"
+                          : "bg-blue-50 text-blue-600"
+                        : darkMode
+                          ? "hover:bg-zinc-800 text-zinc-300"
+                          : "hover:bg-gray-100 text-gray-700"
+                    }`}
+                    onClick={() => {
+                      setExpiryMinutes(item.minutes);
+                      setExpiryTime(item.display);
+                      setShowExpiryDropdown(false);
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                        isSelected
+                          ? "bg-blue-500"
+                          : darkMode ? "bg-zinc-700" : "bg-gray-200"
+                      }`}>
+                        {isSelected && <Check size={10} className="text-white" />}
+                      </div>
+                      <div className="text-left">
+                        <div className="text-xs font-medium">{item.display}</div>
+                        <div className={`text-[9px] ${darkMode ? "text-zinc-500" : "text-gray-400"}`}>
+                          {item.minutes}m · {item.remaining}
                         </div>
                       </div>
-                      <div className="flex flex-col items-end">
-                        <div
-                          className={`${expiryMinutes === item.minutes ? "bg-white text-[#00C896]" : "bg-[#00C896] text-white"} px-2 py-0.5 rounded font-bold text-[12px]`}
-                        >
-                          {item.profit}%
-                        </div>
-                        <div
-                          className={`flex items-center text-[11px] mt-1 ${expiryMinutes === item.minutes ? "text-white" : darkMode ? "text-gray-400" : "text-gray-500"}`}
-                        >
-                          <Timer size={10} className="mr-0.5" />
-                          <span>{item.remaining}</span>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+                    </div>
+                    {!hideProfitBadge && (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                        isSelected
+                          ? "bg-emerald-500 text-white"
+                          : darkMode
+                            ? "bg-emerald-500/10 text-emerald-400"
+                            : "bg-emerald-50 text-emerald-600"
+                      }`}>
+                        +{profitOverride != null ? profitOverride : item.profit}%
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>,
           document.body
         )}
     </div>
   );
-}
+});
+
+export default ExpirySelector;

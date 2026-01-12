@@ -289,7 +289,7 @@ const StepChainAndInfo: React.FC<StepChainAndInfoProps> = ({
                   </a>
                 ) : (
                   <Button onClick={fetchWalletInfo} color="default" size="sm">
-                    {tExt("refresh")}
+                    {tCommon("refresh")}
                   </Button>
                 )}
               </div>

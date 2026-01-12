@@ -4,6 +4,7 @@ import React, { Component, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, RefreshCw } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Props {
   children: ReactNode;
@@ -65,10 +66,10 @@ export class P2PErrorBoundary extends Component<Props, State> {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-6 w-6 text-destructive" />
-                <CardTitle>Something went wrong</CardTitle>
+                <CardTitle>{t("something_went_wrong")}</CardTitle>
               </div>
               <CardDescription>
-                We encountered an error while loading this page.
+                {t("we_encountered_an_error_while_loading_this_page")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -80,7 +81,7 @@ export class P2PErrorBoundary extends Component<Props, State> {
                   {this.state.errorInfo && (
                     <details className="mt-2">
                       <summary className="cursor-pointer text-sm text-muted-foreground">
-                        Component Stack
+                        {t("component_stack")}
                       </summary>
                       <pre className="mt-2 text-xs overflow-auto">
                         {this.state.errorInfo.componentStack}
@@ -93,13 +94,13 @@ export class P2PErrorBoundary extends Component<Props, State> {
               <div className="flex gap-2">
                 <Button onClick={this.handleReset} variant="default">
                   <RefreshCw className="mr-2 h-4 w-4" />
-                  Try Again
+                  {tCommon("try_again")}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => window.location.href = "/p2p"}
                 >
-                  Go to P2P Home
+                  {t("go_to_p2p_home")}
                 </Button>
               </div>
             </CardContent>

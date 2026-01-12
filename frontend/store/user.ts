@@ -71,13 +71,14 @@ interface UserState {
   ) => Promise<boolean>;
   disconnectWallet: (address: string) => Promise<boolean>;
   // Authentication functions
-  login: (email: string, password: string) => Promise<boolean | { requiresTwoFactor: true; id: string; twoFactor: { enabled: true; type: string }; message: string }>;
+  login: (email: string, password: string, powSolution?: { challenge: string; nonce: number; hash: string } | null) => Promise<boolean | { requiresTwoFactor: true; id: string; twoFactor: { enabled: true; type: string }; message: string }>;
   register: (userData: {
     firstName: string;
     lastName: string;
     email: string;
     password: string;
     ref?: string;
+    powSolution?: { challenge: string; nonce: number; hash: string };
   }) => Promise<{ success: boolean; data: any; userLoggedIn?: boolean }>;
 
   // New password reset functions
@@ -490,13 +491,13 @@ export const useUserStore = create<UserState>((set, get) => {
     },
 
     // Authentication functions
-    login: async (email: string, password: string) => {
+    login: async (email: string, password: string, powSolution?: { challenge: string; nonce: number; hash: string } | null) => {
       set({ isLoading: true, error: null });
       try {
         const { data, error } = await $fetch({
           url: "/api/auth/login",
           method: "POST",
-          body: { email, password },
+          body: { email, password, powSolution: powSolution || undefined },
           silentSuccess: true,
         });
 

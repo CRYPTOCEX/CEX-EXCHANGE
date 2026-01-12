@@ -22,6 +22,7 @@ export default function P2PTradingSettingsSection({
   onUpdate,
 }: P2PTradingSettingsSectionProps) {
   const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const safeSettings = {
     DefaultEscrowTime: settings.DefaultEscrowTime ?? 30,
     DefaultPaymentWindow: settings.DefaultPaymentWindow ?? 15,
@@ -98,7 +99,7 @@ export default function P2PTradingSettingsSection({
           </div>
           <div className="space-y-2">
             <Label htmlFor="maximumTradeAmount">
-              {t("maximum_trade_amount")} ($)
+              {tCommon("maximum_trade_amount")} ($)
             </Label>
             <Input
               id="maximumTradeAmount"

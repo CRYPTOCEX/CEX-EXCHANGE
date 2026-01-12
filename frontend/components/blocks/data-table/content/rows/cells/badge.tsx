@@ -107,7 +107,7 @@ export function BadgeCell({
     withDot: true,
   },
 }: BadgeCellProps) {
-  const { withDot = true, labels } = config;
+  const { withDot = true, labels, options } = config;
   let variantKey: BadgeVariant;
   let displayValue: string;
 
@@ -119,6 +119,10 @@ export function BadgeCell({
       // Default labels for boolean values
       displayValue = value ? "Active" : "Inactive";
     }
+  } else if (options && Array.isArray(options)) {
+    // Look up label from options array for select-type columns
+    const matchedOption = options.find((opt) => opt.value === value);
+    displayValue = matchedOption?.label || String(value);
   } else {
     // For non-boolean values, convert to string
     displayValue = String(value);

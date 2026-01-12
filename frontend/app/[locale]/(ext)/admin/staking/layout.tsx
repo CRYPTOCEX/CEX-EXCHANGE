@@ -5,6 +5,7 @@ import SiteHeader from "@/components/partials/header/site-header";
 import Footer from "@/components/partials/footer";
 import { menu, colorSchema } from "./menu";
 import { usePathname } from "@/i18n/routing";
+import { LicenseGate } from "@/components/license/LicenseGate";
 
 export default function AdminStakingLayout({
   children,
@@ -20,10 +21,16 @@ export default function AdminStakingLayout({
   }
 
   return (
-    <>
-      <SiteHeader menu={menu} colorSchema={colorSchema} userPath="/staking" />
+    <LicenseGate extensionName="staking">
+      <SiteHeader
+        menu={menu}
+        colorSchema={colorSchema}
+        userPath="/staking"
+        translationNamespace="ext_admin_staking"
+        translationNavPrefix="nav"
+      />
       <main className="flex-1">{children}</main>
       <Footer />
-    </>
+    </LicenseGate>
   );
 }

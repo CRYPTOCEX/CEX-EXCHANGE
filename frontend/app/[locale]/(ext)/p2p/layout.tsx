@@ -16,6 +16,8 @@ export default function P2PLayout({ children }: { children: ReactNode }) {
         menu={menu}
         colorSchema={colorSchema}
         adminPath={adminPath}
+        translationNamespace="ext_p2p"
+        translationNavPrefix="nav"
       />
       <ExtensionLayoutWrapper landingPath="/p2p">
         {children}

@@ -263,7 +263,7 @@ export function ScrollEffects({ settings, onSettingChange }: ComponentProps) {
 
           {/* Advanced Options */}
           <div className="space-y-2 border-t pt-2">
-            <Label className="text-xs">{t("advanced_options")}</Label>
+            <Label className="text-xs">{tCommon("advanced_options")}</Label>
 
             <div className="flex items-center justify-between">
               <div>

@@ -23,6 +23,7 @@ export default function MegaMenuPanel({
   isLast = false,
 }: MegaMenuPanelProps) {
   const t = useTranslations("common");
+  const tCommon = useTranslations("common");
   const tComponents = useTranslations("components");
   const { getTitle, getDescription } = useMenuTranslations();
 
@@ -145,7 +146,7 @@ export default function MegaMenuPanel({
               {hoveredExtension?.features && hoveredExtension.features.length > 0 && (
                 <div className="flex-1">
                   <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    {tComponents("key_features")}
+                    {tCommon("key_features")}
                   </h4>
                   <ul className="grid grid-cols-1 gap-1.5">
                     {hoveredExtension.features.map((feature: string, fIndex: number) => (

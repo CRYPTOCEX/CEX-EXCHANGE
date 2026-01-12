@@ -1,31 +1,40 @@
 import { useCallback } from "react";
 import { useConfigStore } from "@/store/config";
+import { useShallow } from "zustand/react/shallow";
 import { DEFAULT_SETTINGS } from "@/config/settings";
 
 /**
  * Hook to access settings from the global config store
  * Note: This hook only reads from the store. Settings are fetched by useSettingsSync in providers.
  * Do not use this hook to trigger fetches - it will cause duplicate requests.
+ *
+ * IMPORTANT: Uses shallow comparison to prevent unnecessary re-renders.
+ * Only re-renders when the actual settings values change, not when other
+ * parts of the config store change.
  */
 export function useSettings() {
-  const {
-    settings,
-    extensions,
-    isLoading,
-    settingsFetched,
-    settingsError,
-    setSettings,
-    setExtensions,
-    setSettingsFetched,
-    setSettingsError,
-    resetSettings,
-  } = useConfigStore();
+  // Use shallow selector to only subscribe to settings-related state
+  // This prevents re-renders when unrelated store state changes
+  const { settings, extensions, isLoading, settingsFetched, settingsError } =
+    useConfigStore(
+      useShallow((state) => ({
+        settings: state.settings,
+        extensions: state.extensions,
+        isLoading: state.isLoading,
+        settingsFetched: state.settingsFetched,
+        settingsError: state.settingsError,
+      }))
+    );
 
   /**
-   * Fetch settings from the API
-   * Can be used to manually trigger a settings refresh
+   * Reset and retry fetching settings
+   * Clears the current state and attempts a fresh fetch from the API
+   * Note: This should only be used for manual retry scenarios (e.g., error recovery)
    */
-  const fetchSettings = useCallback(async () => {
+  const retryFetch = useCallback(async () => {
+    const store = useConfigStore.getState();
+    store.resetSettings();
+
     try {
       const response = await fetch("/api/settings", {
         method: "GET",
@@ -89,27 +98,18 @@ export function useSettings() {
             ? DEFAULT_SETTINGS
             : settingsObj;
 
-        setSettings(finalSettings);
-        setExtensions(data.extensions || []);
-        setSettingsFetched(true);
-        setSettingsError(null);
+        store.setSettings(finalSettings);
+        store.setExtensions(data.extensions || []);
+        store.setSettingsFetched(true);
+        store.setSettingsError(null);
       } else {
         throw new Error("Invalid settings data received");
       }
     } catch (error) {
       console.warn("Failed to fetch settings:", error);
-      setSettingsError(error instanceof Error ? error.message : "Unknown error");
+      store.setSettingsError(error instanceof Error ? error.message : "Unknown error");
     }
-  }, [setSettings, setExtensions, setSettingsFetched, setSettingsError]);
-
-  /**
-   * Reset and retry fetching settings
-   * Clears the current state and attempts a fresh fetch
-   */
-  const retryFetch = useCallback(async () => {
-    resetSettings();
-    await fetchSettings();
-  }, [resetSettings, fetchSettings]);
+  }, []); // No dependencies - uses getState() for store access
 
   return {
     settings,
@@ -117,7 +117,6 @@ export function useSettings() {
     isLoading,
     settingsFetched,
     settingsError,
-    fetchSettings,
     retryFetch,
   };
 }

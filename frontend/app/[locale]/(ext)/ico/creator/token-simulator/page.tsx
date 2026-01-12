@@ -1,12 +1,7 @@
-import type { Metadata } from "next";
+"use client";
+
 import { TokenEconomicsSimulator } from "./components";
 import { useTranslations } from "next-intl";
-
-export const metadata: Metadata = {
-  title: "Token Economics Simulator | TokenLaunch",
-  description:
-    "Design and visualize your token economics, distribution, and vesting schedule",
-};
 
 export default function TokenSimulatorPage() {
   const t = useTranslations("ext_ico");

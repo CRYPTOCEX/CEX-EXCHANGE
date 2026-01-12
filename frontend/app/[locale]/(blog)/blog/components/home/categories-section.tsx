@@ -57,13 +57,13 @@ export function CategoriesSection() {
           {t("categories")}
         </Badge>
         <h2 className="text-4xl md:text-5xl font-bold text-zinc-900 dark:text-white mb-4">
-          Browse by{" "}
+          {t("browse_by")}{" "}
           <span className="bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
             Category
           </span>
         </h2>
         <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-          Explore our curated collection of articles organized by topic
+          {t("explore_our_curated_collection_of_articles")}
         </p>
       </motion.div>
 

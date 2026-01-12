@@ -307,7 +307,7 @@ export default function AnalyticsClient() {
               <div className="absolute inset-0 bg-linear-to-br from-amber-500/5 to-transparent" />
               <div className="relative">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs text-zinc-500">{tExt("total_trades")}</span>
+                  <span className="text-xs text-zinc-500">{tCommon("total_trades")}</span>
                   <div className="p-1.5 rounded-lg bg-amber-500/10">
                     <Activity className="h-3.5 w-3.5 text-amber-500" />
                   </div>
@@ -414,7 +414,7 @@ export default function AnalyticsClient() {
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <PieChart className="h-5 w-5 text-primary" />
-                  {t("trade_distribution")}
+                  {tExt("trade_distribution")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -517,7 +517,7 @@ export default function AnalyticsClient() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-zinc-400 text-sm">{t("no_data")}</p>
+                      <p className="text-zinc-400 text-sm">{tExt("no_data")}</p>
                     )}
                   </div>
                 </div>

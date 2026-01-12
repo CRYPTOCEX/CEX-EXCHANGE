@@ -3,9 +3,76 @@
 import { create } from "zustand";
 import { $fetch } from "@/lib/api";
 
+interface TradeUser {
+  id: string;
+  name: string;
+  avatar?: string;
+}
+
+interface RecentTrade {
+  id: string;
+  type: "BUY" | "SELL";
+  currency: string;
+  amount: number;
+  total: number;
+  status: string;
+  createdAt: string;
+  buyer: TradeUser | null;
+  seller: TradeUser | null;
+}
+
+interface RecentDispute {
+  id: string;
+  reason: string;
+  status: string;
+  priority: "HIGH" | "MEDIUM" | "LOW";
+  createdAt: string;
+  reportedBy: TradeUser | null;
+  trade: {
+    id: string;
+    currency: string;
+    total: number;
+  } | null;
+}
+
+interface TopTrader {
+  id: string;
+  name: string;
+  avatar?: string;
+  tradeCount: number;
+  totalVolume: number;
+}
+
+interface TradeTimelineItem {
+  date: string;
+  trades: number;
+  volume: number;
+  revenue: number;
+}
+
+interface CurrencyDistItem {
+  currency: string;
+  count: number;
+}
+
+interface OfferStatusDistItem {
+  status: string;
+  count: number;
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  icon?: string;
+  popularityRank: number;
+}
+
 interface AdminDashboardStats {
+  // Basic Stats
   totalOffers: number;
   offerGrowth: string;
+  activeOffers: number;
+  pendingOffers: number;
   activeTrades: number;
   tradeGrowth: string;
   openDisputes: number;
@@ -13,8 +80,40 @@ interface AdminDashboardStats {
   platformRevenue: string;
   revenueGrowth: string;
   pendingVerifications: number;
-  flaggedTrades: number;
+  flaggedOffers: number;
   systemHealth: string;
+  healthScore: number;
+
+  // Trade Statistics
+  completedTrades: number;
+  totalVolume: number;
+  weekVolume: number;
+  avgTradeValue: number;
+
+  // Distributions
+  offerTypeDist: { buy: number; sell: number };
+  offerStatusDist: OfferStatusDistItem[];
+  currencyDist: CurrencyDistItem[];
+
+  // Payment Methods
+  paymentMethods: PaymentMethod[];
+
+  // Dispute Analytics
+  disputeStats: {
+    open: number;
+    resolved: number;
+    highPriority: number;
+  };
+
+  // Top Traders
+  topTraders: TopTrader[];
+
+  // Timeline
+  tradeTimeline: TradeTimelineItem[];
+
+  // Recent Items
+  recentTrades: RecentTrade[];
+  recentDisputes: RecentDispute[];
 }
 
 interface PlatformActivity {
@@ -62,7 +161,7 @@ interface AdminDashboardStore {
 }
 
 export const useAdminDashboardStore = create<AdminDashboardStore>((set) => ({
-  // Stats updated to use totalOffers and offerGrowth
+  // Stats
   stats: null,
   isLoadingStats: false,
   statsError: null,

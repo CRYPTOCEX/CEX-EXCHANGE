@@ -7,11 +7,8 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useTranslations } from "next-intl";
 
 export default function TransactionDetailsLoading() {
-  const t = useTranslations("ext");
-  const tCommon = useTranslations("common");
   return (
     <div className="pt-20 space-y-6">
       <div className="flex items-center justify-between">
@@ -114,8 +111,12 @@ export default function TransactionDetailsLoading() {
         <CardFooter className="flex flex-col space-y-4 items-start">
           <Tabs defaultValue="details" className="w-full">
             <TabsList>
-              <TabsTrigger value="details">{tCommon("details")}</TabsTrigger>
-              <TabsTrigger value="notes">{t("notes")}</TabsTrigger>
+              <TabsTrigger value="details">
+                <Skeleton className="h-4 w-16" />
+              </TabsTrigger>
+              <TabsTrigger value="notes">
+                <Skeleton className="h-4 w-12" />
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="details" className="space-y-4 pt-4">
               <div className="bg-muted/50 p-4 rounded-md">

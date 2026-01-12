@@ -12,7 +12,7 @@ export const ChartSkeleton: React.FC<{ title: string }> = ({ title }) => {
         <Skeleton className="h-5 w-[200px]" /> {/* Description */}
       </CardHeader>
       <CardContent>
-        <div className="mt-6 h-[400px] relative">
+        <div className="mt-4 h-[200px] md:h-[240px] relative">
           <Skeleton className="h-full w-full rounded-lg" />
         </div>
         <div className="mt-6 pt-6 border-t">

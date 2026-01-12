@@ -24,7 +24,7 @@ export default function applyGoogleTranslateDOMPatch() {
         return child;
       }
 
-      return originalRemoveChild.call(this, child);
+      return originalRemoveChild.call(this, child) as T;
     };
 
     const originalInsertBefore = Node.prototype.insertBefore;
@@ -47,7 +47,7 @@ export default function applyGoogleTranslateDOMPatch() {
         return newNode;
       }
 
-      return originalInsertBefore.call(this, newNode, referenceNode);
+      return originalInsertBefore.call(this, newNode, referenceNode) as T;
     };
   }
 }

@@ -88,7 +88,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
                     <span className="font-medium text-gray-900 dark:text-white">
                       {t("predict")}
                     </span>
-                    {t("will_the_price_go_up_or_down")}
+                    {tCommon("will_the_price_go_up_or_down")}
                   </div>
                 </li>
                 <li className="flex items-start">

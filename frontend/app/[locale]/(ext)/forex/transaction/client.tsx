@@ -127,7 +127,7 @@ export default function ForexTransactionsClient() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex justify-between items-end text-sm">
-                <span className="text-zinc-500 dark:text-zinc-400">ID:</span>
+                <span className="text-zinc-500 dark:text-zinc-400">{tCommon("id")}</span>
                 <span className="font-mono text-xs text-zinc-900 dark:text-white text-right">
                   {transaction.id}
                 </span>

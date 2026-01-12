@@ -325,7 +325,7 @@ export default function AffiliateGeneralSettingsSection({
             })}
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            {t("set_the_commission_binary_structure")}.
+            {tCommon("set_the_commission_binary_structure")}.
           </p>
         </div>
       )}

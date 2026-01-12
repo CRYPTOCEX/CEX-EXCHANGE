@@ -188,7 +188,7 @@ export default function PaymentMethodsSection({
                 <span className="font-semibold text-blue-600 dark:text-blue-400">
                   {methods.length}+
                 </span>{" "}
-                payment methods supported
+                {t("payment_methods_supported")}
               </span>
             </div>
           </motion.div>

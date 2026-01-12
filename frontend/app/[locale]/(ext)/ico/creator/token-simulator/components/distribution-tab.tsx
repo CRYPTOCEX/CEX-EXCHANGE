@@ -103,6 +103,7 @@ export function DistributionTab({
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
+                style={{}}
                 data={distribution}
                 cx="50%"
                 cy="50%"
@@ -113,7 +114,7 @@ export function DistributionTab({
                 label={({ name, value }) => `${name}: ${value}%`}
               >
                 {distribution.map((entry, idx) => (
-                  <Cell key={idx} fill={entry.color} />
+                  <Cell style={{}} key={idx} fill={entry.color} />
                 ))}
               </Pie>
               <Tooltip formatter={(value) => `${value}%`} />

@@ -106,7 +106,7 @@ export function useColumns(): ColumnDefinition[] {
     },
     {
       key: "amount",
-      title: tExtAdmin("position_size"),
+      title: tCommon("position_size"),
       type: "number",
       description: tExtAdmin("total_contract_size_or_quantity_of"),
       sortable: true,

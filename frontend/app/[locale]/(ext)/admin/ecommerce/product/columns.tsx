@@ -321,13 +321,13 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: tDashboardAdmin("basic_information"),
+          title: tCommon("basic_information"),
           icon: Tag,
           priority: 1,
           fields: [
-            { key: "name", required: true, maxLength: 191 },
-            { key: "slug", required: true, maxLength: 191 },
-            { key: "image", required: false, maxLength: 191 },
+            { key: "name", compoundKey: "product", required: true, maxLength: 191 },
+            { key: "slug", compoundKey: "product", required: true, maxLength: 191 },
+            { key: "image", compoundKey: "product", required: false, maxLength: 191 },
             {
               key: "categoryId",
               required: true,
@@ -404,13 +404,13 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: tDashboardAdmin("basic_information"),
+          title: tCommon("basic_information"),
           icon: Tag,
           priority: 1,
           fields: [
-            { key: "name", required: true, maxLength: 191 },
-            { key: "slug", required: true, maxLength: 191 },
-            { key: "image", required: false, maxLength: 191 },
+            { key: "name", compoundKey: "product", required: true, maxLength: 191 },
+            { key: "slug", compoundKey: "product", required: true, maxLength: 191 },
+            { key: "image", compoundKey: "product", required: false, maxLength: 191 },
             {
               key: "categoryId",
               required: true,

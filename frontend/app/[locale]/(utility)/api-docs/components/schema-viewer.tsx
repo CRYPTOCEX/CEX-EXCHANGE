@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { ChevronRight, Braces, List, Hash, Type, ToggleLeft } from "lucide-react";
 import type { SchemaObject, ReferenceObject } from "../types/openapi";
 import { isReferenceObject } from "../types/openapi";
+import { useTranslations } from "next-intl";
 
 interface SchemaViewerProps {
   schema: SchemaObject | ReferenceObject;
@@ -83,6 +84,7 @@ export function SchemaViewer({
   depth = 0,
   className,
 }: SchemaViewerProps) {
+  const t = useTranslations("common");
   const [isExpanded, setIsExpanded] = useState(depth < 2);
 
   // Handle reference objects
@@ -139,7 +141,7 @@ export function SchemaViewer({
         )}
         {schema.default !== undefined && (
           <span className="text-xs text-muted-foreground">
-            (default: {JSON.stringify(schema.default)})
+            {t("default")} {JSON.stringify(schema.default)})
           </span>
         )}
       </div>
@@ -226,10 +228,11 @@ interface SchemaDisplayProps {
 }
 
 export function SchemaDisplay({ schema, title, className }: SchemaDisplayProps) {
+  const t = useTranslations("utility_api-docs");
   if (!schema) {
     return (
       <div className={cn("text-sm text-muted-foreground italic", className)}>
-        No schema defined
+        {t("no_schema_defined")}
       </div>
     );
   }
@@ -260,10 +263,12 @@ interface ParametersTableProps {
 }
 
 export function ParametersTable({ parameters, className }: ParametersTableProps) {
+  const t = useTranslations("utility_api-docs");
+  const tCommon = useTranslations("common");
   if (parameters.length === 0) {
     return (
       <div className={cn("text-sm text-muted-foreground italic", className)}>
-        No parameters
+        {t("no_parameters")}
       </div>
     );
   }
@@ -319,7 +324,7 @@ export function ParametersTable({ parameters, className }: ParametersTableProps)
                   {param.description || "—"}
                   {param.example !== undefined && (
                     <span className="block text-xs mt-1">
-                      Example: <code>{JSON.stringify(param.example)}</code>
+                      {tCommon("example_1")}:  <code>{JSON.stringify(param.example)}</code>
                     </span>
                   )}
                 </td>

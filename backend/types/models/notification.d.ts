@@ -3,12 +3,15 @@ interface notificationAttributes {
   userId: string;
   relatedId?: string;
   title: string;
-  type: "investment" | "message" | "user" | "alert" | "system";
+  type: string;
   message: string;
   details?: string;
   link?: string;
   actions?: any;
   read: boolean;
+  idempotencyKey?: string;
+  channels?: any;
+  priority?: "LOW" | "NORMAL" | "HIGH" | "URGENT";
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;

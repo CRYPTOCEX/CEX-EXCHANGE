@@ -16,7 +16,7 @@ export default class mlmReferralCondition
   type!:
     | "DEPOSIT"
     | "TRADE"
-    | "INVESTENT"
+    | "SPOT_TRADE"
     | "BINARY_WIN"
     | "INVESTMENT"
     | "AI_INVESTMENT"
@@ -24,13 +24,18 @@ export default class mlmReferralCondition
     | "ICO_CONTRIBUTION"
     | "STAKING"
     | "ECOMMERCE_PURCHASE"
-    | "P2P_TRADE";
+    | "P2P_TRADE"
+    | "NFT_TRADE"
+    | "COPY_TRADING"
+    | "FUTURES_TRADE"
+    | "TOKEN_PURCHASE";
   reward!: number;
   rewardType!: "PERCENTAGE" | "FIXED";
   rewardWalletType!: "FIAT" | "SPOT" | "ECO";
   rewardCurrency!: string;
   rewardChain?: string;
   image?: string;
+  minAmount!: number;
   status!: boolean;
 
   // mlmReferralCondition hasMany mlmReferralReward via conditionId
@@ -103,14 +108,19 @@ export default class mlmReferralCondition
           type: DataTypes.ENUM(
             "DEPOSIT",
             "TRADE",
-            "INVESTMENT",
+            "SPOT_TRADE",
             "BINARY_WIN",
+            "INVESTMENT",
             "AI_INVESTMENT",
             "FOREX_INVESTMENT",
             "ICO_CONTRIBUTION",
             "STAKING",
             "ECOMMERCE_PURCHASE",
-            "P2P_TRADE"
+            "P2P_TRADE",
+            "NFT_TRADE",
+            "COPY_TRADING",
+            "FUTURES_TRADE",
+            "TOKEN_PURCHASE"
           ),
           allowNull: false,
           validate: {
@@ -119,17 +129,22 @@ export default class mlmReferralCondition
                 [
                   "DEPOSIT",
                   "TRADE",
-                  "INVESTMENT",
+                  "SPOT_TRADE",
                   "BINARY_WIN",
+                  "INVESTMENT",
                   "AI_INVESTMENT",
                   "FOREX_INVESTMENT",
                   "ICO_CONTRIBUTION",
                   "STAKING",
                   "ECOMMERCE_PURCHASE",
                   "P2P_TRADE",
+                  "NFT_TRADE",
+                  "COPY_TRADING",
+                  "FUTURES_TRADE",
+                  "TOKEN_PURCHASE",
                 ],
               ],
-              msg: "type: Type must be one of DEPOSIT, TRADE, INVESTMENT, BINARY_WIN, AI_INVESTMENT, FOREX_INVESTMENT, ICO_CONTRIBUTION, STAKING, ECOMMERCE_PURCHASE, P2P_TRADE",
+              msg: "type: Type must be a valid referral condition type",
             },
           },
         },
@@ -176,6 +191,18 @@ export default class mlmReferralCondition
         image: {
           type: DataTypes.STRING(191),
           allowNull: true,
+        },
+        minAmount: {
+          type: DataTypes.DOUBLE,
+          allowNull: false,
+          defaultValue: 0,
+          validate: {
+            isFloat: { msg: "minAmount: Minimum amount must be a valid number" },
+            min: {
+              args: [0],
+              msg: "minAmount: Minimum amount cannot be negative",
+            },
+          },
         },
         status: {
           type: DataTypes.BOOLEAN,

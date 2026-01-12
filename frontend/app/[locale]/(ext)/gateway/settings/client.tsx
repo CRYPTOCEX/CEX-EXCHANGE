@@ -145,7 +145,7 @@ export default function MerchantSettingsClient() {
       params.set("tab", newTab);
     }
     const queryString = params.toString();
-    router.replace(`/gateway/settings${queryString ? `?${queryString}` : ""}`, { scroll: false });
+    router.replace(`/gateway/settings${queryString ? `?${queryString}` : ""}`);
   }, [router, searchParams]);
 
   // Update tab when URL changes
@@ -293,7 +293,7 @@ export default function MerchantSettingsClient() {
         <div className="flex items-center justify-between gap-4 mb-4">
           <TabsList className="grid grid-cols-3 w-full max-w-md">
             <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="api-keys">API Keys</TabsTrigger>
+            <TabsTrigger value="api-keys">{tCommon("api_keys")}</TabsTrigger>
             <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
           </TabsList>
           <Button onClick={handleSaveSettings} disabled={saving}>
@@ -351,7 +351,7 @@ export default function MerchantSettingsClient() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="slug">URL Slug</Label>
+                  <Label htmlFor="slug">{t("url_slug_1")}</Label>
                   <Input id="slug" value={merchant.slug} disabled className="bg-muted" />
                 </div>
               </div>
@@ -490,7 +490,7 @@ export default function MerchantSettingsClient() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>API Keys</CardTitle>
+                <CardTitle>{tCommon("api_keys")}</CardTitle>
                 <CardDescription>{t("manage_your_api_keys_for_integration")}</CardDescription>
               </div>
               <Link href="/gateway/api-key/create">
@@ -635,7 +635,7 @@ export default function MerchantSettingsClient() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>API URL</Label>
+                <Label>{t("api_url")}</Label>
                 <div className="flex gap-2">
                   <Input
                     value={typeof window !== "undefined" ? window.location.origin : ""}
@@ -674,7 +674,7 @@ export default function MerchantSettingsClient() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  {t("webhook_urls_are_configured_per_api_key_go_to_the")} <strong>API Keys</strong> {t("tab_and_edit_each_key_to_configure_its_webhook_url")}
+                  {t("webhook_urls_are_configured_per_api_key_go_to_the")} <strong>{tCommon("api_keys")}</strong> {t("tab_and_edit_each_key_to_configure_its_webhook_url")}
                 </AlertDescription>
               </Alert>
 

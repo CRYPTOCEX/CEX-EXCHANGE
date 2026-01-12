@@ -545,7 +545,7 @@ export default function P2PLandingClient() {
         ]}
         theme={{ primary: "blue", secondary: "violet" }}
         variant="default"
-        title="Why Trust Us"
+        title={tExt("why_trust_us")}
       />
 
       {/* Top Cryptocurrencies Section */}

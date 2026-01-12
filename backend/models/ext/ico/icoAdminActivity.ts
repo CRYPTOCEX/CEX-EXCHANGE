@@ -10,6 +10,7 @@ export default class icoAdminActivity
   offeringId!: string;
   offeringName!: string;
   adminId!: string;
+  details?: string;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
@@ -57,6 +58,10 @@ export default class icoAdminActivity
             notNull: { msg: "adminId: Admin ID cannot be null" },
             isUUID: { args: 4, msg: "adminId: Admin ID must be a valid UUID" },
           },
+        },
+        details: {
+          type: DataTypes.TEXT,
+          allowNull: true,
         },
       },
       {

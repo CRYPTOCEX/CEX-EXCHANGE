@@ -22,6 +22,7 @@ interface TokenShowcaseSectionProps {
 }
 
 function TokenCard({ token, index }: { token: TokenStat; index: number }) {
+  const t = useTranslations("ext_staking");
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -75,7 +76,7 @@ function TokenCard({ token, index }: { token: TokenStat; index: number }) {
               <div className="p-3 rounded-xl bg-zinc-100/80 dark:bg-zinc-800/50 border border-zinc-200/50 dark:border-zinc-700/50">
                 <div className="flex items-center gap-1.5 text-zinc-500 text-xs mb-1">
                   <TrendingUp className="w-3 h-3" />
-                  <span>Best APR</span>
+                  <span>{t("best_apr")}</span>
                 </div>
                 <div className="font-bold text-green-600 dark:text-green-400">
                   {token.highestApr}%
@@ -87,7 +88,7 @@ function TokenCard({ token, index }: { token: TokenStat; index: number }) {
             <div className="mt-3 p-3 rounded-xl bg-violet-500/10 dark:bg-violet-600/10 border border-violet-500/20">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Avg. APR
+                  {t("avg_apr")}
                 </span>
                 <span className="font-bold text-violet-600 dark:text-violet-400">
                   {token.avgApr.toFixed(1)}%

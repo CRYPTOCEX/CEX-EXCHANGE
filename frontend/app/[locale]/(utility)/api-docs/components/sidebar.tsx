@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { MethodBadge, MethodFilter } from "./method-badge";
 import type { ParsedEndpoint, EndpointsByTag, HttpMethod } from "../types/openapi";
+import { useTranslations } from "next-intl";
 
 interface SidebarProps {
   endpoints: ParsedEndpoint[];
@@ -56,6 +57,8 @@ export function Sidebar({
   onMethodFiltersChange,
   className,
 }: SidebarProps) {
+  const t = useTranslations("utility_api-docs");
+  const tCommon = useTranslations("common");
   const [expandedTags, setExpandedTags] = useState<Set<string>>(new Set(tags));
   const [showFilters, setShowFilters] = useState(false);
 
@@ -88,7 +91,7 @@ export function Sidebar({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search endpoints..."
+            placeholder={t("search_endpoints_ellipsis")}
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-9 bg-background"
@@ -114,7 +117,7 @@ export function Sidebar({
         >
           <span className="flex items-center gap-2">
             <Filter className="h-3.5 w-3.5" />
-            Filter by method
+            {t("filter_by_method")}
           </span>
           {methodFilters.length > 0 && (
             <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded">
@@ -138,7 +141,7 @@ export function Sidebar({
                 className="w-full text-xs"
                 onClick={() => onMethodFiltersChange([])}
               >
-                Clear filters
+                {tCommon("clear_filters")}
               </Button>
             )}
           </div>
@@ -176,7 +179,7 @@ export function Sidebar({
           {tags.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Code2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No endpoints found</p>
+              <p className="text-sm">{t("no_endpoints_found")}</p>
             </div>
           ) : (
             tags.map((tag) => (
@@ -248,7 +251,7 @@ export function Sidebar({
           </SheetTrigger>
           <SheetContent side="left" className="w-80 p-0">
             <SheetHeader className="p-4 border-b">
-              <SheetTitle>API Endpoints</SheetTitle>
+              <SheetTitle>{t("api_endpoints")}</SheetTitle>
             </SheetHeader>
             {sidebarContent}
           </SheetContent>

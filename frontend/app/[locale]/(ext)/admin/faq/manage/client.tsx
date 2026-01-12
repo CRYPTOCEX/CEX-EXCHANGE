@@ -847,10 +847,10 @@ export default function AdminFAQClient() {
                 </div>
                 <div>
                   <p className="font-medium text-foreground">
-                    {faqs.length} FAQs across {pageLinks.length} pages
+                    {faqs.length} {t("faqs_across")} {pageLinks.length} pages
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {faqs.filter(f => f.status).length} active, {faqs.filter(f => !f.status).length} inactive
+                    {faqs.filter(f => f.status).length} {tCommon("active")} {faqs.filter(f => !f.status).length} inactive
                   </p>
                 </div>
               </div>

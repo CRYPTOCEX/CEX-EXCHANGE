@@ -1,7 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { IcoAdminStats } from "./status-chart";
 import { useTranslations } from "next-intl";
+import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
+import { Layers, Clock, DollarSign, TrendingUp } from "lucide-react";
 
 interface StatsCardsProps {
   stats: IcoAdminStats | null;
@@ -11,71 +12,47 @@ interface StatsCardsProps {
 export function StatsCards({ stats, isLoading }: StatsCardsProps) {
   const t = useTranslations("ext");
   const tCommon = useTranslations("common");
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-32" />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            {t("total_offerings")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <Skeleton className="h-7 w-20" />
-          ) : (
-            <div className="text-2xl font-bold">
-              {stats?.totalOfferings || 0}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            {t("pending_approval")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <Skeleton className="h-7 w-20" />
-          ) : (
-            <div className="text-2xl font-bold">
-              {stats?.pendingOfferings || 0}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            {t("total_raised")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <Skeleton className="h-7 w-20" />
-          ) : (
-            <div className="text-2xl font-bold">
-              ${((stats?.totalRaised || 0) / 1000000).toFixed(2)}
-              M
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            {tCommon("success_rate")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <Skeleton className="h-7 w-20" />
-          ) : (
-            <div className="text-2xl font-bold">{stats?.successRate || 0}%</div>
-          )}
-        </CardContent>
-      </Card>
+      <StatsCard
+        label={t("total_offerings")}
+        value={stats?.totalOfferings || 0}
+        icon={Layers}
+        index={0}
+        {...statsCardColors.purple}
+      />
+      <StatsCard
+        label={t("pending_approval")}
+        value={stats?.pendingOfferings || 0}
+        icon={Clock}
+        index={1}
+        {...statsCardColors.amber}
+      />
+      <StatsCard
+        label={t("total_raised")}
+        value={`$${((stats?.totalRaised || 0) / 1000000).toFixed(2)}M`}
+        icon={DollarSign}
+        index={2}
+        {...statsCardColors.green}
+      />
+      <StatsCard
+        label={tCommon("success_rate")}
+        value={`${stats?.successRate || 0}%`}
+        icon={TrendingUp}
+        index={3}
+        {...statsCardColors.blue}
+      />
     </div>
   );
 }

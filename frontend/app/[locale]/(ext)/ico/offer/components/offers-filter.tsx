@@ -511,7 +511,7 @@ export function OfferingsFilter() {
                     className="gap-2"
                   >
                     <X className="h-4 w-4" />
-                    {tExt("reset")}
+                    {tCommon("reset")}
                   </Button>
                   <Button onClick={handleApplyFilters} className="gap-2">
                     <Filter className="h-4 w-4" />

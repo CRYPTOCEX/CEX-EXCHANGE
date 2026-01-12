@@ -144,7 +144,7 @@ export function PoolFormBasicInfo({
         />
 
         <Input
-          label={tExt("token_name")}
+          label={tCommon("token_name")}
           placeholder="Bitcoin"
           value={formData.token}
           onChange={(e) => handleInputChange("token", e.target.value)}

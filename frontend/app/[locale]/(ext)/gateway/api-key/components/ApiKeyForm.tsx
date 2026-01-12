@@ -467,7 +467,7 @@ export default function ApiKeyForm({
                 <div>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Globe className="h-5 w-5" />
-                    IP Whitelist
+                    {tCommon("ip_whitelist")}
                   </CardTitle>
                   <CardDescription>
                     {t("restrict_api_access_to_specific_ip")}

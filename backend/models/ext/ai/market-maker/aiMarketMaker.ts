@@ -25,6 +25,38 @@ export type AiMarketMakerAggressionLevel =
   | "AGGRESSIVE";
 
 /**
+ * Price mode for market maker
+ * - AUTONOMOUS: Fully autonomous price discovery with phases
+ * - FOLLOW_EXTERNAL: Follow external exchange price closely
+ * - HYBRID: Mix of external influence and autonomous movement
+ */
+export type AiMarketMakerPriceMode =
+  | "AUTONOMOUS"
+  | "FOLLOW_EXTERNAL"
+  | "HYBRID";
+
+/**
+ * Admin bias guidance
+ * - BULLISH: Favors upward price movements
+ * - BEARISH: Favors downward price movements
+ * - NEUTRAL: No directional bias
+ */
+export type AiMarketMakerBias = "BULLISH" | "BEARISH" | "NEUTRAL";
+
+/**
+ * Market phase (Wyckoff-style)
+ * - ACCUMULATION: Building base, consolidation
+ * - MARKUP: Bull run, higher highs
+ * - DISTRIBUTION: Topping pattern, choppy
+ * - MARKDOWN: Bear market, lower lows
+ */
+export type AiMarketMakerPhase =
+  | "ACCUMULATION"
+  | "MARKUP"
+  | "DISTRIBUTION"
+  | "MARKDOWN";
+
+/**
  * AI Market Maker - Core model for automated market making configuration
  *
  * This model manages automated trading bots that simulate market activity
@@ -82,6 +114,46 @@ export default class aiMarketMaker
   pauseOnHighVolatility!: boolean;
   /** Percentage of orders to place in real ecosystem orderbook (0-100) */
   realLiquidityPercent!: number;
+
+  // ============================================
+  // Multi-Timeframe Volatility System Fields
+  // ============================================
+
+  /** Price mode: AUTONOMOUS, FOLLOW_EXTERNAL, or HYBRID */
+  priceMode!: AiMarketMakerPriceMode;
+  /** External symbol to track (e.g., "BTC/USDT") when following external price */
+  externalSymbol!: string | null;
+  /** How closely to follow external price (0-100%) */
+  correlationStrength!: number;
+
+  /** Admin bias guidance: BULLISH, BEARISH, or NEUTRAL */
+  marketBias!: AiMarketMakerBias;
+  /** How strongly bias affects phase transitions (0-100%) */
+  biasStrength!: number;
+
+  /** Current market phase: ACCUMULATION, MARKUP, DISTRIBUTION, MARKDOWN */
+  currentPhase!: AiMarketMakerPhase;
+  /** When the current phase started */
+  phaseStartedAt!: Date | null;
+  /** When the next phase transition is scheduled */
+  nextPhaseChangeAt!: Date | null;
+  /** Target price for end of current phase */
+  phaseTargetPrice!: number | null;
+
+  /** Base daily volatility percentage (e.g., 2.0 for 2%) */
+  baseVolatility!: number;
+  /** Multiplier for current phase volatility (0.5-2.0) */
+  volatilityMultiplier!: number;
+  /** How quickly momentum decays per tick (0.8-0.99) */
+  momentumDecay!: number;
+
+  /** Last known price for smooth restarts */
+  lastKnownPrice!: number | null;
+  /** Current trend momentum (-1.0 to 1.0) */
+  trendMomentum!: number;
+  /** When momentum was last updated */
+  lastMomentumUpdate!: Date | null;
+
   createdAt?: Date;
   updatedAt?: Date;
 
@@ -238,6 +310,176 @@ export default class aiMarketMaker
             const value = this.getDataValue("realLiquidityPercent");
             return value ? parseFloat(value.toString()) : 0;
           },
+        },
+
+        // ============================================
+        // Multi-Timeframe Volatility System Fields
+        // ============================================
+
+        // Price Mode Configuration
+        priceMode: {
+          type: DataTypes.ENUM("AUTONOMOUS", "FOLLOW_EXTERNAL", "HYBRID"),
+          allowNull: false,
+          defaultValue: "AUTONOMOUS",
+          validate: {
+            isIn: {
+              args: [["AUTONOMOUS", "FOLLOW_EXTERNAL", "HYBRID"]],
+              msg: "priceMode: Must be AUTONOMOUS, FOLLOW_EXTERNAL, or HYBRID",
+            },
+          },
+        },
+        externalSymbol: {
+          type: DataTypes.STRING(20),
+          allowNull: true,
+          defaultValue: null,
+          comment: "External symbol to track (e.g., BTC/USDT) when in FOLLOW or HYBRID mode",
+        },
+        correlationStrength: {
+          type: DataTypes.DECIMAL(5, 2),
+          allowNull: false,
+          defaultValue: 50,
+          validate: {
+            isDecimal: { msg: "correlationStrength: Must be a valid decimal number" },
+            min: { args: [0], msg: "correlationStrength: Must be at least 0" },
+            max: { args: [100], msg: "correlationStrength: Must be at most 100" },
+          },
+          get() {
+            const value = this.getDataValue("correlationStrength");
+            return value ? parseFloat(value.toString()) : 50;
+          },
+        },
+
+        // Admin Bias Configuration
+        marketBias: {
+          type: DataTypes.ENUM("BULLISH", "BEARISH", "NEUTRAL"),
+          allowNull: false,
+          defaultValue: "NEUTRAL",
+          validate: {
+            isIn: {
+              args: [["BULLISH", "BEARISH", "NEUTRAL"]],
+              msg: "marketBias: Must be BULLISH, BEARISH, or NEUTRAL",
+            },
+          },
+        },
+        biasStrength: {
+          type: DataTypes.DECIMAL(5, 2),
+          allowNull: false,
+          defaultValue: 50,
+          validate: {
+            isDecimal: { msg: "biasStrength: Must be a valid decimal number" },
+            min: { args: [0], msg: "biasStrength: Must be at least 0" },
+            max: { args: [100], msg: "biasStrength: Must be at most 100" },
+          },
+          get() {
+            const value = this.getDataValue("biasStrength");
+            return value ? parseFloat(value.toString()) : 50;
+          },
+        },
+
+        // Phase State (persists across restarts)
+        currentPhase: {
+          type: DataTypes.ENUM("ACCUMULATION", "MARKUP", "DISTRIBUTION", "MARKDOWN"),
+          allowNull: false,
+          defaultValue: "ACCUMULATION",
+          validate: {
+            isIn: {
+              args: [["ACCUMULATION", "MARKUP", "DISTRIBUTION", "MARKDOWN"]],
+              msg: "currentPhase: Must be ACCUMULATION, MARKUP, DISTRIBUTION, or MARKDOWN",
+            },
+          },
+        },
+        phaseStartedAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+          defaultValue: null,
+        },
+        nextPhaseChangeAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+          defaultValue: null,
+        },
+        phaseTargetPrice: {
+          type: DataTypes.DECIMAL(30, 18),
+          allowNull: true,
+          defaultValue: null,
+          get() {
+            const value = this.getDataValue("phaseTargetPrice");
+            return value ? parseFloat(value.toString()) : null;
+          },
+        },
+
+        // Volatility Configuration
+        baseVolatility: {
+          type: DataTypes.DECIMAL(5, 2),
+          allowNull: false,
+          defaultValue: 2.0, // 2% daily volatility
+          validate: {
+            isDecimal: { msg: "baseVolatility: Must be a valid decimal number" },
+            min: { args: [0.1], msg: "baseVolatility: Must be at least 0.1" },
+            max: { args: [50], msg: "baseVolatility: Must be at most 50" },
+          },
+          get() {
+            const value = this.getDataValue("baseVolatility");
+            return value ? parseFloat(value.toString()) : 2.0;
+          },
+        },
+        volatilityMultiplier: {
+          type: DataTypes.DECIMAL(3, 2),
+          allowNull: false,
+          defaultValue: 1.0,
+          validate: {
+            isDecimal: { msg: "volatilityMultiplier: Must be a valid decimal number" },
+            min: { args: [0.5], msg: "volatilityMultiplier: Must be at least 0.5" },
+            max: { args: [2.0], msg: "volatilityMultiplier: Must be at most 2.0" },
+          },
+          get() {
+            const value = this.getDataValue("volatilityMultiplier");
+            return value ? parseFloat(value.toString()) : 1.0;
+          },
+        },
+        momentumDecay: {
+          type: DataTypes.DECIMAL(4, 3),
+          allowNull: false,
+          defaultValue: 0.95, // 5% decay per tick
+          validate: {
+            isDecimal: { msg: "momentumDecay: Must be a valid decimal number" },
+            min: { args: [0.8], msg: "momentumDecay: Must be at least 0.8" },
+            max: { args: [0.999], msg: "momentumDecay: Must be at most 0.999" },
+          },
+          get() {
+            const value = this.getDataValue("momentumDecay");
+            return value ? parseFloat(value.toString()) : 0.95;
+          },
+        },
+
+        // State Persistence
+        lastKnownPrice: {
+          type: DataTypes.DECIMAL(30, 18),
+          allowNull: true,
+          defaultValue: null,
+          get() {
+            const value = this.getDataValue("lastKnownPrice");
+            return value ? parseFloat(value.toString()) : null;
+          },
+        },
+        trendMomentum: {
+          type: DataTypes.DECIMAL(5, 4),
+          allowNull: false,
+          defaultValue: 0, // Neutral momentum
+          validate: {
+            isDecimal: { msg: "trendMomentum: Must be a valid decimal number" },
+            min: { args: [-1], msg: "trendMomentum: Must be at least -1" },
+            max: { args: [1], msg: "trendMomentum: Must be at most 1" },
+          },
+          get() {
+            const value = this.getDataValue("trendMomentum");
+            return value ? parseFloat(value.toString()) : 0;
+          },
+        },
+        lastMomentumUpdate: {
+          type: DataTypes.DATE,
+          allowNull: true,
+          defaultValue: null,
         },
       },
       {

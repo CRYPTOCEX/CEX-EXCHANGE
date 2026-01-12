@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useCronStore } from "@/store/cron";
 import {
   Dialog,
@@ -10,8 +11,10 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { formatDistanceToNow, format } from "date-fns";
 import { useTranslations } from "next-intl";
+import { Play, Loader2 } from "lucide-react";
 interface CronDetailModalProps {
   cronName: string | null;
   isOpen: boolean;
@@ -23,7 +26,9 @@ export function CronDetailModal({
   onClose,
 }: CronDetailModalProps) {
   const t = useTranslations("dashboard_admin");
-  const { cronJobs, logs } = useCronStore();
+  const tCommon = useTranslations("common");
+  const { cronJobs, logs, triggerCronJob } = useCronStore();
+  const [isTriggering, setIsTriggering] = useState(false);
   const cronJob = cronName
     ? cronJobs.find((job) => job.name === cronName)
     : null;
@@ -31,6 +36,17 @@ export function CronDetailModal({
     ? logs.filter((log) => log.cronName === cronName)
     : [];
   if (!cronJob) return null;
+
+  const handleTrigger = async () => {
+    if (!cronName || isTriggering || cronJob.status === "running") return;
+    setIsTriggering(true);
+    try {
+      await triggerCronJob(cronName);
+    } finally {
+      setIsTriggering(false);
+    }
+  };
+
   const formatPeriod = (ms: number) => {
     const seconds = ms / 1000;
     if (seconds < 60) return `${seconds}s`;
@@ -73,9 +89,28 @@ export function CronDetailModal({
               <DialogTitle className="text-xl">{cronJob.title}</DialogTitle>
               <DialogDescription>{cronJob.description}</DialogDescription>
             </div>
-            <Badge variant="outline" className="capitalize">
-              {(cronJob.category || "normal").replace("_", " ")}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="capitalize">
+                {(cronJob.category || "normal").replace("_", " ")}
+              </Badge>
+              <Button
+                size="sm"
+                onClick={handleTrigger}
+                disabled={isTriggering || cronJob.status === "running"}
+              >
+                {isTriggering || cronJob.status === "running" ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                    {t("running")}
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4 mr-1.5" />
+                    {tCommon("trigger")}
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 

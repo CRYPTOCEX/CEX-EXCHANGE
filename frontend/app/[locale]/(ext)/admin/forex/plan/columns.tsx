@@ -351,8 +351,8 @@ export function useFormConfig() {
           icon: ClipboardList,
           priority: 1,
           fields: [
-            { key: "image", fallback: "/img/placeholder.svg", required: false, maxLength: 191 },
-            { key: "title", required: false, maxLength: 191 },
+            { key: "image", compoundKey: "planCompound", fallback: "/img/placeholder.svg", required: false, maxLength: 191 },
+            { key: "title", compoundKey: "planCompound", required: false, maxLength: 191 },
             { key: "name", required: true, maxLength: 191 },
             { key: "description", required: false, maxLength: 191 },
           ],
@@ -459,8 +459,8 @@ export function useFormConfig() {
           icon: ClipboardList,
           priority: 1,
           fields: [
-            { key: "image", fallback: "/img/placeholder.svg", required: false, maxLength: 191 },
-            { key: "title", required: false, maxLength: 191 },
+            { key: "image", compoundKey: "planCompound", fallback: "/img/placeholder.svg", required: false, maxLength: 191 },
+            { key: "title", compoundKey: "planCompound", required: false, maxLength: 191 },
             { key: "name", required: true, maxLength: 191 },
             { key: "description", required: false, maxLength: 191 },
           ],

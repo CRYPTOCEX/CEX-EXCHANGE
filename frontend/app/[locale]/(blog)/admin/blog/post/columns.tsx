@@ -256,8 +256,8 @@ export function useFormConfig() {
           icon: FileText,
           priority: 2,
           fields: [
-            { key: "image", required: false },
-            { key: "title", required: true, maxLength: 255 },
+            { key: "image", compoundKey: "compound", required: false },
+            { key: "title", compoundKey: "compound", required: true, maxLength: 255 },
             { key: "slug", required: true, maxLength: 255 },
             { key: "description", required: false },
           ],
@@ -302,13 +302,29 @@ export function useFormConfig() {
       description: t("update_blog_post_content_settings_and"),
       groups: [
         {
+          id: "post-author",
+          title: tCommon("author"),
+          icon: User,
+          priority: 1,
+          fields: [
+            {
+              key: "authorId",
+              required: true,
+              apiEndpoint: {
+                url: "/api/admin/blog/author/options",
+                method: "GET",
+              },
+            },
+          ],
+        },
+        {
           id: "post-basic",
           title: t("post_information"),
           icon: FileText,
-          priority: 1,
+          priority: 2,
           fields: [
-            { key: "image", required: false },
-            { key: "title", required: true, maxLength: 255 },
+            { key: "image", compoundKey: "compound", required: false },
+            { key: "title", compoundKey: "compound", required: true, maxLength: 255 },
             { key: "slug", required: true, maxLength: 255 },
             { key: "description", required: false },
           ],
@@ -317,7 +333,7 @@ export function useFormConfig() {
           id: "post-category",
           title: t("categorization"),
           icon: Tag,
-          priority: 2,
+          priority: 3,
           fields: [
             {
               key: "categoryId",
@@ -341,7 +357,7 @@ export function useFormConfig() {
           id: "post-content",
           title: tCommon("content"),
           icon: Newspaper,
-          priority: 3,
+          priority: 4,
           fields: [
             { key: "content", required: true, uploadDir: "posts" },
           ],

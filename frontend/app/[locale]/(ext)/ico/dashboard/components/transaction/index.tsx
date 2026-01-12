@@ -64,7 +64,7 @@ export default function IcoTransactionsPage() {
               <Coins className="w-4 h-4" />
             </div>
             <span className="font-medium text-zinc-900 dark:text-white">
-              ICO Token Purchase
+              {t("ico_token_purchase")}
             </span>
           </div>
           <Badge variant={getStatusVariant(transaction.status)}>
@@ -85,7 +85,7 @@ export default function IcoTransactionsPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex justify-between items-end text-sm">
-                <span className="text-zinc-500 dark:text-zinc-400">ID:</span>
+                <span className="text-zinc-500 dark:text-zinc-400">{tCommon("id")}</span>
                 <span className="font-mono text-xs text-zinc-900 dark:text-white text-right">
                   {transaction.id}
                 </span>
@@ -210,7 +210,7 @@ export default function IcoTransactionsPage() {
       canDelete={false}
       canView={true}
       isParanoid={false}
-      title="ICO Transaction History"
+      title={t("ico_transaction_history")}
       description={t("view_and_manage_all_your_ico_token_purchases")}
       itemTitle="Transaction"
       columns={columns}

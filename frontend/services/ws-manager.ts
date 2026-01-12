@@ -11,6 +11,9 @@ type StatusCallback = (status: ConnectionStatus) => void;
 
 export type MarketType = "spot" | "eco" | "futures";
 
+// Use a symbol key on globalThis to ensure singleton persists across HMR in Next.js
+const WS_MANAGER_KEY = Symbol.for("__wsManager__");
+
 class WebSocketManager {
   private static instance: WebSocketManager;
   private connections: Map<string, WebSocket> = new Map();
@@ -25,21 +28,32 @@ class WebSocketManager {
   private reconnectDelay = 1000; // Start with 1 second delay
   private debug = process.env.NODE_ENV !== "production"; // Enable debug in development
 
-  // Get singleton instance
+  // Get singleton instance - uses globalThis to survive HMR in development
   public static getInstance(): WebSocketManager {
+    // Check globalThis first (survives HMR)
+    if ((globalThis as any)[WS_MANAGER_KEY]) {
+      return (globalThis as any)[WS_MANAGER_KEY];
+    }
+
     if (!WebSocketManager.instance) {
       WebSocketManager.instance = new WebSocketManager();
+      // Store in globalThis for HMR persistence
+      (globalThis as any)[WS_MANAGER_KEY] = WebSocketManager.instance;
     }
     return WebSocketManager.instance;
   }
 
   // Connect to a WebSocket server
   public connect(url: string, connectionId = "default"): void {
-    // If already connected or connecting, do nothing
+    // If already connecting, connected, or reconnecting, do nothing
+    // IMPORTANT: Check status FIRST to handle race conditions where multiple
+    // components call connect() nearly simultaneously. The status is set to
+    // CONNECTING before the WebSocket is created, preventing duplicate connections.
+    const currentStatus = this.connectionStatus.get(connectionId);
     if (
-      this.connections.has(connectionId) &&
-      (this.connectionStatus.get(connectionId) === ConnectionStatus.CONNECTED ||
-        this.connectionStatus.get(connectionId) === ConnectionStatus.CONNECTING)
+      currentStatus === ConnectionStatus.CONNECTED ||
+      currentStatus === ConnectionStatus.CONNECTING ||
+      currentStatus === ConnectionStatus.RECONNECTING
     ) {
       return;
     }
@@ -49,7 +63,8 @@ class WebSocketManager {
       this.messageQueues.set(connectionId, []);
     }
 
-    // Update connection status
+    // Update connection status FIRST to prevent race conditions
+    // This must happen before any async operations
     this.connectionStatus.set(connectionId, ConnectionStatus.CONNECTING);
     this.notifyStatusListeners(connectionId);
 
@@ -63,16 +78,16 @@ class WebSocketManager {
         if (parts.length === 2) return parts.pop()?.split(';').shift();
         return null;
       };
-      
+
       const accessToken = getCookie('accessToken');
-      
+
       // Add token to URL if available (for authentication)
       let authUrl = url;
       if (accessToken) {
         const separator = url.includes('?') ? '&' : '?';
         authUrl = `${url}${separator}token=${accessToken}`;
       }
-      
+
       const ws = new WebSocket(authUrl);
 
       // Set up event handlers
@@ -88,6 +103,8 @@ class WebSocketManager {
         `Error creating WebSocket connection for ${connectionId}:`,
         error
       );
+      // Reset status on error so retry can work
+      this.connectionStatus.set(connectionId, ConnectionStatus.ERROR);
       this.handleError(new Event("error"), connectionId);
     }
   }

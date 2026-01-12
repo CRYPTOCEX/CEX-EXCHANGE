@@ -29,7 +29,7 @@ export default function AiTradingMarketClient() {
       canView={true}
       viewLink="/admin/ai/market-maker/market/[id]"
       isParanoid={false}
-      title="AI Market Makers"
+      title={t("ai_market_makers")}
       description={t("manage_ai_powered_market_making_configurations")}
       itemTitle="Market Maker"
       columns={columns}

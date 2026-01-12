@@ -23,13 +23,9 @@ import { openGoogleLoginPopup } from "@/utils/google-auth";
 import { $fetch } from "@/lib/api";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { useSettings } from "@/hooks/use-settings";
+import { usePowCaptcha } from "@/hooks/use-pow-captcha";
 
-// Environment variables
-const recaptchaEnabled =
-  process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_STATUS === "true";
-const recaptchaSiteKey = process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SITE_KEY;
-const googleAuthStatus =
-  process.env.NEXT_PUBLIC_GOOGLE_AUTH_STATUS === "true";
 const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
 interface RegisterFormProps {
@@ -51,6 +47,12 @@ export default function RegisterForm({
   const register = useUserStore((state) => state.register);
   const isLoading = useUserStore((state) => state.isLoading);
   const error = useUserStore((state) => state.error);
+  const { settings } = useSettings();
+  const { solveAndGetSolution, isLoading: powLoading } = usePowCaptcha();
+
+  // Settings-based feature flags (handle both boolean and string values)
+  const googleAuthStatus = settings?.googleAuthStatus === true || settings?.googleAuthStatus === "true";
+  const verifyEmailStatus = settings?.verifyEmailStatus === true || settings?.verifyEmailStatus === "true";
 
   // Get referral code from URL or sessionStorage
   const urlRef = searchParams.get("ref") || "";
@@ -106,7 +108,6 @@ export default function RegisterForm({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
-  const [script, setScript] = useState<HTMLScriptElement | null>(null);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [passwordFeedback, setPasswordFeedback] = useState("");
   const [firstNameFocused, setFirstNameFocused] = useState(false);
@@ -117,57 +118,6 @@ export default function RegisterForm({
 
   // Track if Google button was clicked
   const googleButtonClicked = useRef(false);
-
-  // Initialize recaptcha if enabled
-  useEffect(() => {
-    if (typeof window !== "undefined" && recaptchaEnabled && recaptchaSiteKey) {
-      try {
-        // Check if script already exists
-        const existingScript = document.querySelector(`script[src*="recaptcha/api.js"]`);
-        if (existingScript) {
-          console.log("reCAPTCHA script already loaded");
-          return;
-        }
-
-        const scriptElement = document.createElement("script");
-        scriptElement.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`;
-        scriptElement.async = true;
-        scriptElement.defer = true;
-        document.body.appendChild(scriptElement);
-        setScript(scriptElement);
-
-        scriptElement.onload = () => {
-          console.log("reCAPTCHA script loaded successfully");
-          const { grecaptcha } = window as any;
-          if (grecaptcha) {
-            grecaptcha.ready(() => {
-              console.log("reCAPTCHA is ready for use");
-            });
-          }
-        };
-
-        scriptElement.onerror = () => {
-          console.error("Failed to load reCAPTCHA script");
-        };
-      } catch (err) {
-        console.error("Error loading reCAPTCHA:", err);
-      }
-    } else {
-      if (!recaptchaSiteKey && recaptchaEnabled) {
-        console.error("reCAPTCHA is enabled but site key is missing");
-      }
-    }
-
-    return () => {
-      if (script && script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-      const recaptchaContainer = document.querySelector(".grecaptcha-badge");
-      if (recaptchaContainer && recaptchaContainer.parentNode) {
-        recaptchaContainer.parentNode.removeChild(recaptchaContainer);
-      }
-    };
-  }, []);
 
   // Watch for errors from the store
   useEffect(() => {
@@ -327,64 +277,29 @@ export default function RegisterForm({
     setLocalLoading(true);
 
     try {
-      // Generate reCAPTCHA token if enabled
-      let recaptchaToken = null;
-      if (recaptchaEnabled && typeof window !== "undefined") {
-        try {
-          // Wait for grecaptcha to be available (max 5 seconds)
-          let attempts = 0;
-          const maxAttempts = 10;
-          while (attempts < maxAttempts) {
-            const { grecaptcha } = window as any;
-            if (grecaptcha && grecaptcha.ready) {
-              await new Promise((resolve) => {
-                grecaptcha.ready(() => {
-                  resolve(true);
-                });
-              });
-              recaptchaToken = await grecaptcha.execute(recaptchaSiteKey, {
-                action: "register",
-              });
-              console.log("reCAPTCHA token generated:", recaptchaToken ? "Success" : "Failed");
-              break;
-            }
-            attempts++;
-            if (attempts < maxAttempts) {
-              console.log(`Waiting for reCAPTCHA to load... Attempt ${attempts}/${maxAttempts}`);
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
-          }
-          
-          if (!recaptchaToken) {
-            console.error("reCAPTCHA not loaded after maximum attempts");
-            toast({
-              title: "reCAPTCHA Loading Error",
-              description: "reCAPTCHA failed to load. Please refresh the page and try again.",
-              variant: "destructive",
-            });
-            setLocalLoading(false);
-            return;
-          }
-        } catch (recaptchaError) {
-          console.error("reCAPTCHA error:", recaptchaError);
-          toast({
-            title: "reCAPTCHA Error",
-            description: "Failed to verify reCAPTCHA. Please try again.",
-            variant: "destructive",
-          });
-          setLocalLoading(false);
-          return;
-        }
+      // Solve PoW captcha if enabled
+      let powSolution = null;
+      try {
+        powSolution = await solveAndGetSolution("register");
+      } catch (powError) {
+        console.error("PoW captcha error:", powError);
+        toast({
+          title: "Security verification failed",
+          description: "Please try again.",
+          variant: "destructive",
+        });
+        setLocalLoading(false);
+        return;
       }
 
-      // Call register with reCAPTCHA token
-      const result = await registerWithRecaptcha({
+      // Call register with PoW solution
+      const result = await register({
         firstName,
         lastName,
         email,
         password,
         ref: refCode || undefined,
-        recaptchaToken,
+        powSolution: powSolution || undefined,
       });
 
       console.log("Registration result:", result);
@@ -408,10 +323,14 @@ export default function RegisterForm({
           }, 500); // Small delay to let the success toast show
         } else {
           // User needs to verify their email or registration successful but not logged in
-          const needsEmailVerification = process.env.NEXT_PUBLIC_VERIFY_EMAIL_STATUS === "true";
-          
+          // Check if the backend response indicates email verification is needed
+          const responseMessage = (result.data?.message || "").toLowerCase();
+          const needsVerification = responseMessage.includes("verify") ||
+                                    responseMessage.includes("verification") ||
+                                    responseMessage.includes("not verified");
+
           if (onRegistrationSuccess) {
-            onRegistrationSuccess(email, needsEmailVerification);
+            onRegistrationSuccess(email, needsVerification);
           } else {
             // Fallback to old behavior if onRegistrationSuccess is not provided
             toast({
@@ -457,154 +376,6 @@ export default function RegisterForm({
       });
     } finally {
       setLocalLoading(false);
-    }
-  };
-
-  // Helper function to call register with reCAPTCHA
-  const registerWithRecaptcha = async (userData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    ref?: string;
-    recaptchaToken: string | null;
-  }) => {
-    const { register } = useUserStore.getState();
-    
-    // If we have a recaptchaToken, use the direct API call with token
-    if (recaptchaEnabled && userData.recaptchaToken) {
-      useUserStore.setState({ isLoading: true, error: null });
-      
-      try {
-        const { data, error } = await $fetch({
-          url: "/api/auth/register",
-          method: "POST",
-          body: {
-            firstName: userData.firstName,
-            lastName: userData.lastName,
-            email: userData.email,
-            password: userData.password,
-            ref: userData.ref,
-            recaptchaToken: userData.recaptchaToken,
-          },
-        });
-
-        // First check if there's an explicit error
-        if (error) {
-          console.log("Registration error detected:", error);
-          useUserStore.setState({ error, isLoading: false });
-          return { success: false, data: null, userLoggedIn: false };
-        }
-
-        // Check if response data indicates an error (fallback for HTTP 200 with error content)
-        if (data && typeof data === "object") {
-          // If the response contains just a message without success indicators, check if it's an error or success
-          if (data.message && !data.cookies && !data.user && !data.accessToken) {
-            const messageText = data.message.toLowerCase();
-            
-            // Success patterns - messages that indicate successful operations
-            const successPatterns = [
-              'successful',
-              'success',
-              'verify your email',
-              'verification email sent',
-              'registered successfully',
-              'registration successful',
-              'created successfully',
-              'completed',
-              'sent',
-              'you have been registered successfully',
-              'you have been logged in successfully',
-              'email verified successfully',
-              'password reset successfully',
-              'email with reset instructions sent successfully',
-              'otp saved successfully',
-              'otp resent successfully',
-              'you have been logged out',
-              'user already registered but email not verified'
-            ];
-            
-            // Error patterns - messages that indicate errors
-            const errorPatterns = [
-              'already in use',
-              'not found',
-              'invalid',
-              'failed',
-              'error',
-              'denied',
-              'forbidden',
-              'unauthorized',
-              'expired',
-              'missing',
-              'required'
-            ];
-            
-            const looksLikeSuccess = successPatterns.some(pattern => messageText.includes(pattern));
-            const looksLikeError = errorPatterns.some(pattern => messageText.includes(pattern));
-            
-            if (looksLikeError) {
-              const errorMessage = data.message;
-              console.log("Registration failed - error message in response:", errorMessage);
-              useUserStore.setState({ error: errorMessage, isLoading: false });
-              return { success: false, data: null, userLoggedIn: false };
-            } else if (looksLikeSuccess) {
-              console.log("Registration succeeded - success message in response:", data.message);
-              useUserStore.setState({ isLoading: false, error: null });
-              return { success: true, data: data, userLoggedIn: false };
-            }
-            // If it's neither clearly success nor error, fall through to default handling
-          }
-          
-          // Check for explicit error fields
-          if (data.error || data.errors || data.success === false) {
-            const errorMessage = data.error || data.message || "Registration failed";
-            console.log("Registration failed - error fields in response:", errorMessage);
-            useUserStore.setState({ error: errorMessage, isLoading: false });
-            return { success: false, data: null, userLoggedIn: false };
-          }
-        }
-
-        // If the backend returns tokens, it means the user is logged in
-        if (data && data.cookies) {
-          // Try to fetch user profile after successful registration with tokens
-          try {
-            const { data: profileData, error: profileError } = await $fetch({
-              url: "/api/user/profile",
-              method: "GET",
-              silentSuccess: true,
-            });
-
-            if (profileData && !profileError) {
-              useUserStore.setState({
-                user: profileData,
-                isLoading: false,
-                error: null,
-              });
-              return { success: true, data: data, userLoggedIn: true };
-            }
-          } catch (profileFetchError) {
-            console.warn("Error fetching user profile after registration:", profileFetchError);
-          }
-        }
-
-        useUserStore.setState({ isLoading: false });
-        return { success: true, data: data, userLoggedIn: false };
-      } catch (error) {
-        useUserStore.setState({
-          error: error instanceof Error ? error.message : "Registration failed",
-          isLoading: false,
-        });
-        return { success: false, data: null, userLoggedIn: false };
-      }
-    } else {
-      // Use the store's register function if reCAPTCHA is disabled
-      return await register({
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email,
-        password: userData.password,
-        ref: userData.ref,
-      });
     }
   };
 
@@ -689,7 +460,7 @@ export default function RegisterForm({
 
   // Determine if button should show loading state
   const buttonLoading =
-    localLoading || (isLoading && googleButtonClicked.current);
+    localLoading || (isLoading && googleButtonClicked.current) || powLoading;
 
   // Check if all form conditions are met
   const isFormValid = () => {
@@ -1043,10 +814,6 @@ export default function RegisterForm({
             </span>
           )}
         </Button>
-
-        {recaptchaEnabled && (
-          <div id="recaptcha-container" className="hidden"></div>
-        )}
       </form>
 
       {googleAuthStatus && (

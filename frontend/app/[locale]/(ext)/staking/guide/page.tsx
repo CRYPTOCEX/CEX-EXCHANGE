@@ -51,7 +51,7 @@ export default function StakingGuidePage() {
         rightContent={
           <Link href="/staking/pool">
             <Button size="lg" className="bg-linear-to-r from-indigo-600 to-violet-600 hover:from-violet-700 hover:to-indigo-600 text-white font-semibold rounded-xl shadow-lg">
-              {t("start_staking")}
+              {tCommon("start_staking")}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>

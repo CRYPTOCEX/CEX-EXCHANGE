@@ -1,23 +1,73 @@
-import createMiddleware from "next-intl/middleware";
+/**
+ * i18n Middleware (Custom Implementation)
+ *
+ * Handles locale detection, validation, and routing without next-intl.
+ */
+
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { MiddlewareFactory } from "./stackHandler";
+import { config } from "../i18n/config";
 
-import { routing } from "../i18n/routing";
+/**
+ * Cookie configuration for locale persistence
+ */
+const LOCALE_COOKIE = {
+  name: "NEXT_LOCALE",
+  maxAge: 60 * 60 * 24 * 365, // 1 year
+  sameSite: "lax" as const,
+  path: "/",
+};
 
-// The `intlMiddleware` returned by `createMiddleware` always returns a NextResponse.
-// We need to differentiate between a redirect/early return and a `NextResponse.next()` signal.
+/**
+ * Extract locale from pathname
+ */
+function getLocaleFromPathname(pathname: string): string | null {
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments.length > 0 && config.locales.includes(segments[0])) {
+    return segments[0];
+  }
+  return null;
+}
+
+/**
+ * Get preferred locale from request
+ */
+function getPreferredLocale(request: NextRequest): string {
+  // Check cookie first
+  const savedLocale = request.cookies.get(LOCALE_COOKIE.name)?.value;
+  if (savedLocale && config.locales.includes(savedLocale)) {
+    return savedLocale;
+  }
+
+  // Fall back to Accept-Language header
+  const acceptLanguage = request.headers.get("accept-language");
+  if (acceptLanguage) {
+    const languages = acceptLanguage
+      .split(",")
+      .map((lang) => {
+        const [code, priority] = lang.trim().split(";q=");
+        return {
+          code: code.split("-")[0], // Get base language code
+          priority: priority ? parseFloat(priority) : 1,
+        };
+      })
+      .sort((a, b) => b.priority - a.priority);
+
+    for (const { code } of languages) {
+      if (config.locales.includes(code)) {
+        return code;
+      }
+    }
+  }
+
+  return config.defaultLocale;
+}
+
+/**
+ * i18n Middleware Factory
+ */
 export const i18nMiddleware: MiddlewareFactory = (next) => {
-  const intlMiddleware = createMiddleware({
-    ...routing,
-    localeDetection: true, // Enable locale detection
-    localePrefix: "always", // Always use locale prefix
-    localeCookie: {
-      name: "NEXT_LOCALE", // Cookie name for persisting locale
-      maxAge: 60 * 60 * 24 * 365, // 1 year
-      sameSite: "lax",
-    },
-  });
-
   return async (request, event) => {
     const { pathname } = request.nextUrl;
 
@@ -44,48 +94,74 @@ export const i18nMiddleware: MiddlewareFactory = (next) => {
 
     // Handle root path redirect explicitly with cookie support
     if (pathname === "/") {
-      // Check for saved locale in cookie first
-      const savedLocale = request.cookies.get("NEXT_LOCALE")?.value;
-      
-      let preferredLocale = routing.defaultLocale;
-      
-      if (savedLocale && routing.locales.includes(savedLocale as any)) {
-        // Use saved locale from cookie if valid
-        preferredLocale = savedLocale;
-      } else {
-        // Fall back to browser language detection
-        const acceptLanguage = request.headers.get("accept-language");
-        if (acceptLanguage) {
-          const browserLang = acceptLanguage.split(",")[0]?.split("-")[0];
-          if (browserLang && routing.locales.includes(browserLang as any)) {
-            preferredLocale = browserLang;
-          }
-        }
-      }
-      
-      const response = NextResponse.redirect(new URL(`/${preferredLocale}`, request.url));
-      
-      // Set cookie if it's different from current saved locale
-      if (savedLocale !== preferredLocale) {
-        response.cookies.set("NEXT_LOCALE", preferredLocale, {
-          maxAge: 60 * 60 * 24 * 365, // 1 year
-          sameSite: "lax",
-          path: "/",
-        });
-      }
-      
+      const preferredLocale = getPreferredLocale(request);
+
+      const response = NextResponse.redirect(
+        new URL(`/${preferredLocale}`, request.url)
+      );
+
+      // Set cookie
+      response.cookies.set(LOCALE_COOKIE.name, preferredLocale, {
+        maxAge: LOCALE_COOKIE.maxAge,
+        sameSite: LOCALE_COOKIE.sameSite,
+        path: LOCALE_COOKIE.path,
+      });
+
       return response;
     }
-    
-    const response = await intlMiddleware(request);
 
-    // Check if we're meant to continue to the next middleware.
-    // `NextResponse.next()` sets the `x-middleware-next` header.
-    if (response.headers.get("x-middleware-next")) {
+    // Get locale from pathname
+    const pathnameLocale = getLocaleFromPathname(pathname);
+
+    // If pathname has a valid locale
+    if (pathnameLocale) {
+      // Update cookie if locale changed
+      const savedLocale = request.cookies.get(LOCALE_COOKIE.name)?.value;
+
+      if (savedLocale !== pathnameLocale) {
+        // Create response and continue to next middleware
+        const response = next(request, event);
+
+        // If next middleware returns a response, add cookie to it
+        if (response instanceof NextResponse) {
+          response.cookies.set(LOCALE_COOKIE.name, pathnameLocale, {
+            maxAge: LOCALE_COOKIE.maxAge,
+            sameSite: LOCALE_COOKIE.sameSite,
+            path: LOCALE_COOKIE.path,
+          });
+          return response;
+        }
+
+        // Otherwise, create a new response with the cookie
+        const nextResponse = NextResponse.next();
+        nextResponse.cookies.set(LOCALE_COOKIE.name, pathnameLocale, {
+          maxAge: LOCALE_COOKIE.maxAge,
+          sameSite: LOCALE_COOKIE.sameSite,
+          path: LOCALE_COOKIE.path,
+        });
+
+        // Set header to signal we should continue to next middleware
+        nextResponse.headers.set("x-middleware-next", "1");
+        return nextResponse;
+      }
+
+      // Locale matches cookie, continue to next middleware
       return next(request, event);
     }
 
-    // If there's no `x-middleware-next`, then this is a redirect or rewrite from i18n middleware.
+    // No locale in pathname - redirect to add locale prefix
+    const preferredLocale = getPreferredLocale(request);
+    const newPathname = `/${preferredLocale}${pathname}`;
+    const redirectUrl = new URL(newPathname, request.url);
+    redirectUrl.search = request.nextUrl.search; // Preserve query params
+
+    const response = NextResponse.redirect(redirectUrl);
+    response.cookies.set(LOCALE_COOKIE.name, preferredLocale, {
+      maxAge: LOCALE_COOKIE.maxAge,
+      sameSite: LOCALE_COOKIE.sameSite,
+      path: LOCALE_COOKIE.path,
+    });
+
     return response;
   };
 };

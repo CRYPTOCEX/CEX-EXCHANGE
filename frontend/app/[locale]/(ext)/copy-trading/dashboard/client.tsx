@@ -230,7 +230,7 @@ export default function DashboardPage() {
       params.set("tab", tab);
     }
     const query = params.toString();
-    router.replace(`${pathname}${query ? `?${query}` : ""}`, { scroll: false });
+    router.replace(`${pathname}${query ? `?${query}` : ""}`);
   };
 
   const [editForm, setEditForm] = useState<EditForm>({
@@ -989,7 +989,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
                   <span className="flex items-center gap-1.5">
                     <Calendar className="h-4 w-4" />
-                    {daysActive} {t("days_active")}
+                    {daysActive} {tCommon("days_active")}
                   </span>
                   <span className="flex items-center gap-1.5">
                     <Globe className="h-4 w-4" />
@@ -1151,7 +1151,7 @@ export default function DashboardPage() {
               <CardContent className="p-5 h-[140px] flex flex-col">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                    {tExt("total_trades")}
+                    {tCommon("total_trades")}
                   </span>
                   <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-500/20">
                     <Activity className="h-4 w-4 text-amber-600 dark:text-amber-400" />
@@ -1236,7 +1236,7 @@ export default function DashboardPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">
-                    {tExt("total_volume")}
+                    {tCommon("total_volume")}
                   </p>
                   <div className="text-3xl font-bold text-zinc-900 dark:text-white">
                     {formatAllocation(leaderProfile.totalVolume, "USDT")}

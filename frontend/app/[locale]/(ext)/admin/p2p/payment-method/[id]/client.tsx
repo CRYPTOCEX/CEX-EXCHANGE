@@ -276,10 +276,9 @@ export default function PaymentMethodEditClient({ id }: PaymentMethodEditClientP
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete Payment Method?</AlertDialogTitle>
+                <AlertDialogTitle>{t("delete_payment_method")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete this
-                  payment method and remove it from all offers.
+                  {t("this_action_cannot_be_undone")}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -302,9 +301,9 @@ export default function PaymentMethodEditClient({ id }: PaymentMethodEditClientP
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
+                <CardTitle>{t("basic_information")}</CardTitle>
                 <CardDescription>
-                  General details about the payment method
+                  {t("general_details_about_the_payment_method")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -315,7 +314,7 @@ export default function PaymentMethodEditClient({ id }: PaymentMethodEditClientP
                       id="name"
                       value={formData.name}
                       onChange={(e) => handleChange("name", e.target.value)}
-                      placeholder="e.g., PayPal, Bank Transfer"
+                      placeholder={t("eg") + ", " + t("paypal_bank_transfer")}
                       required
                     />
                   </div>
@@ -330,7 +329,7 @@ export default function PaymentMethodEditClient({ id }: PaymentMethodEditClientP
                       min="0"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Lower numbers appear first
+                      {t("lower_numbers_appear_first")}
                     </p>
                   </div>
                 </div>
@@ -341,7 +340,7 @@ export default function PaymentMethodEditClient({ id }: PaymentMethodEditClientP
                     id="description"
                     value={formData.description}
                     onChange={(e) => handleChange("description", e.target.value)}
-                    placeholder="Brief description of this payment method"
+                    placeholder={t("brief_description_of_this_payment_method")}
                     rows={2}
                   />
                 </div>
@@ -352,7 +351,7 @@ export default function PaymentMethodEditClient({ id }: PaymentMethodEditClientP
                     id="instructions"
                     value={formData.instructions}
                     onChange={(e) => handleChange("instructions", e.target.value)}
-                    placeholder="Detailed instructions for users on how to use this payment method"
+                    placeholder={t("detailed_instructions_for_users_on_how")}
                     rows={3}
                   />
                 </div>
@@ -364,7 +363,7 @@ export default function PaymentMethodEditClient({ id }: PaymentMethodEditClientP
                       id="processingTime"
                       value={formData.processingTime}
                       onChange={(e) => handleChange("processingTime", e.target.value)}
-                      placeholder="e.g., 5-10 minutes, Instant"
+                      placeholder={t("eg") + ", " + t("n_5_10_minutes_instant")}
                     />
                   </div>
                   <div className="space-y-2">
@@ -373,7 +372,7 @@ export default function PaymentMethodEditClient({ id }: PaymentMethodEditClientP
                       id="fees"
                       value={formData.fees}
                       onChange={(e) => handleChange("fees", e.target.value)}
-                      placeholder="e.g., Free, 1%"
+                      placeholder={t("eg") + ", " + t("free_1")}
                     />
                   </div>
                 </div>
@@ -385,7 +384,7 @@ export default function PaymentMethodEditClient({ id }: PaymentMethodEditClientP
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Payment Details</CardTitle>
+                    <CardTitle>{t("payment_details")}</CardTitle>
                     <CardDescription>
                       Custom fields for payment information (e.g., Account Number, Email, Phone)
                     </CardDescription>
@@ -397,15 +396,15 @@ export default function PaymentMethodEditClient({ id }: PaymentMethodEditClientP
                     onClick={handleAddMetadataField}
                   >
                     <Plus className="h-4 w-4 mr-1" />
-                    Add Field
+                    {t("add_field")}
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
                 {metadataFields.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    <p>No payment details configured.</p>
-                    <p className="text-sm">Click "Add Field" to add custom payment details like account numbers, emails, etc.</p>
+                    <p>{t("no_payment_details_configured")}</p>
+                    <p className="text-sm">{t("click_add_field_to_add_custom")}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -448,14 +447,14 @@ export default function PaymentMethodEditClient({ id }: PaymentMethodEditClientP
               <CardHeader>
                 <CardTitle>Icon</CardTitle>
                 <CardDescription>
-                  Upload an icon for this payment method
+                  {t('upload_an_icon_for_this_payment')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ImageUpload
                   onChange={(file) => setIconFile(file)}
                   value={iconFile}
-                  title="Payment Method Icon"
+                  title={t("payment_method_icon")}
                   size="md"
                   aspectRatio="square"
                   maxSize={1}
@@ -473,7 +472,7 @@ export default function PaymentMethodEditClient({ id }: PaymentMethodEditClientP
                   <div>
                     <Label>Available</Label>
                     <p className="text-xs text-muted-foreground">
-                      Users can select this payment method
+                      {t("users_can_select_this_payment_method")}
                     </p>
                   </div>
                   <Switch

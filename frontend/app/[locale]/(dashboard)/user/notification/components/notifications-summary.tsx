@@ -202,7 +202,7 @@ export function NotificationsSummary({
             <Sparkles className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-xl font-bold">AI-Generated Summary</h2>
+            <h2 className="text-xl font-bold">{t("ai_generated_summary")}</h2>
             <p className="text-sm text-muted-foreground">
               {tCommon('last_updated')}:{" "}
               {format(new Date(summaryData.generatedAt), "MMM d, yyyy h:mm a")}
@@ -249,7 +249,7 @@ export function NotificationsSummary({
             <CardHeader>
               <CardTitle>{t("notification_summary")}</CardTitle>
               <CardDescription>
-                AI-generated overview of your notifications
+                {t("ai_generated_overview_of_your_notifications")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -462,7 +462,7 @@ export function NotificationsSummary({
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <CheckCircle className="h-12 w-12 text-green-500 mb-2" />
-                    <h3 className="text-lg font-medium">{t("all_caught_up")}</h3>
+                    <h3 className="text-lg font-medium">{tCommon("all_caught_up")}</h3>
                     <p className="text-sm text-muted-foreground mt-1">
                       {t("no_action_items_needed_at_this_time")}
                     </p>

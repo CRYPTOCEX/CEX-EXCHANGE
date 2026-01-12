@@ -224,6 +224,8 @@ const badgeVariants = {
 };
 
 export function FullScreenEditor({ pageId }: FullScreenEditorProps) {
+  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   const tDashboard = useTranslations("dashboard");
   const router = useRouter();
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -566,7 +568,7 @@ export function FullScreenEditor({ pageId }: FullScreenEditorProps) {
           >
             <Loader2 className="h-8 w-8 text-primary" />
           </motion.div>
-          <p className="text-muted-foreground">Loading editor...</p>
+          <p className="text-muted-foreground">{t("loading_editor_ellipsis")}</p>
         </motion.div>
       </div>
     );
@@ -581,11 +583,11 @@ export function FullScreenEditor({ pageId }: FullScreenEditorProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <p className="text-muted-foreground">Failed to load page content</p>
+          <p className="text-muted-foreground">{t("failed_to_load_page_content")}</p>
           <Link href="/admin/default-editor">
             <Button variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Pages
+              {t("back_to_pages")}
             </Button>
           </Link>
         </motion.div>
@@ -622,7 +624,7 @@ export function FullScreenEditor({ pageId }: FullScreenEditorProps) {
                     <FileText className="h-5 w-5 text-primary" />
                   </motion.div>
                   <div>
-                    <h2 className="font-semibold text-sm">Page Editor</h2>
+                    <h2 className="font-semibold text-sm">{t("page_editor")}</h2>
                     <p className="text-xs text-muted-foreground truncate max-w-35">
                       {pageContent.title}
                     </p>
@@ -645,7 +647,7 @@ export function FullScreenEditor({ pageId }: FullScreenEditorProps) {
                   {isHomePage && (
                     <div className="px-3">
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
-                        Page Sections
+                        {t("page_sections")}
                       </p>
                       <nav className="space-y-1.5">
                         {SECTIONS.map((section, index) => {
@@ -717,7 +719,7 @@ export function FullScreenEditor({ pageId }: FullScreenEditorProps) {
                         >
                           <FileText className="h-4 w-4 shrink-0" />
                           <span className="flex-1 text-left font-medium">
-                            Page Content
+                            {t("page_content")}
                           </span>
                           <AnimatePresence>
                             {activeSection === "content" && (
@@ -753,8 +755,7 @@ export function FullScreenEditor({ pageId }: FullScreenEditorProps) {
                             </span>
                           </div>
                           <p className="text-xs text-muted-foreground mb-3">
-                            Generate a professional {templateType} page with our
-                            wizard
+                            {t("generate_a_professional")} {templateType} {t("page_with_our_wizard")}
                           </p>
                           <Button
                             onClick={() => setShowTemplateWizard(true)}
@@ -763,7 +764,7 @@ export function FullScreenEditor({ pageId }: FullScreenEditorProps) {
                             className="w-full gap-2"
                           >
                             <Sparkles className="w-3 h-3" />
-                            Use Template
+                            {t("use_template")}
                           </Button>
                         </motion.div>
                       )}
@@ -776,7 +777,7 @@ export function FullScreenEditor({ pageId }: FullScreenEditorProps) {
               <div className="border-t bg-muted/20">
                 <div className="px-3 py-3">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                    Page Settings
+                    {t("page_settings")}
                   </p>
                   <nav className="space-y-1">
                     {META_SECTIONS.map((section) => {
@@ -887,7 +888,7 @@ export function FullScreenEditor({ pageId }: FullScreenEditorProps) {
                     variant="outline"
                     className="text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/30"
                   >
-                    Unsaved Changes
+                    {tCommon("unsaved_changes")}
                   </Badge>
                 </motion.div>
               )}
@@ -959,7 +960,7 @@ export function FullScreenEditor({ pageId }: FullScreenEditorProps) {
                     >
                       <RefreshCw className="h-4 w-4" />
                     </motion.div>
-                    <span className="hidden sm:inline">Saving...</span>
+                    <span className="hidden sm:inline">{tCommon("saving")}</span>
                   </>
                 ) : (
                   <>
@@ -1069,7 +1070,7 @@ function MetaEditor({
       transition={{ delay: 0.1 }}
     >
       <div>
-        <h3 className="text-lg font-semibold mb-2">SEO Settings</h3>
+        <h3 className="text-lg font-semibold mb-2">{t("seo_settings")}</h3>
         <p className="text-sm text-muted-foreground mb-6">
           {t("optimize_your_page_for_search_engines")}
         </p>
@@ -1082,7 +1083,7 @@ function MetaEditor({
           transition={{ delay: 0.15 }}
         >
           <Label htmlFor="seoTitle" className="text-base font-medium">
-            SEO Title
+            {t("seo_title")}
           </Label>
           <Input
             id="seoTitle"
@@ -1102,7 +1103,7 @@ function MetaEditor({
           transition={{ delay: 0.2 }}
         >
           <Label htmlFor="seoDescription" className="text-base font-medium">
-            SEO Description
+            {t("seo_description")}
           </Label>
           <Textarea
             id="seoDescription"
@@ -1141,7 +1142,7 @@ function MetaEditor({
             className="mt-1.5"
           />
           <p className="text-xs text-muted-foreground mt-1">
-            Separate keywords with commas
+            {t("separate_keywords_with_commas")}
           </p>
         </motion.div>
       </div>
@@ -1169,9 +1170,9 @@ function SettingsEditor({
       transition={{ delay: 0.1 }}
     >
       <div>
-        <h3 className="text-lg font-semibold mb-2">Page Settings</h3>
+        <h3 className="text-lg font-semibold mb-2">{t("page_settings")}</h3>
         <p className="text-sm text-muted-foreground mb-6">
-          Configure general page settings
+          {t("configure_general_page_settings")}
         </p>
       </div>
 

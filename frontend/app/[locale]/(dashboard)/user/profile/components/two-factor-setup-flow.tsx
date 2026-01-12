@@ -508,7 +508,7 @@ export function TwoFactorSetupFlow({
                     {qrCodeUrl ? (
                       <img
                         src={qrCodeUrl || "/placeholder.svg"}
-                        alt="QR Code for authenticator app"
+                        alt={t("qr_code_for_authenticator_app")}
                         className="h-48 w-48"
                       />
                     ) : (

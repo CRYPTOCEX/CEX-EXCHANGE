@@ -227,8 +227,8 @@ export function useFormConfig(): FormConfig {
           priority: 1,
           fields: [
             { key: "offerId", required: true },
-            { key: "buyer", required: true },
-            { key: "seller", required: true },
+            { key: "buyer", required: true, compoundKey: "buyer" },
+            { key: "seller", required: true, compoundKey: "seller" },
           ],
         },
         {
@@ -346,8 +346,8 @@ export function useFormConfig(): FormConfig {
           priority: 1,
           fields: [
             { key: "offerId", required: true },
-            { key: "buyer", required: true },
-            { key: "seller", required: true },
+            { key: "buyer", required: true, compoundKey: "buyer" },
+            { key: "seller", required: true, compoundKey: "seller" },
           ],
         },
         {

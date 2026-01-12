@@ -123,6 +123,7 @@ function CategoryCard({
   index: number;
   onClick?: () => void;
 }) {
+  const t = useTranslations("ext_faq");
   const IconComponent = iconMap[category.icon] || HelpCircle;
   const colors = colorMap[category.name.toLowerCase()] || defaultColors;
 
@@ -166,7 +167,7 @@ function CategoryCard({
 
         {/* Arrow */}
         <div className="mt-3 flex items-center text-sm font-medium text-zinc-400 group-hover:text-sky-500 transition-colors">
-          Browse articles
+          {t("browse_articles")}
           <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
         </div>
       </button>
@@ -220,7 +221,7 @@ export default function CategoryCardsSection({
             </span>
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white mb-4">
-            {t("explore_by") || "Explore by"}{" "}
+            {tCommon("explore_by") || "Explore by"}{" "}
             <span className="bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">
               {tCommon("category") || "Category"}
             </span>

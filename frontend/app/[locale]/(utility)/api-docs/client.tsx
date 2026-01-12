@@ -29,8 +29,11 @@ import { useOpenAPI } from "./hooks/use-openapi";
 import { Sidebar } from "./components/sidebar";
 import { EndpointDetail } from "./components/endpoint-detail";
 import { APIPlayground } from "./components/api-playground";
+import { useTranslations } from "next-intl";
 
 export default function APIDocsClient() {
+  const t = useTranslations("utility_api-docs");
+  const tCommon = useTranslations("common");
   const [baseUrl, setBaseUrl] = useState("");
   const { theme, setTheme } = useTheme();
 
@@ -79,9 +82,9 @@ export default function APIDocsClient() {
         <div className="text-center space-y-4">
           <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
           <div>
-            <h2 className="text-lg font-semibold">Loading API Documentation</h2>
+            <h2 className="text-lg font-semibold">{t("loading_api_documentation")}</h2>
             <p className="text-muted-foreground text-sm">
-              Fetching OpenAPI specification...
+              {t("fetching_openapi_specification_ellipsis")}
             </p>
           </div>
         </div>
@@ -100,9 +103,9 @@ export default function APIDocsClient() {
                 <AlertCircle className="h-6 w-6 text-red-500" />
               </div>
               <div>
-                <CardTitle>Failed to Load Documentation</CardTitle>
+                <CardTitle>{t("failed_to_load_documentation")}</CardTitle>
                 <CardDescription>
-                  Unable to fetch the API specification
+                  {t("unable_to_fetch_the_api_specification")}
                 </CardDescription>
               </div>
             </div>
@@ -111,7 +114,7 @@ export default function APIDocsClient() {
             <p className="text-sm text-muted-foreground">{error}</p>
             <Button onClick={refetch} className="w-full">
               <RefreshCw className="h-4 w-4 mr-2" />
-              Try Again
+              {tCommon("try_again")}
             </Button>
           </CardContent>
         </Card>
@@ -134,7 +137,7 @@ export default function APIDocsClient() {
               <BookOpen className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="font-semibold">API Documentation</h1>
+              <h1 className="font-semibold">{tCommon("api_documentation")}</h1>
               {spec?.info?.version && (
                 <p className="text-xs text-muted-foreground">
                   v{spec.info.version}
@@ -280,7 +283,7 @@ export default function APIDocsClient() {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Server className="h-5 w-5" />
-                        Base URL
+                        {t("base_url")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -295,10 +298,10 @@ export default function APIDocsClient() {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Zap className="h-5 w-5" />
-                        Getting Started
+                        {tCommon("getting_started")}
                       </CardTitle>
                       <CardDescription>
-                        Quick steps to start using the API
+                        {t("quick_steps_to_start_using_the_api")}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -311,8 +314,7 @@ export default function APIDocsClient() {
                             <h3 className="font-medium">Authentication</h3>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Get your API key from the settings and include it in
-                            the X-API-Key header for all requests.
+                            {t("get_your_api_key_from_the")}
                           </p>
                         </div>
                         <div className="p-4 rounded-lg border bg-card">
@@ -320,11 +322,10 @@ export default function APIDocsClient() {
                             <div className="p-2 rounded-lg bg-primary/10 text-primary font-bold">
                               2
                             </div>
-                            <h3 className="font-medium">Explore Endpoints</h3>
+                            <h3 className="font-medium">{t("explore_endpoints")}</h3>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Browse the sidebar to find endpoints. Use search and
-                            filters to quickly locate what you need.
+                            {t("browse_the_sidebar_to_find_endpoints")}
                           </p>
                         </div>
                         <div className="p-4 rounded-lg border bg-card">
@@ -332,11 +333,10 @@ export default function APIDocsClient() {
                             <div className="p-2 rounded-lg bg-primary/10 text-primary font-bold">
                               3
                             </div>
-                            <h3 className="font-medium">Test & Integrate</h3>
+                            <h3 className="font-medium">{t("test_integrate")}</h3>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Use the API Playground to test endpoints, then copy
-                            generated code to your application.
+                            {t("use_the_api_playground_to_test")}
                           </p>
                         </div>
                       </div>
@@ -348,30 +348,27 @@ export default function APIDocsClient() {
                     <Card className="bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/20">
                       <CardContent className="pt-6">
                         <Code2 className="h-8 w-8 text-blue-500 mb-3" />
-                        <h3 className="font-semibold mb-1">Code Generation</h3>
+                        <h3 className="font-semibold mb-1">{t("code_generation")}</h3>
                         <p className="text-sm text-muted-foreground">
-                          Generate code snippets in cURL, JavaScript, Python, PHP,
-                          Go, and Ruby.
+                          {t("generate_code_snippets_in_curl_javascript")}
                         </p>
                       </CardContent>
                     </Card>
                     <Card className="bg-gradient-to-br from-green-500/10 to-transparent border-green-500/20">
                       <CardContent className="pt-6">
                         <Zap className="h-8 w-8 text-green-500 mb-3" />
-                        <h3 className="font-semibold mb-1">API Playground</h3>
+                        <h3 className="font-semibold mb-1">{t("api_playground")}</h3>
                         <p className="text-sm text-muted-foreground">
-                          Test endpoints directly from the browser with real-time
-                          responses.
+                          {t("test_endpoints_directly_from_the_browser")}
                         </p>
                       </CardContent>
                     </Card>
                     <Card className="bg-gradient-to-br from-purple-500/10 to-transparent border-purple-500/20">
                       <CardContent className="pt-6">
                         <Search className="h-8 w-8 text-purple-500 mb-3" />
-                        <h3 className="font-semibold mb-1">Smart Search</h3>
+                        <h3 className="font-semibold mb-1">{t("smart_search")}</h3>
                         <p className="text-sm text-muted-foreground">
-                          Quickly find endpoints by path, method, tags, or
-                          description.
+                          {t("quickly_find_endpoints_by_path_method")}
                         </p>
                       </CardContent>
                     </Card>

@@ -14,6 +14,7 @@ import { ExtensionChecker } from "@/lib/extensions";
 import FloatingChatProvider from "@/components/global/floating-chat-provider";
 import { useSettingsSync } from "@/hooks/use-settings-sync";
 import applyGoogleTranslateDOMPatch from "@/utils/applyGoogleTranslateDOMPatch";
+import { LazyMotionProvider } from "@/components/motion";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -110,10 +111,10 @@ function GlobalErrorHandler() {
 // Font and radius utilities hook
 export const useFontClasses = () => {
   const { radius } = useThemeStore();
-  
+
   return {
     className: `${geistSans.variable} ${geistMono.variable} antialiased`,
-    style: { "--radius": `${radius}rem` } as React.CSSProperties
+    style: { "--radius": `${radius}rem` } as React.CSSProperties,
   };
 };
 
@@ -131,12 +132,13 @@ const Providers = ({
   ) as "light" | "dark" | "system";
 
   return (
-      <ThemeProvider
-        attribute="class"
-        enableSystem={defaultTheme === "system"}
-        defaultTheme={defaultTheme}
-        disableTransitionOnChange={true}
-      >
+    <ThemeProvider
+      attribute="class"
+      enableSystem={defaultTheme === "system"}
+      defaultTheme={defaultTheme}
+      disableTransitionOnChange={true}
+    >
+      <LazyMotionProvider features="full">
         <ConfigInitializer
           profile={profile}
           settings={settings}
@@ -154,7 +156,8 @@ const Providers = ({
           </>
         )}
         <Toaster />
-      <GlobalErrorHandler />
+        <GlobalErrorHandler />
+      </LazyMotionProvider>
     </ThemeProvider>
   );
 };

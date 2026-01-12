@@ -305,7 +305,7 @@ export function VestingTab({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="p-4 bg-muted rounded-lg">
             <p className="text-sm text-muted-foreground mb-1">
-              TGE Circulating Supply
+              {t("tge_circulating_supply")}
             </p>
             <p className="font-medium">
               {formatNumber(vestingReleaseData[0]?.circulatingSupply || 0)}

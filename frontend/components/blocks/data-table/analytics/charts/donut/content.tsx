@@ -18,7 +18,7 @@ function ContentImpl({
   total,
 }: ContentProps) {
   return (
-    <div className="relative flex-1 min-h-[200px] sm:min-h-[300px]">
+    <div className="relative h-[200px] md:h-[240px]">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
@@ -35,6 +35,7 @@ function ContentImpl({
               setActiveSegment(data[index].id)
             }
             onMouseLeave={() => setActiveSegment(null)}
+            style={{}}
           >
             {data.map((entry) => (
               <Cell
@@ -42,6 +43,7 @@ function ContentImpl({
                 fill={getColor(entry.color)}
                 stroke="hsl(var(--background))"
                 strokeWidth={2}
+                style={{}}
               />
             ))}
           </Pie>

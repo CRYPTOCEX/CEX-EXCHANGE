@@ -22,6 +22,8 @@ const ConditionalLayoutProvider = ({
     "/affiliate",
     "/ecommerce",
     "/faq",
+    "/binary", // Binary trading has its own full-screen layout
+    "/trade", // Trade page has its own full-screen layout
   ];
 
   // Check if current path is in the (ext) route group

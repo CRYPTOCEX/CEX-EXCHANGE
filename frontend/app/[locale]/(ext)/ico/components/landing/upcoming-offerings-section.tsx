@@ -39,6 +39,7 @@ function OfferingCard({
   offering: UpcomingOffering;
   index: number;
 }) {
+  const t = useTranslations("ext_ico");
   const gradient = { from: "#14b8a6", to: "#06b6d4" };
 
   return (
@@ -110,7 +111,7 @@ function OfferingCard({
         {/* Target */}
         <div className="flex items-center justify-between mb-4 p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50">
           <span className="text-xs text-zinc-500 dark:text-zinc-400">
-            Target Raise
+            {t("target_raise")}
           </span>
           <span className="text-sm font-bold text-zinc-900 dark:text-white">
             ${offering.targetAmount.toLocaleString()}
@@ -137,7 +138,7 @@ function OfferingCard({
             className="w-full rounded-xl group/btn border-teal-500/30 hover:border-teal-500 hover:bg-teal-500/5"
           >
             <Bell className="w-4 h-4 mr-2 text-teal-500" />
-            Get Notified
+            {t("get_notified")}
             <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
           </Button>
         </Link>
@@ -240,7 +241,7 @@ export default function UpcomingOfferingsSection({
                 variant="outline"
                 className="rounded-xl border-2 border-zinc-300 dark:border-zinc-700 hover:border-teal-500 dark:hover:border-teal-500"
               >
-                View All Upcoming
+                {t("view_all_upcoming")}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>

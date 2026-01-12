@@ -21,7 +21,7 @@ export function useAnalytics() {
         items: [
           {
             id: "total_positions",
-            title: t("total_positions"),
+            title: tCommon("total_positions"),
             metric: "total",
             model: "position",
             icon: "mdi:finance",

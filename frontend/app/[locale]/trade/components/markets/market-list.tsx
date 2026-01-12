@@ -22,6 +22,7 @@ interface MarketListProps {
   marketType: "spot" | "eco" | "futures";
   onSortVolume?: (e: React.MouseEvent) => void;
   onSortPrice?: (e: React.MouseEvent) => void;
+  isInWatchlist?: (symbol: string) => boolean;
 }
 
 export function MarketList({
@@ -33,6 +34,7 @@ export function MarketList({
   marketType,
   onSortVolume,
   onSortPrice,
+  isInWatchlist,
 }: MarketListProps) {
   if (isLoading) {
     return <SkeletonMarkets />;
@@ -46,7 +48,7 @@ export function MarketList({
     <div className="flex flex-col">
       {markets.map((market, index) => (
         <MarketItem
-          key={index}
+          key={market.symbol}
           market={market}
           isSelected={market.symbol === selectedMarket}
           onSelect={onMarketSelect}
@@ -54,6 +56,8 @@ export function MarketList({
           marketType={marketType}
           onSortVolume={onSortVolume}
           onSortPrice={onSortPrice}
+          index={index}
+          isInWatchlist={isInWatchlist ? isInWatchlist(market.symbol) : !!market.type}
         />
       ))}
       {/* Add empty rows to fill space if needed */}

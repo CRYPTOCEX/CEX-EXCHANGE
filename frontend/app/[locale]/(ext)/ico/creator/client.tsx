@@ -63,7 +63,7 @@ export default function CreatorDashboardClient() {
     setActiveTab(newTab);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", newTab);
-    router.push(`?${params.toString()}`, { scroll: false });
+    router.push(`?${params.toString()}`);
   };
 
   useEffect(() => {

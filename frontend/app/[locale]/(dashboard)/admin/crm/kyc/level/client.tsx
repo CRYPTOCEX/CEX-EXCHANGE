@@ -514,7 +514,7 @@ export default function LevelsClient() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">KYC Verification Levels</h1>
+          <h1 className="text-3xl font-bold">{t("kyc_verification_levels")}</h1>
           <p className="text-muted-foreground mt-1">
             {t("manage_your_kyc_and_requirements")}
           </p>
@@ -649,7 +649,7 @@ export default function LevelsClient() {
                 indicatorClassName="bg-purple-500"
               />
               <p className="text-xs text-muted-foreground mt-2">
-                {t("avg_1")} {stats.averageFields} {t("fields_per_level")}
+                {tCommon("avg")} {stats.averageFields} {t("fields_per_level")}
               </p>
             </div>
           </CardContent>

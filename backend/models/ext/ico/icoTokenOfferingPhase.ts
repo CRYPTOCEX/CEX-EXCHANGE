@@ -10,6 +10,8 @@ export interface icoTokenOfferingPhaseAttributes {
   remaining: number;
   duration: number;
   sequence: number;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 export interface icoTokenOfferingPhaseCreationAttributes
@@ -30,6 +32,8 @@ export default class icoTokenOfferingPhase
   remaining!: number;
   duration!: number;
   sequence!: number;
+  startDate?: Date;
+  endDate?: Date;
 
   public static initModel(
     sequelize: Sequelize.Sequelize
@@ -100,6 +104,14 @@ export default class icoTokenOfferingPhase
             isInt: { msg: "sequence: Must be an integer" },
             min: { args: [0], msg: "sequence: Cannot be negative" },
           },
+        },
+        startDate: {
+          type: DataTypes.DATE,
+          allowNull: true,
+        },
+        endDate: {
+          type: DataTypes.DATE,
+          allowNull: true,
         },
       },
       {

@@ -11,6 +11,7 @@ import {
   useAdminGatewayMode,
 } from "./context/admin-gateway-mode";
 import { menu, colorSchema } from "./menu";
+import { LicenseGate } from "@/components/license/LicenseGate";
 
 function AdminModeToggle() {
   const { mode, setMode, isTestMode } = useAdminGatewayMode();
@@ -57,6 +58,8 @@ function GatewayAdminLayoutContent({
         rightControls={<AdminModeToggle />}
         colorSchema={colorSchema}
         userPath="/gateway"
+        translationNamespace="ext_admin_gateway"
+        translationNavPrefix="nav"
       />
       <main className="flex-1">{children}</main>
       <Footer />
@@ -70,8 +73,10 @@ export default function AdminGatewayLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AdminGatewayModeProvider>
-      <GatewayAdminLayoutContent>{children}</GatewayAdminLayoutContent>
-    </AdminGatewayModeProvider>
+    <LicenseGate extensionName="gateway">
+      <AdminGatewayModeProvider>
+        <GatewayAdminLayoutContent>{children}</GatewayAdminLayoutContent>
+      </AdminGatewayModeProvider>
+    </LicenseGate>
   );
 }

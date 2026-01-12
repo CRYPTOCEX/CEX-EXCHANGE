@@ -103,11 +103,11 @@ export default function AnswerQuestionClient() {
       <div className="container mx-auto pb-8 pt-20">
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground">Question not found</p>
+            <p className="text-muted-foreground">{t("question_not_found")}</p>
             <Button asChild className="mt-4">
               <Link href="/admin/faq/question">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Questions
+                {t("back_to_questions")}
               </Link>
             </Button>
           </CardContent>
@@ -128,7 +128,7 @@ export default function AnswerQuestionClient() {
         <div>
           <h1 className="text-2xl font-bold">{t("answer_question")}</h1>
           <p className="text-muted-foreground">
-            Provide a helpful answer to the user's question
+            {t("provide_a_helpful_answer_to_the_users_question")}
           </p>
         </div>
       </div>
@@ -197,12 +197,12 @@ export default function AnswerQuestionClient() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
+                  {tCommon("sending_ellipsis")}
                 </>
               ) : (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  Send Answer
+                  {t("send_answer")}
                 </>
               )}
             </Button>

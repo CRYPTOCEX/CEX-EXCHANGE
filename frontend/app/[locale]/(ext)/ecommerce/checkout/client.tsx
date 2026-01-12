@@ -201,21 +201,27 @@ export default function CheckoutClient() {
         method: "GET",
         silent: true,
       });
-      if (error) {
+      if (error || !data) {
+        // Show balance as 0 instead of error when wallet not found
+        const walletOption: WalletOption = {
+          id: `temp-${key}`,
+          name: `${currency} Wallet`,
+          type: type,
+          currency: currency,
+          balance: 0,
+          icon: currency === "BTC" ? Bitcoin : currency === "ETH" ? Ethereum : DollarSign,
+        };
+        setWallets((prev) => ({
+          ...prev,
+          [key]: [walletOption],
+        }));
+        setSelectedWallets((prev) => ({
+          ...prev,
+          [key]: walletOption.id,
+        }));
         setWalletErrors((prev) => ({
           ...prev,
-          [key]: error,
-        }));
-        setIsLoadingWallets((prev) => ({
-          ...prev,
-          [key]: false,
-        }));
-        return;
-      }
-      if (!data) {
-        setWalletErrors((prev) => ({
-          ...prev,
-          [key]: "No wallet found",
+          [key]: "insufficient_balance",
         }));
         setIsLoadingWallets((prev) => ({
           ...prev,
@@ -348,7 +354,7 @@ export default function CheckoutClient() {
       setIsApplyingCoupon(false);
     }
   };
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Check for wallet errors
@@ -369,29 +375,92 @@ export default function CheckoutClient() {
       return;
     }
 
+    // Validate wallet balances
+    for (const [key, group] of Object.entries(cartByWallet)) {
+      const selectedWalletId = selectedWallets[key];
+      const walletList = wallets[key];
+      const selectedWallet = walletList?.find((w) => w.id === selectedWalletId);
+
+      if (selectedWallet && selectedWallet.balance < group.total) {
+        toast.error(
+          `Insufficient balance in ${selectedWallet.currency} wallet. Required: ${group.total.toFixed(2)}, Available: ${selectedWallet.balance.toFixed(2)}`
+        );
+        return;
+      }
+    }
+
     // Validate shipping information for physical products
     if (hasPhysicalProductsValue) {
       if (
         !formData.address ||
         !formData.city ||
         !formData.postalCode ||
-        !formData.country
+        !formData.country ||
+        !formData.firstName ||
+        !formData.lastName ||
+        !formData.email ||
+        !formData.phone
       ) {
         toast.error(
-          "Please provide shipping information for physical products"
+          "Please provide complete shipping information for physical products"
         );
+        setActiveTab("shipping");
         return;
       }
     }
+
     setIsSubmitting(true);
 
-    // Simulate order processing
-    setTimeout(() => {
+    try {
+      // Process each order based on cart groups
+      const orderPromises = cart.map(async (item) => {
+        const key = `${item.product.walletType}-${item.product.currency}`;
+
+        // Prepare shipping address only for physical products
+        let shippingAddressData = null;
+        if (item.product.type === "PHYSICAL") {
+          shippingAddressData = {
+            name: `${formData.firstName} ${formData.lastName}`,
+            email: formData.email,
+            phone: formData.phone,
+            street: formData.address,
+            city: formData.city,
+            state: formData.state || "",
+            postalCode: formData.postalCode,
+            country: formData.country,
+          };
+        }
+
+        const { data, error } = await $fetch({
+          url: "/api/ecommerce/order",
+          method: "POST",
+          body: {
+            productId: item.product.id,
+            amount: item.quantity,
+            discountId: discount?.id || null,
+            shippingAddress: shippingAddressData,
+          },
+        });
+
+        if (error) {
+          throw new Error(error);
+        }
+
+        return data;
+      });
+
+      const results = await Promise.all(orderPromises);
+
       setIsSubmitting(false);
       setOrderComplete(true);
-      setOrderNumber(`ORD-${Math.floor(100000 + Math.random() * 900000)}`);
+      setOrderNumber(results[0]?.id || `ORD-${Date.now()}`);
       clearCart();
-    }, 2000);
+      toast.success("Order completed successfully!");
+    } catch (err: any) {
+      console.error("Error creating order:", err);
+      toast.error(err.message || "Failed to create order. Please try again.");
+      setIsSubmitting(false);
+    }
   };
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -535,8 +604,8 @@ export default function CheckoutClient() {
     );
   }
   return (
-    <div className="bg-white dark:bg-zinc-900 dark:text-zinc-100 pt-20">
-      <div className="container px-4 py-16 sm:px-6 lg:px-8">
+    <div className="bg-white dark:bg-zinc-900 dark:text-zinc-100 pb-16 pt-20">
+      <div className="container px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           <Link
             href="/ecommerce/cart"
@@ -858,19 +927,42 @@ export default function CheckoutClient() {
                                   ) : walletErrors[key] ? (
                                     <div
                                       key={`error-${key}`}
-                                      className="text-sm text-red-500 dark:text-zinc-400"
+                                      className="flex flex-col gap-2"
                                     >
-                                      {walletErrors[key]} {t("you_need_a")}{" "}
-                                      {group.walletType} {t("wallet_with")}{" "}
-                                      {group.currency}
+                                      <div className="text-sm">
+                                        <span className="text-gray-600 dark:text-zinc-400">
+                                          Balance:
+                                        </span>
+                                        <span className="font-medium ml-2">
+                                          0 {group.currency}
+                                        </span>
+                                      </div>
+                                      <Link
+                                        href={`/finance/deposit?type=${group.walletType.toLowerCase()}&currency=${group.currency}`}
+                                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-md transition-colors"
+                                      >
+                                        Deposit {group.currency}
+                                      </Link>
                                     </div>
                                   ) : wallets[key]?.length === 0 ? (
                                     <div
                                       key={`empty-${key}`}
-                                      className="text-sm text-red-500 dark:text-zinc-400"
+                                      className="flex flex-col gap-2"
                                     >
-                                      No {group.walletType} {t("wallet_with")}{" "}
-                                      {group.currency} available
+                                      <div className="text-sm">
+                                        <span className="text-gray-600 dark:text-zinc-400">
+                                          Balance:
+                                        </span>
+                                        <span className="font-medium ml-2">
+                                          0 {group.currency}
+                                        </span>
+                                      </div>
+                                      <Link
+                                        href={`/finance/deposit?type=${group.walletType.toLowerCase()}&currency=${group.currency}`}
+                                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-md transition-colors"
+                                      >
+                                        Deposit {group.currency}
+                                      </Link>
                                     </div>
                                   ) : (
                                     <Select
@@ -1082,8 +1174,24 @@ export default function CheckoutClient() {
               <div className="mt-6">
                 <button
                   type="submit"
-                  disabled={isSubmitting || isProcessingOrder}
-                  className="w-full flex items-center justify-center bg-amber-600 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50"
+                  onClick={handleSubmit}
+                  disabled={
+                    isSubmitting ||
+                    isProcessingOrder ||
+                    Object.values(walletErrors).some((error) => error !== null) ||
+                    Object.keys(cartByWallet).some((key) => {
+                      const selectedWalletId = selectedWallets[key];
+                      const walletList = wallets[key];
+                      const selectedWallet = walletList?.find(
+                        (w) => w.id === selectedWalletId
+                      );
+                      return (
+                        !selectedWallet ||
+                        selectedWallet.balance < cartByWallet[key].total
+                      );
+                    })
+                  }
+                  className="w-full flex items-center justify-center bg-amber-600 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting || isProcessingOrder ? (
                     <span className="flex items-center">

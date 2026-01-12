@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ChartData } from "./types";
 import { Content } from "./content";
 import { Legend } from "./legend";
+import { PieChart } from "lucide-react";
 
 interface ChartConfig {
   id?: string;
@@ -39,16 +40,40 @@ function StatusDistributionImpl({
 
   if (loading) {
     return (
-      <Card className={cn("bg-transparent h-full overflow-hidden", className)}>
+      <Card className={cn("bg-transparent overflow-hidden", className)}>
         <CardHeader className="pb-0">
           <CardTitle className="text-xl font-semibold tracking-tight">
             {config.title}
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col h-[calc(100%-4rem)]">
-          <div className="flex flex-col flex-1 gap-4">
-            <div className="relative flex-1 min-h-[200px] sm:min-h-[300px] flex items-center justify-center">
-              <div className="animate-pulse text-muted-foreground">Loading...</div>
+        <CardContent>
+          <div className="flex flex-col gap-4">
+            <div className="relative h-[200px] md:h-[240px] flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show empty state when no data or all values are 0
+  if (validData.length === 0 || total === 0) {
+    return (
+      <Card className={cn("bg-transparent overflow-hidden", className)}>
+        <CardHeader className="pb-0">
+          <CardTitle className="text-xl font-semibold tracking-tight">
+            {config.title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-4 items-center justify-center h-[200px] md:h-[240px]">
+            <div className="h-16 w-16 rounded-full bg-muted/20 flex items-center justify-center">
+              <PieChart className="h-8 w-8 text-muted-foreground/50" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">No data available</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Data will appear here once available</p>
             </div>
           </div>
         </CardContent>
@@ -57,14 +82,14 @@ function StatusDistributionImpl({
   }
 
   return (
-    <Card className={cn("bg-transparent h-full overflow-hidden", className)}>
+    <Card className={cn("bg-transparent overflow-hidden", className)}>
       <CardHeader className="pb-0">
         <CardTitle className="text-xl font-semibold tracking-tight">
           {config.title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col h-[calc(100%-4rem)]">
-        <div className="flex flex-col flex-1 gap-4">
+      <CardContent>
+        <div className="flex flex-col gap-4">
           <Content
             data={validData}
             activeSegment={activeSegment}

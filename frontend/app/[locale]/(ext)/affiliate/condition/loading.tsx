@@ -1,16 +1,11 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { useTranslations } from "next-intl";
 
 export default function AffiliateConditionsLoading() {
-  const t = useTranslations("ext_affiliate");
-
   return (
     <div className="container mx-auto p-4 pt-20">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-          {t("affiliate_program_conditions")}
-        </h1>
+        <Skeleton className="h-9 w-64" />
         <Skeleton className="h-10 w-32" />
       </div>
 

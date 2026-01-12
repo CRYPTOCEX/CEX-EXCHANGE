@@ -18,6 +18,7 @@ import ForgotPasswordForm from "@/components/auth/forgot-password-form";
 import ResetPasswordForm from "@/components/auth/reset-password-form";
 import WalletLoginForm from "@/components/auth/wallet-login-form";
 import { useRouter } from "@/i18n/routing";
+import { LazyWalletProvider } from "@/context/wallet-lazy";
 import { useTranslations } from "next-intl";
 import { cleanupAuthFalseParam, hasAuthFalseParam } from "@/utils/url-cleanup";
 
@@ -256,10 +257,12 @@ export function AuthModal({
             </div>
           ) : view === "wallet-login" ? (
             <div className="p-8">
-              <WalletLoginForm
-                onSuccess={handleSuccess}
-                onCancel={handleLoginClick}
-              />
+              <LazyWalletProvider cookies="">
+                <WalletLoginForm
+                  onSuccess={handleSuccess}
+                  onCancel={handleLoginClick}
+                />
+              </LazyWalletProvider>
             </div>
           ) : (
             <div className="p-8">

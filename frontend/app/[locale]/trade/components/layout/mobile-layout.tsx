@@ -140,6 +140,8 @@ export default function MobileLayout({
                   expiryMinutes={5}
                   orders={[]}
                   marketType={marketType}
+                  isSpotContext={marketType === "spot" || marketType === "eco"}
+                  isFuturesContext={marketType === "futures"}
                 />
               </div>
             )}

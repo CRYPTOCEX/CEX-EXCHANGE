@@ -200,7 +200,7 @@ export function OptionsFields({ field, onUpdate }: OptionsFieldsProps) {
         {/* Quick preset options */}
         <div className="mb-4">
           <Label className="text-xs text-gray-500 dark:text-zinc-400 mb-2 block">
-            {t("quick_presets")}
+            {tCommon("quick_presets")}
           </Label>
           <div className="flex gap-2">
             <Button

@@ -14,7 +14,11 @@ export type AiMarketMakerHistoryAction =
   | "STOP"
   | "CONFIG_CHANGE"
   | "EMERGENCY_STOP"
-  | "AUTO_PAUSE";
+  | "AUTO_PAUSE"
+  // Multi-Timeframe Volatility System Actions
+  | "PHASE_CHANGE"
+  | "BIAS_CHANGE"
+  | "MOMENTUM_EVENT";
 
 export interface AiMarketMakerHistoryDetails {
   // For TRADE actions
@@ -44,6 +48,23 @@ export interface AiMarketMakerHistoryDetails {
   // For PAUSE/AUTO_PAUSE actions
   reason?: string;
   volatility?: number;
+
+  // For PHASE_CHANGE actions
+  previousPhase?: "ACCUMULATION" | "MARKUP" | "DISTRIBUTION" | "MARKDOWN";
+  newPhase?: "ACCUMULATION" | "MARKUP" | "DISTRIBUTION" | "MARKDOWN";
+  phaseDuration?: number; // Expected duration in hours
+  phaseTargetPrice?: number;
+
+  // For BIAS_CHANGE actions
+  previousBias?: "BULLISH" | "BEARISH" | "NEUTRAL";
+  newBias?: "BULLISH" | "BEARISH" | "NEUTRAL";
+  previousBiasStrength?: number;
+  newBiasStrength?: number;
+
+  // For MOMENTUM_EVENT actions
+  eventType?: "SURGE" | "DUMP" | "SPIKE" | "FLASH_CRASH";
+  magnitude?: number;
+  eventDuration?: number; // Expected duration in seconds
 
   // General
   triggeredBy?: "ADMIN" | "SYSTEM" | "BOT";
@@ -98,7 +119,10 @@ export default class aiMarketMakerHistory
             "STOP",
             "CONFIG_CHANGE",
             "EMERGENCY_STOP",
-            "AUTO_PAUSE"
+            "AUTO_PAUSE",
+            "PHASE_CHANGE",
+            "BIAS_CHANGE",
+            "MOMENTUM_EVENT"
           ),
           allowNull: false,
           validate: {
@@ -117,6 +141,9 @@ export default class aiMarketMakerHistory
                   "CONFIG_CHANGE",
                   "EMERGENCY_STOP",
                   "AUTO_PAUSE",
+                  "PHASE_CHANGE",
+                  "BIAS_CHANGE",
+                  "MOMENTUM_EVENT",
                 ],
               ],
               msg: "action: Must be a valid action type",

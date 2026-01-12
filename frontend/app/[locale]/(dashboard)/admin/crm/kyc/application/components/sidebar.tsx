@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { ApplicationStatus } from "./status";
 import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 
 interface ReviewSidebarProps {
   adminNotes: string;
@@ -27,6 +28,7 @@ export const ReviewSidebar = ({
   updatingStatus,
   currentStatus,
 }: ReviewSidebarProps) => {
+  const t = useTranslations("dashboard");
   const tCommon = useTranslations("common");
   const tDashboard = useTranslations("dashboard");
   return (
@@ -65,7 +67,7 @@ export const ReviewSidebar = ({
             <span className="hidden sm:inline">
               {tCommon("request_additional_info")}
             </span>
-            <span className="sm:hidden">Request Info</span>
+            <span className="sm:hidden">{t("request_info")}</span>
           </Button>
 
           <Button

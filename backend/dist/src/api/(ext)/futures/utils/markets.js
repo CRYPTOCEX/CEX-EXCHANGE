@@ -1,0 +1,1 @@
+"use strict";async function getFuturesMarkets(){return db_1.models.futuresMarket.findAll({where:{status:!0}})}Object.defineProperty(exports,"__esModule",{value:!0});exports.getFuturesMarkets=getFuturesMarkets;const db_1=require("@b/db");

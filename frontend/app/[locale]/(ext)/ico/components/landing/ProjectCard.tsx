@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 export interface FeaturedProject {
   id: string;
@@ -41,6 +42,9 @@ export default function ProjectCard({
   gradient,
   variant = "default",
 }: ProjectCardProps) {
+  const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const cardRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -142,7 +146,7 @@ export default function ProjectCard({
                     {isEndingSoon && (
                       <Badge className="bg-linear-to-r from-amber-500 to-yellow-500 text-white border-0 px-3 py-1 text-xs font-semibold shadow-lg">
                         <Clock className="w-3 h-3 mr-1" />
-                        Ending Soon
+                        {tCommon("ending_soon")}
                       </Badge>
                     )}
                   </div>
@@ -227,7 +231,7 @@ export default function ProjectCard({
                       {project.daysLeft !== undefined && (
                         <span className="text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {project.daysLeft} days left
+                          {project.daysLeft} {tExt("days_left")}
                         </span>
                       )}
                     </div>
@@ -256,7 +260,7 @@ export default function ProjectCard({
                         boxShadow: `0 4px 20px ${gradient.from}30`,
                       }}
                     >
-                      View Project
+                      {t("view_project")}
                       <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                     </div>
                   </div>
@@ -510,7 +514,7 @@ export default function ProjectCard({
                   {project.daysLeft !== undefined && (
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
-                      {project.daysLeft}d left
+                      {project.daysLeft}{t("d_left")}
                     </span>
                   )}
                 </div>

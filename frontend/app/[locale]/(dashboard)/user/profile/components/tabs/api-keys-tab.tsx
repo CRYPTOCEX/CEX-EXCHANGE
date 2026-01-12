@@ -284,7 +284,7 @@ export function ApiKeysTab() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold dark:text-zinc-100">API Keys</h2>
+        <h2 className="text-2xl font-bold dark:text-zinc-100">{tCommon("api_keys")}</h2>
         {apiKeys.length < 10 && (
           <Button onClick={() => setIsCreatingApiKey(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -302,7 +302,7 @@ export function ApiKeysTab() {
               className="flex items-center gap-1.5 text-sm text-primary hover:underline"
             >
               <BookOpen className="h-4 w-4" />
-              API Documentation
+              {tCommon("api_documentation")}
             </Link>
           </div>
           <CardDescription className="dark:text-zinc-400">
@@ -391,7 +391,7 @@ export function ApiKeysTab() {
 
                       <div>
                         <span className="text-muted-foreground dark:text-zinc-400">
-                          IP Restrictions:{" "}
+                          {t("ip_restrictions")}{" "}
                         </span>
                         {apiKey.ipRestriction &&
                         apiKey.ipWhitelist && 
@@ -442,7 +442,7 @@ export function ApiKeysTab() {
 
               <div className="space-y-2">
                 <Label htmlFor="apiKeyName" className="dark:text-zinc-200">
-                  API Key Name
+                  {t("api_key_name")}
                 </Label>
                 <Input
                   id="apiKeyName"
@@ -503,7 +503,7 @@ export function ApiKeysTab() {
                       htmlFor="enableIpRestrictions"
                       className="dark:text-zinc-200"
                     >
-                      IP Restrictions
+                      {t("ip_restrictions")}
                     </Label>
                     <p className="text-sm text-muted-foreground dark:text-zinc-400">
                       {t("limit_api_key_usage_to_specific_ip_addresses")}
@@ -580,7 +580,7 @@ export function ApiKeysTab() {
       <Alert className="bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
         <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
         <AlertTitle className="text-amber-800 dark:text-amber-200">
-          API Key Security
+          {t("api_key_security")}
         </AlertTitle>
         <AlertDescription className="text-amber-700 dark:text-amber-300">
           {t("keep_your_api_keys_secure_1")} {t("they_provide_programmatic_access_to_your_account_1")} {t("never_share_your_api_keys_or")}
@@ -591,7 +591,7 @@ export function ApiKeysTab() {
       <Dialog open={showNewApiKey} onOpenChange={setShowNewApiKey}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>API Key Created</DialogTitle>
+            <DialogTitle>{t("api_key_created")}</DialogTitle>
             <DialogDescription>
               {t("your_new_api_key_has_been_created_1")} {t("please_copy_it_now_as_you")}
             </DialogDescription>
@@ -641,7 +641,7 @@ export function ApiKeysTab() {
           <div className="space-y-4">
             <div>
               <Label className="text-sm font-medium dark:text-zinc-200">
-                API Key Name
+                {t("api_key_name")}
               </Label>
               <p className="font-medium mt-1 dark:text-zinc-100">
                 {editingApiKey?.name}
@@ -697,7 +697,7 @@ export function ApiKeysTab() {
                     htmlFor="editEnableIpRestrictions"
                     className="dark:text-zinc-200"
                   >
-                    IP Restrictions
+                    {t("ip_restrictions")}
                   </Label>
                   <p className="text-sm text-muted-foreground dark:text-zinc-400">
                     {t("limit_api_key_usage_to_specific_ip_addresses")}

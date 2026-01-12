@@ -194,12 +194,12 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "method-basic",
-          title: t("basic_information"),
+          title: tCommon("basic_information"),
           icon: ArrowUpCircle,
           priority: 1,
           fields: [
-            "image",
-            { key: "title", required: true },
+            { key: "image", compoundKey: "compound" },
+            { key: "title", compoundKey: "compound", required: true },
             { key: "processingTime", required: true },
             { key: "instructions", required: true },
             { key: "status", required: true },
@@ -232,12 +232,12 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "method-basic",
-          title: t("basic_information"),
+          title: tCommon("basic_information"),
           icon: ArrowUpCircle,
           priority: 1,
           fields: [
-            "image",
-            { key: "title", required: true },
+            { key: "image", compoundKey: "compound" },
+            { key: "title", compoundKey: "compound", required: true },
             { key: "processingTime", required: true },
             { key: "instructions", required: true },
             { key: "status", required: true },

@@ -403,7 +403,7 @@ export default function SubscriptionClient() {
                 <div className="absolute inset-0 bg-linear-to-br from-amber-500/5 to-transparent" />
                 <div className="relative">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-zinc-500">{tExt("total_trades")}</span>
+                    <span className="text-xs text-zinc-500">{tCommon("total_trades")}</span>
                     <div className="p-1.5 rounded-lg bg-amber-500/10">
                       <Activity className="h-3.5 w-3.5 text-amber-500" />
                     </div>

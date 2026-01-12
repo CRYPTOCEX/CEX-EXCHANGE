@@ -1,22 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import { ChevronRight, Filter, Search, SlidersHorizontal } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ChevronRight,
+  Filter,
+  Search,
+  SlidersHorizontal,
+  Percent,
+  DollarSign,
+  Wallet,
+  Coins,
+  TrendingUp,
+  Gift,
+  Zap,
+  Shield,
+  ArrowRight,
+  Sparkles,
+  X,
+  Copy,
+  Check,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +32,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { Separator } from "@/components/ui/separator";
 import {
   AffiliateCondition,
   useConditionStore,
@@ -56,7 +63,6 @@ export default function AffiliateConditionsClient() {
     if (conditions) {
       let filtered = [...conditions];
 
-      // Apply search filter
       if (searchTerm) {
         filtered = filtered.filter(
           (condition) =>
@@ -67,7 +73,6 @@ export default function AffiliateConditionsClient() {
         );
       }
 
-      // Apply sorting
       if (sortBy === "reward") {
         filtered.sort((a, b) => b.reward - a.reward);
       } else if (sortBy === "name") {
@@ -91,14 +96,9 @@ export default function AffiliateConditionsClient() {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
+        staggerChildren: 0.08,
       },
     },
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
   };
 
   if (loading && conditions.length === 0) {
@@ -109,16 +109,15 @@ export default function AffiliateConditionsClient() {
     return <AffiliateConditionsErrorState error={error} />;
   }
 
-  // Calculate stats for hero
   const totalPrograms = conditions.length;
-  const activePrograms = conditions.filter(c => c.status === true).length;
-  const highestCommission = conditions.length > 0
-    ? `${Math.max(...conditions.map(c => c.reward || 0))}%`
-    : '0%';
+  const activePrograms = conditions.filter((c) => c.status === true).length;
+  const highestCommission =
+    conditions.length > 0
+      ? `${Math.max(...conditions.map((c) => c.reward || 0))}%`
+      : "0%";
 
   return (
     <div className="w-full">
-      {/* Hero Section */}
       <ConditionHero
         totalPrograms={totalPrograms}
         activePrograms={activePrograms}
@@ -126,244 +125,329 @@ export default function AffiliateConditionsClient() {
       />
 
       <div className="container mx-auto pb-6 pt-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder={tExt("search_conditions_ellipsis")}
-              className="pl-8 w-[200px] md:w-[250px]"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder={tExt("search_conditions_ellipsis")}
+                className="pl-10 w-[200px] md:w-[280px] h-11 bg-muted/50"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-11 w-11">
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setSortBy("default")}>
+                  {tCommon("default_order")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy("reward")}>
+                  {tCommon("highest_reward_first")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy("name")}>
+                  {tCommon("alphabetical")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
-                <SlidersHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setSortBy("default")}>
-                {tCommon("default_order")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy("reward")}>
-                {tCommon("highest_reward_first")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy("name")}>
-                {tCommon("alphabetical")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
-      </div>
 
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="all">{tCommon("all_conditions")}</TabsTrigger>
-          <TabsTrigger value="percentage">
-            {tCommon("percentage_rewards")}
-          </TabsTrigger>
-          <TabsTrigger value="fixed">{tCommon("fixed_rewards")}</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="mb-8 bg-muted/50 p-1">
+            <TabsTrigger value="all" className="px-6">
+              {tCommon("all_conditions")}
+            </TabsTrigger>
+            <TabsTrigger value="percentage" className="px-6">
+              {tCommon("percentage_rewards")}
+            </TabsTrigger>
+            <TabsTrigger value="fixed" className="px-6">
+              {tCommon("fixed_rewards")}
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="all">
-          {filteredConditions.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-                <Filter className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-medium mb-2">
-                {tCommon("no_conditions_found")}
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                {tCommon("try_adjusting_your_search_or_filter_criteria")}
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => {
+          <TabsContent value="all">
+            {filteredConditions.length === 0 ? (
+              <EmptyState
+                onReset={() => {
                   setSearchTerm("");
                   setSortBy("default");
                 }}
+                tCommon={tCommon}
+              />
+            ) : (
+              <motion.div
+                variants={container}
+                initial="hidden"
+                animate="show"
+                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
               >
-                {tCommon("reset_filters")}
-              </Button>
-            </div>
-          ) : (
+                {filteredConditions.map((condition, index) => (
+                  <ConditionCard
+                    key={condition.id}
+                    condition={condition}
+                    index={index}
+                    onSelect={() => handleSelectCondition(condition)}
+                  />
+                ))}
+              </motion.div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="percentage">
             <motion.div
               variants={container}
               initial="hidden"
               animate="show"
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
             >
-              {filteredConditions.map((condition) => (
-                <ConditionCard
-                  key={condition.id}
-                  condition={condition}
-                  onSelect={() => handleSelectCondition(condition)}
-                />
-              ))}
+              {filteredConditions
+                .filter((condition) => condition.rewardType === "PERCENTAGE")
+                .map((condition, index) => (
+                  <ConditionCard
+                    key={condition.id}
+                    condition={condition}
+                    index={index}
+                    onSelect={() => handleSelectCondition(condition)}
+                  />
+                ))}
             </motion.div>
+          </TabsContent>
+
+          <TabsContent value="fixed">
+            <motion.div
+              variants={container}
+              initial="hidden"
+              animate="show"
+              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+            >
+              {filteredConditions
+                .filter((condition) => condition.rewardType === "FIXED")
+                .map((condition, index) => (
+                  <ConditionCard
+                    key={condition.id}
+                    condition={condition}
+                    index={index}
+                    onSelect={() => handleSelectCondition(condition)}
+                  />
+                ))}
+            </motion.div>
+          </TabsContent>
+        </Tabs>
+
+        <AnimatePresence>
+          {selectedCondition && (
+            <ConditionDetailsModal
+              condition={selectedCondition}
+              onClose={handleCloseDetails}
+            />
           )}
-        </TabsContent>
-
-        <TabsContent value="percentage">
-          <motion.div
-            variants={container}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {filteredConditions
-              .filter((condition) => condition.rewardType === "PERCENTAGE")
-              .map((condition) => (
-                <ConditionCard
-                  key={condition.id}
-                  condition={condition}
-                  onSelect={() => handleSelectCondition(condition)}
-                />
-              ))}
-          </motion.div>
-        </TabsContent>
-
-        <TabsContent value="fixed">
-          <motion.div
-            variants={container}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {filteredConditions
-              .filter((condition) => condition.rewardType === "FIXED")
-              .map((condition) => (
-                <ConditionCard
-                  key={condition.id}
-                  condition={condition}
-                  onSelect={() => handleSelectCondition(condition)}
-                />
-              ))}
-          </motion.div>
-        </TabsContent>
-      </Tabs>
-
-      {selectedCondition && (
-        <ConditionDetailsModal
-          condition={selectedCondition}
-          onClose={handleCloseDetails}
-        />
-      )}
+        </AnimatePresence>
       </div>
     </div>
   );
 }
 
+function EmptyState({
+  onReset,
+  tCommon,
+}: {
+  onReset: () => void;
+  tCommon: any;
+}) {
+  return (
+    <div className="text-center py-16">
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted/50 mb-6">
+        <Filter className="h-10 w-10 text-muted-foreground" />
+      </div>
+      <h3 className="text-xl font-semibold mb-2">
+        {tCommon("no_conditions_found")}
+      </h3>
+      <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+        {tCommon("try_adjusting_your_search_or_filter_criteria")}
+      </p>
+      <Button variant="outline" onClick={onReset} className="gap-2">
+        {tCommon("reset_filters")}
+      </Button>
+    </div>
+  );
+}
+
+const conditionConfig: Record<
+  string,
+  { icon: any; gradient: string; iconBg: string; iconColor: string; accent: string }
+> = {
+  DEPOSIT: {
+    icon: Wallet,
+    gradient: "from-blue-500/20 via-blue-600/10 to-transparent",
+    iconBg: "bg-blue-100 dark:bg-blue-600",
+    iconColor: "text-blue-600 dark:text-blue-100",
+    accent: "text-blue-500",
+  },
+  TRADE: {
+    icon: TrendingUp,
+    gradient: "from-violet-500/20 via-violet-600/10 to-transparent",
+    iconBg: "bg-violet-100 dark:bg-violet-600",
+    iconColor: "text-violet-600 dark:text-violet-100",
+    accent: "text-violet-500",
+  },
+  STAKING: {
+    icon: Coins,
+    gradient: "from-emerald-500/20 via-emerald-600/10 to-transparent",
+    iconBg: "bg-emerald-100 dark:bg-emerald-600",
+    iconColor: "text-emerald-600 dark:text-emerald-100",
+    accent: "text-emerald-500",
+  },
+  P2P_TRADE: {
+    icon: Zap,
+    gradient: "from-amber-500/20 via-amber-600/10 to-transparent",
+    iconBg: "bg-amber-100 dark:bg-amber-600",
+    iconColor: "text-amber-600 dark:text-amber-100",
+    accent: "text-amber-500",
+  },
+  ICO_CONTRIBUTION: {
+    icon: Gift,
+    gradient: "from-pink-500/20 via-pink-600/10 to-transparent",
+    iconBg: "bg-pink-100 dark:bg-pink-600",
+    iconColor: "text-pink-600 dark:text-pink-100",
+    accent: "text-pink-500",
+  },
+  DEFAULT: {
+    icon: Sparkles,
+    gradient: "from-violet-500/20 via-violet-600/10 to-transparent",
+    iconBg: "bg-violet-100 dark:bg-violet-600",
+    iconColor: "text-violet-600 dark:text-violet-100",
+    accent: "text-violet-500",
+  },
+};
+
 function ConditionCard({
   condition,
+  index,
   onSelect,
 }: {
   condition: AffiliateCondition;
+  index: number;
   onSelect: () => void;
 }) {
-  const t = useTranslations("ext");
   const tCommon = useTranslations("common");
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
-  };
 
-  // Generate a gradient background based on the condition type
-  const getGradient = () => {
-    switch (condition.name) {
-      case "DEPOSIT":
-        return "from-blue-600/10 to-blue-600/10 border-blue-600/20";
-      case "TRADE":
-        return "from-purple-500/10 to-purple-600/10 border-purple-500/20";
-      case "STAKING":
-        return "from-green-500/10 to-green-600/10 border-green-500/20";
-      case "P2P_TRADE":
-        return `from-yellow-500/10 to-yellow-500/10 border-yellow-500/20`;
-      case "ICO_CONTRIBUTION":
-        return "from-pink-500/10 to-pink-600/10 border-pink-500/20";
-      default:
-        return "from-primary/10 to-primary/5 border-primary/20";
-    }
+  const config = conditionConfig[condition.name] || conditionConfig.DEFAULT;
+  const Icon = config.icon;
+
+  const item = {
+    hidden: { opacity: 0, y: 30, scale: 0.95 },
+    show: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
+      },
+    },
   };
 
   return (
-    <motion.div variants={item}>
-      <Card
-        className={`h-full transition-all duration-300 hover:shadow-lg hover:border-amber-600/50 bg-linear-to-br ${getGradient()}`}
+    <motion.div variants={item} className="group">
+      <div
+        onClick={onSelect}
+        className="relative h-full cursor-pointer rounded-2xl border border-border/50 bg-card overflow-hidden transition-all duration-500 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1"
       >
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <CardTitle className="text-xl">{condition.title}</CardTitle>
-            <Badge
-              variant={
-                condition.rewardType === "PERCENTAGE" ? "default" : "secondary"
-              }
-              className="px-2.5 py-1"
+        {/* Gradient Background */}
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${config.gradient} opacity-50 group-hover:opacity-100 transition-opacity duration-500`}
+        />
+
+        {/* Decorative Elements */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full" />
+        <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors duration-500" />
+
+        <div className="relative p-6">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-6">
+            <div
+              className={`${config.iconBg} w-14 h-14 rounded-xl flex items-center justify-center shadow-lg`}
             >
-              {condition.rewardType === "PERCENTAGE" ? "%" : "Fixed"}
+              <Icon className={`h-7 w-7 ${config.iconColor}`} />
+            </div>
+            <Badge
+              className={`${
+                condition.rewardType === "PERCENTAGE"
+                  ? "bg-primary/10 text-primary border-primary/20"
+                  : "bg-muted text-muted-foreground border-muted"
+              } px-3 py-1.5 text-xs font-medium`}
+            >
+              {condition.rewardType === "PERCENTAGE" ? (
+                <Percent className="h-3 w-3 mr-1" />
+              ) : (
+                <DollarSign className="h-3 w-3 mr-1" />
+              )}
+              {condition.rewardType === "PERCENTAGE"
+                ? "Percentage"
+                : "Fixed Amount"}
             </Badge>
           </div>
-          <CardDescription className="line-clamp-2">
+
+          {/* Title & Description */}
+          <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors duration-300">
+            {condition.title}
+          </h3>
+          <p className="text-muted-foreground text-sm line-clamp-2 mb-6 min-h-[40px]">
             {condition.description}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
+          </p>
+
+          {/* Reward Display */}
+          <div className="bg-muted/50 rounded-xl p-4 mb-6">
+            <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
                 {tCommon("reward")}
               </span>
-              <span className="font-medium text-lg">
-                {condition.rewardType === "PERCENTAGE"
-                  ? `${condition.reward}%`
-                  : `${condition.reward} ${condition.rewardCurrency}`}
-              </span>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span>{tCommon("earning_potential")}</span>
-                <span className="font-medium">
-                  {condition.rewardType === "PERCENTAGE" ? "High" : "Medium"}
+              <div className="text-right">
+                <span className={`text-2xl font-bold ${config.accent}`}>
+                  {condition.rewardType === "PERCENTAGE"
+                    ? `${condition.reward}%`
+                    : condition.reward}
                 </span>
+                {condition.rewardType === "FIXED" && (
+                  <span className="text-sm text-muted-foreground ml-1">
+                    {condition.rewardCurrency}
+                  </span>
+                )}
               </div>
-              <Progress
-                value={condition.rewardType === "PERCENTAGE" ? 80 : 60}
-                className="h-2"
-              />
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="bg-amber-600/5 border-amber-600/20">
-                {condition.rewardWalletType}
-              </Badge>
-              <Badge variant="outline" className="bg-amber-600/5 border-amber-600/20">
-                {condition.rewardCurrency}
-              </Badge>
-              {condition.rewardChain && (
-                <Badge variant="outline" className="bg-amber-600/5 border-amber-600/20">
-                  {condition.rewardChain}
-                </Badge>
-              )}
             </div>
           </div>
-        </CardContent>
-        <CardFooter>
-          <Button
-            onClick={onSelect}
-            className="w-full gap-1 group"
-            variant="outline"
-          >
-            {tCommon("view_details")}
-            <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </CardFooter>
-      </Card>
+
+          {/* Tags */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-muted/50 text-xs font-medium text-muted-foreground">
+              <Wallet className="h-3 w-3 mr-1.5" />
+              {condition.rewardWalletType}
+            </span>
+            <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-muted/50 text-xs font-medium text-muted-foreground">
+              <Coins className="h-3 w-3 mr-1.5" />
+              {condition.rewardCurrency}
+            </span>
+          </div>
+
+          {/* CTA */}
+          <div className="flex items-center justify-between pt-4 border-t border-border/50">
+            <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+              {tCommon("view_details")}
+            </span>
+            <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center group-hover:bg-primary transition-all duration-300">
+              <ArrowRight className="h-5 w-5 text-foreground group-hover:text-primary-foreground transition-transform group-hover:translate-x-0.5" />
+            </div>
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 }
@@ -377,246 +461,213 @@ function ConditionDetailsModal({
 }) {
   const t = useTranslations("ext");
   const tCommon = useTranslations("common");
-  // Sample calculation data
-  const sampleData = {
-    depositAmount: 1000,
-    tradingVolume: 5000,
-    stakingAmount: 2000,
-    p2pVolume: 3000,
-    icoContribution: 500,
+  const [copied, setCopied] = useState(false);
+
+  const config = conditionConfig[condition.name] || conditionConfig.DEFAULT;
+  const Icon = config.icon;
+
+  const sampleData: Record<string, number> = {
+    DEPOSIT: 1000,
+    TRADE: 5000,
+    STAKING: 2000,
+    P2P_TRADE: 3000,
+    ICO_CONTRIBUTION: 500,
   };
 
-  // Calculate potential earnings based on condition type
-  const calculateEarnings = () => {
-    switch (condition.name) {
-      case "DEPOSIT":
-        return ((sampleData.depositAmount * condition.reward) / 100).toFixed(2);
-      case "TRADE":
-        return ((sampleData.tradingVolume * condition.reward) / 100).toFixed(2);
-      case "STAKING":
-        return ((sampleData.stakingAmount * condition.reward) / 100).toFixed(2);
-      case "P2P_TRADE":
-        return ((sampleData.p2pVolume * condition.reward) / 100).toFixed(2);
-      case "ICO_CONTRIBUTION":
-        return ((sampleData.icoContribution * condition.reward) / 100).toFixed(
-          2
-        );
-      default:
-        return "0.00";
-    }
+  const sampleAmount = sampleData[condition.name] || 1000;
+  const earnings =
+    condition.rewardType === "PERCENTAGE"
+      ? ((sampleAmount * condition.reward) / 100).toFixed(2)
+      : condition.reward.toFixed(2);
+
+  const handleCopy = () => {
+    toast.success("Referral link copied to clipboard!");
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  // Generate a gradient background based on the condition type
-  const getGradient = () => {
-    switch (condition.name) {
-      case "DEPOSIT":
-        return "from-blue-600/10 to-blue-600/5 border-blue-600/20";
-      case "TRADE":
-        return "from-purple-500/10 to-purple-600/5 border-purple-500/20";
-      case "STAKING":
-        return "from-green-500/10 to-green-600/5 border-green-500/20";
-      case "P2P_TRADE":
-        return `from-yellow-500/10 to-yellow-500/5 border-yellow-500/20`;
-      case "ICO_CONTRIBUTION":
-        return "from-pink-500/10 to-pink-600/5 border-pink-500/20";
-      default:
-        return "from-primary/10 to-primary/5 border-primary/20";
-    }
-  };
+  const steps = [
+    {
+      icon: Shield,
+      title: tCommon("share_your_referral_and_followers"),
+    },
+    {
+      icon: TrendingUp,
+      title: `${tCommon("when_they_sign_up_and")} ${condition.name.toLowerCase().replace("_", " ")}${t("you_earn_rewards")}`,
+    },
+    {
+      icon: Coins,
+      title: t("rewards_are_calculated_activity_volume"),
+    },
+  ];
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-background border rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-auto"
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        className="bg-card border border-border/50 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-background z-10 flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-bold">{condition.title}</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4"
+        {/* Header with Gradient */}
+        <div className="relative overflow-hidden">
+          <div
+            className={`absolute inset-0 bg-gradient-to-br ${config.gradient}`}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
+
+          <div className="relative p-8 pb-6">
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center hover:bg-background transition-colors"
             >
-              <path d="M18 6 6 18" />
-              <path d="m6 6 12 12" />
-            </svg>
-            <span className="sr-only">Close</span>
-          </Button>
-        </div>
+              <X className="h-5 w-5" />
+            </button>
 
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Card className={`bg-linear-to-br ${getGradient()} p-4 mb-4`}>
-                <div className="text-center">
-                  <h3 className="text-xl font-bold mb-2">{condition.title}</h3>
-                  <Badge
-                    variant={
-                      condition.rewardType === "PERCENTAGE"
-                        ? "default"
-                        : "secondary"
-                    }
-                    className="px-3 py-1"
-                  >
-                    {condition.rewardType === "PERCENTAGE"
-                      ? "Percentage"
-                      : "Fixed"}{" "}
-                    {tCommon("reward")}
-                  </Badge>
-                </div>
-              </Card>
-
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium mb-2">
-                    {tCommon("description")}
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {condition.description}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">
-                      {tCommon("reward_type")}
-                    </p>
-                    <p className="font-medium">{condition.rewardType}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">
-                      {tCommon("reward_amount")}
-                    </p>
-                    <p className="font-medium">
-                      {condition.rewardType === "PERCENTAGE"
-                        ? `${condition.reward}%`
-                        : `${condition.reward} ${condition.rewardCurrency}`}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">
-                      {tCommon("wallet_type")}
-                    </p>
-                    <p className="font-medium">{condition.rewardWalletType}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">
-                      {tCommon("currency")}
-                    </p>
-                    <p className="font-medium">{condition.rewardCurrency}</p>
-                  </div>
-                  {condition.rewardChain && (
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">
-                        {t("chain")}
-                      </p>
-                      <p className="font-medium">{condition.rewardChain}</p>
-                    </div>
-                  )}
-                </div>
+            <div className="flex items-start gap-5">
+              <div
+                className={`${config.iconBg} w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg`}
+              >
+                <Icon className={`h-8 w-8 ${config.iconColor}`} />
               </div>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium mb-4">
-                  {tCommon("earnings_calculator")}
-                </h3>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">
-                      {tCommon("potential_earnings")}
-                    </CardTitle>
-                    <CardDescription>
-                      {tCommon("based_on_sample")}{" "}
-                      {condition.name.toLowerCase().replace("_", " ")}
-                      {t("activity")}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">{t("sample_amount")}</span>
-                        <span className="font-medium">
-                          {condition.name === "DEPOSIT" &&
-                            `$${sampleData.depositAmount}`}
-                          {condition.name === "TRADE" &&
-                            `$${sampleData.tradingVolume}`}
-                          {condition.name === "STAKING" &&
-                            `$${sampleData.stakingAmount}`}
-                          {condition.name === "P2P_TRADE" &&
-                            `$${sampleData.p2pVolume}`}
-                          {condition.name === "ICO_CONTRIBUTION" &&
-                            `$${sampleData.icoContribution}`}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">{t("reward_rate")}</span>
-                        <span className="font-medium">{condition.reward}%</span>
-                      </div>
-                      <Separator />
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">
-                          {t("your_earnings")}
-                        </span>
-                        <span className="text-xl font-bold text-primary">
-                          ${calculateEarnings()} {condition.rewardCurrency}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-medium mb-4">
-                  {t("how_it_works")}
-                </h3>
-                <ol className="space-y-3 list-decimal list-inside text-muted-foreground">
-                  <li>{tCommon("share_your_referral_and_followers")}</li>
-                  <li>
-                    {tCommon("when_they_sign_up_and")}{" "}
-                    {condition.name.toLowerCase().replace("_", " ")}
-                    {t("you_earn_rewards")}
-                  </li>
-                  <li>{t("rewards_are_calculated_activity_volume")}</li>
-                  <li>
-                    {tCommon("earnings_are_credited_to_your")}{" "}
-                    {condition.rewardWalletType.toLowerCase()}
-                    {tCommon("wallet")}
-                  </li>
-                  <li>
-                    {tCommon("withdraw_or_use_your_earnings_within_the_platform")}
-                  </li>
-                </ol>
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <Button
-                  onClick={() => {
-                    toast.success("Referral link copied to clipboard!");
-                  }}
-                >
-                  {tCommon("get_referral_link")}
-                </Button>
-                <Button variant="outline" onClick={onClose}>
-                  {tCommon("close_details")}
-                </Button>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold mb-2">{condition.title}</h2>
+                <p className="text-muted-foreground">{condition.description}</p>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Content */}
+        <div className="p-8 pt-2 space-y-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+          {/* Reward Card */}
+          <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-2xl p-6 border border-primary/10">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  {tCommon("reward_amount")}
+                </p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold text-primary">
+                    {condition.rewardType === "PERCENTAGE"
+                      ? `${condition.reward}%`
+                      : condition.reward}
+                  </span>
+                  {condition.rewardType === "FIXED" && (
+                    <span className="text-lg text-muted-foreground">
+                      {condition.rewardCurrency}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <Badge variant="secondary" className="px-4 py-2">
+                {condition.rewardType === "PERCENTAGE"
+                  ? "Per Transaction"
+                  : "Fixed Bonus"}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-muted/30 rounded-xl p-4 text-center">
+              <Wallet className="h-5 w-5 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-xs text-muted-foreground mb-1">
+                {tCommon("wallet_type")}
+              </p>
+              <p className="font-semibold">{condition.rewardWalletType}</p>
+            </div>
+            <div className="bg-muted/30 rounded-xl p-4 text-center">
+              <Coins className="h-5 w-5 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-xs text-muted-foreground mb-1">
+                {tCommon("currency")}
+              </p>
+              <p className="font-semibold">{condition.rewardCurrency}</p>
+            </div>
+            <div className="bg-muted/30 rounded-xl p-4 text-center">
+              <TrendingUp className="h-5 w-5 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-xs text-muted-foreground mb-1">
+                {tCommon("reward_type")}
+              </p>
+              <p className="font-semibold">{condition.rewardType}</p>
+            </div>
+          </div>
+
+          {/* Earnings Calculator */}
+          <div className="bg-muted/30 rounded-2xl p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              {tCommon("earnings_calculator")}
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center py-2">
+                <span className="text-muted-foreground">{t("sample_amount")}</span>
+                <span className="font-medium">${sampleAmount.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-muted-foreground">{t("reward_rate")}</span>
+                <span className="font-medium">
+                  {condition.rewardType === "PERCENTAGE"
+                    ? `${condition.reward}%`
+                    : `$${condition.reward} fixed`}
+                </span>
+              </div>
+              <div className="h-px bg-border" />
+              <div className="flex justify-between items-center py-2">
+                <span className="font-semibold">{t("your_earnings")}</span>
+                <span className="text-2xl font-bold text-primary">
+                  ${earnings} {condition.rewardCurrency}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* How it Works */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">{t("how_it_works")}</h3>
+            <div className="space-y-3">
+              {steps.map((step, index) => (
+                <div
+                  key={index}
+                  className="flex items-start gap-4 p-4 rounded-xl bg-muted/20 hover:bg-muted/30 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <span className="text-sm font-bold text-primary">
+                      {index + 1}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground pt-1">
+                    {step.title}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-2">
+            <Button onClick={handleCopy} className="flex-1 h-12 gap-2">
+              {copied ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+              {tCommon("get_referral_link")}
+            </Button>
+            <Button variant="outline" onClick={onClose} className="h-12 px-6">
+              {tCommon("close_details")}
+            </Button>
+          </div>
+        </div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }

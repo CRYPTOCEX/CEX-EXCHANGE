@@ -1,144 +1,150 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useRouter } from "@/i18n/routing";
+import { useEffect, useRef, useMemo, useState } from "react";
 import TradingInterface from "./components/trading-interface";
-import BinaryTradingSkeleton from "./components/skeleton/binary-trading-skeleton";
 import { initializeBinaryStore, cleanupBinaryStore, useBinaryStore } from "@/store/trade/use-binary-store";
 import { useUserStore } from "@/store/user";
 import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+
+// Hook to handle viewport height for tablets/mobile (fixes 100vh issue with browser chrome)
+function useViewportHeight() {
+  useEffect(() => {
+    const updateViewportHeight = () => {
+      // Use the actual visible viewport height to account for browser UI (address bar, etc.)
+      const height = window.innerHeight;
+      document.documentElement.style.setProperty('--vh', `${height * 0.01}px`);
+    };
+
+    updateViewportHeight();
+
+    window.addEventListener('resize', updateViewportHeight);
+    window.addEventListener('orientationchange', () => {
+      // Delay for orientation change to complete
+      setTimeout(updateViewportHeight, 100);
+    });
+
+    return () => {
+      window.removeEventListener('resize', updateViewportHeight);
+      window.removeEventListener('orientationchange', updateViewportHeight);
+    };
+  }, []);
+}
 
 export default function BinaryTradingPage() {
   const t = useTranslations("common");
-  const router = useRouter();
+  const locale = useLocale();
   const searchParams = useSearchParams();
   const initialSymbolParam = searchParams.get("symbol");
-  
-  // Set body background and ensure dark mode is applied immediately
-  useEffect(() => {
-    // Save original background
-    const originalBackground = document.body.style.backgroundColor;
-    
-    // Set zinc-950 background immediately
-    document.body.style.backgroundColor = '#09090b'; // zinc-950
-    
-    // Force dark theme class on html element to prevent light mode flash
-    const htmlElement = document.documentElement;
-    const originalTheme = htmlElement.classList.contains('light') ? 'light' : 'dark';
-    
-    // Ensure dark mode is applied if it's the current theme
-    const storedTheme = localStorage.getItem('theme');
-    if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      htmlElement.classList.remove('light');
-      htmlElement.classList.add('dark');
-    }
-    
-    // Cleanup on unmount
-    return () => {
-      document.body.style.backgroundColor = originalBackground;
-      // Don't revert theme class as it should persist based on user preference
-    };
-  }, []);
-  
-  // Parse initial symbol from URL parameters (same logic as trade page)
-  let parsedSymbol: string | null = null;
-  if (initialSymbolParam && initialSymbolParam.includes("-")) {
-    const [currency, pair] = initialSymbolParam.split("-");
-    parsedSymbol = `${currency}${pair}`;
-  } else if (initialSymbolParam) {
-    parsedSymbol = initialSymbolParam;
-  }
-
-  const [isInitialized, setIsInitialized] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
-  const initializationRef = useRef(false);
-  const cleanupRef = useRef(false);
+
+  // Handle viewport height for tablets (fixes space under content issue)
+  useViewportHeight();
+
+  // Parse initial symbol from URL parameters (same logic as trade page)
+  const parsedSymbol = useMemo(() => {
+    if (initialSymbolParam && initialSymbolParam.includes("-")) {
+      const [currency, pair] = initialSymbolParam.split("-");
+      return `${currency}${pair}`;
+    } else if (initialSymbolParam) {
+      return initialSymbolParam;
+    }
+    return null;
+  }, [initialSymbolParam]);
+
+  // FIX 3.2: Use versioned initialization to handle race conditions
+  // When parsedSymbol changes during initialization, we need to cancel the old
+  // initialization and start a new one. A simple ref doesn't handle this case.
+  const initializationVersionRef = useRef(0);
+  const isInitializingRef = useRef(false);
 
   // Get user authentication status
   const { user } = useUserStore();
-  
+
   // Get store state and methods
-  const { 
-    currentSymbol, 
-    binaryMarkets, 
+  const {
+    currentSymbol,
     setCurrentSymbol: setStoreSymbol,
-    isLoadingMarkets 
   } = useBinaryStore();
 
   // Handle symbol change with URL update
   const handleSymbolChange = (symbol: string) => {
     if (symbol && symbol !== currentSymbol) {
       setStoreSymbol(symbol);
-      
-      // Update URL with the new symbol
-      const [base, quote] = symbol.includes('/') 
+
+      // Update URL with the new symbol (include locale prefix)
+      const [base, quote] = symbol.includes('/')
         ? symbol.split('/')
         : [symbol.replace(/USDT$|USD$|BTC$|ETH$/, ''), symbol.replace(/^[A-Z]+/, '')];
-      
+
       if (base && quote) {
-        const url = `/binary?symbol=${base}-${quote}`;
+        const url = `/${locale}/binary?symbol=${base}-${quote}`;
         window.history.pushState({ path: url }, "", url);
       }
     }
   };
 
   // Single initialization effect with improved error handling
+  // FIX 3.2: Use versioned initialization pattern to handle race conditions
   useEffect(() => {
+    // Increment version to invalidate any in-progress initialization
+    const currentVersion = ++initializationVersionRef.current;
     let isMounted = true;
 
     const initializeApp = async () => {
-      // Reset initialization ref at the start
-      initializationRef.current = false;
+      // Skip if already initializing (but allow if version changed)
+      if (isInitializingRef.current && currentVersion === initializationVersionRef.current) {
+        return;
+      }
+      isInitializingRef.current = true;
 
       try {
         setInitError(null);
-        console.log("Initializing binary trading app...");
-
-        // Force reset loading state before initialization
-        setIsInitialized(false);
-
-        // Mark as initializing BEFORE calling initializeBinaryStore
-        initializationRef.current = true;
 
         // Initialize the binary store (this will fetch only binary markets and durations)
         await initializeBinaryStore();
-        
-        if (isMounted) {
-          // After store is initialized, check if we need to set a symbol from URL
-          const store = useBinaryStore.getState();
-          const { binaryMarkets: markets, currentSymbol: storeSymbol } = store;
-          
-          // If we have a parsed symbol from URL and no symbol is set in store, set it
-          if (parsedSymbol && !storeSymbol && markets.length > 0) {
-            const market = markets.find(m => 
-              m.symbol === parsedSymbol || 
-              `${m.currency}${m.pair}` === parsedSymbol
-            );
-            
-            if (market) {
-              const selectedSymbol = market.symbol || `${market.currency}${market.pair}`;
-              setStoreSymbol(selectedSymbol);
-            } else if (markets.length > 0) {
-              // Fallback to first available market
-              const firstMarket = markets[0];
-              const fallbackSymbol = firstMarket.symbol || `${firstMarket.currency}${firstMarket.pair}`;
-              setStoreSymbol(fallbackSymbol);
-            }
-          } else if (!storeSymbol && markets.length > 0) {
-            // No URL symbol and no store symbol - set first available
+
+        // FIX 3.2: Check if this initialization is still valid (version hasn't changed)
+        if (!isMounted || currentVersion !== initializationVersionRef.current) {
+          return; // Stale initialization, skip setting state
+        }
+
+        // After store is initialized, check if we need to set a symbol from URL
+        const store = useBinaryStore.getState();
+        const { binaryMarkets: markets, currentSymbol: storeSymbol } = store;
+
+        // If we have a parsed symbol from URL and no symbol is set in store, set it
+        if (parsedSymbol && !storeSymbol && markets.length > 0) {
+          const market = markets.find(m =>
+            m.symbol === parsedSymbol ||
+            `${m.currency}${m.pair}` === parsedSymbol
+          );
+
+          if (market) {
+            const selectedSymbol = market.symbol || `${market.currency}${market.pair}`;
+            setStoreSymbol(selectedSymbol);
+          } else if (markets.length > 0) {
+            // Fallback to first available market
             const firstMarket = markets[0];
             const fallbackSymbol = firstMarket.symbol || `${firstMarket.currency}${firstMarket.pair}`;
             setStoreSymbol(fallbackSymbol);
           }
-          
-          setIsInitialized(true);
-          console.log("Binary trading app initialized successfully");
+        } else if (!storeSymbol && markets.length > 0) {
+          // No URL symbol and no store symbol - set first available
+          const firstMarket = markets[0];
+          const fallbackSymbol = firstMarket.symbol || `${firstMarket.currency}${firstMarket.pair}`;
+          setStoreSymbol(fallbackSymbol);
         }
       } catch (error) {
         console.error("Failed to initialize binary trading app:", error);
-        if (isMounted) {
+        // FIX 3.2: Only set error if this initialization is still valid
+        if (isMounted && currentVersion === initializationVersionRef.current) {
           setInitError("Failed to initialize trading interface. Please refresh the page.");
+        }
+      } finally {
+        // FIX 3.2: Only clear initializing flag if this is still the current version
+        if (currentVersion === initializationVersionRef.current) {
+          isInitializingRef.current = false;
         }
       }
     };
@@ -150,21 +156,35 @@ export default function BinaryTradingPage() {
       isMounted = false;
 
       // Always cleanup on unmount
-      console.log("Cleaning up binary trading page...");
       cleanupBinaryStore();
 
-      // Reset refs to allow re-initialization on next mount
-      initializationRef.current = false;
-      cleanupRef.current = false;
+      // FIX 3.2: Reset initializing flag on cleanup
+      isInitializingRef.current = false;
     };
-  }, []); // Remove all dependencies to prevent re-initialization
+  }, [parsedSymbol, setStoreSymbol]);
+
+  // Track previous user ID to detect actual logout (not initial undefined state)
+  const prevUserIdRef = useRef<string | undefined>(undefined);
+
+  // Listen for binary settings updates from admin panel (cross-tab communication)
+  useEffect(() => {
+    const handleSettingsUpdate = (event: StorageEvent) => {
+      if (event.key === 'binary_settings_updated') {
+        // Admin saved new settings, refresh durations and settings
+        const { forceRefreshDurations, forceRefreshSettings } = useBinaryStore.getState();
+        forceRefreshDurations();
+        forceRefreshSettings();
+      }
+    };
+
+    window.addEventListener('storage', handleSettingsUpdate);
+    return () => window.removeEventListener('storage', handleSettingsUpdate);
+  }, []);
 
   // Handle user authentication changes
   useEffect(() => {
-    if (!isInitialized) return;
-    
     const { fetchCompletedOrders, fetchActiveOrders } = useBinaryStore.getState();
-    
+
     if (user?.id) {
       // User logged in - fetch orders if we have a symbol
       if (currentSymbol) {
@@ -175,18 +195,26 @@ export default function BinaryTradingPage() {
           console.error("Failed to fetch orders after auth:", error);
         });
       }
-    } else {
-      // User logged out - reinitialize without user data
-      initializeBinaryStore().catch(error => {
-        console.error("Failed to reinitialize store after logout:", error);
+      prevUserIdRef.current = user.id;
+    } else if (prevUserIdRef.current) {
+      // User actually logged out (was previously logged in) - clear user-specific data
+      // Note: We don't need to reinitialize the store - just clear orders and reset balance
+      useBinaryStore.setState({
+        orders: [],
+        completedOrders: [],
+        realBalance: null,
+        balance: useBinaryStore.getState().demoBalance // Reset to demo balance
       });
+      prevUserIdRef.current = undefined;
     }
-  }, [user?.id, isInitialized, currentSymbol]); // Depend on user, initialization, and symbol
+    // If user?.id is undefined and prevUserIdRef.current is also undefined,
+    // this is initial load - don't do anything, let the main init effect handle it
+  }, [user?.id, currentSymbol]);
 
   // Show error state if initialization failed
   if (initError) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div className="min-h-screen-mobile h-screen-mobile bg-zinc-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4 p-8 bg-zinc-900 rounded-lg max-w-md text-center shadow-xl border border-zinc-800">
           <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
             <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,15 +234,14 @@ export default function BinaryTradingPage() {
     );
   }
 
-  // Show skeleton loading state during initialization
-  if (!isInitialized || !currentSymbol || isLoadingMarkets) {
-    return <BinaryTradingSkeleton />;
-  }
+  // Render the trading interface directly - it handles its own loading states
+  // Use a fallback symbol while loading to prevent flash
+  const displaySymbol = currentSymbol || "BTC/USDT";
 
   return (
     <div className="min-h-screen-mobile h-screen-mobile bg-zinc-950 flex flex-col overflow-hidden">
       <TradingInterface
-        currentSymbol={currentSymbol}
+        currentSymbol={displaySymbol}
         onSymbolChange={handleSymbolChange}
       />
     </div>

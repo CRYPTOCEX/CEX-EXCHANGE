@@ -4,12 +4,15 @@ import React, { useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EditorProps } from "./types";
+import { useTranslations } from "next-intl";
 
 export const MarketSectionEditor = React.memo(function MarketSectionEditor({
   variables,
   getValue,
   updateVariable
 }: EditorProps) {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     updateVariable('marketSection.title', e.target.value);
   }, [updateVariable]);
@@ -33,68 +36,68 @@ export const MarketSectionEditor = React.memo(function MarketSectionEditor({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
-        <h3 className="text-lg font-semibold mb-4 col-span-full">Market Section Labels</h3>
+        <h3 className="text-lg font-semibold mb-4 col-span-full">{t("market_section_labels")}</h3>
 
         <div>
-          <Label htmlFor="market-title">Section Title</Label>
+          <Label htmlFor="market-title">{t("section_title")}</Label>
           <Input
             id="market-title"
             value={getValue('marketSection.title') || ''}
             onChange={handleTitleChange}
-            placeholder="e.g., Live Markets"
+            placeholder={tCommon("eg") + ", " + tCommon("live_markets")}
           />
         </div>
 
         <div>
-          <Label htmlFor="market-price-title">Price Column Label</Label>
+          <Label htmlFor="market-price-title">{t("price_column_label")}</Label>
           <Input
             id="market-price-title"
             value={getValue('marketSection.priceTitle') || ''}
             onChange={handlePriceTitleChange}
-            placeholder="e.g., Price"
+            placeholder={tCommon("eg") + ", " + tCommon("price")}
           />
         </div>
 
         <div>
-          <Label htmlFor="market-cap-title">Market Cap Column Label</Label>
+          <Label htmlFor="market-cap-title">{t("market_cap_column_label")}</Label>
           <Input
             id="market-cap-title"
             value={getValue('marketSection.capTitle') || ''}
             onChange={handleCapTitleChange}
-            placeholder="e.g., Cap"
+            placeholder={tCommon("eg") + ", " + t("cap")}
           />
         </div>
 
         <div>
-          <Label htmlFor="market-change-title">24h Change Column Label</Label>
+          <Label htmlFor="market-change-title">{`24h ${tCommon('change_column_label')}`}</Label>
           <Input
             id="market-change-title"
             value={getValue('marketSection.changeTitle') || ''}
             onChange={handleChangeTitleChange}
-            placeholder="e.g., 24h"
+            placeholder={tCommon("eg") + ", " + t("n_24h")}
           />
         </div>
 
         <div className="md:col-span-2">
-          <Label htmlFor="market-view-all">View All Button Text</Label>
+          <Label htmlFor="market-view-all">{t("view_all_button_text")}</Label>
           <Input
             id="market-view-all"
             value={getValue('marketSection.viewAllText') || ''}
             onChange={handleViewAllTextChange}
-            placeholder="e.g., View all markets"
+            placeholder={tCommon("eg") + ", " + tCommon("view_all_markets")}
           />
         </div>
       </div>
 
       {/* Preview */}
       <div className="p-4 border rounded-lg bg-gradient-to-br from-zinc-900/50 to-zinc-800/50">
-        <h4 className="text-sm font-medium mb-4 text-muted-foreground">Market Panel Preview</h4>
+        <h4 className="text-sm font-medium mb-4 text-muted-foreground">{t("market_panel_preview")}</h4>
 
         <div className="backdrop-blur-xl rounded-xl p-4 border border-white/10 bg-white/5">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-semibold">{getValue('marketSection.title') || 'Live Markets'}</h3>
-              <p className="text-xs text-muted-foreground">Top performing assets</p>
+              <p className="text-xs text-muted-foreground">{tCommon("top_performing_assets")}</p>
             </div>
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">

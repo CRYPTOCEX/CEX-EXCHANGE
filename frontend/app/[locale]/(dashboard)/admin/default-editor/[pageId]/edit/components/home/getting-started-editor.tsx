@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { EditorProps, Step } from "./types";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 // Icon mapping
 const iconMap: Record<string, any> = {
@@ -96,6 +97,8 @@ function getIconComponent(iconName: string) {
 }
 
 export function GettingStartedEditor({ variables, getValue, updateVariable }: EditorProps) {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
   const steps = getValue('gettingStarted.steps') || [];
 
   const addStep = () => {
@@ -141,16 +144,16 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
         <div className="space-y-4 xl:col-span-1">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Rocket className="w-5 h-5 text-primary" />
-            Getting Started Section
+            {t("getting_started_section")}
           </h3>
 
           <div>
-            <Label htmlFor="getting-started-badge">Badge Text</Label>
+            <Label htmlFor="getting-started-badge">{t("badge_text")}</Label>
             <Input
               id="getting-started-badge"
               value={getValue('gettingStarted.badge') || ''}
               onChange={(e) => updateVariable('gettingStarted.badge', e.target.value)}
-              placeholder="e.g., Get Started"
+              placeholder={tCommon("eg") + ", " + tCommon("get_started")}
             />
           </div>
 
@@ -161,7 +164,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
                 id="getting-started-title"
                 value={getValue('gettingStarted.title') || ''}
                 onChange={(e) => updateVariable('gettingStarted.title', e.target.value)}
-                placeholder="e.g., Start Trading"
+                placeholder={tCommon("eg") + ", " + tCommon("start_trading")}
               />
             </div>
             <div>
@@ -170,7 +173,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
                 id="getting-started-subtitle"
                 value={getValue('gettingStarted.subtitle') || ''}
                 onChange={(e) => updateVariable('gettingStarted.subtitle', e.target.value)}
-                placeholder="e.g., in Minutes"
+                placeholder={tCommon("eg") + ", " + t("in_minutes")}
               />
             </div>
           </div>
@@ -202,11 +205,11 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold">Steps</h3>
-            <p className="text-sm text-muted-foreground">Define the onboarding steps for new users</p>
+            <p className="text-sm text-muted-foreground">{t("define_the_onboarding_steps_for_new_users")}</p>
           </div>
           <Button onClick={addStep} size="sm" variant="outline" className="gap-1">
             <Plus className="w-4 h-4" />
-            Add Step
+            {t("add_step")}
           </Button>
         </div>
 
@@ -215,10 +218,10 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
           {steps.length === 0 && (
             <div className="text-center py-8 border border-dashed rounded-lg">
               <Rocket className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground mb-3">No steps configured. Using defaults.</p>
+              <p className="text-sm text-muted-foreground mb-3">{t("no_steps_configured_using_defaults")}</p>
               <Button onClick={addStep} size="sm" variant="outline" className="gap-1">
                 <Plus className="w-4 h-4" />
-                Add First Step
+                {t("add_first_step")}
               </Button>
             </div>
           )}
@@ -244,7 +247,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
                   {/* Step Editor */}
                   <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div>
-                      <Label className="text-xs">Step Number</Label>
+                      <Label className="text-xs">{t("step_number")}</Label>
                       <Input
                         value={step.step}
                         onChange={(e) => updateStep(index, 'step', e.target.value)}
@@ -257,7 +260,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
                       <Input
                         value={step.title}
                         onChange={(e) => updateStep(index, 'title', e.target.value)}
-                        placeholder="Step title"
+                        placeholder={t("step_title")}
                         className="h-9"
                       />
                     </div>
@@ -305,7 +308,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
                       <Input
                         value={step.description}
                         onChange={(e) => updateStep(index, 'description', e.target.value)}
-                        placeholder="Brief step description"
+                        placeholder={t("brief_step_description")}
                         className="h-9"
                       />
                     </div>
@@ -331,7 +334,7 @@ export function GettingStartedEditor({ variables, getValue, updateVariable }: Ed
       {/* Full Section Preview */}
       <div className="space-y-2">
         <div className="text-xs font-medium text-muted-foreground flex items-center justify-between">
-          <span>SECTION PREVIEW</span>
+          <span>{t("section_preview")}</span>
           <Badge variant="secondary" className="text-xs">
             {displaySteps.length} steps
           </Badge>

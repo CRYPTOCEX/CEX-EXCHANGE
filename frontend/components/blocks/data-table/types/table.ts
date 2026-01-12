@@ -309,8 +309,14 @@ export type ColumnType =
 
 // Form configuration types for create/edit views
 export interface FormFieldConfig {
-  /** Column key - must match a key from columns array */
+  /** Column key - must match a key from columns array or a field inside a compound column */
   key: string;
+  /**
+   * If this field exists inside a compound column, specify the compound column's key here.
+   * The form will extract the field config from the compound column's render.config.
+   * Example: { key: "title", compoundKey: "depositCompound" } extracts "title" from the compound column.
+   */
+  compoundKey?: string;
   /** Override column type for form (optional) */
   type?: ColumnType;
   /** Override field title/label for form */
@@ -405,6 +411,7 @@ export interface BadgeConfig {
     true?: string;
     false?: string;
   };
+  options?: Array<{ value: string | boolean | number; label: string; color?: BadgeVariant }>;
 }
 
 export interface CompoundConfig {
@@ -496,4 +503,6 @@ export interface ColumnDefinition {
   nestedColumns?: ColumnDefinition[];
   /** Format string for date/number columns */
   format?: string;
+  /** If true, column spans full width in expanded/view modal */
+  fullWidth?: boolean;
 }

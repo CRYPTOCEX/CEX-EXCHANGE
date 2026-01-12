@@ -46,12 +46,13 @@ function renderWalletType(value: string) {
 }
 
 const EcoAddresses = ({ value, row }: { value: any; row?: any }) => {
+  const t = useTranslations("common");
   const tCommon = useTranslations("common");
   // 1) Check if we have a row
   if (!row) {
     // row is undefined, so we can't check row.type
     // Return a fallback or debug info:
-    return <>No Row Data</>;
+    return <>{tCommon("no_row_data")}</>;
   }
 
   // 2) If the wallet type isn't ECO
@@ -61,7 +62,7 @@ const EcoAddresses = ({ value, row }: { value: any; row?: any }) => {
 
   // 3) If the address field is null/undefined
   if (!value) {
-    return <>No Addresses</>;
+    return <>{tCommon("no_addresses")}</>;
   }
 
   // 4) Try to parse the address JSON
@@ -73,7 +74,7 @@ const EcoAddresses = ({ value, row }: { value: any; row?: any }) => {
   }
   const chains = Object.keys(parsed);
   if (!chains.length) {
-    return <>No Addresses</>;
+    return <>{tCommon("no_addresses")}</>;
   }
 
   // 5) Render chain info

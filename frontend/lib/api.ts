@@ -32,8 +32,35 @@ function getApiBaseUrl(): string {
 
   if (typeof window !== "undefined") {
     // Client-side
+
+    // Check for explicit backend URL override (useful for ngrok/tunnel testing)
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    if (backendUrl) {
+      return backendUrl;
+    }
+
     if (isDev) {
-      return `http://localhost:${backendPort}`;
+      // For ngrok/tunnels: if hostname contains 'ngrok' or other tunnel services,
+      // we can't just append port - need NEXT_PUBLIC_BACKEND_URL set
+      const hostname = window.location.hostname;
+      const isTunnel =
+        hostname.includes("ngrok") ||
+        hostname.includes("tunnel") ||
+        hostname.includes("loca.lt") ||
+        hostname.includes("serveo");
+
+      if (isTunnel) {
+        // For tunnels without NEXT_PUBLIC_BACKEND_URL, try same origin (assumes reverse proxy)
+        // This will likely fail - user needs to set NEXT_PUBLIC_BACKEND_URL
+        console.warn(
+          "[API] Tunnel detected but NEXT_PUBLIC_BACKEND_URL not set. " +
+            "API calls may fail. Set NEXT_PUBLIC_BACKEND_URL to your backend tunnel URL."
+        );
+        return window.location.origin;
+      }
+
+      // Use the same hostname as the current page (works for localhost AND IP access from mobile)
+      return `${window.location.protocol}//${hostname}:${backendPort}`;
     }
     // In production, use the same domain without backend port (reverse proxy handles it)
     return process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
@@ -233,12 +260,50 @@ function handleBodyIndicatedError<T>(
 ): FetchResponse<T> {
   // Get message from data, prioritizing the message field
   const message = data.message || errorMessage;
-  
+
   // Debug logging to help diagnose toast issues
   if (process.env.NODE_ENV === "development") {
     console.log("handleBodyIndicatedError called:", { data, silent, message });
   }
-  
+
+  // Check for license error and redirect to activation page
+  if (
+    typeof window !== "undefined" &&
+    data.statusCode === 403 &&
+    (data.licenseRequired === true || message?.includes("License not activated") || message?.includes("license"))
+  ) {
+    // Only redirect if we're in admin area
+    if (window.location.pathname.includes("/admin")) {
+      // Extract locale from path (e.g., /en/admin -> en)
+      const pathParts = window.location.pathname.split("/");
+      const locale = pathParts[1] || "en";
+
+      // Build license page URL with product info if available
+      let licensePagePath = `/${locale}/admin/system/license`;
+      const queryParams: string[] = [];
+
+      if (data.productId) {
+        queryParams.push(`productId=${encodeURIComponent(data.productId)}`);
+      }
+
+      // Add return path to current page
+      queryParams.push(`return=${encodeURIComponent(window.location.pathname)}`);
+
+      // Add flag to indicate this is from an actual license failure (prevents redirect loop)
+      queryParams.push("needsActivation=true");
+
+      if (queryParams.length > 0) {
+        licensePagePath += `?${queryParams.join("&")}`;
+      }
+
+      // Don't redirect if already on license page
+      if (!window.location.pathname.includes("/admin/system/license")) {
+        window.location.href = licensePagePath;
+        return { data: null, error: message };
+      }
+    }
+  }
+
   // Check if the response already contains validationErrors
   if (data.validationErrors) {
     if (!silent) {
@@ -282,7 +347,41 @@ async function handleError<T>(
   // First check if data contains a status code (new error format)
   if (data && typeof data === "object" && data.statusCode && Number(data.statusCode) >= 400) {
     const message = data.message || errorMessage;
-    
+
+    // Check for license error and redirect to activation page
+    if (
+      typeof window !== "undefined" &&
+      (response.status === 403 || data.statusCode === 403) &&
+      (data.licenseRequired === true || message?.includes("license"))
+    ) {
+      // Only redirect if we're in admin area
+      if (window.location.pathname.includes("/admin")) {
+        const pathParts = window.location.pathname.split("/");
+        const locale = pathParts[1] || "en";
+
+        let licensePagePath = `/${locale}/admin/system/license`;
+        const queryParams: string[] = [];
+
+        if (data.productId) {
+          queryParams.push(`productId=${encodeURIComponent(data.productId)}`);
+        }
+
+        queryParams.push(`return=${encodeURIComponent(window.location.pathname)}`);
+
+        // Add flag to indicate this is from an actual license failure (prevents redirect loop)
+        queryParams.push("needsActivation=true");
+
+        if (queryParams.length > 0) {
+          licensePagePath += `?${queryParams.join("&")}`;
+        }
+
+        if (!window.location.pathname.includes("/admin/system/license")) {
+          window.location.href = licensePagePath;
+          return { data: null, error: message };
+        }
+      }
+    }
+
     // Check if the response already contains validationErrors
     if (data.validationErrors) {
       if (!silent) toast.error("Validation failed. Please check the required fields.");
@@ -292,7 +391,7 @@ async function handleError<T>(
         validationErrors: data.validationErrors,
       };
     }
-    
+
     const parsedValidation = attemptParseValidationErrors(message);
     if (parsedValidation) {
       // Show the actual error message instead of generic "Validation error"
@@ -305,6 +404,37 @@ async function handleError<T>(
     }
     if (!silent) toast.error(message);
     return { data: null, error: message };
+  }
+
+  // Check for license error in non-2xx responses
+  if (
+    typeof window !== "undefined" &&
+    response.status === 403 &&
+    data &&
+    (data.licenseRequired === true || data.message?.includes("license"))
+  ) {
+    if (window.location.pathname.includes("/admin")) {
+      const pathParts = window.location.pathname.split("/");
+      const locale = pathParts[1] || "en";
+
+      let licensePagePath = `/${locale}/admin/system/license`;
+      const queryParams: string[] = [];
+
+      if (data.productId) {
+        queryParams.push(`productId=${encodeURIComponent(data.productId)}`);
+      }
+
+      queryParams.push(`return=${encodeURIComponent(window.location.pathname)}`);
+
+      if (queryParams.length > 0) {
+        licensePagePath += `?${queryParams.join("&")}`;
+      }
+
+      if (!window.location.pathname.includes("/admin/system/license")) {
+        window.location.href = licensePagePath;
+        return { data: null, error: data.message || errorMessage };
+      }
+    }
   }
 
   // Fallback to legacy error handling

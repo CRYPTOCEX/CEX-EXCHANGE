@@ -8,25 +8,17 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
-import { Link } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
 
 export default function OfferingLoading() {
-  const t = useTranslations("ext");
-  const tExtIco = useTranslations("ext_ico");
-  const tCommon = useTranslations("common");
   return (
     <>
       {/* Hero Section with Background */}
       <div className="relative bg-gradient-to-b from-primary/10 to-background pt-28 pb-6">
         <div className="container">
-          <Link
-            href="/ico/offer"
-            className="text-sm text-muted-foreground hover:text-primary mb-4 flex items-center w-fit"
-          >
+          <div className="text-sm text-muted-foreground mb-4 flex items-center w-fit">
             <ArrowLeft className="mr-1 h-4 w-4" />
-            {tCommon("back_to_offerings")}
-          </Link>
+            <Skeleton className="h-4 w-32" />
+          </div>
 
           <div className="flex flex-col md:flex-row gap-6 items-start">
             <div className="w-full md:w-2/3">
@@ -60,7 +52,7 @@ export default function OfferingLoading() {
               <Card className="bg-card/70 backdrop-blur-sm border-primary/10 shadow-lg">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">
-                    {t("funding_progress")}
+                    <Skeleton className="h-5 w-32" />
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -121,10 +113,14 @@ export default function OfferingLoading() {
                 <CardHeader className="pb-0">
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="details">
-                      {tExtIco("project_details")}
+                      <Skeleton className="h-4 w-24" />
                     </TabsTrigger>
-                    <TabsTrigger value="team">{t("team")}</TabsTrigger>
-                    <TabsTrigger value="roadmap">{t("roadmap")}</TabsTrigger>
+                    <TabsTrigger value="team">
+                      <Skeleton className="h-4 w-12" />
+                    </TabsTrigger>
+                    <TabsTrigger value="roadmap">
+                      <Skeleton className="h-4 w-16" />
+                    </TabsTrigger>
                   </TabsList>
                 </CardHeader>
                 <CardContent className="pt-6">
@@ -149,7 +145,9 @@ export default function OfferingLoading() {
             {/* FAQ Section */}
             <Card className="border-0 shadow-md mb-8">
               <CardHeader>
-                <CardTitle>{tCommon('faq_question')}</CardTitle>
+                <CardTitle>
+                  <Skeleton className="h-6 w-48" />
+                </CardTitle>
                 <Skeleton className="h-4 w-3/4" />
               </CardHeader>
               <CardContent className="space-y-4">
@@ -171,7 +169,9 @@ export default function OfferingLoading() {
             <div id="invest" className="sticky top-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>{tExtIco("invest_in_this_offering")}</CardTitle>
+                  <CardTitle>
+                    <Skeleton className="h-6 w-48" />
+                  </CardTitle>
                   <Skeleton className="h-4 w-full" />
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -204,7 +204,7 @@ export default function OfferingLoading() {
               <Card className="mt-6 border-0 shadow-sm">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">
-                    {tCommon("recent_activity")}
+                    <Skeleton className="h-5 w-32" />
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4">

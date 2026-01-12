@@ -28,10 +28,11 @@ export default class binaryOrder
   barrier?: number;
   strikePrice?: number;
   payoutPerPoint?: number;
-  status!: "PENDING" | "WIN" | "LOSS" | "DRAW" | "CANCELED";
+  status!: "PENDING" | "WIN" | "LOSS" | "DRAW" | "CANCELED" | "ERROR";
   isDemo!: boolean;
   closedAt!: Date;
   closePrice?: number;
+  metadata?: Record<string, any>;
   createdAt?: Date;
   deletedAt?: Date;
   updatedAt?: Date;
@@ -200,15 +201,15 @@ export default class binaryOrder
           comment: "Profit percentage for this binary order duration",
         },
         status: {
-          type: DataTypes.ENUM("PENDING", "WIN", "LOSS", "DRAW", "CANCELED"),
+          type: DataTypes.ENUM("PENDING", "WIN", "LOSS", "DRAW", "CANCELED", "ERROR"),
           allowNull: false,
           validate: {
             isIn: {
-              args: [["PENDING", "WIN", "LOSS", "DRAW", "CANCELED"]],
-              msg: "status: must be one of 'PENDING', 'WIN', 'LOSS', 'DRAW','CANCELED'",
+              args: [["PENDING", "WIN", "LOSS", "DRAW", "CANCELED", "ERROR"]],
+              msg: "status: must be one of 'PENDING', 'WIN', 'LOSS', 'DRAW', 'CANCELED', 'ERROR'",
             },
           },
-          comment: "Current status of the binary option order",
+          comment: "Current status of the binary option order (ERROR = data fetch failed, needs manual review)",
         },
         isDemo: {
           type: DataTypes.BOOLEAN,
@@ -235,6 +236,11 @@ export default class binaryOrder
           },
           comment: "Final price when the option closed",
         },
+        metadata: {
+          type: DataTypes.JSON,
+          allowNull: true,
+          comment: "Additional metadata (e.g., idempotency key, client info)",
+        },
       },
       {
         sequelize,
@@ -259,6 +265,19 @@ export default class binaryOrder
             name: "binaryOrderUserIdForeign",
             using: "BTREE",
             fields: [{ name: "userId" }],
+          },
+          {
+            name: "idx_binary_order_status_closedAt",
+            using: "BTREE",
+            fields: [{ name: "status" }, { name: "closedAt" }],
+          },
+          {
+            name: "idx_binary_order_user_idempotency",
+            using: "BTREE",
+            fields: [
+              { name: "userId" },
+              { name: "metadata", length: 255 },
+            ],
           },
         ],
       }

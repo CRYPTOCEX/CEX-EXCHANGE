@@ -418,7 +418,7 @@ export function MediaManager({
                 await handleFileUpload(uploadedFiles);
                 setCurrentView("library");
               }}
-              onInsertUrl={isInsertMode && onSelect && onClose ? (url, alt) => {
+              onInsertUrl={isInsertMode && onSelect !== undefined && onClose !== undefined ? (url, alt) => {
                 onSelect(url, alt);
                 onClose();
               } : undefined}
@@ -443,7 +443,7 @@ export function MediaManager({
                 setCurrentView("library");
                 setPreviewFile(null);
               }}
-              onSelect={isInsertMode && onSelect && onClose ? () => {
+              onSelect={isInsertMode && onSelect !== undefined && onClose !== undefined ? () => {
                 onSelect(previewFile.path, previewFile.name);
                 onClose();
               } : undefined}
@@ -723,7 +723,7 @@ export function MediaManager({
                 setSelectedFiles(new Set([detailsFile.id]));
                 setShowDeleteConfirm(true);
               }}
-              onInsert={isInsertMode && onSelect && onClose ? () => {
+              onInsert={isInsertMode && onSelect !== undefined && onClose !== undefined ? () => {
                 onSelect(detailsFile.path, detailsFile.name);
                 onClose();
               } : undefined}

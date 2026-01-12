@@ -16,7 +16,7 @@ const EcoAddresses = ({ value, row }: { value: any; row?: any }) => {
 
   // 1) Check if we have a row
   if (!row) {
-    return <>No row data</>;
+    return <>{t("no_row_data")}</>;
   }
 
   // 2) If the wallet type isn't ECO
@@ -26,7 +26,7 @@ const EcoAddresses = ({ value, row }: { value: any; row?: any }) => {
 
   // 3) If the address field is null/undefined
   if (!value) {
-    return <>No addresses</>;
+    return <>{t("no_addresses")}</>;
   }
 
   // 4) Try to parse the address JSON
@@ -38,7 +38,7 @@ const EcoAddresses = ({ value, row }: { value: any; row?: any }) => {
   }
   const chains = Object.keys(parsed);
   if (!chains.length) {
-    return <>No addresses</>;
+    return <>{t("no_addresses")}</>;
   }
 
   // 5) Render chain info

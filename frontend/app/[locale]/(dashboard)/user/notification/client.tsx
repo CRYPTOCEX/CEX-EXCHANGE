@@ -370,7 +370,7 @@ export default function NotificationsClient() {
                           className="mt-4"
                           onClick={() => handleFilterChange([])}
                         >
-                          Clear filters
+                          {t("clear_filters")}
                         </Button>
                       )}
                     </motion.div>
@@ -407,7 +407,7 @@ export default function NotificationsClient() {
                         <ChevronUp className="h-4 w-4" />
                       </motion.div>
                       <span className="text-xs sm:text-sm font-medium">
-                        Back to top
+                        {t("back_to_top")}
                       </span>
                     </Button>
                   </motion.div>

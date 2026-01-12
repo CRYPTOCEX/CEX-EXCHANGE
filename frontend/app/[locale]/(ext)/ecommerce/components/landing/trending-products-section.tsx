@@ -6,6 +6,7 @@ import { ArrowRight, TrendingUp, Flame } from "lucide-react";
 import { ProductGrid } from "../product-card";
 import { useAnimateOnScroll } from "../../hooks/use-animate-on-scroll";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 
 interface TrendingProductsSectionProps {
   products: any[];
@@ -35,6 +36,8 @@ export default function TrendingProductsSection({
   products,
   isLoading,
 }: TrendingProductsSectionProps) {
+  const t = useTranslations("ext_ecommerce");
+  const tExt = useTranslations("ext");
   const trendingSection = useAnimateOnScroll();
 
   if (!products || products.length === 0) return null;
@@ -58,7 +61,7 @@ export default function TrendingProductsSection({
               className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-linear-to-r from-amber-500/10 to-emerald-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 text-sm font-semibold mb-4`}
             >
               <Flame className="w-4 h-4" />
-              Hot Picks
+              {t("hot_picks")}
             </motion.div>
             <h2 className="text-4xl md:text-5xl font-extrabold text-zinc-900 dark:text-zinc-100 mb-4">
               Trending{" "}
@@ -67,7 +70,7 @@ export default function TrendingProductsSection({
               </span>
             </h2>
             <p className="text-xl text-zinc-600 dark:text-zinc-400">
-              Discover what's popular right now in our marketplace
+              {t("discover_whats_popular_right_now_in")}
             </p>
           </motion.div>
 
@@ -77,7 +80,7 @@ export default function TrendingProductsSection({
                 variant="outline"
                 className={`border-2 border-amber-500/30 hover:border-amber-500/50 hover:bg-amber-500/5 dark:border-amber-500/40 dark:hover:border-amber-500/60 rounded-xl font-semibold`}
               >
-                View All Products
+                {tExt("view_all_products")}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>

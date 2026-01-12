@@ -304,7 +304,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
             <div className="p-4 bg-background rounded-xl shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 <Activity className="w-4 h-4 text-primary" />
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">{tExt("total_trades")}</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">{tCommon("total_trades")}</span>
               </div>
               <p className="text-xl font-bold text-foreground">{totalTrades}</p>
             </div>
@@ -327,7 +327,7 @@ const BotCard: React.FC<BotCardProps> = ({ bot, marketId, onRefresh, quoteCurren
             <div className="p-4 bg-background rounded-xl shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 <BarChart3 className="w-4 h-4 text-purple-500" />
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">{tExt("total_volume")}</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">{tCommon("total_volume")}</span>
               </div>
               <p className="text-xl font-bold text-foreground">
                 {totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 })} {quoteCurrency}
@@ -736,7 +736,7 @@ export const BotManagement: React.FC<BotManagementProps> = ({
           gradient="from-green-500 to-green-600"
         />
         <SummaryCard
-          label={t("total_trades")}
+          label={tCommon("total_trades")}
           value={totalTrades.toLocaleString()}
           icon={Activity}
           gradient="from-purple-500 to-purple-600"
@@ -865,7 +865,7 @@ export const BotManagement: React.FC<BotManagementProps> = ({
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-medium text-foreground">AI Trade</span>
+                            <span className="font-medium text-foreground">{t("ai_trade")}</span>
                             <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${side === "BUY" ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"}`}>
                               {side}
                             </span>

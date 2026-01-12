@@ -337,7 +337,7 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
                   <Shield className="h-4 w-4" />
                 </div>
                 <div>
-                  <div className="font-medium">{tExt("current_status")}</div>
+                  <div className="font-medium">{tCommon("current_status")}</div>
                   <div className="text-sm text-muted-foreground capitalize">
                     {pool.status.toLowerCase().replace("_", " ")}
                     {pool.isPromoted && (

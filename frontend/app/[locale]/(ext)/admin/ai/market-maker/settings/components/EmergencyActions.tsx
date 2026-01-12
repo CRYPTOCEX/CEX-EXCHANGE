@@ -148,6 +148,7 @@ export default function EmergencyActionsField({
   handleChange,
 }: CustomComponentProps) {
   const t = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [completedAction, setCompletedAction] = useState<string | null>(null);
 
@@ -284,7 +285,7 @@ export default function EmergencyActionsField({
                           {isLoading ? (
                             <>
                               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Executing...
+                              {t("executing_ellipsis")}
                             </>
                           ) : isCompleted ? (
                             <>
@@ -351,9 +352,7 @@ export default function EmergencyActionsField({
       {/* Note */}
       <div className="p-3 rounded-lg bg-muted/50 border">
         <p className="text-xs text-muted-foreground">
-          <strong>Note:</strong> Emergency actions are logged and audited. All
-          actions require confirmation before execution. For routine
-          maintenance, use the switches in the Trading tab instead.
+          <strong>{tCommon("note")}: </strong> {t("emergency_actions_logged") + ' ' + t("emergency_actions_require_confirmation") + ' ' + t("routine_maintenance_hint")}
         </p>
       </div>
     </div>

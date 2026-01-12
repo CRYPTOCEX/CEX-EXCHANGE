@@ -31,7 +31,7 @@ export function useColumns(): ColumnDefinition[] {
           secondary: {
             key: "pair",
             title: tDashboardAdmin("pair"),
-            description: tExtAdmin("trading_pair"),
+            description: tCommon("trading_pair"),
             render: (value: string, row: any) => {
               const market = row.market;
               return market ? `${market.currency}/${market.pair}` : "-";
@@ -217,7 +217,7 @@ export function useFormConfig(): FormConfig {
         },
         {
           id: "trading-settings",
-          title: tExtAdmin("trading_settings"),
+          title: tCommon("trading_settings"),
           icon: Settings,
           priority: 2,
           fields: [

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Loader2, Users, FileText, Layout, Search } from "lucide-react";
+import { Loader2, Users, FileText, Layout, Search, Settings } from "lucide-react";
 import {
   SettingsPage,
   SettingsPageConfig,
@@ -17,6 +17,7 @@ import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 
 const TAB_ICONS: Record<string, React.ElementType> = {
+  general: Settings,
   authors: Users,
   content: FileText,
   display: Layout,
@@ -24,6 +25,7 @@ const TAB_ICONS: Record<string, React.ElementType> = {
 };
 
 const TAB_DESCRIPTIONS: Record<string, string> = {
+  general: "Configure general blog settings",
   authors: "Configure author applications and limits",
   content: "Configure content creation and moderation",
   display: "Configure how content is displayed",
@@ -42,6 +44,7 @@ const BLOG_SETTINGS_CONFIG: SettingsPageConfig = {
 };
 
 export function SettingsClient() {
+  const t = useTranslations("blog_admin");
   const tCommon = useTranslations("common");
   const { settings, setSettings, settingsFetched } = useConfigStore();
 
@@ -62,7 +65,7 @@ export function SettingsClient() {
           <div className="text-center">
             <p className="text-lg font-medium">{tCommon("loading")}...</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Please wait while we fetch your settings
+              {tCommon("please_wait_while_we_fetch_your_settings")}
             </p>
           </div>
         </motion.div>

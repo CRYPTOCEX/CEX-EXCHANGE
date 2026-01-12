@@ -52,7 +52,7 @@ function ConfigurationsPage() {
     setActiveTab(newTab);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", newTab);
-    router.push(`?${params.toString()}`, { scroll: false });
+    router.push(`?${params.toString()}`);
   };
   const confirmTabChange = () => {
     setShowConfirm(false);
@@ -61,7 +61,7 @@ function ConfigurationsPage() {
       setActiveTab(pendingTab);
       const params = new URLSearchParams(searchParams.toString());
       params.set("tab", pendingTab);
-      router.push(`?${params.toString()}`, { scroll: false });
+      router.push(`?${params.toString()}`);
       setPendingTab(null);
     }
   };

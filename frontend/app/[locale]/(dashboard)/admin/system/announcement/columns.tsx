@@ -129,7 +129,7 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: t("basic_information"),
+          title: tCommon("basic_information"),
           icon: FileText,
           priority: 1,
           fields: [
@@ -172,7 +172,7 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: t("basic_information"),
+          title: tCommon("basic_information"),
           icon: FileText,
           priority: 1,
           fields: [

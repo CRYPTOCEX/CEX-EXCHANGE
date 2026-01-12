@@ -29,6 +29,7 @@ export default function FeeCalculatorSection({
   isLoading,
 }: FeeCalculatorSectionProps) {
   const t = useTranslations("ext_gateway");
+  const tExt = useTranslations("ext");
   const [amount, setAmount] = useState(100);
 
   const calculation = useMemo(() => {
@@ -116,7 +117,7 @@ export default function FeeCalculatorSection({
                     ${calculation.fixed.toFixed(2)}
                   </span>
                 </div>
-                <span className="text-sm text-zinc-500">per transaction</span>
+                <span className="text-sm text-zinc-500">{t("per_transaction")}</span>
               </div>
 
               {/* Amount Input */}
@@ -164,7 +165,7 @@ export default function FeeCalculatorSection({
                 <div className="text-center flex flex-col items-center justify-center">
                   <ArrowRight className="w-6 h-6 text-zinc-400" />
                   <p className="text-xs text-zinc-500 mt-1">
-                    Fee: ${calculation.fee.toFixed(2)}
+                    {tExt("fee_1")}{calculation.fee.toFixed(2)}
                   </p>
                 </div>
                 <div className="text-center">

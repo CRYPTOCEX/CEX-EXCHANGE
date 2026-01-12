@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -33,16 +33,24 @@ import {
   Twitter,
   PhoneIcon as WhatsApp,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { GeneratorHero } from "./components/generator-hero";
+import { useUserStore } from "@/store/user";
 
 export default function ReferralGeneratorClient() {
   const t = useTranslations("ext_affiliate");
   const tExt = useTranslations("ext");
   const tCommon = useTranslations("common");
-  const [baseLink, setBaseLink] = useState(
-    "https://yourplatform.com/ref/user123"
-  );
+  const locale = useLocale();
+  const { user } = useUserStore();
+  const [baseLink, setBaseLink] = useState("");
+
+  useEffect(() => {
+    if (user?.id) {
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      setBaseLink(`${baseUrl}/${locale}/register?ref=${user.id}`);
+    }
+  }, [user, locale]);
   const [customParam, setCustomParam] = useState("");
   const [campaign, setCampaign] = useState("");
   const [source, setSource] = useState("");
@@ -179,7 +187,7 @@ export default function ReferralGeneratorClient() {
                   setGeneratedLink("");
                 }}
               >
-                {tExt("reset")}
+                {tCommon("reset")}
               </Button>
               <Button type="button" onClick={generateLink}>
                 {t("generate_link")}
@@ -289,7 +297,7 @@ export default function ReferralGeneratorClient() {
                   <div className="border rounded-lg p-4 bg-white">
                     <img
                       src={qrCodeUrl || "/placeholder.svg"}
-                      alt="QR Code for your referral link"
+                      alt={t("qr_code_for_your_referral_link")}
                       className="mx-auto"
                     />
                   </div>

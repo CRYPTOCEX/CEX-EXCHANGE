@@ -37,6 +37,7 @@ import $fetch from "@/lib/api";
 import { useAdminGatewayMode } from "./context/admin-gateway-mode";
 import { useTranslations } from "next-intl";
 import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
+import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 interface DashboardStats {
   mode: "LIVE" | "TEST";
@@ -220,78 +221,38 @@ export default function GatewayAdminDashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("total_merchants")}
-            </CardTitle>
-            <Store className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.merchants.total || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {stats?.merchants.active || 0} {tCommon("active")},{" "}
-              {stats?.merchants.pending || 0} pending
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("total_payments")}
-            </CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.payments.total || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {stats?.payments.completed || 0} {tCommon("completed")},{" "}
-              {stats?.payments.pending || 0} pending
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("net_volume")}
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${(stats?.payments.netVolume || 0).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              ${(stats?.payments.totalFees || 0).toLocaleString()} fees
-              {(stats?.payments.totalRefunded || 0) > 0 && (
-                <>, ${(stats?.payments.totalRefunded || 0).toLocaleString()} refunded</>
-              )}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("pending_payouts")}
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.payouts.pending || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              ${(stats?.payouts.pendingAmount || 0).toLocaleString()} pending
-            </p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          label={t("total_merchants")}
+          value={stats?.merchants.total || 0}
+          icon={Store}
+          index={0}
+          description={`${stats?.merchants.active || 0} ${tCommon("active")}, ${stats?.merchants.pending || 0} pending`}
+          {...statsCardColors.purple}
+        />
+        <StatsCard
+          label={t("total_payments")}
+          value={stats?.payments.total || 0}
+          icon={CreditCard}
+          index={1}
+          description={`${stats?.payments.completed || 0} ${tCommon("completed")}, ${stats?.payments.pending || 0} pending`}
+          {...statsCardColors.blue}
+        />
+        <StatsCard
+          label={t("net_volume")}
+          value={`$${(stats?.payments.netVolume || 0).toLocaleString()}`}
+          icon={DollarSign}
+          index={2}
+          description={`$${(stats?.payments.totalFees || 0).toLocaleString()} fees${(stats?.payments.totalRefunded || 0) > 0 ? `, $${(stats?.payments.totalRefunded || 0).toLocaleString()} refunded` : ""}`}
+          {...statsCardColors.green}
+        />
+        <StatsCard
+          label={t("pending_payouts")}
+          value={stats?.payouts.pending || 0}
+          icon={TrendingUp}
+          index={3}
+          description={`$${(stats?.payouts.pendingAmount || 0).toLocaleString()} pending`}
+          {...statsCardColors.amber}
+        />
       </div>
 
       {/* Quick Links */}

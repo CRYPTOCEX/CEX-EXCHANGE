@@ -58,6 +58,7 @@ interface ExpandedOfferCardProps {
 
 const ExpandedOfferCard = forwardRef<HTMLDivElement, ExpandedOfferCardProps>(
   ({ offer, type, onClose, layoutId }, ref) => {
+    const t = useTranslations("ext_p2p");
     const tCommon = useTranslations("common");
     const router = useRouter();
     const isBuy = type === "buy";
@@ -135,7 +136,7 @@ const ExpandedOfferCard = forwardRef<HTMLDivElement, ExpandedOfferCardProps>(
           <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4 mb-6">
             <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 mb-2">
               <DollarSign className="w-4 h-4" />
-              <span>Price per {offer.currency}</span>
+              <span>{tCommon("price_per")} {offer.currency}</span>
             </div>
             <motion.p
               layoutId={`offer-price-${offer.id}-${layoutId}`}
@@ -155,7 +156,7 @@ const ExpandedOfferCard = forwardRef<HTMLDivElement, ExpandedOfferCardProps>(
             <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4">
               <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 mb-2">
                 <Shield className="w-4 h-4" />
-                <span>Trade Limits</span>
+                <span>{t("trade_limits")}</span>
               </div>
               <p className="font-semibold text-zinc-900 dark:text-white">
                 ${offer.minAmount.toLocaleString()} - $
@@ -180,7 +181,7 @@ const ExpandedOfferCard = forwardRef<HTMLDivElement, ExpandedOfferCardProps>(
             <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4 mb-6">
               <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 mb-2">
                 <FileText className="w-4 h-4" />
-                <span>Terms of Trade</span>
+                <span>{t("terms_of_trade")}</span>
               </div>
               <p className="text-sm text-zinc-700 dark:text-zinc-300">
                 {offer.termsOfTrade}
@@ -206,7 +207,7 @@ const ExpandedOfferCard = forwardRef<HTMLDivElement, ExpandedOfferCardProps>(
                   {offer.trader.firstName}
                 </p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Verified Trader
+                  {t("verified_trader")}
                 </p>
               </div>
             </div>
@@ -599,7 +600,7 @@ export default function FeaturedOffersSection({
                 variant="outline"
                 className="rounded-xl border-2 border-zinc-300 dark:border-zinc-700 hover:border-blue-500 dark:hover:border-blue-500"
               >
-                View All Offers
+                {t("view_all_offers")}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>

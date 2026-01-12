@@ -232,7 +232,7 @@ export default function MarketOrderForm({
         body: orderData,
       });
 
-      setSuccessMessage(t("order_placed_successfully"));
+      setSuccessMessage(tCommon("order_placed_successfully"));
       setAmount("");
       setStopLoss("");
       setTakeProfit("");

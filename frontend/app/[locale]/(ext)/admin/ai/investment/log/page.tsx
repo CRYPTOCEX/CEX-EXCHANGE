@@ -27,7 +27,7 @@ export default function AiInvestmentLogPage() {
       canDelete
       canView
       isParanoid={false}
-      title="AI Investment Logs"
+      title={t("ai_investment_logs")}
       description={t("monitor_and_track_all_ai_powered")}
       itemTitle="AI Investment"
       columns={columns}

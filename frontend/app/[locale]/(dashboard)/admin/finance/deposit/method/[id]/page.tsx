@@ -285,7 +285,7 @@ export default function DepositMethodViewPage({
       >
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="bg-primary/10 px-2.5 py-1">
-            ID: {method.id.slice(0, 8)}...
+            {tCommon("id")} {method.id.slice(0, 8)}...
           </Badge>
         </div>
       </HeroSection>

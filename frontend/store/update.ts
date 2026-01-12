@@ -1,12 +1,24 @@
 import { create } from "zustand";
 import { $fetch } from "@/lib/api";
 
+interface PendingUpdate {
+  version: string;
+  updateId: string;
+  changelog?: string | null;
+}
+
 interface UpdateData {
   status: boolean;
   message: string;
   changelog: string | null;
   update_id: string;
   version: string;
+  filesUpdated?: number;
+  // Sequential update fields
+  pendingUpdates?: PendingUpdate[];
+  latestVersion?: string;
+  isSequential?: boolean;
+  totalPendingCount?: number;
 }
 
 interface SystemUpdateStore {
@@ -45,6 +57,11 @@ export const useSystemUpdateStore = create<SystemUpdateStore>((set, get) => ({
     changelog: null,
     update_id: "",
     version: "",
+    filesUpdated: 0,
+    pendingUpdates: [],
+    latestVersion: "",
+    isSequential: true,
+    totalPendingCount: 0,
   },
   isUpdating: false,
   isUpdateChecking: false,
@@ -74,6 +91,10 @@ export const useSystemUpdateStore = create<SystemUpdateStore>((set, get) => ({
       setUpdateData({
         ...data,
         message: data.message || "Update information retrieved.",
+        pendingUpdates: data.pendingUpdates || [],
+        latestVersion: data.latestVersion || data.version || productVersion,
+        isSequential: data.isSequential ?? true,
+        totalPendingCount: data.totalPendingCount || data.pendingUpdates?.length || 0,
       });
     } else {
       setUpdateData({
@@ -83,6 +104,10 @@ export const useSystemUpdateStore = create<SystemUpdateStore>((set, get) => ({
         changelog: null,
         update_id: "",
         version: "",
+        pendingUpdates: [],
+        latestVersion: productVersion,
+        isSequential: true,
+        totalPendingCount: 0,
       });
     }
     setIsUpdateChecking(false);
@@ -96,6 +121,7 @@ export const useSystemUpdateStore = create<SystemUpdateStore>((set, get) => ({
       setIsUpdating,
       setProductVersion,
       setUpdateData,
+      checkForUpdates,
     } = get();
 
     setIsUpdating(true);
@@ -112,16 +138,44 @@ export const useSystemUpdateStore = create<SystemUpdateStore>((set, get) => ({
       silent: true,
     });
 
-    if (!error) {
-      setProductVersion(updateData.version);
+    if (!error && data) {
+      const newVersion = updateData.version;
+      setProductVersion(newVersion);
+      const filesUpdated = data.data?.filesUpdated || 0;
+
+      // Calculate remaining updates
+      const remainingUpdates = (updateData.pendingUpdates || []).filter(
+        (u) => u.version !== newVersion
+      );
+      const hasMoreUpdates = remainingUpdates.length > 0;
+
       setUpdateData({
         ...updateData,
-        message: "Update completed successfully.",
+        status: hasMoreUpdates, // Still has updates if there are more pending
+        update_id: hasMoreUpdates ? remainingUpdates[0].updateId : "",
+        version: hasMoreUpdates ? remainingUpdates[0].version : newVersion,
+        changelog: hasMoreUpdates ? remainingUpdates[0].changelog || null : null,
+        message: hasMoreUpdates
+          ? `Update to v${newVersion} completed (${filesUpdated} files). ${remainingUpdates.length} more update${remainingUpdates.length > 1 ? 's' : ''} pending - please continue updating sequentially.`
+          : filesUpdated > 0
+            ? `Update completed successfully. ${filesUpdated} files were updated.`
+            : "Update completed successfully.",
+        filesUpdated: filesUpdated,
+        pendingUpdates: remainingUpdates,
+        totalPendingCount: remainingUpdates.length,
       });
+
+      // If there are more updates, re-check to get fresh data from server
+      if (hasMoreUpdates) {
+        // Small delay before checking for next update
+        setTimeout(() => {
+          checkForUpdates();
+        }, 1000);
+      }
     } else {
       setUpdateData({
         ...updateData,
-        message: "Failed to update system. Please try again later.",
+        message: error || "Failed to update system. Please try again later.",
       });
     }
 

@@ -48,20 +48,22 @@ function createBaseSchemaForType(
 
   switch (type) {
     case "number": {
+      // Regex to match integers and decimals (e.g., 123, 0.001, .5, 123.456)
+      const numberRegex = /^-?\d*\.?\d+$/;
       if (optional) {
         validator = z
           .union([
             z.undefined(),
             z.literal(""),
             z.number(),
-            z.string().regex(/^\d+$/),
+            z.string().regex(numberRegex),
           ])
           .transform((val) =>
             val === undefined || val === "" ? undefined : Number(val)
           );
       } else {
         validator = z
-          .union([z.number(), z.string().regex(/^\d+$/)])
+          .union([z.number(), z.string().regex(numberRegex)])
           .transform(Number);
       }
       break;
@@ -268,6 +270,96 @@ function getFormConfigFieldKeys(formConfig: FormConfig, isEdit: boolean): Set<st
   return keys;
 }
 
+/** Helper to get compound field mappings from formConfig (fieldKey -> compoundKey) */
+function getCompoundFieldMappings(formConfig: FormConfig, isEdit: boolean): Map<string, string> {
+  const config = isEdit ? formConfig.edit : formConfig.create;
+  if (!config?.groups) return new Map();
+
+  const mappings = new Map<string, string>();
+  config.groups.forEach(group => {
+    group.fields.forEach(field => {
+      if (typeof field === "object" && field.compoundKey) {
+        mappings.set(field.key, field.compoundKey);
+      }
+    });
+  });
+  return mappings;
+}
+
+/** Extract field config from a compound column and create schema for it */
+function extractCompoundFieldSchema(
+  columns: ColumnDefinition[],
+  fieldKey: string,
+  compoundKey: string,
+  fieldConfig?: FormFieldConfig
+): z.ZodTypeAny | null {
+  const compoundColumn = columns.find((col) => col.key === compoundKey);
+  if (!compoundColumn || compoundColumn.type !== "compound" || !compoundColumn.render?.config) {
+    return null;
+  }
+
+  const config = compoundColumn.render.config;
+
+  // Check image field
+  if (config.image && config.image.key === fieldKey) {
+    const required = fieldConfig?.required ?? config.image.required ?? false;
+    return required
+      ? createImageSchema(true, config.image.title)
+      : createImageSchema(false, config.image.title).optional();
+  }
+
+  // Check primary field
+  if (config.primary) {
+    const primaryKey = Array.isArray(config.primary.key) ? config.primary.key[0] : config.primary.key;
+    if (primaryKey === fieldKey) {
+      const title = Array.isArray(config.primary.title) ? config.primary.title[0] : config.primary.title;
+      const required = fieldConfig?.required ?? true;
+      return required
+        ? z.string().min(1, { message: `${title} is required` })
+        : z.string().optional();
+    }
+  }
+
+  // Check secondary field
+  if (config.secondary && config.secondary.key === fieldKey) {
+    const required = fieldConfig?.required ?? false;
+    if (config.secondary.type === "email") {
+      return z.string().email({ message: "Invalid email address" });
+    }
+    return required
+      ? z.string().min(1, { message: `${config.secondary.title} is required` })
+      : z.string().optional();
+  }
+
+  // Check metadata fields
+  if (Array.isArray(config.metadata)) {
+    const metaItem = config.metadata.find((item: any) => item.key === fieldKey);
+    if (metaItem) {
+      const required = fieldConfig?.required ?? metaItem.required ?? false;
+      let baseSchema: z.ZodTypeAny;
+      switch (metaItem.type) {
+        case "image":
+          return required
+            ? createImageSchema(true, metaItem.title)
+            : createImageSchema(false, metaItem.title).optional();
+        case "date":
+          baseSchema = z.string().refine((val) => !isNaN(new Date(val).getTime()), {
+            message: "Invalid date",
+          });
+          break;
+        case "select":
+          baseSchema = z.string();
+          break;
+        default:
+          baseSchema = z.string();
+      }
+      return required ? baseSchema.pipe(z.string().min(1)) : baseSchema.optional();
+    }
+  }
+
+  return null;
+}
+
 /** Helper to get field config from formConfig */
 function getFieldConfig(formConfig: FormConfig, key: string, isEdit: boolean): FormFieldConfig | undefined {
   const config = isEdit ? formConfig.edit : formConfig.create;
@@ -303,15 +395,43 @@ export const generateSchema = (
     ? getFormConfigFieldKeys(formConfig, isEdit)
     : null;
 
+  // Get compound field mappings (fieldKey -> compoundKey)
+  const compoundMappings = formConfig
+    ? getCompoundFieldMappings(formConfig, isEdit)
+    : new Map();
+
+  // First, process fields that are extracted from compound columns
+  if (formConfig && compoundMappings.size > 0) {
+    compoundMappings.forEach((compoundKey, fieldKey) => {
+      const fieldConfig = getFieldConfig(formConfig, fieldKey, isEdit);
+      const schema = extractCompoundFieldSchema(columns, fieldKey, compoundKey, fieldConfig);
+      if (schema) {
+        schemaFields[fieldKey] = schema;
+      }
+    });
+  }
+
   columns.forEach((column) => {
-    // If we have formConfig, only include fields that are in formConfig
-    if (allowedKeys && !allowedKeys.has(column.key)) {
+    // Skip if this field is already handled as a compound field extraction
+    if (compoundMappings.has(column.key)) {
       return;
     }
 
+    // If we have formConfig, only include fields that are in formConfig
+    // Check both column.key and column.baseKey (for select fields that map to different API keys)
+    const columnMatchesFormConfig = allowedKeys
+      ? allowedKeys.has(column.key) || (column.baseKey && allowedKeys.has(column.baseKey))
+      : true;
+    if (!columnMatchesFormConfig) {
+      return;
+    }
+
+    // Determine which key to use for looking up field config
+    const formConfigKey = column.baseKey && allowedKeys?.has(column.baseKey) ? column.baseKey : column.key;
+
     // Get field config overrides from formConfig
     const fieldConfig = formConfig
-      ? getFieldConfig(formConfig, column.key, isEdit)
+      ? getFieldConfig(formConfig, formConfigKey, isEdit)
       : undefined;
 
     // Merge field config with column
@@ -324,9 +444,12 @@ export const generateSchema = (
       max: fieldConfig.max ?? column.max,
     } : column;
 
-    // Handle compound columns.
+    // Handle compound columns - skip if formConfig is using compoundKey extraction
     if (mergedColumn.type === "compound" && mergedColumn.render?.config) {
-      Object.assign(schemaFields, processCompoundColumn(mergedColumn));
+      // Only process compound column the old way if not using formConfig
+      if (!formConfig) {
+        Object.assign(schemaFields, processCompoundColumn(mergedColumn));
+      }
       return;
     }
 
@@ -391,14 +514,15 @@ export const formatDataForForm = (data: any, columns: ColumnDefinition[]) => {
       if (Array.isArray(metadata)) {
         metadata.forEach((item) => {
           const raw = formattedData[item.key];
+          const targetKey = item.baseKey || item.key;
           if (item.type === "select") {
-            formattedData[item.key] =
+            formattedData[targetKey] =
               item.idKey && raw
                 ? getStringValueByIdKey(raw, item.idKey)
                 : raw?.toString() || "";
           } else if (item.type === "multiselect") {
             const rawParsed = parseJsonField(formattedData[item.key]);
-            formattedData[item.key] = Array.isArray(rawParsed)
+            formattedData[targetKey] = Array.isArray(rawParsed)
               ? rawParsed.map((val: any) => {
                   if (val && typeof val === "object" && val.id) {
                     // If it's already an object with id, check if it has name
@@ -415,9 +539,9 @@ export const formatDataForForm = (data: any, columns: ColumnDefinition[]) => {
                 })
               : [];
           } else if (item.type === "date" && formattedData[item.key]) {
-            formattedData[item.key] = formatDate(formattedData[item.key]);
+            formattedData[targetKey] = formatDate(formattedData[item.key]);
           } else {
-            formattedData[item.key] = formattedData[item.key] ?? "";
+            formattedData[targetKey] = formattedData[item.key] ?? "";
           }
         });
       }
@@ -569,6 +693,33 @@ export const processFormValues = (values: any, columns: ColumnDefinition[]) => {
   return processedValues;
 };
 
+/** Get default value for a field type */
+function getDefaultValueForType(type: ColumnType | undefined, options?: any[]): any {
+  switch (type) {
+    case "number":
+      return undefined;
+    case "boolean":
+    case "toggle":
+      return false;
+    case "date":
+      return "";
+    case "tags":
+      return [];
+    case "select":
+      return options?.[0]?.value || "";
+    case "image":
+      return "";
+    case "multiselect":
+      return [];
+    case "customFields":
+      return [];
+    case "rating":
+      return undefined;
+    default:
+      return "";
+  }
+}
+
 /**
  * Returns an object with default values for each column based on formConfig.
  * For customFields, defaults to an empty array.
@@ -578,60 +729,88 @@ export const getDefaultValues = (
   formConfig?: FormConfig,
   isEdit: boolean = false
 ) => {
+  const defaults: Record<string, any> = {};
+
   // Get allowed field keys from formConfig
   const allowedKeys = formConfig
     ? getFormConfigFieldKeys(formConfig, isEdit)
     : null;
 
-  return columns.reduce(
-    (acc, column) => {
-      // If we have formConfig, only include fields that are in formConfig
-      if (allowedKeys && !allowedKeys.has(column.key)) {
-        return acc;
+  // Get compound field mappings (fieldKey -> compoundKey)
+  const compoundMappings = formConfig
+    ? getCompoundFieldMappings(formConfig, isEdit)
+    : new Map();
+
+  // First, add defaults for fields extracted from compound columns
+  if (formConfig && compoundMappings.size > 0) {
+    compoundMappings.forEach((compoundKey, fieldKey) => {
+      const compoundColumn = columns.find((col) => col.key === compoundKey);
+      if (!compoundColumn || compoundColumn.type !== "compound" || !compoundColumn.render?.config) {
+        return;
       }
 
-      // Get field config overrides from formConfig
-      const fieldConfig = formConfig
-        ? getFieldConfig(formConfig, column.key, isEdit)
-        : undefined;
+      const config = compoundColumn.render.config;
 
-      // Merge options from fieldConfig if present
-      const options = fieldConfig?.options || column.options;
-
-      switch (column.type) {
-        case "number":
-          acc[column.key] = undefined;
-          break;
-        case "boolean":
-        case "toggle":
-          acc[column.key] = false;
-          break;
-        case "date":
-          acc[column.key] = "";
-          break;
-        case "tags":
-          acc[column.key] = [];
-          break;
-        case "select":
-          acc[column.key] = options?.[0]?.value || "";
-          break;
-        case "image":
-          acc[column.key] = "";
-          break;
-        case "multiselect":
-          acc[column.key] = [];
-          break;
-        case "customFields":
-          acc[column.key] = [];
-          break;
-        case "rating":
-          acc[column.key] = undefined;
-          break;
-        default:
-          acc[column.key] = "";
+      // Check image field
+      if (config.image && config.image.key === fieldKey) {
+        defaults[fieldKey] = "";
+        return;
       }
-      return acc;
-    },
-    {} as Record<string, any>
-  );
+
+      // Check primary field
+      if (config.primary) {
+        const primaryKey = Array.isArray(config.primary.key) ? config.primary.key[0] : config.primary.key;
+        if (primaryKey === fieldKey) {
+          defaults[fieldKey] = "";
+          return;
+        }
+      }
+
+      // Check secondary field
+      if (config.secondary && config.secondary.key === fieldKey) {
+        defaults[fieldKey] = "";
+        return;
+      }
+
+      // Check metadata fields
+      if (Array.isArray(config.metadata)) {
+        const metaItem = config.metadata.find((item: any) => item.key === fieldKey);
+        if (metaItem) {
+          defaults[fieldKey] = getDefaultValueForType(metaItem.type, metaItem.options);
+        }
+      }
+    });
+  }
+
+  // Then process regular columns
+  columns.forEach((column) => {
+    // Skip if this field is already handled as a compound field extraction
+    if (compoundMappings.has(column.key)) {
+      return;
+    }
+
+    // If we have formConfig, only include fields that are in formConfig
+    // Check both column.key and column.baseKey (for select fields that map to different API keys)
+    const columnMatchesFormConfig = allowedKeys
+      ? allowedKeys.has(column.key) || (column.baseKey && allowedKeys.has(column.baseKey))
+      : true;
+    if (!columnMatchesFormConfig) {
+      return;
+    }
+
+    // Determine which key to use for looking up field config
+    const formConfigKey = column.baseKey && allowedKeys?.has(column.baseKey) ? column.baseKey : column.key;
+
+    // Get field config overrides from formConfig
+    const fieldConfig = formConfig
+      ? getFieldConfig(formConfig, formConfigKey, isEdit)
+      : undefined;
+
+    // Merge options from fieldConfig if present
+    const options = fieldConfig?.options || column.options;
+
+    defaults[column.key] = getDefaultValueForType(column.type, options);
+  });
+
+  return defaults;
 };

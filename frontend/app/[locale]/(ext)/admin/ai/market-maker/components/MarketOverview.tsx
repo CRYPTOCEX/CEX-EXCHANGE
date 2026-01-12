@@ -22,6 +22,9 @@ import {
   Gauge,
   Wallet,
   BarChart3,
+  Waves,
+  Globe,
+  Compass,
 } from "lucide-react";
 import type { LiveEvent } from "./BotManagement";
 import { useTranslations } from "next-intl";
@@ -347,6 +350,234 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({ data, liveEvents
             </div>
           </div>
         </OverviewCard>
+
+        {/* Market Phase & Volatility */}
+        {data.currentPhase && (
+          <OverviewCard
+            title="Market Phase"
+            icon={Waves}
+            gradient="from-indigo-500 to-indigo-600"
+          >
+            <div className="space-y-4">
+              {/* Current Phase Badge */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/50">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    data.currentPhase === "MARKUP" ? "bg-green-500/20 dark:bg-green-500/30" :
+                    data.currentPhase === "MARKDOWN" ? "bg-red-500/20 dark:bg-red-500/30" :
+                    data.currentPhase === "ACCUMULATION" ? "bg-blue-500/20 dark:bg-blue-500/30" :
+                    "bg-amber-500/20 dark:bg-amber-500/30"
+                  }`}>
+                    {data.currentPhase === "MARKUP" ? (
+                      <TrendingUp className="w-5 h-5 text-green-500" />
+                    ) : data.currentPhase === "MARKDOWN" ? (
+                      <TrendingDown className="w-5 h-5 text-red-500" />
+                    ) : (
+                      <Waves className="w-5 h-5 text-indigo-500" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{data.currentPhase}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {data.currentPhase === "ACCUMULATION" ? "Consolidation phase" :
+                       data.currentPhase === "MARKUP" ? "Bull run phase" :
+                       data.currentPhase === "DISTRIBUTION" ? "Topping phase" :
+                       "Bear market phase"}
+                    </p>
+                  </div>
+                </div>
+                <div className={`px-3 py-1.5 rounded-full text-xs font-medium ${
+                  data.currentPhase === "MARKUP" ? "bg-green-500/20 text-green-600 dark:text-green-400" :
+                  data.currentPhase === "MARKDOWN" ? "bg-red-500/20 text-red-600 dark:text-red-400" :
+                  data.currentPhase === "ACCUMULATION" ? "bg-blue-500/20 text-blue-600 dark:text-blue-400" :
+                  "bg-amber-500/20 text-amber-600 dark:text-amber-400"
+                }`}>
+                  {(() => {
+                    if (data.nextPhaseChangeAt) {
+                      const remaining = Math.max(0, new Date(data.nextPhaseChangeAt).getTime() - Date.now());
+                      const hours = Math.floor(remaining / (1000 * 60 * 60));
+                      const mins = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                      return hours > 0 ? `${hours}h ${mins}m left` : `${mins}m left`;
+                    }
+                    return "Active";
+                  })()}
+                </div>
+              </div>
+
+              {/* Phase Progress */}
+              {data.phaseStartedAt && data.nextPhaseChangeAt && (
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-muted-foreground">Phase Progress</span>
+                    <span className="text-sm font-bold text-indigo-500 dark:text-indigo-400">
+                      {(() => {
+                        const start = new Date(data.phaseStartedAt).getTime();
+                        const end = new Date(data.nextPhaseChangeAt).getTime();
+                        const now = Date.now();
+                        const progress = Math.min(100, Math.max(0, ((now - start) / (end - start)) * 100));
+                        return `${progress.toFixed(0)}%`;
+                      })()}
+                    </span>
+                  </div>
+                  <div className="relative h-2 bg-secondary rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-indigo-400 to-indigo-600 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${(() => {
+                          const start = new Date(data.phaseStartedAt).getTime();
+                          const end = new Date(data.nextPhaseChangeAt).getTime();
+                          const now = Date.now();
+                          return Math.min(100, Math.max(0, ((now - start) / (end - start)) * 100));
+                        })()}%`
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Phase Target */}
+              {data.phaseTargetPrice && (
+                <div className="pt-2 border-t border-border">
+                  <StatRow
+                    label="Phase Target"
+                    value={`${Number(data.phaseTargetPrice).toFixed(6)} ${quoteCurrency}`}
+                    highlight={data.currentPhase === "MARKUP" ? "success" : data.currentPhase === "MARKDOWN" ? "danger" : "info"}
+                  />
+                </div>
+              )}
+
+              {/* Market Bias */}
+              {data.marketBias && (
+                <div className="pt-2 border-t border-border">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Market Bias</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        data.marketBias === "BULLISH" ? "bg-green-500/20 text-green-600 dark:text-green-400" :
+                        data.marketBias === "BEARISH" ? "bg-red-500/20 text-red-600 dark:text-red-400" :
+                        "bg-gray-500/20 text-gray-600 dark:text-gray-400"
+                      }`}>
+                        {data.marketBias}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {data.biasStrength}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Momentum */}
+              {data.trendMomentum !== undefined && (
+                <div className="pt-2 border-t border-border">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-muted-foreground">Momentum</span>
+                    <span className={`text-sm font-bold ${
+                      data.trendMomentum > 0 ? "text-green-500 dark:text-green-400" :
+                      data.trendMomentum < 0 ? "text-red-500 dark:text-red-400" :
+                      "text-muted-foreground"
+                    }`}>
+                      {data.trendMomentum > 0 ? "+" : ""}{(data.trendMomentum * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="relative h-2 bg-secondary rounded-full overflow-hidden">
+                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-muted-foreground/30" />
+                    <div
+                      className={`absolute top-0 h-full rounded-full transition-all duration-500 ${
+                        data.trendMomentum >= 0
+                          ? "bg-gradient-to-r from-green-400 to-green-600"
+                          : "bg-gradient-to-l from-red-400 to-red-600"
+                      }`}
+                      style={{
+                        left: data.trendMomentum >= 0 ? "50%" : `${50 + data.trendMomentum * 50}%`,
+                        width: `${Math.abs(data.trendMomentum) * 50}%`
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </OverviewCard>
+        )}
+
+        {/* Price Mode & External Following */}
+        {data.priceMode && (
+          <OverviewCard
+            title="Price Mode"
+            icon={data.priceMode === "AUTONOMOUS" ? Compass : Globe}
+            gradient="from-cyan-500 to-cyan-600"
+          >
+            <div className="space-y-4">
+              {/* Price Mode Badge */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/50">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    data.priceMode === "AUTONOMOUS" ? "bg-purple-500/20 dark:bg-purple-500/30" :
+                    data.priceMode === "FOLLOW_EXTERNAL" ? "bg-cyan-500/20 dark:bg-cyan-500/30" :
+                    "bg-indigo-500/20 dark:bg-indigo-500/30"
+                  }`}>
+                    {data.priceMode === "AUTONOMOUS" ? (
+                      <Compass className="w-5 h-5 text-purple-500" />
+                    ) : (
+                      <Globe className="w-5 h-5 text-cyan-500" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{data.priceMode}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {data.priceMode === "AUTONOMOUS" ? "AI-driven prices" :
+                       data.priceMode === "FOLLOW_EXTERNAL" ? "Following exchange" :
+                       "Hybrid mode"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* External Symbol */}
+              {data.externalSymbol && (data.priceMode === "FOLLOW_EXTERNAL" || data.priceMode === "HYBRID") && (
+                <div className="pt-2 border-t border-border">
+                  <StatRow
+                    label="External Symbol"
+                    value={data.externalSymbol}
+                    highlight="info"
+                  />
+                </div>
+              )}
+
+              {/* Correlation Strength */}
+              {data.correlationStrength !== undefined && data.priceMode !== "AUTONOMOUS" && (
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-muted-foreground">Correlation</span>
+                    <span className="text-sm font-bold text-cyan-500 dark:text-cyan-400">{data.correlationStrength}%</span>
+                  </div>
+                  <div className="relative h-2 bg-secondary rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-full transition-all duration-500"
+                      style={{ width: `${data.correlationStrength}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Base Volatility */}
+              {data.baseVolatility && (
+                <div className="pt-2 border-t border-border">
+                  <StatRow
+                    label="Base Volatility"
+                    value={`${data.baseVolatility}% daily`}
+                  />
+                  {data.volatilityMultiplier && (
+                    <StatRow
+                      label="Volatility Multiplier"
+                      value={`${data.volatilityMultiplier}x`}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          </OverviewCard>
+        )}
 
         {/* Volume Stats */}
         <OverviewCard

@@ -734,7 +734,7 @@ export function PaymentMethodsStep() {
   };
 
   // Check if custom methods are allowed based on config
-  const customMethodsAllowed = settings.p2pAllowCustomPaymentMethods === true;
+  const customMethodsAllowed = settings.p2pAllowCustomPaymentMethods === true || settings.p2pAllowCustomPaymentMethods === "true";
 
   // Get color class for a method
   const getMethodColorClass = (methodId: string, isCustom = false) => {
@@ -987,7 +987,7 @@ export function PaymentMethodsStep() {
                                     <AlertDialogContent>
                                       <AlertDialogHeader>
                                         <AlertDialogTitle>
-                                          {t("delete_payment_method")}
+                                          {tCommon("delete_payment_method")}
                                         </AlertDialogTitle>
                                         <AlertDialogDescription>
                                           {tCommon("are_you_sure_be_undone")}.

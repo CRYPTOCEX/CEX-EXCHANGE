@@ -15,32 +15,24 @@ import {
   Star,
   Users,
 } from "lucide-react";
-import { Link } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
 
 export default function OfferingLoading() {
-  const t = useTranslations("ext");
-  const tCommon = useTranslations("common");
-  const tExtAdmin = useTranslations("ext_admin");
   return (
     <div className="min-h-screen pt-20 pb-24">
-      {/* Hero section with gradient background */}
+      {/* Hero section */}
       <div className="relative overflow-hidden mb-12 min-h-[80vh] flex items-center justify-center">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/90 via-primary/70 to-primary-foreground/5 z-0"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/20 via-primary/10 to-transparent dark:from-primary/30 dark:via-primary/15 dark:to-transparent z-0"></div>
 
         <div className="container mx-auto relative z-10 pt-8 pb-12">
-          <Link
-            href="/admin/ico/offer"
-            className="text-sm text-background/70 hover:text-background mb-4 flex items-center w-fit"
-          >
+          <div className="text-sm text-muted-foreground mb-4 flex items-center w-fit">
             <ArrowLeft className="mr-1 h-4 w-4" />
-            {tCommon("back_to_offerings")}
-          </Link>
+            <Skeleton className="h-4 w-32" />
+          </div>
 
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             {/* Token Icon */}
             <div className="relative flex-shrink-0">
-              <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-background/20 backdrop-blur-sm p-1 shadow-xl">
+              <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-muted p-1 shadow-xl">
                 <div className="w-full h-full rounded-xl overflow-hidden bg-background flex items-center justify-center">
                   <Skeleton className="w-full h-full" />
                 </div>
@@ -66,84 +58,90 @@ export default function OfferingLoading() {
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                 {/* Token Price */}
-                <div className="bg-background/10 backdrop-blur-sm rounded-lg p-3 border border-background/10">
-                  <div className="text-background/70 text-sm flex items-center gap-1.5">
-                    <Layers className="h-3.5 w-3.5" />
-                    <span>{t("token_price")}</span>
-                  </div>
-                  <div className="mt-1">
-                    <Skeleton className="h-6 w-24" />
-                  </div>
-                </div>
+                <Card className="border-border/50">
+                  <CardContent className="p-3">
+                    <div className="text-muted-foreground text-sm flex items-center gap-1.5">
+                      <Layers className="h-3.5 w-3.5" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                    <div className="mt-1">
+                      <Skeleton className="h-6 w-24" />
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Participants */}
-                <div className="bg-background/10 backdrop-blur-sm rounded-lg p-3 border border-background/10">
-                  <div className="text-background/70 text-sm flex items-center gap-1.5">
-                    <Users className="h-3.5 w-3.5" />
-                    <span>{t("participants")}</span>
-                  </div>
-                  <div className="mt-1">
-                    <Skeleton className="h-6 w-16" />
-                  </div>
-                </div>
+                <Card className="border-border/50">
+                  <CardContent className="p-3">
+                    <div className="text-muted-foreground text-sm flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                    <div className="mt-1">
+                      <Skeleton className="h-6 w-16" />
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Start Date */}
-                <div className="bg-background/10 backdrop-blur-sm rounded-lg p-3 border border-background/10">
-                  <div className="text-background/70 text-sm flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5" />
-                    <span>{t("start_date")}</span>
-                  </div>
-                  <div className="mt-1">
-                    <Skeleton className="h-6 w-28" />
-                  </div>
-                </div>
+                <Card className="border-border/50">
+                  <CardContent className="p-3">
+                    <div className="text-muted-foreground text-sm flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                    <div className="mt-1">
+                      <Skeleton className="h-6 w-28" />
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* End Date */}
-                <div className="bg-background/10 backdrop-blur-sm rounded-lg p-3 border border-background/10">
-                  <div className="text-background/70 text-sm flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5" />
-                    <span>{tCommon("end_date")}</span>
-                  </div>
-                  <div className="mt-1">
-                    <Skeleton className="h-6 w-28" />
-                  </div>
-                </div>
+                <Card className="border-border/50">
+                  <CardContent className="p-3">
+                    <div className="text-muted-foreground text-sm flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                    <div className="mt-1">
+                      <Skeleton className="h-6 w-28" />
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="mt-8 bg-background/20 backdrop-blur-sm rounded-lg p-4 border border-background/10">
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-background">
-                  {tExtAdmin("fundraising_progress")}
-                </h3>
-                <Skeleton className="h-5 w-16 rounded-full" />
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Skeleton className="h-5 w-32" />
-              </div>
-            </div>
-            <Skeleton className="h-2.5 w-full rounded-full" />
-
-            <div className="flex flex-wrap gap-4 mt-4 justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5 text-background/80">
-                  <Shield className="h-4 w-4" />
-                  <span>{t("blockchain")}</span>
-                  <Skeleton className="h-4 w-20" />
+          <Card className="mt-8 border-border/50">
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-6 w-44" />
+                  <Skeleton className="h-5 w-16 rounded-full" />
                 </div>
-                <div className="flex items-center gap-1.5 text-background/80">
-                  <Star className="h-4 w-4" />
-                  <span>{t("token_type")}</span>
-                  <Skeleton className="h-4 w-20" />
+                <div className="flex items-center gap-1.5">
+                  <Skeleton className="h-5 w-32" />
                 </div>
               </div>
+              <Skeleton className="h-2.5 w-full rounded-full" />
 
-              <Skeleton className="h-9 w-32 rounded-md" />
-            </div>
-          </div>
+              <div className="flex flex-wrap gap-4 mt-4 justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Shield className="h-4 w-4" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Star className="h-4 w-4" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </div>
+
+                <Skeleton className="h-9 w-32 rounded-md" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 

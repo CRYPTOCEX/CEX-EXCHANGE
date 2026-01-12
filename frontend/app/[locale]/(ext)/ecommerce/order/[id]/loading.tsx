@@ -1,8 +1,6 @@
 import { Loader2, ArrowLeft } from "lucide-react";
-import { useTranslations } from "next-intl";
 
 export default function OrderDetailLoading() {
-  const t = useTranslations("ext_ecommerce");
   return (
     <div className="container mx-auto px-4 pt-20 pb-8">
       {/* Header Skeleton */}
@@ -88,7 +86,6 @@ export default function OrderDetailLoading() {
       {/* Loading indicator */}
       <div className="flex flex-col items-center justify-center py-16">
         <Loader2 className={`h-12 w-12 animate-spin text-amber-600 dark:text-amber-400 mb-4`} />
-        <p className="text-gray-600 dark:text-zinc-400 text-lg">{t("loading_order_details_ellipsis")}</p>
       </div>
     </div>
   );

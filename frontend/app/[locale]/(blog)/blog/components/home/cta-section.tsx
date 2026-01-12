@@ -40,7 +40,7 @@ export function CTASection() {
           className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white mb-8"
         >
           <Sparkles className="w-4 h-4 text-amber-300" />
-          <span className="text-sm font-medium">Join our community</span>
+          <span className="text-sm font-medium">{t("join_our_community")}</span>
         </motion.div>
 
         {/* Headline */}

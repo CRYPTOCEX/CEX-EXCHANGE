@@ -39,6 +39,7 @@ const cryptoColors: Record<string, { bg: string; text: string; border: string }>
 };
 
 function CryptoCard({ crypto, index, maxVolume }: { crypto: TopCrypto; index: number; maxVolume: number }) {
+  const t = useTranslations("ext_p2p");
   const colors = cryptoColors[crypto.currency] || {
     bg: "bg-blue-500/10",
     text: "text-blue-500",
@@ -101,7 +102,7 @@ function CryptoCard({ crypto, index, maxVolume }: { crypto: TopCrypto; index: nu
 
       {/* Avg Price */}
       <div className="flex items-center justify-between">
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">Avg Price</span>
+        <span className="text-xs text-zinc-500 dark:text-zinc-400">{t("avg_price")}</span>
         <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
           ${crypto.avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
@@ -201,7 +202,7 @@ export default function TopCryptosSection({
             <div className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/50 dark:bg-zinc-900/50 border border-zinc-200/50 dark:border-zinc-700/50">
               <Coins className="w-5 h-5 text-blue-500" />
               <span className="text-zinc-600 dark:text-zinc-400">
-                Total Volume:{" "}
+                {tCommon("total_volume")}{" "}
                 <span className="font-bold text-blue-600 dark:text-blue-400">
                   ${totalVolume.toLocaleString()}
                 </span>
@@ -240,7 +241,7 @@ export default function TopCryptosSection({
                 variant="outline"
                 className="rounded-xl border-2 border-zinc-300 dark:border-zinc-700 hover:border-blue-500 dark:hover:border-blue-500"
               >
-                View All Markets
+                {tCommon("view_all_markets")}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>

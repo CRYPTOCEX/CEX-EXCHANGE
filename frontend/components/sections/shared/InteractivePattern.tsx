@@ -250,7 +250,7 @@ function FloatingShape({
 // Floating geometric shapes that move with scroll
 export function FloatingShapes({
   theme = { primary: "teal", secondary: "cyan" },
-  count = 6,
+  count = 3,
   interactive = true,
 }: {
   theme?: { primary?: string; secondary?: string };
@@ -274,10 +274,13 @@ export function FloatingShapes({
   const primaryColor = colorMap[theme.primary || "teal"] || "14b8a6";
   const secondaryColor = colorMap[theme.secondary || "cyan"] || "06b6d4";
 
-  // Generate deterministic shapes
+  // Generate shapes with unique positions per section based on theme colors
   const shapes = useMemo(() => {
+    // Create a unique seed based on theme colors so each section looks different
+    const themeSeed = (primaryColor + secondaryColor).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
     return Array.from({ length: count }, (_, i) => {
-      const seed = i * 1234;
+      const seed = (i + 1) * 1234 + themeSeed * (i + 1);
       const seededRandom = (s: number) => {
         const x = Math.sin(s) * 10000;
         return x - Math.floor(x);

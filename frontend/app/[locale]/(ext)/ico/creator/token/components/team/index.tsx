@@ -181,12 +181,12 @@ export default function TokenTeam({ tokenId }: TokenTeamProps) {
       {!canAddMore && (
         <Alert className="border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300">
           <p>
-            You've reached the maximum number of team members for your plan.{" "}
+            {tCommon("youve_reached_the_maximum_number_of_1")}{" "}
             <Link
               href={upgradeLink}
               className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
             >
-              Upgrade to add more
+              {t("upgrade_to_add_more")}
             </Link>
           </p>
         </Alert>

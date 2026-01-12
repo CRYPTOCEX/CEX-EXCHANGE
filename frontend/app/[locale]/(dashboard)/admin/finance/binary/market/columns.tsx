@@ -1,8 +1,8 @@
 "use client";
-import { Shield, DollarSign, CheckSquare, TrendingUp } from "lucide-react";
-import type { FormConfig } from "@/components/blocks/data-table/types/table";
+import { Shield, DollarSign, CheckSquare, TrendingUp, Flame } from "lucide-react";
 
 import { useTranslations } from "next-intl";
+
 export function useColumns(): ColumnDefinition[] {
   const tCommon = useTranslations("common");
   const tDashboardAdmin = useTranslations("dashboard_admin");
@@ -66,7 +66,7 @@ export function useColumns(): ColumnDefinition[] {
       key: "isHot",
       title: tCommon("hot"),
       type: "boolean",
-      icon: TrendingUp,
+      icon: Flame,
       sortable: true,
       searchable: true,
       filterable: true,
@@ -105,60 +105,4 @@ export function useColumns(): ColumnDefinition[] {
       priority: 1,
     },
   ];
-}
-
-export function useFormConfig(): FormConfig {
-  const t = useTranslations("dashboard_admin");
-  return {
-    create: {
-      title: t("create_new_market"),
-      description: t("add_a_new_binary_options_trading_market"),
-      groups: [
-        {
-          id: "binary-market-info",
-          title: t("binary_market_information"),
-          icon: DollarSign,
-          priority: 1,
-          fields: [
-            {
-              key: "currency",
-              required: true
-            },
-            {
-              key: "pair",
-              required: true
-            },
-            { key: "isTrending", required: false },
-            { key: "isHot", required: false },
-            { key: "status", required: true },
-          ],
-        },
-      ],
-    },
-    edit: {
-      title: t("edit_market"),
-      description: t("update_binary_options_trading_market_settings"),
-      groups: [
-        {
-          id: "binary-market-info",
-          title: t("binary_market_information"),
-          icon: DollarSign,
-          priority: 1,
-          fields: [
-            {
-              key: "currency",
-              required: true
-            },
-            {
-              key: "pair",
-              required: true
-            },
-            { key: "isTrending", required: false },
-            { key: "isHot", required: false },
-            { key: "status", required: true },
-          ],
-        },
-      ],
-    },
-  };
 }

@@ -122,7 +122,7 @@ export function useColumns() {
     },
     {
       key: "ipWhitelist",
-      title: t("ip_whitelist"),
+      title: tCommon("ip_whitelist"),
       type: "tags",
       icon: Shield,
       sortable: false,
@@ -161,7 +161,7 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: t("basic_information"),
+          title: tCommon("basic_information"),
           icon: Shield,
           priority: 1,
           fields: [
@@ -207,7 +207,7 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "basic-info",
-          title: t("basic_information"),
+          title: tCommon("basic_information"),
           icon: Shield,
           priority: 1,
           fields: [

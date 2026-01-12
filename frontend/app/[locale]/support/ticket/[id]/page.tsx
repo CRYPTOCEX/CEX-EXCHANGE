@@ -688,7 +688,7 @@ export default function TicketDetailPage() {
           <Link href="/support">
             <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              {t("back_to_support")}
+              {tCommon("back_to_support")}
             </Button>
           </Link>
         </div>
@@ -1097,7 +1097,7 @@ export default function TicketDetailPage() {
                 <CardHeader>
                   <CardTitle className="text-base text-gray-900 dark:text-zinc-100 flex items-center gap-2">
                     <Clock className="h-5 w-5 text-blue-500" />
-                    {t("progress_timeline")}
+                    {tCommon("progress_timeline")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">

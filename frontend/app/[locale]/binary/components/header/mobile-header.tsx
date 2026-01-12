@@ -1,14 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { Sun, Moon, ChevronDown, ChevronLeft } from "lucide-react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import {
+  ChevronLeft, Wallet, Sparkles, ChevronDown, Sun, Moon
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import { useBinaryStore, type Symbol } from "@/store/trade/use-binary-store";
 import { Link } from "@/i18n/routing";
-import MarketSelectorModal from "./market-selector-modal";
+import MarketSelectorModal from "./market-selector";
 import { useTranslations } from "next-intl";
+import { useUserStore } from "@/store/user";
+import { AuthHeaderControls } from "@/components/auth/auth-header-controls";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-// Update the MobileHeaderProps interface to use the correct Symbol type
 interface MobileHeaderProps {
   symbol?: Symbol;
   currentPrice?: number;
@@ -35,14 +45,24 @@ export function MobileHeader({
   onTradingModeChange,
 }: MobileHeaderProps) {
   const t = useTranslations("binary_components");
-  // Use next-themes hook properly
-  const { theme, setTheme } = useTheme();
-  const isDarkMode = theme === "dark";
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Get user authentication state
+  const user = useUserStore((state) => state.user);
+  const isAuthenticated = !!user;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Default to dark mode during SSR/hydration
+  const isDarkMode = mounted ? resolvedTheme === "dark" : true;
 
   // State for market selector modal
   const [showMarketSelector, setShowMarketSelector] = useState(false);
 
-  // State for account selector modal
+  // State for account selector dropdown
   const [showAccountSelector, setShowAccountSelector] = useState(false);
 
   // Use the binary store for values not provided via props
@@ -50,30 +70,25 @@ export function MobileHeader({
   const effectiveTradingMode = tradingMode || storeValues.tradingMode;
   const effectiveSymbol = symbol || storeValues.currentSymbol;
   const effectiveCurrentPrice = currentPrice || storeValues.currentPrice;
-  
+
   // Use the correct balance based on trading mode
   const effectiveBalance = balance || (
-    effectiveTradingMode === "real" 
-      ? (storeValues.realBalance ?? 0) 
+    effectiveTradingMode === "real"
+      ? (storeValues.realBalance ?? 0)
       : (storeValues.demoBalance ?? 10000)
   );
-
-  const NEXT_PUBLIC_SITE_NAME =
-    process.env.NEXT_PUBLIC_SITE_NAME || "Binary Trading";
 
   // Get the actual market data to find the proper currency and pair
   const getCurrentMarketInfo = () => {
     if (!effectiveSymbol || typeof effectiveSymbol !== 'string')
       return { baseCurrency: "", quoteCurrency: "", displayPair: "" };
 
-    // Try to find the market in binaryMarkets to get the actual currency and pair
     const market = storeValues.binaryMarkets.find((m) => {
       const marketSymbol = m.symbol || `${m.currency}${m.pair}`;
       return marketSymbol === effectiveSymbol;
     });
 
     if (market) {
-      // Use the actual currency and pair from the market data
       return {
         baseCurrency: market.currency,
         quoteCurrency: market.pair,
@@ -91,7 +106,6 @@ export function MobileHeader({
       baseCurrency = effectiveSymbol.slice(0, -4);
       quoteCurrency = "USDT";
     } else {
-      // Try to split based on common patterns
       baseCurrency = effectiveSymbol.slice(0, -4);
       quoteCurrency = effectiveSymbol.slice(-4);
     }
@@ -103,11 +117,7 @@ export function MobileHeader({
     };
   };
 
-  const { baseCurrency, quoteCurrency, displayPair } = getCurrentMarketInfo();
-
-  const toggleTheme = () => {
-    setTheme(isDarkMode ? "light" : "dark");
-  };
+  const { displayPair, baseCurrency } = getCurrentMarketInfo();
 
   // Handler for account switching
   const handleAccountSwitch = (mode: "demo" | "real") => {
@@ -117,237 +127,230 @@ export function MobileHeader({
     setShowAccountSelector(false);
   };
 
+  // Find current market change
+  const currentMarket = activeMarkets.find(m => m.symbol === effectiveSymbol);
+  const priceChange = currentMarket?.change ?? 0;
+
+  // Mobile market select handler - replaces current market instead of adding
+  const handleMobileMarketSelect = (marketSymbol: string) => {
+    // On mobile, we replace the current market instead of adding new tabs
+    if (handleMarketSelect) {
+      handleMarketSelect(marketSymbol);
+    }
+    setShowMarketSelector(false);
+  };
+
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <>
-      {/* Compact Mobile header */}
+      {/* Taller mobile header with 2-row market display like desktop */}
       <div
-        className={`flex items-center justify-between px-3 py-2 border-b transition-colors ${
+        className={`flex items-center h-12 min-h-12 border-b ${
           isDarkMode
-            ? "bg-black border-zinc-800 text-white"
-            : "bg-white border-zinc-200 text-zinc-900"
+            ? "bg-black border-zinc-800"
+            : "bg-white border-zinc-200"
         }`}
       >
-        <div className="flex items-center space-x-2">
-          {/* Back to home button */}
-          <Link href="/">
-            <button
-              className={`p-1.5 rounded-full transition-colors ${
-                isDarkMode
-                  ? "hover:bg-zinc-800/50 text-white"
-                  : "hover:bg-zinc-100 text-zinc-900"
-              }`}
-            >
-              <ChevronLeft size={14} />
-            </button>
-          </Link>
+        {/* Left section - Back button */}
+        <Link
+          href="/"
+          className={`h-12 w-10 flex items-center justify-center border-r transition-colors ${
+            isDarkMode
+              ? "border-zinc-800 text-zinc-400 hover:bg-zinc-800"
+              : "border-zinc-200 text-zinc-600 hover:bg-zinc-100"
+          }`}
+        >
+          <ChevronLeft size={18} />
+        </Link>
 
-          {/* Market Selector Button - More compact */}
-          <button
-            onClick={() => setShowMarketSelector(true)}
-            className={`flex items-center space-x-1.5 px-2 py-1.5 rounded-md transition-colors ${
-              isDarkMode
-                ? "bg-zinc-800/50 hover:bg-zinc-700/50 text-white"
-                : "bg-zinc-100 hover:bg-zinc-200 text-zinc-900"
-            }`}
-          >
-            <div className="flex items-center space-x-1">
-              <div className="text-sm font-bold">{displayPair}</div>
-              {effectiveCurrentPrice > 0 && (
-                <div className="text-xs opacity-70">
-                  $
-                  {effectiveCurrentPrice.toFixed(2)}
-                </div>
-              )}
+        {/* Market Selector - with icon, 2-row layout */}
+        <button
+          onClick={() => setShowMarketSelector(true)}
+          className={`flex items-center gap-2 h-12 px-3 border-r transition-colors ${
+            isDarkMode
+              ? "border-zinc-800 hover:bg-zinc-900"
+              : "border-zinc-200 hover:bg-zinc-50"
+          }`}
+        >
+          {/* Currency Icon */}
+          <Image
+            src={`/img/crypto/${(baseCurrency || "generic").toLowerCase()}.webp`}
+            alt={baseCurrency || ""}
+            width={20}
+            height={20}
+            className="shrink-0 rounded-full"
+          />
+          <div className="flex flex-col items-start">
+            <div className="flex items-center gap-1.5">
+              <span className={`text-xs font-semibold ${isDarkMode ? "text-white" : "text-zinc-900"}`}>
+                {displayPair}
+              </span>
+              <span className={`text-[10px] font-medium ${priceChange >= 0 ? "text-green-500" : "text-red-500"}`}>
+                {priceChange >= 0 ? "+" : ""}{priceChange.toFixed(2)}%
+              </span>
             </div>
-            <ChevronDown size={14} />
-          </button>
-        </div>
+            {effectiveCurrentPrice > 0 && (
+              <span className={`text-[10px] tabular-nums ${isDarkMode ? "text-zinc-500" : "text-zinc-500"}`}>
+                ${effectiveCurrentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            )}
+          </div>
+        </button>
 
-        <div className="flex items-center space-x-1.5">
-          {/* Balance - More compact - Clickable to switch accounts */}
-          <button
-            onClick={() => setShowAccountSelector(true)}
-            className="text-xs flex items-center space-x-1 hover:opacity-80 transition-opacity"
-          >
-            <span className={`px-1.5 py-0.5 rounded text-[8px] font-medium ${
-              effectiveTradingMode === "real"
-                ? "bg-green-500/20 text-green-400"
-                : "bg-orange-500/20 text-orange-400"
-            }`}>
-              {effectiveTradingMode === "real" ? "REAL" : "DEMO"}
-            </span>
-            <span className="font-bold">
-              {(effectiveBalance ?? 0).toFixed(2)}
-            </span>
-            <ChevronDown size={12} />
-          </button>
+        {/* Spacer */}
+        <div className="flex-1" />
 
-          {/* Theme Toggle - Smaller */}
+        {/* Right section */}
+        <div className="flex items-center h-full">
+          {/* Theme toggle button */}
           <button
-            onClick={toggleTheme}
-            className={`p-1.5 rounded-full transition-colors ${
+            onClick={() => setTheme(isDarkMode ? "light" : "dark")}
+            className={`h-12 w-10 flex items-center justify-center border-l transition-colors ${
               isDarkMode
-                ? "hover:bg-zinc-800 text-zinc-300"
-                : "hover:bg-zinc-100 text-zinc-700"
+                ? "border-zinc-800 text-zinc-400 hover:bg-zinc-800"
+                : "border-zinc-200 text-zinc-600 hover:bg-zinc-100"
             }`}
           >
             {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
           </button>
+
+          {/* Balance/Auth section */}
+          {isAuthenticated ? (
+            <DropdownMenu open={showAccountSelector} onOpenChange={setShowAccountSelector}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={`h-12 flex items-center gap-2 px-3 border-l transition-colors ${
+                    isDarkMode
+                      ? "border-zinc-800 hover:bg-zinc-800"
+                      : "border-zinc-200 hover:bg-zinc-100"
+                  }`}
+                >
+                  <div className={`p-1 ${
+                    effectiveTradingMode === "real"
+                      ? "bg-emerald-500/10"
+                      : "bg-amber-500/10"
+                  }`}>
+                    <Wallet size={12} className={effectiveTradingMode === "real" ? "text-emerald-500" : "text-amber-500"} />
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className={`text-xs font-bold tabular-nums leading-tight ${
+                      effectiveTradingMode === "real" ? "text-emerald-500" : "text-amber-500"
+                    }`}>
+                      {effectiveBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                    <span className={`text-[8px] font-bold leading-tight ${
+                      effectiveTradingMode === "real"
+                        ? "text-emerald-400"
+                        : "text-amber-400"
+                    }`}>
+                      {effectiveTradingMode === "real" ? "REAL" : "DEMO"}
+                    </span>
+                  </div>
+                  <ChevronDown size={10} className={`transition-transform ${showAccountSelector ? "rotate-180" : ""} ${isDarkMode ? "text-zinc-500" : "text-zinc-400"}`} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className={`w-72 p-0 overflow-hidden ${
+                  isDarkMode
+                    ? "bg-zinc-900 border-zinc-800"
+                    : "bg-white border-zinc-200"
+                }`}
+              >
+                {/* Header */}
+                <div className={`px-3 py-2 border-b ${isDarkMode ? "border-zinc-800" : "border-zinc-200"}`}>
+                  <div className="flex items-center gap-2">
+                    <Wallet size={14} className={effectiveTradingMode === "real" ? "text-emerald-500" : "text-amber-500"} />
+                    <span className={`text-xs font-semibold ${isDarkMode ? "text-white" : "text-zinc-900"}`}>
+                      {t("select_account")}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Real Account */}
+                <DropdownMenuItem
+                  onClick={() => handleAccountSwitch("real")}
+                  className={`flex items-center justify-between px-3 py-3 cursor-pointer m-1 ${
+                    effectiveTradingMode === "real"
+                      ? "bg-emerald-500/10"
+                      : isDarkMode
+                        ? "hover:bg-zinc-800"
+                        : "hover:bg-zinc-100"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`p-1.5 ${isDarkMode ? "bg-emerald-500/10" : "bg-emerald-50"}`}>
+                      <Wallet size={14} className="text-emerald-500" />
+                    </div>
+                    <div>
+                      <div className={`text-[10px] font-medium uppercase tracking-wide ${isDarkMode ? "text-zinc-500" : "text-zinc-400"}`}>
+                        {t("real_account")}
+                      </div>
+                      <div className="text-sm font-bold text-emerald-500 tabular-nums">
+                        {(storeValues.realBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                  </div>
+                  {effectiveTradingMode === "real" && (
+                    <div className="w-5 h-5 bg-emerald-500 flex items-center justify-center">
+                      <svg width="10" height="8" viewBox="0 0 14 10" fill="none">
+                        <path d="M1 5L5 9L13 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  )}
+                </DropdownMenuItem>
+
+                {/* Demo Account */}
+                <DropdownMenuItem
+                  onClick={() => handleAccountSwitch("demo")}
+                  className={`flex items-center justify-between px-3 py-3 cursor-pointer m-1 ${
+                    effectiveTradingMode === "demo"
+                      ? "bg-amber-500/10"
+                      : isDarkMode
+                        ? "hover:bg-zinc-800"
+                        : "hover:bg-zinc-100"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`p-1.5 ${isDarkMode ? "bg-amber-500/10" : "bg-amber-50"}`}>
+                      <Sparkles size={14} className="text-amber-500" />
+                    </div>
+                    <div>
+                      <div className={`text-[10px] font-medium uppercase tracking-wide ${isDarkMode ? "text-zinc-500" : "text-zinc-400"}`}>
+                        {t("demo_account")}
+                      </div>
+                      <div className="text-sm font-bold text-amber-500 tabular-nums">
+                        {(storeValues.demoBalance ?? 10000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                  </div>
+                  {effectiveTradingMode === "demo" && (
+                    <div className="w-5 h-5 bg-amber-500 flex items-center justify-center">
+                      <svg width="10" height="8" viewBox="0 0 14 10" fill="none">
+                        <path d="M1 5L5 9L13 1" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  )}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            /* Auth controls for unauthenticated users */
+            <AuthHeaderControls isMobile={true} variant="binary" />
+          )}
         </div>
       </div>
 
-      {/* Market Selector Modal */}
-      {showMarketSelector && (
-        <MarketSelectorModal
-          onClose={() => setShowMarketSelector(false)}
-          handleMarketSelect={handleMarketSelect}
-        />
-      )}
-
-      {/* Account Selector Modal */}
-      {showAccountSelector && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/50 backdrop-blur-sm"
-          onClick={() => setShowAccountSelector(false)}
-        >
-          <div
-            className={`w-full max-w-lg rounded-t-2xl ${
-              isDarkMode ? "bg-zinc-900" : "bg-white"
-            } p-4 pb-6 space-y-3 shadow-2xl`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h3
-                className={`text-lg font-semibold ${
-                  isDarkMode ? "text-white" : "text-zinc-900"
-                }`}
-              >
-                {t("select_account")}
-              </h3>
-              <button
-                onClick={() => setShowAccountSelector(false)}
-                className={`p-1 rounded-full ${
-                  isDarkMode
-                    ? "hover:bg-zinc-800 text-zinc-400"
-                    : "hover:bg-zinc-100 text-zinc-600"
-                }`}
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M15 5L5 15M5 5L15 15"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            {/* Real Account */}
-            <button
-              onClick={() => handleAccountSwitch("real")}
-              className={`w-full p-4 rounded-lg border-2 transition-all active:scale-95 ${
-                effectiveTradingMode === "real"
-                  ? isDarkMode
-                    ? "border-green-500/50 bg-green-500/10"
-                    : "border-green-500 bg-green-50"
-                  : isDarkMode
-                    ? "border-zinc-800 bg-zinc-800/30 hover:border-zinc-700 active:bg-zinc-800/50"
-                    : "border-zinc-200 bg-white hover:border-zinc-300 active:bg-zinc-100"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="text-left">
-                  <div
-                    className={`text-sm font-medium mb-1 ${
-                      isDarkMode ? "text-zinc-400" : "text-zinc-600"
-                    }`}
-                  >
-                    {t("real_account")}
-                  </div>
-                  <div className="text-xl font-bold text-green-500">
-                    {(storeValues.realBalance ?? 0).toFixed(2)}
-                  </div>
-                </div>
-                {effectiveTradingMode === "real" && (
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-green-500">
-                    <svg
-                      width="14"
-                      height="10"
-                      viewBox="0 0 14 10"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M1 5L5 9L13 1"
-                        stroke="white"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                )}
-              </div>
-            </button>
-
-            {/* Demo Account */}
-            <button
-              onClick={() => handleAccountSwitch("demo")}
-              className={`w-full p-4 rounded-lg border-2 transition-all active:scale-95 ${
-                effectiveTradingMode === "demo"
-                  ? isDarkMode
-                    ? "border-orange-500/50 bg-orange-500/10"
-                    : "border-orange-500 bg-orange-50"
-                  : isDarkMode
-                    ? "border-zinc-800 bg-zinc-800/30 hover:border-zinc-700 active:bg-zinc-800/50"
-                    : "border-zinc-200 bg-white hover:border-zinc-300 active:bg-zinc-100"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="text-left">
-                  <div
-                    className={`text-sm font-medium mb-1 ${
-                      isDarkMode ? "text-zinc-400" : "text-zinc-600"
-                    }`}
-                  >
-                    {t("demo_account")}
-                  </div>
-                  <div className="text-xl font-bold text-orange-500">
-                    {(storeValues.demoBalance ?? 10000).toFixed(2)}
-                  </div>
-                </div>
-                {effectiveTradingMode === "demo" && (
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-500">
-                    <svg
-                      width="14"
-                      height="10"
-                      viewBox="0 0 14 10"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M1 5L5 9L13 1"
-                        stroke="white"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                )}
-              </div>
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Market Selector Modal - uses mobile replace behavior */}
+      <MarketSelectorModal
+        open={showMarketSelector}
+        onClose={() => setShowMarketSelector(false)}
+        handleMarketSelect={handleMobileMarketSelect}
+        isMobile={true}
+      />
     </>
   );
 }

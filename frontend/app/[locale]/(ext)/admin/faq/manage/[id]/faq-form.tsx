@@ -1125,7 +1125,7 @@ export function FAQForm({
                   order: Number.parseInt(e.target.value) || 0,
                 })
               }
-              description={t("lower_numbers_appear_first")}
+              description={tCommon("lower_numbers_appear_first")}
               validationRules={[
                 validationRules.numeric("Order must be a number"),
                 validationRules.min(0, "Order must be a positive number"),

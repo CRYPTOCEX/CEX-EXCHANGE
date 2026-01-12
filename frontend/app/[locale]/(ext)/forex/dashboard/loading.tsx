@@ -1,9 +1,7 @@
 import { Loader2, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTranslations } from "next-intl";
 
 export default function DashboardLoading() {
-  const t = useTranslations("ext");
   return (
     <div className="min-h-screen bg-linear-to-b from-background via-muted/10 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
       {/* Decorative background glows */}
@@ -133,9 +131,6 @@ export default function DashboardLoading() {
         <Loader2
           className={`h-12 w-12 animate-spin text-emerald-600 dark:text-emerald-400 mb-4`}
         />
-        <p className="text-gray-600 dark:text-zinc-400 text-lg">
-          {t("loading_dashboard_ellipsis")}
-        </p>
       </div>
     </div>
   );

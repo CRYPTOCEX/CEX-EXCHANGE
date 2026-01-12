@@ -14,6 +14,8 @@ export default function StakingLayout({ children }: StakingLayoutProps) {
         menu={menu}
         colorSchema={colorSchema}
         adminPath={adminPath}
+        translationNamespace="ext_staking"
+        translationNavPrefix="nav"
       />
       <ExtensionLayoutWrapper landingPath="/staking">
         {children}

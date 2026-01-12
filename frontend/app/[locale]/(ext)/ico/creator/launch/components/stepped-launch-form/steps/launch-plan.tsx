@@ -255,7 +255,7 @@ export default function LaunchPlanStep({
                             <Check className={"h-4 w-4 text-teal-600 dark:text-teal-400"} />
                           </div>
                           <span className="text-sm leading-relaxed group-hover:text-foreground transition-colors">
-                            {t("up_to")}{" "}
+                            {tExt("up_to")}{" "}
                             {features?.maxTeamMembers === 999
                               ? "unlimited"
                               : features?.maxTeamMembers}{" "}
@@ -281,7 +281,7 @@ export default function LaunchPlanStep({
                             <Check className={"h-4 w-4 text-teal-600 dark:text-teal-400"} />
                           </div>
                           <span className="text-sm leading-relaxed group-hover:text-foreground transition-colors">
-                            {t("up_to")}{" "}
+                            {tExt("up_to")}{" "}
                             {features?.maxRoadmapItems === 999
                               ? "unlimited"
                               : features?.maxRoadmapItems}{" "}

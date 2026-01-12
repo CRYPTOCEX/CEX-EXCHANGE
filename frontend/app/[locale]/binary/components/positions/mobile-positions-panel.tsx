@@ -30,56 +30,56 @@ export default function MobilePositionsPanel({
     (order) => order.status === "PENDING"
   ).length;
 
-  // Theme-based classes
-  const bgClass = theme === "dark" ? "bg-zinc-950" : "bg-white";
+  // Theme-based classes - matching desktop flat design
+  const bgClass = theme === "dark" ? "bg-black" : "bg-white";
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const textClass = theme === "dark" ? "text-white" : "text-zinc-900";
-  const secondaryTextClass =
-    theme === "dark" ? "text-zinc-500" : "text-zinc-600";
+  const secondaryTextClass = theme === "dark" ? "text-zinc-500" : "text-zinc-600";
 
   return (
     <div className={`flex flex-col h-full ${bgClass} ${className}`}>
-      {/* Header with tabs */}
-      <div className={`flex-shrink-0 border-b ${borderClass} ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-100"}`}>
-        <div className="flex">
+      {/* Header with tabs - flat design matching desktop */}
+      <div className={`shrink-0 border-b ${borderClass}`}>
+        <div className="flex h-10">
           <button
             onClick={() => setActiveTab("active")}
-            className={`flex-1 flex items-center justify-center py-3 px-4 text-sm font-medium transition-colors border-b-2 ${
+            className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium transition-colors border-r ${borderClass} ${
               activeTab === "active"
-                ? `${textClass} ${theme === "dark" ? "border-orange-500 bg-zinc-800/50" : "border-orange-500 bg-white"}`
-                : `${secondaryTextClass} border-transparent ${theme === "dark" ? "hover:bg-zinc-800/30 hover:text-zinc-300" : "hover:bg-zinc-200 hover:text-zinc-700"}`
+                ? `${textClass} ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-100"}`
+                : `${secondaryTextClass} ${theme === "dark" ? "hover:bg-zinc-900/50" : "hover:bg-zinc-50"}`
             }`}
           >
-            <Clock size={16} className="mr-2" />
-            {t("active")}
+            {/* Top indicator */}
+            <div className={`absolute top-0 left-0 right-0 h-0.5 ${activeTab === "active" ? "bg-orange-500" : "bg-transparent"}`} />
+            <Clock size={14} />
+            <span>{t("active")}</span>
             {activePositionsCount > 0 && (
-              <span
-                className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                  theme === "dark"
-                    ? "bg-orange-500/20 text-orange-400"
-                    : "bg-orange-100 text-orange-600"
-                }`}
-              >
+              <span className={`px-1.5 py-0.5 text-[10px] font-bold ${
+                theme === "dark"
+                  ? "bg-orange-500/20 text-orange-400"
+                  : "bg-orange-100 text-orange-600"
+              }`}>
                 {activePositionsCount}
               </span>
             )}
           </button>
           <button
             onClick={() => setActiveTab("completed")}
-            className={`flex-1 flex items-center justify-center py-3 px-4 text-sm font-medium transition-colors border-b-2 ${
+            className={`flex-1 relative flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
               activeTab === "completed"
-                ? `${textClass} ${theme === "dark" ? "border-orange-500 bg-zinc-800/50" : "border-orange-500 bg-white"}`
-                : `${secondaryTextClass} border-transparent ${theme === "dark" ? "hover:bg-zinc-800/30 hover:text-zinc-300" : "hover:bg-zinc-200 hover:text-zinc-700"}`
+                ? `${textClass} ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-100"}`
+                : `${secondaryTextClass} ${theme === "dark" ? "hover:bg-zinc-900/50" : "hover:bg-zinc-50"}`
             }`}
           >
-            <BarChart3 size={16} className="mr-2" />
-            {t("history")}
+            <div className={`absolute top-0 left-0 right-0 h-0.5 ${activeTab === "completed" ? "bg-orange-500" : "bg-transparent"}`} />
+            <BarChart3 size={14} />
+            <span>{t("history")}</span>
           </button>
         </div>
       </div>
 
       {/* Content area */}
-      <div className={`flex-1 overflow-hidden ${theme === "dark" ? "bg-zinc-950" : "bg-white"}`}>
+      <div className={`flex-1 overflow-hidden ${theme === "dark" ? "bg-black" : "bg-white"}`}>
         {activeTab === "active" ? (
           <ActivePositions
             orders={orders}

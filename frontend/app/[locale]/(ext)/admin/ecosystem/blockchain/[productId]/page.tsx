@@ -14,7 +14,6 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { $fetch } from "@/lib/api";
 import { useRouter } from "@/i18n/routing";
@@ -33,6 +32,7 @@ interface UpdateData {
 export default function BlockchainDetailsPage() {
   const t = useTranslations("common");
   const tExtAdmin = useTranslations("ext_admin");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { productId } = useParams();
   const { theme } = useTheme();
@@ -50,8 +50,6 @@ export default function BlockchainDetailsPage() {
     update_id: "",
     version: "",
   });
-  const [purchaseCode, setPurchaseCode] = useState("");
-  const [envatoUsername, setEnvatoUsername] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUpdateChecking, setIsUpdateChecking] = useState(false);
@@ -173,26 +171,6 @@ export default function BlockchainDetailsPage() {
       console.error("Update error:", err);
     }
     setIsUpdating(false);
-  };
-  const activateLicenseAction = async () => {
-    setIsSubmitting(true);
-    try {
-      const { data } = await $fetch({
-        url: `/api/admin/system/license/activate`,
-        method: "POST",
-        body: { productId, purchaseCode, envatoUsername },
-        silentSuccess: true,
-      });
-      if (data) {
-        setLicenseVerified(data.status);
-        if (data.status) {
-          fetchBlockchainData();
-        }
-      }
-    } catch (err) {
-      console.error("License activation error:", err);
-    }
-    setIsSubmitting(false);
   };
   const handleActivateBlockchain = async () => {
     setIsSubmitting(true);
@@ -407,7 +385,7 @@ export default function BlockchainDetailsPage() {
                 disabled={isUpdateChecking}
                 loading={isUpdateChecking}
               >
-                {tExtAdmin("check_for_updates")}
+                {tCommon("check_for_updates")}
               </Button>
             </div>
           </Card>
@@ -419,24 +397,10 @@ export default function BlockchainDetailsPage() {
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
                 {t("please_enter_your_your_license")}.
               </p>
-              <div className="space-y-2">
-                <Input
-                  value={purchaseCode}
-                  onChange={(e) => setPurchaseCode(e.target.value)}
-                  placeholder={t("enter_your_purchase_code")}
-                />
-                <Input
-                  value={envatoUsername}
-                  onChange={(e) => setEnvatoUsername(e.target.value)}
-                  placeholder={t("enter_your_envato_username")}
-                />
-              </div>
               <Button
                 color="primary"
                 className="w-full"
-                onClick={activateLicenseAction}
-                disabled={isSubmitting}
-                loading={isSubmitting}
+                onClick={() => router.push(`/admin/system/license?productId=${productId}&return=/admin/ecosystem`)}
               >
                 {t("activate_license")}
               </Button>

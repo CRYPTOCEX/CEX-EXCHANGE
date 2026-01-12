@@ -42,6 +42,7 @@ import { FloatingShapes, InteractivePattern } from "@/components/sections/shared
 export function AllArticlesClient() {
   const t = useTranslations("common");
   const tBlogBlog = useTranslations("blog_blog");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -91,9 +92,7 @@ export function AllArticlesClient() {
       // Convert to string and navigate
       const queryString = newSearchParams.toString();
       const newPath = queryString ? `/blog/post?${queryString}` : "/blog/post";
-      router.push(newPath, {
-        scroll: false,
-      });
+      router.push(newPath);
     },
     [router]
   );
@@ -600,7 +599,7 @@ export function AllArticlesClient() {
                   <SelectTrigger className="h-10 min-w-[180px] rounded-lg border-zinc-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
                     <div className="flex items-center gap-2">
                       <TagIcon className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
-                      <SelectValue placeholder={tBlogBlog("all_tags")} />
+                      <SelectValue placeholder={tCommon("all_tags")} />
                     </div>
                   </SelectTrigger>
                   <SelectContent className="dark:bg-zinc-900 dark:border-zinc-700">
@@ -608,7 +607,7 @@ export function AllArticlesClient() {
                       value="all"
                       className="dark:text-zinc-100 dark:focus:bg-zinc-800"
                     >
-                      {tBlogBlog("all_tags")}
+                      {tCommon("all_tags")}
                     </SelectItem>
                     {tags.map((tag) => (
                       <SelectItem

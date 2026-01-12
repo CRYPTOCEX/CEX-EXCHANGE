@@ -55,7 +55,7 @@ export default function TokenPageClient() {
     setActiveTab(value);
     const newParams = new URLSearchParams(searchParams.toString());
     newParams.set("tab", value);
-    router.push(`?${newParams.toString()}`, { scroll: false });
+    router.push(`?${newParams.toString()}`);
   };
 
   const isTokenLaunched = currentToken?.status === "ACTIVE";

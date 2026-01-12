@@ -348,7 +348,7 @@ export default function PayoutsClient() {
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">{`${t("payout")} #`}{payout.id.slice(-8)}</span>
+                              <span className="font-medium">{`${tCommon("payout")} #`}{payout.id.slice(-8)}</span>
                               <Badge variant="outline" className={statusConfig.bgColor}>
                                 {statusConfig.label}
                               </Badge>

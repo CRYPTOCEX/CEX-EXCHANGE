@@ -41,6 +41,7 @@ function StoryCard({
   story: SuccessStory;
   index: number;
 }) {
+  const t = useTranslations("ext_ico");
   const gradient = { from: "#14b8a6", to: "#06b6d4" };
   const isOverfunded = story.fundedPercentage > 100;
 
@@ -112,7 +113,7 @@ function StoryCard({
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-zinc-500 dark:text-zinc-400">
-              Funding Achieved
+              {t("funding_achieved")}
             </span>
             <span
               className={`text-sm font-bold ${
@@ -165,7 +166,7 @@ function StoryCard({
         <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
           <Clock className="w-4 h-4 text-teal-500" />
           <span>
-            Completed in{" "}
+            {t("completed_in")}{" "}
             <span className="font-semibold text-zinc-900 dark:text-white">
               {story.daysToComplete} days
             </span>
@@ -201,6 +202,8 @@ export default function SuccessStoriesSection({
   isLoading,
 }: SuccessStoriesSectionProps) {
   const t = useTranslations("ext_ico");
+  const tCommon = useTranslations("common");
+  const tExt = useTranslations("ext");
   const gradient = { from: "#14b8a6", to: "#06b6d4" };
 
   if (!isLoading && (!stories || stories.length === 0)) {
@@ -265,7 +268,7 @@ export default function SuccessStoriesSection({
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-emerald-500" />
                 <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Total Raised:{" "}
+                  {tExt("total_raised")}{" "}
                   <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                     ${totalRaised.toLocaleString()}
                   </span>
@@ -277,7 +280,7 @@ export default function SuccessStoriesSection({
               </span>
               <div className="w-px h-4 bg-zinc-300 dark:bg-zinc-700" />
               <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                Avg. {avgFunding}% funded
+                {tCommon("avg")} {avgFunding}% funded
               </span>
             </div>
           </motion.div>
@@ -308,7 +311,7 @@ export default function SuccessStoriesSection({
                 variant="outline"
                 className="rounded-xl border-2 border-zinc-300 dark:border-zinc-700 hover:border-emerald-500 dark:hover:border-emerald-500"
               >
-                View All Success Stories
+                {t("view_all_success_stories")}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>

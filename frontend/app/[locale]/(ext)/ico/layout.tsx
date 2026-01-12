@@ -24,6 +24,8 @@ export default function RootLayout({
         menu={menu}
         colorSchema={colorSchema}
         adminPath={adminPath}
+        translationNamespace="ext_ico"
+        translationNavPrefix="nav"
       />
       <ExtensionLayoutWrapper landingPath="/ico">
         <PlatformAnnouncement />

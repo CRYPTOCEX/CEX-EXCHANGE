@@ -240,6 +240,7 @@ export default function Column({
   };
 
   const renderAddContentButton = () => {
+
     if (isEmpty) return null;
 
     return (
@@ -257,6 +258,7 @@ export default function Column({
   };
 
   const renderEmptyColumnContent = () => {
+
     if (!isEmpty) return null;
 
     return (

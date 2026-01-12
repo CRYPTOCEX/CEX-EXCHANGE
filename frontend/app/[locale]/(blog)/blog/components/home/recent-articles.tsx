@@ -46,7 +46,7 @@ export function RecentArticles({ posts }: RecentArticlesProps) {
           </span>
         </h2>
         <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-          Fresh insights and articles from our community
+          {t("fresh_insights_and_articles_from_our_community")}
         </p>
       </motion.div>
 

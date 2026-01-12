@@ -13,9 +13,10 @@ export function SortingDirection({
   onDirectionChange,
 }: SortingDirectionProps) {
   const t = useTranslations("components_blocks");
+  const tCommon = useTranslations("common");
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold">{t("direction")}</h3>
+      <h3 className="font-semibold">{tCommon("direction")}</h3>
       <div className="flex gap-2">
         <Button
           variant={direction === "asc" ? "soft" : "outline"}

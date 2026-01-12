@@ -1,6 +1,7 @@
 export type FieldType =
   | "switch"
   | "text"
+  | "input"
   | "number"
   | "range"
   | "url"
@@ -31,14 +32,21 @@ export interface FieldDefinition {
   max?: number;
   step?: number;
   suffix?: string; // e.g., "%" for percentages, "min" for minutes
+  placeholder?: string; // Custom placeholder text for input fields
+  inputType?: "text" | "number" | "email" | "password" | "url"; // HTML input type override
   fileSize?: { width: number; height: number };
   preview?: Record<string, Record<string, string>>;
   fullWidth?: boolean; // Whether this field should span the full width in grid layouts
+  // Optional addon module path that must be available for this field to show
+  // e.g., "@/components/(ext)/chart-engine" - field will be hidden if addon is not installed
+  addonRequired?: string;
 }
 
 export const TABS = [
   { id: "general", label: "General" },
   { id: "features", label: "Features" },
+  { id: "security", label: "Security" },
+  { id: "integrations", label: "Integrations" },
   { id: "wallet", label: "Wallet" },
   { id: "social", label: "Social & Links" },
   { id: "logos", label: "Branding" },
@@ -108,32 +116,6 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     category: "general",
     subcategory: "Content",
   },
-  {
-    key: "blogPostLayout",
-    label: "Blog Post Layout",
-    type: "select",
-    description: "Select the layout for blog posts",
-    category: "general",
-    subcategory: "Content",
-    options: [
-      { label: "Default", value: "DEFAULT" },
-      { label: "Modern", value: "MODERN" },
-      { label: "Classic", value: "CLASSIC" },
-    ],
-    preview: {
-      light: {
-        DEFAULT: "/img/preview/blog/layout/default.webp",
-        CLASSIC: "/img/preview/blog/layout/trail.webp",
-        MODERN: "/img/preview/blog/layout/toc.webp",
-      },
-      dark: {
-        DEFAULT: "/img/preview/blog/layout/default-dark.webp",
-        CLASSIC: "/img/preview/blog/layout/trail-dark.webp",
-        MODERN: "/img/preview/blog/layout/toc-dark.webp",
-      },
-    },
-    fullWidth: true,
-  },
 
   // Support
   {
@@ -146,43 +128,129 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
   },
 
   // ========================================
+  // SECURITY SETTINGS
+  // ========================================
+
+  // Authentication
+  {
+    key: "googleAuthStatus",
+    label: "Google OAuth Login",
+    type: "switch",
+    description: "Allow users to sign in with Google accounts",
+    category: "security",
+    subcategory: "Authentication",
+  },
+  {
+    key: "verifyEmailStatus",
+    label: "Email Verification Required",
+    type: "switch",
+    description: "Require users to verify their email address after registration",
+    category: "security",
+    subcategory: "Authentication",
+  },
+
+  // Two-Factor Authentication
+  {
+    key: "twoFactorStatus",
+    label: "Two-Factor Authentication",
+    type: "switch",
+    description: "Enable two-factor authentication (2FA) for enhanced account security",
+    category: "security",
+    subcategory: "Two-Factor Authentication",
+  },
+  {
+    key: "twoFactorSmsStatus",
+    label: "SMS 2FA",
+    type: "switch",
+    description: "Allow SMS-based two-factor authentication",
+    category: "security",
+    subcategory: "Two-Factor Authentication",
+    showIf: (values) => {
+      const val = values.twoFactorStatus;
+      return val === "true" || (typeof val === 'boolean' && val === true);
+    },
+  },
+  {
+    key: "twoFactorEmailStatus",
+    label: "Email 2FA",
+    type: "switch",
+    description: "Allow email-based two-factor authentication",
+    category: "security",
+    subcategory: "Two-Factor Authentication",
+    showIf: (values) => {
+      const val = values.twoFactorStatus;
+      return val === "true" || (typeof val === 'boolean' && val === true);
+    },
+  },
+  {
+    key: "twoFactorAppStatus",
+    label: "Authenticator App 2FA",
+    type: "switch",
+    description: "Allow authenticator app-based two-factor authentication (TOTP)",
+    category: "security",
+    subcategory: "Two-Factor Authentication",
+    showIf: (values) => {
+      const val = values.twoFactorStatus;
+      return val === "true" || (typeof val === 'boolean' && val === true);
+    },
+  },
+
+  // Protection
+  {
+    key: "powCaptchaStatus",
+    label: "Proof-of-Work Captcha",
+    type: "switch",
+    description: "Enable invisible proof-of-work captcha protection on login and registration forms (no third-party dependencies)",
+    category: "security",
+    subcategory: "Protection",
+  },
+  {
+    key: "powCaptchaDifficulty",
+    label: "PoW Difficulty",
+    type: "select",
+    description: "Difficulty level for proof-of-work challenges. Higher = more secure but slower",
+    category: "security",
+    subcategory: "Protection",
+    options: [
+      { label: "Low (Fast, ~100ms)", value: "low" },
+      { label: "Medium (Balanced, ~500ms)", value: "medium" },
+      { label: "High (Secure, ~2s)", value: "high" },
+    ],
+    showIf: (values: Record<string, string>) => {
+      const val = values.powCaptchaStatus;
+      return val === "true" || val === true as any;
+    },
+  },
+
+  // ========================================
+  // INTEGRATIONS SETTINGS
+  // ========================================
+
+  // Analytics & Tracking
+  {
+    key: "googleAnalyticsStatus",
+    label: "Google Analytics",
+    type: "switch",
+    description: "Enable Google Analytics tracking for user behavior and site analytics",
+    category: "integrations",
+    subcategory: "Analytics & Tracking",
+  },
+  {
+    key: "facebookPixelStatus",
+    label: "Facebook Pixel",
+    type: "switch",
+    description: "Enable Facebook Pixel tracking for advertising and conversion metrics",
+    category: "integrations",
+    subcategory: "Analytics & Tracking",
+  },
+
+  // ========================================
   // FEATURES SETTINGS
   // ========================================
 
-  // Trading
-  {
-    key: "spotWallets",
-    label: "Spot Trading",
-    type: "switch",
-    description: "Enable spot trading functionality",
-    category: "features",
-    subcategory: "Trading",
-  },
-  {
-    key: "chartType",
-    label: "Chart Type",
-    type: "select",
-    description: "Choose the charting library for trading pages",
-    category: "features",
-    subcategory: "Trading",
-    options: [
-      { label: "Native Chart", value: "NATIVE" },
-      { label: "TradingView Advanced", value: "TRADINGVIEW" },
-    ],
-  },
-  {
-    key: "marketLinkRoute",
-    label: "Market Link Route",
-    type: "select",
-    description:
-      "Choose where market links redirect to from markets page and home page",
-    category: "features",
-    subcategory: "Trading",
-    options: [
-      { label: "Trading Page", value: "trade" },
-      { label: "Binary Trading", value: "binary" },
-    ],
-  },
+  // Note: Spot Trading is now managed in Trading Settings page (/admin/trading/settings)
+  // Note: Blog Settings are now managed in Blog Settings page (/admin/blog/settings)
+  // Note: Binary Settings are now managed in Binary Settings page (/admin/finance/binary/settings)
 
   // Investment
   {
@@ -541,7 +609,6 @@ export const DEFAULT_SETTINGS = {
   binaryLevel2: "1",
   binaryLevels: "2",
   binaryRestrictions: "false",
-  blogPostLayout: "DEFAULT",
   botRestrictions: "false",
   cardLogo: "",
   deposit: "true",
@@ -575,10 +642,14 @@ export const DEFAULT_SETTINGS = {
       icon: "/img/social/telegram.svg",
     },
   ]),
+  facebookPixelStatus: "false",
   fiatWallets: "true",
-  spotWallets: "true",
   floatingLiveChat: "true",
   forexInvestment: "true",
+  googleAnalyticsStatus: "false",
+  googleAuthStatus: "true",
+  powCaptchaStatus: "true",
+  powCaptchaDifficulty: "medium",
   forexRestrictions: "false",
   frontendType: "default",
   googleTargetLanguage: "en",
@@ -601,6 +672,11 @@ export const DEFAULT_SETTINGS = {
   tradeRestrictions: "false",
   transfer: "true",
   transferRestrictions: "true",
+  twoFactorStatus: "true",
+  twoFactorSmsStatus: "true",
+  twoFactorEmailStatus: "true",
+  twoFactorAppStatus: "true",
+  verifyEmailStatus: "true",
   appStoreLink: "",
   googlePlayLink: "",
   unilevelLevel1: "1",

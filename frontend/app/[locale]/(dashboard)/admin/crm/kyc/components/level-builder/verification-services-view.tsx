@@ -433,7 +433,7 @@ export function VerificationServicesView({
     return (
       <div className="w-full h-full overflow-auto p-6">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6">KYC Verification Services</h1>
+          <h1 className="text-3xl font-bold mb-6">{t("kyc_verification_services")}</h1>
           <Alert className="mb-6 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800">
             <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
             <AlertTitle className="text-red-900 dark:text-red-100">{t("error_loading_verification_services")}</AlertTitle>
@@ -448,7 +448,7 @@ export function VerificationServicesView({
     <div className="w-full h-full overflow-auto">
       <div className="max-w-5xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">KYC Verification Services</h1>
+          <h1 className="text-3xl font-bold">{t("kyc_verification_services")}</h1>
           {currentLevel?.serviceId && (
             <Button
               variant="destructive"
@@ -463,7 +463,7 @@ export function VerificationServicesView({
         <div className="mb-6">
           <h2 className="text-xl font-semibold flex items-center mb-2">
             <ShieldCheck className="h-5 w-5 mr-2 text-primary" />
-            KYC Verification Service Integration
+            {t("kyc_verification_service_integration")}
           </h2>
           <p className="text-muted-foreground">
             {t("select_a_verification_kyc_verification")}
@@ -474,7 +474,7 @@ export function VerificationServicesView({
           <TabsList className="grid grid-cols-3 mb-6">
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="api-connection" disabled={!selectedServiceId}>
-              API Connection
+              {t("api_connection")}
             </TabsTrigger>
             <TabsTrigger
               value="templates"
@@ -587,7 +587,7 @@ export function VerificationServicesView({
               <div className="border rounded-lg overflow-hidden">
                 <div className="bg-muted p-6">
                   <h3 className="text-xl font-bold mb-2">
-                    {selectedService.name} API Connection
+                    {selectedService.name} {t("api_connection")}
                   </h3>
                   <p className="text-muted-foreground">
                     {t("this_service_requires_api_credentials_configured")}
@@ -608,7 +608,7 @@ export function VerificationServicesView({
                       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
                       <AlertTitle className="text-green-900 dark:text-green-100">{t("connection_successful")}</AlertTitle>
                       <AlertDescription className="text-green-700 dark:text-green-300">
-                        API credentials verified successfully.
+                        {t("api_credentials_verified_successfully")}
                       </AlertDescription>
                     </Alert>
                   )}
@@ -656,7 +656,7 @@ export function VerificationServicesView({
                           <li>{t("restart_your_server")}</li>
                         </ol>
                         <div className="mt-3 bg-blue-100 p-3 rounded-md">
-                          <p className="text-xs font-medium mb-1">{t("example_1")}:</p>
+                          <p className="text-xs font-medium mb-1">{tCommon("example_1")}:</p>
                           <pre className="text-xs overflow-x-auto p-2 bg-blue-200 rounded">
                             {selectedService.type === "SUMSUB" ||
                             selectedService.id.startsWith("sumsub")
@@ -681,11 +681,9 @@ export function VerificationServicesView({
                   {isDeepSeekService && (
                     <Alert className="bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800">
                       <BrainCircuit className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                      <AlertTitle className="text-purple-900 dark:text-purple-100">DeepSeek AI Verification</AlertTitle>
+                      <AlertTitle className="text-purple-900 dark:text-purple-100">{t("deepseek_ai_verification")}</AlertTitle>
                       <AlertDescription className="text-purple-700 dark:text-purple-300">
-                        DeepSeek provides advanced AI-powered document analysis
-                        with fraud detection capabilities. Select a template to configure
-                        your verification workflow.
+                        {t("deepseek_provides_advanced_ai_powered_document")}
                       </AlertDescription>
                     </Alert>
                   )}
@@ -941,7 +939,7 @@ export function VerificationServicesView({
                 {isGeminiService && (
                   <Alert className="mt-6 bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800">
                     <BrainCircuit className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                    <AlertTitle className="text-indigo-900 dark:text-indigo-100">AI-Powered Verification</AlertTitle>
+                    <AlertTitle className="text-indigo-900 dark:text-indigo-100">{t("ai_powered_verification")}</AlertTitle>
                     <AlertDescription className="text-indigo-700 dark:text-indigo-300">
                       {t("gemini_ai_will_verify_document_images")}
                     </AlertDescription>
@@ -1044,10 +1042,10 @@ export function VerificationServicesView({
                     </h4>
                     <ul className="space-y-2 list-disc pl-5 text-sm text-blue-700 dark:text-blue-300">
                       <li>
-                        <strong>ID Front</strong> {`(${tCommon("required")})`}
+                        <strong>{t("id_front")}</strong> {`(${tCommon("required")})`}
                       </li>
                       <li>
-                        <strong>ID Back</strong> {`(${tCommon("recommended")})`}
+                        <strong>{t("id_back")}</strong> {`(${tCommon("recommended")})`}
                       </li>
                       <li>
                         <strong>Selfie</strong> {`(${tCommon("recommended")})`}

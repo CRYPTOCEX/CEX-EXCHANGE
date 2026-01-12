@@ -550,33 +550,7 @@ export default function ElementRenderer({
   const { theme } = useTheme();
   const { updateElement } = useBuilderStore();
 
-  // Early validation to prevent null/undefined errors
-  if (!element || typeof element !== "object") {
-    console.warn("ElementRenderer: Invalid element provided:", element);
-    return (
-      <div className="p-2 text-center text-red-500">{t("invalid_element")}</div>
-    );
-  }
-
-  if (!element.type) {
-    console.warn("ElementRenderer: Element missing type:", element);
-    return (
-      <div className="p-2 text-center text-yellow-600">
-        {t("element_missing_type")}
-      </div>
-    );
-  }
-
-  if (!element.id) {
-    console.warn("ElementRenderer: Element missing id:", element);
-    return (
-      <div className="p-2 text-center text-yellow-600">
-        {t("element_missing_id")}
-      </div>
-    );
-  }
-
-  const getThemeColor = (
+  const getThemeColor = useCallback((
     colorValue: ColorValue | undefined
   ): string | undefined => {
     if (!colorValue) return undefined;
@@ -588,9 +562,9 @@ export default function ElementRenderer({
 
     // Otherwise return the color as is
     return typeof colorValue === "string" ? colorValue : undefined;
-  };
+  }, [theme]);
 
-  const getGradientClasses = (
+  const getGradientClasses = useCallback((
     gradientValue: GradientDefinition | undefined,
     prefix = ""
   ): string[] => {
@@ -616,11 +590,36 @@ export default function ElementRenderer({
     ];
 
     return classes.filter(Boolean);
-  };
-
-
+  }, [theme]);
 
   const renderElement = useMemo(() => {
+    // Early validation inside useMemo
+    if (!element || typeof element !== "object") {
+      console.warn("ElementRenderer: Invalid element provided:", element);
+      return (
+        <div className="p-2 text-center text-red-500">{t("invalid_element")}</div>
+      );
+    }
+
+    if (!element.type) {
+      console.warn("ElementRenderer: Element missing type:", element);
+      return (
+        <div className="p-2 text-center text-yellow-600">
+          {t("element_missing_type")}
+        </div>
+      );
+    }
+
+    if (!element.id) {
+      console.warn("ElementRenderer: Element missing id:", element);
+      return (
+        <div className="p-2 text-center text-yellow-600">
+          {t("element_missing_id")}
+        </div>
+      );
+    }
+
+
     try {
       switch (element.type) {
         case "heading":
@@ -708,7 +707,7 @@ export default function ElementRenderer({
         </div>
       );
     }
-  }, [element, isEditMode]);
+  }, [element, isEditMode, t, theme, getGradientClasses]);
 
   try {
     const settings = (element.settings as ElementSettings) || {};

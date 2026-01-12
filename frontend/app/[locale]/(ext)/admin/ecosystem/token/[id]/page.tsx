@@ -12,6 +12,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { imageUploader } from "@/utils/upload";
 import { Icon } from "@iconify/react";
 import { useTranslations } from "next-intl";
+import { PAGE_PADDING } from "@/app/[locale]/(dashboard)/theme-config";
 
 interface EditTokenData {
   limits: {
@@ -140,80 +141,85 @@ function EditTokenContent() {
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">{t("edit_token")}</h1>
-          <Link href="/admin/ecosystem/token">
-            <Button variant="outline">
-              <Icon icon="lucide:arrow-left" className="mr-2 h-4 w-4" />
-              {tCommon("back")}
-            </Button>
-          </Link>
-        </div>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center py-8">
-              <Icon icon="lucide:alert-circle" className="mx-auto h-12 w-12 text-destructive mb-4" />
-              <h3 className="text-lg font-medium mb-2">
-                Error Loading Token
-              </h3>
-              <p className="text-muted-foreground mb-4">{error}</p>
-              <Button onClick={() => window.location.reload()}>
-                <Icon icon="lucide:refresh-cw" className="mr-2 h-4 w-4" />
-                Try Again
+      <div className={`container ${PAGE_PADDING}`}>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">{t("edit_token")}</h1>
+            <Link href="/admin/ecosystem/token">
+              <Button variant="outline">
+                <Icon icon="lucide:arrow-left" className="mr-2 h-4 w-4" />
+                {tCommon("back")}
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </Link>
+          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center py-8">
+                <Icon icon="lucide:alert-circle" className="mx-auto h-12 w-12 text-destructive mb-4" />
+                <h3 className="text-lg font-medium mb-2">
+                  Error Loading Token
+                </h3>
+                <p className="text-muted-foreground mb-4">{error}</p>
+                <Button onClick={() => window.location.reload()}>
+                  <Icon icon="lucide:refresh-cw" className="mr-2 h-4 w-4" />
+                  Try Again
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">{t("edit_token")}</h1>
-          <Link href="/admin/ecosystem/token">
-            <Button variant="outline" disabled>
-              <Icon icon="lucide:arrow-left" className="mr-2 h-4 w-4" />
-              {tCommon("back")}
-            </Button>
-          </Link>
+      <div className={`container ${PAGE_PADDING}`}>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">{t("edit_token")}</h1>
+            <Link href="/admin/ecosystem/token">
+              <Button variant="outline" disabled>
+                <Icon icon="lucide:arrow-left" className="mr-2 h-4 w-4" />
+                {tCommon("back")}
+              </Button>
+            </Link>
+          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center py-8">
+                <Icon icon="lucide:loader-2" className="mx-auto h-8 w-8 animate-spin text-primary mb-4" />
+                <p className="text-muted-foreground">{t("loading_token_data")}...</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center py-8">
-              <Icon icon="lucide:loader-2" className="mx-auto h-8 w-8 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground">{t("loading_token_data")}...</p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   return (
     <FormProvider {...methods}>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">{t("edit_token")}</h1>
-            {tokenData && (
-              <p className="text-muted-foreground mt-1">
-                {tokenData.name} ({tokenData.symbol}) - {tokenData.network}
-              </p>
-            )}
+      <div className={`container ${PAGE_PADDING}`}>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold">{t("edit_token")}</h1>
+              {tokenData && (
+                <p className="text-muted-foreground mt-1">
+                  {tokenData.name} ({tokenData.symbol}) - {tokenData.network}
+                </p>
+              )}
+            </div>
+            <Link href="/admin/ecosystem/token">
+              <Button variant="outline">
+                <Icon icon="lucide:arrow-left" className="mr-2 h-4 w-4" />
+                {tCommon("back")}
+              </Button>
+            </Link>
           </div>
-          <Link href="/admin/ecosystem/token">
-            <Button variant="outline">
-              <Icon icon="lucide:arrow-left" className="mr-2 h-4 w-4" />
-              {tCommon("back")}
-            </Button>
-          </Link>
-        </div>
 
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
           {/* Token Icon Section */}
           <Card>
             <CardHeader>
@@ -421,6 +427,7 @@ function EditTokenContent() {
             </Button>
           </div>
         </form>
+        </div>
       </div>
     </FormProvider>
   );
@@ -435,22 +442,24 @@ export default function EditTokenPage() {
 
   if (!isClient) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Edit Token</h1>
-          <Button variant="outline" disabled>
-            <Icon icon="lucide:arrow-left" className="mr-2 h-4 w-4" />
-            Back
-          </Button>
+      <div className={`container ${PAGE_PADDING}`}>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Edit Token</h1>
+            <Button variant="outline" disabled>
+              <Icon icon="lucide:arrow-left" className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center py-8">
+                <Icon icon="lucide:loader-2" className="mx-auto h-8 w-8 animate-spin text-primary mb-4" />
+                <p className="text-muted-foreground">Loading...</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center py-8">
-              <Icon icon="lucide:loader-2" className="mx-auto h-8 w-8 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground">Loading...</p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     );
   }

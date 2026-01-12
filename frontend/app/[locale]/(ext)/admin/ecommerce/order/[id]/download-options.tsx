@@ -141,6 +141,8 @@ const DownloadOptionsManager: React.FC<DownloadOptionsManagerProps> = ({
   };
 
   const getStatusBadge = () => {
+  const tCommon = useTranslations("common");
+  const t = useTranslations("ext_admin");
     const hasKey = orderItem?.key;
     const hasFile = orderItem?.filePath;
 

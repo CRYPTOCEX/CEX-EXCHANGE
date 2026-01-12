@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import {
   ChevronUp,
   Clock,
@@ -12,6 +12,360 @@ import {
 import { useBinaryStore } from "@/store/trade/use-binary-store";
 import type { CompletedOrder } from "@/store/trade/use-binary-store";
 import { useTranslations } from "next-intl";
+import { useVirtualList } from "@/hooks/use-virtual-list";
+import type { OrderSide } from "@/types/binary-trading";
+
+// Helper function to determine if an order side is bullish (upward direction)
+function isBullishSide(side: OrderSide | string): boolean {
+  return side === "RISE" || side === "HIGHER" || side === "TOUCH" || side === "CALL" || side === "UP";
+}
+
+// PERFORMANCE: Memoized order row component to prevent unnecessary re-renders
+const OrderRow = memo(function OrderRow({
+  order,
+  isHovered,
+  onMouseEnter,
+  onMouseLeave,
+  formatTime,
+  formatDate,
+  getCurrency,
+  theme,
+  borderLightClass,
+  tableValueClass,
+  tertiaryTextClass,
+  winBadgeClass,
+  lossBadgeClass,
+}: {
+  order: CompletedOrder;
+  isHovered: boolean;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+  formatTime: (date: Date) => string;
+  formatDate: (date: Date) => string;
+  getCurrency: (symbol: string) => string;
+  theme: "dark" | "light";
+  borderLightClass: string;
+  tableValueClass: string;
+  tertiaryTextClass: string;
+  winBadgeClass: string;
+  lossBadgeClass: string;
+}) {
+  return (
+    <div
+      className={`grid grid-cols-7 gap-2 px-3 py-2 text-xs border-b h-full items-center ${borderLightClass} transition-colors duration-200 ${isHovered ? (theme === "dark" ? "bg-zinc-900/30" : "bg-zinc-50") : ""}`}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <div className={tableValueClass}>
+        <div className="text-xs">{formatTime(order.expiryTime)}</div>
+        <div className={`text-[10px] ${tertiaryTextClass}`}>
+          {formatDate(order.expiryTime)}
+        </div>
+      </div>
+      <div className={`font-medium text-xs ${tableValueClass}`}>
+        {order.symbol.replace("USDT", "").replace("/", "")}
+      </div>
+      <div
+        className={`text-xs font-medium ${
+          isBullishSide(order.side) ? "text-[#22c55e]" : "text-[#ef4444]"
+        }`}
+      >
+        {isBullishSide(order.side) ? "↑" : "↓"}
+      </div>
+      <div className={`text-xs ${tableValueClass}`}>
+        {order.entryPrice.toFixed(2)} {getCurrency(order.symbol)}
+      </div>
+      <div className={`text-xs ${tableValueClass}`}>
+        {order.amount.toFixed(2)} {getCurrency(order.symbol)}
+      </div>
+      <div
+        className={`font-semibold text-xs ${order.status === "WIN" ? "text-[#22c55e]" : "text-[#ef4444]"}`}
+      >
+        {order.status === "WIN" ? "+" : "-"}
+        {Math.abs(order.profit || 0).toFixed(2)} {getCurrency(order.symbol)}
+      </div>
+      <div>
+        <span
+          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${order.status === "WIN" ? winBadgeClass : lossBadgeClass}`}
+        >
+          {order.status === "WIN" ? "W" : "L"}
+        </span>
+      </div>
+    </div>
+  );
+});
+
+// PERFORMANCE: Virtual order list component for efficient rendering of large order lists
+interface VirtualOrderListProps {
+  orders: CompletedOrder[];
+  containerHeight: number;
+  rowHeight: number;
+  theme: "dark" | "light";
+  hoveredOrder: string | null;
+  setHoveredOrder: (id: string | null) => void;
+  formatTime: (date: Date) => string;
+  formatDate: (date: Date) => string;
+  getCurrency: (symbol: string) => string;
+  borderLightClass: string;
+  tableValueClass: string;
+  tertiaryTextClass: string;
+  winBadgeClass: string;
+  lossBadgeClass: string;
+  secondaryTextClass: string;
+  emptyMessage: string;
+  emptySubMessage: string;
+}
+
+// PERFORMANCE: Memoized mobile order row component
+const MobileOrderRow = memo(function MobileOrderRow({
+  order,
+  getCurrency,
+  formatTime,
+  formatDate,
+  tableValueClass,
+  secondaryTextClass,
+  winBadgeClass,
+  lossBadgeClass,
+  borderLightClass,
+  entryPriceLabel,
+}: {
+  order: CompletedOrder;
+  getCurrency: (symbol: string) => string;
+  formatTime: (date: Date) => string;
+  formatDate: (date: Date) => string;
+  tableValueClass: string;
+  secondaryTextClass: string;
+  winBadgeClass: string;
+  lossBadgeClass: string;
+  borderLightClass: string;
+  entryPriceLabel: string;
+}) {
+  return (
+    <div className={`p-4 border-b h-full ${borderLightClass}`}>
+      {/* First row: Symbol, Side, and Status */}
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center flex-1 min-w-0">
+          <span className={`font-semibold text-base ${tableValueClass} truncate`}>
+            {order.symbol.replace("USDT", "").replace("/", "")}
+          </span>
+          <span
+            className={`ml-2 text-xs px-2 py-0.5 rounded font-medium ${isBullishSide(order.side) ? "bg-green-500/20 text-[#22c55e]" : "bg-red-500/20 text-[#ef4444]"}`}
+          >
+            {order.side}
+          </span>
+        </div>
+        <span
+          className={`px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${order.status === "WIN" ? winBadgeClass : lossBadgeClass}`}
+        >
+          {order.status}
+        </span>
+      </div>
+
+      {/* Second row: Amount and Profit/Loss */}
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex flex-col">
+          <span className={`text-xs ${secondaryTextClass} uppercase tracking-wide`}>
+            Amount
+          </span>
+          <span className={`text-sm font-medium ${tableValueClass}`}>
+            {order.amount.toFixed(2)} {getCurrency(order.symbol)}
+          </span>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className={`text-xs ${secondaryTextClass} uppercase tracking-wide`}>
+            {order.status === "WIN" ? "Profit" : "Loss"}
+          </span>
+          <span
+            className={`text-sm font-bold ${order.status === "WIN" ? "text-[#22c55e]" : "text-[#ef4444]"}`}
+          >
+            {order.status === "WIN" ? "+" : "-"}
+            {Math.abs(order.profit || 0).toFixed(2)} {getCurrency(order.symbol)}
+          </span>
+        </div>
+      </div>
+
+      {/* Third row: Time and Entry Price */}
+      <div className="flex justify-between items-center">
+        <div className="flex flex-col">
+          <span className={`text-xs ${secondaryTextClass} uppercase tracking-wide`}>
+            Time
+          </span>
+          <span className={`text-xs ${secondaryTextClass}`}>
+            {formatTime(order.expiryTime)} • {formatDate(order.expiryTime)}
+          </span>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className={`text-xs ${secondaryTextClass} uppercase tracking-wide`}>
+            {entryPriceLabel}
+          </span>
+          <span className={`text-xs ${tableValueClass} font-mono`}>
+            {order.entryPrice.toFixed(2)} {getCurrency(order.symbol)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// PERFORMANCE: Virtual mobile order list component
+interface VirtualMobileOrderListProps {
+  orders: CompletedOrder[];
+  rowHeight: number;
+  theme: "dark" | "light";
+  getCurrency: (symbol: string) => string;
+  formatTime: (date: Date) => string;
+  formatDate: (date: Date) => string;
+  tableValueClass: string;
+  secondaryTextClass: string;
+  winBadgeClass: string;
+  lossBadgeClass: string;
+  borderLightClass: string;
+  entryPriceLabel: string;
+  emptyMessage: string;
+  emptySubMessage: string;
+}
+
+const VirtualMobileOrderList = memo(function VirtualMobileOrderList({
+  orders,
+  rowHeight,
+  getCurrency,
+  formatTime,
+  formatDate,
+  tableValueClass,
+  secondaryTextClass,
+  winBadgeClass,
+  lossBadgeClass,
+  borderLightClass,
+  entryPriceLabel,
+  emptyMessage,
+  emptySubMessage,
+}: VirtualMobileOrderListProps) {
+  const {
+    virtualItems,
+    totalHeight,
+    containerRef,
+    handleScroll,
+  } = useVirtualList({
+    items: orders,
+    itemHeight: rowHeight,
+    overscan: 5,
+  });
+
+  if (orders.length === 0) {
+    return (
+      <div
+        className={`flex flex-col items-center justify-center py-8 ${secondaryTextClass}`}
+      >
+        <BarChart2 size={24} className="mb-2 opacity-50" />
+        <p>{emptyMessage}</p>
+        <p className="text-xs mt-1">{emptySubMessage}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="flex-1 overflow-y-auto"
+      onScroll={handleScroll}
+    >
+      <div style={{ height: totalHeight, position: "relative" }}>
+        {virtualItems.map(({ item: order, style }) => (
+          <div key={order.id} style={style}>
+            <MobileOrderRow
+              order={order}
+              getCurrency={getCurrency}
+              formatTime={formatTime}
+              formatDate={formatDate}
+              tableValueClass={tableValueClass}
+              secondaryTextClass={secondaryTextClass}
+              winBadgeClass={winBadgeClass}
+              lossBadgeClass={lossBadgeClass}
+              borderLightClass={borderLightClass}
+              entryPriceLabel={entryPriceLabel}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
+
+const VirtualOrderList = memo(function VirtualOrderList({
+  orders,
+  containerHeight,
+  rowHeight,
+  theme,
+  hoveredOrder,
+  setHoveredOrder,
+  formatTime,
+  formatDate,
+  getCurrency,
+  borderLightClass,
+  tableValueClass,
+  tertiaryTextClass,
+  winBadgeClass,
+  lossBadgeClass,
+  secondaryTextClass,
+  emptyMessage,
+  emptySubMessage,
+}: VirtualOrderListProps) {
+  const {
+    virtualItems,
+    totalHeight,
+    containerRef,
+    handleScroll,
+    isScrolling,
+  } = useVirtualList({
+    items: orders,
+    itemHeight: rowHeight,
+    overscan: 10, // Render 10 extra items above/below viewport for smooth scrolling
+  });
+
+  if (orders.length === 0) {
+    return (
+      <div
+        className={`flex flex-col items-center justify-center py-8 ${secondaryTextClass}`}
+      >
+        <BarChart2 size={24} className="mb-2 opacity-50" />
+        <p>{emptyMessage}</p>
+        <p className="text-xs mt-1">{emptySubMessage}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="overflow-y-auto"
+      style={{ height: containerHeight, maxHeight: containerHeight }}
+      onScroll={handleScroll}
+    >
+      <div style={{ height: totalHeight, position: "relative" }}>
+        {virtualItems.map(({ index, item: order, style }) => (
+          <div key={order.id} style={style}>
+            <OrderRow
+              order={order}
+              isHovered={!isScrolling && hoveredOrder === order.id}
+              onMouseEnter={() => !isScrolling && setHoveredOrder(order.id)}
+              onMouseLeave={() => setHoveredOrder(null)}
+              formatTime={formatTime}
+              formatDate={formatDate}
+              getCurrency={getCurrency}
+              theme={theme}
+              borderLightClass={borderLightClass}
+              tableValueClass={tableValueClass}
+              tertiaryTextClass={tertiaryTextClass}
+              winBadgeClass={winBadgeClass}
+              lossBadgeClass={lossBadgeClass}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
+
 interface CompletedPositionsProps {
   className?: string;
   theme?: "dark" | "light";
@@ -98,7 +452,11 @@ export default function CompletedPositions({
   const headerBgClass = theme === "dark" ? "bg-zinc-900" : "bg-zinc-100";
   const iconClass = theme === "dark" ? "text-zinc-400" : "text-zinc-600";
   const tableValueClass = theme === "dark" ? "text-zinc-300" : "text-zinc-800";
-  
+
+  // Virtual list constants - desktop table row height
+  const DESKTOP_ROW_HEIGHT = 44;
+  const MOBILE_ROW_HEIGHT = 120;
+
   // Handle resize start
   const handleResizeStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -396,89 +754,23 @@ export default function CompletedPositions({
           </div>
         </div>
 
-        {/* Mobile content - simplified list */}
-        <div className="flex-1 overflow-y-auto">
-          {sortedOrders.length > 0 ? (
-            sortedOrders.map((order) => {
-              return (
-                <div
-                  key={order.id}
-                  className={`p-4 border-b ${borderLightClass} transition-colors duration-200`}
-                >
-                  {/* First row: Symbol, Side, and Status */}
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center flex-1 min-w-0">
-                      <span className={`font-semibold text-base ${tableValueClass} truncate`}>
-                        {order.symbol.replace("USDT", "").replace("/", "")}
-                      </span>
-                      <span
-                        className={`ml-2 text-xs px-2 py-0.5 rounded font-medium ${order.side === "RISE" ? "bg-green-500/20 text-[#22c55e]" : "bg-red-500/20 text-[#ef4444]"}`}
-                      >
-                        {order.side}
-                      </span>
-                    </div>
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${order.status === "WIN" ? winBadgeClass : lossBadgeClass}`}
-                    >
-                      {order.status}
-                    </span>
-                  </div>
-
-                  {/* Second row: Amount and Profit/Loss */}
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex flex-col">
-                      <span className={`text-xs ${secondaryTextClass} uppercase tracking-wide`}>
-                        Amount
-                      </span>
-                      <span className={`text-sm font-medium ${tableValueClass}`}>
-                        {order.amount.toFixed(2)} {getCurrency(order.symbol)}
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className={`text-xs ${secondaryTextClass} uppercase tracking-wide`}>
-                        {order.status === "WIN" ? "Profit" : "Loss"}
-                      </span>
-                      <span
-                        className={`text-sm font-bold ${order.status === "WIN" ? "text-[#22c55e]" : "text-[#ef4444]"}`}
-                      >
-                        {order.status === "WIN" ? "+" : "-"}
-                        {Math.abs(order.profit || 0).toFixed(2)} {getCurrency(order.symbol)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Third row: Time and Entry Price */}
-                  <div className="flex justify-between items-center">
-                    <div className="flex flex-col">
-                      <span className={`text-xs ${secondaryTextClass} uppercase tracking-wide`}>
-                        Time
-                      </span>
-                      <span className={`text-xs ${secondaryTextClass}`}>
-                        {formatTime(order.expiryTime)} • {formatDate(order.expiryTime)}
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className={`text-xs ${secondaryTextClass} uppercase tracking-wide`}>
-                        {tCommon("entry_price")}
-                      </span>
-                      <span className={`text-xs ${tableValueClass} font-mono`}>
-                        {order.entryPrice.toFixed(2)} {getCurrency(order.symbol)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div
-              className={`flex flex-col items-center justify-center py-8 ${secondaryTextClass}`}
-            >
-              <BarChart2 size={24} className="mb-2 opacity-50" />
-              <p>{t("no_completed_trades_found")}</p>
-              <p className="text-xs mt-1">{t("completed_trades_will_appear_here")}</p>
-            </div>
-          )}
-        </div>
+        {/* Mobile content - VIRTUALIZED for performance */}
+        <VirtualMobileOrderList
+          orders={sortedOrders}
+          rowHeight={MOBILE_ROW_HEIGHT}
+          theme={theme}
+          getCurrency={getCurrency}
+          formatTime={formatTime}
+          formatDate={formatDate}
+          tableValueClass={tableValueClass}
+          secondaryTextClass={secondaryTextClass}
+          winBadgeClass={winBadgeClass}
+          lossBadgeClass={lossBadgeClass}
+          borderLightClass={borderLightClass}
+          entryPriceLabel={tCommon("entry_price")}
+          emptyMessage={t("no_completed_trades_found")}
+          emptySubMessage={t("completed_trades_will_appear_here")}
+        />
       </div>
     );
   }
@@ -651,69 +943,26 @@ export default function CompletedPositions({
             <div>Status</div>
           </div>
 
-          {/* Table content - dynamic height based on panel height */}
-          <div className="overflow-y-auto" style={{ maxHeight: `${panelHeight - 100}px` }}>
-            {sortedOrders.length > 0 ? (
-              sortedOrders.map((order, index) => {
-                return (
-                  <div
-                    key={order.id}
-                    className={`grid grid-cols-7 gap-2 px-3 py-2 text-xs border-b ${borderLightClass} transition-colors duration-200 ${hoveredOrder === order.id ? (theme === "dark" ? "bg-zinc-900/30" : "bg-zinc-50") : ""}`}
-                    onMouseEnter={() => setHoveredOrder(order.id)}
-                    onMouseLeave={() => setHoveredOrder(null)}
-                  >
-                    <div className={tableValueClass}>
-                      <div className="text-xs">{formatTime(order.expiryTime)}</div>
-                      <div className={`text-[10px] ${tertiaryTextClass}`}>
-                        {formatDate(order.expiryTime)}
-                      </div>
-                    </div>
-                    <div className={`font-medium text-xs ${tableValueClass}`}>
-                      {order.symbol.replace("USDT", "").replace("/", "")}
-                    </div>
-                    <div
-                      className={`text-xs font-medium ${
-                        order.side === "RISE"
-                          ? "text-[#22c55e]"
-                          : "text-[#ef4444]"
-                      }`}
-                    >
-                      {order.side === "RISE" ? "↑" : "↓"}
-                    </div>
-                    <div className={`text-xs ${tableValueClass}`}>
-                      {order.entryPrice.toFixed(2)} {getCurrency(order.symbol)}
-                    </div>
-                    <div className={`text-xs ${tableValueClass}`}>
-                      {order.amount.toFixed(2)} {getCurrency(order.symbol)}
-                    </div>
-                    <div
-                      className={`font-semibold text-xs ${order.status === "WIN" ? "text-[#22c55e]" : "text-[#ef4444]"}`}
-                    >
-                      {order.status === "WIN" ? "+" : "-"}
-                      {Math.abs(order.profit || 0).toFixed(2)} {getCurrency(order.symbol)}
-                    </div>
-                    <div>
-                      <span
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${order.status === "WIN" ? winBadgeClass : lossBadgeClass}`}
-                      >
-                        {order.status === "WIN" ? "W" : "L"}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div
-                className={`flex flex-col items-center justify-center py-8 ${secondaryTextClass}`}
-              >
-                <BarChart2 size={24} className="mb-2 opacity-50" />
-                <p>{t("no_completed_trades_found")}</p>
-                <p className="text-xs mt-1">
-                  {t("completed_trades_will_appear_here")}
-                </p>
-              </div>
-            )}
-          </div>
+          {/* Table content - VIRTUALIZED for performance with large lists */}
+          <VirtualOrderList
+            orders={sortedOrders}
+            containerHeight={panelHeight - 100}
+            rowHeight={DESKTOP_ROW_HEIGHT}
+            theme={theme}
+            hoveredOrder={hoveredOrder}
+            setHoveredOrder={setHoveredOrder}
+            formatTime={formatTime}
+            formatDate={formatDate}
+            getCurrency={getCurrency}
+            borderLightClass={borderLightClass}
+            tableValueClass={tableValueClass}
+            tertiaryTextClass={tertiaryTextClass}
+            winBadgeClass={winBadgeClass}
+            lossBadgeClass={lossBadgeClass}
+            secondaryTextClass={secondaryTextClass}
+            emptyMessage={t("no_completed_trades_found")}
+            emptySubMessage={t("completed_trades_will_appear_here")}
+          />
         </div>
       </div>
     </div>

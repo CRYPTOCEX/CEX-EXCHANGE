@@ -57,7 +57,12 @@ export function CollapsedPanel({
         isHovered &&
           "hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-300",
         isVertical ? "flex-col" : "flex-row",
-        title === "Orders" && "border-t border-zinc-200 dark:border-zinc-800"
+        title === "Orders" && "border-t border-zinc-200 dark:border-zinc-800",
+        // Add border on the opposite side when collapsed
+        side === "start" && "border-r",
+        side === "end" && "border-l",
+        side === "top" && "border-b",
+        side === "bottom" && "border-t"
       )}
       onClick={onClick}
       aria-label={`Expand ${title || ""} panel`}

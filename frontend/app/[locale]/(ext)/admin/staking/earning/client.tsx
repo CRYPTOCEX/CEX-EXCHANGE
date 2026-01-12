@@ -57,7 +57,7 @@ import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { HeroSection } from "@/components/ui/hero-section";
-import { StatsGroup } from "@/components/ui/stats-group";
+import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 import { motion } from "framer-motion";
 
 export function StakingEarningsClient() {
@@ -82,9 +82,7 @@ export function StakingEarningsClient() {
     setActiveTab(newTab);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", newTab);
-    router.push(`?${params.toString()}`, {
-      scroll: false,
-    });
+    router.push(`?${params.toString()}`);
   };
   const pools = useStakingAdminPoolsStore((state) => state.pools);
   const fetchPools = useStakingAdminPoolsStore((state) => state.fetchPools);
@@ -254,33 +252,7 @@ export function StakingEarningsClient() {
           colors: ["#8b5cf6", "#6366f1"],
           size: 8,
         }}
-      >
-        <StatsGroup
-          stats={[
-            {
-              icon: Coins,
-              label: tCommon("total_earnings"),
-              value: totals.totalEarnings.toFixed(2),
-              iconColor: "text-violet-500",
-              iconBgColor: "bg-violet-500/10",
-            },
-            {
-              icon: Wallet,
-              label: t("user_earnings"),
-              value: totals.totalUserEarnings.toFixed(2),
-              iconColor: "text-indigo-500",
-              iconBgColor: "bg-indigo-500/10",
-            },
-            {
-              icon: Percent,
-              label: t("average_apr"),
-              value: `${avgApr.toFixed(2)}%`,
-              iconColor: "text-violet-500",
-              iconBgColor: "bg-violet-500/10",
-            },
-          ]}
-        />
-      </HeroSection>
+      />
 
       <div className="container mx-auto py-8 space-y-6">
       <motion.div
@@ -303,96 +275,38 @@ export function StakingEarningsClient() {
         <TabsContent value="overview" className="space-y-6">
           {/* Key Metrics */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {tCommon("total_earnings")}
-                </CardTitle>
-                <Coins className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {totals.totalEarnings.toFixed(4)}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t("combined_user_and_admin_earnings")}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("user_earnings")}
-                </CardTitle>
-                <Wallet className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {totals.totalUserEarnings.toFixed(4)}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {totals.totalEarnings > 0
-                    ? (
-                        (totals.totalUserEarnings / totals.totalEarnings) *
-                        100
-                      ).toFixed(1)
-                    : "0"}
-                  % {t("of_total_earnings")}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("admin_earnings")}
-                </CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {totals.totalAdminEarnings.toFixed(4)}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {totals.totalEarnings > 0
-                    ? (
-                        (totals.totalAdminEarnings / totals.totalEarnings) *
-                        100
-                      ).toFixed(1)
-                    : "0"}
-                  % {t("of_total_earnings")}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("average_apr")}
-                </CardTitle>
-                <Percent className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {(
-                    pools.reduce((sum, pool) => sum + pool.apr, 0) /
-                    (pools.filter((p) => p.status === "ACTIVE").length || 1)
-                  ).toFixed(2)}
-                  %
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {tCommon("avg")}. {tExt("admin_fee")}{" "}
-                  {(
-                    pools.reduce(
-                      (sum, pool) => sum + pool.adminFeePercentage,
-                      0
-                    ) / (pools.length || 1)
-                  ).toFixed(2)}
-                  %
-                </p>
-              </CardContent>
-            </Card>
+            <StatsCard
+              label={tCommon("total_earnings")}
+              value={totals.totalEarnings.toFixed(4)}
+              icon={Coins}
+              index={0}
+              description={t("combined_user_and_admin_earnings")}
+              {...statsCardColors.purple}
+            />
+            <StatsCard
+              label={t("user_earnings")}
+              value={totals.totalUserEarnings.toFixed(4)}
+              icon={Wallet}
+              index={1}
+              description={`${totals.totalEarnings > 0 ? ((totals.totalUserEarnings / totals.totalEarnings) * 100).toFixed(1) : "0"}% ${t("of_total_earnings")}`}
+              {...statsCardColors.blue}
+            />
+            <StatsCard
+              label={t("admin_earnings")}
+              value={totals.totalAdminEarnings.toFixed(4)}
+              icon={DollarSign}
+              index={2}
+              description={`${totals.totalEarnings > 0 ? ((totals.totalAdminEarnings / totals.totalEarnings) * 100).toFixed(1) : "0"}% ${t("of_total_earnings")}`}
+              {...statsCardColors.green}
+            />
+            <StatsCard
+              label={t("average_apr")}
+              value={`${(pools.reduce((sum, pool) => sum + pool.apr, 0) / (pools.filter((p) => p.status === "ACTIVE").length || 1)).toFixed(2)}%`}
+              icon={Percent}
+              index={3}
+              description={`${tCommon("avg")}. ${tExt("admin_fee")} ${(pools.reduce((sum, pool) => sum + pool.adminFeePercentage, 0) / (pools.length || 1)).toFixed(2)}%`}
+              {...statsCardColors.amber}
+            />
           </div>
 
           {/* Charts */}
@@ -451,6 +365,7 @@ export function StakingEarningsClient() {
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPieChart>
                         <Pie
+                          style={{}}
                           data={earningsByTypeData}
                           cx="50%"
                           cy="50%"
@@ -465,6 +380,7 @@ export function StakingEarningsClient() {
                         >
                           {earningsByTypeData.map((entry, index) => (
                             <Cell
+                              style={{}}
                               key={`cell-${index}`}
                               fill={COLORS[index % COLORS.length]}
                             />

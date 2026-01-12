@@ -56,11 +56,78 @@ interface ProcessedGroup {
 }
 
 // Get column by key from columns array
+// Also checks baseKey for select fields that map to different API keys (e.g., author -> authorId)
 function getColumnByKey(
   columns: ColumnDefinition[],
   key: string
 ): ColumnDefinition | undefined {
-  return columns.find((col) => col.key === key);
+  return columns.find((col) => col.key === key || col.baseKey === key);
+}
+
+// Extract a field from a compound column's config and create a virtual column definition
+function extractFieldFromCompound(
+  columns: ColumnDefinition[],
+  fieldKey: string,
+  compoundKey: string
+): ColumnDefinition | undefined {
+  const compoundColumn = columns.find((col) => col.key === compoundKey);
+  if (!compoundColumn || compoundColumn.type !== "compound" || !compoundColumn.render?.config) {
+    return undefined;
+  }
+
+  const config = compoundColumn.render.config;
+
+  // Check image field
+  if (config.image && config.image.key === fieldKey) {
+    return {
+      key: fieldKey,
+      title: config.image.title || fieldKey,
+      type: "image",
+      description: config.image.description,
+      required: config.image.required,
+    } as ColumnDefinition;
+  }
+
+  // Check primary field
+  if (config.primary) {
+    const primaryKey = Array.isArray(config.primary.key) ? config.primary.key[0] : config.primary.key;
+    if (primaryKey === fieldKey) {
+      return {
+        key: fieldKey,
+        title: Array.isArray(config.primary.title) ? config.primary.title[0] : config.primary.title,
+        type: "text",
+        description: Array.isArray(config.primary.description) ? config.primary.description[0] : config.primary.description,
+        required: true,
+      } as ColumnDefinition;
+    }
+  }
+
+  // Check secondary field
+  if (config.secondary && config.secondary.key === fieldKey) {
+    return {
+      key: fieldKey,
+      title: config.secondary.title || fieldKey,
+      type: config.secondary.type || "text",
+      description: config.secondary.description,
+    } as ColumnDefinition;
+  }
+
+  // Check metadata fields
+  if (Array.isArray(config.metadata)) {
+    const metaItem = config.metadata.find((item: any) => item.key === fieldKey);
+    if (metaItem) {
+      return {
+        key: fieldKey,
+        title: metaItem.title || fieldKey,
+        type: metaItem.type || "text",
+        description: metaItem.description,
+        options: metaItem.options,
+        required: metaItem.required,
+      } as ColumnDefinition;
+    }
+  }
+
+  return undefined;
 }
 
 // Merge field config with column definition
@@ -115,10 +182,16 @@ function processFormConfigGroups(
       group.fields.forEach((field) => {
         const key = typeof field === "string" ? field : field.key;
         const fieldConfig = typeof field === "string" ? undefined : field;
-        const column = getColumnByKey(columns, key);
+        const compoundKey = typeof field === "object" ? field.compoundKey : undefined;
+
+        // Try to get column directly, or extract from compound column
+        let column = getColumnByKey(columns, key);
+        if (!column && compoundKey) {
+          column = extractFieldFromCompound(columns, key, compoundKey);
+        }
 
         if (!column) {
-          console.warn(`Column with key "${key}" not found in columns array`);
+          console.warn(`Column with key "${key}" not found in columns array${compoundKey ? ` or in compound column "${compoundKey}"` : ""}`);
           return;
         }
 

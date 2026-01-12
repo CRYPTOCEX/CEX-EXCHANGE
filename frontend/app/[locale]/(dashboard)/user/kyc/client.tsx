@@ -76,80 +76,8 @@ export function UserKycClient() {
   const [error, setError] = useState<string | null>(null);
 
   // Check if KYC is enabled in settings (handle both string and boolean values)
-  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
-
-  // If KYC is disabled, show a message with button to go to profile
-  if (!kycEnabled) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] py-12 px-4">
-        <div className="relative">
-          {/* Background gradient circle */}
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-full blur-3xl w-64 h-64 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" />
-
-          {/* Main content container */}
-          <div className="relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl p-8 max-w-lg mx-auto shadow-2xl">
-            {/* Icon container */}
-            <div className="flex justify-center mb-6">
-              <div className="relative">
-                <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-4 rounded-full">
-                  <Settings className="w-8 h-8 text-white" />
-                </div>
-                <div className="absolute -top-1 -right-1 bg-red-500 rounded-full p-1">
-                  <AlertTriangle className="w-3 h-3 text-white" />
-                </div>
-              </div>
-            </div>
-
-            {/* Title */}
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-2">
-                {t("kyc_verification_disabled")}
-              </h2>
-              <div className="w-16 h-1 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full mx-auto" />
-            </div>
-
-            {/* Description */}
-            <div className="text-center mb-8">
-              <p className="text-muted-foreground leading-relaxed">
-                {t("kyc_verification_is_currently")}
-              </p>
-            </div>
-
-            {/* Info Alert */}
-            <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
-              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              <AlertDescription className="text-amber-800 dark:text-amber-200">
-                {t("kyc_verification_features_are")}
-              </AlertDescription>
-            </Alert>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col gap-3">
-              <Link href="/user/profile">
-                <Button
-                  size="lg"
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                >
-                  <UserCheck className="w-4 h-4 mr-2" />
-                  {t("go_to_profile")}
-                </Button>
-              </Link>
-              <Link href="/">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full border-amber-200 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-950/20"
-                >
-                  <ChevronLeft className="w-4 h-4 mr-2" />
-                  {tCommon("back_to_dashboard")}
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const kycEnabled =
+    settings?.kycStatus === true || settings?.kycStatus === "true";
 
   const fetchLevelsData = async () => {
     const { data, error } = await $fetch({
@@ -234,8 +162,84 @@ export function UserKycClient() {
     }
   };
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (kycEnabled) {
+      fetchData();
+    }
+  }, [kycEnabled]);
+
+  // If KYC is disabled, show a message with button to go to profile
+  if (!kycEnabled) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] py-12 px-4">
+        <div className="relative">
+          {/* Background gradient circle */}
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-full blur-3xl w-64 h-64 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" />
+
+          {/* Main content container */}
+          <div className="relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl p-8 max-w-lg mx-auto shadow-2xl">
+            {/* Icon container */}
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-4 rounded-full">
+                  <Settings className="w-8 h-8 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 bg-red-500 rounded-full p-1">
+                  <AlertTriangle className="w-3 h-3 text-white" />
+                </div>
+              </div>
+            </div>
+
+            {/* Title */}
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-2">
+                {t("kyc_verification_disabled")}
+              </h2>
+              <div className="w-16 h-1 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full mx-auto" />
+            </div>
+
+            {/* Description */}
+            <div className="text-center mb-8">
+              <p className="text-muted-foreground leading-relaxed">
+                {t("kyc_verification_is_currently")}
+              </p>
+            </div>
+
+            {/* Info Alert */}
+            <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
+              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <AlertDescription className="text-amber-800 dark:text-amber-200">
+                {t("kyc_verification_features_are")}
+              </AlertDescription>
+            </Alert>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col gap-3">
+              <Link href="/user/profile">
+                <Button
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                >
+                  <UserCheck className="w-4 h-4 mr-2" />
+                  {t("go_to_profile")}
+                </Button>
+              </Link>
+              <Link href="/">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full border-amber-200 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-950/20"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-2" />
+                  {tCommon("back_to_dashboard")}
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "APPROVED":
@@ -312,31 +316,54 @@ export function UserKycClient() {
       return "Invalid date";
     }
   };
-  const canApplyForLevel = (levelNumber: number) => {
-    // Can apply if it's the next level after current level
-    return levelNumber === currentLevel + 1;
+  // Check if a level has fields defined
+  const levelHasFields = (level: KycLevel) => {
+    return (
+      level.fields &&
+      Array.isArray(level.fields) &&
+      level.fields.length > 0
+    );
   };
+
+  // Find the next available level (not necessarily currentLevel + 1)
+  // Only consider levels that have fields defined
+  const getNextAvailableLevel = () => {
+    if (!Array.isArray(levels) || levels.length === 0) return null;
+    const sortedLevels = [...levels].sort((a, b) => a.level - b.level);
+    return (
+      sortedLevels.find(
+        (l) => l.level > currentLevel && levelHasFields(l)
+      ) || null
+    );
+  };
+
+  const canApplyForLevel = (levelNumber: number) => {
+    // Can apply if it's the next available level after current level
+    // and the level has fields defined
+    const nextLevel = getNextAvailableLevel();
+    return nextLevel?.level === levelNumber;
+  };
+
   const getApplicationForLevel = (levelId: string) => {
     return Array.isArray(applications)
       ? applications.find((app) => app.levelId === levelId)
       : undefined;
   };
 
-  // Check if there's a pending application for the next level
+  // Check if there's a pending application for the next available level
   const hasNextLevelPendingApplication = () => {
     if (!Array.isArray(applications) || applications.length === 0) return false;
-    const nextLevel = currentLevel + 1;
-    const nextLevelId = levels.find((l) => l.level === nextLevel)?.id;
-    if (!nextLevelId) return false;
+    const nextLevel = getNextAvailableLevel();
+    if (!nextLevel) return false;
     return applications.some(
       (app) =>
-        app.levelId === nextLevelId &&
+        app.levelId === nextLevel.id &&
         (app.status === "PENDING" || app.status === "ADDITIONAL_INFO_REQUIRED")
     );
   };
   if (isLoading) {
     return (
-      <div className="container max-w-6xl py-8">
+      <div className="container py-8">
         <div className="flex flex-col gap-8 animate-pulse">
           <div className="h-8 w-64 bg-gray-200 dark:bg-zinc-700 rounded"></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -375,7 +402,7 @@ export function UserKycClient() {
   // Check if next level application is pending
   const nextLevelPending = hasNextLevelPendingApplication();
   return (
-    <div className="container max-w-6xl py-8">
+    <div className="container py-8">
       <div className="flex flex-col gap-8">
         {/* Hero Section */}
         <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 dark:from-blue-800 dark:to-indigo-900 rounded-xl p-8 text-white overflow-hidden">
@@ -560,37 +587,32 @@ export function UserKycClient() {
               {t("available_verification_levels")}
             </h2>
 
-            {currentLevel < totalLevels && (
-              <Button
-                onClick={() => {
-                  const nextLevel = levels.find(
-                    (l) => l.level === currentLevel + 1
-                  );
-                  if (nextLevel) {
-                    router.push(`/user/kyc/apply/${nextLevel.id}`);
-                  }
-                }}
-                className="bg-blue-600 hover:bg-blue-700"
-                disabled={nextLevelPending}
-                title={
-                  nextLevelPending
-                    ? "You already have a pending application for the next level"
-                    : ""
-                }
-              >
-                {nextLevelPending ? (
-                  <>
+            {(() => {
+              const nextLevel = getNextAvailableLevel();
+              if (!nextLevel) return null;
+
+              if (nextLevelPending) {
+                return (
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled
+                    title="You already have a pending application for the next level"
+                  >
                     <Clock className="mr-2 h-4 w-4" />
                     {tCommon("application_pending")}
-                  </>
-                ) : (
-                  <>
+                  </Button>
+                );
+              }
+
+              return (
+                <Link href={`/user/kyc/apply/${nextLevel.id}`}>
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                     <Upload className="mr-2 h-4 w-4" />
                     {t("start_next_level")}
-                  </>
-                )}
-              </Button>
-            )}
+                  </Button>
+                </Link>
+              );
+            })()}
           </div>
 
           <div className="space-y-8">
@@ -607,7 +629,9 @@ export function UserKycClient() {
                       application?.status === "ADDITIONAL_INFO_REQUIRED";
                     const isRejected = application?.status === "REJECTED";
                     const isAvailable = canApplyForLevel(level.level);
-                    const isLocked = level.level > currentLevel + 1;
+                    const hasNoFields = !levelHasFields(level);
+                    const isLocked =
+                      level.level > currentLevel + 1 || hasNoFields;
                     return (
                       <Card
                         key={level.id}
@@ -764,22 +788,27 @@ export function UserKycClient() {
                               {t("apply_again")}
                             </Button>
                           ) : isAvailable ? (
-                            <Button
-                              className="w-full bg-blue-600 hover:bg-blue-700"
-                              onClick={() =>
-                                router.push(`/user/kyc/apply/${level.id}`)
-                              }
+                            <Link
+                              href={`/user/kyc/apply/${level.id}`}
+                              className="w-full"
                             >
-                              <Upload className="mr-2 h-4 w-4" />
-                              {tCommon("start_verification")}
-                            </Button>
+                              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                                <Upload className="mr-2 h-4 w-4" />
+                                {tCommon("start_verification")}
+                              </Button>
+                            </Link>
                           ) : (
                             <Button
                               variant="outline"
                               className="w-full"
                               disabled
                             >
-                              {isLocked ? (
+                              {hasNoFields ? (
+                                <>
+                                  <AlertCircle className="mr-2 h-4 w-4" />
+                                  {t("level_not_configured")}
+                                </>
+                              ) : isLocked ? (
                                 <>
                                   <LockKeyhole className="mr-2 h-4 w-4" />
                                   {t("complete_previous_level")}

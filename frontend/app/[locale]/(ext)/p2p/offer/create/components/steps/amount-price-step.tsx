@@ -1234,7 +1234,7 @@ export function AmountPriceStep() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="fixed" id="fixed" />
-                      <Label htmlFor="fixed">{t("fixed_amount")} ($)</Label>
+                      <Label htmlFor="fixed">{tCommon("fixed_amount")} ($)</Label>
                     </div>
                   </RadioGroup>
                 </div>

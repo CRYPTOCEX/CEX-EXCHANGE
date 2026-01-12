@@ -339,13 +339,13 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "plan-basic",
-          title: t("basic_information"),
+          title: tCommon("basic_information"),
           icon: Shield,
           priority: 1,
           fields: [
             { key: "name", required: true },
-            { key: "title", required: true },
-            "image",
+            { key: "title", compoundKey: "planCompound", required: true },
+            { key: "image", compoundKey: "planCompound" },
             { key: "description", required: true },
           ],
         },
@@ -397,13 +397,13 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "plan-basic",
-          title: t("basic_information"),
+          title: tCommon("basic_information"),
           icon: Shield,
           priority: 1,
           fields: [
             { key: "name", required: true },
-            { key: "title", required: true },
-            "image",
+            { key: "title", compoundKey: "planCompound", required: true },
+            { key: "image", compoundKey: "planCompound" },
             { key: "description", required: true },
           ],
         },

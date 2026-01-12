@@ -185,12 +185,12 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "method-basic",
-          title: t("basic_information"),
+          title: tCommon("basic_information"),
           icon: CreditCard,
           priority: 1,
           fields: [
-            "image",
-            { key: "title", required: true },
+            { key: "image", compoundKey: "depositCompound" },
+            { key: "title", compoundKey: "depositCompound", required: true },
             { key: "instructions", required: true },
           ],
         },
@@ -221,12 +221,12 @@ export function useFormConfig(): FormConfig {
       groups: [
         {
           id: "method-basic",
-          title: t("basic_information"),
+          title: tCommon("basic_information"),
           icon: CreditCard,
           priority: 1,
           fields: [
-            "image",
-            { key: "title", required: true },
+            { key: "image", compoundKey: "depositCompound" },
+            { key: "title", compoundKey: "depositCompound", required: true },
             { key: "instructions", required: true },
           ],
         },

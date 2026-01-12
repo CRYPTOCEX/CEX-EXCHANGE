@@ -1,8 +1,6 @@
 import { Loader2, Truck, Package } from "lucide-react";
-import { useTranslations } from "next-intl";
 
 export default function ShippingLoading() {
-  const t = useTranslations("ext_ecommerce");
   return (
     <div className={`bg-linear-to-b from-amber-50/30 via-white to-emerald-50/30 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 min-h-screen pb-12 pt-24`}>
       {/* Subtle decorative background glows */}
@@ -90,7 +88,6 @@ export default function ShippingLoading() {
         {/* Loading indicator */}
         <div className="flex flex-col items-center justify-center py-16">
           <Loader2 className={`h-12 w-12 animate-spin text-amber-600 dark:text-amber-400 mb-4`} />
-          <p className="text-gray-600 dark:text-zinc-400 text-lg">{t("loading_shipping_information_ellipsis")}</p>
         </div>
       </div>
     </div>
