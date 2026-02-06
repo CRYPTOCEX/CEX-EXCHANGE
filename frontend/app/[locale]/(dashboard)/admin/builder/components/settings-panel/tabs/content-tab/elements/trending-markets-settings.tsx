@@ -30,9 +30,9 @@ export function TrendingMarketsSettings({
           <LabeledInput
             id="wsEndpoint"
             label={t("websocket_endpoint")}
-            value={settings.wsEndpoint || "/api/markets/ticker/ws"}
+            value={settings.wsEndpoint || "/api/exchange/ticker"}
             onChange={(e) => onSettingChange("wsEndpoint", e.target.value)}
-            placeholder="/api/markets/ticker/ws"
+            placeholder="/api/exchange/ticker"
           />
 
           <LabeledInput

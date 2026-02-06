@@ -39,7 +39,9 @@ export const useStakingAdminActivityStore = create<AdminActivityState>(
           silentSuccess: true,
         });
         if (error) throw new Error(error);
-        set({ adminActivities: data || [], isLoading: false });
+        // Handle both array and paginated responses
+        const activities = Array.isArray(data) ? data : (data?.items || []);
+        set({ adminActivities: activities, isLoading: false });
       } catch (err) {
         console.error("Error fetching admin activities:", err);
         set({

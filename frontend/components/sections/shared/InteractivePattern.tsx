@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useMemo, useState, useEffect } from "react";
-import { motion, useScroll, useTransform, useSpring, MotionValue } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useInView, useReducedMotion, MotionValue } from "framer-motion";
 
 export interface PatternConfig {
   enabled?: boolean;
@@ -63,6 +63,9 @@ export default function InteractivePattern({
   className = "",
 }: InteractivePatternProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isPageVisible, setIsPageVisible] = useState(true);
+  const isInView = useInView(containerRef, { margin: "-50px" });
+  const prefersReducedMotion = useReducedMotion();
 
   const {
     enabled = true,
@@ -74,6 +77,18 @@ export default function InteractivePattern({
     parallaxStrength = 30,
     animate = false,
   } = config || {};
+
+  // Pause animations when tab is not visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(!document.hidden);
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
+  // Only animate when visible, page is active, and user doesn't prefer reduced motion
+  const shouldAnimate = interactive && isInView && isPageVisible && !prefersReducedMotion;
 
   // Get scroll progress for this section
   const { scrollYProgress } = useScroll({
@@ -130,8 +145,8 @@ export default function InteractivePattern({
         style={{
           backgroundImage: pattern,
           opacity: opacity,
-          y: interactive ? smoothY : 0,
-          x: interactive ? smoothX : 0,
+          y: shouldAnimate ? smoothY : 0,
+          x: shouldAnimate ? smoothX : 0,
         }}
         initial={animate ? { opacity: 0 } : undefined}
         animate={animate ? { opacity: opacity } : undefined}
@@ -144,12 +159,12 @@ export default function InteractivePattern({
         style={{
           backgroundImage: secondaryPattern,
           opacity: opacity * 0.5,
-          y: interactive ? smoothY2 : 0,
+          y: shouldAnimate ? smoothY2 : 0,
         }}
       />
 
-      {/* Animated gradient overlay for premium feel */}
-      {animate && (
+      {/* Animated gradient overlay for premium feel - only animate when visible */}
+      {animate && shouldAnimate && (
         <motion.div
           className="absolute inset-0"
           style={{
@@ -259,6 +274,9 @@ export function FloatingShapes({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [isPageVisible, setIsPageVisible] = useState(true);
+  const isInView = useInView(containerRef, { margin: "-50px" });
+  const prefersReducedMotion = useReducedMotion();
 
   // Only render shapes on client to avoid hydration mismatch
   // (framer-motion's useSpring/useTransform produce different initial values on server vs client)
@@ -266,10 +284,22 @@ export function FloatingShapes({
     setIsMounted(true);
   }, []);
 
+  // Pause animations when tab is not visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(!document.hidden);
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"],
   });
+
+  // Only animate when visible, page is active, and user doesn't prefer reduced motion
+  const shouldAnimate = interactive && isInView && isPageVisible && !prefersReducedMotion;
 
   const primaryColor = colorMap[theme.primary || "teal"] || "14b8a6";
   const secondaryColor = colorMap[theme.secondary || "cyan"] || "06b6d4";
@@ -309,7 +339,7 @@ export function FloatingShapes({
           key={shape.id}
           shape={shape}
           scrollYProgress={scrollYProgress}
-          interactive={interactive}
+          interactive={shouldAnimate}
         />
       ))}
     </div>

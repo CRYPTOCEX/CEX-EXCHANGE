@@ -32,7 +32,10 @@ export const useSupportStore = create<TicketState>()((set, get) => ({
   },
 
   initializeWebSocket: (id: string) => {
-    const wsPath = `/api/user/support/ticket`;
+    const { user } = useUserStore.getState();
+    if (!user?.id) return;
+
+    const wsPath = `/api/user/support/ticket?userId=${user.id}`;
     const wsManager = new WebSocketManager(wsPath);
 
     wsManager.connect();

@@ -16,7 +16,7 @@ export default class exchangeWatchlist
   // exchangeWatchlist belongsTo user via userId
   user!: user;
   getUser!: Sequelize.BelongsToGetAssociationMixin<user>;
-  setUser!: Sequelize.BelongsToSetAssociationMixin<user, userId>;
+  setUser!: Sequelize.BelongsToSetAssociationMixin<user, string>;
   createUser!: Sequelize.BelongsToCreateAssociationMixin<user>;
 
   public static initModel(

@@ -1,1 +1,457 @@
-"use strict";async function safeImport(e){try{return(await Promise.resolve(`${e}`).then(e=>__importStar(require(e)))).default}catch(e){return null}}async function safeImportModule(e){try{return await Promise.resolve(`${e}`).then(e=>__importStar(require(e)))}catch(e){return null}}function isServiceAvailable(e){return null!=e}async function getSolanaService(){if(!solanaChecked){solanaService=await safeImport("@b/blockchains/sol");solanaChecked=!0}return solanaService}async function getTronService(){if(!tronChecked){tronService=await safeImport("@b/blockchains/tron");tronChecked=!0}return tronService}async function getMoneroService(){if(!moneroChecked){moneroService=await safeImport("@b/blockchains/xmr");moneroChecked=!0}return moneroService}async function getTonService(){if(!tonChecked){tonService=await safeImport("@b/blockchains/ton");tonChecked=!0}return tonService}async function getBitcoinNodeService(){if(!bitcoinNodeChecked){bitcoinNodeService=await safeImport("@b/api/(ext)/ecosystem/utils/utxo/btc-node");bitcoinNodeChecked=!0}return bitcoinNodeService}async function getMempoolProviderClass(){if(!mempoolProviderChecked){const e=await safeImportModule("@b/api/(ext)/ecosystem/utils/utxo/providers/MempoolProvider");mempoolProviderClass=(null==e?void 0:e.MempoolProvider)||null;mempoolProviderChecked=!0}return mempoolProviderClass}async function getBlockCypherProviderClass(){if(!blockCypherProviderChecked){const e=await safeImportModule("@b/api/(ext)/ecosystem/utils/utxo/providers/BlockCypherProvider");blockCypherProviderClass=(null==e?void 0:e.BlockCypherProvider)||null;blockCypherProviderChecked=!0}return blockCypherProviderClass}async function getEcosystemWalletUtils(){if(!ecosystemWalletUtilsChecked){ecosystemWalletUtils=await safeImportModule("@b/api/(ext)/ecosystem/utils/wallet");ecosystemWalletUtilsChecked=!0}return ecosystemWalletUtils}async function getWalletByUserIdAndCurrency(e,t){const i=await getEcosystemWalletUtils();return i&&i.getWalletByUserIdAndCurrency?i.getWalletByUserIdAndCurrency(e,t):null}async function updateWalletBalance(e,t,i){const n=await getEcosystemWalletUtils();return n&&n.updateWalletBalance?n.updateWalletBalance(e,t,i):null}async function getEcosystemScyllaUtils(){if(!ecosystemScyllaUtilsChecked){ecosystemScyllaUtils=await safeImportModule("@b/api/(ext)/ecosystem/utils/scylla/queries");ecosystemScyllaUtilsChecked=!0}return ecosystemScyllaUtils}async function createOrder(e){const t=await getEcosystemScyllaUtils();return t&&t.createOrder?t.createOrder(e):null}async function getOrderBook(e){const t=await getEcosystemScyllaUtils();return t&&t.getOrderBook?t.getOrderBook(e):{asks:[],bids:[]}}async function getEcosystemBlockchainUtils(){if(!ecosystemBlockchainUtilsChecked){ecosystemBlockchainUtils=await safeImportModule("@b/api/(ext)/ecosystem/utils/blockchain");ecosystemBlockchainUtilsChecked=!0}return ecosystemBlockchainUtils}async function toBigIntFloat(e){const t=await getEcosystemBlockchainUtils();return t&&t.toBigIntFloat?t.toBigIntFloat(e):null}async function fromBigInt(e){const t=await getEcosystemBlockchainUtils();return t&&t.fromBigInt?t.fromBigInt(e):null}async function getEcosystemTokenUtils(){if(!ecosystemTokenUtilsChecked){ecosystemTokenUtils=await safeImportModule("@b/api/(ext)/ecosystem/utils/tokens");ecosystemTokenUtilsChecked=!0}return ecosystemTokenUtils}async function getEcosystemToken(e){const t=await getEcosystemTokenUtils();return t&&t.getEcosystemToken?t.getEcosystemToken(e):null}async function getMatchingEngine(){if(!matchingEngineChecked){matchingEngine=await safeImportModule("@b/api/(ext)/ecosystem/utils/matchingEngine");matchingEngineChecked=!0}return matchingEngine}async function getEcosystemChainUtils(){if(!ecosystemChainUtilsChecked){ecosystemChainUtils=await safeImportModule("@b/api/(ext)/ecosystem/utils/chains");ecosystemChainUtilsChecked=!0}return ecosystemChainUtils}async function getCopyTradingUtils(){if(!copyTradingUtilsChecked){copyTradingUtils=await safeImportModule("@b/api/(ext)/copy-trading/utils/tradeListener");copyTradingUtilsChecked=!0}return copyTradingUtils}async function triggerCopyTrading(e,t,i,n,o,r,l){const s=await getCopyTradingUtils();if(s&&s.handleOrderCreated)try{s.handleOrderCreated(e,t,i,n,o,r,l).catch(e=>{console.error("[COPY_TRADING] Failed to process copy trade:",e)})}catch(e){console.error("[COPY_TRADING] Failed to trigger copy trading:",e)}}async function triggerCopyTradingCancellation(e,t,i){const n=await getCopyTradingUtils();if(n&&n.handleOrderCancelled)try{n.handleOrderCancelled(e,t,i).catch(e=>{console.error("[COPY_TRADING] Failed to process copy trade cancellation:",e)})}catch(e){console.error("[COPY_TRADING] Failed to trigger copy trading cancellation:",e)}}async function getCopyTradingFillMonitorUtils(){if(!copyTradingFillMonitorUtilsChecked){copyTradingFillMonitorUtils=await safeImportModule("@b/api/(ext)/copy-trading/utils/fillMonitor");copyTradingFillMonitorUtilsChecked=!0}return copyTradingFillMonitorUtils}async function triggerCopyTradingOrderFilled(e,t,i,n,o,r,l,s){const a=await getCopyTradingFillMonitorUtils();if(a&&a.handleOrderFilled)try{a.handleOrderFilled(e,t,i,n,o,r,l,s).catch(e=>{console.error("[COPY_TRADING] Failed to process copy trade fill:",e)})}catch(e){console.error("[COPY_TRADING] Failed to trigger copy trading fill:",e)}}async function getMailwizardCronUtils(){if(!mailwizardCronUtilsChecked){mailwizardCronUtils=await safeImportModule("@b/api/(ext)/admin/mailwizard/utils/cron");mailwizardCronUtilsChecked=!0}return mailwizardCronUtils}async function getGeneralInvestmentCronUtils(){if(!generalInvestmentCronUtilsChecked){generalInvestmentCronUtils=await safeImportModule("@b/api/finance/investment/cron");generalInvestmentCronUtilsChecked=!0}return generalInvestmentCronUtils}async function getForexCronUtils(){if(!forexCronUtilsChecked){forexCronUtils=await safeImportModule("@b/api/(ext)/forex/utils/cron");forexCronUtilsChecked=!0}return forexCronUtils}async function getIcoCronUtils(){if(!icoCronUtilsChecked){icoCronUtils=await safeImportModule("@b/api/(ext)/ico/utils/cron");icoCronUtilsChecked=!0}return icoCronUtils}async function getStakingCronUtils(){if(!stakingCronUtilsChecked){stakingCronUtils=await safeImportModule("@b/api/(ext)/staking/utils/cron");stakingCronUtilsChecked=!0}return stakingCronUtils}async function getAiInvestmentCronUtils(){if(!aiInvestmentCronUtilsChecked){aiInvestmentCronUtils=await safeImportModule("@/src/api/(ext)/ai/investment/utils/cron");aiInvestmentCronUtilsChecked=!0}return aiInvestmentCronUtils}async function getAiMarketMakerCronUtils(){if(!aiMarketMakerCronUtilsChecked){aiMarketMakerCronUtils=await safeImportModule("@b/api/(ext)/admin/ai/market-maker/utils/cron");aiMarketMakerCronUtilsChecked=!0}return aiMarketMakerCronUtils}async function getEcosystemCronUtils(){if(!ecosystemCronUtilsChecked){ecosystemCronUtils=await safeImportModule("@b/api/(ext)/ecosystem/utils/cron");ecosystemCronUtilsChecked=!0}return ecosystemCronUtils}async function getP2pCronUtils(){if(!p2pCronUtilsChecked){p2pCronUtils=await safeImportModule("@b/api/(ext)/p2p/utils/cron");p2pCronUtilsChecked=!0}return p2pCronUtils}async function getNftCronUtils(){if(!nftCronUtilsChecked){nftCronUtils=await safeImportModule("@b/api/(ext)/nft/utils/cron");nftCronUtilsChecked=!0}return nftCronUtils}async function getGatewayCronUtils(){if(!gatewayCronUtilsChecked){gatewayCronUtils=await safeImportModule("@b/api/(ext)/gateway/utils/cron");gatewayCronUtilsChecked=!0}return gatewayCronUtils}async function getCopyTradingCronUtils(){if(!copyTradingCronUtilsChecked){copyTradingCronUtils=await safeImportModule("@b/api/(ext)/copy-trading/utils/cron");copyTradingCronUtilsChecked=!0}return copyTradingCronUtils}async function getCopyTradingQueueUtils(){if(!copyTradingQueueUtilsChecked){copyTradingQueueUtils=await safeImportModule("@b/api/(ext)/copy-trading/utils/copyQueue");copyTradingQueueUtilsChecked=!0}return copyTradingQueueUtils}async function getScyllaClientUtils(){if(!scyllaClientUtilsChecked){scyllaClientUtils=await safeImportModule("@b/api/(ext)/ecosystem/utils/scylla/client");scyllaClientUtilsChecked=!0}return scyllaClientUtils}async function initializeScylla(){const e=await getScyllaClientUtils();if(null==e?void 0:e.initialize)return e.initialize()}async function initializeMatchingEngine(){var e;const t=await getMatchingEngine();return(null===(e=null==t?void 0:t.MatchingEngine)||void 0===e?void 0:e.getInstance)?t.MatchingEngine.getInstance():null}var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,i,n){void 0===n&&(n=i);var o=Object.getOwnPropertyDescriptor(t,i);o&&!("get"in o?!t.__esModule:o.writable||o.configurable)||(o={enumerable:!0,get:function(){return t[i]}});Object.defineProperty(e,n,o)}:function(e,t,i,n){void 0===n&&(n=i);e[n]=t[i]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var i in e)Object.prototype.hasOwnProperty.call(e,i)&&(t[t.length]=i);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var i={};if(null!=t)for(var n=e(t),o=0;o<n.length;o++)"default"!==n[o]&&__createBinding(i,t,n[o]);__setModuleDefault(i,t);return i}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.isServiceAvailable=isServiceAvailable;exports.getSolanaService=getSolanaService;exports.getTronService=getTronService;exports.getMoneroService=getMoneroService;exports.getTonService=getTonService;exports.getBitcoinNodeService=getBitcoinNodeService;exports.getMempoolProviderClass=getMempoolProviderClass;exports.getBlockCypherProviderClass=getBlockCypherProviderClass;exports.getEcosystemWalletUtils=getEcosystemWalletUtils;exports.getWalletByUserIdAndCurrency=getWalletByUserIdAndCurrency;exports.updateWalletBalance=updateWalletBalance;exports.getEcosystemScyllaUtils=getEcosystemScyllaUtils;exports.createOrder=createOrder;exports.getOrderBook=getOrderBook;exports.getEcosystemBlockchainUtils=getEcosystemBlockchainUtils;exports.toBigIntFloat=toBigIntFloat;exports.fromBigInt=fromBigInt;exports.getEcosystemTokenUtils=getEcosystemTokenUtils;exports.getEcosystemToken=getEcosystemToken;exports.getMatchingEngine=getMatchingEngine;exports.getEcosystemChainUtils=getEcosystemChainUtils;exports.getCopyTradingUtils=getCopyTradingUtils;exports.triggerCopyTrading=triggerCopyTrading;exports.triggerCopyTradingCancellation=triggerCopyTradingCancellation;exports.getCopyTradingFillMonitorUtils=getCopyTradingFillMonitorUtils;exports.triggerCopyTradingOrderFilled=triggerCopyTradingOrderFilled;exports.getMailwizardCronUtils=getMailwizardCronUtils;exports.getGeneralInvestmentCronUtils=getGeneralInvestmentCronUtils;exports.getForexCronUtils=getForexCronUtils;exports.getIcoCronUtils=getIcoCronUtils;exports.getStakingCronUtils=getStakingCronUtils;exports.getAiInvestmentCronUtils=getAiInvestmentCronUtils;exports.getAiMarketMakerCronUtils=getAiMarketMakerCronUtils;exports.getEcosystemCronUtils=getEcosystemCronUtils;exports.getP2pCronUtils=getP2pCronUtils;exports.getNftCronUtils=getNftCronUtils;exports.getGatewayCronUtils=getGatewayCronUtils;exports.getCopyTradingCronUtils=getCopyTradingCronUtils;exports.getCopyTradingQueueUtils=getCopyTradingQueueUtils;exports.getScyllaClientUtils=getScyllaClientUtils;exports.initializeScylla=initializeScylla;exports.initializeMatchingEngine=initializeMatchingEngine;let solanaService=null,tronService=null,moneroService=null,tonService=null,bitcoinNodeService=null,solanaChecked=!1,tronChecked=!1,moneroChecked=!1,tonChecked=!1,bitcoinNodeChecked=!1,mempoolProviderClass=null,mempoolProviderChecked=!1,blockCypherProviderClass=null,blockCypherProviderChecked=!1,ecosystemWalletUtils=null,ecosystemWalletUtilsChecked=!1,ecosystemScyllaUtils=null,ecosystemScyllaUtilsChecked=!1,ecosystemBlockchainUtils=null,ecosystemBlockchainUtilsChecked=!1,ecosystemTokenUtils=null,ecosystemTokenUtilsChecked=!1,matchingEngine=null,matchingEngineChecked=!1,ecosystemChainUtils=null,ecosystemChainUtilsChecked=!1,copyTradingUtils=null,copyTradingUtilsChecked=!1,copyTradingFillMonitorUtils=null,copyTradingFillMonitorUtilsChecked=!1,mailwizardCronUtils=null,mailwizardCronUtilsChecked=!1,generalInvestmentCronUtils=null,generalInvestmentCronUtilsChecked=!1,forexCronUtils=null,forexCronUtilsChecked=!1,icoCronUtils=null,icoCronUtilsChecked=!1,stakingCronUtils=null,stakingCronUtilsChecked=!1,aiInvestmentCronUtils=null,aiInvestmentCronUtilsChecked=!1,aiMarketMakerCronUtils=null,aiMarketMakerCronUtilsChecked=!1,ecosystemCronUtils=null,ecosystemCronUtilsChecked=!1,p2pCronUtils=null,p2pCronUtilsChecked=!1,nftCronUtils=null,nftCronUtilsChecked=!1,gatewayCronUtils=null,gatewayCronUtilsChecked=!1,copyTradingCronUtils=null,copyTradingCronUtilsChecked=!1,copyTradingQueueUtils=null,copyTradingQueueUtilsChecked=!1,scyllaClientUtils=null,scyllaClientUtilsChecked=!1;
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.isServiceAvailable = isServiceAvailable;
+exports.getSolanaService = getSolanaService;
+exports.getTronService = getTronService;
+exports.getMoneroService = getMoneroService;
+exports.getTonService = getTonService;
+exports.getBitcoinNodeService = getBitcoinNodeService;
+exports.getMempoolProviderClass = getMempoolProviderClass;
+exports.getBlockCypherProviderClass = getBlockCypherProviderClass;
+exports.getEcosystemWalletUtils = getEcosystemWalletUtils;
+exports.getWalletByUserIdAndCurrency = getWalletByUserIdAndCurrency;
+exports.updateWalletBalance = updateWalletBalance;
+exports.getEcosystemScyllaUtils = getEcosystemScyllaUtils;
+exports.createOrder = createOrder;
+exports.getOrderBook = getOrderBook;
+exports.getEcosystemBlockchainUtils = getEcosystemBlockchainUtils;
+exports.toBigIntFloat = toBigIntFloat;
+exports.fromBigInt = fromBigInt;
+exports.getEcosystemTokenUtils = getEcosystemTokenUtils;
+exports.getEcosystemToken = getEcosystemToken;
+exports.getMatchingEngine = getMatchingEngine;
+exports.getEcosystemChainUtils = getEcosystemChainUtils;
+exports.getCopyTradingUtils = getCopyTradingUtils;
+exports.triggerCopyTrading = triggerCopyTrading;
+exports.triggerCopyTradingCancellation = triggerCopyTradingCancellation;
+exports.getCopyTradingFillMonitorUtils = getCopyTradingFillMonitorUtils;
+exports.triggerCopyTradingOrderFilled = triggerCopyTradingOrderFilled;
+exports.getMailwizardCronUtils = getMailwizardCronUtils;
+exports.getGeneralInvestmentCronUtils = getGeneralInvestmentCronUtils;
+exports.getForexCronUtils = getForexCronUtils;
+exports.getIcoCronUtils = getIcoCronUtils;
+exports.getStakingCronUtils = getStakingCronUtils;
+exports.getAiInvestmentCronUtils = getAiInvestmentCronUtils;
+exports.getAiMarketMakerCronUtils = getAiMarketMakerCronUtils;
+exports.getEcosystemCronUtils = getEcosystemCronUtils;
+exports.getP2pCronUtils = getP2pCronUtils;
+exports.getNftCronUtils = getNftCronUtils;
+exports.getGatewayCronUtils = getGatewayCronUtils;
+exports.getCopyTradingCronUtils = getCopyTradingCronUtils;
+exports.getCopyTradingQueueUtils = getCopyTradingQueueUtils;
+exports.getScyllaClientUtils = getScyllaClientUtils;
+exports.initializeScylla = initializeScylla;
+exports.initializeMatchingEngine = initializeMatchingEngine;
+async function safeImport(modulePath) {
+    try {
+        const importedModule = await Promise.resolve(`${modulePath}`).then(s => __importStar(require(s)));
+        return importedModule.default;
+    }
+    catch (error) {
+        return null;
+    }
+}
+async function safeImportModule(modulePath) {
+    try {
+        const importedModule = await Promise.resolve(`${modulePath}`).then(s => __importStar(require(s)));
+        return importedModule;
+    }
+    catch (error) {
+        return null;
+    }
+}
+function isServiceAvailable(service) {
+    return service !== null && service !== undefined;
+}
+let solanaService = null;
+let tronService = null;
+let moneroService = null;
+let tonService = null;
+let bitcoinNodeService = null;
+let solanaChecked = false;
+let tronChecked = false;
+let moneroChecked = false;
+let tonChecked = false;
+let bitcoinNodeChecked = false;
+async function getSolanaService() {
+    if (!solanaChecked) {
+        solanaService = await safeImport('@b/blockchains/sol');
+        solanaChecked = true;
+    }
+    return solanaService;
+}
+async function getTronService() {
+    if (!tronChecked) {
+        tronService = await safeImport('@b/blockchains/tron');
+        tronChecked = true;
+    }
+    return tronService;
+}
+async function getMoneroService() {
+    if (!moneroChecked) {
+        moneroService = await safeImport('@b/blockchains/xmr');
+        moneroChecked = true;
+    }
+    return moneroService;
+}
+async function getTonService() {
+    if (!tonChecked) {
+        tonService = await safeImport('@b/blockchains/ton');
+        tonChecked = true;
+    }
+    return tonService;
+}
+async function getBitcoinNodeService() {
+    if (!bitcoinNodeChecked) {
+        bitcoinNodeService = await safeImport('@b/api/(ext)/ecosystem/utils/utxo/btc-node');
+        bitcoinNodeChecked = true;
+    }
+    return bitcoinNodeService;
+}
+let mempoolProviderClass = null;
+let mempoolProviderChecked = false;
+async function getMempoolProviderClass() {
+    if (!mempoolProviderChecked) {
+        const module = await safeImportModule('@b/api/(ext)/ecosystem/utils/utxo/providers/MempoolProvider');
+        mempoolProviderClass = (module === null || module === void 0 ? void 0 : module.MempoolProvider) || null;
+        mempoolProviderChecked = true;
+    }
+    return mempoolProviderClass;
+}
+let blockCypherProviderClass = null;
+let blockCypherProviderChecked = false;
+async function getBlockCypherProviderClass() {
+    if (!blockCypherProviderChecked) {
+        const module = await safeImportModule('@b/api/(ext)/ecosystem/utils/utxo/providers/BlockCypherProvider');
+        blockCypherProviderClass = (module === null || module === void 0 ? void 0 : module.BlockCypherProvider) || null;
+        blockCypherProviderChecked = true;
+    }
+    return blockCypherProviderClass;
+}
+let ecosystemWalletUtils = null;
+let ecosystemWalletUtilsChecked = false;
+async function getEcosystemWalletUtils() {
+    if (!ecosystemWalletUtilsChecked) {
+        ecosystemWalletUtils = await safeImportModule('@b/api/(ext)/ecosystem/utils/wallet');
+        ecosystemWalletUtilsChecked = true;
+    }
+    return ecosystemWalletUtils;
+}
+async function getWalletByUserIdAndCurrency(userId, currency) {
+    const utils = await getEcosystemWalletUtils();
+    if (!utils || !utils.getWalletByUserIdAndCurrency)
+        return null;
+    return utils.getWalletByUserIdAndCurrency(userId, currency);
+}
+async function updateWalletBalance(wallet, amount, operation) {
+    const utils = await getEcosystemWalletUtils();
+    if (!utils || !utils.updateWalletBalance)
+        return null;
+    return utils.updateWalletBalance(wallet, amount, operation);
+}
+let ecosystemScyllaUtils = null;
+let ecosystemScyllaUtilsChecked = false;
+async function getEcosystemScyllaUtils() {
+    if (!ecosystemScyllaUtilsChecked) {
+        ecosystemScyllaUtils = await safeImportModule('@b/api/(ext)/ecosystem/utils/scylla/queries');
+        ecosystemScyllaUtilsChecked = true;
+    }
+    return ecosystemScyllaUtils;
+}
+async function createOrder(orderData) {
+    const utils = await getEcosystemScyllaUtils();
+    if (!utils || !utils.createOrder)
+        return null;
+    return utils.createOrder(orderData);
+}
+async function getOrderBook(symbol) {
+    const utils = await getEcosystemScyllaUtils();
+    if (!utils || !utils.getOrderBook)
+        return { asks: [], bids: [] };
+    return utils.getOrderBook(symbol);
+}
+let ecosystemBlockchainUtils = null;
+let ecosystemBlockchainUtilsChecked = false;
+async function getEcosystemBlockchainUtils() {
+    if (!ecosystemBlockchainUtilsChecked) {
+        ecosystemBlockchainUtils = await safeImportModule('@b/api/(ext)/ecosystem/utils/blockchain');
+        ecosystemBlockchainUtilsChecked = true;
+    }
+    return ecosystemBlockchainUtils;
+}
+async function toBigIntFloat(value) {
+    const utils = await getEcosystemBlockchainUtils();
+    if (!utils || !utils.toBigIntFloat)
+        return null;
+    return utils.toBigIntFloat(value);
+}
+async function fromBigInt(value) {
+    const utils = await getEcosystemBlockchainUtils();
+    if (!utils || !utils.fromBigInt)
+        return null;
+    return utils.fromBigInt(value);
+}
+let ecosystemTokenUtils = null;
+let ecosystemTokenUtilsChecked = false;
+async function getEcosystemTokenUtils() {
+    if (!ecosystemTokenUtilsChecked) {
+        ecosystemTokenUtils = await safeImportModule('@b/api/(ext)/ecosystem/utils/tokens');
+        ecosystemTokenUtilsChecked = true;
+    }
+    return ecosystemTokenUtils;
+}
+async function getEcosystemToken(currency) {
+    const utils = await getEcosystemTokenUtils();
+    if (!utils || !utils.getEcosystemToken)
+        return null;
+    return utils.getEcosystemToken(currency);
+}
+let matchingEngine = null;
+let matchingEngineChecked = false;
+async function getMatchingEngine() {
+    if (!matchingEngineChecked) {
+        matchingEngine = await safeImportModule('@b/api/(ext)/ecosystem/utils/matchingEngine');
+        matchingEngineChecked = true;
+    }
+    return matchingEngine;
+}
+let ecosystemChainUtils = null;
+let ecosystemChainUtilsChecked = false;
+async function getEcosystemChainUtils() {
+    if (!ecosystemChainUtilsChecked) {
+        ecosystemChainUtils = await safeImportModule('@b/api/(ext)/ecosystem/utils/chains');
+        ecosystemChainUtilsChecked = true;
+    }
+    return ecosystemChainUtils;
+}
+let copyTradingUtils = null;
+let copyTradingUtilsChecked = false;
+async function getCopyTradingUtils() {
+    if (!copyTradingUtilsChecked) {
+        copyTradingUtils = await safeImportModule('@b/api/(ext)/copy-trading/utils/tradeListener');
+        copyTradingUtilsChecked = true;
+    }
+    return copyTradingUtils;
+}
+async function triggerCopyTrading(orderId, userId, symbol, side, type, amount, price) {
+    const utils = await getCopyTradingUtils();
+    if (!utils || !utils.handleOrderCreated) {
+        return;
+    }
+    try {
+        utils.handleOrderCreated(orderId, userId, symbol, side, type, amount, price).catch((error) => {
+            console.error('[COPY_TRADING] Failed to process copy trade:', error);
+        });
+    }
+    catch (error) {
+        console.error('[COPY_TRADING] Failed to trigger copy trading:', error);
+    }
+}
+async function triggerCopyTradingCancellation(orderId, userId, symbol) {
+    const utils = await getCopyTradingUtils();
+    if (!utils || !utils.handleOrderCancelled) {
+        return;
+    }
+    try {
+        utils.handleOrderCancelled(orderId, userId, symbol).catch((error) => {
+            console.error('[COPY_TRADING] Failed to process copy trade cancellation:', error);
+        });
+    }
+    catch (error) {
+        console.error('[COPY_TRADING] Failed to trigger copy trading cancellation:', error);
+    }
+}
+let copyTradingFillMonitorUtils = null;
+let copyTradingFillMonitorUtilsChecked = false;
+async function getCopyTradingFillMonitorUtils() {
+    if (!copyTradingFillMonitorUtilsChecked) {
+        copyTradingFillMonitorUtils = await safeImportModule('@b/api/(ext)/copy-trading/utils/fillMonitor');
+        copyTradingFillMonitorUtilsChecked = true;
+    }
+    return copyTradingFillMonitorUtils;
+}
+async function triggerCopyTradingOrderFilled(orderId, userId, symbol, side, filledAmount, filledPrice, fee, status) {
+    const utils = await getCopyTradingFillMonitorUtils();
+    if (!utils || !utils.handleOrderFilled) {
+        return;
+    }
+    try {
+        utils.handleOrderFilled(orderId, userId, symbol, side, filledAmount, filledPrice, fee, status).catch((error) => {
+            console.error('[COPY_TRADING] Failed to process copy trade fill:', error);
+        });
+    }
+    catch (error) {
+        console.error('[COPY_TRADING] Failed to trigger copy trading fill:', error);
+    }
+}
+let mailwizardCronUtils = null;
+let mailwizardCronUtilsChecked = false;
+async function getMailwizardCronUtils() {
+    if (!mailwizardCronUtilsChecked) {
+        mailwizardCronUtils = await safeImportModule('@b/api/(ext)/admin/mailwizard/utils/cron');
+        mailwizardCronUtilsChecked = true;
+    }
+    return mailwizardCronUtils;
+}
+let generalInvestmentCronUtils = null;
+let generalInvestmentCronUtilsChecked = false;
+async function getGeneralInvestmentCronUtils() {
+    if (!generalInvestmentCronUtilsChecked) {
+        generalInvestmentCronUtils = await safeImportModule('@b/api/finance/investment/cron');
+        generalInvestmentCronUtilsChecked = true;
+    }
+    return generalInvestmentCronUtils;
+}
+let forexCronUtils = null;
+let forexCronUtilsChecked = false;
+async function getForexCronUtils() {
+    if (!forexCronUtilsChecked) {
+        forexCronUtils = await safeImportModule('@b/api/(ext)/forex/utils/cron');
+        forexCronUtilsChecked = true;
+    }
+    return forexCronUtils;
+}
+let icoCronUtils = null;
+let icoCronUtilsChecked = false;
+async function getIcoCronUtils() {
+    if (!icoCronUtilsChecked) {
+        icoCronUtils = await safeImportModule('@b/api/(ext)/ico/utils/cron');
+        icoCronUtilsChecked = true;
+    }
+    return icoCronUtils;
+}
+let stakingCronUtils = null;
+let stakingCronUtilsChecked = false;
+async function getStakingCronUtils() {
+    if (!stakingCronUtilsChecked) {
+        stakingCronUtils = await safeImportModule('@b/api/(ext)/staking/utils/cron');
+        stakingCronUtilsChecked = true;
+    }
+    return stakingCronUtils;
+}
+let aiInvestmentCronUtils = null;
+let aiInvestmentCronUtilsChecked = false;
+async function getAiInvestmentCronUtils() {
+    if (!aiInvestmentCronUtilsChecked) {
+        aiInvestmentCronUtils = await safeImportModule('@/src/api/(ext)/ai/investment/utils/cron');
+        aiInvestmentCronUtilsChecked = true;
+    }
+    return aiInvestmentCronUtils;
+}
+let aiMarketMakerCronUtils = null;
+let aiMarketMakerCronUtilsChecked = false;
+async function getAiMarketMakerCronUtils() {
+    if (!aiMarketMakerCronUtilsChecked) {
+        aiMarketMakerCronUtils = await safeImportModule('@b/api/(ext)/admin/ai/market-maker/utils/cron');
+        aiMarketMakerCronUtilsChecked = true;
+    }
+    return aiMarketMakerCronUtils;
+}
+let ecosystemCronUtils = null;
+let ecosystemCronUtilsChecked = false;
+async function getEcosystemCronUtils() {
+    if (!ecosystemCronUtilsChecked) {
+        ecosystemCronUtils = await safeImportModule('@b/api/(ext)/ecosystem/utils/cron');
+        ecosystemCronUtilsChecked = true;
+    }
+    return ecosystemCronUtils;
+}
+let p2pCronUtils = null;
+let p2pCronUtilsChecked = false;
+async function getP2pCronUtils() {
+    if (!p2pCronUtilsChecked) {
+        p2pCronUtils = await safeImportModule('@b/api/(ext)/p2p/utils/cron');
+        p2pCronUtilsChecked = true;
+    }
+    return p2pCronUtils;
+}
+let nftCronUtils = null;
+let nftCronUtilsChecked = false;
+async function getNftCronUtils() {
+    if (!nftCronUtilsChecked) {
+        nftCronUtils = await safeImportModule('@b/api/(ext)/nft/utils/cron');
+        nftCronUtilsChecked = true;
+    }
+    return nftCronUtils;
+}
+let gatewayCronUtils = null;
+let gatewayCronUtilsChecked = false;
+async function getGatewayCronUtils() {
+    if (!gatewayCronUtilsChecked) {
+        gatewayCronUtils = await safeImportModule('@b/api/(ext)/gateway/utils/cron');
+        gatewayCronUtilsChecked = true;
+    }
+    return gatewayCronUtils;
+}
+let copyTradingCronUtils = null;
+let copyTradingCronUtilsChecked = false;
+async function getCopyTradingCronUtils() {
+    if (!copyTradingCronUtilsChecked) {
+        copyTradingCronUtils = await safeImportModule('@b/api/(ext)/copy-trading/utils/cron');
+        copyTradingCronUtilsChecked = true;
+    }
+    return copyTradingCronUtils;
+}
+let copyTradingQueueUtils = null;
+let copyTradingQueueUtilsChecked = false;
+async function getCopyTradingQueueUtils() {
+    if (!copyTradingQueueUtilsChecked) {
+        copyTradingQueueUtils = await safeImportModule('@b/api/(ext)/copy-trading/utils/copyQueue');
+        copyTradingQueueUtilsChecked = true;
+    }
+    return copyTradingQueueUtils;
+}
+let scyllaClientUtils = null;
+let scyllaClientUtilsChecked = false;
+async function getScyllaClientUtils() {
+    if (!scyllaClientUtilsChecked) {
+        scyllaClientUtils = await safeImportModule('@b/api/(ext)/ecosystem/utils/scylla/client');
+        scyllaClientUtilsChecked = true;
+    }
+    return scyllaClientUtils;
+}
+async function initializeScylla() {
+    const m = await getScyllaClientUtils();
+    if (m === null || m === void 0 ? void 0 : m.initialize)
+        return m.initialize();
+}
+async function initializeMatchingEngine() {
+    var _a;
+    const m = await getMatchingEngine();
+    if ((_a = m === null || m === void 0 ? void 0 : m.MatchingEngine) === null || _a === void 0 ? void 0 : _a.getInstance)
+        return m.MatchingEngine.getInstance();
+    return null;
+}

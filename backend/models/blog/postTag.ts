@@ -14,12 +14,12 @@ export default class postTag
   // postTag belongsTo post via postId
   post!: post;
   getPost!: Sequelize.BelongsToGetAssociationMixin<post>;
-  setPost!: Sequelize.BelongsToSetAssociationMixin<post, postId>;
+  setPost!: Sequelize.BelongsToSetAssociationMixin<post, string>;
   createPost!: Sequelize.BelongsToCreateAssociationMixin<post>;
   // postTag belongsTo tag via tagId
   tag!: tag;
   getTag!: Sequelize.BelongsToGetAssociationMixin<tag>;
-  setTag!: Sequelize.BelongsToSetAssociationMixin<tag, tagId>;
+  setTag!: Sequelize.BelongsToSetAssociationMixin<tag, string>;
   createTag!: Sequelize.BelongsToCreateAssociationMixin<tag>;
 
   public static initModel(sequelize: Sequelize.Sequelize): typeof postTag {

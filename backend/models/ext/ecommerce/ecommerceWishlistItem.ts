@@ -21,7 +21,7 @@ export default class ecommerceWishlistItem
   getecommerceWishlist!: Sequelize.BelongsToGetAssociationMixin<ecommerceWishlist>;
   setecommerceWishlist!: Sequelize.BelongsToSetAssociationMixin<
     ecommerceWishlist,
-    ecommerceWishlistId
+    string
   >;
   createecommerceWishlist!: Sequelize.BelongsToCreateAssociationMixin<ecommerceWishlist>;
   // ecommerceWishlistItem belongsTo ecommerceProduct via productId
@@ -29,7 +29,7 @@ export default class ecommerceWishlistItem
   getecommerceProduct!: Sequelize.BelongsToGetAssociationMixin<ecommerceProduct>;
   setecommerceProduct!: Sequelize.BelongsToSetAssociationMixin<
     ecommerceProduct,
-    ecommerceProductId
+    string
   >;
   createecommerceProduct!: Sequelize.BelongsToCreateAssociationMixin<ecommerceProduct>;
 

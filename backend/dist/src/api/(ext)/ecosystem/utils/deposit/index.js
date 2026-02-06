@@ -1,1 +1,149 @@
-"use strict";async function canUseAPI(e){const s=chains_1.chainConfigs[e];if(!(null==s?void 0:s.explorerApi))return!0;apiUsageCount[e]||(apiUsageCount[e]=0);if(apiUsageCount[e]>=API_THRESHOLD){console.warn(`API limit reached for ${e}, skipping this cycle.`);return!1}apiUsageCount[e]+=1;return!0}function isEVMChain(e){var s;return!!(null===(s=chains_1.chainConfigs[e])||void 0===s?void 0:s.smartContract)}async function monitorDeposits(){var e,s;if(!ENABLE_MONITORING){console.log("Deposit monitoring disabled.");return}console.log("Deposit monitoring enabled. Starting up...");const t=await db_1.models.wallet.findAll({where:{type:"ECO"},attributes:["id","currency","address"]}),o={};for(const n of t){if(!n.address)continue;const t="string"==typeof n.address?JSON.parse(n.address):n.address,a=n.currency;for(const i in t){let r;try{r=await(0,tokens_1.getEcosystemToken)(i,a)}catch(e){continue}const c=r.contractType,d=(null===(e=t[i])||void 0===e?void 0:e.address)||(null===(s=t[i])||void 0===s?void 0:s.addr)||t[i];if(d){o[i]||(o[i]=[]);o[i].push({walletId:n.id,address:d,currency:a,contractType:c})}}}const n=Object.keys(o).filter(isEVMChain);n.length>0&&setInterval(async()=>{for(const e of n)await canUseAPI(e)&&await checkDepositsForChain(e,o[e])},EVM_CHECK_INTERVAL);const a=Object.keys(o).filter(e=>!isEVMChain(e));a.length>0&&setInterval(async()=>{for(const e of a)await canUseAPI(e)&&await checkDepositsForChain(e,o[e])},UTXO_CHECK_INTERVAL)}async function checkDepositsForChain(e,s){var t,o,n;const a=chains_1.chainConfigs[e];if(a&&a.fetchFunction)for(const i of s){let s;try{s=await a.fetchFunction(i.address);if(!Array.isArray(s))continue;for(const a of s)if(a.to&&a.to.toLowerCase()===i.address.toLowerCase()&&"CONFIRMED"===a.status){await(0,deposit_1.storeAndBroadcastTransaction)(a,a.hash);try{const s=await(0,wallet_1.handleEcosystemDeposit)({...a,id:i.walletId,chain:e,contractType:i.contractType});(null==s?void 0:s.transactionId)&&(0,Websocket_1.hasClients)("/api/ecosystem/deposit")&&Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/deposit",{currency:null===(t=s.wallet)||void 0===t?void 0:t.currency,chain:e,address:i.address},{stream:"verification",data:{status:200,message:"Transaction completed",...s,trx:a,balance:null===(o=s.wallet)||void 0===o?void 0:o.balance,currency:null===(n=s.wallet)||void 0===n?void 0:n.currency,chain:e,method:"Wallet Deposit"}})}catch(e){console.error(`Error handling deposit for ${a.hash}: ${e.message}`)}}}catch(s){console.error(`Error fetching transactions for chain ${e}, address ${i.address}: ${s.message}`)}}else console.warn(`No fetch function for chain: ${e}`)}Object.defineProperty(exports,"__esModule",{value:!0});exports.monitorDeposits=monitorDeposits;const db_1=require("@b/db"),tokens_1=require("@b/api/(ext)/ecosystem/utils/tokens"),chains_1=require("@b/api/(ext)/ecosystem/utils/chains"),deposit_1=require("@b/api/(ext)/ecosystem/utils/redis/deposit"),wallet_1=require("@b/api/(ext)/ecosystem/utils/wallet"),Websocket_1=require("@b/handler/Websocket"),ENABLE_MONITORING="true"===process.env.ENABLE_DEPOSIT_MONITORING,EVM_CHECK_INTERVAL=Number(process.env.EVM_CHECK_INTERVAL_MS)||3e5,UTXO_CHECK_INTERVAL=Number(process.env.UTXO_CHECK_INTERVAL_MS)||9e5,API_THRESHOLD=Number(process.env.API_THRESHOLD)||100,apiUsageCount={};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.monitorDeposits = monitorDeposits;
+const db_1 = require("@b/db");
+const tokens_1 = require("@b/api/(ext)/ecosystem/utils/tokens");
+const chains_1 = require("@b/api/(ext)/ecosystem/utils/chains");
+const deposit_1 = require("@b/api/(ext)/ecosystem/utils/redis/deposit");
+const wallet_1 = require("@b/api/(ext)/ecosystem/utils/wallet");
+const Websocket_1 = require("@b/handler/Websocket");
+const ENABLE_MONITORING = process.env.ENABLE_DEPOSIT_MONITORING === "true";
+const EVM_CHECK_INTERVAL = Number(process.env.EVM_CHECK_INTERVAL_MS) || 300000;
+const UTXO_CHECK_INTERVAL = Number(process.env.UTXO_CHECK_INTERVAL_MS) || 900000;
+const API_THRESHOLD = Number(process.env.API_THRESHOLD) || 100;
+const apiUsageCount = {};
+async function canUseAPI(chain) {
+    const config = chains_1.chainConfigs[chain];
+    if (!(config === null || config === void 0 ? void 0 : config.explorerApi))
+        return true;
+    if (!apiUsageCount[chain])
+        apiUsageCount[chain] = 0;
+    if (apiUsageCount[chain] >= API_THRESHOLD) {
+        console.warn(`API limit reached for ${chain}, skipping this cycle.`);
+        return false;
+    }
+    apiUsageCount[chain] += 1;
+    return true;
+}
+function isEVMChain(chain) {
+    var _a;
+    return !!((_a = chains_1.chainConfigs[chain]) === null || _a === void 0 ? void 0 : _a.smartContract);
+}
+async function monitorDeposits() {
+    var _a, _b;
+    if (!ENABLE_MONITORING) {
+        console.log("Deposit monitoring disabled.");
+        return;
+    }
+    console.log("Deposit monitoring enabled. Starting up...");
+    const wallets = await db_1.models.wallet.findAll({
+        where: { type: "ECO" },
+        attributes: ["id", "currency", "address"],
+    });
+    const chainAddresses = {};
+    for (const wallet of wallets) {
+        if (!wallet.address)
+            continue;
+        const addresses = typeof wallet.address === "string"
+            ? JSON.parse(wallet.address)
+            : wallet.address;
+        const currency = wallet.currency;
+        for (const chain in addresses) {
+            let token;
+            try {
+                token = await (0, tokens_1.getEcosystemToken)(chain, currency);
+            }
+            catch (_c) {
+                continue;
+            }
+            const contractType = token.contractType;
+            const addr = ((_a = addresses[chain]) === null || _a === void 0 ? void 0 : _a.address) || ((_b = addresses[chain]) === null || _b === void 0 ? void 0 : _b.addr) || addresses[chain];
+            if (!addr)
+                continue;
+            if (!chainAddresses[chain])
+                chainAddresses[chain] = [];
+            chainAddresses[chain].push({
+                walletId: wallet.id,
+                address: contractType === "NO_PERMIT" ? addr : addr,
+                currency,
+                contractType,
+            });
+        }
+    }
+    const evmChains = Object.keys(chainAddresses).filter(isEVMChain);
+    if (evmChains.length > 0) {
+        setInterval(async () => {
+            for (const chain of evmChains) {
+                if (!(await canUseAPI(chain)))
+                    continue;
+                await checkDepositsForChain(chain, chainAddresses[chain]);
+            }
+        }, EVM_CHECK_INTERVAL);
+    }
+    const nonEVMChains = Object.keys(chainAddresses).filter((c) => !isEVMChain(c));
+    if (nonEVMChains.length > 0) {
+        setInterval(async () => {
+            for (const chain of nonEVMChains) {
+                if (!(await canUseAPI(chain)))
+                    continue;
+                await checkDepositsForChain(chain, chainAddresses[chain]);
+            }
+        }, UTXO_CHECK_INTERVAL);
+    }
+}
+async function checkDepositsForChain(chain, addressesData) {
+    var _a, _b, _c;
+    const config = chains_1.chainConfigs[chain];
+    if (!config || !config.fetchFunction) {
+        console.warn(`No fetch function for chain: ${chain}`);
+        return;
+    }
+    for (const data of addressesData) {
+        let transactions;
+        try {
+            transactions = await config.fetchFunction(data.address);
+            if (!Array.isArray(transactions))
+                continue;
+            for (const tx of transactions) {
+                if (tx.to &&
+                    tx.to.toLowerCase() === data.address.toLowerCase() &&
+                    tx.status === "CONFIRMED") {
+                    await (0, deposit_1.storeAndBroadcastTransaction)(tx, tx.hash);
+                    try {
+                        const response = await (0, wallet_1.handleEcosystemDeposit)({
+                            ...tx,
+                            id: data.walletId,
+                            chain: chain,
+                            contractType: data.contractType,
+                        });
+                        if ((response === null || response === void 0 ? void 0 : response.transactionId) && (0, Websocket_1.hasClients)(`/ws/ecosystem/deposit`)) {
+                            Websocket_1.messageBroker.broadcastToSubscribedClients("/ws/ecosystem/deposit", {
+                                currency: (_a = response.wallet) === null || _a === void 0 ? void 0 : _a.currency,
+                                chain: chain,
+                                address: data.address,
+                            }, {
+                                stream: "verification",
+                                data: {
+                                    status: 200,
+                                    message: "Transaction completed",
+                                    ...response,
+                                    trx: tx,
+                                    balance: (_b = response.wallet) === null || _b === void 0 ? void 0 : _b.balance,
+                                    currency: (_c = response.wallet) === null || _c === void 0 ? void 0 : _c.currency,
+                                    chain: chain,
+                                    method: "Wallet Deposit",
+                                },
+                            });
+                        }
+                    }
+                    catch (error) {
+                        console.error(`Error handling deposit for ${tx.hash}: ${error.message}`);
+                    }
+                }
+            }
+        }
+        catch (error) {
+            console.error(`Error fetching transactions for chain ${chain}, address ${data.address}: ${error.message}`);
+        }
+    }
+}

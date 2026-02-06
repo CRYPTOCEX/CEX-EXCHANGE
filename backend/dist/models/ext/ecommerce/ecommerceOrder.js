@@ -1,1 +1,103 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});const sequelize_1=require("sequelize");class ecommerceOrder extends sequelize_1.Model{static initModel(e){return ecommerceOrder.init({id:{type:sequelize_1.DataTypes.UUID,defaultValue:sequelize_1.DataTypes.UUIDV4,primaryKey:!0,allowNull:!1},userId:{type:sequelize_1.DataTypes.UUID,allowNull:!1,validate:{isUUID:{args:4,msg:"userId: User ID must be a valid UUID"}}},status:{type:sequelize_1.DataTypes.ENUM("PENDING","COMPLETED","CANCELLED","REJECTED"),allowNull:!1,defaultValue:"PENDING",validate:{isIn:{args:[["PENDING","COMPLETED","CANCELLED","REJECTED"]],msg:"status: Must be 'PENDING', 'COMPLETED', 'CANCELLED', or 'REJECTED'"}}},shippingId:{type:sequelize_1.DataTypes.UUID,allowNull:!0}},{sequelize:e,modelName:"ecommerceOrder",tableName:"ecommerce_order",timestamps:!0,paranoid:!0,indexes:[{name:"PRIMARY",unique:!0,using:"BTREE",fields:[{name:"id"}]},{name:"ecommerceOrderIdKey",unique:!0,using:"BTREE",fields:[{name:"id"}]},{name:"ecommerceOrderUserIdFkey",using:"BTREE",fields:[{name:"userId"}]},{name:"ecommerceOrderShippingIdFkey",using:"BTREE",fields:[{name:"shippingId"}]}]})}static associate(e){ecommerceOrder.hasMany(e.ecommerceOrderItem,{as:"ecommerceOrderItems",foreignKey:"orderId",onDelete:"CASCADE",onUpdate:"CASCADE"});ecommerceOrder.belongsToMany(e.ecommerceProduct,{as:"products",through:e.ecommerceOrderItem,foreignKey:"orderId",otherKey:"productId",onDelete:"CASCADE",onUpdate:"CASCADE"});ecommerceOrder.belongsTo(e.ecommerceShipping,{as:"shipping",foreignKey:"shippingId",onDelete:"CASCADE",onUpdate:"CASCADE"});ecommerceOrder.hasOne(e.ecommerceShippingAddress,{as:"shippingAddress",foreignKey:"orderId",onDelete:"CASCADE",onUpdate:"CASCADE"});ecommerceOrder.belongsTo(e.user,{as:"user",foreignKey:"userId",onDelete:"CASCADE",onUpdate:"CASCADE"})}}exports.default=ecommerceOrder;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const sequelize_1 = require("sequelize");
+class ecommerceOrder extends sequelize_1.Model {
+    get orderItems() { return this.ecommerceOrderItems; }
+    static initModel(sequelize) {
+        return ecommerceOrder.init({
+            id: {
+                type: sequelize_1.DataTypes.UUID,
+                defaultValue: sequelize_1.DataTypes.UUIDV4,
+                primaryKey: true,
+                allowNull: false,
+            },
+            userId: {
+                type: sequelize_1.DataTypes.UUID,
+                allowNull: false,
+                validate: {
+                    isUUID: { args: 4, msg: "userId: User ID must be a valid UUID" },
+                },
+            },
+            status: {
+                type: sequelize_1.DataTypes.ENUM("PENDING", "COMPLETED", "CANCELLED", "REJECTED"),
+                allowNull: false,
+                defaultValue: "PENDING",
+                validate: {
+                    isIn: {
+                        args: [["PENDING", "COMPLETED", "CANCELLED", "REJECTED"]],
+                        msg: "status: Must be 'PENDING', 'COMPLETED', 'CANCELLED', or 'REJECTED'",
+                    },
+                },
+            },
+            shippingId: {
+                type: sequelize_1.DataTypes.UUID,
+                allowNull: true,
+            },
+        }, {
+            sequelize,
+            modelName: "ecommerceOrder",
+            tableName: "ecommerce_order",
+            timestamps: true,
+            paranoid: true,
+            indexes: [
+                {
+                    name: "PRIMARY",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "id" }],
+                },
+                {
+                    name: "ecommerceOrderIdKey",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "id" }],
+                },
+                {
+                    name: "ecommerceOrderUserIdFkey",
+                    using: "BTREE",
+                    fields: [{ name: "userId" }],
+                },
+                {
+                    name: "ecommerceOrderShippingIdFkey",
+                    using: "BTREE",
+                    fields: [{ name: "shippingId" }],
+                },
+            ],
+        });
+    }
+    static associate(models) {
+        ecommerceOrder.hasMany(models.ecommerceOrderItem, {
+            as: "ecommerceOrderItems",
+            foreignKey: "orderId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+        ecommerceOrder.belongsToMany(models.ecommerceProduct, {
+            as: "products",
+            through: models.ecommerceOrderItem,
+            foreignKey: "orderId",
+            otherKey: "productId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+        ecommerceOrder.belongsTo(models.ecommerceShipping, {
+            as: "shipping",
+            foreignKey: "shippingId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+        ecommerceOrder.hasOne(models.ecommerceShippingAddress, {
+            as: "shippingAddress",
+            foreignKey: "orderId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+        ecommerceOrder.belongsTo(models.user, {
+            as: "user",
+            foreignKey: "userId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+    }
+}
+exports.default = ecommerceOrder;

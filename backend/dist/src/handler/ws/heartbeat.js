@@ -1,1 +1,58 @@
-"use strict";function startHeartbeat(e,t){let o=!0;return setInterval(()=>{for(const[s,l]of e.entries()){for(const[e,s]of l.entries())if(s.ws.isClosed){try{s.ws.close()}catch(t){console_1.logger.error("WS",`Failed to close connection for client ${e}`,t)}l.delete(e)}else if(o||s.ws.isAlive){s.ws.isAlive=!1;try{s.ws.ping()}catch(t){console_1.logger.error("WS",`Failed to ping client ${e} during heartbeat`,t);l.delete(e)}}else{console_1.logger.debug("WS",`Client ${e} missed heartbeat, sending final ping`);try{s.ws.ping();setTimeout(()=>{if(!s.ws.isAlive){console_1.logger.debug("WS",`Client ${e} failed to respond, closing`);try{s.ws.close()}catch(t){console_1.logger.error("WS",`Failed to close unresponsive client ${e}`,t)}l.delete(e)}},t/2)}catch(t){console_1.logger.error("WS",`Failed to send final ping to client ${e}`,t);l.delete(e)}}0===l.size&&e.delete(s)}o=!1},t)}Object.defineProperty(exports,"__esModule",{value:!0});exports.startHeartbeat=startHeartbeat;const console_1=require("@b/utils/console");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.startHeartbeat = startHeartbeat;
+const console_1 = require("@b/utils/console");
+function startHeartbeat(clients, interval) {
+    let isFirstCheck = true;
+    return setInterval(() => {
+        for (const [route, routeClients] of clients.entries()) {
+            for (const [clientId, clientRecord] of routeClients.entries()) {
+                if (clientRecord.ws.isClosed) {
+                    try {
+                        clientRecord.ws.close();
+                    }
+                    catch (error) {
+                        console_1.logger.error("WS", `Failed to close connection for client ${clientId}`, error);
+                    }
+                    routeClients.delete(clientId);
+                }
+                else if (!isFirstCheck && !clientRecord.ws.isAlive) {
+                    console_1.logger.debug("WS", `Client ${clientId} missed heartbeat, sending final ping`);
+                    try {
+                        clientRecord.ws.ping();
+                        setTimeout(() => {
+                            if (!clientRecord.ws.isAlive) {
+                                console_1.logger.debug("WS", `Client ${clientId} failed to respond, closing`);
+                                try {
+                                    clientRecord.ws.close();
+                                }
+                                catch (error) {
+                                    console_1.logger.error("WS", `Failed to close unresponsive client ${clientId}`, error);
+                                }
+                                routeClients.delete(clientId);
+                            }
+                        }, interval / 2);
+                    }
+                    catch (error) {
+                        console_1.logger.error("WS", `Failed to send final ping to client ${clientId}`, error);
+                        routeClients.delete(clientId);
+                    }
+                }
+                else {
+                    clientRecord.ws.isAlive = false;
+                    try {
+                        clientRecord.ws.ping();
+                    }
+                    catch (error) {
+                        console_1.logger.error("WS", `Failed to ping client ${clientId} during heartbeat`, error);
+                        routeClients.delete(clientId);
+                    }
+                }
+            }
+            if (routeClients.size === 0) {
+                clients.delete(route);
+            }
+        }
+        isFirstCheck = false;
+    }, interval);
+}

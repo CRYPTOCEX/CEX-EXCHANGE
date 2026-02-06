@@ -1037,12 +1037,15 @@ CREATE TABLE `exchange` (
   `id` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `name` varchar(191) NOT NULL COMMENT 'Internal name identifier for the exchange',
   `title` varchar(191) NOT NULL COMMENT 'Display title of the exchange',
+  `description` text DEFAULT NULL COMMENT 'Exchange provider description',
   `status` tinyint(1) DEFAULT 0 COMMENT 'Exchange connection status (active/inactive)',
   `username` varchar(191) DEFAULT NULL COMMENT 'Exchange API username/identifier',
   `licenseStatus` tinyint(1) DEFAULT 0 COMMENT 'Exchange license validation status',
   `version` varchar(191) DEFAULT '0.0.1' COMMENT 'Exchange integration version',
   `productId` varchar(191) DEFAULT NULL COMMENT 'Unique product identifier for the exchange',
   `type` varchar(191) DEFAULT 'spot' COMMENT 'Type of exchange (spot, futures, etc.)',
+  `link` varchar(500) DEFAULT NULL COMMENT 'Envato product URL',
+  `proxyUrl` varchar(500) DEFAULT NULL COMMENT 'Proxy URL for exchange API requests',
   PRIMARY KEY (`id`),
   UNIQUE KEY `exchangeProductIdKey` (`productId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -2388,7 +2391,7 @@ CREATE TABLE `mlm_referral_condition` (
   `name` varchar(191) NOT NULL,
   `title` varchar(191) NOT NULL,
   `description` varchar(191) NOT NULL,
-  `type` enum('DEPOSIT','TRADE','INVESTMENT','BINARY_WIN','AI_INVESTMENT','FOREX_INVESTMENT','ICO_CONTRIBUTION','STAKING','ECOMMERCE_PURCHASE','P2P_TRADE') NOT NULL,
+  `type` enum('DEPOSIT','TRADE','SPOT_TRADE','BINARY_WIN','INVESTMENT','AI_INVESTMENT','FOREX_INVESTMENT','ICO_CONTRIBUTION','STAKING','ECOMMERCE_PURCHASE','P2P_TRADE','NFT_TRADE','COPY_TRADING','FUTURES_TRADE','TOKEN_PURCHASE') NOT NULL,
   `reward` double NOT NULL,
   `rewardType` enum('PERCENTAGE','FIXED') NOT NULL,
   `rewardWalletType` enum('FIAT','SPOT','ECO') NOT NULL,
@@ -2396,6 +2399,7 @@ CREATE TABLE `mlm_referral_condition` (
   `rewardChain` varchar(191) DEFAULT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 1,
   `image` varchar(191) DEFAULT NULL,
+  `minAmount` double NOT NULL DEFAULT 0 COMMENT 'Minimum amount required for the condition',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `mlmReferralConditionNameKey` (`name`) USING BTREE

@@ -17,7 +17,7 @@ export default class mlmBinaryNode
   getParent!: Sequelize.BelongsToGetAssociationMixin<mlmBinaryNode>;
   setParent!: Sequelize.BelongsToSetAssociationMixin<
     mlmBinaryNode,
-    mlmBinaryNodeId
+    string
   >;
   createParent!: Sequelize.BelongsToCreateAssociationMixin<mlmBinaryNode>;
   // mlmBinaryNode belongsTo mlmBinaryNode via leftChildId
@@ -25,7 +25,7 @@ export default class mlmBinaryNode
   getLeftChild!: Sequelize.BelongsToGetAssociationMixin<mlmBinaryNode>;
   setLeftChild!: Sequelize.BelongsToSetAssociationMixin<
     mlmBinaryNode,
-    mlmBinaryNodeId
+    string
   >;
   createLeftChild!: Sequelize.BelongsToCreateAssociationMixin<mlmBinaryNode>;
   // mlmBinaryNode belongsTo mlmBinaryNode via rightChildId
@@ -33,7 +33,7 @@ export default class mlmBinaryNode
   getRightChild!: Sequelize.BelongsToGetAssociationMixin<mlmBinaryNode>;
   setRightChild!: Sequelize.BelongsToSetAssociationMixin<
     mlmBinaryNode,
-    mlmBinaryNodeId
+    string
   >;
   createRightChild!: Sequelize.BelongsToCreateAssociationMixin<mlmBinaryNode>;
   // mlmBinaryNode belongsTo mlmReferral via referralId
@@ -41,7 +41,7 @@ export default class mlmBinaryNode
   getReferral!: Sequelize.BelongsToGetAssociationMixin<mlmReferral>;
   setReferral!: Sequelize.BelongsToSetAssociationMixin<
     mlmReferral,
-    mlmReferralId
+    string
   >;
   createReferral!: Sequelize.BelongsToCreateAssociationMixin<mlmReferral>;
 

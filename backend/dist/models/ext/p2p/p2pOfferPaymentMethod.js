@@ -1,1 +1,25 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});const sequelize_1=require("sequelize");class p2pOfferPaymentMethod extends sequelize_1.Model{static initModel(e){return p2pOfferPaymentMethod.init({offerId:{type:sequelize_1.DataTypes.UUID,allowNull:!1},paymentMethodId:{type:sequelize_1.DataTypes.UUID,allowNull:!1}},{sequelize:e,modelName:"p2pOfferPaymentMethod",tableName:"p2p_offer_payment_method",timestamps:!1})}static associate(e){}}exports.default=p2pOfferPaymentMethod;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const sequelize_1 = require("sequelize");
+class p2pOfferPaymentMethod extends sequelize_1.Model {
+    static initModel(sequelize) {
+        return p2pOfferPaymentMethod.init({
+            offerId: {
+                type: sequelize_1.DataTypes.UUID,
+                allowNull: false,
+            },
+            paymentMethodId: {
+                type: sequelize_1.DataTypes.UUID,
+                allowNull: false,
+            },
+        }, {
+            sequelize,
+            modelName: "p2pOfferPaymentMethod",
+            tableName: "p2p_offer_payment_method",
+            timestamps: false,
+        });
+    }
+    static associate(models) {
+    }
+}
+exports.default = p2pOfferPaymentMethod;

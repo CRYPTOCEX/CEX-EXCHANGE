@@ -1,1 +1,118 @@
-"use strict";async function processMailwizardCampaigns(){const a="processMailwizardCampaigns",r=Date.now();try{(0,broadcast_1.broadcastStatus)(a,"running");(0,broadcast_1.broadcastLog)(a,"Starting Mailwizard campaigns processing");const t=await db_1.models.mailwizardCampaign.findAll({where:{status:"ACTIVE"},include:[{model:db_1.models.mailwizardTemplate,as:"template"}]});(0,broadcast_1.broadcastLog)(a,`Found ${t.length} active campaigns`);for(const r of t){(0,broadcast_1.broadcastLog)(a,`Processing campaign id ${r.id}`);let t=0;if(!r.targets){(0,broadcast_1.broadcastLog)(a,`No targets found for campaign ${r.id}`,"info");continue}let s=[];try{s=JSON.parse(r.targets);(0,broadcast_1.broadcastLog)(a,`Parsed ${s.length} targets for campaign ${r.id}`)}catch(t){console_1.logger.error("CRON",`Error parsing targets for campaign ${r.id}`,t);(0,broadcast_1.broadcastLog)(a,`Error parsing targets for campaign ${r.id}: ${t.message}`,"error");continue}for(const o of s)if("PENDING"===o.status&&t<r.speed){(0,broadcast_1.broadcastLog)(a,`Attempting to send email to ${o.email} for campaign ${r.id}`);try{await(0,emails_1.sendEmailToTargetWithTemplate)(o.email,r.subject,r.template.content);o.status="SENT";t++;(0,broadcast_1.broadcastLog)(a,`Email sent to ${o.email} for campaign ${r.id}`,"success")}catch(t){console_1.logger.error("CRON","Error sending email to target",t);o.status="FAILED";(0,broadcast_1.broadcastLog)(a,`Error sending email to ${o.email} for campaign ${r.id}: ${t.message}`,"error")}}try{(0,broadcast_1.broadcastLog)(a,`Updating targets for campaign ${r.id}`);await updateMailwizardCampaignTargets(r.id,JSON.stringify(s));(0,broadcast_1.broadcastLog)(a,`Targets updated for campaign ${r.id}`,"success");if(s.every(a=>"PENDING"!==a.status)){(0,broadcast_1.broadcastLog)(a,`All targets processed for campaign ${r.id}, updating status to COMPLETED`);await updateMailwizardCampaignStatus(r.id,"COMPLETED");(0,broadcast_1.broadcastLog)(a,`Campaign ${r.id} marked as COMPLETED`,"success")}else(0,broadcast_1.broadcastLog)(a,`Campaign ${r.id} still has pending targets`,"info")}catch(t){console_1.logger.error("CRON",`Error updating campaign ${r.id}`,t);(0,broadcast_1.broadcastLog)(a,`Error updating campaign ${r.id}: ${t.message}`,"error")}}(0,broadcast_1.broadcastStatus)(a,"completed",{duration:Date.now()-r});(0,broadcast_1.broadcastLog)(a,"Mailwizard campaigns processing completed","success")}catch(r){console_1.logger.error("CRON","Mailwizard campaigns processing failed",r);(0,broadcast_1.broadcastStatus)(a,"failed");(0,broadcast_1.broadcastLog)(a,`Mailwizard campaigns processing failed: ${r.message}`,"error");throw r}}async function updateMailwizardCampaignTargets(a,r){try{(0,broadcast_1.broadcastLog)("processMailwizardCampaigns",`Updating targets for campaign ${a}`);await db_1.models.mailwizardCampaign.update({targets:r},{where:{id:a}});(0,broadcast_1.broadcastLog)("processMailwizardCampaigns",`Targets updated for campaign ${a}`,"success")}catch(a){console_1.logger.error("CRON","Error updating mailwizard campaign targets",a);throw a}}async function updateMailwizardCampaignStatus(a,r){try{(0,broadcast_1.broadcastLog)("processMailwizardCampaigns",`Updating status to ${r} for campaign ${a}`);await db_1.models.mailwizardCampaign.update({status:r},{where:{id:a}});(0,broadcast_1.broadcastLog)("processMailwizardCampaigns",`Status updated to ${r} for campaign ${a}`,"success")}catch(a){console_1.logger.error("CRON","Error updating mailwizard campaign status",a);throw a}}Object.defineProperty(exports,"__esModule",{value:!0});exports.processMailwizardCampaigns=processMailwizardCampaigns;exports.updateMailwizardCampaignTargets=updateMailwizardCampaignTargets;exports.updateMailwizardCampaignStatus=updateMailwizardCampaignStatus;const db_1=require("@b/db"),console_1=require("@b/utils/console"),emails_1=require("@b/utils/emails"),broadcast_1=require("@b/cron/broadcast");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.processMailwizardCampaigns = processMailwizardCampaigns;
+exports.updateMailwizardCampaignTargets = updateMailwizardCampaignTargets;
+exports.updateMailwizardCampaignStatus = updateMailwizardCampaignStatus;
+const db_1 = require("@b/db");
+const console_1 = require("@b/utils/console");
+const emails_1 = require("@b/utils/emails");
+const broadcast_1 = require("@b/cron/broadcast");
+async function processMailwizardCampaigns() {
+    const cronName = "processMailwizardCampaigns";
+    const startTime = Date.now();
+    try {
+        (0, broadcast_1.broadcastStatus)(cronName, "running");
+        (0, broadcast_1.broadcastLog)(cronName, "Starting Mailwizard campaigns processing");
+        const campaigns = await db_1.models.mailwizardCampaign.findAll({
+            where: { status: "ACTIVE" },
+            include: [
+                {
+                    model: db_1.models.mailwizardTemplate,
+                    as: "template",
+                },
+            ],
+        });
+        (0, broadcast_1.broadcastLog)(cronName, `Found ${campaigns.length} active campaigns`);
+        for (const campaign of campaigns) {
+            (0, broadcast_1.broadcastLog)(cronName, `Processing campaign id ${campaign.id}`);
+            let sentCount = 0;
+            if (!campaign.targets) {
+                (0, broadcast_1.broadcastLog)(cronName, `No targets found for campaign ${campaign.id}`, "info");
+                continue;
+            }
+            let targets = [];
+            try {
+                targets = JSON.parse(campaign.targets);
+                (0, broadcast_1.broadcastLog)(cronName, `Parsed ${targets.length} targets for campaign ${campaign.id}`);
+            }
+            catch (error) {
+                console_1.logger.error("CRON", `Error parsing targets for campaign ${campaign.id}`, error);
+                (0, broadcast_1.broadcastLog)(cronName, `Error parsing targets for campaign ${campaign.id}: ${error.message}`, "error");
+                continue;
+            }
+            if (!campaign.template) {
+                (0, broadcast_1.broadcastLog)(cronName, `Template not found for campaign ${campaign.id}`, "error");
+                continue;
+            }
+            for (const target of targets) {
+                if (target.status === "PENDING" && sentCount < campaign.speed) {
+                    (0, broadcast_1.broadcastLog)(cronName, `Attempting to send email to ${target.email} for campaign ${campaign.id}`);
+                    try {
+                        await (0, emails_1.sendEmailToTargetWithTemplate)(target.email, campaign.subject, campaign.template.content);
+                        target.status = "SENT";
+                        sentCount++;
+                        (0, broadcast_1.broadcastLog)(cronName, `Email sent to ${target.email} for campaign ${campaign.id}`, "success");
+                    }
+                    catch (error) {
+                        console_1.logger.error("CRON", "Error sending email to target", error);
+                        target.status = "FAILED";
+                        (0, broadcast_1.broadcastLog)(cronName, `Error sending email to ${target.email} for campaign ${campaign.id}: ${error.message}`, "error");
+                    }
+                }
+            }
+            try {
+                (0, broadcast_1.broadcastLog)(cronName, `Updating targets for campaign ${campaign.id}`);
+                await updateMailwizardCampaignTargets(campaign.id, JSON.stringify(targets));
+                (0, broadcast_1.broadcastLog)(cronName, `Targets updated for campaign ${campaign.id}`, "success");
+                if (targets.every((target) => target.status !== "PENDING")) {
+                    (0, broadcast_1.broadcastLog)(cronName, `All targets processed for campaign ${campaign.id}, updating status to COMPLETED`);
+                    await updateMailwizardCampaignStatus(campaign.id, "COMPLETED");
+                    (0, broadcast_1.broadcastLog)(cronName, `Campaign ${campaign.id} marked as COMPLETED`, "success");
+                }
+                else {
+                    (0, broadcast_1.broadcastLog)(cronName, `Campaign ${campaign.id} still has pending targets`, "info");
+                }
+            }
+            catch (error) {
+                console_1.logger.error("CRON", `Error updating campaign ${campaign.id}`, error);
+                (0, broadcast_1.broadcastLog)(cronName, `Error updating campaign ${campaign.id}: ${error.message}`, "error");
+            }
+        }
+        (0, broadcast_1.broadcastStatus)(cronName, "completed", {
+            duration: Date.now() - startTime,
+        });
+        (0, broadcast_1.broadcastLog)(cronName, "Mailwizard campaigns processing completed", "success");
+    }
+    catch (error) {
+        console_1.logger.error("CRON", "Mailwizard campaigns processing failed", error);
+        (0, broadcast_1.broadcastStatus)(cronName, "failed");
+        (0, broadcast_1.broadcastLog)(cronName, `Mailwizard campaigns processing failed: ${error.message}`, "error");
+        throw error;
+    }
+}
+async function updateMailwizardCampaignTargets(id, targets) {
+    try {
+        (0, broadcast_1.broadcastLog)("processMailwizardCampaigns", `Updating targets for campaign ${id}`);
+        await db_1.models.mailwizardCampaign.update({ targets }, {
+            where: { id },
+        });
+        (0, broadcast_1.broadcastLog)("processMailwizardCampaigns", `Targets updated for campaign ${id}`, "success");
+    }
+    catch (error) {
+        console_1.logger.error("CRON", "Error updating mailwizard campaign targets", error);
+        throw error;
+    }
+}
+async function updateMailwizardCampaignStatus(id, status) {
+    try {
+        (0, broadcast_1.broadcastLog)("processMailwizardCampaigns", `Updating status to ${status} for campaign ${id}`);
+        await db_1.models.mailwizardCampaign.update({ status }, {
+            where: { id },
+        });
+        (0, broadcast_1.broadcastLog)("processMailwizardCampaigns", `Status updated to ${status} for campaign ${id}`, "success");
+    }
+    catch (error) {
+        console_1.logger.error("CRON", "Error updating mailwizard campaign status", error);
+        throw error;
+    }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useMemo } from "react";
 import { useTransferStore } from "@/store/finance/transfer-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ import {
   ChevronRight,
   PartyPopper,
   Copy,
+  Search,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -84,6 +85,20 @@ export function TransferForm() {
     reset,
   } = useTransferStore();
 
+  // Search state for target currency
+  const [toCurrencySearch, setToCurrencySearch] = useState("");
+
+  // Filter target currencies based on search
+  const filteredToCurrencies = useMemo(() => {
+    if (!toCurrencySearch.trim()) return toCurrencies;
+    const searchTerm = toCurrencySearch.toLowerCase();
+    return toCurrencies.filter(
+      (currency) =>
+        currency.value.toLowerCase().includes(searchTerm) ||
+        currency.label.toLowerCase().includes(searchTerm)
+    );
+  }, [toCurrencies, toCurrencySearch]);
+
   // Initialize store
   useEffect(() => {
     fetchWalletTypes();
@@ -127,6 +142,7 @@ export function TransferForm() {
   const handleToWalletSelect = useCallback(
     async (walletId: string) => {
       setToWalletType(walletId);
+      setToCurrencySearch(""); // Reset search when wallet type changes
       if (fromWalletType) {
         await fetchToCurrencies(fromWalletType, walletId);
       }
@@ -738,9 +754,28 @@ export function TransferForm() {
                     {t("select_target_currency")}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
+                  {/* Search Input */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                    <Input
+                      placeholder={t("search_currencies")}
+                      value={toCurrencySearch}
+                      onChange={(e) => setToCurrencySearch(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+
+                  {/* Results Info */}
+                  {toCurrencySearch && (
+                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                      {filteredToCurrencies.length} {tCommon("results")}
+                    </div>
+                  )}
+
+                  {/* Currency Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {toCurrencies.map((currency, index) => (
+                    {filteredToCurrencies.map((currency, index) => (
                       <motion.button
                         key={`${currency.value}-${index}`}
                         whileHover={{ scale: 1.03 }}
@@ -782,6 +817,15 @@ export function TransferForm() {
                       </motion.button>
                     ))}
                   </div>
+
+                  {/* Empty State */}
+                  {filteredToCurrencies.length === 0 && toCurrencySearch && (
+                    <div className="text-center py-8">
+                      <div className="text-zinc-500 dark:text-zinc-400">
+                        {tCommon("no_currencies_found")} "{toCurrencySearch}"
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>

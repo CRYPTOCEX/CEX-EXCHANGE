@@ -1,1 +1,172 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query"),error_1=require("@b/utils/error"),utils_1=require("./utils"),db_1=require("@b/db"),emails_1=require("@b/utils/emails"),console_1=require("@b/utils/console"),wallet_1=require("@b/services/wallet");exports.metadata={summary:"Verifies a Stripe payment intent",description:"Confirms a completed Stripe payment intent and creates the corresponding wallet transaction",operationId:"verifyStripePaymentIntent",tags:["Finance","Deposit"],requiresAuth:!0,logModule:"STRIPE_DEPOSIT",logTitle:"Verify Stripe payment intent",parameters:[{index:0,name:"intentId",in:"query",description:"Stripe payment intent ID (pi_xxxxx)",required:!0,schema:{type:"string"}}],responses:{200:{description:"Payment intent verified successfully",content:{"application/json":{schema:{type:"object",properties:{transaction:{type:"object",description:"Created transaction object"},balance:{type:"number",description:"Updated wallet balance"},currency:{type:"string",description:"Transaction currency"},method:{type:"string",description:"Payment method"},status:{type:"string",description:"Verification status"}}}}}},401:query_1.unauthorizedResponse,404:(0,query_1.notFoundMetadataResponse)("Payment Intent"),500:query_1.serverErrorResponse}};exports.default=async e=>{const{user:t,query:r,ctx:n}=e;if(!t)throw(0,error_1.createError)({statusCode:401,message:"User not authenticated"});const{intentId:a}=r,i=(0,utils_1.useStripe)();try{null==n||n.step("Retrieving Stripe payment intent");const e=await i.paymentIntents.retrieve(a);if("succeeded"!==e.status)throw(0,error_1.createError)({statusCode:400,message:`Payment intent status: ${e.status}`});null==n||n.step("Checking for duplicate transaction");const r=await db_1.models.transaction.findOne({where:{referenceId:a}});if(r){null==n||n.success("Stripe deposit completed successfully");return{transaction:r,status:"already_processed",message:"Transaction already exists"}}const s=e.amount/100,o=e.currency.toUpperCase();null==n||n.step("Fetching payment gateway configuration");const c=await db_1.models.depositGateway.findOne({where:{alias:"stripe",status:!0}});if(!c)throw(0,error_1.createError)({statusCode:404,message:"Stripe gateway not found"});const{fixedFee:l,percentageFee:d}=c;null==n||n.step("Calculating fees");const u=s*(d||0)/100+(l||0),p=s-u;null==n||n.step("Finding or creating wallet");const y=(await wallet_1.walletCreationService.getOrCreateWallet(t.id,"FIAT",o)).wallet;null==n||n.step("Validating currency");const m=await db_1.models.currency.findOne({where:{id:y.currency}});if(!m){null==n||n.fail("Currency not found");throw(0,error_1.createError)({statusCode:404,message:"Currency not found"})}let f=y.balance+p;f=parseFloat(f.toFixed(m.precision||2));null==n||n.step("Starting database transaction");const g=await db_1.sequelize.transaction(async e=>{null==n||n.step("Updating wallet balance via wallet service");const r=`stripe_intent_${a}`,i=await wallet_1.walletService.credit({idempotencyKey:r,userId:t.id,walletId:y.id,walletType:"FIAT",currency:o,amount:p,operationType:"DEPOSIT",referenceId:a,description:`Stripe payment intent deposit of ${p} ${o}`,metadata:{method:"STRIPE_PAYMENT_INTENT",paymentIntentId:a,stripeAmount:s,fee:u},transaction:e});if(u>0){null==n||n.step("Recording admin profit");await db_1.models.adminProfit.create({amount:u,currency:y.currency,type:"DEPOSIT",transactionId:i.transactionId,description:`Admin profit from Stripe payment intent fee of ${u} ${o} for user (${t.id})`},{transaction:e})}return i});null==n||n.step("Fetching user account");const w=await db_1.models.user.findByPk(t.id),_=await db_1.models.transaction.findByPk(g.transactionId);try{null==n||n.step("Sending notification email");await(0,emails_1.sendFiatTransactionEmail)(w,_,o,f)}catch(e){console_1.logger.error("STRIPE","Error sending email",e)}return{transaction:_,balance:f,currency:o,method:"Stripe Payment Intent",status:"succeeded"}}catch(e){throw(0,error_1.createError)({statusCode:500,message:`Error verifying payment intent: ${e.message}`})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+const error_1 = require("@b/utils/error");
+const utils_1 = require("./utils");
+const db_1 = require("@b/db");
+const emails_1 = require("@b/utils/emails");
+const console_1 = require("@b/utils/console");
+const wallet_1 = require("@b/services/wallet");
+exports.metadata = {
+    summary: "Verifies a Stripe payment intent",
+    description: "Confirms a completed Stripe payment intent and creates the corresponding wallet transaction",
+    operationId: "verifyStripePaymentIntent",
+    tags: ["Finance", "Deposit"],
+    requiresAuth: true,
+    logModule: "STRIPE_DEPOSIT",
+    logTitle: "Verify Stripe payment intent",
+    parameters: [
+        {
+            index: 0,
+            name: "intentId",
+            in: "query",
+            description: "Stripe payment intent ID (pi_xxxxx)",
+            required: true,
+            schema: { type: "string" },
+        },
+    ],
+    responses: {
+        200: {
+            description: "Payment intent verified successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            transaction: {
+                                type: "object",
+                                description: "Created transaction object"
+                            },
+                            balance: {
+                                type: "number",
+                                description: "Updated wallet balance"
+                            },
+                            currency: {
+                                type: "string",
+                                description: "Transaction currency"
+                            },
+                            method: {
+                                type: "string",
+                                description: "Payment method"
+                            },
+                            status: {
+                                type: "string",
+                                description: "Verification status"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        401: query_1.unauthorizedResponse,
+        404: (0, query_1.notFoundMetadataResponse)("Payment Intent"),
+        500: query_1.serverErrorResponse,
+    },
+};
+exports.default = async (data) => {
+    const { user, query, ctx } = data;
+    if (!user)
+        throw (0, error_1.createError)({ statusCode: 401, message: "User not authenticated" });
+    const { intentId } = query;
+    const stripe = (0, utils_1.useStripe)();
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Retrieving Stripe payment intent");
+        const paymentIntent = await stripe.paymentIntents.retrieve(intentId);
+        if (paymentIntent.status !== 'succeeded') {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Payment intent status: ${paymentIntent.status}` });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking for duplicate transaction");
+        const existingTransaction = await db_1.models.transaction.findOne({
+            where: { referenceId: intentId },
+        });
+        if (existingTransaction) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.success("Stripe deposit completed successfully");
+            return {
+                transaction: existingTransaction,
+                status: 'already_processed',
+                message: 'Transaction already exists'
+            };
+        }
+        const totalAmount = paymentIntent.amount / 100;
+        const currency = paymentIntent.currency.toUpperCase();
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching payment gateway configuration");
+        const gateway = await db_1.models.depositGateway.findOne({
+            where: { alias: "stripe", status: true },
+        });
+        if (!gateway)
+            throw (0, error_1.createError)({ statusCode: 404, message: "Stripe gateway not found" });
+        const fixedFee = typeof gateway.fixedFee === 'number' ? gateway.fixedFee : 0;
+        const percentageFee = typeof gateway.percentageFee === 'number' ? gateway.percentageFee : 0;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating fees");
+        const fee = (totalAmount * percentageFee) / 100 + fixedFee;
+        const depositAmount = totalAmount - fee;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding or creating wallet");
+        const walletCreationResult = await wallet_1.walletCreationService.getOrCreateWallet(user.id, "FIAT", currency);
+        const wallet = walletCreationResult.wallet;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating currency");
+        const currencyData = await db_1.models.currency.findOne({
+            where: { id: wallet.currency },
+        });
+        if (!currencyData) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Currency not found");
+            throw (0, error_1.createError)({ statusCode: 404, message: "Currency not found" });
+        }
+        let newBalance = wallet.balance + depositAmount;
+        newBalance = parseFloat(newBalance.toFixed(currencyData.precision || 2));
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Starting database transaction");
+        const walletResult = await db_1.sequelize.transaction(async (t) => {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating wallet balance via wallet service");
+            const idempotencyKey = `stripe_intent_${intentId}`;
+            const result = await wallet_1.walletService.credit({
+                idempotencyKey,
+                userId: user.id,
+                walletId: wallet.id,
+                walletType: "FIAT",
+                currency,
+                amount: depositAmount,
+                operationType: "DEPOSIT",
+                referenceId: intentId,
+                description: `Stripe payment intent deposit of ${depositAmount} ${currency}`,
+                metadata: {
+                    method: "STRIPE_PAYMENT_INTENT",
+                    paymentIntentId: intentId,
+                    stripeAmount: totalAmount,
+                    fee,
+                },
+                transaction: t,
+            });
+            if (fee > 0) {
+                ctx === null || ctx === void 0 ? void 0 : ctx.step("Recording admin profit");
+                await db_1.models.adminProfit.create({
+                    amount: fee,
+                    currency: wallet.currency,
+                    type: "DEPOSIT",
+                    transactionId: result.transactionId,
+                    description: `Admin profit from Stripe payment intent fee of ${fee} ${currency} for user (${user.id})`,
+                }, { transaction: t });
+            }
+            return result;
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching user account");
+        const userPk = await db_1.models.user.findByPk(user.id);
+        const transaction = await db_1.models.transaction.findByPk(walletResult.transactionId);
+        try {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending notification email");
+            await (0, emails_1.sendFiatTransactionEmail)(userPk, transaction, currency, newBalance);
+        }
+        catch (error) {
+            console_1.logger.error("STRIPE", "Error sending email", error);
+        }
+        return {
+            transaction,
+            balance: newBalance,
+            currency,
+            method: "Stripe Payment Intent",
+            status: "succeeded"
+        };
+    }
+    catch (error) {
+        throw (0, error_1.createError)({ statusCode: 500, message: `Error verifying payment intent: ${error.message}` });
+    }
+};

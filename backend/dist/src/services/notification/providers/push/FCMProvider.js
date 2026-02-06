@@ -1,1 +1,333 @@
-"use strict";var __createBinding=this&&this.__createBinding||(Object.create?function(i,t,e,n){void 0===n&&(n=e);var o=Object.getOwnPropertyDescriptor(t,e);o&&!("get"in o?!t.__esModule:o.writable||o.configurable)||(o={enumerable:!0,get:function(){return t[e]}});Object.defineProperty(i,n,o)}:function(i,t,e,n){void 0===n&&(n=e);i[n]=t[e]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(i,t){Object.defineProperty(i,"default",{enumerable:!0,value:t})}:function(i,t){i.default=t}),__importStar=this&&this.__importStar||function(){var i=function(t){i=Object.getOwnPropertyNames||function(i){var t=[];for(var e in i)Object.prototype.hasOwnProperty.call(i,e)&&(t[t.length]=e);return t};return i(t)};return function(t){if(t&&t.__esModule)return t;var e={};if(null!=t)for(var n=i(t),o=0;o<n.length;o++)"default"!==n[o]&&__createBinding(e,t,n[o]);__setModuleDefault(e,t);return e}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.FCMProvider=void 0;const admin=__importStar(require("firebase-admin")),BasePushProvider_1=require("./BasePushProvider");class FCMProvider extends BasePushProvider_1.BasePushProvider{constructor(i){super("FCM",i);this.app=null;this.validateConfig()&&this.initializeApp()}loadConfigFromEnv(){var i;return{projectId:process.env.FCM_PROJECT_ID,clientEmail:process.env.FCM_CLIENT_EMAIL,privateKey:null===(i=process.env.FCM_PRIVATE_KEY)||void 0===i?void 0:i.replace(/\\n/g,"\n"),serviceAccountPath:process.env.FCM_SERVICE_ACCOUNT_PATH}}validateConfig(){if(this.config.serviceAccountPath)return!0;if(!this.config.projectId){this.logError("Missing FCM_PROJECT_ID",{});return!1}if(!this.config.clientEmail){this.logError("Missing FCM_CLIENT_EMAIL",{});return!1}if(!this.config.privateKey){this.logError("Missing FCM_PRIVATE_KEY",{});return!1}return!0}initializeApp(){try{if(admin.apps.length>0){this.app=admin.apps[0];this.log("Using existing Firebase app");return}if(this.config.serviceAccountPath){const i=require(this.config.serviceAccountPath);this.app=admin.initializeApp({credential:admin.credential.cert(i)})}else this.app=admin.initializeApp({credential:admin.credential.cert({projectId:this.config.projectId,clientEmail:this.config.clientEmail,privateKey:this.config.privateKey})});this.log("Firebase Admin SDK initialized successfully")}catch(i){this.logError("Failed to initialize Firebase Admin SDK",i);throw i}}async send(i,t){try{if(!this.validateConfig()||!this.app)throw new Error("FCM configuration is invalid or app not initialized");const e=this.filterValidTokens(i.tokens);if(0===e.length)return{success:!1,error:"No valid device tokens provided"};const n=this.buildFCMMessage(i,t);return 1===e.length?await this.sendToDevice(e[0],n):await this.sendMulticast(e,i,t)}catch(i){this.logError("Failed to send push notification",i);return{success:!1,error:i.message||"Failed to send push notification via FCM"}}}async sendToDevice(i,t){try{const e=await admin.messaging().send({token:i,...t});this.log("Push notification sent successfully",{token:i.substring(0,20)+"...",messageId:e});return{success:!0,messageId:`fcm-${e}`,externalId:e}}catch(t){if("messaging/invalid-registration-token"===t.code||"messaging/registration-token-not-registered"===t.code){this.log("Invalid or unregistered token",{token:i});return{success:!1,error:"Invalid device token",metadata:{invalidToken:i,shouldRemove:!0}}}throw t}}async sendMulticast(i,t,e){try{if(!this.app)throw new Error("Firebase app not initialized");const n=this.buildFCMMessage(t,e),o=await admin.messaging().sendEachForMulticast({tokens:i,...n});this.log("Multicast push notification sent",{totalTokens:i.length,successCount:o.successCount,failureCount:o.failureCount});const s=[];o.responses.forEach((t,e)=>{var n,o;t.success||"messaging/invalid-registration-token"!==(null===(n=t.error)||void 0===n?void 0:n.code)&&"messaging/registration-token-not-registered"!==(null===(o=t.error)||void 0===o?void 0:o.code)||s.push(i[e])});return{success:o.successCount>0,messageId:`fcm-multicast-${Date.now()}`,metadata:{totalSent:i.length,successCount:o.successCount,failureCount:o.failureCount,invalidTokens:s}}}catch(i){this.logError("Failed to send multicast push notification",i);throw i}}buildFCMMessage(i,t){const e={notification:{title:this.truncateText(i.title,65),body:this.truncateText(i.body,240)}};i.imageUrl&&(e.notification.imageUrl=i.imageUrl);i.data&&(e.data=i.data);(null==t?void 0:t.android)&&(e.android={priority:"high"===i.priority?"high":"normal",notification:{channelId:t.android.channelId||"default-channel",color:t.android.color,icon:i.icon,imageUrl:i.imageUrl,sound:i.sound||"default",tag:i.tag},ttl:i.ttl?1e3*i.ttl:void 0});if(null==t?void 0:t.ios){e.apns={headers:{"apns-priority":"high"===i.priority?"10":"5"},payload:{aps:{alert:{title:e.notification.title,body:e.notification.body},badge:t.ios.badge,sound:t.ios.sound||"default",contentAvailable:t.ios.contentAvailable?1:0,mutableContent:t.ios.mutableContent?1:0}}};i.imageUrl&&(e.apns.fcmOptions={imageUrl:i.imageUrl})}(null==t?void 0:t.web)&&(e.webpush={notification:{title:e.notification.title,body:e.notification.body,icon:t.web.icon||i.icon,badge:t.web.badge,vibrate:t.web.vibrate,requireInteraction:"high"===i.priority},fcmOptions:{link:i.clickAction}});return e}validateToken(i){if(!i||i.length<100||i.length>200)return!1;return/^[a-zA-Z0-9_-]+$/.test(i)}async subscribeToTopic(i,t){try{if(!this.app)throw new Error("Firebase app not initialized");const e=await admin.messaging().subscribeToTopic(i,t);this.log("Tokens subscribed to topic",{topic:t,successCount:e.successCount,failureCount:e.failureCount});return{success:e.successCount>0,metadata:{topic:t,successCount:e.successCount,failureCount:e.failureCount}}}catch(i){this.logError("Failed to subscribe to topic",i);throw i}}async unsubscribeFromTopic(i,t){try{if(!this.app)throw new Error("Firebase app not initialized");const e=await admin.messaging().unsubscribeFromTopic(i,t);this.log("Tokens unsubscribed from topic",{topic:t,successCount:e.successCount,failureCount:e.failureCount});return{success:e.successCount>0,metadata:{topic:t,successCount:e.successCount,failureCount:e.failureCount}}}catch(i){this.logError("Failed to unsubscribe from topic",i);throw i}}}exports.FCMProvider=FCMProvider;
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.FCMProvider = void 0;
+const admin = __importStar(require("firebase-admin"));
+const BasePushProvider_1 = require("./BasePushProvider");
+class FCMProvider extends BasePushProvider_1.BasePushProvider {
+    constructor(config) {
+        super("FCM", config);
+        this.app = null;
+        if (this.validateConfig()) {
+            this.initializeApp();
+        }
+    }
+    loadConfigFromEnv() {
+        var _a;
+        return {
+            projectId: process.env.FCM_PROJECT_ID,
+            clientEmail: process.env.FCM_CLIENT_EMAIL,
+            privateKey: (_a = process.env.FCM_PRIVATE_KEY) === null || _a === void 0 ? void 0 : _a.replace(/\\n/g, "\n"),
+            serviceAccountPath: process.env.FCM_SERVICE_ACCOUNT_PATH,
+        };
+    }
+    validateConfig() {
+        if (this.config.serviceAccountPath) {
+            return true;
+        }
+        if (!this.config.projectId) {
+            this.logError("Missing FCM_PROJECT_ID", {});
+            return false;
+        }
+        if (!this.config.clientEmail) {
+            this.logError("Missing FCM_CLIENT_EMAIL", {});
+            return false;
+        }
+        if (!this.config.privateKey) {
+            this.logError("Missing FCM_PRIVATE_KEY", {});
+            return false;
+        }
+        return true;
+    }
+    initializeApp() {
+        try {
+            if (admin.apps.length > 0) {
+                this.app = admin.apps[0];
+                this.log("Using existing Firebase app");
+                return;
+            }
+            if (this.config.serviceAccountPath) {
+                const serviceAccount = require(this.config.serviceAccountPath);
+                this.app = admin.initializeApp({
+                    credential: admin.credential.cert(serviceAccount),
+                });
+            }
+            else {
+                this.app = admin.initializeApp({
+                    credential: admin.credential.cert({
+                        projectId: this.config.projectId,
+                        clientEmail: this.config.clientEmail,
+                        privateKey: this.config.privateKey,
+                    }),
+                });
+            }
+            this.log("Firebase Admin SDK initialized successfully");
+        }
+        catch (error) {
+            this.logError("Failed to initialize Firebase Admin SDK", error);
+            this.app = null;
+        }
+    }
+    async send(data, platformOptions) {
+        try {
+            if (!this.validateConfig() || !this.app) {
+                throw new Error("FCM configuration is invalid or app not initialized");
+            }
+            const validTokens = this.filterValidTokens(data.tokens);
+            if (validTokens.length === 0) {
+                return {
+                    success: false,
+                    error: "No valid device tokens provided",
+                };
+            }
+            const message = this.buildFCMMessage(data, platformOptions);
+            if (validTokens.length === 1) {
+                return await this.sendToDevice(validTokens[0], message);
+            }
+            else {
+                return await this.sendMulticast(validTokens, data, platformOptions);
+            }
+        }
+        catch (error) {
+            this.logError("Failed to send push notification", error);
+            return {
+                success: false,
+                error: error.message || "Failed to send push notification via FCM",
+            };
+        }
+    }
+    async sendToDevice(token, message) {
+        try {
+            const response = await admin.messaging().send({
+                token,
+                ...message,
+            });
+            this.log("Push notification sent successfully", {
+                token: token.substring(0, 20) + "...",
+                messageId: response,
+            });
+            return {
+                success: true,
+                messageId: `fcm-${response}`,
+                externalId: response,
+            };
+        }
+        catch (error) {
+            if (error.code === "messaging/invalid-registration-token" ||
+                error.code === "messaging/registration-token-not-registered") {
+                this.log("Invalid or unregistered token", { token });
+                return {
+                    success: false,
+                    error: "Invalid device token",
+                    metadata: {
+                        invalidToken: token,
+                        shouldRemove: true,
+                    },
+                };
+            }
+            throw error;
+        }
+    }
+    async sendMulticast(tokens, data, platformOptions) {
+        try {
+            if (!this.app) {
+                throw new Error("Firebase app not initialized");
+            }
+            const message = this.buildFCMMessage(data, platformOptions);
+            const response = await admin.messaging().sendEachForMulticast({
+                tokens,
+                ...message,
+            });
+            this.log("Multicast push notification sent", {
+                totalTokens: tokens.length,
+                successCount: response.successCount,
+                failureCount: response.failureCount,
+            });
+            const invalidTokens = [];
+            response.responses.forEach((resp, index) => {
+                var _a, _b;
+                if (!resp.success &&
+                    (((_a = resp.error) === null || _a === void 0 ? void 0 : _a.code) === "messaging/invalid-registration-token" ||
+                        ((_b = resp.error) === null || _b === void 0 ? void 0 : _b.code) === "messaging/registration-token-not-registered")) {
+                    invalidTokens.push(tokens[index]);
+                }
+            });
+            return {
+                success: response.successCount > 0,
+                messageId: `fcm-multicast-${Date.now()}`,
+                metadata: {
+                    totalSent: tokens.length,
+                    successCount: response.successCount,
+                    failureCount: response.failureCount,
+                    invalidTokens,
+                },
+            };
+        }
+        catch (error) {
+            this.logError("Failed to send multicast push notification", error);
+            throw error;
+        }
+    }
+    buildFCMMessage(data, platformOptions) {
+        const message = {
+            notification: {
+                title: this.truncateText(data.title, 65),
+                body: this.truncateText(data.body, 240),
+            },
+        };
+        if (data.imageUrl) {
+            message.notification.imageUrl = data.imageUrl;
+        }
+        if (data.data) {
+            message.data = data.data;
+        }
+        if (platformOptions === null || platformOptions === void 0 ? void 0 : platformOptions.android) {
+            message.android = {
+                priority: data.priority === "high" ? "high" : "normal",
+                notification: {
+                    channelId: platformOptions.android.channelId || "default-channel",
+                    color: platformOptions.android.color,
+                    icon: data.icon,
+                    imageUrl: data.imageUrl,
+                    sound: data.sound || "default",
+                    tag: data.tag,
+                },
+                ttl: data.ttl ? data.ttl * 1000 : undefined,
+            };
+        }
+        if (platformOptions === null || platformOptions === void 0 ? void 0 : platformOptions.ios) {
+            message.apns = {
+                headers: {
+                    "apns-priority": data.priority === "high" ? "10" : "5",
+                },
+                payload: {
+                    aps: {
+                        alert: {
+                            title: message.notification.title,
+                            body: message.notification.body,
+                        },
+                        badge: platformOptions.ios.badge,
+                        sound: platformOptions.ios.sound || "default",
+                        contentAvailable: platformOptions.ios.contentAvailable ? 1 : 0,
+                        mutableContent: platformOptions.ios.mutableContent ? 1 : 0,
+                    },
+                },
+            };
+            if (data.imageUrl) {
+                message.apns.fcmOptions = {
+                    imageUrl: data.imageUrl,
+                };
+            }
+        }
+        if (platformOptions === null || platformOptions === void 0 ? void 0 : platformOptions.web) {
+            message.webpush = {
+                notification: {
+                    title: message.notification.title,
+                    body: message.notification.body,
+                    icon: platformOptions.web.icon || data.icon,
+                    badge: platformOptions.web.badge,
+                    vibrate: platformOptions.web.vibrate,
+                    requireInteraction: data.priority === "high",
+                },
+                fcmOptions: {
+                    link: data.clickAction,
+                },
+            };
+        }
+        return message;
+    }
+    validateToken(token) {
+        if (!token || token.length < 100 || token.length > 200) {
+            return false;
+        }
+        const tokenRegex = /^[a-zA-Z0-9_-]+$/;
+        return tokenRegex.test(token);
+    }
+    async subscribeToTopic(tokens, topic) {
+        try {
+            if (!this.app) {
+                throw new Error("Firebase app not initialized");
+            }
+            const response = await admin
+                .messaging()
+                .subscribeToTopic(tokens, topic);
+            this.log("Tokens subscribed to topic", {
+                topic,
+                successCount: response.successCount,
+                failureCount: response.failureCount,
+            });
+            return {
+                success: response.successCount > 0,
+                metadata: {
+                    topic,
+                    successCount: response.successCount,
+                    failureCount: response.failureCount,
+                },
+            };
+        }
+        catch (error) {
+            this.logError("Failed to subscribe to topic", error);
+            throw error;
+        }
+    }
+    async unsubscribeFromTopic(tokens, topic) {
+        try {
+            if (!this.app) {
+                throw new Error("Firebase app not initialized");
+            }
+            const response = await admin
+                .messaging()
+                .unsubscribeFromTopic(tokens, topic);
+            this.log("Tokens unsubscribed from topic", {
+                topic,
+                successCount: response.successCount,
+                failureCount: response.failureCount,
+            });
+            return {
+                success: response.successCount > 0,
+                metadata: {
+                    topic,
+                    successCount: response.successCount,
+                    failureCount: response.failureCount,
+                },
+            };
+        }
+        catch (error) {
+            this.logError("Failed to unsubscribe from topic", error);
+            throw error;
+        }
+    }
+}
+exports.FCMProvider = FCMProvider;

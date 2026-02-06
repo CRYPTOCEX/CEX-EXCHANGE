@@ -27,10 +27,14 @@ export interface binaryAiEngineCorrelationAlertAttributes {
   externalPrice: number;
   deviationPercent: number;
   priceSource: string;
+  provider: string;
+  message?: string;
+  resolved: boolean;
   severity: AlertSeverity;
   status: AlertStatus;
   acknowledgedBy: string | null;
   acknowledgedAt: Date | null;
+  resolvedBy: string | null;
   resolvedAt: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
@@ -40,10 +44,14 @@ export interface binaryAiEngineCorrelationAlertCreationAttributes
   extends Optional<
     binaryAiEngineCorrelationAlertAttributes,
     | "id"
+    | "priceSource"
+    | "message"
+    | "resolved"
     | "severity"
     | "status"
     | "acknowledgedBy"
     | "acknowledgedAt"
+    | "resolvedBy"
     | "resolvedAt"
     | "createdAt"
     | "updatedAt"
@@ -91,6 +99,12 @@ export default class binaryAiEngineCorrelationAlert
   deviationPercent!: number;
   /** Source of external price */
   priceSource!: string;
+  /** External price provider */
+  provider!: string;
+  /** Alert message */
+  message?: string;
+  /** Whether alert is resolved */
+  resolved!: boolean;
   /** Alert severity */
   severity!: AlertSeverity;
   /** Alert status */
@@ -99,6 +113,8 @@ export default class binaryAiEngineCorrelationAlert
   acknowledgedBy!: string | null;
   /** When alert was acknowledged */
   acknowledgedAt!: Date | null;
+  /** Who resolved the alert */
+  resolvedBy!: string | null;
   /** When alert was resolved */
   resolvedAt!: Date | null;
 
@@ -160,7 +176,20 @@ export default class binaryAiEngineCorrelationAlert
         },
         priceSource: {
           type: DataTypes.STRING(50),
+          allowNull: true,
+        },
+        provider: {
+          type: DataTypes.STRING(50),
           allowNull: false,
+        },
+        message: {
+          type: DataTypes.TEXT,
+          allowNull: true,
+        },
+        resolved: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
         },
         severity: {
           type: DataTypes.ENUM("LOW", "MEDIUM", "HIGH", "CRITICAL"),
@@ -178,6 +207,10 @@ export default class binaryAiEngineCorrelationAlert
         },
         acknowledgedAt: {
           type: DataTypes.DATE,
+          allowNull: true,
+        },
+        resolvedBy: {
+          type: DataTypes.STRING(100),
           allowNull: true,
         },
         resolvedAt: {

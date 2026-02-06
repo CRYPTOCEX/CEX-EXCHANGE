@@ -13,6 +13,7 @@ export type EngineActionType =
   | "OUTCOME_OVERRIDE"
   | "PERIOD_RESET"
   | "CONFIG_CHANGE"
+  | "ENGINE_CREATED"
   | "ENGINE_START"
   | "ENGINE_STOP"
   | "ENGINE_PAUSE"
@@ -141,6 +142,7 @@ export default class binaryAiEngineAction
             "OUTCOME_OVERRIDE",
             "PERIOD_RESET",
             "CONFIG_CHANGE",
+            "ENGINE_CREATED",
             "ENGINE_START",
             "ENGINE_STOP",
             "ENGINE_PAUSE",

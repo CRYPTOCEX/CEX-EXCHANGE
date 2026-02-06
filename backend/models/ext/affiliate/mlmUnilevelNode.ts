@@ -15,7 +15,7 @@ export default class mlmUnilevelNode
   getReferral!: Sequelize.BelongsToGetAssociationMixin<mlmReferral>;
   setReferral!: Sequelize.BelongsToSetAssociationMixin<
     mlmReferral,
-    mlmReferralId
+    string
   >;
   createReferral!: Sequelize.BelongsToCreateAssociationMixin<mlmReferral>;
   // mlmUnilevelNode belongsTo mlmUnilevelNode via parentId
@@ -23,7 +23,7 @@ export default class mlmUnilevelNode
   getParent!: Sequelize.BelongsToGetAssociationMixin<mlmUnilevelNode>;
   setParent!: Sequelize.BelongsToSetAssociationMixin<
     mlmUnilevelNode,
-    mlmUnilevelNodeId
+    string
   >;
   createParent!: Sequelize.BelongsToCreateAssociationMixin<mlmUnilevelNode>;
 

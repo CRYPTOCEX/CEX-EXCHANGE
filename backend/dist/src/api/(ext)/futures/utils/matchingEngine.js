@@ -1,1 +1,507 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.FuturesMatchingEngine=void 0;let client,scyllaFuturesKeyspace,fromBigInt,removeTolerance,toBigIntFloat,normalizeTimeToInterval,Candle;try{const e=require("@b/api/(ext)/ecosystem/utils/scylla/client");client=e.default;scyllaFuturesKeyspace=e.scyllaFuturesKeyspace;const t=require("@b/api/(ext)/ecosystem/utils/blockchain");fromBigInt=t.fromBigInt;removeTolerance=t.removeTolerance;toBigIntFloat=t.toBigIntFloat;const r=require("@b/api/(ext)/ecosystem/utils/ws");normalizeTimeToInterval=r.normalizeTimeToInterval;Candle=require("@b/api/(ext)/ecosystem/utils/scylla/queries").Candle}catch(e){}const orderbook_1=require("./orderbook"),ws_1=require("./ws"),markets_1=require("./markets"),console_1=require("@b/utils/console"),candles_1=require("./candles"),matchmaking_1=require("./matchmaking"),order_1=require("./queries/order"),candle_1=require("./queries/candle"),orderbook_2=require("./queries/orderbook"),positions_1=require("./queries/positions"),liquidation_1=require("./liquidation"),position_1=require("./position");class FuturesMatchingEngine{constructor(){this.orderQueue={};this.marketsBySymbol={};this.lockedOrders=new Set;this.lastCandle={};this.yesterdayCandle={}}static getInstance(){this.instancePromise||(this.instancePromise=(async()=>{const e=new FuturesMatchingEngine;await e.init();return e})());return this.instancePromise}async init(){if(client&&scyllaFuturesKeyspace){await this.initializeMarkets();await this.initializeOrders();await this.initializeLastCandles();await this.initializeYesterdayCandles();await this.initializePositions()}else console_1.logger.warn("FUTURES","Ecosystem extension not available, futures matching engine disabled")}async initializeMarkets(){(await(0,markets_1.getFuturesMarkets)()).forEach(e=>{const t=`${e.currency}/${e.pair}`;e.symbol=t;this.marketsBySymbol[t]=e;this.orderQueue[t]=[]})}async initializeOrders(){try{(await(0,order_1.getAllOpenOrders)()).forEach(e=>{var t,r,o,i,s,a,n,l,c;const d=new Date(e.createdAt),u=new Date(e.updatedAt);if(isNaN(d.getTime())||isNaN(u.getTime())){console_1.logger.error("FUTURES","Invalid date in order",new Error("Invalid date in order"));return}if(!(null===(t=e.userId)||void 0===t?void 0:t.buffer)||!(null===(r=e.id)||void 0===r?void 0:r.buffer)){console_1.logger.error("FUTURES","Invalid Uuid in order",new Error("Invalid Uuid in order"));return}const m={...e,userId:(0,order_1.uuidToString)(e.userId),id:(0,order_1.uuidToString)(e.id),amount:BigInt(null!==(o=e.amount)&&void 0!==o?o:0),price:BigInt(null!==(i=e.price)&&void 0!==i?i:0),cost:BigInt(null!==(s=e.cost)&&void 0!==s?s:0),fee:BigInt(null!==(a=e.fee)&&void 0!==a?a:0),remaining:BigInt(null!==(n=e.remaining)&&void 0!==n?n:0),filled:BigInt(null!==(l=e.filled)&&void 0!==l?l:0),createdAt:d,updatedAt:u,leverage:BigInt(null!==(c=e.leverage)&&void 0!==c?c:0),stopLossPrice:e.stopLossPrice?BigInt(e.stopLossPrice):null,takeProfitPrice:e.takeProfitPrice?BigInt(e.takeProfitPrice):null};this.orderQueue[m.symbol]||(this.orderQueue[m.symbol]=[]);this.orderQueue[m.symbol].push(m)});await this.processQueue()}catch(e){console_1.logger.error("FUTURES","Failed to populate order queue with open orders",e)}}async initializeLastCandles(){try{(await(0,candle_1.getLastCandles)()).forEach(e=>{this.lastCandle[e.symbol]||(this.lastCandle[e.symbol]={});this.lastCandle[e.symbol][e.interval]=e})}catch(e){console_1.logger.error("FUTURES","Failed to initialize last candles",e)}}async initializeYesterdayCandles(){try{const e=await(0,candle_1.getYesterdayCandles)();Object.keys(e).forEach(t=>{const r=e[t];r.length>0&&(this.yesterdayCandle[t]=r[0])})}catch(e){console_1.logger.error("FUTURES","Failed to initialize yesterday's candles",e)}}async initializePositions(){if(toBigIntFloat&&fromBigInt)try{const e=await(0,positions_1.getAllOpenPositions)(),t=[...new Set(e.map(e=>e.userId))];await Promise.all(t.map(async t=>{const r=e.filter(e=>e.userId===t);await Promise.all(r.map(async e=>{var t;const r=null===(t=this.lastCandle[e.symbol])||void 0===t?void 0:t["1m"];if(r){const t=toBigIntFloat(r.close),o=(0,position_1.calculateUnrealizedPnl)(e.entryPrice,e.amount,t,e.side);await(0,positions_1.updatePositionInDB)(e.userId,e.id,e.entryPrice,e.amount,o,e.stopLossPrice,e.takeProfitPrice);await(0,liquidation_1.checkForLiquidation)(e,Number(fromBigInt(t)))}}))}))}catch(e){console_1.logger.error("FUTURES","Failed to initialize positions",e)}else console_1.logger.warn("FUTURES","Ecosystem extension not available for position initialization")}async processQueue(){if(!client||!removeTolerance||!toBigIntFloat){console_1.logger.warn("FUTURES","Ecosystem extension not available for queue processing");return}const e=[],t={},r=await(0,orderbook_2.fetchOrderBooks)(),o={};null==r||r.forEach(e=>{o[e.symbol]||(o[e.symbol]={bids:{},asks:{}});o[e.symbol][e.side.toLowerCase()][removeTolerance(toBigIntFloat(Number(e.price))).toString()]=removeTolerance(toBigIntFloat(Number(e.amount)))});const i=[];for(const r in this.orderQueue){const s=this.orderQueue[r];if(0===s.length)continue;const a=(async()=>{const{matchedOrders:i,bookUpdates:a}=await(0,matchmaking_1.matchAndCalculateOrders)(s,o[r]||{bids:{},asks:{}});if(0!==i.length){e.push(...i);t[r]=a}})();i.push(a)}await Promise.all(i);if(0===e.length)return;await this.performUpdates(e,t);const s={};for(const e in t)s[e]=(0,orderbook_1.applyUpdatesToOrderBook)(o[e],t[e]);const a=[];for(const e in this.orderQueue){const t=(async()=>{this.orderQueue[e]=this.orderQueue[e].filter(e=>"OPEN"===e.status)})();a.push(t)}await Promise.all(a);this.broadcastUpdates(e,s)}async performUpdates(e,t){if(!this.lockOrders(e)){console_1.logger.warn("FUTURES","Couldn't obtain a lock on all orders, skipping this batch.");return}const r=[];r.push(...(0,order_1.generateOrderUpdateQueries)(e));const o=(0,candles_1.getLatestOrdersForCandles)(e);for(const e of o){const t=await this.updateLastCandles(e);r.push(...t)}const i=(0,orderbook_2.generateOrderBookUpdateQueries)(t);r.push(...i);if(r.length>0)try{await client.batch(r,{prepare:!0})}catch(e){console_1.logger.error("FUTURES","Failed to batch update",e)}else console_1.logger.warn("FUTURES","No queries to batch update.");const s=e.map(async e=>{const t=await(0,positions_1.getPositions)(e.userId,e.symbol,"OPEN");if(t.length>0){fromBigInt&&await Promise.all(t.map(t=>(0,liquidation_1.checkForLiquidation)(t,fromBigInt(e.price))));await Promise.all(t.map(e=>(0,ws_1.handlePositionBroadcast)(e)))}});await Promise.all(s);this.unlockOrders(e)}async addToQueue(e){if(!(0,matchmaking_1.validateOrder)(e))return;if(!e.createdAt||isNaN(new Date(e.createdAt).getTime())||!e.updatedAt||isNaN(new Date(e.updatedAt).getTime())){console_1.logger.error("FUTURES","Invalid date in order",new Error("Invalid date in order"));return}this.orderQueue[e.symbol]||(this.orderQueue[e.symbol]=[]);this.orderQueue[e.symbol].push(e);const t=await(0,orderbook_2.updateSingleOrderBook)(e,"add");(0,ws_1.handleOrderBookBroadcast)(e.symbol,t);await this.processQueue()}async updateLastCandles(e){if(!(toBigIntFloat&&fromBigInt&&scyllaFuturesKeyspace&&normalizeTimeToInterval)){console_1.logger.warn("FUTURES","Ecosystem extension not available for candle updates");return[]}let t,r=BigInt(0);try{t=JSON.parse(e.trades)}catch(e){console_1.logger.error("FUTURES","Failed to parse trades",e);return[]}if(t&&t.length>0&&void 0!==t[t.length-1].price)r=toBigIntFloat?toBigIntFloat(t[t.length-1].price):BigInt(0);else{if(void 0===e.price){console_1.logger.error("FUTURES","Neither trade prices nor order price are available",new Error("Neither trade prices nor order price are available"));return[]}r=e.price}const o=[];this.lastCandle[e.symbol]||(this.lastCandle[e.symbol]={});for(const t of candles_1.intervals){const i=await this.generateCandleQueries(e,t,r);i&&o.push(i)}return o}async generateCandleQueries(e,t,r){var o;let i=null===(o=this.lastCandle[e.symbol])||void 0===o?void 0:o[t];const s=normalizeTimeToInterval((new Date).getTime(),t),a=i?normalizeTimeToInterval(new Date(i.createdAt).getTime(),t):null;if(!i||s!==a){let o;if(i)o=i.close;else{const i=await(0,candle_1.getLatestCandleForSymbol)(e.symbol,t);if(i){o=i.close;this.lastCandle[e.symbol]||(this.lastCandle[e.symbol]={});this.lastCandle[e.symbol][t]=i}else o=fromBigInt?fromBigInt(r):0}if(!o&&0!==o)return null;const s=fromBigInt?fromBigInt(r):0,a=new Date(normalizeTimeToInterval((new Date).getTime(),t)),n={symbol:e.symbol,interval:t,open:o,high:Math.max(o,s),low:Math.min(o,s),close:s,volume:fromBigInt?fromBigInt(e.amount):0,createdAt:a,updatedAt:new Date};this.lastCandle[e.symbol]||(this.lastCandle[e.symbol]={});this.lastCandle[e.symbol][t]=n;return{query:`INSERT INTO ${scyllaFuturesKeyspace}.candles (symbol, interval, "createdAt", "updatedAt", open, high, low, close, volume) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,params:[e.symbol,t,n.createdAt,n.updatedAt,o,n.high,n.low,n.close,n.volume]}}{let o=`UPDATE ${scyllaFuturesKeyspace}.candles SET "updatedAt" = ?, close = ?`;const s=new Date,a=fromBigInt?fromBigInt(r):0,n=[s,a],l=i.volume+(fromBigInt?fromBigInt(e.amount):0);o+=", volume = ?";n.push(l);if(a>i.high){o+=", high = ?";n.push(a);i.high=a}else if(a<i.low){o+=", low = ?";n.push(a);i.low=a}i.close=a;i.volume=l;i.updatedAt=s;this.lastCandle[e.symbol][t]=i;o+=' WHERE symbol = ? AND interval = ? AND "createdAt" = ?';n.push(e.symbol,t,i.createdAt);return{query:o,params:n}}}async broadcastUpdates(e,t){const r=[];r.push(...this.createOrdersBroadcastPromise(e));for(const e in this.orderQueue)if(t[e]){r.push(this.createOrderBookUpdatePromise(e,t[e]));r.push(...this.createCandleBroadcastPromises(e))}await Promise.all(r)}createOrderBookUpdatePromise(e,t){return(0,ws_1.handleOrderBookBroadcast)(e,t)}createCandleBroadcastPromises(e){const t=[];for(const r in this.lastCandle[e])t.push((0,ws_1.handleCandleBroadcast)(e,r,this.lastCandle[e][r]));t.push((0,ws_1.handleTickerBroadcast)(e,this.getTicker(e)),(0,ws_1.handleTickersBroadcast)(this.getTickers()));return t}createOrdersBroadcastPromise(e){return e.map(e=>(0,ws_1.handleOrderBroadcast)(e))}lockOrders(e){for(const t of e)if(this.lockedOrders.has(t.id))return!1;for(const t of e)this.lockedOrders.add(t.id);return!0}unlockOrders(e){for(const t of e)this.lockedOrders.delete(t.id)}async handleOrderCancellation(e,t){this.orderQueue[t]=this.orderQueue[t].filter(t=>t.id!==e);const r=await(0,orderbook_2.fetchExistingAmounts)(t);(0,ws_1.handleOrderBookBroadcast)(t,r);await this.processQueue()}getTickers(){const e={};for(const t in this.marketsBySymbol)e[t]=this.getTicker(t);return e}getTicker(e){var t;const r=null===(t=this.lastCandle[e])||void 0===t?void 0:t["1d"],o=this.yesterdayCandle[e];if(!r)return{symbol:e,last:0,baseVolume:0,quoteVolume:0,change:0,percentage:0,high:0,low:0};const i=r.close,s=r.volume,a=i*s;let n=0,l=0;if(o){const e=o.close,t=r.close;n=t-e;l=(t-e)/e*100}return{symbol:e,last:i,baseVolume:s,quoteVolume:a,percentage:l,change:n,high:r.high,low:r.low}}}exports.FuturesMatchingEngine=FuturesMatchingEngine;FuturesMatchingEngine.instancePromise=null;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.FuturesMatchingEngine = void 0;
+let client;
+let scyllaFuturesKeyspace;
+let fromBigInt;
+let removeTolerance;
+let toBigIntFloat;
+let normalizeTimeToInterval;
+let Candle;
+try {
+    const clientModule = require("@b/api/(ext)/ecosystem/utils/scylla/client");
+    client = clientModule.default;
+    scyllaFuturesKeyspace = clientModule.scyllaFuturesKeyspace;
+    const blockchainModule = require("@b/api/(ext)/ecosystem/utils/blockchain");
+    fromBigInt = blockchainModule.fromBigInt;
+    removeTolerance = blockchainModule.removeTolerance;
+    toBigIntFloat = blockchainModule.toBigIntFloat;
+    const wsModule = require("@b/api/(ext)/ecosystem/utils/ws");
+    normalizeTimeToInterval = wsModule.normalizeTimeToInterval;
+    const queriesModule = require("@b/api/(ext)/ecosystem/utils/scylla/queries");
+    Candle = queriesModule.Candle;
+}
+catch (e) {
+}
+const orderbook_1 = require("./orderbook");
+const ws_1 = require("./ws");
+const markets_1 = require("./markets");
+const console_1 = require("@b/utils/console");
+const candles_1 = require("./candles");
+const matchmaking_1 = require("./matchmaking");
+const order_1 = require("./queries/order");
+const candle_1 = require("./queries/candle");
+const orderbook_2 = require("./queries/orderbook");
+const positions_1 = require("./queries/positions");
+const liquidation_1 = require("./liquidation");
+const position_1 = require("./position");
+class FuturesMatchingEngine {
+    constructor() {
+        this.orderQueue = {};
+        this.marketsBySymbol = {};
+        this.lockedOrders = new Set();
+        this.lastCandle = {};
+        this.yesterdayCandle = {};
+    }
+    static getInstance() {
+        if (!this.instancePromise) {
+            this.instancePromise = (async () => {
+                const instance = new FuturesMatchingEngine();
+                await instance.init();
+                return instance;
+            })();
+        }
+        return this.instancePromise;
+    }
+    async init() {
+        if (!client || !scyllaFuturesKeyspace) {
+            console_1.logger.warn("FUTURES", "Ecosystem extension not available, futures matching engine disabled");
+            return;
+        }
+        await this.initializeMarkets();
+        await this.initializeOrders();
+        await this.initializeLastCandles();
+        await this.initializeYesterdayCandles();
+        await this.initializePositions();
+    }
+    async initializeMarkets() {
+        const markets = await (0, markets_1.getFuturesMarkets)();
+        markets.forEach((market) => {
+            const symbol = `${market.currency}/${market.pair}`;
+            market.symbol = symbol;
+            this.marketsBySymbol[symbol] = market;
+            this.orderQueue[symbol] = [];
+        });
+    }
+    async initializeOrders() {
+        try {
+            const openOrders = await (0, order_1.getAllOpenOrders)();
+            openOrders.forEach((order) => {
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                const createdAt = new Date(order.createdAt);
+                const updatedAt = new Date(order.updatedAt);
+                if (isNaN(createdAt.getTime()) || isNaN(updatedAt.getTime())) {
+                    console_1.logger.error("FUTURES", "Invalid date in order", new Error("Invalid date in order"));
+                    return;
+                }
+                if (!((_a = order.userId) === null || _a === void 0 ? void 0 : _a.buffer) || !((_b = order.id) === null || _b === void 0 ? void 0 : _b.buffer)) {
+                    console_1.logger.error("FUTURES", "Invalid Uuid in order", new Error("Invalid Uuid in order"));
+                    return;
+                }
+                const normalizedOrder = {
+                    ...order,
+                    userId: (0, order_1.uuidToString)(order.userId),
+                    id: (0, order_1.uuidToString)(order.id),
+                    amount: BigInt((_c = order.amount) !== null && _c !== void 0 ? _c : 0),
+                    price: BigInt((_d = order.price) !== null && _d !== void 0 ? _d : 0),
+                    cost: BigInt((_e = order.cost) !== null && _e !== void 0 ? _e : 0),
+                    fee: BigInt((_f = order.fee) !== null && _f !== void 0 ? _f : 0),
+                    remaining: BigInt((_g = order.remaining) !== null && _g !== void 0 ? _g : 0),
+                    filled: BigInt((_h = order.filled) !== null && _h !== void 0 ? _h : 0),
+                    createdAt,
+                    updatedAt,
+                    leverage: BigInt((_j = order.leverage) !== null && _j !== void 0 ? _j : 0),
+                    stopLossPrice: order.stopLossPrice
+                        ? BigInt(order.stopLossPrice)
+                        : null,
+                    takeProfitPrice: order.takeProfitPrice
+                        ? BigInt(order.takeProfitPrice)
+                        : null,
+                };
+                if (!this.orderQueue[normalizedOrder.symbol]) {
+                    this.orderQueue[normalizedOrder.symbol] = [];
+                }
+                this.orderQueue[normalizedOrder.symbol].push(normalizedOrder);
+            });
+            await this.processQueue();
+        }
+        catch (error) {
+            console_1.logger.error("FUTURES", "Failed to populate order queue with open orders", error);
+        }
+    }
+    async initializeLastCandles() {
+        try {
+            const lastCandles = await (0, candle_1.getLastCandles)();
+            lastCandles.forEach((candle) => {
+                if (!this.lastCandle[candle.symbol]) {
+                    this.lastCandle[candle.symbol] = {};
+                }
+                this.lastCandle[candle.symbol][candle.interval] = candle;
+            });
+        }
+        catch (error) {
+            console_1.logger.error("FUTURES", "Failed to initialize last candles", error);
+        }
+    }
+    async initializeYesterdayCandles() {
+        try {
+            const yesterdayCandles = await (0, candle_1.getYesterdayCandles)();
+            Object.keys(yesterdayCandles).forEach((symbol) => {
+                const candles = yesterdayCandles[symbol];
+                if (candles.length > 0) {
+                    this.yesterdayCandle[symbol] = candles[0];
+                }
+            });
+        }
+        catch (error) {
+            console_1.logger.error("FUTURES", "Failed to initialize yesterday's candles", error);
+        }
+    }
+    async initializePositions() {
+        if (!toBigIntFloat || !fromBigInt) {
+            console_1.logger.warn("FUTURES", "Ecosystem extension not available for position initialization");
+            return;
+        }
+        try {
+            const openPositions = await (0, positions_1.getAllOpenPositions)();
+            const userIds = [
+                ...new Set(openPositions.map((position) => position.userId)),
+            ];
+            await Promise.all(userIds.map(async (userId) => {
+                const positions = openPositions.filter((position) => position.userId === userId);
+                await Promise.all(positions.map(async (position) => {
+                    var _a;
+                    const lastCandle = (_a = this.lastCandle[position.symbol]) === null || _a === void 0 ? void 0 : _a["1m"];
+                    if (lastCandle) {
+                        const currentPrice = toBigIntFloat(lastCandle.close);
+                        const unrealizedPnl = (0, position_1.calculateUnrealizedPnl)(position.entryPrice, position.amount, currentPrice, position.side);
+                        await (0, positions_1.updatePositionInDB)(position.userId, position.id, position.entryPrice, position.amount, unrealizedPnl, position.stopLossPrice, position.takeProfitPrice);
+                        await (0, liquidation_1.checkForLiquidation)(position, Number(fromBigInt(currentPrice)));
+                    }
+                }));
+            }));
+        }
+        catch (error) {
+            console_1.logger.error("FUTURES", "Failed to initialize positions", error);
+        }
+    }
+    async processQueue() {
+        if (!client || !removeTolerance || !toBigIntFloat) {
+            console_1.logger.warn("FUTURES", "Ecosystem extension not available for queue processing");
+            return;
+        }
+        const ordersToUpdate = [];
+        const orderBookUpdates = {};
+        const allOrderBookEntries = await (0, orderbook_2.fetchOrderBooks)();
+        const mappedOrderBook = {};
+        allOrderBookEntries === null || allOrderBookEntries === void 0 ? void 0 : allOrderBookEntries.forEach((entry) => {
+            if (!mappedOrderBook[entry.symbol]) {
+                mappedOrderBook[entry.symbol] = { bids: {}, asks: {} };
+            }
+            mappedOrderBook[entry.symbol][entry.side.toLowerCase()][removeTolerance(toBigIntFloat(Number(entry.price))).toString()] = removeTolerance(toBigIntFloat(Number(entry.amount)));
+        });
+        const calculationPromises = [];
+        for (const symbol in this.orderQueue) {
+            const orders = this.orderQueue[symbol];
+            if (orders.length === 0)
+                continue;
+            const promise = (async () => {
+                const { matchedOrders, bookUpdates } = await (0, matchmaking_1.matchAndCalculateOrders)(orders, mappedOrderBook[symbol] || { bids: {}, asks: {} });
+                if (matchedOrders.length === 0) {
+                    return;
+                }
+                ordersToUpdate.push(...matchedOrders);
+                orderBookUpdates[symbol] = bookUpdates;
+            })();
+            calculationPromises.push(promise);
+        }
+        await Promise.all(calculationPromises);
+        if (ordersToUpdate.length === 0) {
+            return;
+        }
+        await this.performUpdates(ordersToUpdate, orderBookUpdates);
+        const finalOrderBooks = {};
+        for (const symbol in orderBookUpdates) {
+            finalOrderBooks[symbol] = (0, orderbook_1.applyUpdatesToOrderBook)(mappedOrderBook[symbol], orderBookUpdates[symbol]);
+        }
+        const cleanupPromises = [];
+        for (const symbol in this.orderQueue) {
+            const promise = (async () => {
+                this.orderQueue[symbol] = this.orderQueue[symbol].filter((order) => order.status === "OPEN");
+            })();
+            cleanupPromises.push(promise);
+        }
+        await Promise.all(cleanupPromises);
+        this.broadcastUpdates(ordersToUpdate, finalOrderBooks);
+    }
+    async performUpdates(ordersToUpdate, orderBookUpdates) {
+        const locked = this.lockOrders(ordersToUpdate);
+        if (!locked) {
+            console_1.logger.warn("FUTURES", "Couldn't obtain a lock on all orders, skipping this batch.");
+            return;
+        }
+        const updateQueries = [];
+        updateQueries.push(...(0, order_1.generateOrderUpdateQueries)(ordersToUpdate));
+        const latestOrdersForCandles = (0, candles_1.getLatestOrdersForCandles)(ordersToUpdate);
+        for (const order of latestOrdersForCandles) {
+            const candleQueries = await this.updateLastCandles(order);
+            updateQueries.push(...candleQueries);
+        }
+        const orderBookQueries = (0, orderbook_2.generateOrderBookUpdateQueries)(orderBookUpdates);
+        updateQueries.push(...orderBookQueries);
+        if (updateQueries.length > 0) {
+            try {
+                await client.batch(updateQueries, { prepare: true });
+            }
+            catch (error) {
+                console_1.logger.error("FUTURES", "Failed to batch update", error);
+            }
+        }
+        else {
+            console_1.logger.warn("FUTURES", "No queries to batch update.");
+        }
+        const positionPromises = ordersToUpdate.map(async (order) => {
+            const positions = await (0, positions_1.getPositions)(order.userId, order.symbol, "OPEN");
+            if (positions.length > 0) {
+                if (fromBigInt) {
+                    await Promise.all(positions.map((position) => (0, liquidation_1.checkForLiquidation)(position, fromBigInt(order.price))));
+                }
+                await Promise.all(positions.map((position) => (0, ws_1.handlePositionBroadcast)(position)));
+            }
+        });
+        await Promise.all(positionPromises);
+        this.unlockOrders(ordersToUpdate);
+    }
+    async addToQueue(order) {
+        if (!(0, matchmaking_1.validateOrder)(order)) {
+            return;
+        }
+        if (!order.createdAt ||
+            isNaN(new Date(order.createdAt).getTime()) ||
+            !order.updatedAt ||
+            isNaN(new Date(order.updatedAt).getTime())) {
+            console_1.logger.error("FUTURES", "Invalid date in order", new Error("Invalid date in order"));
+            return;
+        }
+        if (!this.orderQueue[order.symbol]) {
+            this.orderQueue[order.symbol] = [];
+        }
+        this.orderQueue[order.symbol].push(order);
+        const symbolOrderBook = await (0, orderbook_2.updateSingleOrderBook)(order, "add");
+        (0, ws_1.handleOrderBookBroadcast)(order.symbol, symbolOrderBook);
+        await this.processQueue();
+    }
+    async updateLastCandles(order) {
+        if (!toBigIntFloat || !fromBigInt || !scyllaFuturesKeyspace || !normalizeTimeToInterval) {
+            console_1.logger.warn("FUTURES", "Ecosystem extension not available for candle updates");
+            return [];
+        }
+        let finalPrice = BigInt(0);
+        let trades;
+        try {
+            trades = JSON.parse(order.trades);
+        }
+        catch (error) {
+            console_1.logger.error("FUTURES", "Failed to parse trades", error);
+            return [];
+        }
+        if (trades &&
+            trades.length > 0 &&
+            trades[trades.length - 1].price !== undefined) {
+            finalPrice = toBigIntFloat ? toBigIntFloat(trades[trades.length - 1].price) : BigInt(0);
+        }
+        else if (order.price !== undefined) {
+            finalPrice = order.price;
+        }
+        else {
+            console_1.logger.error("FUTURES", "Neither trade prices nor order price are available", new Error("Neither trade prices nor order price are available"));
+            return [];
+        }
+        const updateQueries = [];
+        if (!this.lastCandle[order.symbol]) {
+            this.lastCandle[order.symbol] = {};
+        }
+        for (const interval of candles_1.intervals) {
+            const updateQuery = await this.generateCandleQueries(order, interval, finalPrice);
+            if (updateQuery) {
+                updateQueries.push(updateQuery);
+            }
+        }
+        return updateQueries;
+    }
+    async generateCandleQueries(order, interval, finalPrice) {
+        var _a;
+        let existingLastCandle = (_a = this.lastCandle[order.symbol]) === null || _a === void 0 ? void 0 : _a[interval];
+        const normalizedCurrentTime = normalizeTimeToInterval(new Date().getTime(), interval);
+        const normalizedLastCandleTime = existingLastCandle
+            ? normalizeTimeToInterval(new Date(existingLastCandle.createdAt).getTime(), interval)
+            : null;
+        const shouldCreateNewCandle = !existingLastCandle || normalizedCurrentTime !== normalizedLastCandleTime;
+        if (shouldCreateNewCandle) {
+            let newOpenPrice;
+            if (existingLastCandle) {
+                newOpenPrice = existingLastCandle.close;
+            }
+            else {
+                const dbCandle = await (0, candle_1.getLatestCandleForSymbol)(order.symbol, interval);
+                if (dbCandle) {
+                    newOpenPrice = dbCandle.close;
+                    if (!this.lastCandle[order.symbol]) {
+                        this.lastCandle[order.symbol] = {};
+                    }
+                    this.lastCandle[order.symbol][interval] = dbCandle;
+                }
+                else {
+                    newOpenPrice = fromBigInt ? fromBigInt(finalPrice) : 0;
+                }
+            }
+            if (!newOpenPrice && newOpenPrice !== 0) {
+                return null;
+            }
+            const finalPriceNumber = fromBigInt ? fromBigInt(finalPrice) : 0;
+            const normalizedTime = new Date(normalizeTimeToInterval(new Date().getTime(), interval));
+            const newLastCandle = {
+                symbol: order.symbol,
+                interval,
+                open: newOpenPrice,
+                high: Math.max(newOpenPrice, finalPriceNumber),
+                low: Math.min(newOpenPrice, finalPriceNumber),
+                close: finalPriceNumber,
+                volume: fromBigInt ? fromBigInt(order.amount) : 0,
+                createdAt: normalizedTime,
+                updatedAt: new Date(),
+            };
+            if (!this.lastCandle[order.symbol]) {
+                this.lastCandle[order.symbol] = {};
+            }
+            this.lastCandle[order.symbol][interval] = newLastCandle;
+            return {
+                query: `INSERT INTO ${scyllaFuturesKeyspace}.candles (symbol, interval, "createdAt", "updatedAt", open, high, low, close, volume) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                params: [
+                    order.symbol,
+                    interval,
+                    newLastCandle.createdAt,
+                    newLastCandle.updatedAt,
+                    newOpenPrice,
+                    newLastCandle.high,
+                    newLastCandle.low,
+                    newLastCandle.close,
+                    newLastCandle.volume,
+                ],
+            };
+        }
+        else {
+            let updateQuery = `UPDATE ${scyllaFuturesKeyspace}.candles SET "updatedAt" = ?, close = ?`;
+            const now = new Date();
+            const finalPriceNumber = fromBigInt ? fromBigInt(finalPrice) : 0;
+            const updateParams = [now, finalPriceNumber];
+            const newVolume = existingLastCandle.volume + (fromBigInt ? fromBigInt(order.amount) : 0);
+            updateQuery += ", volume = ?";
+            updateParams.push(newVolume);
+            if (finalPriceNumber > existingLastCandle.high) {
+                updateQuery += ", high = ?";
+                updateParams.push(finalPriceNumber);
+                existingLastCandle.high = finalPriceNumber;
+            }
+            else if (finalPriceNumber < existingLastCandle.low) {
+                updateQuery += ", low = ?";
+                updateParams.push(finalPriceNumber);
+                existingLastCandle.low = finalPriceNumber;
+            }
+            existingLastCandle.close = finalPriceNumber;
+            existingLastCandle.volume = newVolume;
+            existingLastCandle.updatedAt = now;
+            this.lastCandle[order.symbol][interval] = existingLastCandle;
+            updateQuery += ` WHERE symbol = ? AND interval = ? AND "createdAt" = ?`;
+            updateParams.push(order.symbol, interval, existingLastCandle.createdAt);
+            return {
+                query: updateQuery,
+                params: updateParams,
+            };
+        }
+    }
+    async broadcastUpdates(ordersToUpdate, finalOrderBooks) {
+        const updatePromises = [];
+        updatePromises.push(...this.createOrdersBroadcastPromise(ordersToUpdate));
+        for (const symbol in this.orderQueue) {
+            if (finalOrderBooks[symbol]) {
+                updatePromises.push(this.createOrderBookUpdatePromise(symbol, finalOrderBooks[symbol]));
+                updatePromises.push(...this.createCandleBroadcastPromises(symbol));
+            }
+        }
+        await Promise.all(updatePromises);
+    }
+    createOrderBookUpdatePromise(symbol, finalOrderBookState) {
+        return (0, ws_1.handleOrderBookBroadcast)(symbol, finalOrderBookState);
+    }
+    createCandleBroadcastPromises(symbol) {
+        const promises = [];
+        for (const interval in this.lastCandle[symbol]) {
+            promises.push((0, ws_1.handleCandleBroadcast)(symbol, interval, this.lastCandle[symbol][interval]));
+        }
+        promises.push((0, ws_1.handleTickerBroadcast)(symbol, this.getTicker(symbol)), (0, ws_1.handleTickersBroadcast)(this.getTickers()));
+        return promises;
+    }
+    createOrdersBroadcastPromise(orders) {
+        return orders.map((order) => (0, ws_1.handleOrderBroadcast)(order));
+    }
+    lockOrders(orders) {
+        for (const order of orders) {
+            if (this.lockedOrders.has(order.id)) {
+                return false;
+            }
+        }
+        for (const order of orders) {
+            this.lockedOrders.add(order.id);
+        }
+        return true;
+    }
+    unlockOrders(orders) {
+        for (const order of orders) {
+            this.lockedOrders.delete(order.id);
+        }
+    }
+    async handleOrderCancellation(orderId, symbol) {
+        this.orderQueue[symbol] = this.orderQueue[symbol].filter((order) => order.id !== orderId);
+        const updatedOrderBook = await (0, orderbook_2.fetchExistingAmounts)(symbol);
+        (0, ws_1.handleOrderBookBroadcast)(symbol, updatedOrderBook);
+        await this.processQueue();
+    }
+    getTickers() {
+        const symbolsWithTickers = {};
+        for (const symbol in this.marketsBySymbol) {
+            symbolsWithTickers[symbol] = this.getTicker(symbol);
+        }
+        return symbolsWithTickers;
+    }
+    getTicker(symbol) {
+        var _a;
+        const lastCandle = (_a = this.lastCandle[symbol]) === null || _a === void 0 ? void 0 : _a["1d"];
+        const previousCandle = this.yesterdayCandle[symbol];
+        if (!lastCandle) {
+            return {
+                symbol,
+                last: 0,
+                baseVolume: 0,
+                quoteVolume: 0,
+                change: 0,
+                percentage: 0,
+                high: 0,
+                low: 0,
+            };
+        }
+        const last = lastCandle.close;
+        const baseVolume = lastCandle.volume;
+        const quoteVolume = last * baseVolume;
+        let change = 0;
+        let percentage = 0;
+        if (previousCandle) {
+            const open = previousCandle.close;
+            const close = lastCandle.close;
+            change = close - open;
+            percentage = ((close - open) / open) * 100;
+        }
+        return {
+            symbol,
+            last,
+            baseVolume,
+            quoteVolume,
+            percentage,
+            change,
+            high: lastCandle.high,
+            low: lastCandle.low,
+        };
+    }
+}
+exports.FuturesMatchingEngine = FuturesMatchingEngine;
+FuturesMatchingEngine.instancePromise = null;

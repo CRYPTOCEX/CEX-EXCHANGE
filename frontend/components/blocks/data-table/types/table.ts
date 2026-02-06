@@ -321,6 +321,8 @@ export interface FormFieldConfig {
   type?: ColumnType;
   /** Override field title/label for form */
   title?: string;
+  /** Label for the form field (alias for title) */
+  label?: string;
   /** Field description shown below the input */
   description?: string;
   /** Whether field is required in form */
@@ -343,6 +345,8 @@ export interface FormFieldConfig {
   min?: number;
   /** Max value for number fields */
   max?: number;
+  /** Step value for number fields */
+  step?: number;
   /** Max length for text fields */
   maxLength?: number;
   /** Min length for text fields */
@@ -418,10 +422,10 @@ export interface CompoundConfig {
   image?: {
     key: string;
     fallback?: string;
+    /** @deprecated Use FormConfig instead - title shown in table/view only */
     title?: string;
+    /** @deprecated Use FormConfig instead - description shown in table/view only */
     description?: string;
-    editable?: boolean;
-    usedInCreate?: boolean;
     size?: "gateway" | "sm" | "md" | "lg" | "xl";
   };
   primary?: {
@@ -431,8 +435,6 @@ export interface CompoundConfig {
     icon?: LucideIcon;
     sortable?: boolean;
     sortKey?: string;
-    editable?: boolean;
-    usedInCreate?: boolean;
     validation?: (value: any) => string | null;
   };
   secondary?: {
@@ -441,8 +443,6 @@ export interface CompoundConfig {
     description?: string;
     icon?: LucideIcon;
     sortable?: boolean;
-    editable?: boolean;
-    usedInCreate?: boolean;
   };
   metadata?: Array<{
     key: string;
@@ -451,8 +451,6 @@ export interface CompoundConfig {
     icon?: LucideIcon;
     type?: "text" | "date" | "select";
     sortable?: boolean;
-    editable?: boolean;
-    usedInCreate?: boolean;
     render?: (value: any) => React.ReactNode;
     options?: Array<{ value: string | boolean | number; label: string; color?: BadgeVariant }>;
   }>;
@@ -506,3 +504,9 @@ export interface ColumnDefinition {
   /** If true, column spans full width in expanded/view modal */
   fullWidth?: boolean;
 }
+
+export type RowAction<T = any> = {
+  label: string;
+  onClick: (row: T) => void;
+  icon?: any;
+};

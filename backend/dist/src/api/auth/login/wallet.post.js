@@ -1,1 +1,169 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const error_1=require("@b/utils/error"),db_1=require("@b/db"),utils_1=require("../utils");exports.metadata={summary:"Logs in a user with SIWE",description:"Logs in a user using Sign-In With Ethereum (SIWE)",operationId:"siweLogin",tags:["Auth"],requiresAuth:!1,logModule:"LOGIN",logTitle:"Wallet login",requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"SIWE message"},signature:{type:"string",description:"Signature of the SIWE message"}},required:["message","signature"]}}}},responses:{200:{description:"User logged in successfully",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Success message"},id:{type:"string",description:"User ID"}}}}}},400:{description:"Invalid request (e.g., invalid message or signature)"},401:{description:"Unauthorized (e.g., signature verification failed)"}}};const projectId=process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID;exports.default=async e=>{const{body:s,ctx:r}=e,{message:t,signature:a}=s;try{null==r||r.step("Validating wallet login request");if(!t||!a){null==r||r.fail("Message and signature are required");throw(0,error_1.createError)({statusCode:400,message:"Message and signature are required"})}null==r||r.step("Checking WalletConnect configuration");if(!projectId){null==r||r.fail("WalletConnect project ID not configured");throw(0,error_1.createError)({statusCode:500,message:"Wallet connect project ID is not defined"})}null==r||r.step("Extracting wallet address and chain ID");const e=(0,utils_1.getAddressFromMessage)(t),s=(0,utils_1.getChainIdFromMessage)(t);null==r||r.step(`Verifying signature for address: ${e}`);if(!await(0,utils_1.verifySignature)({address:e,message:t,signature:a,chainId:s,projectId:projectId})){null==r||r.fail("Signature verification failed");throw(0,error_1.createError)({statusCode:401,message:"Signature verification failed"})}null==r||r.step("Looking up wallet provider");const o=await db_1.models.providerUser.findOne({where:{providerUserId:e},include:[{model:db_1.models.user,as:"user",include:[{model:db_1.models.twoFactor,as:"twoFactor"}]}]});if(!o){null==r||r.fail("Wallet address not recognized");throw(0,error_1.createError)({statusCode:401,message:"Wallet address not recognized"})}const i=o.user;null==r||r.step("Validating user status");if(!i){null==r||r.fail("User not found");throw(0,error_1.createError)({statusCode:404,message:"User not found"})}if("BANNED"===i.status){null==r||r.fail("Account banned");throw(0,error_1.createError)({statusCode:403,message:"Your account has been banned. Please contact support."})}if("SUSPENDED"===i.status){null==r||r.fail("Account suspended");throw(0,error_1.createError)({statusCode:403,message:"Your account is suspended. Please contact support."})}if("INACTIVE"===i.status){null==r||r.fail("Account inactive");throw(0,error_1.createError)({statusCode:403,message:"Your account is inactive. Please verify your email or contact support."})}null==r||r.step("Generating session tokens");const n=await(0,utils_1.returnUserWithTokens)({user:i,message:"You have been logged in successfully"});null==r||r.success(`User ${i.email} logged in with wallet ${e}`);return n}catch(e){null==r||r.fail(e.message||"Wallet login failed");throw e}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const error_1 = require("@b/utils/error");
+const db_1 = require("@b/db");
+const utils_1 = require("../utils");
+exports.metadata = {
+    summary: "Logs in a user with SIWE",
+    description: "Logs in a user using Sign-In With Ethereum (SIWE)",
+    operationId: "siweLogin",
+    tags: ["Auth"],
+    requiresAuth: false,
+    logModule: "LOGIN",
+    logTitle: "Wallet login",
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        message: {
+                            type: "string",
+                            description: "SIWE message",
+                        },
+                        signature: {
+                            type: "string",
+                            description: "Signature of the SIWE message",
+                        },
+                    },
+                    required: ["message", "signature"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "User logged in successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: {
+                                type: "string",
+                                description: "Success message",
+                            },
+                            id: {
+                                type: "string",
+                                description: "User ID",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        400: {
+            description: "Invalid request (e.g., invalid message or signature)",
+        },
+        401: {
+            description: "Unauthorized (e.g., signature verification failed)",
+        },
+    },
+};
+const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID;
+exports.default = async (data) => {
+    const { body, ctx } = data;
+    const { message, signature } = body;
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating wallet login request");
+        if (!message || !signature) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Message and signature are required");
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Message and signature are required",
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking WalletConnect configuration");
+        if (!projectId) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("WalletConnect project ID not configured");
+            throw (0, error_1.createError)({
+                statusCode: 500,
+                message: "Wallet connect project ID is not defined",
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Extracting wallet address and chain ID");
+        const address = (0, utils_1.getAddressFromMessage)(message);
+        const chainId = (0, utils_1.getChainIdFromMessage)(message);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step(`Verifying signature for address: ${address}`);
+        const isValid = await (0, utils_1.verifySignature)({
+            address,
+            message,
+            signature,
+            chainId,
+            projectId,
+        });
+        if (!isValid) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Signature verification failed");
+            throw (0, error_1.createError)({
+                statusCode: 401,
+                message: "Signature verification failed",
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Looking up wallet provider");
+        const provider = await db_1.models.providerUser.findOne({
+            where: { providerUserId: address },
+            include: [
+                {
+                    model: db_1.models.user,
+                    as: "user",
+                    include: [
+                        {
+                            model: db_1.models.twoFactor,
+                            as: "twoFactor",
+                        },
+                    ],
+                },
+            ],
+        });
+        if (!provider) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Wallet address not recognized");
+            throw (0, error_1.createError)({
+                statusCode: 401,
+                message: "Wallet address not recognized",
+            });
+        }
+        const user = provider.user;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating user status");
+        if (!user) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("User not found");
+            throw (0, error_1.createError)({
+                statusCode: 404,
+                message: "User not found",
+            });
+        }
+        if (user.status === "BANNED") {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Account banned");
+            throw (0, error_1.createError)({
+                statusCode: 403,
+                message: "Your account has been banned. Please contact support.",
+            });
+        }
+        if (user.status === "SUSPENDED") {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Account suspended");
+            throw (0, error_1.createError)({
+                statusCode: 403,
+                message: "Your account is suspended. Please contact support.",
+            });
+        }
+        if (user.status === "INACTIVE") {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Account inactive");
+            throw (0, error_1.createError)({
+                statusCode: 403,
+                message: "Your account is inactive. Please verify your email or contact support.",
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Generating session tokens");
+        const result = await (0, utils_1.returnUserWithTokens)({
+            user,
+            message: "You have been logged in successfully",
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`User ${user.email} logged in with wallet ${address}`);
+        return result;
+    }
+    catch (error) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(error.message || "Wallet login failed");
+        throw error;
+    }
+};

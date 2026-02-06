@@ -139,7 +139,7 @@ export function useColumns(): ColumnDefinition[] {
         config: {
           withDot: true,
           variant: (value: string) => {
-            switch (value.toUpperCase()) {
+            switch (value?.toUpperCase()) {
               case "DEPOSIT":
                 return "success";
               case "WITHDRAW":
@@ -192,6 +192,32 @@ export function useColumns(): ColumnDefinition[] {
                 return "default";
             }
           },
+          options: [
+            { value: "FAILED", label: tCommon("failed") },
+            { value: "DEPOSIT", label: tCommon("deposit") },
+            { value: "WITHDRAW", label: tCommon("withdraw") },
+            { value: "OUTGOING_TRANSFER", label: tCommon("outgoing_transfer") },
+            { value: "INCOMING_TRANSFER", label: tCommon("incoming_transfer") },
+            { value: "PAYMENT", label: tCommon("payment") },
+            { value: "REFUND", label: tCommon("refund") },
+            { value: "BINARY_ORDER", label: tCommon("binary_order") },
+            { value: "EXCHANGE_ORDER", label: tCommon("exchange_order") },
+            { value: "INVESTMENT", label: tCommon("investment") },
+            { value: "INVESTMENT_ROI", label: tCommon("investment_roi") },
+            { value: "AI_INVESTMENT", label: tCommon("ai_investment") },
+            { value: "AI_INVESTMENT_ROI", label: tCommon("ai_investment_roi") },
+            { value: "INVOICE", label: tCommon("invoice") },
+            { value: "FOREX_DEPOSIT", label: tCommon("forex_deposit") },
+            { value: "FOREX_WITHDRAW", label: tCommon("forex_withdraw") },
+            { value: "FOREX_INVESTMENT", label: tCommon("forex_investment") },
+            { value: "FOREX_INVESTMENT_ROI", label: tCommon("forex_investment_roi") },
+            { value: "ICO_CONTRIBUTION", label: tCommon("ico_contribution") },
+            { value: "REFERRAL_REWARD", label: tCommon("referral_reward") },
+            { value: "STAKING", label: tCommon("staking") },
+            { value: "STAKING_REWARD", label: tCommon("staking_reward") },
+            { value: "P2P_OFFER_TRANSFER", label: tCommon("p2p_offer_transfer") },
+            { value: "P2P_TRADE", label: tCommon("p2p_trade") },
+          ],
         },
       },
       options: [
@@ -236,7 +262,7 @@ export function useColumns(): ColumnDefinition[] {
         config: {
           withDot: true,
           variant: (value: string) => {
-            switch (value.toUpperCase()) {
+            switch (value?.toUpperCase()) {
               case "COMPLETED":
                 return "success";
               case "PENDING":
@@ -257,6 +283,18 @@ export function useColumns(): ColumnDefinition[] {
                 return "default";
             }
           },
+          options: [
+            { value: "PENDING", label: tCommon("pending") },
+            { value: "COMPLETED", label: tCommon("completed") },
+            { value: "FAILED", label: tCommon("failed") },
+            { value: "CANCELLED", label: tCommon("cancelled") },
+            { value: "EXPIRED", label: tCommon("expired") },
+            { value: "REJECTED", label: tCommon("rejected") },
+            { value: "REFUNDED", label: tCommon("refunded") },
+            { value: "FROZEN", label: tCommon("frozen") },
+            { value: "PROCESSING", label: tCommon("processing") },
+            { value: "TIMEOUT", label: tCommon("timeout") },
+          ],
         },
       },
       options: [

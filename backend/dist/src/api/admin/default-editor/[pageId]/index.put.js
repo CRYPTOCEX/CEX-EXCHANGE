@@ -1,1 +1,202 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),console_1=require("@b/utils/console");exports.metadata={summary:"Update default page content",operationId:"updateDefaultPageContent",tags:["Admin","Default Editor"],logModule:"ADMIN_CMS",logTitle:"Update default editor",parameters:[{index:0,name:"pageId",in:"path",required:!0,schema:{type:"string"},description:"Page identifier (home, about, privacy, terms, contact)"},{name:"pageSource",in:"query",required:!1,schema:{type:"string",enum:["default","builder"]},description:"Page source type - default for regular pages, builder for builder-created pages"}],requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{title:{type:"string"},variables:{type:"object"},content:{type:"string"},meta:{type:"object"},status:{type:"string",enum:["active","draft"]}}}}}},responses:{200:{description:"Page content updated successfully",content:{"application/json":{schema:{type:"object",properties:{success:{type:"boolean"},lastModified:{type:"string"},message:{type:"string"}}}}}},400:{description:"Invalid request"},404:{description:"Page not found"}},requiresAuth:!0,permission:"edit.page"};exports.default=async e=>{const{params:t,query:a,body:r,ctx:s}=e,{pageId:o}=t;null==s||s.step("Validating page parameters");const n=r.pageSource||a.pageSource||"default",{title:i,content:c,meta:u,status:p}=r;let{variables:d}=r;if(!["home","about","privacy","terms","contact"].includes(o))return{error:"Invalid page ID",status:400};if(!["default","builder"].includes(n))return{error:"Invalid page source",status:400};try{null==s||s.step("Processing page content update");if(d&&"string"==typeof d)try{d=JSON.parse(d)}catch(e){console_1.logger.error("EDITOR","Failed to parse variables string",e);d={}}if(d&&"object"==typeof d&&!Array.isArray(d)){const e=Object.keys(d);if(e.length>0&&e.every(e=>!isNaN(parseInt(e))))try{const t=e.sort((e,t)=>parseInt(e)-parseInt(t)).map(e=>d[e]).join("");d=JSON.parse(t)}catch(e){console_1.logger.error("EDITOR","Failed to reconstruct variables from character indices",e);d={}}}d&&("object"!=typeof d||Array.isArray(d))&&(d={});if(!db_1.models||!db_1.models.defaultPage)return{error:"Database connection error",status:500};null==s||s.step("Finding existing page");const e=await db_1.models.defaultPage.findOne({where:{pageId:o,pageSource:n}});if(!e){null==s||s.step("Creating new page");const e="home"===o,t=await db_1.models.defaultPage.create({pageId:o,pageSource:n,type:e?"variables":"content",title:i||o.charAt(0).toUpperCase()+o.slice(1)+" Page",variables:e&&d||{},content:e?"":c||"",meta:u||{},status:p||"active"});null==s||s.success(`Page created successfully: ${o} (${n})`);return{success:!0,lastModified:t.updatedAt.toISOString(),message:"Page created successfully"}}const t="home"===o;if(t&&"variables"===e.type){if(!d)return{error:"Variables are required for home page",status:400}}else if(!t&&"content"===e.type&&!c)return{error:"Content is required for legal pages",status:400};null==s||s.step("Updating page content");const a={};i&&(a.title=i);u&&(a.meta=u);p&&(a.status=p);t&&d?a.variables=d:!t&&c&&(a.content=c);a.updatedAt=new Date;await e.update(a);null==s||s.success(`Page updated successfully: ${o} (${n})`);return{success:!0,lastModified:e.updatedAt.toISOString(),message:"Page updated successfully"}}catch(e){console_1.logger.error("EDITOR","Error updating page content",e);null==s||s.fail("Failed to update page content");return{error:"Failed to update page content",status:500}}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const console_1 = require("@b/utils/console");
+exports.metadata = {
+    summary: "Update default page content",
+    operationId: "updateDefaultPageContent",
+    tags: ["Admin", "Default Editor"],
+    logModule: "ADMIN_CMS",
+    logTitle: "Update default editor",
+    parameters: [
+        {
+            index: 0,
+            name: "pageId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+            description: "Page identifier (home, about, privacy, terms, contact)",
+        },
+        {
+            name: "pageSource",
+            in: "query",
+            required: false,
+            schema: { type: "string", enum: ["default", "builder"] },
+            description: "Page source type - default for regular pages, builder for builder-created pages",
+        },
+    ],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        title: { type: "string" },
+                        variables: { type: "object" },
+                        content: { type: "string" },
+                        meta: { type: "object" },
+                        status: { type: "string", enum: ["active", "draft"] },
+                    },
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Page content updated successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            success: { type: "boolean" },
+                            lastModified: { type: "string" },
+                            message: { type: "string" },
+                        },
+                    },
+                },
+            },
+        },
+        400: {
+            description: "Invalid request",
+        },
+        404: {
+            description: "Page not found",
+        },
+    },
+    requiresAuth: true,
+    permission: "edit.page"
+};
+exports.default = async (data) => {
+    var _a, _b;
+    const { params, query, body, ctx } = data;
+    const { pageId } = params;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating page parameters");
+    const pageSource = body.pageSource || query.pageSource || 'default';
+    const { title, content, meta, status } = body;
+    let { variables } = body;
+    const validPageIds = ['home', 'about', 'privacy', 'terms', 'contact'];
+    const validPageSources = ['default', 'builder'];
+    if (!validPageIds.includes(pageId)) {
+        return {
+            error: "Invalid page ID",
+            status: 400
+        };
+    }
+    if (!validPageSources.includes(pageSource)) {
+        return {
+            error: "Invalid page source",
+            status: 400
+        };
+    }
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing page content update");
+        if (variables && typeof variables === 'string') {
+            try {
+                variables = JSON.parse(variables);
+            }
+            catch (e) {
+                console_1.logger.error("EDITOR", "Failed to parse variables string", e);
+                variables = {};
+            }
+        }
+        if (variables && typeof variables === 'object' && !Array.isArray(variables)) {
+            const keys = Object.keys(variables);
+            const isCharacterIndexed = keys.length > 0 && keys.every(key => !isNaN(parseInt(key)));
+            if (isCharacterIndexed) {
+                try {
+                    const jsonString = keys.sort((a, b) => parseInt(a) - parseInt(b))
+                        .map(key => variables[key])
+                        .join('');
+                    variables = JSON.parse(jsonString);
+                }
+                catch (e) {
+                    console_1.logger.error("EDITOR", "Failed to reconstruct variables from character indices", e);
+                    variables = {};
+                }
+            }
+        }
+        if (variables && (typeof variables !== 'object' || Array.isArray(variables))) {
+            variables = {};
+        }
+        if (!db_1.models || !db_1.models.defaultPage) {
+            return {
+                error: "Database connection error",
+                status: 500
+            };
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding existing page");
+        const existingPage = await db_1.models.defaultPage.findOne({
+            where: { pageId, pageSource }
+        });
+        if (!existingPage) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating new page");
+            const isHomePage = pageId === 'home';
+            const newPage = await db_1.models.defaultPage.create({
+                pageId,
+                pageSource,
+                type: isHomePage ? 'variables' : 'content',
+                title: title || pageId.charAt(0).toUpperCase() + pageId.slice(1) + ' Page',
+                variables: isHomePage ? (variables || {}) : {},
+                content: isHomePage ? "" : (content || ""),
+                meta: meta || {},
+                status: status || 'active'
+            });
+            ctx === null || ctx === void 0 ? void 0 : ctx.success(`Page created successfully: ${pageId} (${pageSource})`);
+            return {
+                success: true,
+                lastModified: ((_a = newPage.updatedAt) === null || _a === void 0 ? void 0 : _a.toISOString()) || new Date().toISOString(),
+                message: "Page created successfully"
+            };
+        }
+        const isHomePage = pageId === 'home';
+        if (isHomePage && existingPage.type === 'variables') {
+            if (!variables) {
+                return {
+                    error: "Variables are required for home page",
+                    status: 400
+                };
+            }
+        }
+        else if (!isHomePage && existingPage.type === 'content') {
+            if (!content) {
+                return {
+                    error: "Content is required for legal pages",
+                    status: 400
+                };
+            }
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating page content");
+        const updateData = {};
+        if (title)
+            updateData.title = title;
+        if (meta)
+            updateData.meta = meta;
+        if (status)
+            updateData.status = status;
+        if (isHomePage && variables) {
+            updateData.variables = variables;
+        }
+        else if (!isHomePage && content) {
+            updateData.content = content;
+        }
+        updateData.updatedAt = new Date();
+        await existingPage.update(updateData);
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Page updated successfully: ${pageId} (${pageSource})`);
+        return {
+            success: true,
+            lastModified: ((_b = existingPage.updatedAt) === null || _b === void 0 ? void 0 : _b.toISOString()) || new Date().toISOString(),
+            message: "Page updated successfully"
+        };
+    }
+    catch (error) {
+        console_1.logger.error("EDITOR", "Error updating page content", error);
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to update page content");
+        return {
+            error: "Failed to update page content",
+            status: 500
+        };
+    }
+};

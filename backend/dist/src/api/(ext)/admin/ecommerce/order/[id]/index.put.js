@@ -1,1 +1,101 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query"),utils_1=require("../utils"),db_1=require("@b/db"),wallet_1=require("@b/services/wallet"),error_1=require("@b/utils/error");exports.metadata={summary:"Updates a specific ecommerce order",operationId:"updateEcommerceOrder",tags:["Admin","Ecommerce","Orders"],parameters:[{index:0,name:"id",in:"path",description:"ID of the ecommerce order to update",required:!0,schema:{type:"string"}}],requestBody:{description:"New data for the ecommerce order",content:{"application/json":{schema:utils_1.ecommerceOrderUpdateSchema}}},responses:(0,query_1.updateRecordResponses)("Ecommerce Order"),requiresAuth:!0,permission:"edit.ecommerce.order",logModule:"ADMIN_ECOM",logTitle:"Update order"};exports.default=async e=>{const{body:r,params:t,ctx:a}=e,{id:s}=t,{status:d}=r;null==a||a.step(`Finding order: ${s}`);const o=await db_1.models.ecommerceOrder.findByPk(s);if(!o)throw(0,error_1.createError)({statusCode:404,message:"Order not found"});null==a||a.step("Validating order status");if("PENDING"!==o.status)throw(0,error_1.createError)({statusCode:400,message:"Order status is not PENDING"});null==a||a.step("Finding related transaction");const i=await db_1.models.transaction.findOne({where:{referenceId:o.id}});if(!i)throw(0,error_1.createError)({statusCode:404,message:"Transaction not found"});null==a||a.step("Finding wallet");const n=await db_1.models.wallet.findByPk(i.walletId);if(!n)throw(0,error_1.createError)({statusCode:404,message:"Wallet not found"});null==a||a.step("Updating order and wallet");await db_1.sequelize.transaction(async e=>{o.status=d;await o.save({transaction:e});if("CANCELLED"===d||"REJECTED"===d){null==a||a.step("Refunding order amount via wallet service");const r=`ecom_order_refund_${s}`;await wallet_1.walletService.credit({idempotencyKey:r,userId:o.userId,walletId:n.id,walletType:n.type,currency:n.currency,amount:i.amount,operationType:"REFUND",referenceId:o.id,description:`Refund for ${d.toLowerCase()} order ${o.id}`,metadata:{orderId:o.id,transactionId:i.id,status:d},transaction:e})}return o});try{null==a||a.step("Sending status update email");const e=await db_1.models.user.findByPk(o.userId);await(0,utils_1.sendOrderStatusUpdateEmail)(e,o,d,a);null==a||a.success("Order updated and email sent successfully")}catch(e){null==a||a.warn("Order updated but failed to send email");console.error("Failed to send order status update email:",e)}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+const utils_1 = require("../utils");
+const db_1 = require("@b/db");
+const wallet_1 = require("@b/services/wallet");
+const error_1 = require("@b/utils/error");
+exports.metadata = {
+    summary: "Updates a specific ecommerce order",
+    operationId: "updateEcommerceOrder",
+    tags: ["Admin", "Ecommerce", "Orders"],
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            description: "ID of the ecommerce order to update",
+            required: true,
+            schema: {
+                type: "string",
+            },
+        },
+    ],
+    requestBody: {
+        description: "New data for the ecommerce order",
+        content: {
+            "application/json": {
+                schema: utils_1.ecommerceOrderUpdateSchema,
+            },
+        },
+    },
+    responses: (0, query_1.updateRecordResponses)("Ecommerce Order"),
+    requiresAuth: true,
+    permission: "edit.ecommerce.order",
+    logModule: "ADMIN_ECOM",
+    logTitle: "Update order",
+};
+exports.default = async (data) => {
+    const { body, params, ctx } = data;
+    const { id } = params;
+    const { status } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Finding order: ${id}`);
+    const order = await db_1.models.ecommerceOrder.findByPk(id);
+    if (!order) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Order not found" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating order status");
+    if (order.status !== "PENDING") {
+        throw (0, error_1.createError)({ statusCode: 400, message: "Order status is not PENDING" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding related transaction");
+    const transaction = await db_1.models.transaction.findOne({
+        where: { referenceId: order.id },
+    });
+    if (!transaction) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Transaction not found" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding wallet");
+    const wallet = await db_1.models.wallet.findByPk(transaction.walletId);
+    if (!wallet) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating order and wallet");
+    await db_1.sequelize.transaction(async (t) => {
+        order.status = status;
+        await order.save({ transaction: t });
+        if (status === "CANCELLED" || status === "REJECTED") {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Refunding order amount via wallet service");
+            const idempotencyKey = `ecom_order_refund_${id}`;
+            await wallet_1.walletService.credit({
+                idempotencyKey,
+                userId: order.userId,
+                walletId: wallet.id,
+                walletType: wallet.type,
+                currency: wallet.currency,
+                amount: transaction.amount,
+                operationType: "REFUND",
+                referenceId: order.id,
+                description: `Refund for ${status.toLowerCase()} order ${order.id}`,
+                metadata: {
+                    orderId: order.id,
+                    transactionId: transaction.id,
+                    status,
+                },
+                transaction: t,
+            });
+        }
+        return order;
+    });
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending status update email");
+        const user = await db_1.models.user.findByPk(order.userId);
+        await (0, utils_1.sendOrderStatusUpdateEmail)(user, order, status, ctx);
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Order updated and email sent successfully");
+    }
+    catch (error) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.warn("Order updated but failed to send email");
+        console.error("Failed to send order status update email:", error);
+    }
+};

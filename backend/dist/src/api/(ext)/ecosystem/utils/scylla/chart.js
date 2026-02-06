@@ -1,1 +1,272 @@
-"use strict";function extractAggregations(e,t){const a=[];t.forEach(e=>{e.aggregation&&e.aggregation.field&&e.aggregation.value&&a.push({alias:e.metric,field:String(e.aggregation.field),value:String(e.aggregation.value)})});e.forEach(e=>{if("pie"===e.type&&e.config&&e.config.field&&e.config.status){const t=String(e.config.field);e.config.status.forEach(e=>{a.push({alias:String(e.value),field:t,value:String(e.value)})})}});const r=new Map;a.forEach(e=>{const t=`${e.alias}:${e.field}:${e.value}`;r.set(t,e)});return Array.from(r.values())}async function fetchRowsForInterval(e,t,a,r,n={}){let c=`SELECT * FROM ${t?`${t}.${e}`:e} WHERE "createdAt" >= ? AND "createdAt" <= ?`;const o=[a,r];for(const[e,t]of Object.entries(n)){c+=` AND "${e}" = ?`;o.push(t)}c+=" ALLOW FILTERING";return(await client_1.default.execute(c,o,{prepare:!0})).rows.map(e=>{const t={createdAt:new Date(e.createdAt),total:void 0!==e.total?Number(e.total):1};Object.keys(e).forEach(a=>{"createdAt"!==a&&"total"!==a&&(t[a]=e[a])});return t})}function aggregateDataByPeriod(e,t,a){if("hour"===t||"day"===t)return e;const r=[];if(!e.length)return r;let n=(0,date_fns_1.startOfWeek)(e[0].createdAt);const c=e[e.length-1].createdAt;for(;n<=c;){const t=(0,date_fns_1.endOfWeek)(n),c=e.filter(e=>e.createdAt>=n&&e.createdAt<=t);if(c.length){const e={createdAt:n,total:c.length};a.forEach(t=>{e[t.alias]=c.filter(e=>{const a=String(e[t.field]).toLowerCase(),r=t.value.toLowerCase();return"cancelled"===r?"cancelled"===a||"canceled"===a:a===r}).length});r.push(e)}n=(0,date_fns_1.addDays)(n,7)}return r}function generateCompleteTimeline(e,t,a,r,n){let c;c="hour"===a?(0,date_fns_1.eachHourOfInterval)({start:e,end:t}):"day"===a?(0,date_fns_1.eachDayOfInterval)({start:e,end:t}):(0,date_fns_1.eachWeekOfInterval)({start:e,end:t});const o=new Map;r.forEach(e=>{let t;t="week"===a?(0,date_fns_1.startOfWeek)(e.createdAt).getTime():"hour"===a?new Date(e.createdAt.getFullYear(),e.createdAt.getMonth(),e.createdAt.getDate(),e.createdAt.getHours()).getTime():new Date(e.createdAt.getFullYear(),e.createdAt.getMonth(),e.createdAt.getDate()).getTime();const r=o.get(t);if(r){r.total+=e.total;n.forEach(t=>{r[t.alias]=(r[t.alias]||0)+(e[t.alias]||0)})}else o.set(t,{...e,createdAt:new Date(t)})});return c.map(e=>{const t=e.getTime(),a=o.get(t);if(a)return a;const r={createdAt:e,total:0};n.forEach(e=>{r[e.alias]=0});return r})}async function getChartData({model:e,keyspace:t,timeframe:a,charts:r,kpis:n,where:c={}}){const o=t?`${t}.${e}`:e;let s,i,l,d=new Date;try{const e=`SELECT max("createdAt") as maxCreatedAt FROM ${o}`,t=await client_1.default.execute(e,[],{prepare:!0});t.rows.length&&t.rows[0].maxCreatedAt&&(d=new Date(t.rows[0].maxCreatedAt))}catch(e){console.error("Failed to fetch max createdAt, using current date",e)}switch(a){case"24h":s=(0,date_fns_1.subDays)(d,1);i="hour";l="hour";break;case"7d":s=(0,date_fns_1.subDays)(d,7);i="day";l="day";break;case"30d":s=(0,date_fns_1.subDays)(d,30);i="day";l="day";break;case"3m":s=(0,date_fns_1.subMonths)(d,3);i="day";l="week";break;case"6m":s=(0,date_fns_1.subMonths)(d,6);i="day";l="week";break;default:s=(0,date_fns_1.subMonths)(d,12);i="day";l="week"}const u=extractAggregations(r,n),f=await fetchRowsForInterval(e,t||"",s,d,c);f.sort((e,t)=>e.createdAt.getTime()-t.createdAt.getTime());const g=generateCompleteTimeline(s,d,l,aggregateDataByPeriod(f,l,u),u),h={kpis:[]};n.forEach(e=>{if(!g.length){h.kpis.push({id:e.id,title:e.title,value:0,change:0,trend:[],icon:e.icon});return}const t=g.reduce((t,a)=>t+Number(a[e.metric]||0),0),a=Math.floor(g.length/2),r=g.slice(0,a),n=g.slice(a),c=r.reduce((t,a)=>t+Number(a[e.metric]||0),0),o=n.reduce((t,a)=>t+Number(a[e.metric]||0),0);let s=0;s=0===c?0===o?0:100:(o-c)/c*100;const i=Math.round(100*s)/100,l=g.map(t=>({date:t.createdAt.toISOString(),value:Number(t[e.metric]||0)}));h.kpis.push({id:e.id,title:e.title,value:t,change:i,trend:l,icon:e.icon})});r.forEach(e=>{var t,a;"pie"===e.type?h[e.id]=(null===(a=null===(t=e.config)||void 0===t?void 0:t.status)||void 0===a?void 0:a.map(e=>{const t=g.reduce((t,a)=>t+(Number(a[String(e.value)])||0),0);return{id:String(e.value),name:e.label,value:t,color:e.color}}))||[]:h[e.id]=g.map(t=>{const a={date:t.createdAt.toISOString()};e.metrics.forEach(e=>{var r;a[e]=null!==(r=t[e])&&void 0!==r?r:0});return a})});return h}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.getChartData=getChartData;const client_1=__importDefault(require("./client")),date_fns_1=require("date-fns");
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getChartData = getChartData;
+const client_1 = __importDefault(require("./client"));
+const date_fns_1 = require("date-fns");
+function extractAggregations(charts, kpis) {
+    const aggregations = [];
+    kpis.forEach((kpi) => {
+        if (kpi.aggregation && kpi.aggregation.field && kpi.aggregation.value) {
+            aggregations.push({
+                alias: kpi.metric,
+                field: String(kpi.aggregation.field),
+                value: String(kpi.aggregation.value),
+            });
+        }
+    });
+    charts.forEach((chart) => {
+        if (chart.type === "pie" &&
+            chart.config &&
+            chart.config.field &&
+            chart.config.status) {
+            const field = String(chart.config.field);
+            chart.config.status.forEach((st) => {
+                aggregations.push({
+                    alias: String(st.value),
+                    field: field,
+                    value: String(st.value),
+                });
+            });
+        }
+    });
+    const unique = new Map();
+    aggregations.forEach((agg) => {
+        const key = `${agg.alias}:${agg.field}:${agg.value}`;
+        unique.set(key, agg);
+    });
+    return Array.from(unique.values());
+}
+async function fetchRowsForInterval(model, keyspace, startDate, endDate, additionalWhere = {}) {
+    const fullModelName = keyspace ? `${keyspace}.${model}` : model;
+    let cql = `SELECT * FROM ${fullModelName} WHERE "createdAt" >= ? AND "createdAt" <= ?`;
+    const queryParams = [startDate, endDate];
+    for (const [key, value] of Object.entries(additionalWhere)) {
+        cql += ` AND "${key}" = ?`;
+        queryParams.push(value);
+    }
+    cql += " ALLOW FILTERING";
+    const result = await client_1.default.execute(cql, queryParams, { prepare: true });
+    return result.rows.map((row) => {
+        const dp = {
+            createdAt: new Date(row.createdAt),
+            total: row.total !== undefined ? Number(row.total) : 1,
+        };
+        Object.keys(row).forEach((key) => {
+            if (key !== "createdAt" && key !== "total") {
+                dp[key] = row[key];
+            }
+        });
+        return dp;
+    });
+}
+function aggregateDataByPeriod(data, period, aggregations) {
+    if (period === "hour" || period === "day")
+        return data;
+    const aggregated = [];
+    if (!data.length)
+        return aggregated;
+    let currentWeekStart = (0, date_fns_1.startOfWeek)(data[0].createdAt);
+    const lastDate = data[data.length - 1].createdAt;
+    while (currentWeekStart <= lastDate) {
+        const weekEnd = (0, date_fns_1.endOfWeek)(currentWeekStart);
+        const slice = data.filter((d) => d.createdAt >= currentWeekStart && d.createdAt <= weekEnd);
+        if (slice.length) {
+            const agg = { createdAt: currentWeekStart, total: slice.length };
+            aggregations.forEach((inst) => {
+                agg[inst.alias] = slice.filter((row) => {
+                    const rowValue = String(row[inst.field]).toLowerCase();
+                    const expected = inst.value.toLowerCase();
+                    if (expected === "cancelled") {
+                        return rowValue === "cancelled" || rowValue === "canceled";
+                    }
+                    return rowValue === expected;
+                }).length;
+            });
+            aggregated.push(agg);
+        }
+        currentWeekStart = (0, date_fns_1.addDays)(currentWeekStart, 7);
+    }
+    return aggregated;
+}
+function generateCompleteTimeline(startDate, endDate, period, aggregatedData, aggregations) {
+    let timePoints;
+    if (period === "hour") {
+        timePoints = (0, date_fns_1.eachHourOfInterval)({ start: startDate, end: endDate });
+    }
+    else if (period === "day") {
+        timePoints = (0, date_fns_1.eachDayOfInterval)({ start: startDate, end: endDate });
+    }
+    else {
+        timePoints = (0, date_fns_1.eachWeekOfInterval)({ start: startDate, end: endDate });
+    }
+    const dataMap = new Map();
+    aggregatedData.forEach((dp) => {
+        let key;
+        if (period === "week") {
+            key = (0, date_fns_1.startOfWeek)(dp.createdAt).getTime();
+        }
+        else if (period === "hour") {
+            key = new Date(dp.createdAt.getFullYear(), dp.createdAt.getMonth(), dp.createdAt.getDate(), dp.createdAt.getHours()).getTime();
+        }
+        else {
+            key = new Date(dp.createdAt.getFullYear(), dp.createdAt.getMonth(), dp.createdAt.getDate()).getTime();
+        }
+        const existing = dataMap.get(key);
+        if (existing) {
+            existing.total += dp.total;
+            aggregations.forEach((agg) => {
+                existing[agg.alias] = (existing[agg.alias] || 0) + (dp[agg.alias] || 0);
+            });
+        }
+        else {
+            dataMap.set(key, { ...dp, createdAt: new Date(key) });
+        }
+    });
+    return timePoints.map((date) => {
+        const timestamp = date.getTime();
+        const existingData = dataMap.get(timestamp);
+        if (existingData) {
+            return existingData;
+        }
+        const zeroPoint = {
+            createdAt: date,
+            total: 0,
+        };
+        aggregations.forEach((agg) => {
+            zeroPoint[agg.alias] = 0;
+        });
+        return zeroPoint;
+    });
+}
+async function getChartData({ model, keyspace, timeframe, charts, kpis, where = {}, }) {
+    const fullModelName = keyspace ? `${keyspace}.${model}` : model;
+    let effectiveNow = new Date();
+    try {
+        const maxQuery = `SELECT max("createdAt") as maxCreatedAt FROM ${fullModelName}`;
+        const maxResult = await client_1.default.execute(maxQuery, [], { prepare: true });
+        if (maxResult.rows.length && maxResult.rows[0].maxCreatedAt) {
+            effectiveNow = new Date(maxResult.rows[0].maxCreatedAt);
+        }
+    }
+    catch (error) {
+        console.error("Failed to fetch max createdAt, using current date", error);
+    }
+    let startDate;
+    let interval;
+    let aggregationPeriod;
+    switch (timeframe) {
+        case "24h":
+            startDate = (0, date_fns_1.subDays)(effectiveNow, 1);
+            interval = "hour";
+            aggregationPeriod = "hour";
+            break;
+        case "7d":
+            startDate = (0, date_fns_1.subDays)(effectiveNow, 7);
+            interval = "day";
+            aggregationPeriod = "day";
+            break;
+        case "30d":
+            startDate = (0, date_fns_1.subDays)(effectiveNow, 30);
+            interval = "day";
+            aggregationPeriod = "day";
+            break;
+        case "3m":
+            startDate = (0, date_fns_1.subMonths)(effectiveNow, 3);
+            interval = "day";
+            aggregationPeriod = "week";
+            break;
+        case "6m":
+            startDate = (0, date_fns_1.subMonths)(effectiveNow, 6);
+            interval = "day";
+            aggregationPeriod = "week";
+            break;
+        case "y":
+        default:
+            startDate = (0, date_fns_1.subMonths)(effectiveNow, 12);
+            interval = "day";
+            aggregationPeriod = "week";
+            break;
+    }
+    const aggregations = extractAggregations(charts, kpis);
+    const rows = await fetchRowsForInterval(model, keyspace || "", startDate, effectiveNow, where);
+    rows.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    const aggregatedData = aggregateDataByPeriod(rows, aggregationPeriod, aggregations);
+    const completeTimeline = generateCompleteTimeline(startDate, effectiveNow, aggregationPeriod, aggregatedData, aggregations);
+    const result = { kpis: [] };
+    kpis.forEach((kpi) => {
+        if (!completeTimeline.length) {
+            result.kpis.push({
+                id: kpi.id,
+                title: kpi.title,
+                value: 0,
+                change: 0,
+                trend: [],
+                icon: kpi.icon,
+            });
+            return;
+        }
+        const value = completeTimeline.reduce((sum, row) => {
+            return sum + Number(row[kpi.metric] || 0);
+        }, 0);
+        const midpoint = Math.floor(completeTimeline.length / 2);
+        const firstHalf = completeTimeline.slice(0, midpoint);
+        const secondHalf = completeTimeline.slice(midpoint);
+        const prevValue = firstHalf.reduce((sum, row) => {
+            return sum + Number(row[kpi.metric] || 0);
+        }, 0);
+        const currentValue = secondHalf.reduce((sum, row) => {
+            return sum + Number(row[kpi.metric] || 0);
+        }, 0);
+        let rawChange = 0;
+        if (prevValue === 0) {
+            rawChange = currentValue === 0 ? 0 : 100;
+        }
+        else {
+            rawChange = ((currentValue - prevValue) / prevValue) * 100;
+        }
+        const change = Math.round(rawChange * 100) / 100;
+        const trend = completeTimeline.map((row) => ({
+            date: row.createdAt.toISOString(),
+            value: Number(row[kpi.metric] || 0),
+        }));
+        result.kpis.push({
+            id: kpi.id,
+            title: kpi.title,
+            value,
+            change,
+            trend,
+            icon: kpi.icon,
+        });
+    });
+    charts.forEach((chart) => {
+        var _a, _b;
+        if (chart.type === "pie") {
+            result[chart.id] =
+                ((_b = (_a = chart.config) === null || _a === void 0 ? void 0 : _a.status) === null || _b === void 0 ? void 0 : _b.map((st) => {
+                    const totalValue = completeTimeline.reduce((sum, row) => {
+                        return sum + (Number(row[String(st.value)]) || 0);
+                    }, 0);
+                    return {
+                        id: String(st.value),
+                        name: st.label,
+                        value: totalValue,
+                        color: st.color,
+                    };
+                })) || [];
+        }
+        else {
+            result[chart.id] = completeTimeline.map((row) => {
+                const item = { date: row.createdAt.toISOString() };
+                chart.metrics.forEach((metric) => {
+                    var _a;
+                    item[metric] = (_a = row[metric]) !== null && _a !== void 0 ? _a : 0;
+                });
+                return item;
+            });
+        }
+    });
+    return result;
+}

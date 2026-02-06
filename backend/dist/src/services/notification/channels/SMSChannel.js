@@ -1,1 +1,113 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.SMSChannel=void 0;const BaseChannel_1=require("./BaseChannel"),TwilioProvider_1=require("../providers/sms/TwilioProvider"),db_1=require("@b/db");class SMSChannel extends BaseChannel_1.BaseChannel{constructor(){super("SMS");this.twilioProvider=new TwilioProvider_1.TwilioProvider}async send(e,r){try{this.log("Sending SMS notification",{userId:e.userId,type:e.type});const s=await db_1.models.user.findByPk(e.userId,{attributes:["phone","firstName","lastName"],transaction:r});if(!s||!s.phone)return{success:!1,error:"User phone number not found"};const t=this.prepareSMSMessage(e,s),i=await this.twilioProvider.send({to:s.phone,message:t,from:process.env.APP_TWILIO_PHONE_NUMBER});if(!i.success){this.logError("Failed to send SMS",{error:i.error,to:s.phone});return i}this.log("SMS sent successfully",{userId:e.userId,to:s.phone,messageId:i.messageId});return i}catch(e){this.logError("Failed to send SMS",e);return{success:!1,error:e.message||"Failed to send SMS notification"}}}prepareSMSMessage(e,r){const s=e.data||{};if(s.smsMessage)return this.truncateMessage(s.smsMessage);let t="";s.title&&(t+=s.title);if(s.message){t.length>0&&(t+=": ");t+=s.message}if(s.link&&t.length<140){const e=process.env.APP_PUBLIC_URL||"https://yourapp.com";t+=` ${s.link.startsWith("http")?s.link:`${e}${s.link}`}`}return this.truncateMessage(t)}truncateMessage(e,r=160){return e.length<=r?e:e.substring(0,r-3)+"..."}validateConfig(){if(!process.env.APP_TWILIO_ACCOUNT_SID){this.logError("APP_TWILIO_ACCOUNT_SID not configured",{});return!1}if(!process.env.APP_TWILIO_ACCOUNT_SID.startsWith("AC")){this.logError("APP_TWILIO_ACCOUNT_SID must start with 'AC'",{});return!1}if(!process.env.APP_TWILIO_AUTH_TOKEN){this.logError("APP_TWILIO_AUTH_TOKEN not configured",{});return!1}if(!process.env.APP_TWILIO_PHONE_NUMBER&&!process.env.APP_TWILIO_MESSAGING_SERVICE_SID){this.logError("APP_TWILIO_PHONE_NUMBER or APP_TWILIO_MESSAGING_SERVICE_SID not configured",{});return!1}return this.twilioProvider.validateConfig()}async verifyPhoneNumber(e){return this.twilioProvider.verifyPhoneNumber(e)}async getMessageStatus(e){return this.twilioProvider.getMessageStatus(e)}}exports.SMSChannel=SMSChannel;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SMSChannel = void 0;
+const BaseChannel_1 = require("./BaseChannel");
+const TwilioProvider_1 = require("../providers/sms/TwilioProvider");
+const db_1 = require("@b/db");
+class SMSChannel extends BaseChannel_1.BaseChannel {
+    constructor() {
+        super("SMS");
+        this.twilioProvider = new TwilioProvider_1.TwilioProvider();
+    }
+    async send(operation, transaction) {
+        try {
+            this.log("Sending SMS notification", {
+                userId: operation.userId,
+                type: operation.type,
+            });
+            const user = await db_1.models.user.findByPk(operation.userId, {
+                attributes: ["phone", "firstName", "lastName"],
+                transaction,
+            });
+            if (!user || !user.phone) {
+                return {
+                    success: false,
+                    error: "User phone number not found",
+                };
+            }
+            const message = this.prepareSMSMessage(operation, user);
+            const result = await this.twilioProvider.send({
+                to: user.phone,
+                message,
+                from: process.env.APP_TWILIO_PHONE_NUMBER,
+            });
+            if (!result.success) {
+                this.logError("Failed to send SMS", {
+                    error: result.error,
+                    to: user.phone,
+                });
+                return result;
+            }
+            this.log("SMS sent successfully", {
+                userId: operation.userId,
+                to: user.phone,
+                messageId: result.messageId,
+            });
+            return result;
+        }
+        catch (error) {
+            this.logError("Failed to send SMS", error);
+            return {
+                success: false,
+                error: error.message || "Failed to send SMS notification",
+            };
+        }
+    }
+    prepareSMSMessage(operation, user) {
+        const data = operation.data || {};
+        if (data.smsMessage) {
+            return this.truncateMessage(data.smsMessage);
+        }
+        let sms = "";
+        if (data.title) {
+            sms += data.title;
+        }
+        if (data.message) {
+            if (sms.length > 0) {
+                sms += ": ";
+            }
+            sms += data.message;
+        }
+        if (data.link && sms.length < 140) {
+            const baseUrl = process.env.APP_PUBLIC_URL || "https://yourapp.com";
+            const fullLink = data.link.startsWith("http")
+                ? data.link
+                : `${baseUrl}${data.link}`;
+            sms += ` ${fullLink}`;
+        }
+        return this.truncateMessage(sms);
+    }
+    truncateMessage(message, maxLength = 160) {
+        if (message.length <= maxLength) {
+            return message;
+        }
+        return message.substring(0, maxLength - 3) + "...";
+    }
+    validateConfig() {
+        if (!process.env.APP_TWILIO_ACCOUNT_SID) {
+            this.logError("APP_TWILIO_ACCOUNT_SID not configured", {});
+            return false;
+        }
+        if (!process.env.APP_TWILIO_ACCOUNT_SID.startsWith("AC")) {
+            this.logError("APP_TWILIO_ACCOUNT_SID must start with 'AC'", {});
+            return false;
+        }
+        if (!process.env.APP_TWILIO_AUTH_TOKEN) {
+            this.logError("APP_TWILIO_AUTH_TOKEN not configured", {});
+            return false;
+        }
+        if (!process.env.APP_TWILIO_PHONE_NUMBER &&
+            !process.env.APP_TWILIO_MESSAGING_SERVICE_SID) {
+            this.logError("APP_TWILIO_PHONE_NUMBER or APP_TWILIO_MESSAGING_SERVICE_SID not configured", {});
+            return false;
+        }
+        return this.twilioProvider.validateConfig();
+    }
+    async verifyPhoneNumber(phoneNumber) {
+        return this.twilioProvider.verifyPhoneNumber(phoneNumber);
+    }
+    async getMessageStatus(messageSid) {
+        return this.twilioProvider.getMessageStatus(messageSid);
+    }
+}
+exports.SMSChannel = SMSChannel;

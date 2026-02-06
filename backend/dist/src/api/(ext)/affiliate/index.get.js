@@ -1,1 +1,195 @@
-"use strict";async function getAffiliateDashboard(e){const{user:r,query:t,ctx:a}=e,s=null==r?void 0:r.id;if(!s)throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});null==a||a.step("Parsing period parameter");const l=(null==t?void 0:t.period)||"6m";let d=6;switch(l){case"1m":d=1;break;case"3m":d=3;break;case"6m":d=6;break;case"1y":d=12}const o=new Date,n=new Date(o.getFullYear(),o.getMonth()-(d-1),1),i=new Date(o.getFullYear(),o.getMonth()-(2*d-1),1),u=new Date(n.getFullYear(),n.getMonth(),0);null==a||a.step("Loading MLM system settings");const m=cache_1.CacheManager.getInstance(),c="true"===(await m.getSettings()).get("referralApprovalRequired");null==a||a.step(`Fetching dashboard statistics for ${l} period`);const[f,h,w,p,b,g,_,A,R,q,I,z]=await Promise.all([db_1.models.mlmReferral.count({where:{referrerId:s}}),db_1.models.mlmReferral.count({where:{referrerId:s,status:"ACTIVE"}}),db_1.models.mlmReferral.count({where:{referrerId:s,status:"PENDING"}}),db_1.models.mlmReferralReward.findOne({attributes:[[(0,sequelize_1.fn)("SUM",(0,sequelize_1.col)("reward")),"totalEarnings"]],where:{referrerId:s},raw:!0}),db_1.models.mlmReferral.count({where:{referrerId:s,createdAt:{[sequelize_1.Op.gte]:n}}}),db_1.models.mlmReferral.count({where:{referrerId:s,createdAt:{[sequelize_1.Op.lte]:u}}}),db_1.models.mlmReferralReward.count({where:{referrerId:s,createdAt:{[sequelize_1.Op.gte]:n}}}),db_1.models.mlmReferral.count({where:{referrerId:s,createdAt:{[sequelize_1.Op.between]:[i,u]}}}),db_1.models.mlmReferral.count({where:{referrerId:s,status:"ACTIVE",createdAt:{[sequelize_1.Op.between]:[i,u]}}}),db_1.models.mlmReferral.count({where:{referrerId:s,status:"PENDING",createdAt:{[sequelize_1.Op.between]:[i,u]}}}),db_1.models.mlmReferralReward.findOne({attributes:[[(0,sequelize_1.fn)("SUM",(0,sequelize_1.col)("reward")),"amount"]],where:{referrerId:s,createdAt:{[sequelize_1.Op.between]:[i,u]}},raw:!0}),db_1.models.mlmReferralReward.count({where:{referrerId:s,createdAt:{[sequelize_1.Op.between]:[i,u]}}})]),M=parseFloat(p.totalEarnings)||0,E=b&&g>0?Math.round((b-g)/g*100):0,D=f>0?Math.round(_/f*100):0;parseFloat(null==I?void 0:I.amount),A>0&&Math.round(z/A*100);null==a||a.step("Computing statistics and growth metrics");const F={totalReferrals:f,activeReferrals:h,pendingReferrals:w,conversionRate:D,totalEarnings:M,weeklyGrowth:E};null==a||a.step("Fetching referrals for current period");const O={referrerId:s,createdAt:{[sequelize_1.Op.gte]:n}};c&&(O.status="ACTIVE");const y=await db_1.models.mlmReferral.findAll({where:O,include:[{model:db_1.models.user,as:"referred",attributes:["firstName","lastName","email","avatar"]}],order:[["createdAt","DESC"]]});null==a||a.step("Fetching reward history");const v=await db_1.models.mlmReferralReward.findAll({where:{referrerId:s},include:[{model:db_1.models.mlmReferralCondition,as:"condition",attributes:["name"]}],order:[["createdAt","DESC"]]});null==a||a.step("Generating monthly earnings breakdown");const C=[];for(let e=d-1;e>=0;e--){const r=new Date(o.getFullYear(),o.getMonth()-e,1);C.push(`${r.getFullYear()}-${String(r.getMonth()+1).padStart(2,"0")}`)}const S=await db_1.models.mlmReferralReward.findAll({attributes:[[(0,sequelize_1.fn)("DATE_FORMAT",(0,sequelize_1.col)("createdAt"),"%Y-%m"),"month"],[(0,sequelize_1.fn)("SUM",(0,sequelize_1.col)("reward")),"amount"]],where:{referrerId:s,createdAt:{[sequelize_1.Op.gte]:n}},group:["month"],raw:!0}),T=Object.fromEntries(S.map(e=>[e.month,parseFloat(e.amount)])),x=C.map(e=>({month:e,earnings:T[e]||0}));null==a||a.success(`Retrieved dashboard data: ${f} referrals, ${M.toFixed(2)} total earnings`);return{stats:F,referrals:y,rewards:v,monthlyEarnings:x}}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;exports.default=getAffiliateDashboard;const db_1=require("@b/db"),error_1=require("@b/utils/error"),cache_1=require("@b/utils/cache"),sequelize_1=require("sequelize");exports.metadata={summary:"Get Affiliate Dashboard",description:"Retrieves dashboard data for the authenticated affiliate, with optional period filtering.",operationId:"getAffiliateDashboard",tags:["Affiliate","Dashboard"],requiresAuth:!0,logModule:"AFFILIATE",logTitle:"Get affiliate dashboard",parameters:[{name:"period",in:"query",required:!1,schema:{type:"string",enum:["1m","3m","6m","1y"]}}],responses:{200:{description:"Affiliate dashboard data retrieved successfully."},401:{description:"Unauthorized"},500:{description:"Internal Server Error"}}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+exports.default = getAffiliateDashboard;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const cache_1 = require("@b/utils/cache");
+const sequelize_1 = require("sequelize");
+exports.metadata = {
+    summary: "Get Affiliate Dashboard",
+    description: "Retrieves dashboard data for the authenticated affiliate, with optional period filtering.",
+    operationId: "getAffiliateDashboard",
+    tags: ["Affiliate", "Dashboard"],
+    requiresAuth: true,
+    logModule: "AFFILIATE",
+    logTitle: "Get affiliate dashboard",
+    parameters: [
+        {
+            name: "period",
+            in: "query",
+            required: false,
+            schema: { type: "string", enum: ["1m", "3m", "6m", "1y"] },
+        },
+    ],
+    responses: {
+        200: { description: "Affiliate dashboard data retrieved successfully." },
+        401: { description: "Unauthorized" },
+        500: { description: "Internal Server Error" },
+    },
+};
+async function getAffiliateDashboard(data) {
+    var _a, _b;
+    const { user, query, ctx } = data;
+    const userId = user === null || user === void 0 ? void 0 : user.id;
+    if (!userId)
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Parsing period parameter");
+    const period = (query === null || query === void 0 ? void 0 : query.period) || "6m";
+    let monthsCount = 6;
+    switch (period) {
+        case "1m":
+            monthsCount = 1;
+            break;
+        case "3m":
+            monthsCount = 3;
+            break;
+        case "6m":
+            monthsCount = 6;
+            break;
+        case "1y":
+            monthsCount = 12;
+            break;
+    }
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth() - (monthsCount - 1), 1);
+    const prevStart = new Date(now.getFullYear(), now.getMonth() - (2 * monthsCount - 1), 1);
+    const prevEnd = new Date(startDate.getFullYear(), startDate.getMonth(), 0);
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Loading MLM system settings");
+    const cache = cache_1.CacheManager.getInstance();
+    const rawSettings = await cache.getSettings();
+    const requireApproval = rawSettings.get("referralApprovalRequired") === "true";
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Fetching dashboard statistics for ${period} period`);
+    const [totalReferrals, activeReferrals, pendingReferrals, rewardSum, recentCount, prevCountAll, rewardCount, prevTotalRef, prevActiveRef, prevPendingRef, prevRewardSumRaw, prevRewardCount,] = await Promise.all([
+        db_1.models.mlmReferral.count({ where: { referrerId: userId } }),
+        db_1.models.mlmReferral.count({
+            where: { referrerId: userId, status: "ACTIVE" },
+        }),
+        db_1.models.mlmReferral.count({
+            where: { referrerId: userId, status: "PENDING" },
+        }),
+        db_1.models.mlmReferralReward.findOne({
+            attributes: [[(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("reward")), "totalEarnings"]],
+            where: { referrerId: userId },
+            raw: true,
+        }),
+        db_1.models.mlmReferral.count({
+            where: { referrerId: userId, createdAt: { [sequelize_1.Op.gte]: startDate } },
+        }),
+        db_1.models.mlmReferral.count({
+            where: { referrerId: userId, createdAt: { [sequelize_1.Op.lte]: prevEnd } },
+        }),
+        db_1.models.mlmReferralReward.count({
+            where: { referrerId: userId, createdAt: { [sequelize_1.Op.gte]: startDate } },
+        }),
+        db_1.models.mlmReferral.count({
+            where: {
+                referrerId: userId,
+                createdAt: { [sequelize_1.Op.between]: [prevStart, prevEnd] },
+            },
+        }),
+        db_1.models.mlmReferral.count({
+            where: {
+                referrerId: userId,
+                status: "ACTIVE",
+                createdAt: { [sequelize_1.Op.between]: [prevStart, prevEnd] },
+            },
+        }),
+        db_1.models.mlmReferral.count({
+            where: {
+                referrerId: userId,
+                status: "PENDING",
+                createdAt: { [sequelize_1.Op.between]: [prevStart, prevEnd] },
+            },
+        }),
+        db_1.models.mlmReferralReward.findOne({
+            attributes: [[(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("reward")), "amount"]],
+            where: {
+                referrerId: userId,
+                createdAt: { [sequelize_1.Op.between]: [prevStart, prevEnd] },
+            },
+            raw: true,
+        }),
+        db_1.models.mlmReferralReward.count({
+            where: {
+                referrerId: userId,
+                createdAt: { [sequelize_1.Op.between]: [prevStart, prevEnd] },
+            },
+        }),
+    ]);
+    const totalEarnings = parseFloat((_a = rewardSum === null || rewardSum === void 0 ? void 0 : rewardSum.totalEarnings) !== null && _a !== void 0 ? _a : "0") || 0;
+    const weeklyGrowth = recentCount && prevCountAll > 0
+        ? Math.round(((recentCount - prevCountAll) / prevCountAll) * 100)
+        : 0;
+    const conversionRate = totalReferrals > 0 ? Math.round((rewardCount / totalReferrals) * 100) : 0;
+    const prevTotalEarnings = parseFloat((_b = prevRewardSumRaw === null || prevRewardSumRaw === void 0 ? void 0 : prevRewardSumRaw.amount) !== null && _b !== void 0 ? _b : "0") || 0;
+    const prevConversionRate = prevTotalRef > 0 ? Math.round((prevRewardCount / prevTotalRef) * 100) : 0;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Computing statistics and growth metrics");
+    const stats = {
+        totalReferrals,
+        activeReferrals,
+        pendingReferrals,
+        conversionRate,
+        totalEarnings,
+        weeklyGrowth,
+    };
+    const previousStats = {
+        totalReferrals: prevTotalRef,
+        activeReferrals: prevActiveRef,
+        pendingReferrals: prevPendingRef,
+        conversionRate: prevConversionRate,
+        totalEarnings: prevTotalEarnings,
+    };
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching referrals for current period");
+    const referralsWhere = {
+        referrerId: userId,
+        createdAt: { [sequelize_1.Op.gte]: startDate },
+    };
+    if (requireApproval)
+        referralsWhere.status = "ACTIVE";
+    const referrals = await db_1.models.mlmReferral.findAll({
+        where: referralsWhere,
+        include: [
+            {
+                model: db_1.models.user,
+                as: "referred",
+                attributes: ["firstName", "lastName", "email", "avatar"],
+            },
+        ],
+        order: [["createdAt", "DESC"]],
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching reward history");
+    const rewards = await db_1.models.mlmReferralReward.findAll({
+        where: { referrerId: userId },
+        include: [
+            {
+                model: db_1.models.mlmReferralCondition,
+                as: "condition",
+                attributes: ["name"],
+            },
+        ],
+        order: [["createdAt", "DESC"]],
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Generating monthly earnings breakdown");
+    const months = [];
+    for (let i = monthsCount - 1; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+    }
+    const earningsRaw = await db_1.models.mlmReferralReward.findAll({
+        attributes: [
+            [(0, sequelize_1.fn)("DATE_FORMAT", (0, sequelize_1.col)("createdAt"), "%Y-%m"), "month"],
+            [(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("reward")), "amount"],
+        ],
+        where: { referrerId: userId, createdAt: { [sequelize_1.Op.gte]: startDate } },
+        group: ["month"],
+        raw: true,
+    });
+    const earningsMap = Object.fromEntries(earningsRaw.map((r) => [r.month, parseFloat(r.amount)]));
+    const monthlyEarnings = months.map((m) => ({
+        month: m,
+        earnings: earningsMap[m] || 0,
+    }));
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Retrieved dashboard data: ${totalReferrals} referrals, ${totalEarnings.toFixed(2)} total earnings`);
+    return { stats, referrals, rewards, monthlyEarnings };
+}

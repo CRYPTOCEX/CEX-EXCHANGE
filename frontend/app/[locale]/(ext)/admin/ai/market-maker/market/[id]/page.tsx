@@ -49,7 +49,6 @@ import {
 } from "lucide-react";
 import { HeroSection } from "@/components/ui/hero-section";
 import { Progress } from "@/components/ui/progress";
-import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 interface RecentTrade {
   id: string;
@@ -129,6 +128,47 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+interface QuickStatProps {
+  label: string;
+  value: string;
+  icon: React.ElementType;
+  trend?: number;
+  gradient: string;
+  currency?: string;
+}
+
+function QuickStat({ label, value, icon: IconComponent, trend, gradient, currency }: QuickStatProps) {
+  // Cards with gradient backgrounds don't need borders as they are visually distinct
+  return (
+    <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-5 group-hover:opacity-10 transition-opacity`} />
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1 min-w-0 flex-1 mr-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {label}
+            </p>
+            <p className="text-2xl font-bold text-foreground truncate">
+              {value}
+            </p>
+            {currency && (
+              <p className="text-xs text-muted-foreground">{currency}</p>
+            )}
+            {trend !== undefined && (
+              <div className={`flex items-center gap-1 text-xs font-medium ${trend >= 0 ? "text-green-500" : "text-red-500"}`}>
+                <TrendingUp className={`w-3 h-3 ${trend < 0 ? "rotate-180" : ""}`} />
+                {trend >= 0 ? "+" : ""}{trend.toFixed(1)}%
+              </div>
+            )}
+          </div>
+          <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} shadow-lg shrink-0`}>
+            <IconComponent className="w-5 h-5 text-white" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function MarketDetailsPage({
   params,
@@ -472,7 +512,7 @@ export default function MarketDetailsPage({
 
         {/* Main Content Container */}
         <div className="container mx-auto py-8 space-y-6">
-          {/* Loading Stats - matches StatsCard cards */}
+          {/* Loading Stats - matches QuickStat cards (border-0 shadow-lg) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               "from-cyan-500 to-cyan-600",
@@ -719,35 +759,34 @@ export default function MarketDetailsPage({
 
         {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard
-          label={`${tExt("target_price")} (${data.market?.pair || ""})`}
+        <QuickStat
+          label={tExt("target_price")}
           value={Number(data.targetPrice || 0).toFixed(6)}
           icon={Target}
-          {...statsCardColors.cyan}
-          index={0}
+          gradient="from-cyan-500 to-cyan-600"
+          currency={data.market?.pair}
         />
-        <StatsCard
-          label={`${tCommon("total_value_locked")} (${data.market?.pair || ""})`}
+        <QuickStat
+          label={tCommon("total_value_locked")}
           value={Number(data.pool?.totalValueLocked || 0).toLocaleString()}
           icon={Wallet}
-          {...statsCardColors.purple}
-          index={1}
+          gradient="from-cyan-500 to-purple-600"
+          currency={data.market?.pair}
         />
-        <StatsCard
-          label={`24h ${tCommon('volume')} (${data.market?.pair || ""})`}
+        <QuickStat
+          label={`24h ${tCommon('volume')}`}
           value={Number(data.currentDailyVolume || 0).toLocaleString()}
           icon={Activity}
-          {...statsCardColors.blue}
-          index={2}
+          gradient="from-purple-500 to-cyan-600"
+          currency={data.market?.pair}
         />
-        <StatsCard
-          label={`${tCommon("total_p_l")} (${data.market?.pair || ""})`}
+        <QuickStat
+          label={tCommon("total_p_l")}
           value={`${totalPnL >= 0 ? "+" : ""}${Math.abs(totalPnL).toFixed(2)}`}
           icon={TrendingUp}
-          change={Number(totalPnL.toFixed(1))}
-          isPercent={true}
-          {...(totalPnL >= 0 ? statsCardColors.green : statsCardColors.red)}
-          index={3}
+          trend={totalPnL}
+          gradient={totalPnL >= 0 ? "from-green-500 to-green-600" : "from-red-500 to-red-600"}
+          currency={data.market?.pair}
         />
       </div>
 

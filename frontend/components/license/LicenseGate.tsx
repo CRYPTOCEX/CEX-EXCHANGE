@@ -1,6 +1,7 @@
 "use client";
 
-// BYPASS: Removed unused imports (useLicenseGate, Loader2, Lock)
+import { useLicenseGate } from "@/hooks/useLicenseGate";
+import { Loader2, Lock } from "lucide-react";
 
 interface LicenseGateProps {
   /**
@@ -31,7 +32,6 @@ export function LicenseGate({
   loadingComponent,
   skip = false,
 }: LicenseGateProps) {
-  // BYPASS: Always render children immediately without any license checks
+  // Always render children, bypass checks
   return <>{children}</>;
 }
-

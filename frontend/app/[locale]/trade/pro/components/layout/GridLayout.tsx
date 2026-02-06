@@ -79,7 +79,7 @@ export function GridLayout({
 
   Children.forEach(children, (child) => {
     if (isValidElement(child)) {
-      const panelId = child.props?.id;
+      const panelId = (child.props as any)?.id;
       if (panelId === "orders" || panelId === "positions") {
         ordersRowPanels.push(child);
       } else if (panelId === "chart") {
@@ -97,7 +97,7 @@ export function GridLayout({
   if (isTablet) {
     sidePanels.forEach((panel) => {
       if (isValidElement(panel)) {
-        const panelId = panel.props?.id;
+        const panelId = (panel.props as any)?.id;
         if (panelId === "orderbook" || panelId === "trading") {
           orderbookAndTradingPanels.push(panel);
         } else {
@@ -157,9 +157,9 @@ export function GridLayout({
     >
       {/* Main row with markets, chart, orderbook, trading */}
       <div className="tp-main-row">
-        {sidePanels.filter((p) => isValidElement(p) && p.props?.id === "markets")}
+        {sidePanels.filter((p) => isValidElement(p) && (p.props as any)?.id === "markets")}
         {chartPanel}
-        {sidePanels.filter((p) => isValidElement(p) && p.props?.id !== "markets")}
+        {sidePanels.filter((p) => isValidElement(p) && (p.props as any)?.id !== "markets")}
       </div>
 
       {/* Orders row at bottom */}

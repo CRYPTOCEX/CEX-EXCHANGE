@@ -1,1 +1,380 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});const db_1=require("@b/db"),safe_imports_1=require("@b/utils/safe-imports"),notifications_1=require("@b/utils/notifications"),console_1=require("@b/utils/console"),error_1=require("@b/utils/error"),BTC_NODE=(process.env.BTC_NODE||"mempool").toLowerCase(),BLOCKCYPHER_TOKEN=process.env.BLOCKCYPHER_TOKEN,SCAN_INTERVAL=6e4,REQUIRED_CONFIRMATIONS=3;class BTCDepositScanner{constructor(){this.isScanning=!1;this.processedTransactions=new Map;this.provider=null;this.providerType=null;this.scanInterval=null;this.ecosystemWalletUtils=null;this.initializationFailed=!1;this.isInitialized=!1}static getInstance(){BTCDepositScanner.instance||(BTCDepositScanner.instance=new BTCDepositScanner);return BTCDepositScanner.instance}async initializeProviderWithFallback(){const e=[];switch(BTC_NODE){case"node":e.push("node");e.push("mempool");BLOCKCYPHER_TOKEN&&e.push("blockcypher");break;case"blockcypher":BLOCKCYPHER_TOKEN&&e.push("blockcypher");e.push("mempool");break;default:e.push("mempool");BLOCKCYPHER_TOKEN&&e.push("blockcypher")}for(const s of e)try{if(await this.tryInitializeProvider(s)){this.providerType=s;return!0}}catch(e){console_1.logger.groupItem("BTC_SCAN",`${s} failed: ${e instanceof Error?e.message:e}`,"error")}return!1}async tryInitializeProvider(e){switch(e){case"node":{console_1.logger.groupItem("BTC_SCAN","Trying local Bitcoin Core node...");const e=await(0,safe_imports_1.getBitcoinNodeService)();if(!(0,safe_imports_1.isServiceAvailable)(e))throw(0,error_1.createError)({statusCode:500,message:"Bitcoin Node service not available"});console_1.logger.groupItem("BTC_SCAN","Initializing BTC Core RPC connection");this.provider=await e.getInstance();if(!await this.provider.isSynced()){const e=await this.provider.getSyncProgress();console_1.logger.groupItem("BTC_SCAN",`Node syncing: ${e.blocks}/${e.headers} (${e.progress.toFixed(1)}%)`,"warn")}console_1.logger.groupItem("BTC_SCAN","Local node connected","success");return!0}case"mempool":{console_1.logger.groupItem("BTC_SCAN","Trying Mempool.space API...");const e=await(0,safe_imports_1.getMempoolProviderClass)();if(!(0,safe_imports_1.isServiceAvailable)(e))throw(0,error_1.createError)({statusCode:500,message:"Mempool provider not available"});const s=new e("BTC");if(!await s.isAvailable())throw(0,error_1.createError)({statusCode:500,message:"Mempool.space API not reachable"});this.provider=s;console_1.logger.groupItem("BTC_SCAN","Mempool.space connected","success");return!0}case"blockcypher":{if(!BLOCKCYPHER_TOKEN)throw(0,error_1.createError)({statusCode:500,message:"BLOCKCYPHER_TOKEN not configured"});console_1.logger.groupItem("BTC_SCAN","Trying BlockCypher API...");const e=await(0,safe_imports_1.getBlockCypherProviderClass)();if(!(0,safe_imports_1.isServiceAvailable)(e))throw(0,error_1.createError)({statusCode:500,message:"BlockCypher provider not available"});const s=new e("BTC");if(!await s.isAvailable())throw(0,error_1.createError)({statusCode:500,message:"BlockCypher API not reachable"});this.provider=s;console_1.logger.groupItem("BTC_SCAN","BlockCypher connected","success");return!0}default:return!1}}async start(){if(!this.isInitialized&&!this.initializationFailed){this.ecosystemWalletUtils=await(0,safe_imports_1.getEcosystemWalletUtils)();if((0,safe_imports_1.isServiceAvailable)(this.ecosystemWalletUtils)){console_1.logger.group("BTC_SCAN","Starting Bitcoin deposit scanner...");console_1.logger.registerGroupAlias("BTC_NODE","BTC_SCAN");console_1.logger.registerGroupAlias("BTC_NODE_PROVIDER","BTC_SCAN");try{if(!await this.initializeProviderWithFallback())throw(0,error_1.createError)({statusCode:500,message:"All providers failed - no BTC scanning available"});"node"===this.providerType&&await this.importAllAddresses();this.startPeriodicScan();this.isInitialized=!0;console_1.logger.groupEnd("BTC_SCAN",`Scanner started using ${this.providerType}`,!0)}catch(e){this.initializationFailed=!0;console_1.logger.groupEnd("BTC_SCAN",`Failed: ${e instanceof Error?e.message:e}`,!1);"node"===BTC_NODE?console_1.logger.warn("BTC_SCAN","Tip: Ensure Bitcoin Core is running or set BTC_NODE=mempool in .env"):console_1.logger.warn("BTC_SCAN","Tip: Check your internet connection or try a different BTC_NODE provider")}finally{console_1.logger.unregisterGroupAlias("BTC_NODE");console_1.logger.unregisterGroupAlias("BTC_NODE_PROVIDER")}}}}stop(){if(this.scanInterval){clearInterval(this.scanInterval);this.scanInterval=null}this.isInitialized&&console_1.logger.info("BTC_SCAN","Bitcoin deposit scanner stopped");this.isInitialized=!1}async importAllAddresses(){var e,s;if("node"===this.providerType&&(null===(e=this.provider)||void 0===e?void 0:e.importAddress))try{console_1.logger.groupItem("BTC_SCAN","Importing wallet addresses to node...");const e=await db_1.models.wallet.findAll({where:{type:"ECO",currency:"BTC"}});console_1.logger.groupItem("BTC_SCAN",`Found ${e.length} BTC wallets`);let o=0;for(const t of e)try{if(!t.address)continue;const e="string"==typeof t.address?JSON.parse(t.address):t.address,i=null===(s=null==e?void 0:e.BTC)||void 0===s?void 0:s.address;if(!i)continue;await this.provider.importAddress(i,`wallet_${t.id}_user_${t.userId}`);o++;await this.delay(100)}catch(e){}o>0&&console_1.logger.groupItem("BTC_SCAN",`Imported ${o} addresses`,"success")}catch(e){console_1.logger.groupItem("BTC_SCAN",`Address import failed: ${e instanceof Error?e.message:e}`,"warn")}}startPeriodicScan(){this.scanInterval=setInterval(async()=>{await this.scanAllWallets()},6e4);setImmediate(()=>this.scanAllWallets())}async scanAllWallets(){if(!this.isScanning&&this.provider){if("node"===this.providerType&&this.provider.isSynced){if(!await this.provider.isSynced())return}this.isScanning=!0;try{const e=await db_1.models.wallet.findAll({where:{type:"ECO",currency:"BTC"}});let s=0,o=0;for(const t of e)try{const e=await this.scanWalletForDeposits(t);s+=e.newDeposits;o+=e.pendingDeposits}catch(e){console_1.logger.error("BTC_SCAN",`Error scanning wallet ${t.id}`,e)}(s>0||o>0)&&console_1.logger.info("BTC_SCAN",`Scan completed: ${s} new, ${o} pending`)}catch(e){console_1.logger.error("BTC_SCAN","Error in scan cycle",e)}finally{this.isScanning=!1}}}async scanWalletForDeposits(e){var s;try{if(!e.address)return{newDeposits:0,pendingDeposits:0};const o="string"==typeof e.address?JSON.parse(e.address):e.address,t=null===(s=null==o?void 0:o.BTC)||void 0===s?void 0:s.address;if(!t)return{newDeposits:0,pendingDeposits:0};let i=[];i="node"===this.providerType?await this.provider.getAddressTransactions(t):await this.provider.fetchTransactions(t);let r=0,n=0;for(const s of i){const o=s.txid||s.hash,i=s.confirmations||0;if("receive"!==(s.category||(s.value>0?"receive":"send"))&&s.value<=0)continue;const a=`${o}-${e.id}`,l=await db_1.models.transaction.findOne({where:{trxId:o,walletId:e.id,type:"DEPOSIT"}});if(l&&"COMPLETED"===l.status)this.processedTransactions.set(a,{txid:o,walletId:e.id,lastChecked:Date.now()});else if(i>=3){console_1.logger.info("BTC_SCAN",`Processing deposit: ${o} (${i} conf)`);await this.processDeposit(e,s,t);r++;this.processedTransactions.set(a,{txid:o,walletId:e.id,lastChecked:Date.now()})}else i>0&&n++}return{newDeposits:r,pendingDeposits:n}}catch(s){console_1.logger.error("BTC_SCAN",`Error scanning wallet ${e.id}`,s);return{newDeposits:0,pendingDeposits:0}}}async processDeposit(e,s,o){try{const t=s.txid||s.hash,i=s.amount||s.value/1e8,r=s.fee||0,n={id:e.id,chain:"BTC",hash:t,type:"DEPOSIT",from:"N/A",to:o,amount:i.toString(),fee:r.toString(),status:"CONFIRMED",timestamp:s.time||s.confirmedTime||Math.floor(Date.now()/1e3),inputs:s.vin||s.inputs||[],outputs:s.vout||s.outputs||[]};console_1.logger.info("BTC_SCAN",`Creating deposit: ${i} BTC`);const a=await this.ecosystemWalletUtils.handleEcosystemDeposit(n);if(a.transaction){console_1.logger.success("BTC_SCAN",`Deposit processed: ${a.transaction.id}`);try{await(0,notifications_1.createNotification)({userId:e.userId,relatedId:a.transaction.id,title:"Deposit Confirmed",message:`Your deposit of ${i} BTC has been confirmed.`,type:"system",link:"/finance/history",actions:[{label:"View Deposit",link:"/finance/history",primary:!0}]})}catch(e){console_1.logger.error("BTC_SCAN","Failed to send notification",e)}}}catch(e){const o=s.txid||s.hash;console_1.logger.error("BTC_SCAN",`Failed to process deposit ${o}`,e);throw e}}delay(e){return new Promise(s=>setTimeout(s,e))}}exports.default=BTCDepositScanner;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const db_1 = require("@b/db");
+const safe_imports_1 = require("@b/utils/safe-imports");
+const notifications_1 = require("@b/utils/notifications");
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+const BTC_NODE = (process.env.BTC_NODE || "mempool").toLowerCase();
+const BLOCKCYPHER_TOKEN = process.env.BLOCKCYPHER_TOKEN;
+const SCAN_INTERVAL = 60000;
+const REQUIRED_CONFIRMATIONS = 3;
+class BTCDepositScanner {
+    constructor() {
+        this.isScanning = false;
+        this.processedTransactions = new Map();
+        this.provider = null;
+        this.providerType = null;
+        this.scanInterval = null;
+        this.ecosystemWalletUtils = null;
+        this.initializationFailed = false;
+        this.isInitialized = false;
+    }
+    static getInstance() {
+        if (!BTCDepositScanner.instance) {
+            BTCDepositScanner.instance = new BTCDepositScanner();
+        }
+        return BTCDepositScanner.instance;
+    }
+    async initializeProviderWithFallback() {
+        const fallbackChain = [];
+        switch (BTC_NODE) {
+            case "node":
+                fallbackChain.push("node");
+                fallbackChain.push("mempool");
+                if (BLOCKCYPHER_TOKEN) {
+                    fallbackChain.push("blockcypher");
+                }
+                break;
+            case "blockcypher":
+                if (BLOCKCYPHER_TOKEN) {
+                    fallbackChain.push("blockcypher");
+                }
+                fallbackChain.push("mempool");
+                break;
+            case "mempool":
+            default:
+                fallbackChain.push("mempool");
+                if (BLOCKCYPHER_TOKEN) {
+                    fallbackChain.push("blockcypher");
+                }
+                break;
+        }
+        for (const providerType of fallbackChain) {
+            try {
+                const success = await this.tryInitializeProvider(providerType);
+                if (success) {
+                    this.providerType = providerType;
+                    return true;
+                }
+            }
+            catch (error) {
+                console_1.logger.groupItem("BTC_SCAN", `${providerType} failed: ${error instanceof Error ? error.message : error}`, "error");
+            }
+        }
+        return false;
+    }
+    async tryInitializeProvider(type) {
+        switch (type) {
+            case "node": {
+                console_1.logger.groupItem("BTC_SCAN", "Trying local Bitcoin Core node...");
+                const BitcoinNodeService = await (0, safe_imports_1.getBitcoinNodeService)();
+                if (!(0, safe_imports_1.isServiceAvailable)(BitcoinNodeService)) {
+                    throw (0, error_1.createError)({ statusCode: 500, message: "Bitcoin Node service not available" });
+                }
+                console_1.logger.groupItem("BTC_SCAN", "Initializing BTC Core RPC connection");
+                this.provider = await BitcoinNodeService.getInstance();
+                const isSynced = await this.provider.isSynced();
+                if (!isSynced) {
+                    const progress = await this.provider.getSyncProgress();
+                    console_1.logger.groupItem("BTC_SCAN", `Node syncing: ${progress.blocks}/${progress.headers} (${progress.progress.toFixed(1)}%)`, "warn");
+                }
+                console_1.logger.groupItem("BTC_SCAN", "Local node connected", "success");
+                return true;
+            }
+            case "mempool": {
+                console_1.logger.groupItem("BTC_SCAN", "Trying Mempool.space API...");
+                const MempoolProvider = await (0, safe_imports_1.getMempoolProviderClass)();
+                if (!(0, safe_imports_1.isServiceAvailable)(MempoolProvider)) {
+                    throw (0, error_1.createError)({ statusCode: 500, message: "Mempool provider not available" });
+                }
+                const mempoolProvider = new MempoolProvider("BTC");
+                const isAvailable = await mempoolProvider.isAvailable();
+                if (!isAvailable) {
+                    throw (0, error_1.createError)({ statusCode: 500, message: "Mempool.space API not reachable" });
+                }
+                this.provider = mempoolProvider;
+                console_1.logger.groupItem("BTC_SCAN", "Mempool.space connected", "success");
+                return true;
+            }
+            case "blockcypher": {
+                if (!BLOCKCYPHER_TOKEN) {
+                    throw (0, error_1.createError)({ statusCode: 500, message: "BLOCKCYPHER_TOKEN not configured" });
+                }
+                console_1.logger.groupItem("BTC_SCAN", "Trying BlockCypher API...");
+                const BlockCypherProvider = await (0, safe_imports_1.getBlockCypherProviderClass)();
+                if (!(0, safe_imports_1.isServiceAvailable)(BlockCypherProvider)) {
+                    throw (0, error_1.createError)({ statusCode: 500, message: "BlockCypher provider not available" });
+                }
+                const blockcypherProvider = new BlockCypherProvider("BTC");
+                const isAvailable = await blockcypherProvider.isAvailable();
+                if (!isAvailable) {
+                    throw (0, error_1.createError)({ statusCode: 500, message: "BlockCypher API not reachable" });
+                }
+                this.provider = blockcypherProvider;
+                console_1.logger.groupItem("BTC_SCAN", "BlockCypher connected", "success");
+                return true;
+            }
+            default:
+                return false;
+        }
+    }
+    async start() {
+        if (this.isInitialized) {
+            return;
+        }
+        if (this.initializationFailed) {
+            return;
+        }
+        this.ecosystemWalletUtils = await (0, safe_imports_1.getEcosystemWalletUtils)();
+        if (!(0, safe_imports_1.isServiceAvailable)(this.ecosystemWalletUtils)) {
+            return;
+        }
+        console_1.logger.group("BTC_SCAN", "Starting Bitcoin deposit scanner...");
+        console_1.logger.registerGroupAlias("BTC_NODE", "BTC_SCAN");
+        console_1.logger.registerGroupAlias("BTC_NODE_PROVIDER", "BTC_SCAN");
+        try {
+            const providerInitialized = await this.initializeProviderWithFallback();
+            if (!providerInitialized) {
+                throw (0, error_1.createError)({ statusCode: 500, message: "All providers failed - no BTC scanning available" });
+            }
+            if (this.providerType === "node") {
+                await this.importAllAddresses();
+            }
+            this.startPeriodicScan();
+            this.isInitialized = true;
+            console_1.logger.groupEnd("BTC_SCAN", `Scanner started using ${this.providerType}`, true);
+        }
+        catch (error) {
+            this.initializationFailed = true;
+            console_1.logger.groupEnd("BTC_SCAN", `Failed: ${error instanceof Error ? error.message : error}`, false);
+            if (BTC_NODE === "node") {
+                console_1.logger.warn("BTC_SCAN", "Tip: Ensure Bitcoin Core is running or set BTC_NODE=mempool in .env");
+            }
+            else {
+                console_1.logger.warn("BTC_SCAN", "Tip: Check your internet connection or try a different BTC_NODE provider");
+            }
+        }
+        finally {
+            console_1.logger.unregisterGroupAlias("BTC_NODE");
+            console_1.logger.unregisterGroupAlias("BTC_NODE_PROVIDER");
+        }
+    }
+    stop() {
+        if (this.scanInterval) {
+            clearInterval(this.scanInterval);
+            this.scanInterval = null;
+        }
+        if (this.isInitialized) {
+            console_1.logger.info("BTC_SCAN", "Bitcoin deposit scanner stopped");
+        }
+        this.isInitialized = false;
+    }
+    async importAllAddresses() {
+        var _a, _b;
+        if (this.providerType !== "node" || !((_a = this.provider) === null || _a === void 0 ? void 0 : _a.importAddress)) {
+            return;
+        }
+        try {
+            console_1.logger.groupItem("BTC_SCAN", "Importing wallet addresses to node...");
+            const wallets = await db_1.models.wallet.findAll({
+                where: {
+                    type: "ECO",
+                    currency: "BTC",
+                },
+            });
+            console_1.logger.groupItem("BTC_SCAN", `Found ${wallets.length} BTC wallets`);
+            let imported = 0;
+            for (const wallet of wallets) {
+                try {
+                    if (!wallet.address)
+                        continue;
+                    const addresses = typeof wallet.address === "string"
+                        ? JSON.parse(wallet.address)
+                        : wallet.address;
+                    const btcAddress = (_b = addresses === null || addresses === void 0 ? void 0 : addresses.BTC) === null || _b === void 0 ? void 0 : _b.address;
+                    if (!btcAddress)
+                        continue;
+                    await this.provider.importAddress(btcAddress, `wallet_${wallet.id}_user_${wallet.userId}`);
+                    imported++;
+                    await this.delay(100);
+                }
+                catch (error) {
+                }
+            }
+            if (imported > 0) {
+                console_1.logger.groupItem("BTC_SCAN", `Imported ${imported} addresses`, "success");
+            }
+        }
+        catch (error) {
+            console_1.logger.groupItem("BTC_SCAN", `Address import failed: ${error instanceof Error ? error.message : error}`, "warn");
+        }
+    }
+    startPeriodicScan() {
+        this.scanInterval = setInterval(async () => {
+            await this.scanAllWallets();
+        }, SCAN_INTERVAL);
+        setImmediate(() => this.scanAllWallets());
+    }
+    async scanAllWallets() {
+        if (this.isScanning || !this.provider) {
+            return;
+        }
+        if (this.providerType === "node" && this.provider.isSynced) {
+            const isSynced = await this.provider.isSynced();
+            if (!isSynced) {
+                return;
+            }
+        }
+        this.isScanning = true;
+        try {
+            const wallets = await db_1.models.wallet.findAll({
+                where: {
+                    type: "ECO",
+                    currency: "BTC",
+                },
+            });
+            let newDepositsFound = 0;
+            let pendingDeposits = 0;
+            for (const wallet of wallets) {
+                try {
+                    const result = await this.scanWalletForDeposits(wallet);
+                    newDepositsFound += result.newDeposits;
+                    pendingDeposits += result.pendingDeposits;
+                }
+                catch (error) {
+                    console_1.logger.error("BTC_SCAN", `Error scanning wallet ${wallet.id}`, error);
+                }
+            }
+            if (newDepositsFound > 0 || pendingDeposits > 0) {
+                console_1.logger.info("BTC_SCAN", `Scan completed: ${newDepositsFound} new, ${pendingDeposits} pending`);
+            }
+        }
+        catch (error) {
+            console_1.logger.error("BTC_SCAN", "Error in scan cycle", error);
+        }
+        finally {
+            this.isScanning = false;
+        }
+    }
+    async scanWalletForDeposits(wallet) {
+        var _a;
+        try {
+            if (!wallet.address) {
+                return { newDeposits: 0, pendingDeposits: 0 };
+            }
+            const addresses = typeof wallet.address === "string"
+                ? JSON.parse(wallet.address)
+                : wallet.address;
+            const btcAddress = (_a = addresses === null || addresses === void 0 ? void 0 : addresses.BTC) === null || _a === void 0 ? void 0 : _a.address;
+            if (!btcAddress) {
+                return { newDeposits: 0, pendingDeposits: 0 };
+            }
+            let transactions = [];
+            if (this.providerType === "node") {
+                transactions = await this.provider.getAddressTransactions(btcAddress);
+            }
+            else {
+                transactions = await this.provider.fetchTransactions(btcAddress);
+            }
+            let newDeposits = 0;
+            let pendingDeposits = 0;
+            for (const tx of transactions) {
+                const txid = tx.txid || tx.hash;
+                const confirmations = tx.confirmations || 0;
+                const category = tx.category || (tx.value > 0 ? "receive" : "send");
+                if (category !== "receive" && tx.value <= 0)
+                    continue;
+                const txKey = `${txid}-${wallet.id}`;
+                const existingTx = await db_1.models.transaction.findOne({
+                    where: {
+                        trxId: txid,
+                        walletId: wallet.id,
+                        type: "DEPOSIT",
+                    },
+                });
+                if (existingTx && existingTx.status === "COMPLETED") {
+                    this.processedTransactions.set(txKey, {
+                        txid,
+                        walletId: wallet.id,
+                        lastChecked: Date.now(),
+                    });
+                    continue;
+                }
+                if (confirmations >= REQUIRED_CONFIRMATIONS) {
+                    console_1.logger.info("BTC_SCAN", `Processing deposit: ${txid} (${confirmations} conf)`);
+                    await this.processDeposit(wallet, tx, btcAddress);
+                    newDeposits++;
+                    this.processedTransactions.set(txKey, {
+                        txid,
+                        walletId: wallet.id,
+                        lastChecked: Date.now(),
+                    });
+                }
+                else if (confirmations > 0) {
+                    pendingDeposits++;
+                }
+            }
+            return { newDeposits, pendingDeposits };
+        }
+        catch (error) {
+            console_1.logger.error("BTC_SCAN", `Error scanning wallet ${wallet.id}`, error);
+            return { newDeposits: 0, pendingDeposits: 0 };
+        }
+    }
+    async processDeposit(wallet, tx, address) {
+        try {
+            const txid = tx.txid || tx.hash;
+            const amount = tx.amount || (tx.value / 100000000);
+            const fee = tx.fee || 0;
+            const txData = {
+                id: wallet.id,
+                chain: "BTC",
+                hash: txid,
+                type: "DEPOSIT",
+                from: "N/A",
+                to: address,
+                amount: amount.toString(),
+                fee: fee.toString(),
+                status: "CONFIRMED",
+                timestamp: tx.time || tx.confirmedTime || Math.floor(Date.now() / 1000),
+                inputs: tx.vin || tx.inputs || [],
+                outputs: tx.vout || tx.outputs || [],
+            };
+            console_1.logger.info("BTC_SCAN", `Creating deposit: ${amount} BTC`);
+            const result = await this.ecosystemWalletUtils.handleEcosystemDeposit(txData);
+            if (result.transaction) {
+                console_1.logger.success("BTC_SCAN", `Deposit processed: ${result.transaction.id}`);
+                try {
+                    await (0, notifications_1.createNotification)({
+                        userId: wallet.userId,
+                        relatedId: result.transaction.id,
+                        title: "Deposit Confirmed",
+                        message: `Your deposit of ${amount} BTC has been confirmed.`,
+                        type: "system",
+                        link: `/finance/history`,
+                        actions: [
+                            {
+                                label: "View Deposit",
+                                link: `/finance/history`,
+                                primary: true,
+                            },
+                        ],
+                    });
+                }
+                catch (notifError) {
+                    console_1.logger.error("BTC_SCAN", "Failed to send notification", notifError);
+                }
+            }
+        }
+        catch (error) {
+            const txid = tx.txid || tx.hash;
+            console_1.logger.error("BTC_SCAN", `Failed to process deposit ${txid}`, error);
+            throw error;
+        }
+    }
+    delay(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+}
+exports.default = BTCDepositScanner;

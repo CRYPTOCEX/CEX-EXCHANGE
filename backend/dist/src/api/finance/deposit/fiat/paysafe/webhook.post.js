@@ -1,1 +1,261 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),emails_1=require("@b/utils/emails"),console_1=require("@b/utils/console"),utils_1=require("./utils"),wallet_1=require("@b/services/wallet");exports.metadata={summary:"Handles Paysafe webhook notifications",description:"Processes real-time payment status updates from Paysafe via webhooks",operationId:"handlePaysafeWebhook",tags:["Finance","Deposit","Paysafe","Webhook"],logModule:"WEBHOOK",logTitle:"Paysafe webhook",requiresAuth:!1,requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{eventType:{type:"string",description:"Type of webhook event",example:"payment.completed"},eventId:{type:"string",description:"Unique event identifier"},eventTime:{type:"string",description:"Event timestamp",format:"date-time"},object:{type:"object",description:"Payment or PaymentHandle object"}},required:["eventType","eventId","eventTime","object"]}}}},responses:{200:{description:"Webhook processed successfully",content:{"application/json":{schema:{type:"object",properties:{success:{type:"boolean"},message:{type:"string"},processed:{type:"boolean"}}}}}},400:{description:"Bad request - Invalid webhook data"},401:{description:"Unauthorized - Invalid signature"},404:{description:"Transaction not found"},500:{description:"Internal server error"}}};exports.default=async e=>{const{body:t,headers:s}=e;try{(0,utils_1.validatePaysafeConfig)();const e=s["x-paysafe-signature"]||s["paysafe-signature"];if(e){const s=JSON.stringify(t);if(!(0,utils_1.validateWebhookSignature)(s,e)){console_1.logger.error("PAYSAFE","Invalid webhook signature");throw(0,error_1.createError)({statusCode:401,message:"Invalid webhook signature"})}}const a=t;if(!a.eventType||!a.object)throw(0,error_1.createError)({statusCode:400,message:"Invalid webhook data: missing eventType or object"});console_1.logger.info("PAYSAFE",`Processing webhook: ${a.eventType} - eventId: ${a.eventId}`);const o=a.object;if(!o.merchantRefNum){console_1.logger.debug("PAYSAFE","Webhook object missing merchantRefNum, skipping");return{success:!0,message:"Webhook processed (no merchantRefNum)",processed:!1}}const r=await db_1.models.transaction.findOne({where:{uuid:o.merchantRefNum},include:[{model:db_1.models.user,as:"user",attributes:["id","email","firstName","lastName"]}]});if(!r){console_1.logger.warn("PAYSAFE",`Transaction not found for reference: ${o.merchantRefNum}`);return{success:!0,message:"Transaction not found",processed:!1}}const n=(0,utils_1.mapPaysafeStatus)(o.status);if(r.status===n){console_1.logger.debug("PAYSAFE",`Status unchanged for transaction ${r.uuid}: ${n}`);return{success:!0,message:"Status unchanged",processed:!1}}let i=!1,c=0;"amount"in o&&"currencyCode"in o&&(c=(0,utils_1.parsePaysafeAmount)(o.amount,o.currencyCode));switch(a.eventType.toLowerCase()){case"payment.completed":case"payment.settled":case"paymenthandle.completed":i="COMPLETED"===n;break;case"payment.failed":case"payment.declined":case"payment.cancelled":case"paymenthandle.failed":case"paymenthandle.cancelled":case"payment.pending":case"payment.processing":case"paymenthandle.pending":case"paymenthandle.processing":i=!1;break;default:console_1.logger.debug("PAYSAFE",`Unhandled event type: ${a.eventType}`);i=!1}await db_1.sequelize.transaction(async e=>{await r.update({status:n,metadata:{...r.metadata,webhookEventId:a.eventId,webhookEventType:a.eventType,webhookEventTime:a.eventTime,gatewayStatus:o.status,lastWebhookUpdate:(new Date).toISOString(),gatewayResponse:"gatewayResponse"in o?o.gatewayResponse:void 0,paymentId:"id"in o?o.id:void 0}},{transaction:e});if(i&&c>0&&"currencyCode"in o){const t=o.currencyCode;let s=await db_1.models.wallet.findOne({where:{userId:r.userId,currency:t,type:"FIAT"},transaction:e});s||(s=await wallet_1.walletCreationService.getOrCreateWallet(r.userId,"FIAT",t,e));const n=`paysafe_webhook_${a.eventId}`;await wallet_1.walletService.credit({idempotencyKey:n,userId:r.userId,walletId:s.id,walletType:"FIAT",currency:t,amount:c,operationType:"DEPOSIT",referenceId:o.merchantRefNum,description:`Paysafe deposit - ${c} ${t}`,metadata:{method:"PAYSAFE",eventId:a.eventId,eventType:a.eventType},transaction:e});console_1.logger.success("PAYSAFE",`Wallet updated: +${c} ${t} for user ${r.userId}`)}});if(i&&r.user&&"currencyCode"in o)try{const e=await db_1.models.wallet.findOne({where:{userId:r.userId,currency:o.currencyCode}});await(0,emails_1.sendFiatTransactionEmail)(r.user,r,o.currencyCode,(null==e?void 0:e.balance)||c);console_1.logger.success("PAYSAFE",`Confirmation email sent for transaction ${r.uuid}`)}catch(e){console_1.logger.error("PAYSAFE","Failed to send confirmation email",e)}console_1.logger.success("PAYSAFE",`Webhook processed: ${a.eventType} for ${r.uuid}`);return{success:!0,message:"Webhook processed successfully",processed:!0,transaction_id:r.id,status:n,event_type:a.eventType}}catch(e){console_1.logger.error("PAYSAFE","Webhook processing error",e);if(e instanceof utils_1.PaysafeError)throw(0,error_1.createError)({statusCode:e.status,message:`Paysafe Webhook Error: ${e.message}`});if(400===e.statusCode||404===e.statusCode)return{success:!1,message:e.message,processed:!1};throw(0,error_1.createError)({statusCode:500,message:e.message||"Failed to process Paysafe webhook"})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const emails_1 = require("@b/utils/emails");
+const console_1 = require("@b/utils/console");
+const utils_1 = require("./utils");
+const wallet_1 = require("@b/services/wallet");
+exports.metadata = {
+    summary: 'Handles Paysafe webhook notifications',
+    description: 'Processes real-time payment status updates from Paysafe via webhooks',
+    operationId: 'handlePaysafeWebhook',
+    tags: ['Finance', 'Deposit', 'Paysafe', 'Webhook'],
+    logModule: "WEBHOOK",
+    logTitle: "Paysafe webhook",
+    requiresAuth: false,
+    requestBody: {
+        required: true,
+        content: {
+            'application/json': {
+                schema: {
+                    type: 'object',
+                    properties: {
+                        eventType: {
+                            type: 'string',
+                            description: 'Type of webhook event',
+                            example: 'payment.completed',
+                        },
+                        eventId: {
+                            type: 'string',
+                            description: 'Unique event identifier',
+                        },
+                        eventTime: {
+                            type: 'string',
+                            description: 'Event timestamp',
+                            format: 'date-time',
+                        },
+                        object: {
+                            type: 'object',
+                            description: 'Payment or PaymentHandle object',
+                        },
+                    },
+                    required: ['eventType', 'eventId', 'eventTime', 'object'],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: 'Webhook processed successfully',
+            content: {
+                'application/json': {
+                    schema: {
+                        type: 'object',
+                        properties: {
+                            success: { type: 'boolean' },
+                            message: { type: 'string' },
+                            processed: { type: 'boolean' },
+                        },
+                    },
+                },
+            },
+        },
+        400: {
+            description: 'Bad request - Invalid webhook data',
+        },
+        401: {
+            description: 'Unauthorized - Invalid signature',
+        },
+        404: {
+            description: 'Transaction not found',
+        },
+        500: {
+            description: 'Internal server error',
+        },
+    },
+};
+exports.default = async (data) => {
+    const { body, headers } = data;
+    try {
+        (0, utils_1.validatePaysafeConfig)();
+        const signature = headers['x-paysafe-signature'] || headers['paysafe-signature'];
+        if (signature) {
+            const rawBody = JSON.stringify(body);
+            if (!(0, utils_1.validateWebhookSignature)(rawBody, signature)) {
+                console_1.logger.error("PAYSAFE", "Invalid webhook signature");
+                throw (0, error_1.createError)({
+                    statusCode: 401,
+                    message: 'Invalid webhook signature',
+                });
+            }
+        }
+        const webhookData = body;
+        if (!webhookData.eventType || !webhookData.object) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: 'Invalid webhook data: missing eventType or object',
+            });
+        }
+        console_1.logger.info("PAYSAFE", `Processing webhook: ${webhookData.eventType} - eventId: ${webhookData.eventId}`);
+        const paymentObject = webhookData.object;
+        if (!paymentObject.merchantRefNum) {
+            console_1.logger.debug("PAYSAFE", "Webhook object missing merchantRefNum, skipping");
+            return {
+                success: true,
+                message: 'Webhook processed (no merchantRefNum)',
+                processed: false,
+            };
+        }
+        const transaction = await db_1.models.transaction.findOne({
+            where: {
+                id: paymentObject.merchantRefNum,
+            },
+            include: [
+                {
+                    model: db_1.models.user,
+                    as: 'user',
+                    attributes: ['id', 'email', 'firstName', 'lastName'],
+                },
+            ],
+        });
+        if (!transaction) {
+            console_1.logger.warn("PAYSAFE", `Transaction not found for reference: ${paymentObject.merchantRefNum}`);
+            return {
+                success: true,
+                message: 'Transaction not found',
+                processed: false,
+            };
+        }
+        const currentStatus = (0, utils_1.mapPaysafeStatus)(paymentObject.status);
+        if (transaction.status === currentStatus) {
+            console_1.logger.debug("PAYSAFE", `Status unchanged for transaction ${transaction.id}: ${currentStatus}`);
+            return {
+                success: true,
+                message: 'Status unchanged',
+                processed: false,
+            };
+        }
+        let shouldUpdateWallet = false;
+        let paymentAmount = 0;
+        if ('amount' in paymentObject && 'currencyCode' in paymentObject) {
+            paymentAmount = (0, utils_1.parsePaysafeAmount)(paymentObject.amount, paymentObject.currencyCode);
+        }
+        switch (webhookData.eventType.toLowerCase()) {
+            case 'payment.completed':
+            case 'payment.settled':
+            case 'paymenthandle.completed':
+                shouldUpdateWallet = currentStatus === 'COMPLETED';
+                break;
+            case 'payment.failed':
+            case 'payment.declined':
+            case 'payment.cancelled':
+            case 'paymenthandle.failed':
+            case 'paymenthandle.cancelled':
+                shouldUpdateWallet = false;
+                break;
+            case 'payment.pending':
+            case 'payment.processing':
+            case 'paymenthandle.pending':
+            case 'paymenthandle.processing':
+                shouldUpdateWallet = false;
+                break;
+            default:
+                console_1.logger.debug("PAYSAFE", `Unhandled event type: ${webhookData.eventType}`);
+                shouldUpdateWallet = false;
+        }
+        await db_1.sequelize.transaction(async (dbTransaction) => {
+            const existingMetadata = typeof transaction.metadata === 'string'
+                ? JSON.parse(transaction.metadata || '{}')
+                : (transaction.metadata || {});
+            await transaction.update({
+                status: currentStatus,
+                metadata: JSON.stringify({
+                    ...existingMetadata,
+                    webhookEventId: webhookData.eventId,
+                    webhookEventType: webhookData.eventType,
+                    webhookEventTime: webhookData.eventTime,
+                    gatewayStatus: paymentObject.status,
+                    lastWebhookUpdate: new Date().toISOString(),
+                    gatewayResponse: 'gatewayResponse' in paymentObject ? paymentObject.gatewayResponse : undefined,
+                    paymentId: 'id' in paymentObject ? paymentObject.id : undefined,
+                }),
+            }, { transaction: dbTransaction });
+            if (shouldUpdateWallet && paymentAmount > 0 && 'currencyCode' in paymentObject) {
+                const currency = paymentObject.currencyCode;
+                const walletResult = await wallet_1.walletCreationService.getOrCreateWallet(transaction.userId, 'FIAT', currency, dbTransaction);
+                const wallet = walletResult.wallet;
+                if (!wallet) {
+                    throw (0, error_1.createError)({
+                        statusCode: 500,
+                        message: 'Failed to get or create wallet',
+                    });
+                }
+                const idempotencyKey = `paysafe_webhook_${webhookData.eventId}`;
+                await wallet_1.walletService.credit({
+                    idempotencyKey,
+                    userId: transaction.userId,
+                    walletId: wallet.id,
+                    walletType: 'FIAT',
+                    currency,
+                    amount: paymentAmount,
+                    operationType: 'DEPOSIT',
+                    referenceId: paymentObject.merchantRefNum,
+                    description: `Paysafe deposit - ${paymentAmount} ${currency}`,
+                    metadata: {
+                        method: 'PAYSAFE',
+                        eventId: webhookData.eventId,
+                        eventType: webhookData.eventType,
+                    },
+                    transaction: dbTransaction,
+                });
+                console_1.logger.success("PAYSAFE", `Wallet updated: +${paymentAmount} ${currency} for user ${transaction.userId}`);
+            }
+        });
+        if (shouldUpdateWallet && transaction.user && 'currencyCode' in paymentObject) {
+            try {
+                const updatedWallet = await db_1.models.wallet.findOne({
+                    where: {
+                        userId: transaction.userId,
+                        currency: paymentObject.currencyCode,
+                    },
+                });
+                await (0, emails_1.sendFiatTransactionEmail)(transaction.user, transaction, paymentObject.currencyCode, (updatedWallet === null || updatedWallet === void 0 ? void 0 : updatedWallet.balance) || paymentAmount);
+                console_1.logger.success("PAYSAFE", `Confirmation email sent for transaction ${transaction.id}`);
+            }
+            catch (emailError) {
+                console_1.logger.error("PAYSAFE", "Failed to send confirmation email", emailError);
+            }
+        }
+        console_1.logger.success("PAYSAFE", `Webhook processed: ${webhookData.eventType} for ${transaction.id}`);
+        return {
+            success: true,
+            message: 'Webhook processed successfully',
+            processed: true,
+            transaction_id: transaction.id,
+            status: currentStatus,
+            event_type: webhookData.eventType,
+        };
+    }
+    catch (error) {
+        console_1.logger.error("PAYSAFE", "Webhook processing error", error);
+        if (error instanceof utils_1.PaysafeError) {
+            throw (0, error_1.createError)({
+                statusCode: error.status,
+                message: `Paysafe Webhook Error: ${error.message}`,
+            });
+        }
+        if (error.statusCode === 400 || error.statusCode === 404) {
+            return {
+                success: false,
+                message: error.message,
+                processed: false,
+            };
+        }
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: error.message || 'Failed to process Paysafe webhook',
+        });
+    }
+};

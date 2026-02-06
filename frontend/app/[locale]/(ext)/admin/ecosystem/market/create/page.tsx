@@ -46,7 +46,6 @@ export interface MarketForm {
 export interface TokenOption {
   label: string;
   value: string;
-  symbol: string;
 }
 
 const initialFormValues: MarketForm = {
@@ -90,11 +89,13 @@ const CreateEcosystemMarket = () => {
           toast.error(error || "Failed to load token options");
           return;
         }
-        const formatted: TokenOption[] = data.map((token: any) => ({
-          label: token.name,
-          value: token.id,
-          symbol: token.name.split("-")[0].trim(),
-        }));
+        const formatted: TokenOption[] = data.map((token: any) => {
+          const symbol = token.name.split("-")[0].trim();
+          return {
+            label: token.name,
+            value: symbol,
+          };
+        });
         setTokenOptions(formatted);
       } catch (err: any) {
         toast.error(err.message || "Failed to load token options");
@@ -193,8 +194,7 @@ const CreateEcosystemMarket = () => {
           <h1 className="text-2xl font-bold">{t("create_ecosystem_market")}</h1>
           {formData.currency && formData.pair && (
             <p className="text-muted-foreground mt-1">
-              {tokenOptions.find((t) => t.value === formData.currency)?.symbol || formData.currency}/
-              {tokenOptions.find((t) => t.value === formData.pair)?.symbol || formData.pair}
+              {formData.currency}/{formData.pair}
             </p>
           )}
         </div>

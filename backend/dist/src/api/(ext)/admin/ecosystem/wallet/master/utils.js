@@ -1,1 +1,518 @@
-"use strict";async function getAllMasterWallets(e){var t,a;null===(t=null==e?void 0:e.step)||void 0===t||t.call(e,"Fetching all master wallets");const s=await db_1.models.ecosystemMasterWallet.findAll({attributes:wallet_1.walletResponseAttributes});null===(a=null==e?void 0:e.success)||void 0===a||a.call(e,`Found ${s.length} master wallet(s)`);return s}async function getMasterWalletById(e,t){var a,s,n;null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,`Fetching master wallet by ID: ${e}`);const r=await db_1.models.ecosystemMasterWallet.findOne({where:{id:e},attributes:wallet_1.walletResponseAttributes});r?null===(s=null==t?void 0:t.success)||void 0===s||s.call(t,`Master wallet found: ${e}`):null===(n=null==t?void 0:t.fail)||void 0===n||n.call(t,`Master wallet not found: ${e}`);return r}async function getMasterWallet(e,t){var a,s,n;null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,`Fetching master wallet: ${e}`);const r=await db_1.models.ecosystemMasterWallet.findOne({where:{id:e}});r?null===(s=null==t?void 0:t.success)||void 0===s||s.call(t,`Master wallet retrieved: ${e}`):null===(n=null==t?void 0:t.fail)||void 0===n||n.call(t,`Master wallet not found: ${e}`);return r}async function createMasterWallet(e,t,a){var s,n,r;null===(s=null==a?void 0:a.step)||void 0===s||s.call(a,`Creating master wallet for ${t} on ${e.chain}`);try{const s=await db_1.models.ecosystemMasterWallet.create({currency:t,chain:e.chain,address:e.address,data:e.data,status:!0});null===(n=null==a?void 0:a.success)||void 0===n||n.call(a,`Master wallet created: ${s.id}`);return s}catch(e){null===(r=null==a?void 0:a.fail)||void 0===r||r.call(a,e.message);throw e}}async function updateMasterWalletBalance(e,t,a){var s,n,r;null===(s=null==a?void 0:a.step)||void 0===s||s.call(a,`Updating master wallet balance for ${e}: ${t}`);try{await db_1.models.ecosystemMasterWallet.update({balance:t},{where:{id:e}});null===(n=null==a?void 0:a.success)||void 0===n||n.call(a,`Master wallet balance updated: ${e}`);return getMasterWalletById(e,a)}catch(e){null===(r=null==a?void 0:a.fail)||void 0===r||r.call(a,e.message);throw e}}async function deployCustodialContract(e,t){var a,s,n;null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,`Deploying custodial contract for ${e.chain}`);try{const a=await(0,provider_1.getProvider)(e.chain);if(!a)throw(0,error_1.createError)({statusCode:503,message:"Provider not initialized"});let n;if(!e.data)throw(0,error_1.createError)({statusCode:500,message:"Mnemonic not found"});try{n=JSON.parse((0,encrypt_1.decrypt)(e.data))}catch(e){throw(0,error_1.createError)({statusCode:500,message:`Failed to decrypt mnemonic: ${e.message}`})}if(!n||!n.privateKey)throw(0,error_1.createError)({statusCode:500,message:"Decrypted data or Mnemonic not found"});const{privateKey:r}=n,o=new ethers_1.ethers.Wallet(r).connect(a),{abi:l,bytecode:c}=await(0,smartContract_1.getSmartContract)("wallet","CustodialWalletERC20");if(!l||!c)throw(0,error_1.createError)({statusCode:500,message:"Smart contract ABI or Bytecode not found"});const i=new ethers_1.ContractFactory(l,c,o),d=await(0,gas_1.getAdjustedGasPrice)(a),u=await i.deploy(e.address,{gasPrice:d}),h=await u.waitForDeployment(),m=await h.getAddress();null===(s=null==t?void 0:t.success)||void 0===s||s.call(t,`Custodial contract deployed at ${m}`);return m}catch(e){null===(n=null==t?void 0:t.fail)||void 0===n||n.call(t,e.message);throw(0,error_1.createError)({statusCode:500,message:e.message})}}var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,a,s){void 0===s&&(s=a);var n=Object.getOwnPropertyDescriptor(t,a);n&&!("get"in n?!t.__esModule:n.writable||n.configurable)||(n={enumerable:!0,get:function(){return t[a]}});Object.defineProperty(e,s,n)}:function(e,t,a,s){void 0===s&&(s=a);e[s]=t[a]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var a in e)Object.prototype.hasOwnProperty.call(e,a)&&(t[t.length]=a);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var a={};if(null!=t)for(var s=e(t),n=0;n<s.length;n++)"default"!==s[n]&&__createBinding(a,t,s[n]);__setModuleDefault(a,t);return a}}(),__importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.getEcosystemMasterWalletBalance=exports.createEVMWallet=exports.createAndEncryptWallet=exports.ecosystemMasterWalletStoreSchema=exports.ecosystemMasterWalletUpdateSchema=exports.baseEcosystemMasterWalletSchema=exports.ecosystemMasterWalletSchema=void 0;exports.getAllMasterWallets=getAllMasterWallets;exports.getMasterWalletById=getMasterWalletById;exports.getMasterWallet=getMasterWallet;exports.createMasterWallet=createMasterWallet;exports.updateMasterWalletBalance=updateMasterWalletBalance;exports.deployCustodialContract=deployCustodialContract;const fs=__importStar(require("fs")),utxo_1=require("@b/api/(ext)/ecosystem/utils/utxo"),encrypt_1=require("@b/utils/encrypt"),schema_1=require("@b/utils/schema"),ethers_1=require("ethers"),redis_1=require("@b/utils/redis"),date_fns_1=require("date-fns"),gas_1=require("@b/api/(ext)/ecosystem/utils/gas"),db_1=require("@b/db"),provider_1=require("@b/api/(ext)/ecosystem/utils/provider"),chains_1=require("@b/api/(ext)/ecosystem/utils/chains"),smartContract_1=require("@b/api/(ext)/ecosystem/utils/smartContract"),wallet_1=require("@b/api/(ext)/ecosystem/utils/wallet"),safe_imports_1=require("@b/utils/safe-imports"),path_1=__importDefault(require("path")),error_1=require("@b/utils/error"),id=(0,schema_1.baseStringSchema)("ID of the ecosystem master wallet"),chain=(0,schema_1.baseStringSchema)("Blockchain chain associated with the master wallet",255),currency=(0,schema_1.baseStringSchema)("Currency used in the master wallet",255),address=(0,schema_1.baseStringSchema)("Address of the master wallet",255),balance=(0,schema_1.baseNumberSchema)("Balance of the master wallet"),data=(0,schema_1.baseStringSchema)("Additional data associated with the master wallet",1e3,0,!0),status=(0,schema_1.baseEnumSchema)("Operational status of the master wallet",["ACTIVE","INACTIVE"]),lastIndex=(0,schema_1.baseNumberSchema)("Last index used for generating wallet address");exports.ecosystemMasterWalletSchema={id:id,chain:chain,currency:currency,address:address,balance:balance,data:data,status:status,lastIndex:lastIndex};exports.baseEcosystemMasterWalletSchema={id:id,chain:chain,currency:currency,address:address,balance:balance,data:data,status:status,lastIndex:lastIndex};exports.ecosystemMasterWalletUpdateSchema={type:"object",properties:{chain:chain,currency:currency,address:address,balance:balance,data:data,status:status,lastIndex:lastIndex},required:["chain","currency","address","status","lastIndex"]};exports.ecosystemMasterWalletStoreSchema={description:"Master wallet created or updated successfully",content:{"application/json":{schema:{type:"object",properties:exports.baseEcosystemMasterWalletSchema}}}};const createAndEncryptWallet=async(e,t)=>{var a,s;null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,`Creating and encrypting wallet for ${e}`);let n;if(["BTC","LTC","DOGE","DASH"].includes(e))n=(0,utxo_1.createUTXOWallet)(e);else if("SOL"===e){const e=await(0,safe_imports_1.getSolanaService)();if(!e)throw(0,error_1.createError)({statusCode:503,message:"Solana service not available"});n=(await e.getInstance()).createWallet()}else if("TRON"===e){const e=await(0,safe_imports_1.getTronService)();if(!e)throw(0,error_1.createError)({statusCode:503,message:"Tron service not available"});n=(await e.getInstance()).createWallet()}else if("XMR"===e){const e=await(0,safe_imports_1.getMoneroService)();if(!e)throw(0,error_1.createError)({statusCode:503,message:"Monero service not available"});const t=await e.getInstance();n=await t.createWallet("master_wallet")}else if("TON"===e){const e=await(0,safe_imports_1.getTonService)();if(!e)throw(0,error_1.createError)({statusCode:503,message:"TON service not available"});const t=await e.getInstance();n=await t.createWallet()}else n=(0,exports.createEVMWallet)();const r=[path_1.default.resolve(process.cwd(),"backend","ecosystem","wallets"),path_1.default.resolve(__dirname,"../../../../../ecosystem","wallets"),path_1.default.resolve(process.cwd(),"ecosystem","wallets"),path_1.default.resolve(__dirname,"../../../../ecosystem","wallets")];let o=r[0];for(const e of r){const t=path_1.default.dirname(e);if(fs.existsSync(t)){o=e;console.log(`Using wallet directory: ${o}`);break}}const l=`${o}/${e}.json`;fs.existsSync(o)||fs.mkdirSync(o,{recursive:!0});await fs.writeFileSync(l,JSON.stringify(n),"utf8");const c=(0,encrypt_1.encrypt)(JSON.stringify(n.data));null===(s=null==t?void 0:t.success)||void 0===s||s.call(t,`Wallet created and encrypted for ${e}: ${n.address}`);return{address:n.address,chain:e,data:c}};exports.createAndEncryptWallet=createAndEncryptWallet;const createEVMWallet=()=>{const e=ethers_1.ethers.Wallet.createRandom();if(!e.mnemonic)throw(0,error_1.createError)({statusCode:500,message:"Mnemonic not found"});const t=ethers_1.ethers.HDNodeWallet.fromPhrase(e.mnemonic.phrase);if(!t)throw(0,error_1.createError)({statusCode:500,message:"HDNode not found"});const a=t.extendedKey,s=t.neuter().extendedKey;if(!t.mnemonic)throw(0,error_1.createError)({statusCode:500,message:"Mnemonic not found"});const n=t.mnemonic.phrase,r=t.address,o=t.publicKey,l=t.privateKey,c=t.path;return{address:r,data:{mnemonic:n,publicKey:o,privateKey:l,xprv:a,xpub:s,chainCode:t.chainCode,path:c}}};exports.createEVMWallet=createEVMWallet;const getEcosystemMasterWalletBalance=async(e,t)=>{var a,s,n,r,o,l,c,i;null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,`Fetching balance for master wallet ${e.chain}: ${e.address.substring(0,10)}...`);try{const a=`wallet:${e.id}:balance`,i=redis_1.RedisSingleton.getInstance();let d,u=await i.get(a);if(u){"object"!=typeof u&&(u=JSON.parse(u));const e=new Date,t=new Date(u.timestamp);if((0,date_fns_1.differenceInMinutes)(e,t)<1)return}if(["BTC","LTC","DOGE","DASH"].includes(e.chain))d=await(0,utxo_1.fetchUTXOWalletBalance)(e.chain,e.address);else if("SOL"===e.chain){const t=await(0,safe_imports_1.getSolanaService)();if(!t){console.log(`[${e.chain}] Solana service module not loaded. Ensure the Solana extension is properly installed.`);return}try{const a=await t.getInstance();d=await a.getBalance(e.address)}catch(t){const a=t.message||"";a.includes("not active")?console.log(`[${e.chain}] Solana chain not active. Please ensure:\n  1. SOL_NETWORK is set in your .env (mainnet-beta or devnet)\n  2. SOL_MAINNET_RPC or SOL_DEVNET_RPC is configured with a valid RPC URL`):a.includes("ECONNREFUSED")||a.includes("fetch failed")?console.log(`[${e.chain}] Cannot connect to Solana RPC. Check your SOL RPC configuration.`):console.log(`[${e.chain}] Error: ${a.substring(0,150)}`);return}}else if("TRON"===e.chain){const t=await(0,safe_imports_1.getTronService)();if(!t){console.log(`[${e.chain}] Tron service module not loaded. Ensure the Tron extension is properly installed.`);return}try{const a=await t.getInstance();d=await a.getBalance(e.address)}catch(t){const a=t.message||"";a.includes("ECONNREFUSED")||a.includes("fetch failed")?console.log(`[${e.chain}] Cannot connect to Tron network. Check your TRON RPC configuration.`):console.log(`[${e.chain}] Error: ${a.substring(0,150)}`);return}}else if("XMR"===e.chain){const t=await(0,safe_imports_1.getMoneroService)();if(!t){console.log(`[${e.chain}] Monero service module not loaded. Ensure the Monero extension is properly installed.`);return}try{const e=await t.getInstance();d=await e.getBalance("master_wallet")}catch(t){(null===(s=t.message)||void 0===s?void 0:s.includes("not active"))||(null===(n=t.message)||void 0===n?void 0:n.includes("not synchronized"))?console.log(`[${e.chain}] Monero daemon not synchronized. Please ensure:\n  1. Monero daemon (monerod) is running\n  2. XMR_DAEMON_RPC_URL is set correctly (e.g., http://localhost:18081/json_rpc)\n  3. The daemon is fully synchronized with the network`):(null===(r=t.message)||void 0===r?void 0:r.includes("ECONNREFUSED"))||(null===(o=t.message)||void 0===o?void 0:o.includes("fetch failed"))?console.log(`[${e.chain}] Cannot connect to Monero daemon. Please check:\n  1. Monero daemon (monerod) is running on the configured host/port\n  2. XMR_DAEMON_RPC_URL env variable is correct\n  3. Firewall/network allows the connection`):console.log(`[${e.chain}] Error: ${null===(l=t.message)||void 0===l?void 0:l.substring(0,150)}`);return}}else if("TON"===e.chain){const t=await(0,safe_imports_1.getTonService)();if(!t){console.log(`[${e.chain}] TON service module not loaded. Ensure the TON extension is properly installed.`);return}try{const a=await t.getInstance();d=await a.getBalance(e.address)}catch(t){const a=t.message||"";a.includes("not active")?console.log(`[${e.chain}] TON chain not active. Please ensure:\n  1. TON_NETWORK is set in your .env (mainnet or testnet)\n  2. TON API configuration is correct`):a.includes("ECONNREFUSED")||a.includes("fetch failed")?console.log(`[${e.chain}] Cannot connect to TON network. Check your TON configuration.`):console.log(`[${e.chain}] Error: ${a.substring(0,150)}`);return}}else try{const t=await(0,provider_1.getProvider)(e.chain),a=await t.getBalance(e.address),s=chains_1.chainConfigs[e.chain].decimals;d=ethers_1.ethers.formatUnits(a.toString(),s)}catch(t){const a=t.message||"";if(a.includes("NETWORK is not set"))console.log(`[${e.chain}] Missing environment variable: ${e.chain}_NETWORK\n  Set it to 'mainnet' or 'testnet' in your .env file`);else if(a.includes("_RPC is not set")||a.includes("Environment variable")&&a.includes("RPC")){const t=process.env[`${e.chain}_NETWORK`]||"mainnet";console.log(`[${e.chain}] Missing RPC URL. Set ${e.chain}_${t.toUpperCase()}_RPC in your .env file\n  Example: ${e.chain}_${t.toUpperCase()}_RPC=https://your-rpc-endpoint.com`)}else a.includes("ECONNREFUSED")||a.includes("fetch failed")||a.includes("getaddrinfo")?console.log(`[${e.chain}] Cannot connect to RPC endpoint. Please check:\n  1. The RPC URL is correct and accessible\n  2. The RPC service is running\n  3. Network/firewall allows the connection`):a.includes("Unsupported chain")?console.log(`[${e.chain}] Chain not configured in chainConfigs. Add configuration for this chain.`):a.includes("Chain ID not found")?console.log(`[${e.chain}] Chain ID not configured for the selected network. Check chainConfigs.`):console.log(`[${e.chain}] Provider error: ${a.substring(0,150)}`);return}if(!d||isNaN(parseFloat(d))){console.log(`Invalid formatted balance for ${e.chain} wallet: ${d}`);return}const h=parseFloat(d);await updateMasterWalletBalance(e.id,h,t);const m={balance:d,timestamp:(new Date).toISOString()};await i.setex(a,60,JSON.stringify(m));null===(c=null==t?void 0:t.success)||void 0===c||c.call(t,`Balance updated for ${e.chain}: ${h}`)}catch(a){const s=`Failed to fetch ${e.chain} wallet balance: ${a.message}`;null===(i=null==t?void 0:t.fail)||void 0===i||i.call(t,s);console.error(s)}};exports.getEcosystemMasterWalletBalance=getEcosystemMasterWalletBalance;
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getEcosystemMasterWalletBalance = exports.createEVMWallet = exports.createAndEncryptWallet = exports.ecosystemMasterWalletStoreSchema = exports.ecosystemMasterWalletUpdateSchema = exports.baseEcosystemMasterWalletSchema = exports.ecosystemMasterWalletSchema = void 0;
+exports.getAllMasterWallets = getAllMasterWallets;
+exports.getMasterWalletById = getMasterWalletById;
+exports.getMasterWallet = getMasterWallet;
+exports.createMasterWallet = createMasterWallet;
+exports.updateMasterWalletBalance = updateMasterWalletBalance;
+exports.deployCustodialContract = deployCustodialContract;
+const fs = __importStar(require("fs"));
+const utxo_1 = require("@b/api/(ext)/ecosystem/utils/utxo");
+const encrypt_1 = require("@b/utils/encrypt");
+const schema_1 = require("@b/utils/schema");
+const ethers_1 = require("ethers");
+const redis_1 = require("@b/utils/redis");
+const date_fns_1 = require("date-fns");
+const gas_1 = require("@b/api/(ext)/ecosystem/utils/gas");
+const db_1 = require("@b/db");
+const provider_1 = require("@b/api/(ext)/ecosystem/utils/provider");
+const chains_1 = require("@b/api/(ext)/ecosystem/utils/chains");
+const smartContract_1 = require("@b/api/(ext)/ecosystem/utils/smartContract");
+const wallet_1 = require("@b/api/(ext)/ecosystem/utils/wallet");
+const safe_imports_1 = require("@b/utils/safe-imports");
+const path_1 = __importDefault(require("path"));
+const error_1 = require("@b/utils/error");
+async function getAllMasterWallets(ctx) {
+    var _a, _b;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Fetching all master wallets");
+    const wallets = await db_1.models.ecosystemMasterWallet.findAll({
+        attributes: wallet_1.walletResponseAttributes,
+    });
+    (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Found ${wallets.length} master wallet(s)`);
+    return wallets;
+}
+async function getMasterWalletById(id, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Fetching master wallet by ID: ${id}`);
+    const wallet = await db_1.models.ecosystemMasterWallet.findOne({
+        where: { id },
+        attributes: wallet_1.walletResponseAttributes,
+    });
+    if (wallet) {
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Master wallet found: ${id}`);
+    }
+    else {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, `Master wallet not found: ${id}`);
+    }
+    return wallet;
+}
+async function getMasterWallet(id, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Fetching master wallet: ${id}`);
+    const wallet = await db_1.models.ecosystemMasterWallet.findOne({
+        where: { id },
+    });
+    if (wallet) {
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Master wallet retrieved: ${id}`);
+    }
+    else {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, `Master wallet not found: ${id}`);
+    }
+    return wallet;
+}
+async function createMasterWallet(walletData, currency, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Creating master wallet for ${currency} on ${walletData.chain}`);
+    try {
+        const wallet = await db_1.models.ecosystemMasterWallet.create({
+            currency,
+            chain: walletData.chain,
+            address: walletData.address,
+            data: walletData.data,
+            status: true,
+            balance: 0,
+            lastIndex: 0,
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Master wallet created: ${wallet.id}`);
+        return wallet;
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function updateMasterWalletBalance(id, balance, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Updating master wallet balance for ${id}: ${balance}`);
+    try {
+        await db_1.models.ecosystemMasterWallet.update({
+            balance,
+        }, {
+            where: { id },
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Master wallet balance updated: ${id}`);
+        return getMasterWalletById(id, ctx);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+const id = (0, schema_1.baseStringSchema)("ID of the ecosystem master wallet");
+const chain = (0, schema_1.baseStringSchema)("Blockchain chain associated with the master wallet", 255);
+const currency = (0, schema_1.baseStringSchema)("Currency used in the master wallet", 255);
+const address = (0, schema_1.baseStringSchema)("Address of the master wallet", 255);
+const balance = (0, schema_1.baseNumberSchema)("Balance of the master wallet");
+const data = (0, schema_1.baseStringSchema)("Additional data associated with the master wallet", 1000, 0, true);
+const status = (0, schema_1.baseEnumSchema)("Operational status of the master wallet", [
+    "ACTIVE",
+    "INACTIVE",
+]);
+const lastIndex = (0, schema_1.baseNumberSchema)("Last index used for generating wallet address");
+exports.ecosystemMasterWalletSchema = {
+    id,
+    chain,
+    currency,
+    address,
+    balance,
+    data,
+    status,
+    lastIndex,
+};
+exports.baseEcosystemMasterWalletSchema = {
+    id,
+    chain,
+    currency,
+    address,
+    balance,
+    data,
+    status,
+    lastIndex,
+};
+exports.ecosystemMasterWalletUpdateSchema = {
+    type: "object",
+    properties: {
+        chain,
+        currency,
+        address,
+        balance,
+        data,
+        status,
+        lastIndex,
+    },
+    required: ["chain", "currency", "address", "status", "lastIndex"],
+};
+exports.ecosystemMasterWalletStoreSchema = {
+    description: `Master wallet created or updated successfully`,
+    content: {
+        "application/json": {
+            schema: {
+                type: "object",
+                properties: exports.baseEcosystemMasterWalletSchema,
+            },
+        },
+    },
+};
+const createAndEncryptWallet = async (chain, ctx) => {
+    var _a, _b;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Creating and encrypting wallet for ${chain}`);
+    let wallet;
+    if (["BTC", "LTC", "DOGE", "DASH"].includes(chain)) {
+        wallet = (0, utxo_1.createUTXOWallet)(chain);
+    }
+    else if (chain === "SOL") {
+        const SolanaService = await (0, safe_imports_1.getSolanaService)();
+        if (!SolanaService) {
+            throw (0, error_1.createError)({ statusCode: 503, message: "Solana service not available" });
+        }
+        const solanaService = await SolanaService.getInstance();
+        wallet = solanaService.createWallet();
+    }
+    else if (chain === "TRON") {
+        const TronService = await (0, safe_imports_1.getTronService)();
+        if (!TronService) {
+            throw (0, error_1.createError)({ statusCode: 503, message: "Tron service not available" });
+        }
+        const tronService = await TronService.getInstance();
+        wallet = tronService.createWallet();
+    }
+    else if (chain === "XMR") {
+        const MoneroService = await (0, safe_imports_1.getMoneroService)();
+        if (!MoneroService) {
+            throw (0, error_1.createError)({ statusCode: 503, message: "Monero service not available" });
+        }
+        const moneroService = await MoneroService.getInstance();
+        wallet = await moneroService.createWallet("master_wallet");
+    }
+    else if (chain === "TON") {
+        const TonService = await (0, safe_imports_1.getTonService)();
+        if (!TonService) {
+            throw (0, error_1.createError)({ statusCode: 503, message: "TON service not available" });
+        }
+        const tonService = await TonService.getInstance();
+        wallet = await tonService.createWallet();
+    }
+    else {
+        wallet = (0, exports.createEVMWallet)();
+    }
+    const possibleWalletDirs = [
+        path_1.default.resolve(process.cwd(), "backend", "ecosystem", "wallets"),
+        path_1.default.resolve(__dirname, "../../../../../ecosystem", "wallets"),
+        path_1.default.resolve(process.cwd(), "ecosystem", "wallets"),
+        path_1.default.resolve(__dirname, "../../../../ecosystem", "wallets"),
+    ];
+    let walletDir = possibleWalletDirs[0];
+    for (const possibleDir of possibleWalletDirs) {
+        const parentDir = path_1.default.dirname(possibleDir);
+        if (fs.existsSync(parentDir)) {
+            walletDir = possibleDir;
+            console.log(`Using wallet directory: ${walletDir}`);
+            break;
+        }
+    }
+    const walletFilePath = `${walletDir}/${chain}.json`;
+    if (!fs.existsSync(walletDir)) {
+        fs.mkdirSync(walletDir, { recursive: true });
+    }
+    await fs.writeFileSync(walletFilePath, JSON.stringify(wallet), "utf8");
+    const data = (0, encrypt_1.encrypt)(JSON.stringify(wallet.data));
+    (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Wallet created and encrypted for ${chain}: ${wallet.address}`);
+    return {
+        address: wallet.address,
+        chain,
+        data,
+    };
+};
+exports.createAndEncryptWallet = createAndEncryptWallet;
+const createEVMWallet = () => {
+    const wallet = ethers_1.ethers.Wallet.createRandom();
+    if (!wallet.mnemonic) {
+        throw (0, error_1.createError)({ statusCode: 500, message: "Mnemonic not found" });
+    }
+    const hdNode = ethers_1.ethers.HDNodeWallet.fromPhrase(wallet.mnemonic.phrase);
+    if (!hdNode) {
+        throw (0, error_1.createError)({ statusCode: 500, message: "HDNode not found" });
+    }
+    const xprv = hdNode.extendedKey;
+    const xpub = hdNode.neuter().extendedKey;
+    if (!hdNode.mnemonic) {
+        throw (0, error_1.createError)({ statusCode: 500, message: "Mnemonic not found" });
+    }
+    const mnemonic = hdNode.mnemonic.phrase;
+    const address = hdNode.address;
+    const publicKey = hdNode.publicKey;
+    const privateKey = hdNode.privateKey;
+    const path = hdNode.path;
+    const chainCode = hdNode.chainCode;
+    return {
+        address,
+        data: {
+            mnemonic,
+            publicKey,
+            privateKey,
+            xprv,
+            xpub,
+            chainCode,
+            path,
+        },
+    };
+};
+exports.createEVMWallet = createEVMWallet;
+const getEcosystemMasterWalletBalance = async (wallet, ctx) => {
+    var _a, _b, _c, _d, _e, _f, _g, _h;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Fetching balance for master wallet ${wallet.chain}: ${wallet.address.substring(0, 10)}...`);
+    try {
+        const cacheKey = `wallet:${wallet.id}:balance`;
+        const redis = redis_1.RedisSingleton.getInstance();
+        let cachedBalanceData = await redis.get(cacheKey);
+        if (cachedBalanceData) {
+            if (typeof cachedBalanceData !== "object") {
+                cachedBalanceData = JSON.parse(cachedBalanceData);
+            }
+            const now = new Date();
+            const lastUpdated = new Date(cachedBalanceData.timestamp);
+            if ((0, date_fns_1.differenceInMinutes)(now, lastUpdated) < 1) {
+                return;
+            }
+        }
+        let formattedBalance;
+        if (["BTC", "LTC", "DOGE", "DASH"].includes(wallet.chain)) {
+            formattedBalance = await (0, utxo_1.fetchUTXOWalletBalance)(wallet.chain, wallet.address);
+        }
+        else if (wallet.chain === "SOL") {
+            const SolanaService = await (0, safe_imports_1.getSolanaService)();
+            if (!SolanaService) {
+                console.log(`[${wallet.chain}] Solana service module not loaded. Ensure the Solana extension is properly installed.`);
+                return;
+            }
+            try {
+                const solanaService = await SolanaService.getInstance();
+                formattedBalance = await solanaService.getBalance(wallet.address);
+            }
+            catch (solError) {
+                const errMsg = solError.message || "";
+                if (errMsg.includes("not active")) {
+                    console.log(`[${wallet.chain}] Solana chain not active. Please ensure:\n` +
+                        `  1. SOL_NETWORK is set in your .env (mainnet-beta or devnet)\n` +
+                        `  2. SOL_MAINNET_RPC or SOL_DEVNET_RPC is configured with a valid RPC URL`);
+                }
+                else if (errMsg.includes("ECONNREFUSED") || errMsg.includes("fetch failed")) {
+                    console.log(`[${wallet.chain}] Cannot connect to Solana RPC. Check your SOL RPC configuration.`);
+                }
+                else {
+                    console.log(`[${wallet.chain}] Error: ${errMsg.substring(0, 150)}`);
+                }
+                return;
+            }
+        }
+        else if (wallet.chain === "TRON") {
+            const TronService = await (0, safe_imports_1.getTronService)();
+            if (!TronService) {
+                console.log(`[${wallet.chain}] Tron service module not loaded. Ensure the Tron extension is properly installed.`);
+                return;
+            }
+            try {
+                const tronService = await TronService.getInstance();
+                formattedBalance = await tronService.getBalance(wallet.address);
+            }
+            catch (tronError) {
+                const errMsg = tronError.message || "";
+                if (errMsg.includes("ECONNREFUSED") || errMsg.includes("fetch failed")) {
+                    console.log(`[${wallet.chain}] Cannot connect to Tron network. Check your TRON RPC configuration.`);
+                }
+                else {
+                    console.log(`[${wallet.chain}] Error: ${errMsg.substring(0, 150)}`);
+                }
+                return;
+            }
+        }
+        else if (wallet.chain === "XMR") {
+            const MoneroService = await (0, safe_imports_1.getMoneroService)();
+            if (!MoneroService) {
+                console.log(`[${wallet.chain}] Monero service module not loaded. Ensure the Monero extension is properly installed.`);
+                return;
+            }
+            try {
+                const moneroService = await MoneroService.getInstance();
+                formattedBalance = await moneroService.getBalance("master_wallet");
+            }
+            catch (xmrError) {
+                if (((_b = xmrError.message) === null || _b === void 0 ? void 0 : _b.includes("not active")) || ((_c = xmrError.message) === null || _c === void 0 ? void 0 : _c.includes("not synchronized"))) {
+                    console.log(`[${wallet.chain}] Monero daemon not synchronized. Please ensure:\n` +
+                        `  1. Monero daemon (monerod) is running\n` +
+                        `  2. XMR_DAEMON_RPC_URL is set correctly (e.g., http://localhost:18081/json_rpc)\n` +
+                        `  3. The daemon is fully synchronized with the network`);
+                }
+                else if (((_d = xmrError.message) === null || _d === void 0 ? void 0 : _d.includes("ECONNREFUSED")) || ((_e = xmrError.message) === null || _e === void 0 ? void 0 : _e.includes("fetch failed"))) {
+                    console.log(`[${wallet.chain}] Cannot connect to Monero daemon. Please check:\n` +
+                        `  1. Monero daemon (monerod) is running on the configured host/port\n` +
+                        `  2. XMR_DAEMON_RPC_URL env variable is correct\n` +
+                        `  3. Firewall/network allows the connection`);
+                }
+                else {
+                    console.log(`[${wallet.chain}] Error: ${(_f = xmrError.message) === null || _f === void 0 ? void 0 : _f.substring(0, 150)}`);
+                }
+                return;
+            }
+        }
+        else if (wallet.chain === "TON") {
+            const TonService = await (0, safe_imports_1.getTonService)();
+            if (!TonService) {
+                console.log(`[${wallet.chain}] TON service module not loaded. Ensure the TON extension is properly installed.`);
+                return;
+            }
+            try {
+                const tonService = await TonService.getInstance();
+                formattedBalance = await tonService.getBalance(wallet.address);
+            }
+            catch (tonError) {
+                const errMsg = tonError.message || "";
+                if (errMsg.includes("not active")) {
+                    console.log(`[${wallet.chain}] TON chain not active. Please ensure:\n` +
+                        `  1. TON_NETWORK is set in your .env (mainnet or testnet)\n` +
+                        `  2. TON API configuration is correct`);
+                }
+                else if (errMsg.includes("ECONNREFUSED") || errMsg.includes("fetch failed")) {
+                    console.log(`[${wallet.chain}] Cannot connect to TON network. Check your TON configuration.`);
+                }
+                else {
+                    console.log(`[${wallet.chain}] Error: ${errMsg.substring(0, 150)}`);
+                }
+                return;
+            }
+        }
+        else {
+            try {
+                const provider = await (0, provider_1.getProvider)(wallet.chain);
+                const balance = await provider.getBalance(wallet.address);
+                const decimals = chains_1.chainConfigs[wallet.chain].decimals;
+                formattedBalance = ethers_1.ethers.formatUnits(balance.toString(), decimals);
+            }
+            catch (providerError) {
+                const errMsg = providerError.message || "";
+                if (errMsg.includes("NETWORK is not set")) {
+                    console.log(`[${wallet.chain}] Missing environment variable: ${wallet.chain}_NETWORK\n` +
+                        `  Set it to 'mainnet' or 'testnet' in your .env file`);
+                }
+                else if (errMsg.includes("_RPC is not set") || errMsg.includes("Environment variable") && errMsg.includes("RPC")) {
+                    const network = process.env[`${wallet.chain}_NETWORK`] || "mainnet";
+                    console.log(`[${wallet.chain}] Missing RPC URL. Set ${wallet.chain}_${network.toUpperCase()}_RPC in your .env file\n` +
+                        `  Example: ${wallet.chain}_${network.toUpperCase()}_RPC=https://your-rpc-endpoint.com`);
+                }
+                else if (errMsg.includes("ECONNREFUSED") || errMsg.includes("fetch failed") || errMsg.includes("getaddrinfo")) {
+                    console.log(`[${wallet.chain}] Cannot connect to RPC endpoint. Please check:\n` +
+                        `  1. The RPC URL is correct and accessible\n` +
+                        `  2. The RPC service is running\n` +
+                        `  3. Network/firewall allows the connection`);
+                }
+                else if (errMsg.includes("Unsupported chain")) {
+                    console.log(`[${wallet.chain}] Chain not configured in chainConfigs. Add configuration for this chain.`);
+                }
+                else if (errMsg.includes("Chain ID not found")) {
+                    console.log(`[${wallet.chain}] Chain ID not configured for the selected network. Check chainConfigs.`);
+                }
+                else {
+                    console.log(`[${wallet.chain}] Provider error: ${errMsg.substring(0, 150)}`);
+                }
+                return;
+            }
+        }
+        if (!formattedBalance || isNaN(parseFloat(formattedBalance))) {
+            console.log(`Invalid formatted balance for ${wallet.chain} wallet: ${formattedBalance}`);
+            return;
+        }
+        const balanceFloat = parseFloat(formattedBalance);
+        await updateMasterWalletBalance(wallet.id, balanceFloat, ctx);
+        const cacheData = {
+            balance: formattedBalance,
+            timestamp: new Date().toISOString(),
+        };
+        await redis.setex(cacheKey, 60, JSON.stringify(cacheData));
+        (_g = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _g === void 0 ? void 0 : _g.call(ctx, `Balance updated for ${wallet.chain}: ${balanceFloat}`);
+    }
+    catch (error) {
+        const errorMsg = `Failed to fetch ${wallet.chain} wallet balance: ${error.message}`;
+        (_h = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _h === void 0 ? void 0 : _h.call(ctx, errorMsg);
+        console.error(errorMsg);
+    }
+};
+exports.getEcosystemMasterWalletBalance = getEcosystemMasterWalletBalance;
+async function deployCustodialContract(masterWallet, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Deploying custodial contract for ${masterWallet.chain}`);
+    try {
+        const provider = await (0, provider_1.getProvider)(masterWallet.chain);
+        if (!provider) {
+            throw (0, error_1.createError)({ statusCode: 503, message: "Provider not initialized" });
+        }
+        let decryptedData;
+        if (!masterWallet.data) {
+            throw (0, error_1.createError)({ statusCode: 500, message: "Mnemonic not found" });
+        }
+        try {
+            decryptedData = JSON.parse((0, encrypt_1.decrypt)(masterWallet.data));
+        }
+        catch (error) {
+            throw (0, error_1.createError)({ statusCode: 500, message: `Failed to decrypt mnemonic: ${error.message}` });
+        }
+        if (!decryptedData || !decryptedData.privateKey) {
+            throw (0, error_1.createError)({ statusCode: 500, message: "Decrypted data or Mnemonic not found" });
+        }
+        const { privateKey } = decryptedData;
+        const signer = new ethers_1.ethers.Wallet(privateKey).connect(provider);
+        const { abi, bytecode } = await (0, smartContract_1.getSmartContract)("wallet", "CustodialWalletERC20");
+        if (!abi || !bytecode) {
+            throw (0, error_1.createError)({ statusCode: 500, message: "Smart contract ABI or Bytecode not found" });
+        }
+        const custodialWalletFactory = new ethers_1.ContractFactory(abi, bytecode, signer);
+        const gasPrice = await (0, gas_1.getAdjustedGasPrice)(provider);
+        const custodialWalletContract = await custodialWalletFactory.deploy(masterWallet.address, {
+            gasPrice: gasPrice,
+        });
+        const response = await custodialWalletContract.waitForDeployment();
+        const contractAddress = await response.getAddress();
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Custodial contract deployed at ${contractAddress}`);
+        return contractAddress;
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw (0, error_1.createError)({ statusCode: 500, message: error.message });
+    }
+}

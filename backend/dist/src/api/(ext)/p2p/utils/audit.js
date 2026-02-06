@@ -1,1 +1,327 @@
-"use strict";async function createP2PAuditLog(e,t){var i,l,n,d,a,o;try{null===(i=null==t?void 0:t.step)||void 0===i||i.call(t,"Creating P2P audit log entry");const o=e.riskLevel||determineRiskLevel(e.eventType,e.metadata);null===(l=null==t?void 0:t.step)||void 0===l||l.call(t,`Determined risk level: ${o}`);await db_1.models.p2pActivityLog.create({userId:e.userId,type:e.eventType,action:e.eventType,relatedEntity:e.entityType,relatedEntityId:e.entityId,details:JSON.stringify({...e.metadata,timestamp:(new Date).toISOString(),riskLevel:o,isAdminAction:e.isAdminAction||!1,adminId:e.adminId})});null===(n=null==t?void 0:t.step)||void 0===n||n.call(t,"Audit log entry created");if(o===P2PRiskLevel.HIGH||o===P2PRiskLevel.CRITICAL){null===(d=null==t?void 0:t.step)||void 0===d||d.call(t,"Creating security alert for high-risk event");await createSecurityAlert(e,o,t)}null===(a=null==t?void 0:t.success)||void 0===a||a.call(t,"P2P audit log created successfully")}catch(e){null===(o=null==t?void 0:t.fail)||void 0===o||o.call(t,e.message||"Failed to create audit log");console_1.logger.error("P2P_AUDIT","Failed to create audit log",e)}}async function createP2PAuditLogBatch(e,t){var i,l,n;try{null===(i=null==t?void 0:t.step)||void 0===i||i.call(t,`Creating batch of ${e.length} audit log entries`);const n=e.map(e=>({userId:e.userId,type:e.eventType,action:e.eventType,relatedEntity:e.entityType,relatedEntityId:e.entityId,details:JSON.stringify({...e.metadata,timestamp:(new Date).toISOString(),riskLevel:e.riskLevel||determineRiskLevel(e.eventType,e.metadata),isAdminAction:e.isAdminAction||!1,adminId:e.adminId})}));await db_1.models.p2pActivityLog.bulkCreate(n);null===(l=null==t?void 0:t.success)||void 0===l||l.call(t,`Batch of ${e.length} audit log entries created successfully`)}catch(e){null===(n=null==t?void 0:t.fail)||void 0===n||n.call(t,e.message||"Failed to create audit log batch");console_1.logger.error("P2P_AUDIT","Failed to create audit log batch",e)}}function determineRiskLevel(e,t){return[P2PAuditEventType.FUNDS_TRANSFERRED,P2PAuditEventType.UNAUTHORIZED_ACCESS,P2PAuditEventType.ADMIN_USER_BANNED].includes(e)?P2PRiskLevel.CRITICAL:[P2PAuditEventType.TRADE_DISPUTED,P2PAuditEventType.SUSPICIOUS_ACTIVITY,P2PAuditEventType.ADMIN_TRADE_RESOLVED,P2PAuditEventType.ADMIN_DISPUTE_RESOLVED].includes(e)?P2PRiskLevel.HIGH:t.amount&&t.amount>1e3||[P2PAuditEventType.TRADE_CANCELLED,P2PAuditEventType.OFFER_DELETED,P2PAuditEventType.RATE_LIMIT_EXCEEDED].includes(e)?P2PRiskLevel.MEDIUM:P2PRiskLevel.LOW}async function createSecurityAlert(e,t,i){var l,n,d;try{null===(l=null==i?void 0:i.step)||void 0===l||l.call(i,"Sending security alert to admins");const{notifyAdmins:d}=await Promise.resolve().then(()=>__importStar(require("./notifications")));await d("P2P_SECURITY_ALERT",{eventType:e.eventType,entityType:e.entityType,entityId:e.entityId,userId:e.userId,adminId:e.adminId,riskLevel:t,metadata:e.metadata,timestamp:(new Date).toISOString()});console_1.logger.warn("P2P_SECURITY",`${t} risk event: ${e.eventType} for ${e.entityType} ${e.entityId}`);null===(n=null==i?void 0:i.step)||void 0===n||n.call(i,"Security alert sent successfully")}catch(e){null===(d=null==i?void 0:i.fail)||void 0===d||d.call(i,e.message||"Failed to create security alert");console_1.logger.error("P2P_SECURITY","Failed to create security alert",e)}}function withAuditLog(e,t,i){return async(...l)=>{var n,d,a,o,r,s,u,c;const E=Date.now();let v,A;try{v=await e(...l);const r=l[0];(null===(n=null==r?void 0:r.user)||void 0===n?void 0:n.id)&&(null===(d=null==r?void 0:r.params)||void 0===d?void 0:d.id)&&await createP2PAuditLog({userId:r.user.id,eventType:t,entityType:i,entityId:r.params.id,metadata:{success:!0,executionTime:Date.now()-E,ip:r.ip||(null===(a=r.connection)||void 0===a?void 0:a.remoteAddress),userAgent:null===(o=r.headers)||void 0===o?void 0:o["user-agent"]}});return v}catch(e){A=e;const n=l[0];(null===(r=null==n?void 0:n.user)||void 0===r?void 0:r.id)&&(null===(s=null==n?void 0:n.params)||void 0===s?void 0:s.id)&&await createP2PAuditLog({userId:n.user.id,eventType:P2PAuditEventType.VALIDATION_FAILED,entityType:i,entityId:n.params.id,metadata:{success:!1,error:e.message,originalEvent:t,executionTime:Date.now()-E,ip:n.ip||(null===(u=n.connection)||void 0===u?void 0:u.remoteAddress),userAgent:null===(c=n.headers)||void 0===c?void 0:c["user-agent"]},riskLevel:P2PRiskLevel.HIGH});throw A}}}async function getP2PAuditLogs(e,t,i,l){var n,d,a,o;try{null===(n=null==l?void 0:l.step)||void 0===n||n.call(l,`Fetching audit logs for ${e} ${t}`);const o={relatedEntity:e,relatedEntityId:t};if((null==i?void 0:i.startDate)||(null==i?void 0:i.endDate)){o.createdAt={};i.startDate&&(o.createdAt.$gte=i.startDate);i.endDate&&(o.createdAt.$lte=i.endDate)}(null===(d=null==i?void 0:i.eventTypes)||void 0===d?void 0:d.length)&&(o.type={$in:i.eventTypes});const r=await db_1.models.p2pActivityLog.findAll({where:o,limit:(null==i?void 0:i.limit)||100,offset:(null==i?void 0:i.offset)||0,order:[["createdAt","DESC"]],include:[{model:db_1.models.user,as:"user",attributes:["id","firstName","lastName","email"]}]});null===(a=null==l?void 0:l.success)||void 0===a||a.call(l,`Retrieved ${r.length} audit log entries`);return r}catch(e){null===(o=null==l?void 0:l.fail)||void 0===o||o.call(l,e.message||"Failed to fetch audit logs");throw e}}async function exportP2PAuditLogs(e,t,i,l){var n,d,a,o,r,s,u,c;try{null===(n=null==l?void 0:l.step)||void 0===n||n.call(l,"Exporting audit logs for compliance");const c={createdAt:{$gte:e,$lte:t}};(null===(d=null==i?void 0:i.entityTypes)||void 0===d?void 0:d.length)&&(c.relatedEntity={$in:i.entityTypes});(null===(a=null==i?void 0:i.eventTypes)||void 0===a?void 0:a.length)&&(c.type={$in:i.eventTypes});(null===(o=null==i?void 0:i.userIds)||void 0===o?void 0:o.length)&&(c.userId={$in:i.userIds});null===(r=null==l?void 0:l.step)||void 0===r||r.call(l,"Fetching audit logs from database");const E=await db_1.models.p2pActivityLog.findAll({where:c,order:[["createdAt","ASC"]],include:[{model:db_1.models.user,as:"user",attributes:["id","firstName","lastName","email"]}]});null===(s=null==l?void 0:l.step)||void 0===s||s.call(l,`Processing ${E.length} audit log entries`);const v=E.map(e=>{var t;return{id:e.id,timestamp:e.createdAt,userId:e.userId,userName:e.user?`${e.user.firstName} ${e.user.lastName}`:"Unknown",userEmail:null===(t=e.user)||void 0===t?void 0:t.email,eventType:e.type,entityType:e.relatedEntity,entityId:e.relatedEntityId,metadata:e.details?JSON.parse(e.details):{},riskLevel:e.details?JSON.parse(e.details).riskLevel:void 0,isAdminAction:!!e.details&&JSON.parse(e.details).isAdminAction,adminId:e.details?JSON.parse(e.details).adminId:void 0}});null===(u=null==l?void 0:l.success)||void 0===u||u.call(l,`Exported ${v.length} audit log entries`);return v}catch(e){null===(c=null==l?void 0:l.fail)||void 0===c||c.call(l,e.message||"Failed to export audit logs");throw e}}var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,i,l){void 0===l&&(l=i);var n=Object.getOwnPropertyDescriptor(t,i);n&&!("get"in n?!t.__esModule:n.writable||n.configurable)||(n={enumerable:!0,get:function(){return t[i]}});Object.defineProperty(e,l,n)}:function(e,t,i,l){void 0===l&&(l=i);e[l]=t[i]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var i in e)Object.prototype.hasOwnProperty.call(e,i)&&(t[t.length]=i);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var i={};if(null!=t)for(var l=e(t),n=0;n<l.length;n++)"default"!==l[n]&&__createBinding(i,t,l[n]);__setModuleDefault(i,t);return i}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.P2PRiskLevel=exports.P2PAuditEventType=void 0;exports.createP2PAuditLog=createP2PAuditLog;exports.createP2PAuditLogBatch=createP2PAuditLogBatch;exports.withAuditLog=withAuditLog;exports.getP2PAuditLogs=getP2PAuditLogs;exports.exportP2PAuditLogs=exportP2PAuditLogs;const db_1=require("@b/db"),console_1=require("@b/utils/console");var P2PAuditEventType,P2PRiskLevel;!function(e){e.TRADE_INITIATED="TRADE_INITIATED";e.TRADE_PAYMENT_CONFIRMED="TRADE_PAYMENT_CONFIRMED";e.TRADE_FUNDS_RELEASED="TRADE_FUNDS_RELEASED";e.TRADE_CANCELLED="TRADE_CANCELLED";e.TRADE_DISPUTED="TRADE_DISPUTED";e.TRADE_COMPLETED="TRADE_COMPLETED";e.TRADE_EXPIRED="TRADE_EXPIRED";e.OFFER_CREATED="OFFER_CREATED";e.OFFER_UPDATED="OFFER_UPDATED";e.OFFER_DELETED="OFFER_DELETED";e.OFFER_PAUSED="OFFER_PAUSED";e.OFFER_ACTIVATED="OFFER_ACTIVATED";e.FUNDS_LOCKED="FUNDS_LOCKED";e.FUNDS_UNLOCKED="FUNDS_UNLOCKED";e.FUNDS_TRANSFERRED="FUNDS_TRANSFERRED";e.FEE_CHARGED="FEE_CHARGED";e.ADMIN_TRADE_RESOLVED="ADMIN_TRADE_RESOLVED";e.ADMIN_DISPUTE_RESOLVED="ADMIN_DISPUTE_RESOLVED";e.ADMIN_OFFER_APPROVED="ADMIN_OFFER_APPROVED";e.ADMIN_USER_BANNED="ADMIN_USER_BANNED";e.SUSPICIOUS_ACTIVITY="SUSPICIOUS_ACTIVITY";e.RATE_LIMIT_EXCEEDED="RATE_LIMIT_EXCEEDED";e.UNAUTHORIZED_ACCESS="UNAUTHORIZED_ACCESS";e.VALIDATION_FAILED="VALIDATION_FAILED"}(P2PAuditEventType||(exports.P2PAuditEventType=P2PAuditEventType={}));!function(e){e.LOW="LOW";e.MEDIUM="MEDIUM";e.HIGH="HIGH";e.CRITICAL="CRITICAL"}(P2PRiskLevel||(exports.P2PRiskLevel=P2PRiskLevel={}));
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.P2PRiskLevel = exports.P2PAuditEventType = void 0;
+exports.createP2PAuditLog = createP2PAuditLog;
+exports.createP2PAuditLogBatch = createP2PAuditLogBatch;
+exports.withAuditLog = withAuditLog;
+exports.getP2PAuditLogs = getP2PAuditLogs;
+exports.exportP2PAuditLogs = exportP2PAuditLogs;
+const db_1 = require("@b/db");
+const console_1 = require("@b/utils/console");
+var P2PAuditEventType;
+(function (P2PAuditEventType) {
+    P2PAuditEventType["TRADE_INITIATED"] = "TRADE_INITIATED";
+    P2PAuditEventType["TRADE_PAYMENT_CONFIRMED"] = "TRADE_PAYMENT_CONFIRMED";
+    P2PAuditEventType["TRADE_FUNDS_RELEASED"] = "TRADE_FUNDS_RELEASED";
+    P2PAuditEventType["TRADE_CANCELLED"] = "TRADE_CANCELLED";
+    P2PAuditEventType["TRADE_DISPUTED"] = "TRADE_DISPUTED";
+    P2PAuditEventType["TRADE_COMPLETED"] = "TRADE_COMPLETED";
+    P2PAuditEventType["TRADE_EXPIRED"] = "TRADE_EXPIRED";
+    P2PAuditEventType["OFFER_CREATED"] = "OFFER_CREATED";
+    P2PAuditEventType["OFFER_UPDATED"] = "OFFER_UPDATED";
+    P2PAuditEventType["OFFER_DELETED"] = "OFFER_DELETED";
+    P2PAuditEventType["OFFER_PAUSED"] = "OFFER_PAUSED";
+    P2PAuditEventType["OFFER_ACTIVATED"] = "OFFER_ACTIVATED";
+    P2PAuditEventType["FUNDS_LOCKED"] = "FUNDS_LOCKED";
+    P2PAuditEventType["FUNDS_UNLOCKED"] = "FUNDS_UNLOCKED";
+    P2PAuditEventType["FUNDS_TRANSFERRED"] = "FUNDS_TRANSFERRED";
+    P2PAuditEventType["FEE_CHARGED"] = "FEE_CHARGED";
+    P2PAuditEventType["ADMIN_TRADE_RESOLVED"] = "ADMIN_TRADE_RESOLVED";
+    P2PAuditEventType["ADMIN_DISPUTE_RESOLVED"] = "ADMIN_DISPUTE_RESOLVED";
+    P2PAuditEventType["ADMIN_OFFER_APPROVED"] = "ADMIN_OFFER_APPROVED";
+    P2PAuditEventType["ADMIN_USER_BANNED"] = "ADMIN_USER_BANNED";
+    P2PAuditEventType["SUSPICIOUS_ACTIVITY"] = "SUSPICIOUS_ACTIVITY";
+    P2PAuditEventType["RATE_LIMIT_EXCEEDED"] = "RATE_LIMIT_EXCEEDED";
+    P2PAuditEventType["UNAUTHORIZED_ACCESS"] = "UNAUTHORIZED_ACCESS";
+    P2PAuditEventType["VALIDATION_FAILED"] = "VALIDATION_FAILED";
+})(P2PAuditEventType || (exports.P2PAuditEventType = P2PAuditEventType = {}));
+var P2PRiskLevel;
+(function (P2PRiskLevel) {
+    P2PRiskLevel["LOW"] = "LOW";
+    P2PRiskLevel["MEDIUM"] = "MEDIUM";
+    P2PRiskLevel["HIGH"] = "HIGH";
+    P2PRiskLevel["CRITICAL"] = "CRITICAL";
+})(P2PRiskLevel || (exports.P2PRiskLevel = P2PRiskLevel = {}));
+async function createP2PAuditLog(log, ctx) {
+    var _a, _b, _c, _d, _e, _f;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Creating P2P audit log entry");
+        const riskLevel = log.riskLevel || determineRiskLevel(log.eventType, log.metadata);
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, `Determined risk level: ${riskLevel}`);
+        await db_1.models.p2pActivityLog.create({
+            userId: log.userId,
+            type: log.eventType,
+            action: log.eventType,
+            relatedEntity: log.entityType,
+            relatedEntityId: log.entityId,
+            details: JSON.stringify({
+                ...log.metadata,
+                timestamp: new Date().toISOString(),
+                riskLevel,
+                isAdminAction: log.isAdminAction || false,
+                adminId: log.adminId,
+            }),
+        });
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Audit log entry created");
+        if (riskLevel === P2PRiskLevel.HIGH || riskLevel === P2PRiskLevel.CRITICAL) {
+            (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Creating security alert for high-risk event");
+            await createSecurityAlert(log, riskLevel, ctx);
+        }
+        (_e = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _e === void 0 ? void 0 : _e.call(ctx, "P2P audit log created successfully");
+    }
+    catch (error) {
+        (_f = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _f === void 0 ? void 0 : _f.call(ctx, error.message || "Failed to create audit log");
+        console_1.logger.error("P2P_AUDIT", "Failed to create audit log", error);
+    }
+}
+async function createP2PAuditLogBatch(logs, ctx) {
+    var _a, _b, _c;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Creating batch of ${logs.length} audit log entries`);
+        const auditEntries = logs.map(log => ({
+            userId: log.userId,
+            type: log.eventType,
+            action: log.eventType,
+            relatedEntity: log.entityType,
+            relatedEntityId: log.entityId,
+            details: JSON.stringify({
+                ...log.metadata,
+                timestamp: new Date().toISOString(),
+                riskLevel: log.riskLevel || determineRiskLevel(log.eventType, log.metadata),
+                isAdminAction: log.isAdminAction || false,
+                adminId: log.adminId,
+            }),
+        }));
+        await db_1.models.p2pActivityLog.bulkCreate(auditEntries);
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Batch of ${logs.length} audit log entries created successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message || "Failed to create audit log batch");
+        console_1.logger.error("P2P_AUDIT", "Failed to create audit log batch", error);
+    }
+}
+function determineRiskLevel(eventType, metadata) {
+    if ([
+        P2PAuditEventType.FUNDS_TRANSFERRED,
+        P2PAuditEventType.UNAUTHORIZED_ACCESS,
+        P2PAuditEventType.ADMIN_USER_BANNED,
+    ].includes(eventType)) {
+        return P2PRiskLevel.CRITICAL;
+    }
+    if ([
+        P2PAuditEventType.TRADE_DISPUTED,
+        P2PAuditEventType.SUSPICIOUS_ACTIVITY,
+        P2PAuditEventType.ADMIN_TRADE_RESOLVED,
+        P2PAuditEventType.ADMIN_DISPUTE_RESOLVED,
+    ].includes(eventType)) {
+        return P2PRiskLevel.HIGH;
+    }
+    if (metadata.amount && metadata.amount > 1000) {
+        return P2PRiskLevel.MEDIUM;
+    }
+    if ([
+        P2PAuditEventType.TRADE_CANCELLED,
+        P2PAuditEventType.OFFER_DELETED,
+        P2PAuditEventType.RATE_LIMIT_EXCEEDED,
+    ].includes(eventType)) {
+        return P2PRiskLevel.MEDIUM;
+    }
+    return P2PRiskLevel.LOW;
+}
+async function createSecurityAlert(log, riskLevel, ctx) {
+    var _a, _b, _c;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Sending security alert to admins");
+        const { notifyAdmins } = await Promise.resolve().then(() => __importStar(require("./notifications")));
+        await notifyAdmins("P2P_SECURITY_ALERT", {
+            eventType: log.eventType,
+            entityType: log.entityType,
+            entityId: log.entityId,
+            userId: log.userId,
+            adminId: log.adminId,
+            riskLevel,
+            metadata: log.metadata,
+            timestamp: new Date().toISOString(),
+        });
+        console_1.logger.warn("P2P_SECURITY", `${riskLevel} risk event: ${log.eventType} for ${log.entityType} ${log.entityId}`);
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Security alert sent successfully");
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message || "Failed to create security alert");
+        console_1.logger.error("P2P_SECURITY", "Failed to create security alert", error);
+    }
+}
+function withAuditLog(fn, eventType, entityType) {
+    return (async (...args) => {
+        var _a, _b, _c, _d, _e, _f, _g, _h;
+        const startTime = Date.now();
+        let result;
+        let error;
+        try {
+            result = await fn(...args);
+            const context = args[0];
+            if (((_a = context === null || context === void 0 ? void 0 : context.user) === null || _a === void 0 ? void 0 : _a.id) && ((_b = context === null || context === void 0 ? void 0 : context.params) === null || _b === void 0 ? void 0 : _b.id)) {
+                await createP2PAuditLog({
+                    userId: context.user.id,
+                    eventType,
+                    entityType,
+                    entityId: context.params.id,
+                    metadata: {
+                        success: true,
+                        executionTime: Date.now() - startTime,
+                        ip: context.ip || ((_c = context.connection) === null || _c === void 0 ? void 0 : _c.remoteAddress),
+                        userAgent: (_d = context.headers) === null || _d === void 0 ? void 0 : _d["user-agent"],
+                    },
+                });
+            }
+            return result;
+        }
+        catch (err) {
+            error = err;
+            const context = args[0];
+            if (((_e = context === null || context === void 0 ? void 0 : context.user) === null || _e === void 0 ? void 0 : _e.id) && ((_f = context === null || context === void 0 ? void 0 : context.params) === null || _f === void 0 ? void 0 : _f.id)) {
+                await createP2PAuditLog({
+                    userId: context.user.id,
+                    eventType: P2PAuditEventType.VALIDATION_FAILED,
+                    entityType,
+                    entityId: context.params.id,
+                    metadata: {
+                        success: false,
+                        error: err.message,
+                        originalEvent: eventType,
+                        executionTime: Date.now() - startTime,
+                        ip: context.ip || ((_g = context.connection) === null || _g === void 0 ? void 0 : _g.remoteAddress),
+                        userAgent: (_h = context.headers) === null || _h === void 0 ? void 0 : _h["user-agent"],
+                    },
+                    riskLevel: P2PRiskLevel.HIGH,
+                });
+            }
+            throw error;
+        }
+    });
+}
+async function getP2PAuditLogs(entityType, entityId, options, ctx) {
+    var _a, _b, _c, _d;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Fetching audit logs for ${entityType} ${entityId}`);
+        const where = {
+            relatedEntity: entityType,
+            relatedEntityId: entityId,
+        };
+        if ((options === null || options === void 0 ? void 0 : options.startDate) || (options === null || options === void 0 ? void 0 : options.endDate)) {
+            where.createdAt = {};
+            if (options.startDate)
+                where.createdAt.$gte = options.startDate;
+            if (options.endDate)
+                where.createdAt.$lte = options.endDate;
+        }
+        if ((_b = options === null || options === void 0 ? void 0 : options.eventTypes) === null || _b === void 0 ? void 0 : _b.length) {
+            where.type = { $in: options.eventTypes };
+        }
+        const logs = await db_1.models.p2pActivityLog.findAll({
+            where,
+            limit: (options === null || options === void 0 ? void 0 : options.limit) || 100,
+            offset: (options === null || options === void 0 ? void 0 : options.offset) || 0,
+            order: [["createdAt", "DESC"]],
+            include: [{
+                    model: db_1.models.user,
+                    as: "user",
+                    attributes: ["id", "firstName", "lastName", "email"],
+                }],
+        });
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, `Retrieved ${logs.length} audit log entries`);
+        return logs;
+    }
+    catch (error) {
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _d === void 0 ? void 0 : _d.call(ctx, error.message || "Failed to fetch audit logs");
+        throw error;
+    }
+}
+async function exportP2PAuditLogs(startDate, endDate, options, ctx) {
+    var _a, _b, _c, _d, _e, _f, _g, _h;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Exporting audit logs for compliance");
+        const where = {
+            createdAt: {
+                $gte: startDate,
+                $lte: endDate,
+            },
+        };
+        if ((_b = options === null || options === void 0 ? void 0 : options.entityTypes) === null || _b === void 0 ? void 0 : _b.length) {
+            where.relatedEntity = { $in: options.entityTypes };
+        }
+        if ((_c = options === null || options === void 0 ? void 0 : options.eventTypes) === null || _c === void 0 ? void 0 : _c.length) {
+            where.type = { $in: options.eventTypes };
+        }
+        if ((_d = options === null || options === void 0 ? void 0 : options.userIds) === null || _d === void 0 ? void 0 : _d.length) {
+            where.userId = { $in: options.userIds };
+        }
+        (_e = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _e === void 0 ? void 0 : _e.call(ctx, "Fetching audit logs from database");
+        const logs = await db_1.models.p2pActivityLog.findAll({
+            where,
+            order: [["createdAt", "ASC"]],
+            include: [{
+                    model: db_1.models.user,
+                    as: "user",
+                    attributes: ["id", "firstName", "lastName", "email"],
+                }],
+        });
+        (_f = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _f === void 0 ? void 0 : _f.call(ctx, `Processing ${logs.length} audit log entries`);
+        const exportData = logs.map(log => {
+            var _a;
+            return ({
+                id: log.id,
+                timestamp: log.createdAt,
+                userId: log.userId,
+                userName: log.user ? `${log.user.firstName} ${log.user.lastName}` : "Unknown",
+                userEmail: (_a = log.user) === null || _a === void 0 ? void 0 : _a.email,
+                eventType: log.type,
+                entityType: log.relatedEntity,
+                entityId: log.relatedEntityId,
+                metadata: log.details ? JSON.parse(log.details) : {},
+                riskLevel: log.details ? JSON.parse(log.details).riskLevel : undefined,
+                isAdminAction: log.details ? JSON.parse(log.details).isAdminAction : false,
+                adminId: log.details ? JSON.parse(log.details).adminId : undefined,
+            });
+        });
+        (_g = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _g === void 0 ? void 0 : _g.call(ctx, `Exported ${exportData.length} audit log entries`);
+        return exportData;
+    }
+    catch (error) {
+        (_h = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _h === void 0 ? void 0 : _h.call(ctx, error.message || "Failed to export audit logs");
+        throw error;
+    }
+}

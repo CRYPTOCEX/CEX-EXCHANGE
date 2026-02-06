@@ -1,1 +1,180 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query"),error_1=require("@b/utils/error"),console_1=require("@b/utils/console"),emails_1=require("@b/utils/emails"),db_1=require("@b/db"),utils_1=require("./utils"),wallet_1=require("@b/services/wallet"),utils_2=require("@b/api/finance/utils");exports.metadata={summary:"Verifies an Authorize.Net transaction",description:"Confirms the validity of an Authorize.Net transaction by its reference ID, ensuring the transaction is authenticated and processing the deposit.",operationId:"verifyAuthorizeNetTransaction",tags:["Finance","Deposit"],requiresAuth:!0,logModule:"AUTHORIZENET_DEPOSIT",logTitle:"Verify Authorize.Net transaction",parameters:[{name:"referenceId",in:"query",description:"The transaction reference ID",required:!0,schema:{type:"string"}}],responses:{200:{description:"Transaction verified successfully. Returns the transaction details and updated wallet balance.",content:{"application/json":{schema:{type:"object",properties:{status:{type:"boolean",description:"Indicates if the request was successful"},statusCode:{type:"number",description:"HTTP status code",example:200},data:{type:"object",properties:{transactionId:{type:"string",description:"Transaction ID"},status:{type:"string",description:"Transaction status"},amount:{type:"number",description:"Transaction amount"},currency:{type:"string",description:"Currency code"}}}}}}}},401:query_1.unauthorizedResponse,404:(0,query_1.notFoundMetadataResponse)("Authorize.Net"),500:query_1.serverErrorResponse}};exports.default=async e=>{const{user:t,query:r,ctx:a}=e;if(!(null==t?void 0:t.id))throw(0,error_1.createError)({statusCode:401,message:"User not authenticated"});null==a||a.step("Fetching user account");const s=await db_1.models.user.findByPk(t.id);if(!s)throw(0,error_1.createError)({statusCode:404,message:"User not found"});const{referenceId:i}=r;if(!i)throw(0,error_1.createError)({statusCode:400,message:"Reference ID is required"});const o=await db_1.models.transaction.findOne({where:{referenceId:i,userId:t.id}});if(!o)throw(0,error_1.createError)({statusCode:404,message:"Transaction not found"});if("COMPLETED"===o.status)return{status:!0,statusCode:200,data:{transactionId:o.id,status:o.status,amount:o.amount,currency:JSON.parse(o.metadata||"{}").currency,message:"Transaction already completed"}};if("PENDING"!==o.status)throw(0,error_1.createError)({statusCode:400,message:`Transaction is in ${o.status} state and cannot be verified`});try{(0,utils_1.getAuthorizeNetConfig)();const e=JSON.parse(o.metadata||"{}").currency;if(!await db_1.models.depositGateway.findOne({where:{name:"AUTHORIZENET"}}))throw(0,error_1.createError)({statusCode:404,message:"Authorize.Net gateway not found"});null==a||a.step("Finding or creating wallet");(await wallet_1.walletCreationService.getOrCreateWallet(t.id,"FIAT",e)).wallet;const r=o.amount,n=o.fee||0;await db_1.models.transaction.update({status:"COMPLETED",description:`Deposit of ${r} ${e} to ${s.firstName} ${s.lastName} wallet by Authorize.Net.`},{where:{id:o.id}});null==a||a.step("Processing deposit via wallet service");const c=await(0,utils_2.processFiatDeposit)({userId:t.id,currency:e,amount:r,fee:n,referenceId:i,method:"AUTHORIZENET",description:`Authorize.Net deposit - ${r} ${e}`,idempotencyKey:`authorizenet_deposit_${i}`,ctx:a});try{null==a||a.step("Sending notification email");await(0,emails_1.sendFiatTransactionEmail)(s,{...o.toJSON(),status:"COMPLETED"},e,c.newBalance)}catch(e){console_1.logger.error("AUTHORIZENET","Failed to send transaction email",e)}return{status:!0,statusCode:200,data:{transactionId:o.id,status:"COMPLETED",amount:r,currency:e,fee:n,newBalance:c.newBalance,referenceId:i}}}catch(e){console_1.logger.error("AUTHORIZENET","Transaction verification error",e);await db_1.models.transaction.update({status:"FAILED",description:`Failed Authorize.Net deposit: ${e instanceof Error?e.message:"Unknown error"}`},{where:{id:o.id}});throw(0,error_1.createError)({statusCode:500,message:e instanceof Error?e.message:"Failed to verify Authorize.Net transaction"})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+const error_1 = require("@b/utils/error");
+const console_1 = require("@b/utils/console");
+const emails_1 = require("@b/utils/emails");
+const db_1 = require("@b/db");
+const utils_1 = require("./utils");
+const wallet_1 = require("@b/services/wallet");
+const utils_2 = require("@b/api/finance/utils");
+exports.metadata = {
+    summary: "Verifies an Authorize.Net transaction",
+    description: "Confirms the validity of an Authorize.Net transaction by its reference ID, ensuring the transaction is authenticated and processing the deposit.",
+    operationId: "verifyAuthorizeNetTransaction",
+    tags: ["Finance", "Deposit"],
+    requiresAuth: true,
+    logModule: "AUTHORIZENET_DEPOSIT",
+    logTitle: "Verify Authorize.Net transaction",
+    parameters: [
+        {
+            name: "referenceId",
+            in: "query",
+            description: "The transaction reference ID",
+            required: true,
+            schema: {
+                type: "string",
+            },
+        },
+    ],
+    responses: {
+        200: {
+            description: "Transaction verified successfully. Returns the transaction details and updated wallet balance.",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            status: {
+                                type: "boolean",
+                                description: "Indicates if the request was successful",
+                            },
+                            statusCode: {
+                                type: "number",
+                                description: "HTTP status code",
+                                example: 200,
+                            },
+                            data: {
+                                type: "object",
+                                properties: {
+                                    transactionId: {
+                                        type: "string",
+                                        description: "Transaction ID",
+                                    },
+                                    status: {
+                                        type: "string",
+                                        description: "Transaction status",
+                                    },
+                                    amount: {
+                                        type: "number",
+                                        description: "Transaction amount",
+                                    },
+                                    currency: {
+                                        type: "string",
+                                        description: "Currency code",
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        401: query_1.unauthorizedResponse,
+        404: (0, query_1.notFoundMetadataResponse)("Authorize.Net"),
+        500: query_1.serverErrorResponse,
+    },
+};
+exports.default = async (data) => {
+    const { user, query, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id))
+        throw (0, error_1.createError)({ statusCode: 401, message: "User not authenticated" });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching user account");
+    const userPk = await db_1.models.user.findByPk(user.id);
+    if (!userPk)
+        throw (0, error_1.createError)({ statusCode: 404, message: "User not found" });
+    const { referenceId } = query;
+    if (!referenceId) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "Reference ID is required" });
+    }
+    const transaction = await db_1.models.transaction.findOne({
+        where: { referenceId: referenceId, userId: user.id },
+    });
+    if (!transaction) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Transaction not found" });
+    }
+    if (transaction.status === "COMPLETED") {
+        return {
+            status: true,
+            statusCode: 200,
+            data: {
+                transactionId: transaction.id,
+                status: transaction.status,
+                amount: transaction.amount,
+                currency: JSON.parse(transaction.metadata || "{}").currency,
+                message: "Transaction already completed",
+            },
+        };
+    }
+    if (transaction.status !== "PENDING") {
+        throw (0, error_1.createError)({ statusCode: 400, message: `Transaction is in ${transaction.status} state and cannot be verified` });
+    }
+    try {
+        const config = (0, utils_1.getAuthorizeNetConfig)();
+        const metadata = JSON.parse(transaction.metadata || "{}");
+        const currency = metadata.currency;
+        const authorizeNetGateway = await db_1.models.depositGateway.findOne({
+            where: { name: "AUTHORIZENET" },
+        });
+        if (!authorizeNetGateway) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Authorize.Net gateway not found" });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding or creating wallet");
+        const walletResult = await wallet_1.walletCreationService.getOrCreateWallet(user.id, "FIAT", currency);
+        const wallet = walletResult.wallet;
+        const depositAmount = transaction.amount;
+        const feeAmount = transaction.fee || 0;
+        await db_1.models.transaction.update({
+            status: "COMPLETED",
+            description: `Deposit of ${depositAmount} ${currency} to ${userPk.firstName} ${userPk.lastName} wallet by Authorize.Net.`,
+        }, {
+            where: { id: transaction.id },
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing deposit via wallet service");
+        const depositResult = await (0, utils_2.processFiatDeposit)({
+            userId: user.id,
+            currency,
+            amount: depositAmount,
+            fee: feeAmount,
+            referenceId,
+            method: "AUTHORIZENET",
+            description: `Authorize.Net deposit - ${depositAmount} ${currency}`,
+            idempotencyKey: `authorizenet_deposit_${referenceId}`,
+            ctx,
+        });
+        try {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending notification email");
+            await (0, emails_1.sendFiatTransactionEmail)(userPk, {
+                ...transaction.toJSON(),
+                status: "COMPLETED",
+            }, currency, depositResult.newBalance);
+        }
+        catch (emailError) {
+            console_1.logger.error("AUTHORIZENET", "Failed to send transaction email", emailError);
+        }
+        return {
+            status: true,
+            statusCode: 200,
+            data: {
+                transactionId: transaction.id,
+                status: "COMPLETED",
+                amount: depositAmount,
+                currency: currency,
+                fee: feeAmount,
+                newBalance: depositResult.newBalance,
+                referenceId: referenceId,
+            },
+        };
+    }
+    catch (error) {
+        console_1.logger.error("AUTHORIZENET", "Transaction verification error", error);
+        await db_1.models.transaction.update({
+            status: "FAILED",
+            description: `Failed Authorize.Net deposit: ${error instanceof Error ? error.message : "Unknown error"}`,
+        }, {
+            where: { id: transaction.id },
+        });
+        throw (0, error_1.createError)({ statusCode: 500, message: error instanceof Error ? error.message : "Failed to verify Authorize.Net transaction" });
+    }
+};

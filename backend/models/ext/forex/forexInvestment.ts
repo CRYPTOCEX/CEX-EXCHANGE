@@ -28,13 +28,13 @@ export default class forexInvestment
   getDuration!: Sequelize.BelongsToGetAssociationMixin<forexDuration>;
   setDuration!: Sequelize.BelongsToSetAssociationMixin<
     forexDuration,
-    forexDurationId
+    string
   >;
   createDuration!: Sequelize.BelongsToCreateAssociationMixin<forexDuration>;
   // forexInvestment belongsTo forexPlan via planId
   plan!: forexPlan;
   getPlan!: Sequelize.BelongsToGetAssociationMixin<forexPlan>;
-  setPlan!: Sequelize.BelongsToSetAssociationMixin<forexPlan, forexPlanId>;
+  setPlan!: Sequelize.BelongsToSetAssociationMixin<forexPlan, string>;
   createPlan!: Sequelize.BelongsToCreateAssociationMixin<forexPlan>;
   public static initModel(
     sequelize: Sequelize.Sequelize

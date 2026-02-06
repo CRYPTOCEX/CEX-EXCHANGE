@@ -1,1 +1,538 @@
-"use strict";var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,r,a){void 0===a&&(a=r);var i=Object.getOwnPropertyDescriptor(t,r);i&&!("get"in i?!t.__esModule:i.writable||i.configurable)||(i={enumerable:!0,get:function(){return t[r]}});Object.defineProperty(e,a,i)}:function(e,t,r,a){void 0===a&&(a=r);e[a]=t[r]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&(t[t.length]=r);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var r={};if(null!=t)for(var a=e(t),i=0;i<a.length;i++)"default"!==a[i]&&__createBinding(r,t,a[i]);__setModuleDefault(r,t);return r}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),console_1=require("@b/utils/console"),Middleware_1=require("@b/handler/Middleware"),ownership_1=require("../../../../p2p/utils/ownership"),wallet_1=require("@b/services/wallet"),errors_1=require("@b/utils/schema/errors");exports.metadata={summary:"Update P2P dispute",description:"Updates a P2P dispute including status changes, resolution details, and admin messages. Handles fund distribution when resolving disputes based on the outcome (BUYER_WINS, SELLER_WINS, SPLIT, CANCELLED).",operationId:"updateAdminP2PDispute",tags:["Admin","P2P","Dispute"],requiresAuth:!0,middleware:[Middleware_1.p2pAdminDisputeRateLimit],logModule:"ADMIN_P2P",logTitle:"Update P2P dispute",parameters:[{index:0,name:"id",in:"path",description:"Dispute ID",required:!0,schema:{type:"string"}}],requestBody:{description:"Dispute update data",required:!0,content:{"application/json":{schema:{type:"object",properties:{status:{type:"string",enum:["PENDING","IN_PROGRESS","RESOLVED"]},resolution:{type:"object",properties:{outcome:{type:"string",enum:["BUYER_WINS","SELLER_WINS","SPLIT","CANCELLED"],description:"Resolution outcome - determines how funds are handled"},notes:{type:"string"}}},message:{type:"string",description:"Admin message to add to dispute"}}}}}},responses:{200:{description:"Dispute updated successfully."},401:errors_1.unauthorizedResponse,404:(0,errors_1.notFoundResponse)("P2P resource"),500:errors_1.serverErrorResponse},permission:"edit.p2p.dispute"};exports.default=async e=>{var t,r,a;const{params:i,body:s,user:o,ctx:n}=e,{id:d}=i,{status:l,resolution:u,message:c}=s,{sanitizeInput:m}=await Promise.resolve().then(()=>__importStar(require("../../../../p2p/utils/validation"))),{notifyTradeEvent:p}=await Promise.resolve().then(()=>__importStar(require("../../../../p2p/utils/notifications"))),{broadcastP2PTradeEvent:f}=await Promise.resolve().then(()=>__importStar(require("../../../../p2p/trade/[id]/index.ws"))),{getWalletSafe:_}=await Promise.resolve().then(()=>__importStar(require("@b/api/finance/wallet/utils"))),{parseAmountConfig:P}=await Promise.resolve().then(()=>__importStar(require("../../../../p2p/utils/json-parser"))),y=await db_1.sequelize.transaction();try{null==n||n.step("Fetching dispute");const e=await db_1.models.p2pDispute.findByPk(d,{include:[{model:db_1.models.p2pTrade,as:"trade",include:[{model:db_1.models.p2pOffer,as:"offer",attributes:["currency","walletType"]}]}],lock:!0,transaction:y});if(!e){await y.rollback();null==n||n.fail("Dispute not found");throw(0,error_1.createError)({statusCode:404,message:"Dispute not found"})}const i=e.trade;let s,E=!1,g=!1;null==n||n.step("Processing dispute update");if(l){if(!["PENDING","IN_PROGRESS","RESOLVED"].includes(l)){await y.rollback();throw(0,error_1.createError)({statusCode:400,message:"Invalid status. Must be PENDING, IN_PROGRESS, or RESOLVED"})}e.status=l}if(u&&u.outcome){null==n||n.step(`Resolving dispute with outcome: ${u.outcome}`);const r=u.notes?m(u.notes):"",a=u.outcome;if(!["BUYER_WINS","SELLER_WINS","SPLIT","CANCELLED"].includes(a)){await y.rollback();throw(0,error_1.createError)({statusCode:400,message:"Invalid resolution outcome"})}if(i&&"DISPUTED"===i.status&&i.offer){let s="COMPLETED";if("BUYER_WINS"===a||"SPLIT"===a){const t=await _(i.sellerId,i.offer.walletType,i.offer.currency);if(t){const r=Math.min(i.amount,t.inOrder);if(r>0){const s=parseFloat(i.escrowFee||"0"),n=Math.min(s,i.amount),d=Math.max(0,i.amount-n),l=`p2p_dispute_seller_${i.id}_${Date.now()}`;await wallet_1.walletService.executeFromHold({idempotencyKey:l,userId:i.sellerId,walletId:t.id,walletType:i.offer.walletType,currency:i.offer.currency,amount:i.amount,operationType:"P2P_DISPUTE_RESOLVE",fee:n,description:`P2P dispute resolved (${a}) - seller debit`,metadata:{tradeId:i.id,disputeId:e.id,resolution:a,adminId:o.id},transaction:y});r<i.amount&&console_1.logger.warn("P2P_DISPUTE",`Partial fund handling for trade ${i.id}: unlocked=${r}, expected=${i.amount}`);const u=await wallet_1.walletCreationService.getOrCreateWallet(i.buyerId,i.offer.walletType,i.offer.currency),c=`p2p_dispute_buyer_${i.id}_${Date.now()}`;await wallet_1.walletService.credit({idempotencyKey:c,userId:i.buyerId,walletId:u.id,walletType:i.offer.walletType,currency:i.offer.currency,amount:d,operationType:"P2P_DISPUTE_RECEIVE",description:`P2P dispute resolved (${a}) - buyer credit`,metadata:{tradeId:i.id,disputeId:e.id,resolution:a,adminId:o.id,originalAmount:i.amount,platformFee:n},transaction:y});if(n>0){const e=await db_1.models.user.findOne({include:[{model:db_1.models.role,as:"role",where:{name:"Super Admin"}}],order:[["createdAt","ASC"]],transaction:y});if(e){await db_1.models.p2pCommission.create({adminId:e.id,amount:n,description:`P2P escrow fee for disputed trade #${i.id.slice(0,8)}... - ${i.amount} ${i.offer.currency} (${a})`,tradeId:i.id},{transaction:y});console_1.logger.info("P2P_DISPUTE",`Platform commission recorded for trade ${i.id}: ${n} ${i.offer.currency}`)}else console_1.logger.warn("P2P_DISPUTE","No super admin found to assign commission")}g=!0;console_1.logger.success("P2P_DISPUTE",`Funds transferred to buyer for trade ${i.id}: ${d} ${i.offer.currency} (fee: ${n})`)}else console_1.logger.warn("P2P_DISPUTE",`No funds available to transfer for trade ${i.id}`)}s="COMPLETED"}else if("SELLER_WINS"===a||"CANCELLED"===a){const r=await _(i.sellerId,i.offer.walletType,i.offer.currency);if(r){const t=Math.min(i.amount,r.inOrder);if(t>0){const s=`p2p_dispute_release_${i.id}_${Date.now()}`;await wallet_1.walletService.release({idempotencyKey:s,userId:i.sellerId,walletId:r.id,walletType:i.offer.walletType,currency:i.offer.currency,amount:t,operationType:"P2P_DISPUTE_RESOLVE",description:`P2P dispute resolved (${a}) - funds returned to seller`,metadata:{tradeId:i.id,disputeId:e.id,resolution:a,adminId:o.id},transaction:y});g=!0;t<i.amount&&console_1.logger.warn("P2P_DISPUTE",`Partial unlock for trade ${i.id}: ${t}/${i.amount}`)}else console_1.logger.warn("P2P_DISPUTE",`No funds to unlock for trade ${i.id}`)}if(i.offerId){const e=await db_1.models.p2pOffer.findByPk(i.offerId,{lock:!0,transaction:y});if(e&&["ACTIVE","PAUSED"].includes(e.status)){const r=P(e.amountConfig),a=null!==(t=r.originalTotal)&&void 0!==t?t:r.total+i.amount,s=r.total+i.amount,o=Math.min(s,a);if(o>r.total){await e.update({amountConfig:{...r,total:o,originalTotal:a}},{transaction:y});console_1.logger.info("P2P_DISPUTE",`Restored offer ${e.id} amount: ${r.total} -> ${o}`)}else console_1.logger.debug("P2P_DISPUTE",`Skipped offer ${e.id} restoration - at or above limit`)}}s="CANCELLED"}let n=i.timeline||[];if("string"==typeof n)try{n=JSON.parse(n)}catch(e){n=[]}Array.isArray(n)||(n=[]);n.push({event:"DISPUTE_RESOLVED",message:`Dispute resolved by admin: ${a}${r?` - ${r}`:""}`,userId:o.id,adminName:`${o.firstName} ${o.lastName}`,resolution:a,createdAt:(new Date).toISOString()});await i.update({status:s,timeline:n,resolution:{outcome:a,notes:r,resolvedBy:o.id},completedAt:"COMPLETED"===s?new Date:null,cancelledAt:"CANCELLED"===s?new Date:null},{transaction:y});E=!0}e.resolution={outcome:a,notes:r,resolvedBy:o.id,resolvedAt:(new Date).toISOString(),fundsHandled:g};e.resolvedOn=new Date;e.status="RESOLVED"}if(c){s=m(c);if(!s||0===s.length){await y.rollback();throw(0,error_1.createError)({statusCode:400,message:"Message cannot be empty"})}const t=`msg-${Date.now()}-${o.id}`,a=(new Date).toISOString();let n=e.messages;Array.isArray(n)||(n=[]);n.push({id:t,sender:o.id,senderName:`${o.firstName} ${o.lastName}`,content:s,createdAt:a,isAdmin:!0});e.messages=n;if(i){let e=i.timeline||[];if("string"==typeof e)try{e=JSON.parse(e)}catch(t){e=[]}Array.isArray(e)||(e=[]);e.push({id:t,event:"MESSAGE",message:s,senderId:o.id,senderName:`${o.firstName} ${o.lastName}`,isAdminMessage:!0,createdAt:a});await i.update({timeline:e},{transaction:y});f(i.id,{type:"MESSAGE",data:{id:t,message:s,senderId:o.id,senderName:`${o.firstName} ${o.lastName}`,isAdminMessage:!0,createdAt:a}});p(i.id,"ADMIN_MESSAGE",{buyerId:i.buyerId,sellerId:i.sellerId,amount:i.amount,currency:(null===(r=i.offer)||void 0===r?void 0:r.currency)||i.currency,message:s}).catch(e=>console_1.logger.error("P2P_DISPUTE",`Notification error: ${e}`))}}await e.save({transaction:y});null==n||n.step("Logging activity");await db_1.models.p2pActivityLog.create({userId:o.id,type:"ADMIN_DISPUTE_UPDATE",action:"ADMIN_DISPUTE_UPDATE",relatedEntity:"DISPUTE",relatedEntityId:e.id,details:JSON.stringify({status:e.status,hasResolution:!!u,resolution:null==u?void 0:u.outcome,hasMessage:!!c,tradeUpdated:E,fundsHandled:g,adminId:o.id,adminName:`${o.firstName} ${o.lastName}`})},{transaction:y});await(0,ownership_1.logP2PAdminAction)(o.id,"DISPUTE_UPDATE","DISPUTE",e.id,{status:l||e.status,hasResolution:!!u,resolution:null==u?void 0:u.outcome,hasMessage:!!c,tradeUpdated:E,fundsHandled:g,adminName:`${o.firstName} ${o.lastName}`});await y.commit();null==n||n.step("Broadcasting updates");if(E&&i){const e="BUYER_WINS"===(null==u?void 0:u.outcome)||"SPLIT"===(null==u?void 0:u.outcome)?"COMPLETED":"CANCELLED";f(i.id,{type:"STATUS_CHANGE",data:{status:e,previousStatus:"DISPUTED",disputeResolved:!0,resolution:null==u?void 0:u.outcome}});p(i.id,"COMPLETED"===e?"TRADE_COMPLETED":"TRADE_CANCELLED",{buyerId:i.buyerId,sellerId:i.sellerId,amount:i.amount,currency:(null===(a=i.offer)||void 0===a?void 0:a.currency)||i.currency,disputeResolved:!0,resolution:null==u?void 0:u.outcome}).catch(e=>console_1.logger.error("P2P_DISPUTE",`Trade notification error: ${e}`))}const I=await db_1.models.p2pDispute.findByPk(d,{include:[{model:db_1.models.p2pTrade,as:"trade",include:[{model:db_1.models.p2pOffer,as:"offer",attributes:["id","type","currency","walletType"]},{model:db_1.models.user,as:"buyer",attributes:["id","firstName","lastName","email","avatar"]},{model:db_1.models.user,as:"seller",attributes:["id","firstName","lastName","email","avatar"]}]},{model:db_1.models.user,as:"reportedBy",attributes:["id","firstName","lastName","email","avatar"]},{model:db_1.models.user,as:"against",attributes:["id","firstName","lastName","email","avatar"]}]}),w=(null==I?void 0:I.get({plain:!0}))||e.toJSON(),S=Array.isArray(w.messages)?w.messages.map(e=>({id:e.id||`${e.createdAt}-${e.sender}`,sender:e.senderName||e.sender||"Unknown",senderId:e.sender,content:e.content||e.message||"",timestamp:e.createdAt||e.timestamp,isAdmin:e.isAdmin||!1,avatar:e.avatar,senderInitials:e.senderName?e.senderName.split(" ").map(e=>e[0]).join("").toUpperCase():"?"})):[],D=(Array.isArray(w.activityLog)?w.activityLog:[]).filter(e=>"note"===e.type).map(e=>({content:e.content||e.note,createdAt:e.createdAt,createdBy:e.adminName||"Admin",adminId:e.adminId})),b=Array.isArray(w.evidence)?w.evidence.map(e=>({...e,submittedBy:e.submittedBy||"admin",timestamp:e.createdAt||e.timestamp})):[];null==n||n.success("Dispute updated successfully");return{...w,messages:S,adminNotes:D,evidence:b}}catch(e){await y.rollback();if(e.statusCode)throw e;null==n||n.fail("Failed to update dispute");throw(0,error_1.createError)({statusCode:500,message:"Internal Server Error: "+e.message})}};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const console_1 = require("@b/utils/console");
+const Middleware_1 = require("@b/handler/Middleware");
+const ownership_1 = require("../../../../p2p/utils/ownership");
+const wallet_1 = require("@b/services/wallet");
+const errors_1 = require("@b/utils/schema/errors");
+exports.metadata = {
+    summary: "Update P2P dispute",
+    description: "Updates a P2P dispute including status changes, resolution details, and admin messages. Handles fund distribution when resolving disputes based on the outcome (BUYER_WINS, SELLER_WINS, SPLIT, CANCELLED).",
+    operationId: "updateAdminP2PDispute",
+    tags: ["Admin", "P2P", "Dispute"],
+    requiresAuth: true,
+    middleware: [Middleware_1.p2pAdminDisputeRateLimit],
+    logModule: "ADMIN_P2P",
+    logTitle: "Update P2P dispute",
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            description: "Dispute ID",
+            required: true,
+            schema: { type: "string" },
+        },
+    ],
+    requestBody: {
+        description: "Dispute update data",
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        status: { type: "string", enum: ["PENDING", "IN_PROGRESS", "RESOLVED"] },
+                        resolution: {
+                            type: "object",
+                            properties: {
+                                outcome: {
+                                    type: "string",
+                                    enum: ["BUYER_WINS", "SELLER_WINS", "SPLIT", "CANCELLED"],
+                                    description: "Resolution outcome - determines how funds are handled"
+                                },
+                                notes: { type: "string" },
+                            },
+                        },
+                        message: { type: "string", description: "Admin message to add to dispute" },
+                    },
+                },
+            },
+        },
+    },
+    responses: {
+        200: { description: "Dispute updated successfully." },
+        401: errors_1.unauthorizedResponse,
+        404: (0, errors_1.notFoundResponse)("P2P resource"),
+        500: errors_1.serverErrorResponse,
+    },
+    permission: "edit.p2p.dispute",
+};
+exports.default = async (data) => {
+    var _a, _b, _c, _d, _e, _f, _g, _h;
+    const { params, body, user, ctx } = data;
+    const { id } = params;
+    const { status, resolution, message } = body;
+    const { sanitizeInput } = await Promise.resolve().then(() => __importStar(require("../../../../p2p/utils/validation")));
+    const { notifyTradeEvent } = await Promise.resolve().then(() => __importStar(require("../../../../p2p/utils/notifications")));
+    const { broadcastP2PTradeEvent } = await Promise.resolve().then(() => __importStar(require("../../../../p2p/trade/[id]/index.ws")));
+    const { getWalletSafe } = await Promise.resolve().then(() => __importStar(require("@b/api/finance/wallet/utils")));
+    const { parseAmountConfig } = await Promise.resolve().then(() => __importStar(require("../../../../p2p/utils/json-parser")));
+    const transaction = await db_1.sequelize.transaction();
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching dispute");
+        const dispute = await db_1.models.p2pDispute.findByPk(id, {
+            include: [{
+                    model: db_1.models.p2pTrade,
+                    as: "trade",
+                    include: [{
+                            model: db_1.models.p2pOffer,
+                            as: "offer",
+                            attributes: ["currency", "walletType"],
+                        }],
+                }],
+            lock: true,
+            transaction,
+        });
+        if (!dispute) {
+            await transaction.rollback();
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Dispute not found");
+            throw (0, error_1.createError)({ statusCode: 404, message: "Dispute not found" });
+        }
+        const trade = dispute.trade;
+        let tradeUpdated = false;
+        let fundsHandled = false;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing dispute update");
+        if (status) {
+            const validStatuses = ["PENDING", "IN_PROGRESS", "RESOLVED"];
+            if (!validStatuses.includes(status)) {
+                await transaction.rollback();
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "Invalid status. Must be PENDING, IN_PROGRESS, or RESOLVED"
+                });
+            }
+            dispute.status = status;
+        }
+        if (resolution && resolution.outcome) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step(`Resolving dispute with outcome: ${resolution.outcome}`);
+            const sanitizedNotes = resolution.notes ? sanitizeInput(resolution.notes) : "";
+            const outcome = resolution.outcome;
+            const validOutcomes = ["BUYER_WINS", "SELLER_WINS", "SPLIT", "CANCELLED"];
+            if (!validOutcomes.includes(outcome)) {
+                await transaction.rollback();
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "Invalid resolution outcome"
+                });
+            }
+            if (trade && trade.status === "DISPUTED" && trade.offer) {
+                let finalTradeStatus = "COMPLETED";
+                if (outcome === "BUYER_WINS" || outcome === "SPLIT") {
+                    const sellerWallet = await getWalletSafe(trade.sellerId, trade.offer.walletType, trade.offer.currency);
+                    if (sellerWallet) {
+                        const safeUnlockAmount = Math.min((_a = trade.amount) !== null && _a !== void 0 ? _a : 0, (_b = sellerWallet.inOrder) !== null && _b !== void 0 ? _b : 0);
+                        if (safeUnlockAmount > 0) {
+                            const escrowFeeAmount = parseFloat(trade.escrowFee || "0");
+                            const platformFee = Math.min(escrowFeeAmount, trade.amount);
+                            const buyerNetAmount = Math.max(0, trade.amount - platformFee);
+                            const sellerIdempotencyKey = `p2p_dispute_seller_${trade.id}_${Date.now()}`;
+                            await wallet_1.walletService.executeFromHold({
+                                idempotencyKey: sellerIdempotencyKey,
+                                userId: trade.sellerId,
+                                walletId: sellerWallet.id,
+                                walletType: trade.offer.walletType,
+                                currency: trade.offer.currency,
+                                amount: trade.amount,
+                                operationType: "P2P_DISPUTE_RESOLVE",
+                                fee: platformFee,
+                                description: `P2P dispute resolved (${outcome}) - seller debit`,
+                                metadata: {
+                                    tradeId: trade.id,
+                                    disputeId: dispute.id,
+                                    resolution: outcome,
+                                    adminId: user.id,
+                                },
+                                transaction,
+                            });
+                            if (safeUnlockAmount < trade.amount) {
+                                console_1.logger.warn("P2P_DISPUTE", `Partial fund handling for trade ${trade.id}: unlocked=${safeUnlockAmount}, expected=${trade.amount}`);
+                            }
+                            const buyerWallet = await wallet_1.walletCreationService.getOrCreateWallet(trade.buyerId, trade.offer.walletType, trade.offer.currency);
+                            const buyerIdempotencyKey = `p2p_dispute_buyer_${trade.id}_${Date.now()}`;
+                            await wallet_1.walletService.credit({
+                                idempotencyKey: buyerIdempotencyKey,
+                                userId: trade.buyerId,
+                                walletId: buyerWallet.id,
+                                walletType: trade.offer.walletType,
+                                currency: trade.offer.currency,
+                                amount: buyerNetAmount,
+                                operationType: "P2P_DISPUTE_RECEIVE",
+                                description: `P2P dispute resolved (${outcome}) - buyer credit`,
+                                metadata: {
+                                    tradeId: trade.id,
+                                    disputeId: dispute.id,
+                                    resolution: outcome,
+                                    adminId: user.id,
+                                    originalAmount: trade.amount,
+                                    platformFee,
+                                },
+                                transaction,
+                            });
+                            if (platformFee > 0) {
+                                const systemAdmin = await db_1.models.user.findOne({
+                                    include: [{
+                                            model: db_1.models.role,
+                                            as: "role",
+                                            where: { name: "Super Admin" },
+                                        }],
+                                    order: [["createdAt", "ASC"]],
+                                    transaction,
+                                });
+                                if (systemAdmin) {
+                                    await db_1.models.p2pCommission.create({
+                                        adminId: systemAdmin.id,
+                                        amount: platformFee,
+                                        description: `P2P escrow fee for disputed trade #${trade.id.slice(0, 8)}... - ${trade.amount} ${trade.offer.currency} (${outcome})`,
+                                        tradeId: trade.id,
+                                    }, { transaction });
+                                    console_1.logger.info("P2P_DISPUTE", `Platform commission recorded for trade ${trade.id}: ${platformFee} ${trade.offer.currency}`);
+                                }
+                                else {
+                                    console_1.logger.warn("P2P_DISPUTE", "No super admin found to assign commission");
+                                }
+                            }
+                            fundsHandled = true;
+                            console_1.logger.success("P2P_DISPUTE", `Funds transferred to buyer for trade ${trade.id}: ${buyerNetAmount} ${trade.offer.currency} (fee: ${platformFee})`);
+                        }
+                        else {
+                            console_1.logger.warn("P2P_DISPUTE", `No funds available to transfer for trade ${trade.id}`);
+                        }
+                    }
+                    finalTradeStatus = "COMPLETED";
+                }
+                else if (outcome === "SELLER_WINS" || outcome === "CANCELLED") {
+                    const sellerWallet = await getWalletSafe(trade.sellerId, trade.offer.walletType, trade.offer.currency);
+                    if (sellerWallet) {
+                        const safeUnlockAmount = Math.min((_c = trade.amount) !== null && _c !== void 0 ? _c : 0, (_d = sellerWallet.inOrder) !== null && _d !== void 0 ? _d : 0);
+                        if (safeUnlockAmount > 0) {
+                            const releaseIdempotencyKey = `p2p_dispute_release_${trade.id}_${Date.now()}`;
+                            await wallet_1.walletService.release({
+                                idempotencyKey: releaseIdempotencyKey,
+                                userId: trade.sellerId,
+                                walletId: sellerWallet.id,
+                                walletType: trade.offer.walletType,
+                                currency: trade.offer.currency,
+                                amount: safeUnlockAmount,
+                                operationType: "P2P_DISPUTE_RESOLVE",
+                                description: `P2P dispute resolved (${outcome}) - funds returned to seller`,
+                                metadata: {
+                                    tradeId: trade.id,
+                                    disputeId: dispute.id,
+                                    resolution: outcome,
+                                    adminId: user.id,
+                                },
+                                transaction,
+                            });
+                            fundsHandled = true;
+                            if (safeUnlockAmount < trade.amount) {
+                                console_1.logger.warn("P2P_DISPUTE", `Partial unlock for trade ${trade.id}: ${safeUnlockAmount}/${trade.amount}`);
+                            }
+                        }
+                        else {
+                            console_1.logger.warn("P2P_DISPUTE", `No funds to unlock for trade ${trade.id}`);
+                        }
+                    }
+                    if (trade.offerId) {
+                        const offer = await db_1.models.p2pOffer.findByPk(trade.offerId, {
+                            lock: true,
+                            transaction,
+                        });
+                        if (offer && ["ACTIVE", "PAUSED"].includes(offer.status)) {
+                            const amountConfig = parseAmountConfig(offer.amountConfig);
+                            const tradeAmount = (_e = trade.amount) !== null && _e !== void 0 ? _e : 0;
+                            const originalTotal = (_f = amountConfig.originalTotal) !== null && _f !== void 0 ? _f : (amountConfig.total + tradeAmount);
+                            const proposedTotal = amountConfig.total + tradeAmount;
+                            const safeTotal = Math.min(proposedTotal, originalTotal);
+                            if (safeTotal > amountConfig.total) {
+                                await offer.update({
+                                    amountConfig: {
+                                        ...amountConfig,
+                                        total: safeTotal,
+                                        originalTotal,
+                                    },
+                                }, { transaction });
+                                console_1.logger.info("P2P_DISPUTE", `Restored offer ${offer.id} amount: ${amountConfig.total} -> ${safeTotal}`);
+                            }
+                            else {
+                                console_1.logger.debug("P2P_DISPUTE", `Skipped offer ${offer.id} restoration - at or above limit`);
+                            }
+                        }
+                    }
+                    finalTradeStatus = "CANCELLED";
+                }
+                let timeline = trade.timeline || [];
+                if (typeof timeline === "string") {
+                    try {
+                        timeline = JSON.parse(timeline);
+                    }
+                    catch (e) {
+                        timeline = [];
+                    }
+                }
+                if (!Array.isArray(timeline)) {
+                    timeline = [];
+                }
+                timeline.push({
+                    event: "DISPUTE_RESOLVED",
+                    message: `Dispute resolved by admin: ${outcome}${sanitizedNotes ? ` - ${sanitizedNotes}` : ""}`,
+                    userId: user.id,
+                    adminName: `${user.firstName} ${user.lastName}`,
+                    resolution: outcome,
+                    createdAt: new Date().toISOString(),
+                });
+                await trade.update({
+                    status: finalTradeStatus,
+                    timeline,
+                    resolution: { outcome, notes: sanitizedNotes, resolvedBy: user.id },
+                    completedAt: finalTradeStatus === "COMPLETED" ? new Date() : null,
+                    cancelledAt: finalTradeStatus === "CANCELLED" ? new Date() : null,
+                }, { transaction });
+                tradeUpdated = true;
+            }
+            dispute.resolution = {
+                outcome,
+                notes: sanitizedNotes,
+                resolvedBy: user.id,
+                resolvedAt: new Date().toISOString(),
+                fundsHandled,
+            };
+            dispute.resolvedOn = new Date();
+            dispute.status = "RESOLVED";
+        }
+        let sanitizedMessage;
+        if (message) {
+            sanitizedMessage = sanitizeInput(message);
+            if (!sanitizedMessage || sanitizedMessage.length === 0) {
+                await transaction.rollback();
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "Message cannot be empty"
+                });
+            }
+            const messageId = `msg-${Date.now()}-${user.id}`;
+            const messageTimestamp = new Date().toISOString();
+            let existingMessages = dispute.messages;
+            if (!Array.isArray(existingMessages)) {
+                existingMessages = [];
+            }
+            existingMessages.push({
+                id: messageId,
+                sender: user.id,
+                senderName: `${user.firstName} ${user.lastName}`,
+                content: sanitizedMessage,
+                createdAt: messageTimestamp,
+                isAdmin: true,
+            });
+            dispute.messages = existingMessages;
+            if (trade) {
+                let timeline = trade.timeline || [];
+                if (typeof timeline === "string") {
+                    try {
+                        timeline = JSON.parse(timeline);
+                    }
+                    catch (e) {
+                        timeline = [];
+                    }
+                }
+                if (!Array.isArray(timeline)) {
+                    timeline = [];
+                }
+                timeline.push({
+                    id: messageId,
+                    event: "MESSAGE",
+                    message: sanitizedMessage,
+                    senderId: user.id,
+                    senderName: `${user.firstName} ${user.lastName}`,
+                    isAdminMessage: true,
+                    createdAt: messageTimestamp,
+                });
+                await trade.update({ timeline }, { transaction });
+                broadcastP2PTradeEvent(trade.id, {
+                    type: "MESSAGE",
+                    data: {
+                        id: messageId,
+                        message: sanitizedMessage,
+                        senderId: user.id,
+                        senderName: `${user.firstName} ${user.lastName}`,
+                        isAdminMessage: true,
+                        createdAt: messageTimestamp,
+                    },
+                });
+                notifyTradeEvent(trade.id, "ADMIN_MESSAGE", {
+                    buyerId: trade.buyerId,
+                    sellerId: trade.sellerId,
+                    amount: trade.amount,
+                    currency: ((_g = trade.offer) === null || _g === void 0 ? void 0 : _g.currency) || trade.currency,
+                    message: sanitizedMessage,
+                }).catch((err) => console_1.logger.error("P2P_DISPUTE", `Notification error: ${err}`));
+            }
+        }
+        await dispute.save({ transaction });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Logging activity");
+        await db_1.models.p2pActivityLog.create({
+            userId: user.id,
+            type: "ADMIN_DISPUTE_UPDATE",
+            action: "ADMIN_DISPUTE_UPDATE",
+            relatedEntity: "DISPUTE",
+            relatedEntityId: dispute.id,
+            details: JSON.stringify({
+                status: dispute.status,
+                hasResolution: !!resolution,
+                resolution: resolution === null || resolution === void 0 ? void 0 : resolution.outcome,
+                hasMessage: !!message,
+                tradeUpdated,
+                fundsHandled,
+                adminId: user.id,
+                adminName: `${user.firstName} ${user.lastName}`,
+            }),
+        }, { transaction });
+        await (0, ownership_1.logP2PAdminAction)(user.id, "DISPUTE_UPDATE", "DISPUTE", dispute.id, {
+            status: status || dispute.status,
+            hasResolution: !!resolution,
+            resolution: resolution === null || resolution === void 0 ? void 0 : resolution.outcome,
+            hasMessage: !!message,
+            tradeUpdated,
+            fundsHandled,
+            adminName: `${user.firstName} ${user.lastName}`,
+        });
+        await transaction.commit();
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Broadcasting updates");
+        if (tradeUpdated && trade) {
+            const finalStatus = (resolution === null || resolution === void 0 ? void 0 : resolution.outcome) === "BUYER_WINS" || (resolution === null || resolution === void 0 ? void 0 : resolution.outcome) === "SPLIT"
+                ? "COMPLETED"
+                : "CANCELLED";
+            broadcastP2PTradeEvent(trade.id, {
+                type: "STATUS_CHANGE",
+                data: {
+                    status: finalStatus,
+                    previousStatus: "DISPUTED",
+                    disputeResolved: true,
+                    resolution: resolution === null || resolution === void 0 ? void 0 : resolution.outcome,
+                },
+            });
+            notifyTradeEvent(trade.id, finalStatus === "COMPLETED" ? "TRADE_COMPLETED" : "TRADE_CANCELLED", {
+                buyerId: trade.buyerId,
+                sellerId: trade.sellerId,
+                amount: trade.amount,
+                currency: ((_h = trade.offer) === null || _h === void 0 ? void 0 : _h.currency) || trade.currency,
+                disputeResolved: true,
+                resolution: resolution === null || resolution === void 0 ? void 0 : resolution.outcome,
+            }).catch((err) => console_1.logger.error("P2P_DISPUTE", `Trade notification error: ${err}`));
+        }
+        const updatedDispute = await db_1.models.p2pDispute.findByPk(id, {
+            include: [
+                {
+                    model: db_1.models.p2pTrade,
+                    as: "trade",
+                    include: [
+                        {
+                            model: db_1.models.p2pOffer,
+                            as: "offer",
+                            attributes: ["id", "type", "currency", "walletType"],
+                        },
+                        {
+                            model: db_1.models.user,
+                            as: "buyer",
+                            attributes: ["id", "firstName", "lastName", "email", "avatar"],
+                        },
+                        {
+                            model: db_1.models.user,
+                            as: "seller",
+                            attributes: ["id", "firstName", "lastName", "email", "avatar"],
+                        },
+                    ],
+                },
+                {
+                    model: db_1.models.user,
+                    as: "reportedBy",
+                    attributes: ["id", "firstName", "lastName", "email", "avatar"],
+                },
+                {
+                    model: db_1.models.user,
+                    as: "against",
+                    attributes: ["id", "firstName", "lastName", "email", "avatar"],
+                },
+            ],
+        });
+        const plainDispute = (updatedDispute === null || updatedDispute === void 0 ? void 0 : updatedDispute.get({ plain: true })) || dispute.toJSON();
+        const messages = Array.isArray(plainDispute.messages) ? plainDispute.messages.map((msg) => ({
+            id: msg.id || `${msg.createdAt}-${msg.sender}`,
+            sender: msg.senderName || msg.sender || "Unknown",
+            senderId: msg.sender,
+            content: msg.content || msg.message || "",
+            timestamp: msg.createdAt || msg.timestamp,
+            isAdmin: msg.isAdmin || false,
+            avatar: msg.avatar,
+            senderInitials: msg.senderName ? msg.senderName.split(" ").map((n) => n[0]).join("").toUpperCase() : "?",
+        })) : [];
+        const activityLog = Array.isArray(plainDispute.activityLog) ? plainDispute.activityLog : [];
+        const adminNotes = activityLog
+            .filter((entry) => entry.type === "note")
+            .map((entry) => ({
+            content: entry.content || entry.note,
+            createdAt: entry.createdAt,
+            createdBy: entry.adminName || "Admin",
+            adminId: entry.adminId,
+        }));
+        const evidence = Array.isArray(plainDispute.evidence) ? plainDispute.evidence.map((e) => ({
+            ...e,
+            submittedBy: e.submittedBy || "admin",
+            timestamp: e.createdAt || e.timestamp,
+        })) : [];
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Dispute updated successfully");
+        return {
+            ...plainDispute,
+            messages,
+            adminNotes,
+            evidence,
+        };
+    }
+    catch (err) {
+        await transaction.rollback();
+        if (err.statusCode) {
+            throw err;
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to update dispute");
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: "Internal Server Error: " + err.message,
+        });
+    }
+};

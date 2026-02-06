@@ -15,6 +15,11 @@ export type PositionSide = "RISE" | "FALL";
  */
 export type PositionOutcome = "PENDING" | "WIN" | "LOSS" | "DRAW";
 
+/**
+ * Position status
+ */
+export type PositionStatus = "ACTIVE" | "SETTLED" | "CANCELLED";
+
 // ============================================
 // TYPE INTERFACES
 // ============================================
@@ -34,6 +39,7 @@ export interface binaryAiEnginePositionAttributes {
   isWhale: boolean;
   hasCooldown: boolean;
   outcome: PositionOutcome;
+  status: PositionStatus;
   settledAt: Date | null;
   wasManipulated: boolean;
   manipulationDetails: Record<string, any> | null;
@@ -50,6 +56,7 @@ export interface binaryAiEnginePositionCreationAttributes
     | "isWhale"
     | "hasCooldown"
     | "outcome"
+    | "status"
     | "settledAt"
     | "wasManipulated"
     | "manipulationDetails"
@@ -108,6 +115,8 @@ export default class binaryAiEnginePosition
   hasCooldown!: boolean;
   /** Position outcome */
   outcome!: PositionOutcome;
+  /** Position status */
+  status!: PositionStatus;
   /** When the position was settled */
   settledAt!: Date | null;
   /** Whether price was manipulated for this position */
@@ -144,7 +153,6 @@ export default class binaryAiEnginePosition
         binaryOrderId: {
           type: DataTypes.UUID,
           allowNull: false,
-          unique: true,
           validate: {
             notEmpty: { msg: "binaryOrderId: Binary Order ID must not be empty" },
             isUUID: { args: 4, msg: "binaryOrderId: Must be a valid UUID" },
@@ -220,6 +228,11 @@ export default class binaryAiEnginePosition
           type: DataTypes.ENUM("PENDING", "WIN", "LOSS", "DRAW"),
           allowNull: false,
           defaultValue: "PENDING",
+        },
+        status: {
+          type: DataTypes.ENUM("ACTIVE", "SETTLED", "CANCELLED"),
+          allowNull: false,
+          defaultValue: "ACTIVE",
         },
         settledAt: {
           type: DataTypes.DATE,

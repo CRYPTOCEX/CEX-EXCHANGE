@@ -1,1 +1,132 @@
-"use strict";async function getAllocationByToken(e,o,t){var l,n,i,r,a,c;try{null===(l=null==t?void 0:t.step)||void 0===l||l.call(t,"Fetching completed transactions for allocation calculation");const c=await db_1.models.icoTransaction.findAll({where:{userId:e,createdAt:{[sequelize_1.Op.lte]:o},status:"RELEASED"},include:[{model:db_1.models.icoTokenOffering,as:"offering",attributes:["currentPrice","tokenPrice","name"]}]});null===(n=null==t?void 0:t.step)||void 0===n||n.call(t,"Calculating cumulative holdings per offering");const s={},u={};c.forEach(e=>{const o=e.offeringId;e.offering&&(u[o]=e.offering.name);"buy"===e.type?s[o]=(s[o]||0)+e.amount:"sell"===e.type&&(s[o]=(s[o]||0)-e.amount)});null===(i=null==t?void 0:t.step)||void 0===i||i.call(t,"Computing market value per offering");let f=0;const d={};for(const e in s){const o=c.find(o=>o.offeringId===e);if(o&&o.offering){const t=null!==(r=o.offering.currentPrice)&&void 0!==r?r:o.offering.tokenPrice,l=s[e]*t;d[o.offering.name]=(d[o.offering.name]||0)+l;f+=l}}const g=Object.entries(d).map(([e,o])=>({name:e,percentage:f>0?o/f*100:0}));null===(a=null==t?void 0:t.success)||void 0===a||a.call(t,`Calculated allocation for ${g.length} tokens`);return{allocationByToken:g,totalPortfolioValue:f}}catch(e){null===(c=null==t?void 0:t.fail)||void 0===c||c.call(t,e.message||"Failed to calculate allocation by token");throw e}}async function getUserPortfolioHistory(e,o,t,l){var n,i,r,a,c,s,u;try{null===(n=null==l?void 0:l.step)||void 0===n||n.call(l,"Fetching transaction history for portfolio calculation");const u=await db_1.models.icoTransaction.findAll({where:{userId:e,createdAt:{[sequelize_1.Op.lte]:t},status:"RELEASED"},order:[["createdAt","ASC"]],include:[{model:db_1.models.icoTokenOffering,as:"offering",attributes:["currentPrice","tokenPrice"]}]});null===(i=null==l?void 0:l.step)||void 0===i||i.call(l,"Processing transactions before start date");const f={},d={};let g=0;for(;g<u.length&&new Date(u[g].createdAt)<o;){const e=u[g],o=e.offeringId,t=e.offering&&(null!==(r=e.offering.currentPrice)&&void 0!==r?r:e.offering.tokenPrice);null!=t&&(d[o]=t);"buy"===e.type?f[o]=(f[o]||0)+e.amount:"sell"===e.type&&(f[o]=(f[o]||0)-e.amount);g++}const p=()=>{var e;let o=0;for(const t in f){o+=f[t]*(null!==(e=d[t])&&void 0!==e?e:0)}return parseFloat(o.toFixed(2))};null===(a=null==l?void 0:l.step)||void 0===a||a.call(l,"Building daily portfolio history");const v=[],y=864e5,m=Math.floor((t.getTime()-o.getTime())/y);for(let e=0;e<=m;e++){const t=new Date(o.getTime()+e*y);for(;g<u.length&&new Date(u[g].createdAt)<=t;){const e=u[g],o=e.offeringId;e.offering&&(d[o]=null!==(c=e.offering.currentPrice)&&void 0!==c?c:e.offering.tokenPrice);"buy"===e.type?f[o]=(f[o]||0)+e.amount:"sell"===e.type&&(f[o]=(f[o]||0)-e.amount);g++}v.push({date:t.toISOString().split("T")[0],value:p()})}null===(s=null==l?void 0:l.success)||void 0===s||s.call(l,`Generated ${v.length} days of portfolio history`);return v}catch(e){null===(u=null==l?void 0:l.fail)||void 0===u||u.call(l,e.message||"Failed to generate portfolio history");throw e}}Object.defineProperty(exports,"__esModule",{value:!0});exports.getAllocationByToken=getAllocationByToken;exports.getUserPortfolioHistory=getUserPortfolioHistory;const sequelize_1=require("sequelize"),db_1=require("@b/db");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getAllocationByToken = getAllocationByToken;
+exports.getUserPortfolioHistory = getUserPortfolioHistory;
+const sequelize_1 = require("sequelize");
+const db_1 = require("@b/db");
+async function getAllocationByToken(userId, date, ctx) {
+    var _a, _b, _c, _d, _e, _f;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Fetching completed transactions for allocation calculation");
+        const transactions = await db_1.models.icoTransaction.findAll({
+            where: {
+                userId,
+                createdAt: { [sequelize_1.Op.lte]: date },
+                status: "RELEASED",
+            },
+            include: [
+                {
+                    model: db_1.models.icoTokenOffering,
+                    as: "offering",
+                    attributes: ["currentPrice", "tokenPrice", "name"],
+                },
+            ],
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Calculating cumulative holdings per offering");
+        const holdings = {};
+        const offeringName = {};
+        transactions.forEach((tx) => {
+            const id = tx.offeringId;
+            if (tx.offering) {
+                offeringName[id] = tx.offering.name;
+            }
+            holdings[id] = (holdings[id] || 0) + tx.amount;
+        });
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Computing market value per offering");
+        let totalValue = 0;
+        const allocationMap = {};
+        for (const offeringId in holdings) {
+            const tx = transactions.find((t) => t.offeringId === offeringId);
+            if (tx && tx.offering) {
+                const price = (_d = tx.offering.currentPrice) !== null && _d !== void 0 ? _d : tx.offering.tokenPrice;
+                const tokenValue = holdings[offeringId] * price;
+                allocationMap[tx.offering.name] =
+                    (allocationMap[tx.offering.name] || 0) + tokenValue;
+                totalValue += tokenValue;
+            }
+        }
+        const allocationByToken = Object.entries(allocationMap).map(([name, value]) => ({
+            name,
+            percentage: totalValue > 0 ? (value / totalValue) * 100 : 0,
+        }));
+        (_e = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _e === void 0 ? void 0 : _e.call(ctx, `Calculated allocation for ${allocationByToken.length} tokens`);
+        return { allocationByToken, totalPortfolioValue: totalValue };
+    }
+    catch (error) {
+        (_f = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _f === void 0 ? void 0 : _f.call(ctx, error.message || "Failed to calculate allocation by token");
+        throw error;
+    }
+}
+async function getUserPortfolioHistory(userId, startDate, endDate, ctx) {
+    var _a, _b, _c, _d, _e, _f, _g;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Fetching transaction history for portfolio calculation");
+        const transactions = await db_1.models.icoTransaction.findAll({
+            where: {
+                userId,
+                createdAt: { [sequelize_1.Op.lte]: endDate },
+                status: "RELEASED",
+            },
+            order: [["createdAt", "ASC"]],
+            include: [
+                {
+                    model: db_1.models.icoTokenOffering,
+                    as: "offering",
+                    attributes: ["currentPrice", "tokenPrice"],
+                },
+            ],
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Processing transactions before start date");
+        const holdings = {};
+        const offeringPrice = {};
+        let txIndex = 0;
+        while (txIndex < transactions.length &&
+            new Date(transactions[txIndex].createdAt) < startDate) {
+            const tx = transactions[txIndex];
+            const id = tx.offeringId;
+            const price = tx.offering && ((_c = tx.offering.currentPrice) !== null && _c !== void 0 ? _c : tx.offering.tokenPrice);
+            if (price != null) {
+                offeringPrice[id] = price;
+            }
+            holdings[id] = (holdings[id] || 0) + tx.amount;
+            txIndex++;
+        }
+        const computePortfolioValue = () => {
+            var _a;
+            let value = 0;
+            for (const id in holdings) {
+                const qty = holdings[id];
+                const price = (_a = offeringPrice[id]) !== null && _a !== void 0 ? _a : 0;
+                value += qty * price;
+            }
+            return parseFloat(value.toFixed(2));
+        };
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Building daily portfolio history");
+        const history = [];
+        const msPerDay = 24 * 3600 * 1000;
+        const totalDays = Math.floor((endDate.getTime() - startDate.getTime()) / msPerDay);
+        for (let i = 0; i <= totalDays; i++) {
+            const currentDate = new Date(startDate.getTime() + i * msPerDay);
+            while (txIndex < transactions.length &&
+                new Date(transactions[txIndex].createdAt) <= currentDate) {
+                const tx = transactions[txIndex];
+                const id = tx.offeringId;
+                if (tx.offering) {
+                    offeringPrice[id] = (_e = tx.offering.currentPrice) !== null && _e !== void 0 ? _e : tx.offering.tokenPrice;
+                }
+                holdings[id] = (holdings[id] || 0) + tx.amount;
+                txIndex++;
+            }
+            history.push({
+                date: currentDate.toISOString().split("T")[0],
+                value: computePortfolioValue(),
+            });
+        }
+        (_f = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _f === void 0 ? void 0 : _f.call(ctx, `Generated ${history.length} days of portfolio history`);
+        return history;
+    }
+    catch (error) {
+        (_g = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _g === void 0 ? void 0 : _g.call(ctx, error.message || "Failed to generate portfolio history");
+        throw error;
+    }
+}

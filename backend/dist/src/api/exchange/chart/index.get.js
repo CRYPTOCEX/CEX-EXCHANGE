@@ -1,1 +1,273 @@
-"use strict";async function getHistoricalOHLCV(e,t,a,r,i,n=3,o=1e3){try{const i=await(0,utils_2.loadBanStatus)(),l=await(0,utils_2.handleBanStatus)(i);let s=await(0,utils_1.getCachedOHLCV)(e,t,a,r);s=(0,utils_1.validateAndCleanCandles)(s);const c=(0,utils_1.intervalToMilliseconds)(t),u=Math.ceil((r-a)/c);console_1.logger.debug("CHART",`${e}/${t}: Cached ${s.length} candles, expected ~${u}`);if(l){console_1.logger.info("CHART",`Exchange banned, returning cached data for ${e}/${t}`);return s}let g=null;try{g=await Promise.race([exchange_1.default.startExchange(),new Promise((e,t)=>setTimeout(()=>t(new Error("Exchange initialization timeout")),1e4))])}catch(e){console_1.logger.warn("CHART",`Exchange init failed: ${e.message}`)}if(!g){console_1.logger.warn("CHART","Exchange not available, returning cached data only");return s}const d=s.length>0?s[s.length-1][0]:0,h=d>Date.now()-2*c;if(s.length>=.9*u&&h){console_1.logger.debug("CHART",`${e}/${t}: Cache sufficient and recent, returning ${s.length} candles`);return s}s.length>=.9*u&&!h&&console_1.logger.info("CHART",`${e}/${t}: Cache has ${s.length} candles but last candle is ${Math.round((Date.now()-d)/6e4)} minutes old. Fetching recent data.`);const m=(0,utils_1.findGapsInCachedData)(s,a,r,t),f=Date.now(),p=Math.floor(f/c)*c;if(0===m.length){console_1.logger.debug("CHART",`${e}/${t}: No gaps found, returning cached data`);return s}if((0,utils_1.isGapFillInProgress)(e,t)){console_1.logger.info("CHART",`${e}/${t}: Gap fill already in progress, waiting for completion`);const i=await(0,utils_1.waitForGapFill)(e,t);if(i)return i;let n=await(0,utils_1.getCachedOHLCV)(e,t,a,r);n=(0,utils_1.validateAndCleanCandles)(n);return n}if(!(0,utils_1.registerGapFillOperation)(e,t,m)){console_1.logger.info("CHART",`${e}/${t}: Duplicate gap fill request, waiting for existing operation`);await(0,utils_1.waitForGapFill)(e,t);let i=await(0,utils_1.getCachedOHLCV)(e,t,a,r);i=(0,utils_1.validateAndCleanCandles)(i);return i}return await(0,utils_1.executeWithGapFillLock)(e,t,async()=>{try{const i=m.reduce((e,t)=>e+(t.gapEnd-t.gapStart)/6e4,0);console_1.logger.info("CHART",`${e}/${t}: Found ${m.length} gaps (${Math.round(i)} min total) to fill from exchange API`);m.forEach((e,t)=>{console_1.logger.debug("CHART",`  Gap ${t+1}: ${new Date(e.gapStart).toISOString()} to ${new Date(e.gapEnd).toISOString()} (${Math.round((e.gapEnd-e.gapStart)/6e4)} min)`)});let l=0;for(const{gapStart:a,gapEnd:r}of m){let i=a,s=o;for(;i<r;){if(await(0,utils_2.handleBanStatus)(await(0,utils_2.loadBanStatus)())){console_1.logger.warn("CHART","Exchange became banned during fetch, stopping");break}for(let a=1;a<=n;a++)try{const a=Math.min(r,p);if(i>=a){console_1.logger.debug("CHART",`fetchStart (${new Date(i).toISOString()}) >= adjustedFetchEnd (${new Date(a).toISOString()}), breaking`);break}console_1.logger.debug("CHART",`Fetching OHLCV from ${new Date(i).toISOString()}, limit 500`);const n=await Promise.race([g.fetchOHLCV(e,t,i,500),new Promise((e,t)=>setTimeout(()=>t(new Error("fetchOHLCV timeout")),15e3))]);n&&n.length>0&&console_1.logger.debug("CHART",`Received ${n.length} candles: ${new Date(n[0][0]).toISOString()} to ${new Date(n[n.length-1][0]).toISOString()}`);if(n&&n.length>0){const a=(0,utils_1.validateAndCleanCandles)(n);if(a.length>0){await(0,utils_1.saveOHLCVToCache)(e,t,a);l+=a.length;i=a[a.length-1][0]+c;console_1.logger.debug("CHART",`${e}/${t}: Fetched ${a.length} candles (total: ${l})`)}else i+=100*c}else i+=100*c;break}catch(e){console_1.logger.warn("CHART",`Attempt ${a} failed for fetch starting at ${i}: ${e.message}`);if(a<n){await new Promise(e=>setTimeout(e,s));s=Math.min(1.5*s,5e3)}else{console_1.logger.error("CHART",`Failed to fetch data starting at ${i} after ${n} attempts, skipping chunk`);i=Math.min(i+500*c,r)}}await new Promise(e=>setTimeout(e,100))}}console_1.logger.info("CHART",`${e}/${t}: Total fetched ${l} candles from exchange API`);let s=await(0,utils_1.getCachedOHLCV)(e,t,a,r);s=(0,utils_1.validateAndCleanCandles)(s);s=(0,utils_1.repairCandleData)(s,t);const d=(0,utils_1.findGapsInCachedData)(s,a,r,t);if(d.length>0){const i=d.reduce((e,t)=>e+Math.ceil((t.gapEnd-t.gapStart)/c),0);if(i<.05*u){console_1.logger.info("CHART",`${e}/${t}: ${i} candles still missing (<5%), filling with synthetic`);return(0,utils_1.fillGapsWithSyntheticCandles)(s,a,r,t)}console_1.logger.warn("CHART",`${e}/${t}: ${i} candles still missing (${Math.round(i/u*100)}%), returning partial data`)}return s}finally{(0,utils_1.clearGapFillOperation)(e,t)}})}catch(i){console_1.logger.error("CHART",`Error in getHistoricalOHLCV: ${i}`);(0,utils_1.clearGapFillOperation)(e,t);try{let i=await(0,utils_1.getCachedOHLCV)(e,t,a,r);i=(0,utils_1.validateAndCleanCandles)(i);return i}catch(e){console_1.logger.error("CHART",`Failed to get cached data as fallback: ${e}`);return[]}}}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;exports.getHistoricalOHLCV=getHistoricalOHLCV;const exchange_1=__importDefault(require("@b/utils/exchange")),query_1=require("@b/utils/query"),utils_1=require("./utils"),utils_2=require("../utils"),console_1=require("@b/utils/console"),error_1=require("@b/utils/error");exports.metadata={summary:"Get Historical Chart Data",operationId:"getHistoricalChartData",tags:["Chart","Historical"],description:"Retrieves historical chart data for the authenticated user.",logModule:"EXCHANGE",logTitle:"Get Chart Data",parameters:[{name:"symbol",in:"query",description:"Symbol to retrieve data for.",required:!0,schema:{type:"string"}},{name:"interval",in:"query",description:"Interval to retrieve data for.",required:!0,schema:{type:"string"}},{name:"from",in:"query",description:"Start timestamp to retrieve data from.",required:!0,schema:{type:"number"}},{name:"to",in:"query",description:"End timestamp to retrieve data from.",required:!0,schema:{type:"number"}},{name:"duration",in:"query",description:"Duration to retrieve data for.",required:!0,schema:{type:"number"}}],responses:{200:{description:"Historical chart data retrieved successfully",content:{"application/json":{schema:{type:"array",items:{type:"object",properties:utils_1.baseChartDataPointSchema}}}}},401:query_1.unauthorizedResponse,404:(0,query_1.notFoundMetadataResponse)("Chart"),500:query_1.serverErrorResponse}};const activeRequests=new Map;exports.default=async e=>{const{query:t,ctx:a}=e;if(!(t.symbol&&t.interval&&t.from&&t.to&&t.duration))throw(0,error_1.createError)({statusCode:400,message:"Missing required parameters: symbol, interval, from, to, duration"});const r=Number(t.from),i=Number(t.to),{from:n,to:o,isValid:l}=(0,utils_1.validateAndNormalizeTimestamps)(r,i);l||console_1.logger.warn("CHART",`Invalid timestamps received for ${t.symbol}: from=${r}, to=${i}. Using normalized values: from=${n}, to=${o}`);const s=`${t.symbol}-${t.interval}-${n}-${o}`;if(activeRequests.has(s)){console_1.logger.debug("CHART",`Deduplicating request for ${s}`);return await activeRequests.get(s)}null==a||a.step(`Fetching chart data for ${t.symbol} (${t.interval})`);const c=new Promise((e,t)=>{setTimeout(()=>t(new Error("Request timeout after 20 seconds")),2e4)}),u=getHistoricalOHLCV(t.symbol,t.interval,n,o,Number(t.duration));activeRequests.set(s,u);try{const e=await Promise.race([u,c]);null==a||a.success(`Retrieved ${e.length} chart data points`);return e}catch(e){console_1.logger.error("CHART",`API error for ${s}: ${e.message}`);throw e}finally{activeRequests.delete(s)}};
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+exports.getHistoricalOHLCV = getHistoricalOHLCV;
+const exchange_1 = __importDefault(require("@b/utils/exchange"));
+const query_1 = require("@b/utils/query");
+const utils_1 = require("./utils");
+const utils_2 = require("../utils");
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+exports.metadata = {
+    summary: "Get Historical Chart Data",
+    operationId: "getHistoricalChartData",
+    tags: ["Chart", "Historical"],
+    description: "Retrieves historical chart data for the authenticated user.",
+    logModule: "EXCHANGE",
+    logTitle: "Get Chart Data",
+    parameters: [
+        {
+            name: "symbol",
+            in: "query",
+            description: "Symbol to retrieve data for.",
+            required: true,
+            schema: { type: "string" },
+        },
+        {
+            name: "interval",
+            in: "query",
+            description: "Interval to retrieve data for.",
+            required: true,
+            schema: { type: "string" },
+        },
+        {
+            name: "from",
+            in: "query",
+            description: "Start timestamp to retrieve data from.",
+            required: true,
+            schema: { type: "number" },
+        },
+        {
+            name: "to",
+            in: "query",
+            description: "End timestamp to retrieve data from.",
+            required: true,
+            schema: { type: "number" },
+        },
+        {
+            name: "duration",
+            in: "query",
+            description: "Duration to retrieve data for.",
+            required: true,
+            schema: { type: "number" },
+        },
+    ],
+    responses: {
+        200: {
+            description: "Historical chart data retrieved successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: utils_1.baseChartDataPointSchema,
+                        },
+                    },
+                },
+            },
+        },
+        401: query_1.unauthorizedResponse,
+        404: (0, query_1.notFoundMetadataResponse)("Chart"),
+        500: query_1.serverErrorResponse,
+    },
+};
+const activeRequests = new Map();
+exports.default = async (data) => {
+    const { query, ctx } = data;
+    if (!query.symbol || !query.interval || !query.from || !query.to || !query.duration) {
+        throw (0, error_1.createError)({ statusCode: 400, message: 'Missing required parameters: symbol, interval, from, to, duration' });
+    }
+    const rawFrom = Number(query.from);
+    const rawTo = Number(query.to);
+    const { from, to, isValid } = (0, utils_1.validateAndNormalizeTimestamps)(rawFrom, rawTo);
+    if (!isValid) {
+        console_1.logger.warn("CHART", `Invalid timestamps received for ${query.symbol}: from=${rawFrom}, to=${rawTo}. Using normalized values: from=${from}, to=${to}`);
+    }
+    const requestKey = `${query.symbol}-${query.interval}-${from}-${to}`;
+    if (activeRequests.has(requestKey)) {
+        console_1.logger.debug("CHART", `Deduplicating request for ${requestKey}`);
+        return await activeRequests.get(requestKey);
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Fetching chart data for ${query.symbol} (${query.interval})`);
+    const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout after 20 seconds')), 20000);
+    });
+    const requestPromise = getHistoricalOHLCV(query.symbol, query.interval, from, to, Number(query.duration));
+    activeRequests.set(requestKey, requestPromise);
+    try {
+        const result = await Promise.race([requestPromise, timeoutPromise]);
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Retrieved ${result.length} chart data points`);
+        return result;
+    }
+    catch (error) {
+        console_1.logger.error("CHART", `API error for ${requestKey}: ${error.message}`);
+        throw error;
+    }
+    finally {
+        activeRequests.delete(requestKey);
+    }
+};
+async function getHistoricalOHLCV(symbol, interval, from, to, duration, maxRetries = 3, initialRetryDelay = 1000) {
+    try {
+        const unblockTime = await (0, utils_2.loadBanStatus)();
+        const isBanned = await (0, utils_2.handleBanStatus)(unblockTime);
+        let cachedData = await (0, utils_1.getCachedOHLCV)(symbol, interval, from, to);
+        cachedData = (0, utils_1.validateAndCleanCandles)(cachedData);
+        const intervalMs = (0, utils_1.intervalToMilliseconds)(interval);
+        const expectedBars = Math.ceil((to - from) / intervalMs);
+        console_1.logger.debug("CHART", `${symbol}/${interval}: Cached ${cachedData.length} candles, expected ~${expectedBars}`);
+        if (isBanned) {
+            console_1.logger.info("CHART", `Exchange banned, returning cached data for ${symbol}/${interval}`);
+            return cachedData;
+        }
+        let exchange = null;
+        try {
+            exchange = await Promise.race([
+                exchange_1.default.startExchange(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Exchange initialization timeout')), 10000))
+            ]);
+        }
+        catch (initError) {
+            console_1.logger.warn("CHART", `Exchange init failed: ${initError.message}`);
+        }
+        if (!exchange) {
+            console_1.logger.warn("CHART", "Exchange not available, returning cached data only");
+            return cachedData;
+        }
+        const lastCachedTime = cachedData.length > 0 ? cachedData[cachedData.length - 1][0] : 0;
+        const cacheIsRecent = lastCachedTime > (Date.now() - intervalMs * 2);
+        if (cachedData.length >= expectedBars * 0.9 && cacheIsRecent) {
+            console_1.logger.debug("CHART", `${symbol}/${interval}: Cache sufficient and recent, returning ${cachedData.length} candles`);
+            return cachedData;
+        }
+        if (cachedData.length >= expectedBars * 0.9 && !cacheIsRecent) {
+            console_1.logger.info("CHART", `${symbol}/${interval}: Cache has ${cachedData.length} candles but last candle is ${Math.round((Date.now() - lastCachedTime) / 60000)} minutes old. Fetching recent data.`);
+        }
+        const missingIntervals = (0, utils_1.findGapsInCachedData)(cachedData, from, to, interval);
+        const currentTimestamp = Date.now();
+        const currentCandleStart = Math.floor(currentTimestamp / intervalMs) * intervalMs;
+        if (missingIntervals.length === 0) {
+            console_1.logger.debug("CHART", `${symbol}/${interval}: No gaps found, returning cached data`);
+            return cachedData;
+        }
+        if ((0, utils_1.isGapFillInProgress)(symbol, interval)) {
+            console_1.logger.info("CHART", `${symbol}/${interval}: Gap fill already in progress, waiting for completion`);
+            const result = await (0, utils_1.waitForGapFill)(symbol, interval);
+            if (result) {
+                return result;
+            }
+            let updatedData = await (0, utils_1.getCachedOHLCV)(symbol, interval, from, to);
+            updatedData = (0, utils_1.validateAndCleanCandles)(updatedData);
+            return updatedData;
+        }
+        if (!(0, utils_1.registerGapFillOperation)(symbol, interval, missingIntervals)) {
+            console_1.logger.info("CHART", `${symbol}/${interval}: Duplicate gap fill request, waiting for existing operation`);
+            await (0, utils_1.waitForGapFill)(symbol, interval);
+            let updatedData = await (0, utils_1.getCachedOHLCV)(symbol, interval, from, to);
+            updatedData = (0, utils_1.validateAndCleanCandles)(updatedData);
+            return updatedData;
+        }
+        return await (0, utils_1.executeWithGapFillLock)(symbol, interval, async () => {
+            try {
+                const totalGapMinutes = missingIntervals.reduce((sum, gap) => sum + (gap.gapEnd - gap.gapStart) / 60000, 0);
+                console_1.logger.info("CHART", `${symbol}/${interval}: Found ${missingIntervals.length} gaps (${Math.round(totalGapMinutes)} min total) to fill from exchange API`);
+                missingIntervals.forEach((gap, i) => {
+                    console_1.logger.debug("CHART", `  Gap ${i + 1}: ${new Date(gap.gapStart).toISOString()} to ${new Date(gap.gapEnd).toISOString()} (${Math.round((gap.gapEnd - gap.gapStart) / 60000)} min)`);
+                });
+                let totalFetched = 0;
+                for (const { gapStart, gapEnd } of missingIntervals) {
+                    let fetchStart = gapStart;
+                    let retryDelay = initialRetryDelay;
+                    while (fetchStart < gapEnd) {
+                        if (await (0, utils_2.handleBanStatus)(await (0, utils_2.loadBanStatus)())) {
+                            console_1.logger.warn("CHART", `Exchange became banned during fetch, stopping`);
+                            break;
+                        }
+                        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                            try {
+                                const adjustedFetchEnd = Math.min(gapEnd, currentCandleStart);
+                                if (fetchStart >= adjustedFetchEnd) {
+                                    console_1.logger.debug("CHART", `fetchStart (${new Date(fetchStart).toISOString()}) >= adjustedFetchEnd (${new Date(adjustedFetchEnd).toISOString()}), breaking`);
+                                    break;
+                                }
+                                console_1.logger.debug("CHART", `Fetching OHLCV from ${new Date(fetchStart).toISOString()}, limit 500`);
+                                const data = await Promise.race([
+                                    exchange.fetchOHLCV(symbol, interval, fetchStart, 500),
+                                    new Promise((_, reject) => setTimeout(() => reject(new Error('fetchOHLCV timeout')), 15000))
+                                ]);
+                                if (data && data.length > 0) {
+                                    console_1.logger.debug("CHART", `Received ${data.length} candles: ${new Date(data[0][0]).toISOString()} to ${new Date(data[data.length - 1][0]).toISOString()}`);
+                                }
+                                if (data && data.length > 0) {
+                                    const validData = (0, utils_1.validateAndCleanCandles)(data);
+                                    if (validData.length > 0) {
+                                        await (0, utils_1.saveOHLCVToCache)(symbol, interval, validData);
+                                        totalFetched += validData.length;
+                                        const lastCandleTime = validData[validData.length - 1][0];
+                                        fetchStart = lastCandleTime + intervalMs;
+                                        console_1.logger.debug("CHART", `${symbol}/${interval}: Fetched ${validData.length} candles (total: ${totalFetched})`);
+                                    }
+                                    else {
+                                        fetchStart = fetchStart + intervalMs * 100;
+                                    }
+                                }
+                                else {
+                                    fetchStart = fetchStart + intervalMs * 100;
+                                }
+                                break;
+                            }
+                            catch (e) {
+                                console_1.logger.warn("CHART", `Attempt ${attempt} failed for fetch starting at ${fetchStart}: ${e.message}`);
+                                if (attempt < maxRetries) {
+                                    await new Promise((resolve) => setTimeout(resolve, retryDelay));
+                                    retryDelay = Math.min(retryDelay * 1.5, 5000);
+                                }
+                                else {
+                                    console_1.logger.error("CHART", `Failed to fetch data starting at ${fetchStart} after ${maxRetries} attempts, skipping chunk`);
+                                    fetchStart = Math.min(fetchStart + intervalMs * 500, gapEnd);
+                                }
+                            }
+                        }
+                        await new Promise((resolve) => setTimeout(resolve, 100));
+                    }
+                }
+                console_1.logger.info("CHART", `${symbol}/${interval}: Total fetched ${totalFetched} candles from exchange API`);
+                let finalData = await (0, utils_1.getCachedOHLCV)(symbol, interval, from, to);
+                finalData = (0, utils_1.validateAndCleanCandles)(finalData);
+                finalData = (0, utils_1.repairCandleData)(finalData, interval);
+                const remainingGaps = (0, utils_1.findGapsInCachedData)(finalData, from, to, interval);
+                if (remainingGaps.length > 0) {
+                    const remainingCandlesMissing = remainingGaps.reduce((sum, gap) => sum + Math.ceil((gap.gapEnd - gap.gapStart) / intervalMs), 0);
+                    if (remainingCandlesMissing < expectedBars * 0.05) {
+                        console_1.logger.info("CHART", `${symbol}/${interval}: ${remainingCandlesMissing} candles still missing (<5%), filling with synthetic`);
+                        return (0, utils_1.fillGapsWithSyntheticCandles)(finalData, from, to, interval);
+                    }
+                    else {
+                        console_1.logger.warn("CHART", `${symbol}/${interval}: ${remainingCandlesMissing} candles still missing (${Math.round(remainingCandlesMissing / expectedBars * 100)}%), returning partial data`);
+                    }
+                }
+                return finalData;
+            }
+            finally {
+                (0, utils_1.clearGapFillOperation)(symbol, interval);
+            }
+        });
+    }
+    catch (error) {
+        console_1.logger.error("CHART", `Error in getHistoricalOHLCV: ${error}`);
+        (0, utils_1.clearGapFillOperation)(symbol, interval);
+        try {
+            let cachedData = await (0, utils_1.getCachedOHLCV)(symbol, interval, from, to);
+            cachedData = (0, utils_1.validateAndCleanCandles)(cachedData);
+            return cachedData;
+        }
+        catch (cacheError) {
+            console_1.logger.error("CHART", `Failed to get cached data as fallback: ${cacheError}`);
+            return [];
+        }
+    }
+}

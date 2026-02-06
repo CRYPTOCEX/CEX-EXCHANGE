@@ -476,7 +476,7 @@ export function PwaManager() {
       if (error) {
         toast({
           title: "Error",
-          description: error.message || "Failed to load PWA manifest",
+          description: error || "Failed to load PWA manifest",
           variant: "destructive",
         });
       } else {
@@ -529,7 +529,7 @@ export function PwaManager() {
       if (error) {
         toast({
           title: "Error",
-          description: error.message || "Failed to save PWA manifest",
+          description: error || "Failed to save PWA manifest",
           variant: "destructive",
         });
       } else {
@@ -612,7 +612,7 @@ export function PwaManager() {
         if (error) {
           toast({
             title: "Error",
-            description: error.message || "Failed to upload screenshot",
+            description: error || "Failed to upload screenshot",
             variant: "destructive",
           });
         } else {

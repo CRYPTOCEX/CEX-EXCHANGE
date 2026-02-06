@@ -1306,7 +1306,8 @@ export default function DemoChallenges({
   useEffect(() => {
     if (!isOpen || tradingMode !== "demo") return;
 
-    const demoOrders = completedOrders;
+    // Filter to only include demo orders
+    const demoOrders = completedOrders.filter(order => order.isDemo === true);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

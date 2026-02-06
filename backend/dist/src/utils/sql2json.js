@@ -1,1 +1,122 @@
-"use strict";function sql2json(e,r){const s=(e,r)=>{const s=/\(([^)]+)\)/g,t=[];let o;for(;null!==(o=s.exec(e));){const e=o[1];let s="",l=!1,n="";const i=[];for(let r=0;r<e.length;r++){const t=e[r];if(l){t===n&&(l=!1);s+=t}else if('"'===t||"'"===t){l=!0;n=t;s+=t}else if(","!==t||l)s+=t;else{i.push(s.trim());s=""}}i.push(s.trim());const a={};r.forEach((e,r)=>{let s=i[r];s=s&&"NULL"===s.toUpperCase()?null:s&&s.startsWith("{")&&s.endsWith("}")?JSON.parse(s):lodash_1.default.trim(s," `'\"");a[e]=s});t.push(a)}return t},t=(e=(e=>e.replace(/(?:\/\*(?:[\s\S]*?)\*\/)|(?:([\s;])+\/\/(?:.*)$)/gm,"$1").replace(/^--.*[\r\n]/gm,"").replace(/^\s*[\r\n]/gm,"").replace(/;\s*[\r\n]/gm,";;").replace(/[\r\n]/gm," ").replace(/;;\s?/gm,";\n"))(e)).split(";\n");if(0==t.length)throw(0,error_1.createError)({statusCode:400,message:"Empty SQL"});const o={};let l;try{for(const e of t){l=e;const t=l.split(/\s+/);if(t.length)if(t.length>=4&&"INSERT"==t[0].toUpperCase()&&"INTO"==t[1].toUpperCase()){const e=lodash_1.default.trim(t[2],"`'\"");if(!r.has(e))continue;if(-1!==t.findIndex(e=>"VALUES"===e.toUpperCase())){const r=l.slice(l.indexOf("(")+1,l.indexOf(")")),t=l.slice(l.indexOf("VALUES")+6),n=r.split(",").map(e=>lodash_1.default.trim(e," `'\"")),i=s(t,n);o[e]||(o[e]={table:e,columns:n,values:[]});o[e].values.push(...i)}else console_1.logger.debug("SQL2JSON",`Skipping INSERT line (no VALUES keyword found): ${l}`)}else t.length>=4&&"INSERT"==t[0].toUpperCase()&&console_1.logger.debug("SQL2JSON",`Skipping INSERT line: ${l}`)}}catch(e){console_1.logger.error("SQL2JSON",`Error processing line: ${l}`);throw(0,error_1.createError)({statusCode:400,message:`Error: ${e.message} at line: ${l}`})}return o}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});const lodash_1=__importDefault(require("lodash")),console_1=require("./console"),error_1=require("./error");exports.default=sql2json;
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const lodash_1 = __importDefault(require("lodash"));
+const console_1 = require("./console");
+const error_1 = require("./error");
+function sql2json(sql, requiredTables) {
+    const removeCommentsAndEmptyLines = (sql) => {
+        return sql
+            .replace(/(?:\/\*(?:[\s\S]*?)\*\/)|(?:([\s;])+\/\/(?:.*)$)/gm, "$1")
+            .replace(/^--.*[\r\n]/gm, "")
+            .replace(/^\s*[\r\n]/gm, "")
+            .replace(/;\s*[\r\n]/gm, ";;")
+            .replace(/[\r\n]/gm, " ")
+            .replace(/;;\s?/gm, ";\n");
+    };
+    const parseValues = (valuesPart, columns) => {
+        const valuesRegex = /\(([^)]+)\)/g;
+        const values = [];
+        let match;
+        while ((match = valuesRegex.exec(valuesPart)) !== null) {
+            const valueSet = match[1];
+            let current = "";
+            let inString = false;
+            let stringChar = "";
+            const valuesArray = [];
+            for (let i = 0; i < valueSet.length; i++) {
+                const char = valueSet[i];
+                if (inString) {
+                    if (char === stringChar) {
+                        inString = false;
+                    }
+                    current += char;
+                }
+                else {
+                    if (char === '"' || char === "'") {
+                        inString = true;
+                        stringChar = char;
+                        current += char;
+                    }
+                    else if (char === "," && !inString) {
+                        valuesArray.push(current.trim());
+                        current = "";
+                    }
+                    else {
+                        current += char;
+                    }
+                }
+            }
+            valuesArray.push(current.trim());
+            const record = {};
+            columns.forEach((col, index) => {
+                let value = valuesArray[index];
+                if (value && value.toUpperCase() === "NULL") {
+                    value = null;
+                }
+                else if (value && value.startsWith("{") && value.endsWith("}")) {
+                    value = JSON.parse(value);
+                }
+                else {
+                    value = lodash_1.default.trim(value, " `'\"");
+                }
+                record[col] = value;
+            });
+            values.push(record);
+        }
+        return values;
+    };
+    sql = removeCommentsAndEmptyLines(sql);
+    const lines = sql.split(";\n");
+    if (lines.length == 0)
+        throw (0, error_1.createError)({ statusCode: 400, message: "Empty SQL" });
+    const tables = {};
+    let line;
+    try {
+        for (const currentLine of lines) {
+            line = currentLine;
+            const words = line.split(/\s+/);
+            if (!words.length)
+                continue;
+            if (words.length >= 4 &&
+                words[0].toUpperCase() == "INSERT" &&
+                words[1].toUpperCase() == "INTO") {
+                const tableName = lodash_1.default.trim(words[2], "`'\"");
+                if (!requiredTables.has(tableName)) {
+                    continue;
+                }
+                const valuesIndex = words.findIndex((word) => word.toUpperCase() === "VALUES");
+                if (valuesIndex !== -1) {
+                    const columnsPart = line.slice(line.indexOf("(") + 1, line.indexOf(")"));
+                    const valuesPart = line.slice(line.indexOf("VALUES") + 6);
+                    const columns = columnsPart
+                        .split(",")
+                        .map((col) => lodash_1.default.trim(col, " `'\""));
+                    const values = parseValues(valuesPart, columns);
+                    if (!tables[tableName]) {
+                        tables[tableName] = {
+                            table: tableName,
+                            columns: columns,
+                            values: [],
+                        };
+                    }
+                    tables[tableName].values.push(...values);
+                }
+                else {
+                    console_1.logger.debug("SQL2JSON", `Skipping INSERT line (no VALUES keyword found): ${line}`);
+                }
+            }
+            else if (words.length >= 4 && words[0].toUpperCase() == "INSERT") {
+                console_1.logger.debug("SQL2JSON", `Skipping INSERT line: ${line}`);
+            }
+        }
+    }
+    catch (error) {
+        console_1.logger.error("SQL2JSON", `Error processing line: ${line}`);
+        throw (0, error_1.createError)({ statusCode: 400, message: `Error: ${error.message} at line: ${line}` });
+    }
+    return tables;
+}
+exports.default = sql2json;

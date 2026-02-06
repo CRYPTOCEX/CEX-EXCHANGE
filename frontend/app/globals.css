@@ -381,22 +381,28 @@
 }
 .animate-blob-1 {
   animation: blob-1 20s ease-in-out infinite;
-  will-change: transform;
 }
 .animate-blob-2 {
   animation: blob-2 25s ease-in-out infinite;
   animation-delay: 5s;
-  will-change: transform;
 }
 .animate-blob-3 {
   animation: blob-3 30s ease-in-out infinite;
   animation-delay: 10s;
-  will-change: transform;
 }
 .animate-blob-4 {
   animation: blob-4 22s ease-in-out infinite;
   animation-delay: 7s;
-  will-change: transform;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-blob-1,
+  .animate-blob-2,
+  .animate-blob-3,
+  .animate-blob-4 {
+    animation: none;
+  }
 }
 
 /* Page minimum height adjustments */

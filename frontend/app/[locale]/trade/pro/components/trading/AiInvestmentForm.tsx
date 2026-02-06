@@ -196,27 +196,37 @@ export const AiInvestmentForm = memo(function AiInvestmentForm({
     }
   }, [availableBalance, selectedPlan, setInvestmentAmount]);
 
-  // Handle amount change
+  // Handle amount change - allow free typing without enforcing min during input
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number.parseFloat(e.target.value);
+    const inputValue = e.target.value;
     setPercentSelected(null);
 
-    if (!isNaN(value)) {
-      if (selectedPlan) {
-        if (value < selectedPlan.minAmount) {
-          setInvestmentAmount(selectedPlan.minAmount);
-        } else if (value > selectedPlan.maxAmount) {
-          setInvestmentAmount(selectedPlan.maxAmount);
-        } else {
-          setInvestmentAmount(Number.parseFloat(value.toFixed(8)));
-        }
-      } else {
-        setInvestmentAmount(Number.parseFloat(value.toFixed(8)));
-      }
-    } else {
+    // Allow empty input so user can clear and type new value
+    if (inputValue === "" || inputValue === null) {
       setInvestmentAmount(0);
+      return;
+    }
+
+    const value = Number.parseFloat(inputValue);
+
+    // Only update if it's a valid number, allow any value during typing
+    // Min validation happens on blur, not during typing
+    if (!isNaN(value) && value >= 0) {
+      // Only enforce max limit during typing to prevent excessive values
+      if (selectedPlan && value > selectedPlan.maxAmount) {
+        setInvestmentAmount(selectedPlan.maxAmount);
+      } else {
+        setInvestmentAmount(value);
+      }
     }
   }, [selectedPlan, setInvestmentAmount]);
+
+  // Handle blur - enforce min constraint when user finishes typing
+  const handleAmountBlur = useCallback(() => {
+    if (selectedPlan && investmentAmount > 0 && investmentAmount < selectedPlan.minAmount) {
+      setInvestmentAmount(selectedPlan.minAmount);
+    }
+  }, [selectedPlan, investmentAmount, setInvestmentAmount]);
 
   // Handle submit
   const handleSubmit = async () => {
@@ -417,6 +427,7 @@ export const AiInvestmentForm = memo(function AiInvestmentForm({
                 type="number"
                 value={investmentAmount || ""}
                 onChange={handleAmountChange}
+                onBlur={handleAmountBlur}
                 placeholder="0.00"
                 min={selectedPlan.minAmount}
                 max={selectedPlan.maxAmount}

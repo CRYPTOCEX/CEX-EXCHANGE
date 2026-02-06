@@ -150,9 +150,27 @@ export const useCreatorStore = create<CreatorStore>((set, get) => ({
       url: "/api/ico/creator/token",
       silent: true,
     });
-    if (!error) {
+    if (!error && data) {
+      // Transform API response to ensure numeric values
+      const transformOffering = (offering: any): Offering => ({
+        ...offering,
+        tokenPrice: parseFloat(offering.tokenPrice) || 0,
+        targetAmount: parseFloat(offering.targetAmount) || 0,
+        currentRaised: parseFloat(offering.currentRaised) || 0,
+        participants: offering.participants || 0,
+        currentPrice: offering.currentPrice ? parseFloat(offering.currentPrice) : undefined,
+        priceChange: offering.priceChange ? parseFloat(offering.priceChange) : undefined,
+        fundsRaised: parseFloat(offering.fundsRaised) || parseFloat(offering.currentRaised) || 0,
+        fundingGoal: parseFloat(offering.fundingGoal) || parseFloat(offering.targetAmount) || 0,
+        investorsCount: offering.investorsCount || offering.participants || 0,
+      });
+
       set({
-        tokens: data || { active: [], pending: [], completed: [] },
+        tokens: {
+          active: (data.active || []).map(transformOffering),
+          pending: (data.pending || []).map(transformOffering),
+          completed: (data.completed || []).map(transformOffering),
+        },
         isLoadingTokens: false,
         hasFetchedTokens: true,
       });
@@ -169,9 +187,21 @@ export const useCreatorStore = create<CreatorStore>((set, get) => ({
       url: "/api/ico/creator/stat",
       silent: true,
     });
-    if (!error) {
+    if (!error && data) {
+      // Transform API response to ensure numeric values
       set({
-        stats: data,
+        stats: {
+          totalOfferings: data.totalOfferings || 0,
+          pendingOfferings: data.pendingOfferings || 0,
+          activeOfferings: data.activeOfferings || 0,
+          completedOfferings: data.completedOfferings || data.successfulOfferings || 0,
+          rejectedOfferings: data.rejectedOfferings || data.failedOfferings || 0,
+          totalRaised: parseFloat(data.totalRaised) || 0,
+          offeringGrowth: parseFloat(data.offeringGrowth) || 0,
+          raiseGrowth: parseFloat(data.raiseGrowth) || 0,
+          successRate: parseFloat(data.successRate) || 0,
+          successRateGrowth: parseFloat(data.successRateGrowth) || 0,
+        },
         isLoadingStats: false,
         hasFetchedStats: true,
       });
@@ -193,10 +223,15 @@ export const useCreatorStore = create<CreatorStore>((set, get) => ({
       silent: true,
       params: { range },
     });
-    if (!error) {
+    if (!error && data) {
+      // Transform API response to ensure numeric values
+      const chartData: ChartPoint[] = (data || []).map((point: any) => ({
+        date: point.date,
+        amount: parseFloat(point.amount) || 0,
+      }));
       set((state) => ({
-        chartData: data,
-        performanceCache: { ...state.performanceCache, [range]: data },
+        chartData,
+        performanceCache: { ...state.performanceCache, [range]: chartData },
         isLoadingStats: false,
         currentPerformanceRange: range,
       }));

@@ -1,1 +1,13 @@
-"use strict";function generateApiKey(e=64){const t="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";let r="";for(let o=0;o<e;o++)r+=t.charAt(Math.floor(62*Math.random()));return r}Object.defineProperty(exports,"__esModule",{value:!0});exports.generateApiKey=generateApiKey;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateApiKey = generateApiKey;
+const API_KEY_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+function generateApiKey(length = 64) {
+    let apiKey = "";
+    const charactersLength = API_KEY_CHARACTERS.length;
+    for (let i = 0; i < length; i++) {
+        const randomIndex = Math.floor(Math.random() * charactersLength);
+        apiKey += API_KEY_CHARACTERS.charAt(randomIndex);
+    }
+    return apiKey;
+}

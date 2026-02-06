@@ -17,6 +17,8 @@ export type SimulationStatus = "RUNNING" | "COMPLETED" | "CANCELLED";
 export interface binaryAiEngineSimulationAttributes {
   id: string;
   engineId: string;
+  name?: string;
+  description?: string;
   startedAt: Date;
   endedAt: Date | null;
   status: SimulationStatus;
@@ -35,6 +37,8 @@ export interface binaryAiEngineSimulationCreationAttributes
   extends Optional<
     binaryAiEngineSimulationAttributes,
     | "id"
+    | "name"
+    | "description"
     | "endedAt"
     | "status"
     | "ordersAnalyzed"
@@ -74,6 +78,10 @@ export default class binaryAiEngineSimulation
   id!: string;
   /** Reference to the parent engine */
   engineId!: string;
+  /** Simulation name */
+  name?: string;
+  /** Simulation description */
+  description?: string;
   /** When simulation started */
   startedAt!: Date;
   /** When simulation ended */
@@ -119,6 +127,14 @@ export default class binaryAiEngineSimulation
             notEmpty: { msg: "engineId: Engine ID must not be empty" },
             isUUID: { args: 4, msg: "engineId: Must be a valid UUID" },
           },
+        },
+        name: {
+          type: DataTypes.STRING(100),
+          allowNull: true,
+        },
+        description: {
+          type: DataTypes.TEXT,
+          allowNull: true,
         },
         startedAt: {
           type: DataTypes.DATE,

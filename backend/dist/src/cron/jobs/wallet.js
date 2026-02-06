@@ -1,1 +1,355 @@
-"use strict";async function getMatchingEngine(){try{return(await Promise.resolve().then(()=>__importStar(require("@b/api/(ext)/ecosystem/utils/matchingEngine")))).MatchingEngine.getInstance()}catch(e){return{getTickers:async()=>({})}}}async function processWalletPnl(){const e="processWalletPnl",a=Date.now();try{(0,broadcast_1.broadcastStatus)(e,"running");(0,broadcast_1.broadcastLog)(e,"Starting wallet PnL processing");const t=await db_1.models.user.findAll({attributes:["id"]});(0,broadcast_1.broadcastLog)(e,`Found ${t.length} users to process`);for(const a of t){(0,broadcast_1.broadcastLog)(e,`Scheduling PnL task for user ${a.id}`);walletTask_1.walletPnlTaskQueue.add(()=>handlePnl(a))}(0,broadcast_1.broadcastStatus)(e,"completed",{duration:Date.now()-a});(0,broadcast_1.broadcastLog)(e,"Wallet PnL processing scheduled","success")}catch(a){console_1.logger.error("CRON","Wallet PnL processing failed",a);(0,broadcast_1.broadcastStatus)(e,"failed");(0,broadcast_1.broadcastLog)(e,`Wallet PnL processing failed: ${a.message}`,"error");throw a}}async function cleanupOldPnlRecords(){const e="cleanupOldPnlRecords";try{(0,broadcast_1.broadcastStatus)(e,"running");(0,broadcast_1.broadcastLog)(e,"Starting cleanup of old PnL records");const a=(0,date_fns_1.subDays)(new Date,30),t=(0,date_fns_1.subDays)(new Date,1),r='{"FIAT":0,"SPOT":0,"ECO":0}',s={FIAT:0,SPOT:0,ECO:0};(0,broadcast_1.broadcastLog)(e,"Deleting PnL records older than one month");await db_1.models.walletPnl.destroy({where:{createdAt:{[sequelize_1.Op.lt]:a}}});(0,broadcast_1.broadcastLog)(e,"Deleted PnL records older than one month","success");(0,broadcast_1.broadcastLog)(e,"Deleting PnL records older than yesterday with zero balance");await db_1.models.walletPnl.destroy({where:{createdAt:{[sequelize_1.Op.lt]:t},[sequelize_1.Op.or]:[{balances:r},{balances:s}]}});(0,broadcast_1.broadcastLog)(e,"Deleted PnL records older than yesterday with zero balance","success");(0,broadcast_1.broadcastStatus)(e,"completed");(0,broadcast_1.broadcastLog)(e,"Cleanup of old PnL records completed","success")}catch(a){console_1.logger.error("CRON","Cleanup of old PnL records failed",a);(0,broadcast_1.broadcastStatus)(e,"failed");(0,broadcast_1.broadcastLog)(e,`Cleanup of old PnL records failed: ${a.message}`,"error")}}async function processSpotPendingDeposits(){const e="processSpotPendingDeposits";try{(0,broadcast_1.broadcastStatus)(e,"running");(0,broadcast_1.broadcastLog)(e,"Starting processing of pending spot deposits");const a=await getPendingSpotTransactionsQuery("DEPOSIT");(0,broadcast_1.broadcastLog)(e,`Found ${a.length} pending deposit transactions`);for(const t of a){const a=t.id,r=t.userId,s=t.referenceId;if(s)if(index_ws_1.spotVerificationIntervals.has(a))(0,broadcast_1.broadcastLog)(e,`Verification already scheduled for transaction ${a}`,"info");else{(0,index_ws_1.startSpotVerificationSchedule)(a,r,s);(0,broadcast_1.broadcastLog)(e,`Started verification for transaction ${a}`,"info")}else(0,broadcast_1.broadcastLog)(e,`Transaction ${a} has no referenceId; skipping`,"info")}(0,broadcast_1.broadcastStatus)(e,"completed");(0,broadcast_1.broadcastLog)(e,"Processing pending spot deposits completed","success")}catch(a){console_1.logger.error("CRON","Processing pending spot deposits failed",a);(0,broadcast_1.broadcastStatus)(e,"failed");(0,broadcast_1.broadcastLog)(e,`Processing pending spot deposits failed: ${a.message}`,"error");throw a}}async function getPendingSpotTransactionsQuery(e){try{const a=new Date(Date.now()-36e5);return await db_1.models.transaction.findAll({where:{status:"PENDING",type:e,createdAt:{[sequelize_1.Op.between]:[a,new Date]},[sequelize_1.Op.and]:[{referenceId:{[sequelize_1.Op.ne]:null}},{referenceId:{[sequelize_1.Op.ne]:""}}]},include:[{model:db_1.models.wallet,as:"wallet",attributes:["id","currency"]}]})}catch(e){console_1.logger.error("CRON","Error getting pending spot transactions",e);throw e}}async function processPendingWithdrawals(){const e="processPendingWithdrawals";try{(0,broadcast_1.broadcastStatus)(e,"running");(0,broadcast_1.broadcastLog)(e,"Starting processing pending withdrawals");const a=await getPendingSpotTransactionsQuery("WITHDRAW");(0,broadcast_1.broadcastLog)(e,`Found ${a.length} pending withdrawal transactions`);for(const t of a){(0,broadcast_1.broadcastLog)(e,`Processing withdrawal transaction ${t.id}`);const a=t.userId,r=t.referenceId;if(!r){(0,broadcast_1.broadcastLog)(e,`Transaction ${t.id} has no referenceId; skipping`,"info");continue}const s=await exchange_1.default.startExchange();(0,broadcast_1.broadcastLog)(e,`Exchange started for processing transaction ${t.id}`);try{const{wallet:o}=t;(0,broadcast_1.broadcastLog)(e,`Fetching withdrawals for currency ${null==o?void 0:o.currency} for transaction ${t.id}`);const n=(await s.fetchWithdrawals(null==o?void 0:o.currency)).find(e=>e.id===r);let c="PENDING";if(n){switch(n.status){case"completed":case"ok":c="COMPLETED";break;case"cancelled":case"canceled":c="CANCELLED";break;case"failed":c="FAILED"}(0,broadcast_1.broadcastLog)(e,`Withdrawal data for transaction ${t.id} returned status ${n.status}`)}else(0,broadcast_1.broadcastLog)(e,`No withdrawal data found for transaction ${t.id}`,"info");if(!c)continue;if(t.status===c){(0,broadcast_1.broadcastLog)(e,`Transaction ${t.id} already has status ${c}; skipping update`,"info");continue}await(0,utils_1.updateTransaction)(t.id,{status:c});(0,broadcast_1.broadcastLog)(e,`Transaction ${t.id} status updated to ${c}`,"success");if("FAILED"===c||"CANCELLED"===c){await(0,spot_1.updateSpotWalletBalance)(a,null==o?void 0:o.currency,Number(t.amount),Number(t.fee),"REFUND_WITHDRAWAL");await(0,notifications_1.createNotification)({userId:a,relatedId:t.id,title:"Withdrawal Failed",message:`Your withdrawal of ${t.amount} ${null==o?void 0:o.currency} has failed.`,type:"system",link:`/finance/wallet/withdrawals/${t.id}`,actions:[{label:"View Withdrawal",link:`/finance/wallet/withdrawals/${t.id}`,primary:!0}]});(0,broadcast_1.broadcastLog)(e,`Processed failed withdrawal ${t.id}`,"info")}}catch(a){console_1.logger.error("CRON",`Error processing withdrawal ${t.id}`,a);(0,broadcast_1.broadcastLog)(e,`Error processing withdrawal ${t.id}: ${a.message}`,"error");continue}}(0,broadcast_1.broadcastStatus)(e,"completed");(0,broadcast_1.broadcastLog)(e,"Processing pending withdrawals completed","success")}catch(a){console_1.logger.error("CRON","Processing pending withdrawals failed",a);(0,broadcast_1.broadcastStatus)(e,"failed");(0,broadcast_1.broadcastLog)(e,`Processing pending withdrawals failed: ${a.message}`,"error");throw a}}var __createBinding=this&&this.__createBinding||(Object.create?function(e,a,t,r){void 0===r&&(r=t);var s=Object.getOwnPropertyDescriptor(a,t);s&&!("get"in s?!a.__esModule:s.writable||s.configurable)||(s={enumerable:!0,get:function(){return a[t]}});Object.defineProperty(e,r,s)}:function(e,a,t,r){void 0===r&&(r=t);e[r]=a[t]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,a){Object.defineProperty(e,"default",{enumerable:!0,value:a})}:function(e,a){e.default=a}),__importStar=this&&this.__importStar||function(){var e=function(a){e=Object.getOwnPropertyNames||function(e){var a=[];for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(a[a.length]=t);return a};return e(a)};return function(a){if(a&&a.__esModule)return a;var t={};if(null!=a)for(var r=e(a),s=0;s<r.length;s++)"default"!==r[s]&&__createBinding(t,a,r[s]);__setModuleDefault(t,a);return t}}(),__importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.processWalletPnl=processWalletPnl;exports.cleanupOldPnlRecords=cleanupOldPnlRecords;exports.processSpotPendingDeposits=processSpotPendingDeposits;exports.getPendingSpotTransactionsQuery=getPendingSpotTransactionsQuery;exports.processPendingWithdrawals=processPendingWithdrawals;const exchange_1=__importDefault(require("@b/utils/exchange")),db_1=require("@b/db"),console_1=require("@b/utils/console"),sequelize_1=require("sequelize"),date_fns_1=require("date-fns"),broadcast_1=require("../broadcast"),index_ws_1=require("@b/api/finance/deposit/spot/index.ws"),spot_1=require("@b/utils/spot"),utils_1=require("@b/api/finance/utils"),notifications_1=require("@b/utils/notifications"),walletTask_1=require("./walletTask"),handlePnl=async e=>{var a;const t="processWalletPnl";try{(0,broadcast_1.broadcastLog)(t,`Handling PnL for user ${e.id}`);const r=await db_1.models.wallet.findAll({where:{userId:e.id},attributes:["currency","balance","type"]});(0,broadcast_1.broadcastLog)(t,`User ${e.id} has ${r.length} wallets`);if(!r.length){(0,broadcast_1.broadcastLog)(t,`No wallets found for user ${e.id}`,"info");return}const s=new Date;s.setHours(0,0,0,0);(0,broadcast_1.broadcastLog)(t,`Today date set to ${s.toISOString()}`);const o=Array.from(r.map(e=>e.currency));(0,broadcast_1.broadcastLog)(t,`Unique currencies for user ${e.id}: ${o.join(", ")}`);const[n,c,d,i]=await Promise.all([db_1.models.walletPnl.findOne({where:{userId:e.id,createdAt:{[sequelize_1.Op.gte]:s}},attributes:["id","balances"]}),db_1.models.currency.findAll({where:{id:o},attributes:["id","price"]}),db_1.models.exchangeCurrency.findAll({where:{currency:o},attributes:["currency","price"]}),getMatchingEngine()]);(0,broadcast_1.broadcastLog)(t,`Parallel queries completed for user ${e.id}`);const l=await i.getTickers();(0,broadcast_1.broadcastLog)(t,"Tickers fetched from MatchingEngine");const u=new Map(c.map(e=>[e.id,e.price])),b=new Map(d.map(e=>[e.currency,e.price])),g={FIAT:0,SPOT:0,ECO:0};for(const e of r){let t;"FIAT"===e.type?t=u.get(e.currency):"SPOT"===e.type?t=b.get(e.currency):"ECO"===e.type&&(t=(null===(a=l[e.currency])||void 0===a?void 0:a.last)||0);t&&(g[e.type]+=t*e.balance)}(0,broadcast_1.broadcastLog)(t,`Calculated balances for user ${e.id}: FIAT=${g.FIAT}, SPOT=${g.SPOT}, ECO=${g.ECO}`);if(Object.values(g).some(e=>e>0))if(n){await n.update({balances:g});(0,broadcast_1.broadcastLog)(t,`Updated today's PnL record for user ${e.id}`,"success")}else{await db_1.models.walletPnl.create({userId:e.id,balances:g,createdAt:s});(0,broadcast_1.broadcastLog)(t,`Created new PnL record for user ${e.id}`,"success")}else(0,broadcast_1.broadcastLog)(t,`No positive balances to record for user ${e.id}`,"info")}catch(a){console_1.logger.error("CRON",`Error handling PnL for user ${e.id}`,a);(0,broadcast_1.broadcastLog)("processWalletPnl",`Error handling PnL for user ${e.id}: ${a.message}`,"error");throw a}};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.processWalletPnl = processWalletPnl;
+exports.cleanupOldPnlRecords = cleanupOldPnlRecords;
+exports.processSpotPendingDeposits = processSpotPendingDeposits;
+exports.getPendingSpotTransactionsQuery = getPendingSpotTransactionsQuery;
+exports.processPendingWithdrawals = processPendingWithdrawals;
+const exchange_1 = __importDefault(require("@b/utils/exchange"));
+const db_1 = require("@b/db");
+const console_1 = require("@b/utils/console");
+const sequelize_1 = require("sequelize");
+const date_fns_1 = require("date-fns");
+const broadcast_1 = require("../broadcast");
+const index_ws_1 = require("@b/api/finance/deposit/spot/index.ws");
+const spot_1 = require("@b/utils/spot");
+const utils_1 = require("@b/api/finance/utils");
+const notifications_1 = require("@b/utils/notifications");
+const walletTask_1 = require("./walletTask");
+async function getMatchingEngine() {
+    try {
+        const matchingEngineModule = await Promise.resolve().then(() => __importStar(require("@b/api/(ext)/ecosystem/utils/matchingEngine")));
+        return matchingEngineModule.MatchingEngine.getInstance();
+    }
+    catch (error) {
+        return {
+            getTickers: async () => ({})
+        };
+    }
+}
+async function processWalletPnl() {
+    const cronName = "processWalletPnl";
+    const startTime = Date.now();
+    try {
+        (0, broadcast_1.broadcastStatus)(cronName, "running");
+        (0, broadcast_1.broadcastLog)(cronName, "Starting wallet PnL processing");
+        const users = await db_1.models.user.findAll({ attributes: ["id"] });
+        (0, broadcast_1.broadcastLog)(cronName, `Found ${users.length} users to process`);
+        for (const user of users) {
+            (0, broadcast_1.broadcastLog)(cronName, `Scheduling PnL task for user ${user.id}`);
+            walletTask_1.walletPnlTaskQueue.add(() => handlePnl(user));
+        }
+        (0, broadcast_1.broadcastStatus)(cronName, "completed", {
+            duration: Date.now() - startTime,
+        });
+        (0, broadcast_1.broadcastLog)(cronName, "Wallet PnL processing scheduled", "success");
+    }
+    catch (error) {
+        console_1.logger.error("CRON", "Wallet PnL processing failed", error);
+        (0, broadcast_1.broadcastStatus)(cronName, "failed");
+        (0, broadcast_1.broadcastLog)(cronName, `Wallet PnL processing failed: ${error.message}`, "error");
+        throw error;
+    }
+}
+const handlePnl = async (user) => {
+    var _a;
+    const cronName = "processWalletPnl";
+    try {
+        (0, broadcast_1.broadcastLog)(cronName, `Handling PnL for user ${user.id}`);
+        const wallets = await db_1.models.wallet.findAll({
+            where: { userId: user.id },
+            attributes: ["currency", "balance", "type"],
+        });
+        (0, broadcast_1.broadcastLog)(cronName, `User ${user.id} has ${wallets.length} wallets`);
+        if (!wallets.length) {
+            (0, broadcast_1.broadcastLog)(cronName, `No wallets found for user ${user.id}`, "info");
+            return;
+        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        (0, broadcast_1.broadcastLog)(cronName, `Today date set to ${today.toISOString()}`);
+        const uniqueCurrencies = Array.from(wallets.map((w) => w.currency));
+        (0, broadcast_1.broadcastLog)(cronName, `Unique currencies for user ${user.id}: ${uniqueCurrencies.join(", ")}`);
+        const [todayPnl, currencyPrices, exchangePrices, engine] = await Promise.all([
+            db_1.models.walletPnl.findOne({
+                where: {
+                    userId: user.id,
+                    createdAt: { [sequelize_1.Op.gte]: today },
+                },
+                attributes: ["id", "balances"],
+            }),
+            db_1.models.currency.findAll({
+                where: { id: uniqueCurrencies },
+                attributes: ["id", "price"],
+            }),
+            db_1.models.exchangeCurrency.findAll({
+                where: { currency: uniqueCurrencies },
+                attributes: ["currency", "price"],
+            }),
+            getMatchingEngine(),
+        ]);
+        (0, broadcast_1.broadcastLog)(cronName, `Parallel queries completed for user ${user.id}`);
+        const tickers = await engine.getTickers();
+        (0, broadcast_1.broadcastLog)(cronName, "Tickers fetched from MatchingEngine");
+        const currencyMap = new Map(currencyPrices.map((item) => [item.id, item.price]));
+        const exchangeMap = new Map(exchangePrices.map((item) => [item.currency, item.price]));
+        const balances = { FIAT: 0, SPOT: 0, ECO: 0 };
+        for (const wallet of wallets) {
+            let price;
+            if (wallet.type === "FIAT") {
+                price = currencyMap.get(wallet.currency);
+            }
+            else if (wallet.type === "SPOT") {
+                price = exchangeMap.get(wallet.currency);
+            }
+            else if (wallet.type === "ECO") {
+                price = ((_a = tickers[wallet.currency]) === null || _a === void 0 ? void 0 : _a.last) || 0;
+            }
+            if (price) {
+                balances[wallet.type] += price * wallet.balance;
+            }
+        }
+        (0, broadcast_1.broadcastLog)(cronName, `Calculated balances for user ${user.id}: FIAT=${balances.FIAT}, SPOT=${balances.SPOT}, ECO=${balances.ECO}`);
+        if (Object.values(balances).some((balance) => balance > 0)) {
+            if (todayPnl) {
+                await todayPnl.update({ balances });
+                (0, broadcast_1.broadcastLog)(cronName, `Updated today's PnL record for user ${user.id}`, "success");
+            }
+            else {
+                await db_1.models.walletPnl.create({
+                    userId: user.id,
+                    balances,
+                    createdAt: today,
+                });
+                (0, broadcast_1.broadcastLog)(cronName, `Created new PnL record for user ${user.id}`, "success");
+            }
+        }
+        else {
+            (0, broadcast_1.broadcastLog)(cronName, `No positive balances to record for user ${user.id}`, "info");
+        }
+    }
+    catch (error) {
+        console_1.logger.error("CRON", `Error handling PnL for user ${user.id}`, error);
+        (0, broadcast_1.broadcastLog)("processWalletPnl", `Error handling PnL for user ${user.id}: ${error.message}`, "error");
+        throw error;
+    }
+};
+async function cleanupOldPnlRecords() {
+    const cronName = "cleanupOldPnlRecords";
+    try {
+        (0, broadcast_1.broadcastStatus)(cronName, "running");
+        (0, broadcast_1.broadcastLog)(cronName, "Starting cleanup of old PnL records");
+        const oneMonthAgo = (0, date_fns_1.subDays)(new Date(), 30);
+        const yesterday = (0, date_fns_1.subDays)(new Date(), 1);
+        const zeroBalanceString = '{"FIAT":0,"SPOT":0,"ECO":0}';
+        const zeroBalanceObject = { FIAT: 0, SPOT: 0, ECO: 0 };
+        (0, broadcast_1.broadcastLog)(cronName, "Deleting PnL records older than one month");
+        await db_1.models.walletPnl.destroy({
+            where: { createdAt: { [sequelize_1.Op.lt]: oneMonthAgo } },
+        });
+        (0, broadcast_1.broadcastLog)(cronName, "Deleted PnL records older than one month", "success");
+        (0, broadcast_1.broadcastLog)(cronName, "Deleting PnL records older than yesterday with zero balance");
+        await db_1.models.walletPnl.destroy({
+            where: {
+                createdAt: { [sequelize_1.Op.lt]: yesterday },
+                [sequelize_1.Op.or]: [
+                    { balances: zeroBalanceString },
+                    { balances: zeroBalanceObject },
+                ],
+            },
+        });
+        (0, broadcast_1.broadcastLog)(cronName, "Deleted PnL records older than yesterday with zero balance", "success");
+        (0, broadcast_1.broadcastStatus)(cronName, "completed");
+        (0, broadcast_1.broadcastLog)(cronName, "Cleanup of old PnL records completed", "success");
+    }
+    catch (error) {
+        console_1.logger.error("CRON", "Cleanup of old PnL records failed", error);
+        (0, broadcast_1.broadcastStatus)(cronName, "failed");
+        (0, broadcast_1.broadcastLog)(cronName, `Cleanup of old PnL records failed: ${error.message}`, "error");
+    }
+}
+async function processSpotPendingDeposits() {
+    const cronName = "processSpotPendingDeposits";
+    try {
+        (0, broadcast_1.broadcastStatus)(cronName, "running");
+        (0, broadcast_1.broadcastLog)(cronName, "Starting processing of pending spot deposits");
+        const transactions = await getPendingSpotTransactionsQuery("DEPOSIT");
+        (0, broadcast_1.broadcastLog)(cronName, `Found ${transactions.length} pending deposit transactions`);
+        for (const transaction of transactions) {
+            const transactionId = transaction.id;
+            const userId = transaction.userId;
+            const trx = transaction.referenceId;
+            if (!trx) {
+                (0, broadcast_1.broadcastLog)(cronName, `Transaction ${transactionId} has no referenceId; skipping`, "info");
+                continue;
+            }
+            if (!index_ws_1.spotVerificationIntervals.has(transactionId)) {
+                (0, index_ws_1.startSpotVerificationSchedule)(transactionId, userId, trx);
+                (0, broadcast_1.broadcastLog)(cronName, `Started verification for transaction ${transactionId}`, "info");
+            }
+            else {
+                (0, broadcast_1.broadcastLog)(cronName, `Verification already scheduled for transaction ${transactionId}`, "info");
+            }
+        }
+        (0, broadcast_1.broadcastStatus)(cronName, "completed");
+        (0, broadcast_1.broadcastLog)(cronName, "Processing pending spot deposits completed", "success");
+    }
+    catch (error) {
+        console_1.logger.error("CRON", "Processing pending spot deposits failed", error);
+        (0, broadcast_1.broadcastStatus)(cronName, "failed");
+        (0, broadcast_1.broadcastLog)(cronName, `Processing pending spot deposits failed: ${error.message}`, "error");
+        throw error;
+    }
+}
+async function getPendingSpotTransactionsQuery(type) {
+    try {
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+        const transactions = await db_1.models.transaction.findAll({
+            where: {
+                status: "PENDING",
+                type,
+                createdAt: {
+                    [sequelize_1.Op.between]: [oneHourAgo, new Date()],
+                },
+                [sequelize_1.Op.and]: [
+                    { referenceId: { [sequelize_1.Op.ne]: null } },
+                    { referenceId: { [sequelize_1.Op.ne]: "" } },
+                ],
+            },
+            include: [
+                {
+                    model: db_1.models.wallet,
+                    as: "wallet",
+                    attributes: ["id", "currency"],
+                },
+            ],
+        });
+        return transactions;
+    }
+    catch (error) {
+        console_1.logger.error("CRON", "Error getting pending spot transactions", error);
+        throw error;
+    }
+}
+async function processPendingWithdrawals() {
+    const cronName = "processPendingWithdrawals";
+    try {
+        (0, broadcast_1.broadcastStatus)(cronName, "running");
+        (0, broadcast_1.broadcastLog)(cronName, "Starting processing pending withdrawals");
+        const transactions = await getPendingSpotTransactionsQuery("WITHDRAW");
+        (0, broadcast_1.broadcastLog)(cronName, `Found ${transactions.length} pending withdrawal transactions`);
+        for (const transaction of transactions) {
+            (0, broadcast_1.broadcastLog)(cronName, `Processing withdrawal transaction ${transaction.id}`);
+            const userId = transaction.userId;
+            const trx = transaction.referenceId;
+            if (!trx) {
+                (0, broadcast_1.broadcastLog)(cronName, `Transaction ${transaction.id} has no referenceId; skipping`, "info");
+                continue;
+            }
+            const exchange = await exchange_1.default.startExchange();
+            (0, broadcast_1.broadcastLog)(cronName, `Exchange started for processing transaction ${transaction.id}`);
+            try {
+                const { wallet } = transaction;
+                (0, broadcast_1.broadcastLog)(cronName, `Fetching withdrawals for currency ${wallet === null || wallet === void 0 ? void 0 : wallet.currency} for transaction ${transaction.id}`);
+                const withdrawals = await exchange.fetchWithdrawals(wallet === null || wallet === void 0 ? void 0 : wallet.currency);
+                const withdrawData = withdrawals.find((w) => w.id === trx);
+                let withdrawStatus = "PENDING";
+                if (withdrawData) {
+                    switch (withdrawData.status) {
+                        case "completed":
+                        case "ok":
+                            withdrawStatus = "COMPLETED";
+                            break;
+                        case "cancelled":
+                        case "canceled":
+                            withdrawStatus = "CANCELLED";
+                            break;
+                        case "failed":
+                            withdrawStatus = "FAILED";
+                            break;
+                    }
+                    (0, broadcast_1.broadcastLog)(cronName, `Withdrawal data for transaction ${transaction.id} returned status ${withdrawData.status}`);
+                }
+                else {
+                    (0, broadcast_1.broadcastLog)(cronName, `No withdrawal data found for transaction ${transaction.id}`, "info");
+                }
+                if (!withdrawStatus)
+                    continue;
+                if (transaction.status === withdrawStatus) {
+                    (0, broadcast_1.broadcastLog)(cronName, `Transaction ${transaction.id} already has status ${withdrawStatus}; skipping update`, "info");
+                    continue;
+                }
+                await (0, utils_1.updateTransaction)(transaction.id, { status: withdrawStatus });
+                (0, broadcast_1.broadcastLog)(cronName, `Transaction ${transaction.id} status updated to ${withdrawStatus}`, "success");
+                if (withdrawStatus === "FAILED" || withdrawStatus === "CANCELLED") {
+                    await (0, spot_1.updateSpotWalletBalance)(userId, wallet === null || wallet === void 0 ? void 0 : wallet.currency, Number(transaction.amount), Number(transaction.fee), "REFUND_WITHDRAWAL");
+                    await (0, notifications_1.createNotification)({
+                        userId,
+                        relatedId: transaction.id,
+                        title: "Withdrawal Failed",
+                        message: `Your withdrawal of ${transaction.amount} ${wallet === null || wallet === void 0 ? void 0 : wallet.currency} has failed.`,
+                        type: "system",
+                        link: `/finance/wallet/withdrawals/${transaction.id}`,
+                        actions: [
+                            {
+                                label: "View Withdrawal",
+                                link: `/finance/wallet/withdrawals/${transaction.id}`,
+                                primary: true,
+                            },
+                        ],
+                    });
+                    (0, broadcast_1.broadcastLog)(cronName, `Processed failed withdrawal ${transaction.id}`, "info");
+                }
+            }
+            catch (error) {
+                console_1.logger.error("CRON", `Error processing withdrawal ${transaction.id}`, error);
+                (0, broadcast_1.broadcastLog)(cronName, `Error processing withdrawal ${transaction.id}: ${error.message}`, "error");
+                continue;
+            }
+        }
+        (0, broadcast_1.broadcastStatus)(cronName, "completed");
+        (0, broadcast_1.broadcastLog)(cronName, "Processing pending withdrawals completed", "success");
+    }
+    catch (error) {
+        console_1.logger.error("CRON", "Processing pending withdrawals failed", error);
+        (0, broadcast_1.broadcastStatus)(cronName, "failed");
+        (0, broadcast_1.broadcastLog)(cronName, `Processing pending withdrawals failed: ${error.message}`, "error");
+        throw error;
+    }
+}

@@ -1,1 +1,392 @@
-"use strict";var __createBinding=this&&this.__createBinding||(Object.create?function(e,r,t,a){void 0===a&&(a=t);var s=Object.getOwnPropertyDescriptor(r,t);s&&!("get"in s?!r.__esModule:s.writable||s.configurable)||(s={enumerable:!0,get:function(){return r[t]}});Object.defineProperty(e,a,s)}:function(e,r,t,a){void 0===a&&(a=t);e[a]=r[t]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,r){Object.defineProperty(e,"default",{enumerable:!0,value:r})}:function(e,r){e.default=r}),__importStar=this&&this.__importStar||function(){var e=function(r){e=Object.getOwnPropertyNames||function(e){var r=[];for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[r.length]=t);return r};return e(r)};return function(r){if(r&&r.__esModule)return r;var t={};if(null!=r)for(var a=e(r),s=0;s<a.length;s++)"default"!==a[s]&&__createBinding(t,r,a[s]);__setModuleDefault(t,r);return t}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.addressGenerationService=exports.AddressGenerationService=void 0;const db_1=require("@b/db"),ethers_1=require("ethers"),encrypt_1=require("@b/utils/encrypt"),console_1=require("@b/utils/console"),errors_1=require("./errors"),constants_1=require("./constants");class AddressGenerationService{constructor(){}static getInstance(){AddressGenerationService.instance||(AddressGenerationService.instance=new AddressGenerationService);return AddressGenerationService.instance}async generateAddress(e){const{chain:r,contractType:t}=e;console_1.logger.debug("ADDRESS_GEN",`Generating address for ${r} (${t})`);try{switch(t){case"NATIVE":return await this.generateNativeAddress(e);case"PERMIT":return await this.generatePermitAddress(e);case"NO_PERMIT":return this.generateNoPermitAddress(e);default:throw new errors_1.WalletError(`Unknown contract type: ${t}`,"INVALID_CONTRACT_TYPE",400)}}catch(e){console_1.logger.error("ADDRESS_GEN",`Failed to generate address for ${r}: ${e.message}`);throw e}}async generateNativeAddress(e){const{chain:r}=e;if((0,constants_1.isUtxoChain)(r))return await this.generateUtxoAddress(e);switch(r){case"SOL":return await this.generateSolanaAddress(e);case"TRON":return await this.generateTronAddress(e);case"XMR":return await this.generateMoneroAddress(e);case"TON":return await this.generateTonAddress(e);default:if((0,constants_1.isEvmChain)(r))return await this.generateEvmNativeAddress(e);throw new errors_1.WalletError(`Unsupported chain: ${r}`,"UNSUPPORTED_CHAIN",400)}}async generateUtxoAddress(e){const{chain:r,network:t}=e;try{const e=await Promise.resolve().then(()=>__importStar(require("bitcoinjs-lib"))),{ECPairFactory:a}=await Promise.resolve().then(()=>__importStar(require("ecpair"))),s=a(await Promise.resolve().then(()=>__importStar(require("tiny-secp256k1")))),n=this.getUtxoNetwork(r,e),i=s.makeRandom({network:n}),{address:o}=e.payments.p2pkh({pubkey:Buffer.from(i.publicKey),network:n});if(!o)throw new errors_1.AddressGenerationError(r,"Failed to generate address");const c={privateKey:i.toWIF(),publicKey:Buffer.from(i.publicKey).toString("hex")};return{chain:r,address:o,network:t||"mainnet",encryptedData:(0,encrypt_1.encrypt)(JSON.stringify(c)),index:0}}catch(e){if(e instanceof errors_1.WalletError)throw e;throw new errors_1.AddressGenerationError(r,e.message)}}getUtxoNetwork(e,r){return{BTC:r.networks.bitcoin,LTC:{messagePrefix:"Litecoin Signed Message:\n",bech32:"ltc",bip32:{public:27108450,private:27106558},pubKeyHash:48,scriptHash:50,wif:176},DOGE:{messagePrefix:"Dogecoin Signed Message:\n",bip32:{public:49990397,private:49988504},pubKeyHash:30,scriptHash:22,wif:158},DASH:{messagePrefix:"DarkCoin Signed Message:\n",bip32:{public:50221772,private:50221816},pubKeyHash:76,scriptHash:16,wif:204}}[e]||r.networks.bitcoin}async generateSolanaAddress(e){try{const{getSolanaService:e}=await Promise.resolve().then(()=>__importStar(require("@b/utils/safe-imports"))),r=await e();if(!r)throw new errors_1.WalletError("Solana service not available","SERVICE_UNAVAILABLE",503);const t=await r.getInstance(),{address:a,data:s}=t.createWallet();return{chain:"SOL",address:a,network:process.env.SOLANA_NETWORK||"mainnet",encryptedData:(0,encrypt_1.encrypt)(JSON.stringify(s)),index:0}}catch(e){if(e instanceof errors_1.WalletError)throw e;throw new errors_1.AddressGenerationError("SOL",e.message)}}async generateTronAddress(e){try{const{getTronService:e}=await Promise.resolve().then(()=>__importStar(require("@b/utils/safe-imports"))),r=await e();if(!r)throw new errors_1.WalletError("Tron service not available","SERVICE_UNAVAILABLE",503);const t=await r.getInstance(),{address:a,data:s}=t.createWallet();return{chain:"TRON",address:a,network:process.env.TRON_NETWORK||"mainnet",encryptedData:(0,encrypt_1.encrypt)(JSON.stringify(s)),index:0}}catch(e){if(e instanceof errors_1.WalletError)throw e;throw new errors_1.AddressGenerationError("TRON",e.message)}}async generateMoneroAddress(e){try{const{getMoneroService:r}=await Promise.resolve().then(()=>__importStar(require("@b/utils/safe-imports"))),t=await r();if(!t)throw new errors_1.WalletError("Monero service not available","SERVICE_UNAVAILABLE",503);const a=await t.getInstance(),{address:s,data:n}=await a.createWallet(e.walletId);return{chain:"XMR",address:s,network:process.env.MONERO_NETWORK||"mainnet",encryptedData:(0,encrypt_1.encrypt)(JSON.stringify(n)),index:0}}catch(e){if(e instanceof errors_1.WalletError)throw e;throw new errors_1.AddressGenerationError("XMR",e.message)}}async generateTonAddress(e){try{const{getTonService:e}=await Promise.resolve().then(()=>__importStar(require("@b/utils/safe-imports"))),r=await e();if(!r)throw new errors_1.WalletError("TON service not available","SERVICE_UNAVAILABLE",503);const t=await r.getInstance(),{address:a,data:s}=await t.createWallet();return{chain:"TON",address:a,network:process.env.TON_NETWORK||"mainnet",encryptedData:(0,encrypt_1.encrypt)(JSON.stringify(s)),index:0}}catch(e){if(e instanceof errors_1.WalletError)throw e;throw new errors_1.AddressGenerationError("TON",e.message)}}async generateEvmNativeAddress(e){const{chain:r,network:t}=e;try{const e=ethers_1.ethers.Wallet.createRandom();if(!e.mnemonic)throw new errors_1.AddressGenerationError(r,"Failed to generate mnemonic");const a=ethers_1.ethers.HDNodeWallet.fromPhrase(e.mnemonic.phrase),s={mnemonic:a.mnemonic.phrase,publicKey:a.publicKey,privateKey:a.privateKey,xprv:a.extendedKey,xpub:a.neuter().extendedKey,chainCode:a.chainCode,path:a.path};return{chain:r,address:a.address,network:t||"mainnet",encryptedData:(0,encrypt_1.encrypt)(JSON.stringify(s)),index:0}}catch(e){if(e instanceof errors_1.WalletError)throw e;throw new errors_1.AddressGenerationError(r,e.message)}}async generatePermitAddress(e){const{chain:r,network:t,transaction:a}=e;if("SOL"===r)return await this.generateSolanaAddress(e);try{if(!db_1.models.ecosystemMasterWallet)throw new errors_1.WalletError("EcosystemMasterWallet model not available","MODEL_NOT_AVAILABLE",500);const e=await db_1.models.ecosystemMasterWallet.findOne({where:{chain:r,status:!0},...a&&{transaction:a}});if(!e||!e.data)throw new errors_1.MasterWalletNotFoundError(r);const s=(e.lastIndex||0)+1;await db_1.models.ecosystemMasterWallet.update({lastIndex:s},{where:{id:e.id},...a&&{transaction:a}});const n=JSON.parse((0,encrypt_1.decrypt)(e.data)),i=ethers_1.ethers.HDNodeWallet.fromPhrase(n.mnemonic).deriveChild(s);if(!i.address)throw new errors_1.AddressGenerationError(r,"Failed to derive child address");const o={address:i.address,publicKey:i.publicKey,privateKey:i.privateKey};return{chain:r,address:i.address,network:t||"mainnet",encryptedData:(0,encrypt_1.encrypt)(JSON.stringify(o)),index:s}}catch(e){if(e instanceof errors_1.WalletError)throw e;throw new errors_1.AddressGenerationError(r,e.message)}}generateNoPermitAddress(e){return{chain:e.chain,address:"",network:e.network||"mainnet",encryptedData:"",index:0}}async deriveAddressFromMaster(e,r,t){if(!db_1.models.ecosystemMasterWallet)throw new errors_1.WalletError("EcosystemMasterWallet model not available","MODEL_NOT_AVAILABLE",500);const a=await db_1.models.ecosystemMasterWallet.findOne({where:{chain:e,status:!0},...t&&{transaction:t}});if(!a||!a.data)throw new errors_1.MasterWalletNotFoundError(e);const s=JSON.parse((0,encrypt_1.decrypt)(a.data)),n=ethers_1.ethers.HDNodeWallet.fromPhrase(s.mnemonic).deriveChild(r),i={address:n.address,publicKey:n.publicKey,privateKey:n.privateKey},o=process.env[`${e.toUpperCase()}_NETWORK`]||"mainnet";return{chain:e,address:n.address,network:o,encryptedData:(0,encrypt_1.encrypt)(JSON.stringify(i)),index:r}}validateAddress(e,r){try{if((0,constants_1.isEvmChain)(e))return ethers_1.ethers.isAddress(r);switch(e){case"BTC":return/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[ac-hj-np-zAC-HJ-NP-Z02-9]{11,71}$/.test(r);case"LTC":return/^[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}$|^ltc1[a-zA-HJ-NP-Z0-9]{25,}$/.test(r);case"DOGE":return/^D[5-9A-HJ-NP-U][1-9A-HJ-NP-Za-km-z]{32}$/.test(r);case"DASH":return/^X[1-9A-HJ-NP-Za-km-z]{33}$/.test(r);case"SOL":return/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(r);case"TRON":return/^T[A-Za-z1-9]{33}$/.test(r);case"XMR":return/^4[0-9AB][1-9A-HJ-NP-Za-km-z]{93}$/.test(r);case"TON":return/^(EQ|UQ)[a-zA-Z0-9_-]{46}$/.test(r);default:return!1}}catch(e){return!1}}}exports.AddressGenerationService=AddressGenerationService;exports.addressGenerationService=AddressGenerationService.getInstance();
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.addressGenerationService = exports.AddressGenerationService = void 0;
+const db_1 = require("@b/db");
+const ethers_1 = require("ethers");
+const encrypt_1 = require("@b/utils/encrypt");
+const console_1 = require("@b/utils/console");
+const errors_1 = require("./errors");
+const constants_1 = require("./constants");
+class AddressGenerationService {
+    constructor() { }
+    static getInstance() {
+        if (!AddressGenerationService.instance) {
+            AddressGenerationService.instance = new AddressGenerationService();
+        }
+        return AddressGenerationService.instance;
+    }
+    async generateAddress(params) {
+        const { chain, contractType } = params;
+        console_1.logger.debug("ADDRESS_GEN", `Generating address for ${chain} (${contractType})`);
+        try {
+            switch (contractType) {
+                case "NATIVE":
+                    return await this.generateNativeAddress(params);
+                case "PERMIT":
+                    return await this.generatePermitAddress(params);
+                case "NO_PERMIT":
+                    return this.generateNoPermitAddress(params);
+                default:
+                    throw new errors_1.WalletError(`Unknown contract type: ${contractType}`, "INVALID_CONTRACT_TYPE", 400);
+            }
+        }
+        catch (error) {
+            console_1.logger.error("ADDRESS_GEN", `Failed to generate address for ${chain}: ${error.message}`);
+            throw error;
+        }
+    }
+    async generateNativeAddress(params) {
+        const { chain } = params;
+        if ((0, constants_1.isUtxoChain)(chain)) {
+            return await this.generateUtxoAddress(params);
+        }
+        switch (chain) {
+            case "SOL":
+                return await this.generateSolanaAddress(params);
+            case "TRON":
+                return await this.generateTronAddress(params);
+            case "XMR":
+                return await this.generateMoneroAddress(params);
+            case "TON":
+                return await this.generateTonAddress(params);
+            default:
+                if ((0, constants_1.isEvmChain)(chain)) {
+                    return await this.generateEvmNativeAddress(params);
+                }
+                throw new errors_1.WalletError(`Unsupported chain: ${chain}`, "UNSUPPORTED_CHAIN", 400);
+        }
+    }
+    async generateUtxoAddress(params) {
+        const { chain, network } = params;
+        try {
+            const bitcoin = await Promise.resolve().then(() => __importStar(require("bitcoinjs-lib")));
+            const { ECPairFactory } = await Promise.resolve().then(() => __importStar(require("ecpair")));
+            const ecc = await Promise.resolve().then(() => __importStar(require("tiny-secp256k1")));
+            const ECPair = ECPairFactory(ecc);
+            const networkConfig = this.getUtxoNetwork(chain, bitcoin);
+            const keyPair = ECPair.makeRandom({ network: networkConfig });
+            const { address } = bitcoin.payments.p2pkh({
+                pubkey: Buffer.from(keyPair.publicKey),
+                network: networkConfig,
+            });
+            if (!address) {
+                throw new errors_1.AddressGenerationError(chain, "Failed to generate address");
+            }
+            const walletData = {
+                privateKey: keyPair.toWIF(),
+                publicKey: Buffer.from(keyPair.publicKey).toString("hex"),
+            };
+            return {
+                chain,
+                address,
+                network: network || "mainnet",
+                encryptedData: (0, encrypt_1.encrypt)(JSON.stringify(walletData)),
+                index: 0,
+            };
+        }
+        catch (error) {
+            if (error instanceof errors_1.WalletError)
+                throw error;
+            throw new errors_1.AddressGenerationError(chain, error.message);
+        }
+    }
+    getUtxoNetwork(chain, bitcoin) {
+        const networks = {
+            BTC: bitcoin.networks.bitcoin,
+            LTC: {
+                messagePrefix: "\x19Litecoin Signed Message:\n",
+                bech32: "ltc",
+                bip32: { public: 0x019da462, private: 0x019d9cfe },
+                pubKeyHash: 0x30,
+                scriptHash: 0x32,
+                wif: 0xb0,
+            },
+            DOGE: {
+                messagePrefix: "\x19Dogecoin Signed Message:\n",
+                bip32: { public: 0x02facafd, private: 0x02fac398 },
+                pubKeyHash: 0x1e,
+                scriptHash: 0x16,
+                wif: 0x9e,
+            },
+            DASH: {
+                messagePrefix: "\x19DarkCoin Signed Message:\n",
+                bip32: { public: 0x02fe52cc, private: 0x02fe52f8 },
+                pubKeyHash: 0x4c,
+                scriptHash: 0x10,
+                wif: 0xcc,
+            },
+        };
+        return networks[chain] || bitcoin.networks.bitcoin;
+    }
+    async generateSolanaAddress(params) {
+        try {
+            const { getSolanaService } = await Promise.resolve().then(() => __importStar(require("@b/utils/safe-imports")));
+            const SolanaService = await getSolanaService();
+            if (!SolanaService) {
+                throw new errors_1.WalletError("Solana service not available", "SERVICE_UNAVAILABLE", 503);
+            }
+            const solanaService = await SolanaService.getInstance();
+            const { address, data } = solanaService.createWallet();
+            return {
+                chain: "SOL",
+                address,
+                network: process.env.SOLANA_NETWORK || "mainnet",
+                encryptedData: (0, encrypt_1.encrypt)(JSON.stringify(data)),
+                index: 0,
+            };
+        }
+        catch (error) {
+            if (error instanceof errors_1.WalletError)
+                throw error;
+            throw new errors_1.AddressGenerationError("SOL", error.message);
+        }
+    }
+    async generateTronAddress(params) {
+        try {
+            const { getTronService } = await Promise.resolve().then(() => __importStar(require("@b/utils/safe-imports")));
+            const TronService = await getTronService();
+            if (!TronService) {
+                throw new errors_1.WalletError("Tron service not available", "SERVICE_UNAVAILABLE", 503);
+            }
+            const tronService = await TronService.getInstance();
+            const { address, data } = tronService.createWallet();
+            return {
+                chain: "TRON",
+                address,
+                network: process.env.TRON_NETWORK || "mainnet",
+                encryptedData: (0, encrypt_1.encrypt)(JSON.stringify(data)),
+                index: 0,
+            };
+        }
+        catch (error) {
+            if (error instanceof errors_1.WalletError)
+                throw error;
+            throw new errors_1.AddressGenerationError("TRON", error.message);
+        }
+    }
+    async generateMoneroAddress(params) {
+        try {
+            const { getMoneroService } = await Promise.resolve().then(() => __importStar(require("@b/utils/safe-imports")));
+            const MoneroService = await getMoneroService();
+            if (!MoneroService) {
+                throw new errors_1.WalletError("Monero service not available", "SERVICE_UNAVAILABLE", 503);
+            }
+            const moneroService = await MoneroService.getInstance();
+            const { address, data } = await moneroService.createWallet(params.walletId);
+            return {
+                chain: "XMR",
+                address,
+                network: process.env.MONERO_NETWORK || "mainnet",
+                encryptedData: (0, encrypt_1.encrypt)(JSON.stringify(data)),
+                index: 0,
+            };
+        }
+        catch (error) {
+            if (error instanceof errors_1.WalletError)
+                throw error;
+            throw new errors_1.AddressGenerationError("XMR", error.message);
+        }
+    }
+    async generateTonAddress(params) {
+        try {
+            const { getTonService } = await Promise.resolve().then(() => __importStar(require("@b/utils/safe-imports")));
+            const TonService = await getTonService();
+            if (!TonService) {
+                throw new errors_1.WalletError("TON service not available", "SERVICE_UNAVAILABLE", 503);
+            }
+            const tonService = await TonService.getInstance();
+            const { address, data } = await tonService.createWallet();
+            return {
+                chain: "TON",
+                address,
+                network: process.env.TON_NETWORK || "mainnet",
+                encryptedData: (0, encrypt_1.encrypt)(JSON.stringify(data)),
+                index: 0,
+            };
+        }
+        catch (error) {
+            if (error instanceof errors_1.WalletError)
+                throw error;
+            throw new errors_1.AddressGenerationError("TON", error.message);
+        }
+    }
+    async generateEvmNativeAddress(params) {
+        const { chain, network } = params;
+        try {
+            const wallet = ethers_1.ethers.Wallet.createRandom();
+            if (!wallet.mnemonic) {
+                throw new errors_1.AddressGenerationError(chain, "Failed to generate mnemonic");
+            }
+            const hdNode = ethers_1.ethers.HDNodeWallet.fromPhrase(wallet.mnemonic.phrase);
+            const walletData = {
+                mnemonic: hdNode.mnemonic.phrase,
+                publicKey: hdNode.publicKey,
+                privateKey: hdNode.privateKey,
+                xprv: hdNode.extendedKey,
+                xpub: hdNode.neuter().extendedKey,
+                chainCode: hdNode.chainCode,
+                path: hdNode.path,
+            };
+            return {
+                chain,
+                address: hdNode.address,
+                network: network || "mainnet",
+                encryptedData: (0, encrypt_1.encrypt)(JSON.stringify(walletData)),
+                index: 0,
+            };
+        }
+        catch (error) {
+            if (error instanceof errors_1.WalletError)
+                throw error;
+            throw new errors_1.AddressGenerationError(chain, error.message);
+        }
+    }
+    async generatePermitAddress(params) {
+        const { chain, network, transaction } = params;
+        if (chain === "SOL") {
+            return await this.generateSolanaAddress(params);
+        }
+        try {
+            if (!db_1.models.ecosystemMasterWallet) {
+                throw new errors_1.WalletError("EcosystemMasterWallet model not available", "MODEL_NOT_AVAILABLE", 500);
+            }
+            const masterWallet = await db_1.models.ecosystemMasterWallet.findOne({
+                where: { chain, status: true },
+                ...(transaction && { transaction }),
+            });
+            if (!masterWallet || !masterWallet.data) {
+                throw new errors_1.MasterWalletNotFoundError(chain);
+            }
+            const nextIndex = (masterWallet.lastIndex || 0) + 1;
+            await db_1.models.ecosystemMasterWallet.update({ lastIndex: nextIndex }, {
+                where: { id: masterWallet.id },
+                ...(transaction && { transaction }),
+            });
+            const decryptedMasterData = JSON.parse((0, encrypt_1.decrypt)(masterWallet.data));
+            const hdNode = ethers_1.ethers.HDNodeWallet.fromPhrase(decryptedMasterData.mnemonic);
+            const childNode = hdNode.deriveChild(nextIndex);
+            if (!childNode.address) {
+                throw new errors_1.AddressGenerationError(chain, "Failed to derive child address");
+            }
+            const childData = {
+                address: childNode.address,
+                publicKey: childNode.publicKey,
+                privateKey: childNode.privateKey,
+            };
+            return {
+                chain,
+                address: childNode.address,
+                network: network || "mainnet",
+                encryptedData: (0, encrypt_1.encrypt)(JSON.stringify(childData)),
+                index: nextIndex,
+            };
+        }
+        catch (error) {
+            if (error instanceof errors_1.WalletError)
+                throw error;
+            throw new errors_1.AddressGenerationError(chain, error.message);
+        }
+    }
+    generateNoPermitAddress(params) {
+        return {
+            chain: params.chain,
+            address: "",
+            network: params.network || "mainnet",
+            encryptedData: "",
+            index: 0,
+        };
+    }
+    async deriveAddressFromMaster(chain, index, transaction) {
+        if (!db_1.models.ecosystemMasterWallet) {
+            throw new errors_1.WalletError("EcosystemMasterWallet model not available", "MODEL_NOT_AVAILABLE", 500);
+        }
+        const masterWallet = await db_1.models.ecosystemMasterWallet.findOne({
+            where: { chain, status: true },
+            ...(transaction && { transaction }),
+        });
+        if (!masterWallet || !masterWallet.data) {
+            throw new errors_1.MasterWalletNotFoundError(chain);
+        }
+        const decryptedMasterData = JSON.parse((0, encrypt_1.decrypt)(masterWallet.data));
+        const hdNode = ethers_1.ethers.HDNodeWallet.fromPhrase(decryptedMasterData.mnemonic);
+        const childNode = hdNode.deriveChild(index);
+        const childData = {
+            address: childNode.address,
+            publicKey: childNode.publicKey,
+            privateKey: childNode.privateKey,
+        };
+        const network = process.env[`${chain.toUpperCase()}_NETWORK`] || "mainnet";
+        return {
+            chain,
+            address: childNode.address,
+            network: network,
+            encryptedData: (0, encrypt_1.encrypt)(JSON.stringify(childData)),
+            index,
+        };
+    }
+    validateAddress(chain, address) {
+        try {
+            if ((0, constants_1.isEvmChain)(chain)) {
+                return ethers_1.ethers.isAddress(address);
+            }
+            switch (chain) {
+                case "BTC":
+                    return /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[ac-hj-np-zAC-HJ-NP-Z02-9]{11,71}$/.test(address);
+                case "LTC":
+                    return /^[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}$|^ltc1[a-zA-HJ-NP-Z0-9]{25,}$/.test(address);
+                case "DOGE":
+                    return /^D[5-9A-HJ-NP-U][1-9A-HJ-NP-Za-km-z]{32}$/.test(address);
+                case "DASH":
+                    return /^X[1-9A-HJ-NP-Za-km-z]{33}$/.test(address);
+                case "SOL":
+                    return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
+                case "TRON":
+                    return /^T[A-Za-z1-9]{33}$/.test(address);
+                case "XMR":
+                    return /^4[0-9AB][1-9A-HJ-NP-Za-km-z]{93}$/.test(address);
+                case "TON":
+                    return /^(EQ|UQ)[a-zA-Z0-9_-]{46}$/.test(address);
+                default:
+                    return false;
+            }
+        }
+        catch (_a) {
+            return false;
+        }
+    }
+}
+exports.AddressGenerationService = AddressGenerationService;
+exports.addressGenerationService = AddressGenerationService.getInstance();

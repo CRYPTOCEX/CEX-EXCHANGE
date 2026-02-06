@@ -32,7 +32,7 @@ export default class ecommerceProduct
   getCategory!: Sequelize.BelongsToGetAssociationMixin<ecommerceCategory>;
   setCategory!: Sequelize.BelongsToSetAssociationMixin<
     ecommerceCategory,
-    ecommerceCategoryId
+    string
   >;
   createCategory!: Sequelize.BelongsToCreateAssociationMixin<ecommerceCategory>;
   // ecommerceProduct hasMany ecommerceDiscount via productId
@@ -40,32 +40,32 @@ export default class ecommerceProduct
   getEcommerceDiscounts!: Sequelize.HasManyGetAssociationsMixin<ecommerceDiscount>;
   setEcommerceDiscounts!: Sequelize.HasManySetAssociationsMixin<
     ecommerceDiscount,
-    ecommerceDiscountId
+    string
   >;
   addEcommerceDiscount!: Sequelize.HasManyAddAssociationMixin<
     ecommerceDiscount,
-    ecommerceDiscountId
+    string
   >;
   addEcommerceDiscounts!: Sequelize.HasManyAddAssociationsMixin<
     ecommerceDiscount,
-    ecommerceDiscountId
+    string
   >;
   createEcommerceDiscount!: Sequelize.HasManyCreateAssociationMixin<ecommerceDiscount>;
   removeEcommerceDiscount!: Sequelize.HasManyRemoveAssociationMixin<
     ecommerceDiscount,
-    ecommerceDiscountId
+    string
   >;
   removeEcommerceDiscounts!: Sequelize.HasManyRemoveAssociationsMixin<
     ecommerceDiscount,
-    ecommerceDiscountId
+    string
   >;
   hasEcommerceDiscount!: Sequelize.HasManyHasAssociationMixin<
     ecommerceDiscount,
-    ecommerceDiscountId
+    string
   >;
   hasEcommerceDiscounts!: Sequelize.HasManyHasAssociationsMixin<
     ecommerceDiscount,
-    ecommerceDiscountId
+    string
   >;
   countEcommerceDiscounts!: Sequelize.HasManyCountAssociationsMixin;
   // ecommerceProduct hasMany ecommerceOrderItem via productId
@@ -73,32 +73,32 @@ export default class ecommerceProduct
   getEcommerceOrderItems!: Sequelize.HasManyGetAssociationsMixin<ecommerceOrderItem>;
   setEcommerceOrderItems!: Sequelize.HasManySetAssociationsMixin<
     ecommerceOrderItem,
-    ecommerceOrderItemId
+    string
   >;
   addEcommerceOrderItem!: Sequelize.HasManyAddAssociationMixin<
     ecommerceOrderItem,
-    ecommerceOrderItemId
+    string
   >;
   addEcommerceOrderItems!: Sequelize.HasManyAddAssociationsMixin<
     ecommerceOrderItem,
-    ecommerceOrderItemId
+    string
   >;
   createEcommerceOrderItem!: Sequelize.HasManyCreateAssociationMixin<ecommerceOrderItem>;
   removeEcommerceOrderItem!: Sequelize.HasManyRemoveAssociationMixin<
     ecommerceOrderItem,
-    ecommerceOrderItemId
+    string
   >;
   removeEcommerceOrderItems!: Sequelize.HasManyRemoveAssociationsMixin<
     ecommerceOrderItem,
-    ecommerceOrderItemId
+    string
   >;
   hasEcommerceOrderItem!: Sequelize.HasManyHasAssociationMixin<
     ecommerceOrderItem,
-    ecommerceOrderItemId
+    string
   >;
   hasEcommerceOrderItems!: Sequelize.HasManyHasAssociationsMixin<
     ecommerceOrderItem,
-    ecommerceOrderItemId
+    string
   >;
   countEcommerceOrderItems!: Sequelize.HasManyCountAssociationsMixin;
   // ecommerceProduct hasMany ecommerceReview via productId
@@ -106,32 +106,32 @@ export default class ecommerceProduct
   getEcommerceReviews!: Sequelize.HasManyGetAssociationsMixin<ecommerceReview>;
   setEcommerceReviews!: Sequelize.HasManySetAssociationsMixin<
     ecommerceReview,
-    ecommerceReviewId
+    string
   >;
   addEcommerceReview!: Sequelize.HasManyAddAssociationMixin<
     ecommerceReview,
-    ecommerceReviewId
+    string
   >;
   addEcommerceReviews!: Sequelize.HasManyAddAssociationsMixin<
     ecommerceReview,
-    ecommerceReviewId
+    string
   >;
   createEcommerceReview!: Sequelize.HasManyCreateAssociationMixin<ecommerceReview>;
   removeEcommerceReview!: Sequelize.HasManyRemoveAssociationMixin<
     ecommerceReview,
-    ecommerceReviewId
+    string
   >;
   removeEcommerceReviews!: Sequelize.HasManyRemoveAssociationsMixin<
     ecommerceReview,
-    ecommerceReviewId
+    string
   >;
   hasEcommerceReview!: Sequelize.HasManyHasAssociationMixin<
     ecommerceReview,
-    ecommerceReviewId
+    string
   >;
   hasEcommerceReviews!: Sequelize.HasManyHasAssociationsMixin<
     ecommerceReview,
-    ecommerceReviewId
+    string
   >;
   countEcommerceReviews!: Sequelize.HasManyCountAssociationsMixin;
   // ecommerceProduct hasMany ecommerceWishlist via productId
@@ -139,32 +139,32 @@ export default class ecommerceProduct
   getEcommerceWishlists!: Sequelize.HasManyGetAssociationsMixin<ecommerceWishlist>;
   setEcommerceWishlists!: Sequelize.HasManySetAssociationsMixin<
     ecommerceWishlist,
-    ecommerceWishlistId
+    string
   >;
   addEcommerceWishlist!: Sequelize.HasManyAddAssociationMixin<
     ecommerceWishlist,
-    ecommerceWishlistId
+    string
   >;
   addEcommerceWishlists!: Sequelize.HasManyAddAssociationsMixin<
     ecommerceWishlist,
-    ecommerceWishlistId
+    string
   >;
   createEcommerceWishlist!: Sequelize.HasManyCreateAssociationMixin<ecommerceWishlist>;
   removeEcommerceWishlist!: Sequelize.HasManyRemoveAssociationMixin<
     ecommerceWishlist,
-    ecommerceWishlistId
+    string
   >;
   removeEcommerceWishlists!: Sequelize.HasManyRemoveAssociationsMixin<
     ecommerceWishlist,
-    ecommerceWishlistId
+    string
   >;
   hasEcommerceWishlist!: Sequelize.HasManyHasAssociationMixin<
     ecommerceWishlist,
-    ecommerceWishlistId
+    string
   >;
   hasEcommerceWishlists!: Sequelize.HasManyHasAssociationsMixin<
     ecommerceWishlist,
-    ecommerceWishlistId
+    string
   >;
   countEcommerceWishlists!: Sequelize.HasManyCountAssociationsMixin;
 

@@ -278,7 +278,7 @@ export default function RegisterForm({
 
     try {
       // Solve PoW captcha if enabled
-      let powSolution = null;
+      let powSolution: any = null;
       try {
         powSolution = await solveAndGetSolution("register");
       } catch (powError) {
@@ -387,14 +387,33 @@ export default function RegisterForm({
       setLocalLoading(true);
       googleButtonClicked.current = true;
 
-      // Open Google login popup and get the ID token
-      const idToken = await openGoogleLoginPopup(googleClientId);
+      // Open Google login popup and get the response (can be ID token or access token with user info)
+      const googleResponse = await openGoogleLoginPopup(googleClientId);
 
-      // Send the ID token to our backend for registration
+      // Prepare the request body based on response type
+      let requestBody: any = { ref: refCode };
+
+      if (typeof googleResponse === 'string') {
+        // Standard ID token flow
+        requestBody.token = googleResponse;
+      } else if (googleResponse && typeof googleResponse === 'object') {
+        // OAuth fallback flow with access token and user info
+        if (googleResponse.credential) {
+          requestBody.token = googleResponse.credential;
+        } else if (googleResponse.access_token) {
+          requestBody.access_token = googleResponse.access_token;
+        } else {
+          throw new Error("Invalid Google response format");
+        }
+      } else {
+        throw new Error("No credential received from Google");
+      }
+
+      // Send to our backend for registration
       const { data, error } = await $fetch({
         url: "/api/auth/register/google",
         method: "POST",
-        body: { token: idToken, ref: refCode },
+        body: requestBody,
       });
 
       if (error) {

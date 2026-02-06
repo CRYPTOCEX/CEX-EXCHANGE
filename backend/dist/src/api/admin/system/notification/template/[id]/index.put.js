@@ -1,1 +1,54 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query"),utils_1=require("../utils");exports.metadata={summary:"Updates an existing notification template",operationId:"updateNotificationTemplate",tags:["Admin","Notifications"],parameters:[{index:0,name:"id",in:"path",required:!0,description:"ID of the notification template to update",schema:{type:"string"}}],requestBody:{required:!0,description:"Updated data for the notification template",content:{"application/json":{schema:utils_1.notificationTemplateUpdateSchema}}},responses:(0,query_1.updateRecordResponses)("Notification Template"),requiresAuth:!0,permission:"edit.notification.template",logModule:"ADMIN_SYS",logTitle:"Update notification template"};exports.default=async t=>{const{body:e,params:i,ctx:a}=t,{id:o}=i,{subject:s,emailBody:n,smsBody:p,pushBody:d,email:u,sms:l,push:r}=e;null==a||a.step("Validating notification template data");null==a||a.step(`Updating notification template ${o}`);const c=await(0,query_1.updateRecord)("notificationTemplate",o,{subject:s,emailBody:n,smsBody:p,pushBody:d,email:u,sms:l,push:r});null==a||a.success("Notification template updated successfully");return c};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+const utils_1 = require("../utils");
+exports.metadata = {
+    summary: "Updates an existing notification template",
+    operationId: "updateNotificationTemplate",
+    tags: ["Admin", "Notifications"],
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            required: true,
+            description: "ID of the notification template to update",
+            schema: {
+                type: "string",
+            },
+        },
+    ],
+    requestBody: {
+        required: true,
+        description: "Updated data for the notification template",
+        content: {
+            "application/json": {
+                schema: utils_1.notificationTemplateUpdateSchema,
+            },
+        },
+    },
+    responses: (0, query_1.updateRecordResponses)("Notification Template"),
+    requiresAuth: true,
+    permission: "edit.notification.template",
+    logModule: "ADMIN_SYS",
+    logTitle: "Update notification template",
+};
+exports.default = async (data) => {
+    const { body, params, ctx } = data;
+    const { id } = params;
+    const { subject, emailBody, smsBody, pushBody, email, sms, push } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating notification template data");
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Updating notification template ${id}`);
+    const result = await (0, query_1.updateRecord)("notificationTemplate", id, {
+        subject,
+        emailBody,
+        smsBody,
+        pushBody,
+        email,
+        sms,
+        push,
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Notification template updated successfully");
+    return result;
+};

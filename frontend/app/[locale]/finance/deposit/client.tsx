@@ -545,7 +545,10 @@ export function DepositForm() {
     ) {
       const connectionId = "eco-deposit";
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const host = window.location.host;
+      const isDev = process.env.NODE_ENV === "development";
+      const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || "4000";
+      // In development, connect directly to backend (Next.js rewrites don't support WebSocket upgrades)
+      const host = isDev ? `${window.location.hostname}:${backendPort}` : window.location.host;
       const wsUrl = `${protocol}//${host}/api/ecosystem/deposit?userId=${user.id}`;
 
       wsManager.connect(wsUrl, connectionId);
@@ -713,7 +716,10 @@ export function DepositForm() {
     ) {
       const connectionId = "spot-deposit";
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const host = window.location.host;
+      const isDev = process.env.NODE_ENV === "development";
+      const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || "4000";
+      // In development, connect directly to backend (Next.js rewrites don't support WebSocket upgrades)
+      const host = isDev ? `${window.location.hostname}:${backendPort}` : window.location.host;
       const wsUrl = `${protocol}//${host}/api/finance/deposit/spot?userId=${user.id}`;
 
       wsManager.connect(wsUrl, connectionId);

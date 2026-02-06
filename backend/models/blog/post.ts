@@ -27,49 +27,49 @@ export default class post
   // post belongsTo author via authorId
   author!: author;
   getAuthor!: Sequelize.BelongsToGetAssociationMixin<author>;
-  setAuthor!: Sequelize.BelongsToSetAssociationMixin<author, authorId>;
+  setAuthor!: Sequelize.BelongsToSetAssociationMixin<author, string>;
   createAuthor!: Sequelize.BelongsToCreateAssociationMixin<author>;
   // post belongsTo category via categoryId
   category!: category;
   getCategory!: Sequelize.BelongsToGetAssociationMixin<category>;
-  setCategory!: Sequelize.BelongsToSetAssociationMixin<category, categoryId>;
+  setCategory!: Sequelize.BelongsToSetAssociationMixin<category, string>;
   createCategory!: Sequelize.BelongsToCreateAssociationMixin<category>;
   // post hasMany comment via postId
   comments!: comment[];
   getComments!: Sequelize.HasManyGetAssociationsMixin<comment>;
-  setComments!: Sequelize.HasManySetAssociationsMixin<comment, commentId>;
-  addComment!: Sequelize.HasManyAddAssociationMixin<comment, commentId>;
-  addComments!: Sequelize.HasManyAddAssociationsMixin<comment, commentId>;
+  setComments!: Sequelize.HasManySetAssociationsMixin<comment, string>;
+  addComment!: Sequelize.HasManyAddAssociationMixin<comment, string>;
+  addComments!: Sequelize.HasManyAddAssociationsMixin<comment, string>;
   createComment!: Sequelize.HasManyCreateAssociationMixin<comment>;
-  removeComment!: Sequelize.HasManyRemoveAssociationMixin<comment, commentId>;
-  removeComments!: Sequelize.HasManyRemoveAssociationsMixin<comment, commentId>;
-  hasComment!: Sequelize.HasManyHasAssociationMixin<comment, commentId>;
-  hasComments!: Sequelize.HasManyHasAssociationsMixin<comment, commentId>;
+  removeComment!: Sequelize.HasManyRemoveAssociationMixin<comment, string>;
+  removeComments!: Sequelize.HasManyRemoveAssociationsMixin<comment, string>;
+  hasComment!: Sequelize.HasManyHasAssociationMixin<comment, string>;
+  hasComments!: Sequelize.HasManyHasAssociationsMixin<comment, string>;
   countComments!: Sequelize.HasManyCountAssociationsMixin;
   // post hasMany postTag via postId
   postTags!: postTag[];
   getPostTags!: Sequelize.HasManyGetAssociationsMixin<postTag>;
-  setPostTags!: Sequelize.HasManySetAssociationsMixin<postTag, postTagId>;
-  addPostTag!: Sequelize.HasManyAddAssociationMixin<postTag, postTagId>;
-  addPostTags!: Sequelize.HasManyAddAssociationsMixin<postTag, postTagId>;
+  setPostTags!: Sequelize.HasManySetAssociationsMixin<postTag, string>;
+  addPostTag!: Sequelize.HasManyAddAssociationMixin<postTag, string>;
+  addPostTags!: Sequelize.HasManyAddAssociationsMixin<postTag, string>;
   createPostTag!: Sequelize.HasManyCreateAssociationMixin<postTag>;
-  removePostTag!: Sequelize.HasManyRemoveAssociationMixin<postTag, postTagId>;
-  removePostTags!: Sequelize.HasManyRemoveAssociationsMixin<postTag, postTagId>;
-  hasPostTag!: Sequelize.HasManyHasAssociationMixin<postTag, postTagId>;
-  hasPostTags!: Sequelize.HasManyHasAssociationsMixin<postTag, postTagId>;
+  removePostTag!: Sequelize.HasManyRemoveAssociationMixin<postTag, string>;
+  removePostTags!: Sequelize.HasManyRemoveAssociationsMixin<postTag, string>;
+  hasPostTag!: Sequelize.HasManyHasAssociationMixin<postTag, string>;
+  hasPostTags!: Sequelize.HasManyHasAssociationsMixin<postTag, string>;
   countPostTags!: Sequelize.HasManyCountAssociationsMixin;
 
   // post hasMany tag through postTag
   tags!: tag[];
   getTags!: Sequelize.HasManyGetAssociationsMixin<tag>;
-  setTags!: Sequelize.HasManySetAssociationsMixin<tag, tagId>;
-  addTag!: Sequelize.HasManyAddAssociationMixin<tag, tagId>;
-  addTags!: Sequelize.HasManyAddAssociationsMixin<tag, tagId>;
+  setTags!: Sequelize.HasManySetAssociationsMixin<tag, string>;
+  addTag!: Sequelize.HasManyAddAssociationMixin<tag, string>;
+  addTags!: Sequelize.HasManyAddAssociationsMixin<tag, string>;
   createTag!: Sequelize.HasManyCreateAssociationMixin<tag>;
-  removeTag!: Sequelize.HasManyRemoveAssociationMixin<tag, tagId>;
-  removeTags!: Sequelize.HasManyRemoveAssociationsMixin<tag, tagId>;
-  hasTag!: Sequelize.HasManyHasAssociationMixin<tag, tagId>;
-  hasTags!: Sequelize.HasManyHasAssociationsMixin<tag, tagId>;
+  removeTag!: Sequelize.HasManyRemoveAssociationMixin<tag, string>;
+  removeTags!: Sequelize.HasManyRemoveAssociationsMixin<tag, string>;
+  hasTag!: Sequelize.HasManyHasAssociationMixin<tag, string>;
+  hasTags!: Sequelize.HasManyHasAssociationsMixin<tag, string>;
   countTags!: Sequelize.HasManyCountAssociationsMixin;
 
   public static initModel(sequelize: Sequelize.Sequelize): typeof post {

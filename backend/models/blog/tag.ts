@@ -16,14 +16,14 @@ export default class tag
   // tag hasMany postTag via tagId
   postTags!: postTag[];
   getPostTags!: Sequelize.HasManyGetAssociationsMixin<postTag>;
-  setPostTags!: Sequelize.HasManySetAssociationsMixin<postTag, postTagId>;
-  addPostTag!: Sequelize.HasManyAddAssociationMixin<postTag, postTagId>;
-  addPostTags!: Sequelize.HasManyAddAssociationsMixin<postTag, postTagId>;
+  setPostTags!: Sequelize.HasManySetAssociationsMixin<postTag, string>;
+  addPostTag!: Sequelize.HasManyAddAssociationMixin<postTag, string>;
+  addPostTags!: Sequelize.HasManyAddAssociationsMixin<postTag, string>;
   createPostTag!: Sequelize.HasManyCreateAssociationMixin<postTag>;
-  removePostTag!: Sequelize.HasManyRemoveAssociationMixin<postTag, postTagId>;
-  removePostTags!: Sequelize.HasManyRemoveAssociationsMixin<postTag, postTagId>;
-  hasPostTag!: Sequelize.HasManyHasAssociationMixin<postTag, postTagId>;
-  hasPostTags!: Sequelize.HasManyHasAssociationsMixin<postTag, postTagId>;
+  removePostTag!: Sequelize.HasManyRemoveAssociationMixin<postTag, string>;
+  removePostTags!: Sequelize.HasManyRemoveAssociationsMixin<postTag, string>;
+  hasPostTag!: Sequelize.HasManyHasAssociationMixin<postTag, string>;
+  hasPostTags!: Sequelize.HasManyHasAssociationsMixin<postTag, string>;
   countPostTags!: Sequelize.HasManyCountAssociationsMixin;
 
   public static initModel(sequelize: Sequelize.Sequelize): typeof tag {

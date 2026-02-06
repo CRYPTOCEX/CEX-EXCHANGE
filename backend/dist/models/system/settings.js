@@ -1,1 +1,35 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});const sequelize_1=require("sequelize");class settings extends sequelize_1.Model{static initModel(e){return settings.init({key:{type:sequelize_1.DataTypes.STRING(255),allowNull:!1,primaryKey:!0,comment:"Unique setting key identifier"},value:{type:sequelize_1.DataTypes.TEXT("long"),allowNull:!0,comment:"Setting value in JSON format or plain text"}},{sequelize:e,modelName:"settings",tableName:"settings",timestamps:!1,indexes:[{name:"PRIMARY",unique:!0,using:"BTREE",fields:[{name:"key"}]}]})}static associate(e){}}exports.default=settings;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const sequelize_1 = require("sequelize");
+class settings extends sequelize_1.Model {
+    static initModel(sequelize) {
+        return settings.init({
+            key: {
+                type: sequelize_1.DataTypes.STRING(255),
+                allowNull: false,
+                primaryKey: true,
+                comment: "Unique setting key identifier",
+            },
+            value: {
+                type: sequelize_1.DataTypes.TEXT("long"),
+                allowNull: true,
+                comment: "Setting value in JSON format or plain text",
+            },
+        }, {
+            sequelize,
+            modelName: "settings",
+            tableName: "settings",
+            timestamps: false,
+            indexes: [
+                {
+                    name: "PRIMARY",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "key" }],
+                },
+            ],
+        });
+    }
+    static associate(models) { }
+}
+exports.default = settings;

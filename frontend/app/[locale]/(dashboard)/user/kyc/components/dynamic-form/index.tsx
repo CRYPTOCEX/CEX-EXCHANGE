@@ -905,7 +905,7 @@ export function DynamicForm({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {getFieldRows().map((row, rowIndex) => (
-            <div key={rowIndex} className="flex gap-4">
+            <div key={rowIndex} className={row.length > 1 ? "flex flex-col sm:flex-row gap-4" : ""}>
               {row.map((field) => (
                 <div key={field.id} className="w-full">
                   {renderField(field)}

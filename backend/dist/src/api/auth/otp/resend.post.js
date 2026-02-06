@@ -1,1 +1,197 @@
-"use strict";function generateOtp(e){otplib_1.authenticator.options={window:2};return otplib_1.authenticator.generate(e)}async function handleSmsResend(e,t){const r=cache_1.CacheManager.getInstance();if(!("true"===await r.getSetting("twoFactorSmsStatus"))||!process.env.APP_TWILIO_VERIFY_SERVICE_SID)throw(0,error_1.createError)({statusCode:400,message:"SMS 2FA is not enabled"});const s=(await Promise.resolve().then(()=>__importStar(require("twilio")))).default;try{const r=s(constants_1.APP_TWILIO_ACCOUNT_SID,constants_1.APP_TWILIO_AUTH_TOKEN);await r.messages.create({body:`Your OTP code is: ${t}`,from:process.env.APP_TWILIO_PHONE_NUMBER,to:e})}catch(e){throw(0,error_1.createError)({statusCode:500,message:`Error sending SMS: ${e.message}`})}}async function handleEmailResend(e,t,r){const s=cache_1.CacheManager.getInstance();if(!("true"===await s.getSetting("twoFactorEmailStatus")))throw(0,error_1.createError)({statusCode:400,message:"Email 2FA is not enabled"});try{await emails_1.emailQueue.add({emailData:{TO:e,FIRSTNAME:t,TOKEN:r},emailType:"OTPTokenVerification"})}catch(e){throw(0,error_1.createError)({statusCode:500,message:`Error sending email: ${e.message}`})}}var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,r,s){void 0===s&&(s=r);var a=Object.getOwnPropertyDescriptor(t,r);a&&!("get"in a?!t.__esModule:a.writable||a.configurable)||(a={enumerable:!0,get:function(){return t[r]}});Object.defineProperty(e,s,a)}:function(e,t,r,s){void 0===s&&(s=r);e[s]=t[r]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&(t[t.length]=r);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var r={};if(null!=t)for(var s=e(t),a=0;a<s.length;a++)"default"!==s[a]&&__createBinding(r,t,s[a]);__setModuleDefault(r,t);return r}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const error_1=require("@b/utils/error"),otplib_1=require("otplib"),emails_1=require("@b/utils/emails"),constants_1=require("@b/utils/constants"),utils_1=require("./utils"),cache_1=require("@b/utils/cache");exports.metadata={summary:"Resends the OTP for 2FA",operationId:"resendOtp",tags:["Auth"],description:"Resends the OTP for 2FA",requiresAuth:!1,logModule:"2FA",logTitle:"Resend 2FA code",requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{id:{type:"string",format:"uuid",description:"ID of the user"},type:{type:"string",enum:["EMAIL","SMS"],description:"Type of 2FA"}},required:["id","type"]}}}},responses:{200:{description:"OTP resent successfully",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Success message"}}}}}},400:{description:"Invalid request"},401:{description:"Unauthorized"}}};exports.default=async e=>{const{body:t,ctx:r}=e,{id:s,type:a}=t;try{null==r||r.step("Validating resend request");if(!s||!a){null==r||r.fail("User ID and type are required");throw(0,error_1.createError)({statusCode:400,message:"User ID and type are required"})}null==r||r.step("Looking up user with 2FA");const e=await(0,utils_1.getUserWith2FA)(s);null==r||r.step("Generating new OTP");const t=generateOtp(e.twoFactor.secret);null==r||r.step(`Resending OTP via ${a}`);if("SMS"===a)await handleSmsResend(e.phone,t);else{if("EMAIL"!==a){null==r||r.fail("Invalid 2FA type");throw(0,error_1.createError)({statusCode:400,message:"Invalid 2FA type or 2FA method not enabled"})}await handleEmailResend(e.email,e.firstName,t)}null==r||r.success(`OTP resent successfully via ${a}`);return{message:"OTP resent successfully"}}catch(e){null==r||r.fail(e.message||"Failed to resend OTP");throw e}};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const error_1 = require("@b/utils/error");
+const otplib_1 = require("otplib");
+const emails_1 = require("@b/utils/emails");
+const constants_1 = require("@b/utils/constants");
+const utils_1 = require("./utils");
+const cache_1 = require("@b/utils/cache");
+exports.metadata = {
+    summary: "Resends the OTP for 2FA",
+    operationId: "resendOtp",
+    tags: ["Auth"],
+    description: "Resends the OTP for 2FA",
+    requiresAuth: false,
+    logModule: "2FA",
+    logTitle: "Resend 2FA code",
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        id: {
+                            type: "string",
+                            format: "uuid",
+                            description: "ID of the user",
+                        },
+                        type: {
+                            type: "string",
+                            enum: ["EMAIL", "SMS"],
+                            description: "Type of 2FA",
+                        },
+                    },
+                    required: ["id", "type"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "OTP resent successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: {
+                                type: "string",
+                                description: "Success message",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        400: {
+            description: "Invalid request",
+        },
+        401: {
+            description: "Unauthorized",
+        },
+    },
+};
+exports.default = async (data) => {
+    const { body, ctx } = data;
+    const { id, type } = body;
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating resend request");
+        if (!id || !type) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("User ID and type are required");
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "User ID and type are required",
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Looking up user with 2FA");
+        const user = await (0, utils_1.getUserWith2FA)(id);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Generating new OTP");
+        const otp = generateOtp(user.twoFactor.secret);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step(`Resending OTP via ${type}`);
+        if (type === "SMS") {
+            await handleSmsResend(user.phone || "", otp);
+        }
+        else if (type === "EMAIL") {
+            await handleEmailResend(user.email || "", user.firstName || "", otp);
+        }
+        else {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Invalid 2FA type");
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Invalid 2FA type or 2FA method not enabled",
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`OTP resent successfully via ${type}`);
+        return {
+            message: "OTP resent successfully",
+        };
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to resend OTP";
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(errorMessage);
+        throw error;
+    }
+};
+function generateOtp(secret) {
+    otplib_1.authenticator.options = { window: 2 };
+    return otplib_1.authenticator.generate(secret);
+}
+async function handleSmsResend(phoneNumber, otp) {
+    const cacheManager = cache_1.CacheManager.getInstance();
+    const smsTwoFactorEnabled = (await cacheManager.getSetting("twoFactorSmsStatus")) === "true";
+    if (!smsTwoFactorEnabled ||
+        !process.env.APP_TWILIO_VERIFY_SERVICE_SID) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "SMS 2FA is not enabled",
+        });
+    }
+    const twilio = (await Promise.resolve().then(() => __importStar(require("twilio")))).default;
+    try {
+        const twilioClient = twilio(constants_1.APP_TWILIO_ACCOUNT_SID, constants_1.APP_TWILIO_AUTH_TOKEN);
+        await twilioClient.messages.create({
+            body: `Your OTP code is: ${otp}`,
+            from: process.env.APP_TWILIO_PHONE_NUMBER,
+            to: phoneNumber,
+        });
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Error sending SMS: ${errorMessage}`,
+        });
+    }
+}
+async function handleEmailResend(email, firstName, otp) {
+    const cacheManager = cache_1.CacheManager.getInstance();
+    const emailTwoFactorEnabled = (await cacheManager.getSetting("twoFactorEmailStatus")) === "true";
+    if (!emailTwoFactorEnabled) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Email 2FA is not enabled",
+        });
+    }
+    try {
+        await emails_1.emailQueue.add({
+            emailData: {
+                TO: email,
+                FIRSTNAME: firstName,
+                TOKEN: otp,
+            },
+            emailType: "OTPTokenVerification",
+        });
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Error sending email: ${errorMessage}`,
+        });
+    }
+}

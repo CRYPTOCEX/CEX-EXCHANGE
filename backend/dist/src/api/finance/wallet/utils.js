@@ -1,1 +1,125 @@
-"use strict";async function getWallet(e,t,a,r=!1,l){var s;null===(s=null==l?void 0:l.step)||void 0===s||s.call(l,`Fetching wallet for user ${e}, type ${t}, currency ${a}`);const n=r?[{model:db_1.models.transaction,as:"transactions"}]:[],c=await db_1.models.wallet.findOne({where:{userId:e,currency:a,type:t},include:n,order:r?[["transactions.createdAt","DESC"]]:[]});if(!c)throw(0,error_1.createError)({statusCode:404,message:"Wallet not found"});return c.get({plain:!0})}async function getWalletSafe(e,t,a,r=!1,l){var s;null===(s=null==l?void 0:l.step)||void 0===s||s.call(l,`Safely fetching wallet for user ${e}, type ${t}, currency ${a}`);const n=r?[{model:db_1.models.transaction,as:"transactions"}]:[],c=await db_1.models.wallet.findOne({where:{userId:e,currency:a,type:t},include:n,order:r?[["transactions.createdAt","DESC"]]:[]});return c?c.get({plain:!0}):null}async function getWalletById(e,t){var a;null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,`Fetching wallet by ID: ${e}`);const r=await wallet_1.walletCreationService.getWalletById(e);if(!r)throw(0,error_1.createError)({statusCode:404,message:"Wallet not found"});return r}async function getTransactions(e,t){var a,r;null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,`Fetching transactions for wallet ID: ${e}`);const l=await db_1.models.wallet.findOne({where:{id:e}});if(!l)throw(0,error_1.createError)({statusCode:404,message:"Wallet not found"});null===(r=null==t?void 0:t.step)||void 0===r||r.call(t,`Fetching transaction records for wallet ${l.id}`);return(await db_1.models.transaction.findAll({where:{walletId:l.id},order:[["createdAt","DESC"]]})).map(e=>e.get({plain:!0}))}async function getOrCreateWallet(e,t,a,r){var l,s;null===(l=null==r?void 0:r.step)||void 0===l||l.call(r,`Getting or creating ${t} wallet for user ${e}, currency ${a}`);const n=await wallet_1.walletCreationService.getOrCreateWallet(e,t,a);null===(s=null==r?void 0:r.success)||void 0===s||s.call(r,`Wallet ready: ${n.wallet.id}`);return n.wallet}async function getUserWallets(e,t,a){var r;null===(r=null==a?void 0:a.step)||void 0===r||r.call(a,`Fetching wallets for user ${e}${t?`, type ${t}`:""}`);return await wallet_1.walletCreationService.getUserWallets(e,t)}Object.defineProperty(exports,"__esModule",{value:!0});exports.baseTransactionSchema=exports.baseWalletSchema=void 0;exports.getWallet=getWallet;exports.getWalletSafe=getWalletSafe;exports.getWalletById=getWalletById;exports.getTransactions=getTransactions;exports.getOrCreateWallet=getOrCreateWallet;exports.getUserWallets=getUserWallets;const db_1=require("@b/db"),schema_1=require("@b/utils/schema"),error_1=require("@b/utils/error"),wallet_1=require("@b/services/wallet");exports.baseWalletSchema={id:(0,schema_1.baseStringSchema)("ID of the wallet"),userId:(0,schema_1.baseStringSchema)("ID of the user who owns the wallet"),type:(0,schema_1.baseStringSchema)("Type of the wallet"),currency:(0,schema_1.baseStringSchema)("Currency of the wallet"),balance:(0,schema_1.baseNumberSchema)("Current balance of the wallet"),inOrder:(0,schema_1.baseNumberSchema)("Amount currently in order"),address:(0,schema_1.baseStringSchema)("Address associated with the wallet"),status:(0,schema_1.baseBooleanSchema)("Status of the wallet"),createdAt:(0,schema_1.baseDateTimeSchema)("Date and time when the wallet was created"),updatedAt:(0,schema_1.baseDateTimeSchema)("Date and time when the wallet was last updated")};exports.baseTransactionSchema={id:(0,schema_1.baseStringSchema)("ID of the transaction"),userId:(0,schema_1.baseStringSchema)("ID of the user who created the transaction"),walletId:(0,schema_1.baseStringSchema)("ID of the wallet associated with the transaction"),type:(0,schema_1.baseStringSchema)("Type of the transaction"),status:(0,schema_1.baseStringSchema)("Status of the transaction"),amount:(0,schema_1.baseNumberSchema)("Amount of the transaction"),fee:(0,schema_1.baseNumberSchema)("Fee charged for the transaction"),description:(0,schema_1.baseStringSchema)("Description of the transaction"),metadata:(0,schema_1.baseObjectSchema)("Metadata of the transaction"),referenceId:(0,schema_1.baseStringSchema)("Reference ID of the transaction"),createdAt:(0,schema_1.baseDateTimeSchema)("Date and time when the transaction was created"),updatedAt:(0,schema_1.baseDateTimeSchema)("Date and time when the transaction was last updated")};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.baseTransactionSchema = exports.baseWalletSchema = void 0;
+exports.getWallet = getWallet;
+exports.getWalletSafe = getWalletSafe;
+exports.getWalletById = getWalletById;
+exports.getTransactions = getTransactions;
+exports.getOrCreateWallet = getOrCreateWallet;
+exports.getUserWallets = getUserWallets;
+const db_1 = require("@b/db");
+const schema_1 = require("@b/utils/schema");
+const error_1 = require("@b/utils/error");
+const wallet_1 = require("@b/services/wallet");
+exports.baseWalletSchema = {
+    id: (0, schema_1.baseStringSchema)("ID of the wallet"),
+    userId: (0, schema_1.baseStringSchema)("ID of the user who owns the wallet"),
+    type: (0, schema_1.baseStringSchema)("Type of the wallet"),
+    currency: (0, schema_1.baseStringSchema)("Currency of the wallet"),
+    balance: (0, schema_1.baseNumberSchema)("Current balance of the wallet"),
+    inOrder: (0, schema_1.baseNumberSchema)("Amount currently in order"),
+    address: (0, schema_1.baseStringSchema)("Address associated with the wallet"),
+    status: (0, schema_1.baseBooleanSchema)("Status of the wallet"),
+    createdAt: (0, schema_1.baseDateTimeSchema)("Date and time when the wallet was created"),
+    updatedAt: (0, schema_1.baseDateTimeSchema)("Date and time when the wallet was last updated"),
+};
+exports.baseTransactionSchema = {
+    id: (0, schema_1.baseStringSchema)("ID of the transaction"),
+    userId: (0, schema_1.baseStringSchema)("ID of the user who created the transaction"),
+    walletId: (0, schema_1.baseStringSchema)("ID of the wallet associated with the transaction"),
+    type: (0, schema_1.baseStringSchema)("Type of the transaction"),
+    status: (0, schema_1.baseStringSchema)("Status of the transaction"),
+    amount: (0, schema_1.baseNumberSchema)("Amount of the transaction"),
+    fee: (0, schema_1.baseNumberSchema)("Fee charged for the transaction"),
+    description: (0, schema_1.baseStringSchema)("Description of the transaction"),
+    metadata: (0, schema_1.baseObjectSchema)("Metadata of the transaction"),
+    referenceId: (0, schema_1.baseStringSchema)("Reference ID of the transaction"),
+    createdAt: (0, schema_1.baseDateTimeSchema)("Date and time when the transaction was created"),
+    updatedAt: (0, schema_1.baseDateTimeSchema)("Date and time when the transaction was last updated"),
+};
+async function getWallet(userId, type, currency, hasTransactions = false, ctx) {
+    var _a;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Fetching wallet for user ${userId}, type ${type}, currency ${currency}`);
+    const include = hasTransactions
+        ? [
+            {
+                model: db_1.models.transaction,
+                as: "transactions",
+            },
+        ]
+        : [];
+    const response = await db_1.models.wallet.findOne({
+        where: {
+            userId,
+            currency,
+            type,
+        },
+        include,
+        order: hasTransactions ? [["transactions.createdAt", "DESC"]] : [],
+    });
+    if (!response) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+    }
+    return response.get({ plain: true });
+}
+async function getWalletSafe(userId, type, currency, hasTransactions = false, ctx) {
+    var _a;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Safely fetching wallet for user ${userId}, type ${type}, currency ${currency}`);
+    const include = hasTransactions
+        ? [
+            {
+                model: db_1.models.transaction,
+                as: "transactions",
+            },
+        ]
+        : [];
+    const response = await db_1.models.wallet.findOne({
+        where: {
+            userId,
+            currency,
+            type,
+        },
+        include,
+        order: hasTransactions ? [["transactions.createdAt", "DESC"]] : [],
+    });
+    if (!response) {
+        return null;
+    }
+    return response.get({ plain: true });
+}
+async function getWalletById(id, ctx) {
+    var _a;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Fetching wallet by ID: ${id}`);
+    const wallet = await wallet_1.walletCreationService.getWalletById(id);
+    if (!wallet) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+    }
+    return wallet;
+}
+async function getTransactions(id, ctx) {
+    var _a, _b;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Fetching transactions for wallet ID: ${id}`);
+    const wallet = await db_1.models.wallet.findOne({
+        where: { id },
+    });
+    if (!wallet) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+    }
+    (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, `Fetching transaction records for wallet ${wallet.id}`);
+    return (await db_1.models.transaction.findAll({
+        where: { walletId: wallet.id },
+        order: [["createdAt", "DESC"]],
+    })).map((transaction) => transaction.get({ plain: true }));
+}
+async function getOrCreateWallet(userId, type, currency, ctx) {
+    var _a, _b;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Getting or creating ${type} wallet for user ${userId}, currency ${currency}`);
+    const result = await wallet_1.walletCreationService.getOrCreateWallet(userId, type, currency);
+    (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Wallet ready: ${result.wallet.id}`);
+    return result.wallet;
+}
+async function getUserWallets(userId, type, ctx) {
+    var _a;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Fetching wallets for user ${userId}${type ? `, type ${type}` : ""}`);
+    return await wallet_1.walletCreationService.getUserWallets(userId, type);
+}

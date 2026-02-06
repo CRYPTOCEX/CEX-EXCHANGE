@@ -271,7 +271,7 @@ export const useStakingAdminAnalyticsStore = create<StakingAdminAnalyticsState>(
       set({ isLoading: true, error: null });
       try {
         const { data, error } = await $fetch({
-          url: "/api/admin/staking/analytic",
+          url: "/api/admin/staking/analytics",
           method: "GET",
           silentSuccess: true,
         });

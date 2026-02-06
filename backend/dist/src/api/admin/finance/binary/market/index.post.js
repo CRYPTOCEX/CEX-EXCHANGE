@@ -1,1 +1,41 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query"),utils_1=require("./utils");exports.metadata={summary:"Stores a new Binary Market",operationId:"storeBinaryMarket",tags:["Admin","Binary Markets"],requestBody:{required:!0,content:{"application/json":{schema:utils_1.BinaryMarketUpdateSchema}}},responses:(0,query_1.storeRecordResponses)(utils_1.BinaryMarketStoreSchema,"Binary Market"),requiresAuth:!0,permission:"create.binary.market",logModule:"ADMIN_BINARY",logTitle:"Create binary market"};exports.default=async e=>{const{body:r,ctx:t}=e,{currency:a,pair:s,isTrending:i,isHot:n,status:o}=r;null==t||t.step("Validating binary market data");null==t||t.step("Creating binary market record");const u=await(0,query_1.storeRecord)({model:"binaryMarket",data:{currency:a,pair:s,isTrending:void 0!==i&&i,isHot:void 0!==n&&n,status:void 0===o||o}});null==t||t.success("Binary market created successfully");return u};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+const utils_1 = require("./utils");
+exports.metadata = {
+    summary: "Stores a new Binary Market",
+    operationId: "storeBinaryMarket",
+    tags: ["Admin", "Binary Markets"],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: utils_1.BinaryMarketUpdateSchema,
+            },
+        },
+    },
+    responses: (0, query_1.storeRecordResponses)(utils_1.BinaryMarketStoreSchema, "Binary Market"),
+    requiresAuth: true,
+    permission: "create.binary.market",
+    logModule: "ADMIN_BINARY",
+    logTitle: "Create binary market",
+};
+exports.default = async (data) => {
+    const { body, ctx } = data;
+    const { currency, pair, isTrending, isHot, status } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating binary market data");
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating binary market record");
+    const result = await (0, query_1.storeRecord)({
+        model: "binaryMarket",
+        data: {
+            currency,
+            pair,
+            isTrending: isTrending !== undefined ? isTrending : false,
+            isHot: isHot !== undefined ? isHot : false,
+            status: status !== undefined ? status : true,
+        },
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Binary market created successfully");
+    return result;
+};

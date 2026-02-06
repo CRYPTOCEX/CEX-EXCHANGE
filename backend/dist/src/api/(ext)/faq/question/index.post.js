@@ -1,1 +1,89 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),faq_validation_1=require("@b/api/(ext)/faq/utils/faq-validation"),Middleware_1=require("@b/handler/Middleware");exports.metadata={summary:"Submit FAQ Question",description:"Allows a user to submit a question if they cannot find an answer in the FAQs.",operationId:"submitFAQQuestion",tags:["FAQ"],logModule:"FAQ",logTitle:"Submit FAQ Question",requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{email:{type:"string",description:"User's email"},question:{type:"string",description:"The submitted question"}},required:["email","question"]}}}},responses:{200:{description:"Question submitted successfully"},400:{description:"Bad Request"},500:{description:"Internal Server Error"}},requiresAuth:!0};exports.default=async e=>{const{body:t,user:r,ctx:i}=e;null==i||i.step("Applying rate limiting");await(0,Middleware_1.faqQuestionRateLimit)(e);if(!(null==r?void 0:r.id)){null==i||i.fail("Unauthorized");throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"})}const{email:s,question:o}=t;if(!s||!o){null==i||i.fail("Missing required fields");throw(0,error_1.createError)({statusCode:400,message:"Missing required fields"})}const a=(0,faq_validation_1.validateEmail)(s,i);if(!a.isValid)throw(0,error_1.createError)({statusCode:400,message:a.errors.join(", ")});const n=(0,faq_validation_1.validateFAQQuestion)(o,i);if(!n.isValid)throw(0,error_1.createError)({statusCode:400,message:n.errors.join(", ")});null==i||i.step("Fetching user details");const u=await db_1.models.user.findByPk(r.id);if(!u){null==i||i.fail("User not found");throw(0,error_1.createError)({statusCode:400,message:"User not found"})}try{null==i||i.step("Creating FAQ question record");const e=await db_1.models.faqQuestion.create({userId:r.id,name:(0,faq_validation_1.sanitizeInput)(u.firstName+" "+u.lastName,i),email:s.trim().toLowerCase(),question:(0,faq_validation_1.sanitizeInput)(o,i),status:"PENDING"});null==i||i.success(`FAQ question submitted successfully (ID: ${e.id})`);return e}catch(e){console.error("Error submitting FAQ question:",e);null==i||i.fail(e instanceof Error?e.message:"Failed to submit question");throw(0,error_1.createError)({statusCode:500,message:e instanceof Error?e.message:"Failed to submit question"})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const faq_validation_1 = require("@b/api/(ext)/faq/utils/faq-validation");
+const Middleware_1 = require("@b/handler/Middleware");
+exports.metadata = {
+    summary: "Submit FAQ Question",
+    description: "Allows a user to submit a question if they cannot find an answer in the FAQs.",
+    operationId: "submitFAQQuestion",
+    tags: ["FAQ"],
+    logModule: "FAQ",
+    logTitle: "Submit FAQ Question",
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        email: { type: "string", description: "User's email" },
+                        question: { type: "string", description: "The submitted question" },
+                    },
+                    required: ["email", "question"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: { description: "Question submitted successfully" },
+        400: { description: "Bad Request" },
+        500: { description: "Internal Server Error" },
+    },
+    requiresAuth: true,
+};
+exports.default = async (data) => {
+    const { body, user, ctx } = data;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Applying rate limiting");
+    await (0, Middleware_1.faqQuestionRateLimit)(data);
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Unauthorized");
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    const { email, question } = body;
+    if (!email || !question) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Missing required fields");
+        throw (0, error_1.createError)({ statusCode: 400, message: "Missing required fields" });
+    }
+    const emailValidation = (0, faq_validation_1.validateEmail)(email, ctx);
+    if (!emailValidation.isValid) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: emailValidation.errors.join(', ')
+        });
+    }
+    const questionValidation = (0, faq_validation_1.validateFAQQuestion)(question, ctx);
+    if (!questionValidation.isValid) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: questionValidation.errors.join(', ')
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching user details");
+    const userPk = await db_1.models.user.findByPk(user.id);
+    if (!userPk) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("User not found");
+        throw (0, error_1.createError)({ statusCode: 400, message: "User not found" });
+    }
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating FAQ question record");
+        const newQuestion = await db_1.models.faqQuestion.create({
+            name: (0, faq_validation_1.sanitizeInput)(userPk.firstName + " " + userPk.lastName, ctx),
+            email: email.trim().toLowerCase(),
+            question: (0, faq_validation_1.sanitizeInput)(question, ctx),
+            status: "PENDING",
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`FAQ question submitted successfully (ID: ${newQuestion.id})`);
+        return newQuestion;
+    }
+    catch (error) {
+        console.error("Error submitting FAQ question:", error);
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(error instanceof Error ? error.message : "Failed to submit question");
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: error instanceof Error ? error.message : "Failed to submit question",
+        });
+    }
+};

@@ -1,1 +1,73 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.ecommerceShippingUpdateSchema=exports.ecommerceShippingStoreSchema=exports.ecommerceShippingSchema=void 0;const schema_1=require("@b/utils/schema"),id=(0,schema_1.baseStringSchema)("ID of the e-commerce shipping"),loadId=(0,schema_1.baseStringSchema)("Load ID of the shipping"),loadStatus=(0,schema_1.baseEnumSchema)("Load status of the shipping",["PENDING","TRANSIT","DELIVERED","CANCELLED"]),shipper=(0,schema_1.baseStringSchema)("Shipper name"),transporter=(0,schema_1.baseStringSchema)("Transporter name"),goodsType=(0,schema_1.baseStringSchema)("Type of goods being shipped"),weight=(0,schema_1.baseNumberSchema)("Weight of the goods"),volume=(0,schema_1.baseNumberSchema)("Volume of the goods"),description=(0,schema_1.baseStringSchema)("Description of the shipment"),vehicle=(0,schema_1.baseStringSchema)("Vehicle used for shipping"),cost=(0,schema_1.baseNumberSchema)("Shipping cost",!1),tax=(0,schema_1.baseNumberSchema)("Shipping tax",!1),deliveryDate=(0,schema_1.baseDateTimeSchema)("Expected delivery date",!1),createdAt=(0,schema_1.baseDateTimeSchema)("Creation date of the shipping",!0),updatedAt=(0,schema_1.baseDateTimeSchema)("Last update date of the shipping",!0);exports.ecommerceShippingSchema={id:id,loadId:loadId,loadStatus:loadStatus,shipper:shipper,transporter:transporter,goodsType:goodsType,weight:weight,volume:volume,description:description,vehicle:vehicle,cost:cost,tax:tax,deliveryDate:deliveryDate,createdAt:createdAt,updatedAt:updatedAt};exports.ecommerceShippingStoreSchema={type:"object",properties:exports.ecommerceShippingSchema};exports.ecommerceShippingUpdateSchema={type:"object",properties:{loadId:loadId,loadStatus:loadStatus,shipper:shipper,transporter:transporter,goodsType:goodsType,weight:weight,volume:volume,description:description,vehicle:vehicle,cost:cost,tax:tax,deliveryDate:deliveryDate},required:["loadId","loadStatus","shipper","transporter","goodsType","weight","volume","description","vehicle"]};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ecommerceShippingUpdateSchema = exports.ecommerceShippingStoreSchema = exports.ecommerceShippingSchema = void 0;
+const schema_1 = require("@b/utils/schema");
+const id = (0, schema_1.baseStringSchema)("ID of the e-commerce shipping");
+const loadId = (0, schema_1.baseStringSchema)("Load ID of the shipping");
+const loadStatus = (0, schema_1.baseEnumSchema)("Load status of the shipping", [
+    "PENDING",
+    "TRANSIT",
+    "DELIVERED",
+    "CANCELLED",
+]);
+const shipper = (0, schema_1.baseStringSchema)("Shipper name");
+const transporter = (0, schema_1.baseStringSchema)("Transporter name");
+const goodsType = (0, schema_1.baseStringSchema)("Type of goods being shipped");
+const weight = (0, schema_1.baseNumberSchema)("Weight of the goods");
+const volume = (0, schema_1.baseNumberSchema)("Volume of the goods");
+const description = (0, schema_1.baseStringSchema)("Description of the shipment");
+const vehicle = (0, schema_1.baseStringSchema)("Vehicle used for shipping");
+const cost = (0, schema_1.baseNumberSchema)("Shipping cost", false);
+const tax = (0, schema_1.baseNumberSchema)("Shipping tax", false);
+const deliveryDate = (0, schema_1.baseDateTimeSchema)("Expected delivery date", false);
+const createdAt = (0, schema_1.baseDateTimeSchema)("Creation date of the shipping", true);
+const updatedAt = (0, schema_1.baseDateTimeSchema)("Last update date of the shipping", true);
+exports.ecommerceShippingSchema = {
+    id,
+    loadId,
+    loadStatus,
+    shipper,
+    transporter,
+    goodsType,
+    weight,
+    volume,
+    description,
+    vehicle,
+    cost,
+    tax,
+    deliveryDate,
+    createdAt,
+    updatedAt,
+};
+exports.ecommerceShippingStoreSchema = {
+    type: "object",
+    properties: exports.ecommerceShippingSchema,
+};
+exports.ecommerceShippingUpdateSchema = {
+    type: "object",
+    properties: {
+        loadId,
+        loadStatus,
+        shipper,
+        transporter,
+        goodsType,
+        weight,
+        volume,
+        description,
+        vehicle,
+        cost,
+        tax,
+        deliveryDate,
+    },
+    required: [
+        "loadId",
+        "loadStatus",
+        "shipper",
+        "transporter",
+        "goodsType",
+        "weight",
+        "volume",
+        "description",
+        "vehicle",
+    ],
+};

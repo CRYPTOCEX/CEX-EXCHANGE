@@ -1,1 +1,417 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.PushChannel=void 0;const BaseChannel_1=require("./BaseChannel"),FCMProvider_1=require("../providers/push/FCMProvider"),WebPushProvider_1=require("../providers/push/WebPushProvider"),db_1=require("@b/db");class PushChannel extends BaseChannel_1.BaseChannel{constructor(){super("PUSH");this.fcmProvider=null;this.webPushProvider=null;this.hasFCM=!1;this.hasWebPush=!1;this.initializeProviders()}initializeProviders(){if(!(!process.env.FCM_PROJECT_ID&&!process.env.FCM_SERVICE_ACCOUNT_PATH))try{this.fcmProvider=new FCMProvider_1.FCMProvider;this.fcmProvider.validateConfig()&&(this.hasFCM=!0)}catch(e){this.logError("Failed to initialize FCM provider",e)}if(!(!process.env.VAPID_PUBLIC_KEY||!process.env.VAPID_PRIVATE_KEY))try{this.webPushProvider=new WebPushProvider_1.WebPushProvider;this.webPushProvider.validateConfig()&&(this.hasWebPush=!0)}catch(e){this.logError("Failed to initialize WebPush provider",e)}}async send(e,s){var t,n,i,o;try{const r=await db_1.models.user.findByPk(e.userId,{attributes:["settings"],transaction:s});if(!r||!r.settings)return{success:!1,error:"User not found"};const{fcmTokens:u,webPushTokens:a}=this.categorizeTokens(r.settings);if(0===u.length&&0===a.length)return{success:!1,error:"No push notification tokens found for user"};const h=this.preparePushData(e),d=this.preparePlatformOptions(e),c=[],l=[];if(this.hasFCM&&this.fcmProvider&&u.length>0){h.tokens=u;const e=await this.fcmProvider.send(h,d);c.push(e);(null===(n=null===(t=e.metadata)||void 0===t?void 0:t.invalidTokens)||void 0===n?void 0:n.length)>0&&l.push(...e.metadata.invalidTokens)}if(this.hasWebPush&&this.webPushProvider&&a.length>0){h.tokens=a;const e=await this.webPushProvider.send(h,d);c.push(e);(null===(o=null===(i=e.metadata)||void 0===i?void 0:i.invalidSubscriptions)||void 0===o?void 0:o.length)>0&&l.push(...e.metadata.invalidSubscriptions)}l.length>0&&await this.removeInvalidTokens(e.userId,l,s);const p=c.filter(e=>e.success).length,f=c.reduce((e,s)=>{var t;return e+((null===(t=s.metadata)||void 0===t?void 0:t.successCount)||(s.success?1:0))},0);return 0===p?{success:!1,error:c.map(e=>e.error).filter(Boolean).join("; ")}:{success:!0,messageId:`push-${Date.now()}`,metadata:{fcmTokens:u.length,webPushTokens:a.length,totalSuccess:f,results:c}}}catch(e){this.logError("Failed to send push notification",e);return{success:!1,error:e.message||"Failed to send push notification"}}}categorizeTokens(e){const s=[],t=[];if(!e)return{fcmTokens:s,webPushTokens:t};if(e.pushTokens)if(Array.isArray(e.pushTokens))for(const n of e.pushTokens)"string"==typeof n?this.isWebPushSubscription(n)?t.push(n):s.push(n):n&&"object"==typeof n&&("webpush"===n.type&&n.token?t.push(n.token):"fcm"===n.type&&n.token?s.push(n.token):n.token&&(this.isWebPushSubscription(n.token)?t.push(n.token):s.push(n.token)));else if("object"==typeof e.pushTokens)for(const[n,i]of Object.entries(e.pushTokens))if("string"==typeof i)this.isWebPushSubscription(i)?t.push(i):s.push(i);else if(i&&"object"==typeof i){const e=i;"webpush"===e.type&&e.token?t.push(e.token):"fcm"===e.type&&e.token?s.push(e.token):e.token&&(this.isWebPushSubscription(e.token)?t.push(e.token):s.push(e.token))}if(e.webPushSubscriptions&&Array.isArray(e.webPushSubscriptions))for(const s of e.webPushSubscriptions){const e="string"==typeof s?s:JSON.stringify(s);t.includes(e)||t.push(e)}return{fcmTokens:s,webPushTokens:t}}isWebPushSubscription(e){try{const s=JSON.parse(e);return s&&"string"==typeof s.endpoint&&s.endpoint.startsWith("https://")&&s.keys&&"string"==typeof s.keys.p256dh&&"string"==typeof s.keys.auth}catch(e){return!1}}preparePushData(e){const s=e.data||{};return{tokens:[],title:s.title||"Notification",body:s.pushMessage||s.message||"You have a new notification",data:{type:e.type,notificationId:s.relatedId||"",link:s.link||"",...s.pushData},imageUrl:s.imageUrl||s.pushImageUrl,icon:s.icon||s.pushIcon,badge:s.badge,sound:s.sound||"default",clickAction:s.link||s.clickAction,tag:s.tag||e.type,priority:this.mapPriority(e.priority)}}preparePlatformOptions(e){const s=e.data||{};return{android:{channelId:s.androidChannelId||"default-channel",color:s.androidColor||"#1976D2",vibrate:!1!==s.vibrate,lights:!1!==s.lights},ios:{badge:s.badge,sound:s.sound||"default",contentAvailable:s.contentAvailable||!1,mutableContent:s.mutableContent||!1},web:{icon:s.icon||"/img/logo/android-chrome-192x192.png",badge:s.webBadge||"/img/logo/android-icon-96x96.png",vibrate:!1!==s.vibrate?[200,100,200]:void 0}}}mapPriority(e){return"HIGH"===e||"URGENT"===e?"high":"normal"}async removeInvalidTokens(e,s,t){try{const n=await db_1.models.user.findByPk(e,{transaction:t});if(!n||!n.settings)return;let i=!1;const o={...n.settings};if(o.pushTokens)if(Array.isArray(o.pushTokens)){const e=o.pushTokens.length;o.pushTokens=o.pushTokens.filter(e=>{const t="string"==typeof e?e:null==e?void 0:e.token;return!s.some(e=>(null==t?void 0:t.includes(e))||(null==e?void 0:e.includes(t)))});o.pushTokens.length!==e&&(i=!0)}else if("object"==typeof o.pushTokens)for(const[e,t]of Object.entries(o.pushTokens)){const n="string"==typeof t?t:null==t?void 0:t.token;if(s.some(e=>(null==n?void 0:n.includes(e))||(null==e?void 0:e.includes(n)))){delete o.pushTokens[e];i=!0}}if(o.webPushSubscriptions&&Array.isArray(o.webPushSubscriptions)){const e=o.webPushSubscriptions.length;o.webPushSubscriptions=o.webPushSubscriptions.filter(e=>{const t="string"==typeof e?e:JSON.stringify(e);return!s.some(e=>t.includes(e))});o.webPushSubscriptions.length!==e&&(i=!0)}if(i){await n.update({settings:o},{transaction:t});this.log("Removed invalid push tokens",{userId:e,removedCount:s.length})}}catch(e){this.logError("Failed to remove invalid tokens",e)}}validateConfig(){return this.hasFCM||this.hasWebPush}hasFCMProvider(){return this.hasFCM}hasWebPushProvider(){return this.hasWebPush}getVapidPublicKey(){var e;return(null===(e=this.webPushProvider)||void 0===e?void 0:e.getPublicKey())||null}async addDeviceToken(e,s,t="fcm",n,i){try{const o=await db_1.models.user.findByPk(e);if(!o)return!1;const r={...o.settings||{}};r.pushTokens||(r.pushTokens={});const u=n||`${t}-${Date.now()}-${Math.random().toString(36).substr(2,9)}`,a={type:t,token:s,deviceId:u,platform:i,createdAt:new Date};if("object"!=typeof r.pushTokens||Array.isArray(r.pushTokens)){const e={};Array.isArray(r.pushTokens)&&r.pushTokens.forEach((s,t)=>{"string"==typeof s?e[`legacy-${t}`]={type:this.isWebPushSubscription(s)?"webpush":"fcm",token:s}:e[s.deviceId||`legacy-${t}`]=s});e[u]=a;r.pushTokens=e}else{for(const[e,t]of Object.entries(r.pushTokens)){if(("string"==typeof t?t:null==t?void 0:t.token)===s)return!0}r.pushTokens[u]=a}await o.update({settings:r});return!0}catch(e){this.logError("Failed to add device token",e);return!1}}async addWebPushSubscription(e,s,t){return this.addDeviceToken(e,JSON.stringify(s),"webpush",t,"web")}async removeDeviceToken(e,s){try{const t=await db_1.models.user.findByPk(e);if(!t||!t.settings||!t.settings.pushTokens)return!1;const n={...t.settings};let i=!1;if("object"!=typeof n.pushTokens||Array.isArray(n.pushTokens)){if(Array.isArray(n.pushTokens)){const e=n.pushTokens.length;n.pushTokens=n.pushTokens.filter(e=>{const t="string"==typeof e?e:null==e?void 0:e.token;return t!==s&&!(null==t?void 0:t.includes(s))});i=n.pushTokens.length!==e}}else if(n.pushTokens[s]){delete n.pushTokens[s];i=!0}else for(const[e,t]of Object.entries(n.pushTokens)){const o="string"==typeof t?t:null==t?void 0:t.token;if(o===s||(null==o?void 0:o.includes(s))){delete n.pushTokens[e];i=!0;break}}if(i){await t.update({settings:n});this.log("Removed device token",{userId:e,tokenOrDeviceId:s});return!0}return!1}catch(e){this.logError("Failed to remove device token",e);return!1}}}exports.PushChannel=PushChannel;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PushChannel = void 0;
+const BaseChannel_1 = require("./BaseChannel");
+const FCMProvider_1 = require("../providers/push/FCMProvider");
+const WebPushProvider_1 = require("../providers/push/WebPushProvider");
+const db_1 = require("@b/db");
+class PushChannel extends BaseChannel_1.BaseChannel {
+    constructor() {
+        super("PUSH");
+        this.fcmProvider = null;
+        this.webPushProvider = null;
+        this.hasFCM = false;
+        this.hasWebPush = false;
+        this.initializeProviders();
+    }
+    initializeProviders() {
+        const hasFCMConfig = !!(process.env.FCM_PROJECT_ID ||
+            process.env.FCM_SERVICE_ACCOUNT_PATH);
+        if (hasFCMConfig) {
+            try {
+                this.fcmProvider = new FCMProvider_1.FCMProvider();
+                if (this.fcmProvider.validateConfig()) {
+                    this.hasFCM = true;
+                }
+            }
+            catch (error) {
+                this.logError("Failed to initialize FCM provider", error);
+            }
+        }
+        const hasVAPIDConfig = !!(process.env.VAPID_PUBLIC_KEY &&
+            process.env.VAPID_PRIVATE_KEY);
+        if (hasVAPIDConfig) {
+            try {
+                this.webPushProvider = new WebPushProvider_1.WebPushProvider();
+                if (this.webPushProvider.validateConfig()) {
+                    this.hasWebPush = true;
+                }
+            }
+            catch (error) {
+                this.logError("Failed to initialize WebPush provider", error);
+            }
+        }
+    }
+    async send(operation, transaction) {
+        var _a, _b, _c, _d;
+        try {
+            const user = await db_1.models.user.findByPk(operation.userId, {
+                attributes: ["settings"],
+                transaction,
+            });
+            if (!user || !user.settings) {
+                return {
+                    success: false,
+                    error: "User not found",
+                };
+            }
+            const { fcmTokens, webPushTokens } = this.categorizeTokens(user.settings);
+            if (fcmTokens.length === 0 && webPushTokens.length === 0) {
+                return {
+                    success: false,
+                    error: "No push notification tokens found for user",
+                };
+            }
+            const pushData = this.preparePushData(operation);
+            const platformOptions = this.preparePlatformOptions(operation);
+            const results = [];
+            const invalidTokens = [];
+            if (this.hasFCM && this.fcmProvider && fcmTokens.length > 0) {
+                pushData.tokens = fcmTokens;
+                const fcmResult = await this.fcmProvider.send(pushData, platformOptions);
+                results.push(fcmResult);
+                if (((_b = (_a = fcmResult.metadata) === null || _a === void 0 ? void 0 : _a.invalidTokens) === null || _b === void 0 ? void 0 : _b.length) > 0) {
+                    invalidTokens.push(...fcmResult.metadata.invalidTokens);
+                }
+            }
+            if (this.hasWebPush && this.webPushProvider && webPushTokens.length > 0) {
+                pushData.tokens = webPushTokens;
+                const webPushResult = await this.webPushProvider.send(pushData, platformOptions);
+                results.push(webPushResult);
+                if (((_d = (_c = webPushResult.metadata) === null || _c === void 0 ? void 0 : _c.invalidSubscriptions) === null || _d === void 0 ? void 0 : _d.length) > 0) {
+                    invalidTokens.push(...webPushResult.metadata.invalidSubscriptions);
+                }
+            }
+            if (invalidTokens.length > 0) {
+                await this.removeInvalidTokens(operation.userId, invalidTokens, transaction);
+            }
+            const successCount = results.filter((r) => r.success).length;
+            const totalSuccess = results.reduce((sum, r) => { var _a; return sum + (((_a = r.metadata) === null || _a === void 0 ? void 0 : _a.successCount) || (r.success ? 1 : 0)); }, 0);
+            if (successCount === 0) {
+                return {
+                    success: false,
+                    error: results.map((r) => r.error).filter(Boolean).join("; "),
+                };
+            }
+            return {
+                success: true,
+                messageId: `push-${Date.now()}`,
+                metadata: {
+                    fcmTokens: fcmTokens.length,
+                    webPushTokens: webPushTokens.length,
+                    totalSuccess,
+                    results,
+                },
+            };
+        }
+        catch (error) {
+            this.logError("Failed to send push notification", error);
+            return {
+                success: false,
+                error: error.message || "Failed to send push notification",
+            };
+        }
+    }
+    categorizeTokens(settings) {
+        const fcmTokens = [];
+        const webPushTokens = [];
+        if (!settings) {
+            return { fcmTokens, webPushTokens };
+        }
+        if (settings.pushTokens) {
+            if (Array.isArray(settings.pushTokens)) {
+                for (const entry of settings.pushTokens) {
+                    if (typeof entry === "string") {
+                        if (this.isWebPushSubscription(entry)) {
+                            webPushTokens.push(entry);
+                        }
+                        else {
+                            fcmTokens.push(entry);
+                        }
+                    }
+                    else if (entry && typeof entry === "object") {
+                        if (entry.type === "webpush" && entry.token) {
+                            webPushTokens.push(entry.token);
+                        }
+                        else if (entry.type === "fcm" && entry.token) {
+                            fcmTokens.push(entry.token);
+                        }
+                        else if (entry.token) {
+                            if (this.isWebPushSubscription(entry.token)) {
+                                webPushTokens.push(entry.token);
+                            }
+                            else {
+                                fcmTokens.push(entry.token);
+                            }
+                        }
+                    }
+                }
+            }
+            else if (typeof settings.pushTokens === "object") {
+                for (const [deviceId, value] of Object.entries(settings.pushTokens)) {
+                    if (typeof value === "string") {
+                        if (this.isWebPushSubscription(value)) {
+                            webPushTokens.push(value);
+                        }
+                        else {
+                            fcmTokens.push(value);
+                        }
+                    }
+                    else if (value && typeof value === "object") {
+                        const entry = value;
+                        if (entry.type === "webpush" && entry.token) {
+                            webPushTokens.push(entry.token);
+                        }
+                        else if (entry.type === "fcm" && entry.token) {
+                            fcmTokens.push(entry.token);
+                        }
+                        else if (entry.token) {
+                            if (this.isWebPushSubscription(entry.token)) {
+                                webPushTokens.push(entry.token);
+                            }
+                            else {
+                                fcmTokens.push(entry.token);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (settings.webPushSubscriptions) {
+            if (Array.isArray(settings.webPushSubscriptions)) {
+                for (const sub of settings.webPushSubscriptions) {
+                    const subStr = typeof sub === "string" ? sub : JSON.stringify(sub);
+                    if (!webPushTokens.includes(subStr)) {
+                        webPushTokens.push(subStr);
+                    }
+                }
+            }
+        }
+        return { fcmTokens, webPushTokens };
+    }
+    isWebPushSubscription(token) {
+        try {
+            const parsed = JSON.parse(token);
+            return (parsed &&
+                typeof parsed.endpoint === "string" &&
+                parsed.endpoint.startsWith("https://") &&
+                parsed.keys &&
+                typeof parsed.keys.p256dh === "string" &&
+                typeof parsed.keys.auth === "string");
+        }
+        catch (_a) {
+            return false;
+        }
+    }
+    preparePushData(operation) {
+        const data = operation.data || {};
+        return {
+            tokens: [],
+            title: data.title || "Notification",
+            body: data.pushMessage || data.message || "You have a new notification",
+            data: {
+                type: operation.type,
+                notificationId: data.relatedId || "",
+                link: data.link || "",
+                ...data.pushData,
+            },
+            imageUrl: data.imageUrl || data.pushImageUrl,
+            icon: data.icon || data.pushIcon,
+            badge: data.badge,
+            sound: data.sound || "default",
+            clickAction: data.link || data.clickAction,
+            tag: data.tag || operation.type,
+            priority: this.mapPriority(operation.priority),
+        };
+    }
+    preparePlatformOptions(operation) {
+        const data = operation.data || {};
+        return {
+            android: {
+                channelId: data.androidChannelId || "default-channel",
+                color: data.androidColor || "#1976D2",
+                vibrate: data.vibrate !== false,
+                lights: data.lights !== false,
+            },
+            ios: {
+                badge: data.badge,
+                sound: data.sound || "default",
+                contentAvailable: data.contentAvailable || false,
+                mutableContent: data.mutableContent || false,
+            },
+            web: {
+                icon: data.icon || "/img/logo/android-chrome-192x192.png",
+                badge: data.webBadge || "/img/logo/android-icon-96x96.png",
+                vibrate: data.vibrate !== false ? [200, 100, 200] : undefined,
+            },
+        };
+    }
+    mapPriority(priority) {
+        return priority === "HIGH" || priority === "URGENT" ? "high" : "normal";
+    }
+    async removeInvalidTokens(userId, invalidTokens, transaction) {
+        try {
+            const user = await db_1.models.user.findByPk(userId, { transaction });
+            if (!user || !user.settings) {
+                return;
+            }
+            let updated = false;
+            const settings = { ...user.settings };
+            if (settings.pushTokens) {
+                if (Array.isArray(settings.pushTokens)) {
+                    const originalLength = settings.pushTokens.length;
+                    settings.pushTokens = settings.pushTokens.filter((entry) => {
+                        const token = typeof entry === "string" ? entry : entry === null || entry === void 0 ? void 0 : entry.token;
+                        return !invalidTokens.some((invalid) => (token === null || token === void 0 ? void 0 : token.includes(invalid)) || (invalid === null || invalid === void 0 ? void 0 : invalid.includes(token)));
+                    });
+                    if (settings.pushTokens.length !== originalLength) {
+                        updated = true;
+                    }
+                }
+                else if (typeof settings.pushTokens === "object") {
+                    for (const [key, value] of Object.entries(settings.pushTokens)) {
+                        const token = typeof value === "string" ? value : value === null || value === void 0 ? void 0 : value.token;
+                        if (invalidTokens.some((invalid) => (token === null || token === void 0 ? void 0 : token.includes(invalid)) || (invalid === null || invalid === void 0 ? void 0 : invalid.includes(token)))) {
+                            delete settings.pushTokens[key];
+                            updated = true;
+                        }
+                    }
+                }
+            }
+            if (settings.webPushSubscriptions && Array.isArray(settings.webPushSubscriptions)) {
+                const originalLength = settings.webPushSubscriptions.length;
+                settings.webPushSubscriptions = settings.webPushSubscriptions.filter((sub) => {
+                    const subStr = typeof sub === "string" ? sub : JSON.stringify(sub);
+                    return !invalidTokens.some((invalid) => subStr.includes(invalid));
+                });
+                if (settings.webPushSubscriptions.length !== originalLength) {
+                    updated = true;
+                }
+            }
+            if (updated) {
+                await user.update({ settings }, { transaction });
+                this.log("Removed invalid push tokens", {
+                    userId,
+                    removedCount: invalidTokens.length,
+                });
+            }
+        }
+        catch (error) {
+            this.logError("Failed to remove invalid tokens", error);
+        }
+    }
+    validateConfig() {
+        return this.hasFCM || this.hasWebPush;
+    }
+    hasFCMProvider() {
+        return this.hasFCM;
+    }
+    hasWebPushProvider() {
+        return this.hasWebPush;
+    }
+    getVapidPublicKey() {
+        var _a;
+        return ((_a = this.webPushProvider) === null || _a === void 0 ? void 0 : _a.getPublicKey()) || null;
+    }
+    async addDeviceToken(userId, token, type = "fcm", deviceId, platform) {
+        try {
+            const user = await db_1.models.user.findByPk(userId);
+            if (!user) {
+                return false;
+            }
+            const settings = { ...(user.settings || {}) };
+            if (!settings.pushTokens) {
+                settings.pushTokens = {};
+            }
+            const id = deviceId || `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const entry = {
+                type,
+                token,
+                deviceId: id,
+                platform,
+                createdAt: new Date(),
+            };
+            if (typeof settings.pushTokens === "object" && !Array.isArray(settings.pushTokens)) {
+                for (const [key, value] of Object.entries(settings.pushTokens)) {
+                    const existingToken = typeof value === "string" ? value : value === null || value === void 0 ? void 0 : value.token;
+                    if (existingToken === token) {
+                        return true;
+                    }
+                }
+                settings.pushTokens[id] = entry;
+            }
+            else {
+                const newTokens = {};
+                if (Array.isArray(settings.pushTokens)) {
+                    settings.pushTokens.forEach((t, i) => {
+                        if (typeof t === "string") {
+                            newTokens[`legacy-${i}`] = {
+                                type: this.isWebPushSubscription(t) ? "webpush" : "fcm",
+                                token: t,
+                            };
+                        }
+                        else {
+                            newTokens[t.deviceId || `legacy-${i}`] = t;
+                        }
+                    });
+                }
+                newTokens[id] = entry;
+                settings.pushTokens = newTokens;
+            }
+            await user.update({ settings });
+            return true;
+        }
+        catch (error) {
+            this.logError("Failed to add device token", error);
+            return false;
+        }
+    }
+    async addWebPushSubscription(userId, subscription, deviceId) {
+        return this.addDeviceToken(userId, JSON.stringify(subscription), "webpush", deviceId, "web");
+    }
+    async removeDeviceToken(userId, tokenOrDeviceId) {
+        try {
+            const user = await db_1.models.user.findByPk(userId);
+            if (!user || !user.settings || !user.settings.pushTokens) {
+                return false;
+            }
+            const settings = { ...user.settings };
+            let updated = false;
+            if (typeof settings.pushTokens === "object" && !Array.isArray(settings.pushTokens)) {
+                if (settings.pushTokens[tokenOrDeviceId]) {
+                    delete settings.pushTokens[tokenOrDeviceId];
+                    updated = true;
+                }
+                else {
+                    for (const [key, value] of Object.entries(settings.pushTokens)) {
+                        const token = typeof value === "string" ? value : value === null || value === void 0 ? void 0 : value.token;
+                        if (token === tokenOrDeviceId || (token === null || token === void 0 ? void 0 : token.includes(tokenOrDeviceId))) {
+                            delete settings.pushTokens[key];
+                            updated = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            else if (Array.isArray(settings.pushTokens)) {
+                const originalLength = settings.pushTokens.length;
+                settings.pushTokens = settings.pushTokens.filter((entry) => {
+                    const token = typeof entry === "string" ? entry : entry === null || entry === void 0 ? void 0 : entry.token;
+                    return token !== tokenOrDeviceId && !(token === null || token === void 0 ? void 0 : token.includes(tokenOrDeviceId));
+                });
+                updated = settings.pushTokens.length !== originalLength;
+            }
+            if (updated) {
+                await user.update({ settings });
+                this.log("Removed device token", { userId, tokenOrDeviceId });
+                return true;
+            }
+            return false;
+        }
+        catch (error) {
+            this.logError("Failed to remove device token", error);
+            return false;
+        }
+    }
+}
+exports.PushChannel = PushChannel;

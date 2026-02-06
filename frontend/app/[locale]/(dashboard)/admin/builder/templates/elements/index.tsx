@@ -409,7 +409,7 @@ export const elementTemplates = {
       icon: <TrendingUp className="h-5 w-5" />,
       settings: {
         apiEndpoint: "/api/markets/ticker",
-        wsEndpoint: "/api/markets/ticker/ws",
+        wsEndpoint: "/api/exchange/ticker",
         maxItems: 10,
         autoScroll: true,
         scrollSpeed: 32,

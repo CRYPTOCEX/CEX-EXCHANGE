@@ -1,1 +1,471 @@
-"use strict";async function handler(e){var t,r;const{id:a}=e.params||{},{amount:i,paymentMethodId:o,message:n}=e.body,{user:s,ctx:l}=e;if(!(null==s?void 0:s.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});null==l||l.step("Finding and locking offer");let d;try{d=await db_1.sequelize.transaction();const e=await db_1.models.p2pOffer.findOne({where:{id:a,status:"ACTIVE",userId:{[sequelize_1.Op.ne]:s.id}},include:[{model:db_1.models.user,as:"user",attributes:["id","firstName","lastName","email"]},{model:db_1.models.p2pPaymentMethod,as:"paymentMethods",through:{attributes:[]}}],lock:!0,transaction:d});if(!e)throw(0,error_1.createError)({statusCode:404,message:"Offer not found or unavailable"});null==l||l.step("Validating trade amount against offer limits");const r=(0,json_parser_1.parseAmountConfig)(e.amountConfig),c=(0,json_parser_1.parsePriceConfig)(e.priceConfig),{min:u,max:f,total:m}=r,p=c.finalPrice;if(p<=0)throw(0,error_1.createError)({statusCode:500,message:"Invalid offer configuration: price must be greater than 0"});const y=!!await db_1.models.currency.findOne({where:{id:e.currency,status:!0},transaction:d});let _,g;if(y){_=u||0;g=f||m||0}else{_=(u||0)/p;g=(f||m||0)/p}if(i<_||i>g)throw(0,error_1.createError)({statusCode:400,message:`Amount must be between ${_} and ${g} ${e.currency}`});const{validateMinimumTradeAmount:w}=await Promise.resolve().then(()=>__importStar(require("../../utils/fees"))),h=await w(i,e.currency);if(!h.valid)throw(0,error_1.createError)({statusCode:400,message:h.message||`Amount below minimum for ${e.currency}`});const{CacheManager:b}=await Promise.resolve().then(()=>__importStar(require("@b/utils/cache"))),T=b.getInstance(),I=await T.getSetting("p2pMinimumTradeAmount"),v=await T.getSetting("p2pMaximumTradeAmount"),P=y?i:i*p;if(I&&P<I)throw(0,error_1.createError)({statusCode:400,message:`Trade amount (${P.toFixed(2)} ${c.currency||"USD"}) is below platform minimum of ${I}`});if(v&&P>v)throw(0,error_1.createError)({statusCode:400,message:`Trade amount (${P.toFixed(2)} ${c.currency||"USD"}) exceeds platform maximum of ${v}`});if(!e.paymentMethods.map(e=>e.id).includes(o))throw(0,error_1.createError)({statusCode:400,message:"Selected payment method not allowed for this offer"});const E=await db_1.models.p2pPaymentMethod.findOne({where:{id:o,available:!0},transaction:d});if(!E)throw(0,error_1.createError)({statusCode:400,message:"Invalid or unavailable payment method"});const A="BUY"===e.type,O=A?e.userId:s.id,C=A?s.id:e.userId;null==l||l.step("Verifying seller balance and locking funds");let F=await(0,utils_1.getWalletSafe)(C,e.walletType,e.currency,!1,l);if(A){null==l||l.step(`Locking ${i} ${e.currency} for seller (BUY offer)`);if(!F)if("ECO"===e.walletType){const t=await(0,safe_imports_1.getEcosystemWalletUtils)();if(!(0,safe_imports_1.isServiceAvailable)(t))throw(0,error_1.createError)({statusCode:503,message:"Ecosystem wallet service is not available"});const{getWalletByUserIdAndCurrency:r}=t,a=await db_1.models.user.findByPk(C,{transaction:d});F=await r(a,e.currency)}else{F=(await wallet_1.walletCreationService.getOrCreateWallet(C,e.walletType,e.currency,d)).wallet}if(!F)throw(0,error_1.createError)({statusCode:500,message:"Failed to create or retrieve seller wallet"});const t=F.balance-F.inOrder;if(t<i)throw(0,error_1.createError)({statusCode:409,message:`Insufficient balance. Available: ${t} ${e.currency}, Required: ${i} ${e.currency}. Please deposit more funds to your ${e.walletType} wallet.`});const r=`p2p_trade_lock_${e.id}_${s.id}`;await wallet_1.walletService.hold({idempotencyKey:r,userId:C,walletId:F.id,walletType:e.walletType,currency:e.currency,amount:i,operationType:"P2P_TRADE_LOCK",description:`Lock ${i} ${e.currency} for P2P BUY offer trade`,metadata:{offerId:e.id,offerType:e.type,initiatedBy:s.id},transaction:d})}else{if(!F)throw(0,error_1.createError)({statusCode:500,message:"Seller wallet not found. The offer may be invalid."});if(F.inOrder<i)throw(0,error_1.createError)({statusCode:409,message:`This offer is currently unavailable. The seller does not have sufficient ${e.currency} balance to complete this trade.`})}(0,audit_1.createP2PAuditLog)({userId:C,eventType:audit_1.P2PAuditEventType.TRADE_INITIATED,entityType:"TRADE",entityId:e.id,metadata:{offerId:e.id,amount:i,currency:e.currency,walletType:e.walletType,walletInOrder:F.inOrder,note:"FIAT"===e.walletType?"FIAT trade - balance locked on platform, payment happens peer-to-peer":"Trade initiated - funds locked in escrow at trade initiation",initiatedBy:s.id},riskLevel:audit_1.P2PRiskLevel.HIGH}).catch(e=>console_1.logger.error("P2P_TRADE","Failed to create audit log",e));null==l||l.step("Calculating trade fees");const{calculateTradeFees:$,calculateEscrowFee:D}=await Promise.resolve().then(()=>__importStar(require("../../utils/fees"))),S=await $(i,e.currency,e.userId,s.id,O,C),q=await D(i,e.currency);null==l||l.step("Creating trade record");let M={};if(E.metadata)if("string"==typeof E.metadata)try{M=JSON.parse(E.metadata)}catch(e){M={}}else"object"==typeof E.metadata&&(M=E.metadata);const R={name:E.name,icon:E.icon,instructions:E.instructions||null,processingTime:E.processingTime||null,...M},k=await db_1.models.p2pTrade.create({offerId:e.id,buyerId:O,sellerId:C,type:e.type,amount:i,price:c.finalPrice,total:i*c.finalPrice,currency:e.currency,paymentMethod:o,paymentDetails:R,status:"PENDING",escrowFee:q.toString(),buyerFee:S.buyerFee,sellerFee:S.sellerFee,timeline:[{event:"TRADE_INITIATED",message:"Trade initiated",userId:s.id,createdAt:(new Date).toISOString()},...n?[{event:"MESSAGE",message:n,userId:s.id,createdAt:(new Date).toISOString()}]:[]]},{transaction:d}),x=r.total-i;if(x<0)throw(0,error_1.createError)({statusCode:409,message:`Insufficient offer amount. Available: ${r.total} ${e.currency}, Requested: ${i} ${e.currency}`});const j=null!==(t=r.originalTotal)&&void 0!==t?t:r.total+i;await e.update({amountConfig:{...r,total:x,originalTotal:j}},{transaction:d});null==l||l.step("Updating offer available amount");await d.commit();null==l||l.success(`Initiated ${e.type} trade: ${i} ${e.currency} @ ${c.finalPrice}`);(0,audit_1.createP2PAuditLog)({userId:s.id,eventType:audit_1.P2PAuditEventType.TRADE_INITIATED,entityType:"TRADE",entityId:k.id,metadata:{offerId:e.id,amount:i,currency:e.currency,price:c.finalPrice,paymentMethodId:o,buyerId:O,sellerId:C,buyerFee:S.buyerFee,sellerFee:S.sellerFee,escrowFee:q,totalValue:i*c.finalPrice,offerType:e.type,walletType:e.walletType},riskLevel:i>1e3?audit_1.P2PRiskLevel.HIGH:audit_1.P2PRiskLevel.MEDIUM}).catch(e=>console_1.logger.error("P2P_TRADE","Failed to create audit log",e));db_1.models.p2pOffer.increment("views",{where:{id:a}}).catch(e=>{console_1.logger.error("P2P_OFFER","Failed to increment views",e)});(0,notifications_1.notifyTradeEvent)(k.id,"TRADE_INITIATED",{buyerId:O,sellerId:C,amount:i,currency:e.currency,initiatorId:s.id}).catch(console.error);return{message:"Trade initiated successfully",trade:{id:k.id,amount:k.amount,total:k.total,status:k.status,buyer:A?e.user:{id:s.id},seller:A?{id:s.id}:e.user,fees:{buyerFee:S.buyerFee,sellerFee:S.sellerFee,escrowFee:q,totalFee:S.totalFee},netAmounts:{buyer:S.netAmountBuyer,seller:S.netAmountSeller}}}}catch(e){if(d)try{d.finished||await d.rollback()}catch(e){(null===(r=e.message)||void 0===r?void 0:r.includes("already been finished"))||console_1.logger.error("P2P_TRADE","Transaction rollback failed",e)}if(e.statusCode)throw e;throw(0,error_1.createError)({statusCode:500,message:`Failed to initiate trade: ${e.message}`})}}var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,r,a){void 0===a&&(a=r);var i=Object.getOwnPropertyDescriptor(t,r);i&&!("get"in i?!t.__esModule:i.writable||i.configurable)||(i={enumerable:!0,get:function(){return t[r]}});Object.defineProperty(e,a,i)}:function(e,t,r,a){void 0===a&&(a=r);e[a]=t[r]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&(t[t.length]=r);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var r={};if(null!=t)for(var a=e(t),i=0;i<a.length;i++)"default"!==a[i]&&__createBinding(r,t,a[i]);__setModuleDefault(r,t);return r}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;exports.default=handler;const db_1=require("@b/db"),error_1=require("@b/utils/error"),utils_1=require("@b/api/finance/wallet/utils"),notifications_1=require("@b/api/(ext)/p2p/utils/notifications"),audit_1=require("@b/api/(ext)/p2p/utils/audit"),sequelize_1=require("sequelize"),json_parser_1=require("@b/api/(ext)/p2p/utils/json-parser"),safe_imports_1=require("@b/utils/safe-imports"),console_1=require("@b/utils/console"),wallet_1=require("@b/services/wallet");exports.metadata={summary:"Initiate Trade from P2P Offer",description:"Creates a new trade from an active P2P offer with proper validation and balance locking",operationId:"initiateP2PTrade",tags:["P2P","Trade"],requiresAuth:!0,logModule:"P2P_TRADE",logTitle:"Initiate P2P trade",parameters:[{index:0,name:"id",in:"path",description:"Offer ID",required:!0,schema:{type:"string",format:"uuid"}}],requestBody:{description:"Trade initiation details",required:!0,content:{"application/json":{schema:{type:"object",properties:{amount:{type:"number",minimum:0,description:"Amount to trade"},paymentMethodId:{type:"string",format:"uuid",description:"Selected payment method ID"},message:{type:"string",maxLength:500,description:"Optional initial message"}},required:["amount","paymentMethodId"]}}}},responses:{200:{description:"Trade initiated successfully."},400:{description:"Bad Request - Invalid offer or amount."},401:{description:"Unauthorized."},404:{description:"Offer not found."},409:{description:"Conflict - Offer unavailable or insufficient balance."},500:{description:"Internal Server Error."}}};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+exports.default = handler;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const utils_1 = require("@b/api/finance/wallet/utils");
+const notifications_1 = require("@b/api/(ext)/p2p/utils/notifications");
+const audit_1 = require("@b/api/(ext)/p2p/utils/audit");
+const sequelize_1 = require("sequelize");
+const json_parser_1 = require("@b/api/(ext)/p2p/utils/json-parser");
+const safe_imports_1 = require("@b/utils/safe-imports");
+const console_1 = require("@b/utils/console");
+const wallet_1 = require("@b/services/wallet");
+const uuid_1 = require("uuid");
+exports.metadata = {
+    summary: "Initiate Trade from P2P Offer",
+    description: "Creates a new trade from an active P2P offer with proper validation and balance locking",
+    operationId: "initiateP2PTrade",
+    tags: ["P2P", "Trade"],
+    requiresAuth: true,
+    logModule: "P2P_TRADE",
+    logTitle: "Initiate P2P trade",
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            description: "Offer ID",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+        },
+    ],
+    requestBody: {
+        description: "Trade initiation details",
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        amount: {
+                            type: "number",
+                            minimum: 0,
+                            description: "Amount to trade"
+                        },
+                        paymentMethodId: {
+                            type: "string",
+                            format: "uuid",
+                            description: "Selected payment method ID"
+                        },
+                        message: {
+                            type: "string",
+                            maxLength: 500,
+                            description: "Optional initial message"
+                        }
+                    },
+                    required: ["amount", "paymentMethodId"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: { description: "Trade initiated successfully." },
+        400: { description: "Bad Request - Invalid offer or amount." },
+        401: { description: "Unauthorized." },
+        404: { description: "Offer not found." },
+        409: { description: "Conflict - Offer unavailable or insufficient balance." },
+        500: { description: "Internal Server Error." },
+    },
+};
+async function handler(data) {
+    var _a, _b, _c, _d;
+    const { id } = data.params || {};
+    const { amount, paymentMethodId, message } = data.body;
+    const { user, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding and locking offer");
+    let transaction;
+    try {
+        transaction = await db_1.sequelize.transaction();
+        const offer = await db_1.models.p2pOffer.findOne({
+            where: {
+                id,
+                status: "ACTIVE",
+                userId: { [sequelize_1.Op.ne]: user.id }
+            },
+            include: [
+                {
+                    model: db_1.models.user,
+                    as: "user",
+                    attributes: ["id", "firstName", "lastName", "email"],
+                },
+                {
+                    model: db_1.models.p2pPaymentMethod,
+                    as: "paymentMethods",
+                    through: { attributes: [] },
+                }
+            ],
+            lock: true,
+            transaction,
+        });
+        if (!offer) {
+            throw (0, error_1.createError)({
+                statusCode: 404,
+                message: "Offer not found or unavailable"
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating trade amount against offer limits");
+        const amountConfig = (0, json_parser_1.parseAmountConfig)(offer.amountConfig);
+        const priceConfig = (0, json_parser_1.parsePriceConfig)(offer.priceConfig);
+        const { min, max, total } = amountConfig;
+        const price = priceConfig.finalPrice;
+        if (price <= 0) {
+            throw (0, error_1.createError)({
+                statusCode: 500,
+                message: `Invalid offer configuration: price must be greater than 0`
+            });
+        }
+        const fiatCurrency = await db_1.models.currency.findOne({
+            where: { id: offer.currency, status: true },
+            transaction
+        });
+        const isOfferFiatCurrency = !!fiatCurrency;
+        let minAmount, maxAmount;
+        if (isOfferFiatCurrency) {
+            minAmount = min || 0;
+            maxAmount = max || total || 0;
+        }
+        else {
+            minAmount = (min || 0) / price;
+            maxAmount = (max || total || 0) / price;
+        }
+        if (amount < minAmount || amount > maxAmount) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Amount must be between ${minAmount} and ${maxAmount} ${offer.currency}`
+            });
+        }
+        const existingActiveTrade = await db_1.models.p2pTrade.findOne({
+            where: {
+                offerId: offer.id,
+                [sequelize_1.Op.or]: [
+                    { buyerId: user.id },
+                    { sellerId: user.id },
+                ],
+                status: { [sequelize_1.Op.in]: ["PENDING", "PAYMENT_SENT"] },
+            },
+            transaction,
+        });
+        if (existingActiveTrade) {
+            throw (0, error_1.createError)({
+                statusCode: 409,
+                message: `You already have an active trade on this offer (ID: ${existingActiveTrade.id.slice(0, 8)}...). Please complete or cancel it first.`
+            });
+        }
+        const { validateMinimumTradeAmount } = await Promise.resolve().then(() => __importStar(require("../../utils/fees")));
+        const minimumValidation = await validateMinimumTradeAmount(amount, offer.currency);
+        if (!minimumValidation.valid) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: minimumValidation.message || `Amount below minimum for ${offer.currency}`,
+            });
+        }
+        const { CacheManager } = await Promise.resolve().then(() => __importStar(require("@b/utils/cache")));
+        const cacheManager = CacheManager.getInstance();
+        const platformMinTradeAmount = await cacheManager.getSetting("p2pMinimumTradeAmount");
+        const platformMaxTradeAmount = await cacheManager.getSetting("p2pMaximumTradeAmount");
+        const tradeValueInPriceCurrency = isOfferFiatCurrency ? amount : amount * price;
+        if (platformMinTradeAmount && tradeValueInPriceCurrency < platformMinTradeAmount) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Trade amount (${tradeValueInPriceCurrency.toFixed(2)} ${priceConfig.currency || 'USD'}) is below platform minimum of ${platformMinTradeAmount}`,
+            });
+        }
+        if (platformMaxTradeAmount && tradeValueInPriceCurrency > platformMaxTradeAmount) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Trade amount (${tradeValueInPriceCurrency.toFixed(2)} ${priceConfig.currency || 'USD'}) exceeds platform maximum of ${platformMaxTradeAmount}`,
+            });
+        }
+        const allowedPaymentMethodIds = (offer.paymentMethods || []).map((pm) => pm.id);
+        if (!allowedPaymentMethodIds.includes(paymentMethodId)) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Selected payment method not allowed for this offer"
+            });
+        }
+        const selectedPaymentMethod = await db_1.models.p2pPaymentMethod.findOne({
+            where: {
+                id: paymentMethodId,
+                available: true
+            },
+            transaction,
+        });
+        if (!selectedPaymentMethod) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Invalid or unavailable payment method"
+            });
+        }
+        const isBuyOffer = offer.type === "BUY";
+        const buyerId = isBuyOffer ? offer.userId : user.id;
+        const sellerId = isBuyOffer ? user.id : offer.userId;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Verifying seller balance and locking funds");
+        let sellerWallet = await (0, utils_1.getWalletSafe)(sellerId, offer.walletType, offer.currency, false, ctx);
+        if (isBuyOffer) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step(`Locking ${amount} ${offer.currency} for seller (BUY offer)`);
+            if (!sellerWallet) {
+                if (offer.walletType === "ECO") {
+                    const ecosystemUtils = await (0, safe_imports_1.getEcosystemWalletUtils)();
+                    if (!(0, safe_imports_1.isServiceAvailable)(ecosystemUtils)) {
+                        throw (0, error_1.createError)({
+                            statusCode: 503,
+                            message: "Ecosystem wallet service is not available"
+                        });
+                    }
+                    const { getWalletByUserIdAndCurrency } = ecosystemUtils;
+                    const seller = await db_1.models.user.findByPk(sellerId, { transaction });
+                    sellerWallet = await getWalletByUserIdAndCurrency(seller, offer.currency);
+                }
+                else {
+                    const walletResult = await wallet_1.walletCreationService.getOrCreateWallet(sellerId, offer.walletType, offer.currency, transaction);
+                    sellerWallet = walletResult.wallet;
+                }
+            }
+            if (!sellerWallet) {
+                throw (0, error_1.createError)({
+                    statusCode: 500,
+                    message: "Failed to create or retrieve seller wallet"
+                });
+            }
+            const availableBalance = sellerWallet.balance - ((_a = sellerWallet.inOrder) !== null && _a !== void 0 ? _a : 0);
+            if (availableBalance < amount) {
+                throw (0, error_1.createError)({
+                    statusCode: 409,
+                    message: `Insufficient balance. Available: ${availableBalance} ${offer.currency}, Required: ${amount} ${offer.currency}. Please deposit more funds to your ${offer.walletType} wallet.`
+                });
+            }
+            const idempotencyKey = `p2p_trade_lock_${(0, uuid_1.v4)()}`;
+            await wallet_1.walletService.hold({
+                idempotencyKey,
+                userId: sellerId,
+                walletId: sellerWallet.id,
+                walletType: offer.walletType,
+                currency: offer.currency,
+                amount,
+                operationType: "P2P_TRADE_LOCK",
+                description: `Lock ${amount} ${offer.currency} for P2P BUY offer trade`,
+                metadata: {
+                    offerId: offer.id,
+                    offerType: offer.type,
+                    initiatedBy: user.id,
+                },
+                transaction,
+            });
+        }
+        else {
+            if (!sellerWallet) {
+                throw (0, error_1.createError)({
+                    statusCode: 500,
+                    message: "Seller wallet not found. The offer may be invalid."
+                });
+            }
+            if (amountConfig.total < amount) {
+                throw (0, error_1.createError)({
+                    statusCode: 409,
+                    message: `This offer is currently unavailable. Only ${amountConfig.total} ${offer.currency} is available for this offer.`
+                });
+            }
+            if (((_b = sellerWallet.inOrder) !== null && _b !== void 0 ? _b : 0) <= 0) {
+                console_1.logger.warn("P2P_TRADE", `SELL offer ${offer.id} has zero inOrder but amountConfig.total=${amountConfig.total}. This may indicate a data inconsistency.`);
+            }
+        }
+        (0, audit_1.createP2PAuditLog)({
+            userId: sellerId,
+            eventType: audit_1.P2PAuditEventType.TRADE_INITIATED,
+            entityType: "TRADE",
+            entityId: offer.id,
+            metadata: {
+                offerId: offer.id,
+                amount,
+                currency: offer.currency,
+                walletType: offer.walletType,
+                walletInOrder: sellerWallet.inOrder,
+                note: offer.walletType === "FIAT"
+                    ? "FIAT trade - balance locked on platform, payment happens peer-to-peer"
+                    : "Trade initiated - funds locked in escrow at trade initiation",
+                initiatedBy: user.id,
+            },
+            riskLevel: audit_1.P2PRiskLevel.HIGH,
+        }).catch(err => console_1.logger.error("P2P_TRADE", "Failed to create audit log", err));
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating trade fees");
+        const { calculateTradeFees, calculateEscrowFee } = await Promise.resolve().then(() => __importStar(require("../../utils/fees")));
+        const fees = await calculateTradeFees(amount, offer.currency, offer.userId, user.id, buyerId, sellerId);
+        const escrowFee = await calculateEscrowFee(amount, offer.currency);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating trade record");
+        let parsedMetadata = {};
+        if (selectedPaymentMethod.metadata) {
+            if (typeof selectedPaymentMethod.metadata === "string") {
+                try {
+                    parsedMetadata = JSON.parse(selectedPaymentMethod.metadata);
+                }
+                catch (_e) {
+                    parsedMetadata = {};
+                }
+            }
+            else if (typeof selectedPaymentMethod.metadata === "object") {
+                parsedMetadata = selectedPaymentMethod.metadata;
+            }
+        }
+        const paymentDetails = {
+            name: selectedPaymentMethod.name,
+            icon: selectedPaymentMethod.icon,
+            instructions: selectedPaymentMethod.instructions || null,
+            processingTime: selectedPaymentMethod.processingTime || null,
+            ...parsedMetadata,
+        };
+        const trade = await db_1.models.p2pTrade.create({
+            offerId: offer.id,
+            buyerId,
+            sellerId,
+            type: offer.type,
+            amount,
+            price: priceConfig.finalPrice,
+            total: amount * priceConfig.finalPrice,
+            currency: offer.currency,
+            paymentMethod: paymentMethodId,
+            paymentDetails,
+            status: "PENDING",
+            escrowFee: escrowFee.toString(),
+            buyerFee: fees.buyerFee,
+            sellerFee: fees.sellerFee,
+            timeline: [
+                {
+                    event: "TRADE_INITIATED",
+                    message: "Trade initiated",
+                    userId: user.id,
+                    createdAt: new Date().toISOString(),
+                },
+                ...(message ? [{
+                        event: "MESSAGE",
+                        message,
+                        userId: user.id,
+                        createdAt: new Date().toISOString(),
+                    }] : [])
+            ],
+        }, { transaction });
+        const newTotal = amountConfig.total - amount;
+        if (newTotal < 0) {
+            throw (0, error_1.createError)({
+                statusCode: 409,
+                message: `Insufficient offer amount. Available: ${amountConfig.total} ${offer.currency}, Requested: ${amount} ${offer.currency}`
+            });
+        }
+        const originalTotal = (_c = amountConfig.originalTotal) !== null && _c !== void 0 ? _c : amountConfig.total + amount;
+        await offer.update({ amountConfig: { ...amountConfig, total: newTotal, originalTotal } }, { transaction });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating offer available amount");
+        await transaction.commit();
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Initiated ${offer.type} trade: ${amount} ${offer.currency} @ ${priceConfig.finalPrice}`);
+        (0, audit_1.createP2PAuditLog)({
+            userId: user.id,
+            eventType: audit_1.P2PAuditEventType.TRADE_INITIATED,
+            entityType: "TRADE",
+            entityId: trade.id,
+            metadata: {
+                offerId: offer.id,
+                amount,
+                currency: offer.currency,
+                price: priceConfig.finalPrice,
+                paymentMethodId,
+                buyerId,
+                sellerId,
+                buyerFee: fees.buyerFee,
+                sellerFee: fees.sellerFee,
+                escrowFee,
+                totalValue: amount * priceConfig.finalPrice,
+                offerType: offer.type,
+                walletType: offer.walletType,
+            },
+            riskLevel: amount > 1000 ? audit_1.P2PRiskLevel.HIGH : audit_1.P2PRiskLevel.MEDIUM,
+        }).catch(err => console_1.logger.error("P2P_TRADE", "Failed to create audit log", err));
+        db_1.models.p2pOffer.increment("views", { where: { id } }).catch((err) => {
+            console_1.logger.error("P2P_OFFER", "Failed to increment views", err);
+        });
+        (0, notifications_1.notifyTradeEvent)(trade.id, "TRADE_INITIATED", {
+            buyerId,
+            sellerId,
+            amount,
+            currency: offer.currency,
+            initiatorId: user.id,
+        }).catch(console.error);
+        return {
+            message: "Trade initiated successfully",
+            trade: {
+                id: trade.id,
+                amount: trade.amount,
+                total: trade.total,
+                status: trade.status,
+                buyer: isBuyOffer ? offer.user : { id: user.id },
+                seller: isBuyOffer ? { id: user.id } : offer.user,
+                fees: {
+                    buyerFee: fees.buyerFee,
+                    sellerFee: fees.sellerFee,
+                    escrowFee,
+                    totalFee: fees.totalFee,
+                },
+                netAmounts: {
+                    buyer: fees.netAmountBuyer,
+                    seller: fees.netAmountSeller,
+                }
+            }
+        };
+    }
+    catch (error) {
+        if (transaction) {
+            try {
+                if (!transaction.finished) {
+                    await transaction.rollback();
+                }
+            }
+            catch (rollbackError) {
+                if (!((_d = rollbackError.message) === null || _d === void 0 ? void 0 : _d.includes("already been finished"))) {
+                    console_1.logger.error("P2P_TRADE", "Transaction rollback failed", rollbackError);
+                }
+            }
+        }
+        if (error.statusCode) {
+            throw error;
+        }
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Failed to initiate trade: ${error.message}`,
+        });
+    }
+}

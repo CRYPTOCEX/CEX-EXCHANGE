@@ -8,6 +8,7 @@ export default class nftToken
   id!: string;
   collectionId!: string;
   tokenId!: string;
+  blockchainTokenId?: string; // On-chain token ID (may differ from internal tokenId)
   name!: string;
   description?: string;
   image?: string; // IPFS image URL
@@ -52,6 +53,11 @@ export default class nftToken
           validate: {
             notEmpty: { msg: "tokenId: Token ID must not be empty" },
           },
+        },
+        blockchainTokenId: {
+          type: DataTypes.STRING(255),
+          allowNull: true,
+          comment: "On-chain token ID, set after minting on blockchain",
         },
         name: {
           type: DataTypes.STRING(255),

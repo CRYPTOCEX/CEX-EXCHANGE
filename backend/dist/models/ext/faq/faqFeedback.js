@@ -1,1 +1,69 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});const sequelize_1=require("sequelize");class faqFeedback extends sequelize_1.Model{static initModel(e){return faqFeedback.init({id:{type:sequelize_1.DataTypes.UUID,defaultValue:sequelize_1.DataTypes.UUIDV4,primaryKey:!0,allowNull:!1},userId:{type:sequelize_1.DataTypes.UUID,allowNull:!1,validate:{notNull:{msg:"userId: User ID cannot be null"}}},faqId:{type:sequelize_1.DataTypes.UUID,allowNull:!1,validate:{notNull:{msg:"faqId: FAQ ID cannot be null"}}},isHelpful:{type:sequelize_1.DataTypes.BOOLEAN,allowNull:!1},comment:{type:sequelize_1.DataTypes.TEXT,allowNull:!0}},{sequelize:e,modelName:"faqFeedback",tableName:"faq_feedbacks",paranoid:!0,timestamps:!0,indexes:[{name:"PRIMARY",unique:!0,fields:[{name:"id"}]},{name:"faq_feedbacks_faqId_idx",fields:[{name:"faqId"}]},{name:"faq_feedbacks_userId_idx",fields:[{name:"userId"}]},{name:"faq_feedbacks_unique_user_faq",unique:!0,fields:[{name:"userId"},{name:"faqId"}],where:{deletedAt:null}}]})}static associate(e){faqFeedback.belongsTo(e.faq,{foreignKey:"faqId",as:"faq",onDelete:"CASCADE",onUpdate:"CASCADE"});faqFeedback.belongsTo(e.user,{foreignKey:"userId",as:"user",onDelete:"CASCADE",onUpdate:"CASCADE"})}}exports.default=faqFeedback;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const sequelize_1 = require("sequelize");
+class faqFeedback extends sequelize_1.Model {
+    static initModel(sequelize) {
+        return faqFeedback.init({
+            id: {
+                type: sequelize_1.DataTypes.UUID,
+                defaultValue: sequelize_1.DataTypes.UUIDV4,
+                primaryKey: true,
+                allowNull: false,
+            },
+            userId: {
+                type: sequelize_1.DataTypes.UUID,
+                allowNull: false,
+                validate: {
+                    notNull: { msg: "userId: User ID cannot be null" },
+                },
+            },
+            faqId: {
+                type: sequelize_1.DataTypes.UUID,
+                allowNull: false,
+                validate: {
+                    notNull: { msg: "faqId: FAQ ID cannot be null" },
+                },
+            },
+            isHelpful: {
+                type: sequelize_1.DataTypes.BOOLEAN,
+                allowNull: false,
+            },
+            comment: {
+                type: sequelize_1.DataTypes.TEXT,
+                allowNull: true,
+            },
+        }, {
+            sequelize,
+            modelName: "faqFeedback",
+            tableName: "faq_feedbacks",
+            paranoid: true,
+            timestamps: true,
+            indexes: [
+                { name: "PRIMARY", unique: true, fields: [{ name: "id" }] },
+                { name: "faq_feedbacks_faqId_idx", fields: [{ name: "faqId" }] },
+                { name: "faq_feedbacks_userId_idx", fields: [{ name: "userId" }] },
+                {
+                    name: "faq_feedbacks_unique_user_faq",
+                    unique: true,
+                    fields: [{ name: "userId" }, { name: "faqId" }],
+                    where: { deletedAt: null }
+                },
+            ],
+        });
+    }
+    static associate(models) {
+        faqFeedback.belongsTo(models.faq, {
+            foreignKey: "faqId",
+            as: "faq",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+        faqFeedback.belongsTo(models.user, {
+            foreignKey: "userId",
+            as: "user",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+    }
+}
+exports.default = faqFeedback;

@@ -1,1 +1,520 @@
-"use strict";function validateAndNormalizeTimestamps(e,t){const a=Date.now(),r=new Date("2020-01-01").getTime(),o=a+36e5;if(e>o||t>o){console_1.logger.warn("CHART",`Invalid future timestamps detected: from=${e}, to=${t}, now=${a}`);if(e>10*o){return{from:a-3e7,to:a,isValid:!1}}}const n=Math.max(e,r),i=Math.min(t,a+6e4);return{from:n,to:i,isValid:n<i}}function getCacheKey(e,t){return`ohlcv:${e}:${t}`}function compress(e){return zlib_1.default.gzipSync(JSON.stringify(e))}function decompress(e){return JSON.parse(zlib_1.default.gunzipSync(e).toString())}function getCacheFilePath(e,t){const a=path_1.default.join(cacheDirPath,e);fs_1.default.existsSync(a)||fs_1.default.mkdirSync(a,{recursive:!0});return path_1.default.join(a,`${t}.json.gz`)}async function loadCacheFromFile(e,t){const a=getCacheFilePath(e,t);if(fs_1.default.existsSync(a))try{const r=decompress(await fs_1.default.promises.readFile(a));if(Array.isArray(r)&&r.length>0){const a=r[0];if(Array.isArray(a)&&a.length>=5&&"number"==typeof a[0])return r;console_1.logger.warn("CHART",`Invalid cache data format for ${e}/${t}, clearing cache`)}}catch(a){console_1.logger.warn("CHART",`Failed to load cache file for ${e}/${t}: ${a}`)}return[]}async function saveCacheToFile(e,t,a){const r=getCacheFilePath(e,t),o=compress(a);await fs_1.default.promises.writeFile(r,o)}function getGapFillKey(e,t){return`gapfill:${e}:${t}`}function isGapFillInProgress(e,t){const a=getGapFillKey(e,t);return gapFillLocks.has(a)}async function waitForGapFill(e,t){const a=getGapFillKey(e,t);if(gapFillLocks.has(a)){console_1.logger.debug("CHART",`Waiting for existing gap fill operation for ${e}/${t}`);return await gapFillLocks.get(a)||null}return null}function registerGapFillOperation(e,t,a){const r=getGapFillKey(e,t),o=activeGapFills.get(r);if(o){if(Date.now()-o.startTime<3e4){if(a.some(e=>o.gaps.some(t=>e.gapStart<t.gapEnd&&e.gapEnd>t.gapStart))){console_1.logger.debug("CHART",`Skipping duplicate gap fill for ${e}/${t} - operation already in progress`);return!1}}}activeGapFills.set(r,{startTime:Date.now(),gaps:a});return!0}function clearGapFillOperation(e,t){const a=getGapFillKey(e,t);activeGapFills.delete(a)}async function executeWithGapFillLock(e,t,a){const r=getGapFillKey(e,t);if(gapFillLocks.has(r)){console_1.logger.debug("CHART",`Waiting for existing gap fill lock for ${e}/${t}`);await gapFillLocks.get(r)}const o=a();gapFillLocks.set(r,o);try{return await o}finally{gapFillLocks.delete(r)}}async function getCachedOHLCV(e,t,a,r){const o=getCacheKey(e,t);cacheLocks.has(o)&&await cacheLocks.get(o);try{let n=await Promise.race([redis.get(o),new Promise((e,t)=>setTimeout(()=>t(new Error("Redis timeout")),3e3))]).catch(()=>null);if(!n){const a=loadCacheFromFileWithLock(e,t,o);cacheLocks.set(o,a);try{const e=await a;if(!(e.length>0))return[];await Promise.race([redis.set(o,JSON.stringify(e)),new Promise((e,t)=>setTimeout(()=>t(new Error("Redis SET timeout")),3e3))]).catch(()=>{console_1.logger.warn("CHART",`Failed to cache data in Redis for ${o}`)});n=JSON.stringify(e)}finally{cacheLocks.delete(o)}}const i=JSON.parse(n),s=binarySearch(i,a),l=binarySearch(i,r,!0);return i.slice(s,l+1)}catch(e){console_1.logger.error("CHART",`Error getting cached OHLCV for ${o}: ${e}`);return[]}}async function loadCacheFromFileWithLock(e,t,a){try{return await loadCacheFromFile(e,t)}catch(e){console_1.logger.error("CHART",`Error loading cache from file for ${a}: ${e}`);return[]}}function binarySearch(e,t,a=!1){let r=0,o=e.length-1;for(;r<=o;){const a=Math.floor((r+o)/2);if(e[a][0]===t)return a;e[a][0]<t?r=a+1:o=a-1}return a?o:r}async function saveOHLCVToCache(e,t,a){const r=getCacheKey(e,t);cacheLocks.has(r)&&await cacheLocks.get(r);const o=performCacheSave(e,t,a,r);cacheLocks.set(r,o);try{await o}finally{cacheLocks.delete(r)}}async function performCacheSave(e,t,a,r){try{let o=[];const n=await Promise.race([redis.get(r),new Promise((e,t)=>setTimeout(()=>t(new Error("Redis GET timeout")),3e3))]).catch(()=>null);if(n)try{o=JSON.parse(n)}catch(e){console_1.logger.warn("CHART",`Failed to parse cached data for ${r}, using empty array`);o=[]}const i=mergeAndSortData(o,a);await Promise.race([redis.set(r,JSON.stringify(i)),new Promise((e,t)=>setTimeout(()=>t(new Error("Redis SET timeout")),3e3))]).catch(e=>{console_1.logger.warn("CHART",`Failed to save cache to Redis for ${r}: ${e}`)});await Promise.race([saveCacheToFile(e,t,i),new Promise((e,t)=>setTimeout(()=>t(new Error("File save timeout")),5e3))]).catch(e=>{console_1.logger.warn("CHART",`Failed to save cache to file for ${r}: ${e}`)})}catch(e){console_1.logger.error("CHART",`Error in performCacheSave for ${r}: ${e}`);throw e}}function mergeAndSortData(e,t){const a=[...e,...t];a.sort((e,t)=>e[0]-t[0]);return a.filter((e,t,a)=>0===t||e[0]!==a[t-1][0])}function intervalToMilliseconds(e){return{"1m":6e4,"3m":18e4,"5m":3e5,"15m":9e5,"30m":18e5,"1h":36e5,"2h":72e5,"4h":144e5,"6h":216e5,"8h":288e5,"12h":432e5,"1d":864e5,"3d":2592e5,"1w":6048e5,"1M":2592e6}[e]||0}function findGapsInCachedData(e,t,a,r){const o=[],n=Date.now(),i=intervalToMilliseconds(r);let s=Math.floor(t/i)*i;const l=Math.floor(n/i)*i,c=Math.min(a,l);console_1.logger.debug("CHART",`findGaps: now=${new Date(n).toISOString()}, currentCandleStart=${new Date(l).toISOString()}, adjustedTo=${new Date(c).toISOString()}`);for(const t of e){const e=t[0];e>s+1.5*i&&o.push({gapStart:s,gapEnd:e});s=e+i}if(s<c){const t=Math.round((c-s)/6e4),a=e.length>0?e[e.length-1][0]:0;console_1.logger.debug("CHART",`Gap at end: lastCached=${new Date(a).toISOString()}, nextExpected=${new Date(s).toISOString()}, adjustedTo=${new Date(c).toISOString()}, gap=${t} minutes`);o.push({gapStart:s,gapEnd:c})}return o}function fillGapsWithSyntheticCandles(e,t,a,r){if(0===e.length)return e;const o=intervalToMilliseconds(r),n=Date.now(),i=Math.min(a,n),s=[];let l=e[0][4],c=Math.floor(t/o)*o,h=0;for(;c<i&&h<=e.length;){if(h<e.length){const t=e[h],a=t[0];if(Math.abs(a-c)<.5*o){s.push(t);l=t[4];h++;c=a+o;continue}if(a<c){h++;continue}}(h<e.length?(e[h][0]-c)/o:(i-c)/o)<=50&&s.push([c,l,l,l,l,0]);c+=o;if(s.length>1e4){console_1.logger.warn("CHART",`Too many candles generated, stopping at ${s.length}`);break}}return s}function validateAndCleanCandles(e){const t=Date.now(),a=new Date("2015-01-01").getTime();return removeAnomalousCandles(e.filter(e=>{if(!Array.isArray(e)||e.length<5)return!1;const[r,o,n,i,s]=e;return!("number"!=typeof r||r<a||r>t+36e5)&&("number"==typeof o&&"number"==typeof n&&"number"==typeof i&&"number"==typeof s&&(!(n<i||n<o||n<s||i>o||i>s)&&(!!(isFinite(o)&&isFinite(n)&&isFinite(i)&&isFinite(s))&&!(o<=0||n<=0||i<=0||s<=0))))}))}function removeAnomalousCandles(e){if(e.length<3)return e;const t=[...e].sort((e,t)=>e[0]-t[0]),a=[],r=[];for(let e=1;e<t.length;e++){const o=t[e-1][4],n=t[e][1],i=Math.abs(n-o);a.push(i);const s=t[e][2]-t[e][3];r.push(s)}const o=[...a].sort((e,t)=>e-t),n=o[Math.floor(o.length/2)]||0,i=a.reduce((e,t)=>e+t,0)/a.length||0,s=[...r].sort((e,t)=>e-t),l=s[Math.floor(s.length/2)]||0,c=r.reduce((e,t)=>e+t,0)/r.length||0,h=Math.max(10*n,5*i),g=Math.max(10*l,5*c),u=[];let d=0;for(let e=0;e<t.length;e++){const a=t[e],[r,o,n,i,s]=a,l=n-i;let c=!1,f="";if(e>0){const a=t[e-1][4],r=Math.abs(o-a);if(h>0&&r>h&&e<t.length-1){const o=t[e+1][1],n=Math.abs(o-s);if(Math.abs(o-a)<.5*n){c=!0;f=`gap from prev: ${r.toFixed(2)} > threshold ${h.toFixed(2)}, next candle reverts`}}}if(!c&&g>0&&l>g){const a=[];for(let r=Math.max(0,e-3);r<Math.min(t.length,e+4);r++)r!==e&&a.push(t[r][2]-t[r][3]);if(a.length>0){const e=a.reduce((e,t)=>e+t,0)/a.length;if(l>8*e){c=!0;f=`range ${l.toFixed(2)} > 8x neighbor avg ${e.toFixed(2)}`}}}if(!c){const a=Math.abs(s-o),r=n-Math.max(o,s),l=Math.min(o,s)-i;if(a>0&&(r>20*a||l>20*a)){const a=[];for(let r=Math.max(0,e-3);r<Math.min(t.length,e+4);r++)r!==e&&a.push(t[r][2]-t[r][3]);if(a.length>0){const e=a.reduce((e,t)=>e+t,0)/a.length,t=Math.max(r,l);if(t>5*e){c=!0;f=`extreme wick: ${t.toFixed(2)} > 5x neighbor range ${e.toFixed(2)}`}}}}if(c){console_1.logger.warn("CHART",`Removing anomalous candle: time=${new Date(r).toISOString()}, O=${o.toFixed(2)}, H=${n.toFixed(2)}, L=${i.toFixed(2)}, C=${s.toFixed(2)}, reason: ${f}`);d++}else u.push(a)}d>0&&console_1.logger.info("CHART",`Removed ${d} anomalous candles from dataset`);return u}function repairCandleData(e,t){if(e.length<2)return e;const a=intervalToMilliseconds(t),r=[...e].sort((e,t)=>e[0]-t[0]),o=[];for(let e=0;e<r.length;e++){const t=r[e];o.push(t);if(e<r.length-1){const n=r[e+1],i=n[0]-t[0],s=Math.round(i/a)-1;if(s>0&&s<=3){const e=t[4],r=n[1];for(let n=1;n<=s;n++){const i=e+(r-e)*(n/(s+1)),l=t[0]+a*n;o.push([l,i,i,i,i,0])}console_1.logger.debug("CHART",`Interpolated ${s} missing candles between ${new Date(t[0]).toISOString()} and ${new Date(n[0]).toISOString()}`)}}}return o.sort((e,t)=>e[0]-t[0])}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.baseChartDataPointSchema=void 0;exports.validateAndNormalizeTimestamps=validateAndNormalizeTimestamps;exports.isGapFillInProgress=isGapFillInProgress;exports.waitForGapFill=waitForGapFill;exports.registerGapFillOperation=registerGapFillOperation;exports.clearGapFillOperation=clearGapFillOperation;exports.executeWithGapFillLock=executeWithGapFillLock;exports.getCachedOHLCV=getCachedOHLCV;exports.saveOHLCVToCache=saveOHLCVToCache;exports.intervalToMilliseconds=intervalToMilliseconds;exports.findGapsInCachedData=findGapsInCachedData;exports.fillGapsWithSyntheticCandles=fillGapsWithSyntheticCandles;exports.validateAndCleanCandles=validateAndCleanCandles;exports.repairCandleData=repairCandleData;const fs_1=__importDefault(require("fs")),path_1=__importDefault(require("path")),zlib_1=__importDefault(require("zlib")),redis_1=require("@b/utils/redis"),schema_1=require("@b/utils/schema"),console_1=require("@b/utils/console"),redis=redis_1.RedisSingleton.getInstance(),cacheDirPath=path_1.default.resolve(process.cwd(),"data","chart");fs_1.default.existsSync(cacheDirPath)||fs_1.default.mkdirSync(cacheDirPath,{recursive:!0});exports.baseChartDataPointSchema={timestamp:(0,schema_1.baseNumberSchema)("Timestamp for the data point"),open:(0,schema_1.baseNumberSchema)("Opening price for the data interval"),high:(0,schema_1.baseNumberSchema)("Highest price during the data interval"),low:(0,schema_1.baseNumberSchema)("Lowest price during the data interval"),close:(0,schema_1.baseNumberSchema)("Closing price for the data interval"),volume:(0,schema_1.baseNumberSchema)("Volume of trades during the data interval")};const cacheLocks=new Map,gapFillLocks=new Map,activeGapFills=new Map;
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.baseChartDataPointSchema = void 0;
+exports.validateAndNormalizeTimestamps = validateAndNormalizeTimestamps;
+exports.isGapFillInProgress = isGapFillInProgress;
+exports.waitForGapFill = waitForGapFill;
+exports.registerGapFillOperation = registerGapFillOperation;
+exports.clearGapFillOperation = clearGapFillOperation;
+exports.executeWithGapFillLock = executeWithGapFillLock;
+exports.getCachedOHLCV = getCachedOHLCV;
+exports.saveOHLCVToCache = saveOHLCVToCache;
+exports.intervalToMilliseconds = intervalToMilliseconds;
+exports.findGapsInCachedData = findGapsInCachedData;
+exports.fillGapsWithSyntheticCandles = fillGapsWithSyntheticCandles;
+exports.validateAndCleanCandles = validateAndCleanCandles;
+exports.repairCandleData = repairCandleData;
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
+const zlib_1 = __importDefault(require("zlib"));
+const redis_1 = require("@b/utils/redis");
+const schema_1 = require("@b/utils/schema");
+const console_1 = require("@b/utils/console");
+const redis = redis_1.RedisSingleton.getInstance();
+const cacheDirPath = path_1.default.resolve(process.cwd(), "data", "chart");
+if (!fs_1.default.existsSync(cacheDirPath)) {
+    fs_1.default.mkdirSync(cacheDirPath, { recursive: true });
+}
+exports.baseChartDataPointSchema = {
+    timestamp: (0, schema_1.baseNumberSchema)("Timestamp for the data point"),
+    open: (0, schema_1.baseNumberSchema)("Opening price for the data interval"),
+    high: (0, schema_1.baseNumberSchema)("Highest price during the data interval"),
+    low: (0, schema_1.baseNumberSchema)("Lowest price during the data interval"),
+    close: (0, schema_1.baseNumberSchema)("Closing price for the data interval"),
+    volume: (0, schema_1.baseNumberSchema)("Volume of trades during the data interval"),
+};
+function validateAndNormalizeTimestamps(from, to) {
+    const now = Date.now();
+    const minTimestamp = new Date("2020-01-01").getTime();
+    const maxTimestamp = now + 3600000;
+    if (from > maxTimestamp || to > maxTimestamp) {
+        console_1.logger.warn("CHART", `Invalid future timestamps detected: from=${from}, to=${to}, now=${now}`);
+        if (from > maxTimestamp * 10) {
+            const defaultFrom = now - (500 * 60000);
+            return { from: defaultFrom, to: now, isValid: false };
+        }
+    }
+    const normalizedFrom = Math.max(from, minTimestamp);
+    const normalizedTo = Math.min(to, now + 60000);
+    return {
+        from: normalizedFrom,
+        to: normalizedTo,
+        isValid: normalizedFrom < normalizedTo,
+    };
+}
+function getCacheKey(symbol, interval) {
+    return `ohlcv:${symbol}:${interval}`;
+}
+function compress(data) {
+    return zlib_1.default.gzipSync(JSON.stringify(data));
+}
+function decompress(data) {
+    return JSON.parse(zlib_1.default.gunzipSync(data).toString());
+}
+function getCacheFilePath(symbol, interval) {
+    const symbolDirPath = path_1.default.join(cacheDirPath, symbol);
+    if (!fs_1.default.existsSync(symbolDirPath)) {
+        fs_1.default.mkdirSync(symbolDirPath, { recursive: true });
+    }
+    return path_1.default.join(symbolDirPath, `${interval}.json.gz`);
+}
+async function loadCacheFromFile(symbol, interval) {
+    const cacheFilePath = getCacheFilePath(symbol, interval);
+    if (fs_1.default.existsSync(cacheFilePath)) {
+        try {
+            const compressedData = await fs_1.default.promises.readFile(cacheFilePath);
+            const data = decompress(compressedData);
+            if (Array.isArray(data) && data.length > 0) {
+                const firstItem = data[0];
+                if (Array.isArray(firstItem) && firstItem.length >= 5 && typeof firstItem[0] === 'number') {
+                    return data;
+                }
+                console_1.logger.warn("CHART", `Invalid cache data format for ${symbol}/${interval}, clearing cache`);
+            }
+        }
+        catch (error) {
+            console_1.logger.warn("CHART", `Failed to load cache file for ${symbol}/${interval}: ${error}`);
+        }
+    }
+    return [];
+}
+async function saveCacheToFile(symbol, interval, data) {
+    const cacheFilePath = getCacheFilePath(symbol, interval);
+    const compressedData = compress(data);
+    await fs_1.default.promises.writeFile(cacheFilePath, compressedData);
+}
+const cacheLocks = new Map();
+const gapFillLocks = new Map();
+const activeGapFills = new Map();
+function getGapFillKey(symbol, interval) {
+    return `gapfill:${symbol}:${interval}`;
+}
+function isGapFillInProgress(symbol, interval) {
+    const key = getGapFillKey(symbol, interval);
+    return gapFillLocks.has(key);
+}
+async function waitForGapFill(symbol, interval) {
+    const key = getGapFillKey(symbol, interval);
+    if (gapFillLocks.has(key)) {
+        console_1.logger.debug("CHART", `Waiting for existing gap fill operation for ${symbol}/${interval}`);
+        return await gapFillLocks.get(key) || null;
+    }
+    return null;
+}
+function registerGapFillOperation(symbol, interval, gaps) {
+    const key = getGapFillKey(symbol, interval);
+    const existing = activeGapFills.get(key);
+    if (existing) {
+        const isRecent = Date.now() - existing.startTime < 30000;
+        if (isRecent) {
+            const hasOverlap = gaps.some(newGap => existing.gaps.some(existingGap => newGap.gapStart < existingGap.gapEnd && newGap.gapEnd > existingGap.gapStart));
+            if (hasOverlap) {
+                console_1.logger.debug("CHART", `Skipping duplicate gap fill for ${symbol}/${interval} - operation already in progress`);
+                return false;
+            }
+        }
+    }
+    activeGapFills.set(key, { startTime: Date.now(), gaps });
+    return true;
+}
+function clearGapFillOperation(symbol, interval) {
+    const key = getGapFillKey(symbol, interval);
+    activeGapFills.delete(key);
+}
+async function executeWithGapFillLock(symbol, interval, operation) {
+    const key = getGapFillKey(symbol, interval);
+    if (gapFillLocks.has(key)) {
+        console_1.logger.debug("CHART", `Waiting for existing gap fill lock for ${symbol}/${interval}`);
+        await gapFillLocks.get(key);
+    }
+    const operationPromise = operation();
+    gapFillLocks.set(key, operationPromise);
+    try {
+        return await operationPromise;
+    }
+    finally {
+        gapFillLocks.delete(key);
+    }
+}
+async function getCachedOHLCV(symbol, interval, from, to) {
+    const cacheKey = getCacheKey(symbol, interval);
+    if (cacheLocks.has(cacheKey)) {
+        await cacheLocks.get(cacheKey);
+    }
+    try {
+        let cachedData = await Promise.race([
+            redis.get(cacheKey),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Redis timeout')), 3000))
+        ]).catch(() => null);
+        if (!cachedData) {
+            const lockPromise = loadCacheFromFileWithLock(symbol, interval, cacheKey);
+            cacheLocks.set(cacheKey, lockPromise);
+            try {
+                const dataFromFile = await lockPromise;
+                if (dataFromFile.length > 0) {
+                    await Promise.race([
+                        redis.set(cacheKey, JSON.stringify(dataFromFile)),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Redis SET timeout')), 3000))
+                    ]).catch(() => {
+                        console_1.logger.warn("CHART", `Failed to cache data in Redis for ${cacheKey}`);
+                    });
+                    cachedData = JSON.stringify(dataFromFile);
+                }
+                else {
+                    return [];
+                }
+            }
+            finally {
+                cacheLocks.delete(cacheKey);
+            }
+        }
+        const intervalCache = JSON.parse(cachedData);
+        const startIndex = binarySearch(intervalCache, from);
+        const endIndex = binarySearch(intervalCache, to, true);
+        return intervalCache.slice(startIndex, endIndex + 1);
+    }
+    catch (error) {
+        console_1.logger.error("CHART", `Error getting cached OHLCV for ${cacheKey}: ${error}`);
+        return [];
+    }
+}
+async function loadCacheFromFileWithLock(symbol, interval, cacheKey) {
+    try {
+        return await loadCacheFromFile(symbol, interval);
+    }
+    catch (error) {
+        console_1.logger.error("CHART", `Error loading cache from file for ${cacheKey}: ${error}`);
+        return [];
+    }
+}
+function binarySearch(arr, target, findEnd = false) {
+    let left = 0;
+    let right = arr.length - 1;
+    while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        if (arr[mid][0] === target) {
+            return mid;
+        }
+        if (arr[mid][0] < target) {
+            left = mid + 1;
+        }
+        else {
+            right = mid - 1;
+        }
+    }
+    return findEnd ? right : left;
+}
+async function saveOHLCVToCache(symbol, interval, data) {
+    const cacheKey = getCacheKey(symbol, interval);
+    if (cacheLocks.has(cacheKey)) {
+        await cacheLocks.get(cacheKey);
+    }
+    const savePromise = performCacheSave(symbol, interval, data, cacheKey);
+    cacheLocks.set(cacheKey, savePromise);
+    try {
+        await savePromise;
+    }
+    finally {
+        cacheLocks.delete(cacheKey);
+    }
+}
+async function performCacheSave(symbol, interval, data, cacheKey) {
+    try {
+        let intervalCache = [];
+        const cachedData = await Promise.race([
+            redis.get(cacheKey),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Redis GET timeout')), 3000))
+        ]).catch(() => null);
+        if (cachedData) {
+            try {
+                intervalCache = JSON.parse(cachedData);
+            }
+            catch (error) {
+                console_1.logger.warn("CHART", `Failed to parse cached data for ${cacheKey}, using empty array`);
+                intervalCache = [];
+            }
+        }
+        const updatedCache = mergeAndSortData(intervalCache, data);
+        await Promise.race([
+            redis.set(cacheKey, JSON.stringify(updatedCache)),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Redis SET timeout')), 3000))
+        ]).catch((error) => {
+            console_1.logger.warn("CHART", `Failed to save cache to Redis for ${cacheKey}: ${error}`);
+        });
+        await Promise.race([
+            saveCacheToFile(symbol, interval, updatedCache),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('File save timeout')), 5000))
+        ]).catch((error) => {
+            console_1.logger.warn("CHART", `Failed to save cache to file for ${cacheKey}: ${error}`);
+        });
+    }
+    catch (error) {
+        console_1.logger.error("CHART", `Error in performCacheSave for ${cacheKey}: ${error}`);
+        throw error;
+    }
+}
+function mergeAndSortData(existingData, newData) {
+    const merged = [...existingData, ...newData];
+    merged.sort((a, b) => a[0] - b[0]);
+    return merged.filter((item, index, self) => index === 0 || item[0] !== self[index - 1][0]);
+}
+function intervalToMilliseconds(interval) {
+    const intervalMap = {
+        "1m": 60 * 1000,
+        "3m": 3 * 60 * 1000,
+        "5m": 5 * 60 * 1000,
+        "15m": 15 * 60 * 1000,
+        "30m": 30 * 60 * 1000,
+        "1h": 60 * 60 * 1000,
+        "2h": 2 * 60 * 60 * 1000,
+        "4h": 4 * 60 * 60 * 1000,
+        "6h": 6 * 60 * 60 * 1000,
+        "8h": 8 * 60 * 60 * 1000,
+        "12h": 12 * 60 * 60 * 1000,
+        "1d": 24 * 60 * 60 * 1000,
+        "3d": 3 * 24 * 60 * 60 * 1000,
+        "1w": 7 * 24 * 60 * 60 * 1000,
+        "1M": 30 * 24 * 60 * 60 * 1000,
+    };
+    return intervalMap[interval] || 0;
+}
+function findGapsInCachedData(cachedData, from, to, interval) {
+    const gaps = [];
+    const currentTimestamp = Date.now();
+    const intervalMs = intervalToMilliseconds(interval);
+    let currentStart = Math.floor(from / intervalMs) * intervalMs;
+    const currentCandleStart = Math.floor(currentTimestamp / intervalMs) * intervalMs;
+    const adjustedTo = Math.min(to, currentCandleStart);
+    console_1.logger.debug("CHART", `findGaps: now=${new Date(currentTimestamp).toISOString()}, currentCandleStart=${new Date(currentCandleStart).toISOString()}, adjustedTo=${new Date(adjustedTo).toISOString()}`);
+    for (const bar of cachedData) {
+        const barTime = bar[0];
+        if (barTime > currentStart + intervalMs * 1.5) {
+            gaps.push({ gapStart: currentStart, gapEnd: barTime });
+        }
+        currentStart = barTime + intervalMs;
+    }
+    if (currentStart < adjustedTo) {
+        const gapMinutes = Math.round((adjustedTo - currentStart) / 60000);
+        const lastCachedCandleTime = cachedData.length > 0 ? cachedData[cachedData.length - 1][0] : 0;
+        console_1.logger.debug("CHART", `Gap at end: lastCached=${new Date(lastCachedCandleTime).toISOString()}, nextExpected=${new Date(currentStart).toISOString()}, adjustedTo=${new Date(adjustedTo).toISOString()}, gap=${gapMinutes} minutes`);
+        gaps.push({ gapStart: currentStart, gapEnd: adjustedTo });
+    }
+    return gaps;
+}
+function fillGapsWithSyntheticCandles(cachedData, from, to, interval) {
+    if (cachedData.length === 0) {
+        return cachedData;
+    }
+    const intervalMs = intervalToMilliseconds(interval);
+    const now = Date.now();
+    const adjustedTo = Math.min(to, now);
+    const result = [];
+    let lastPrice = cachedData[0][4];
+    let currentTime = Math.floor(from / intervalMs) * intervalMs;
+    let dataIndex = 0;
+    while (currentTime < adjustedTo && dataIndex <= cachedData.length) {
+        if (dataIndex < cachedData.length) {
+            const realCandle = cachedData[dataIndex];
+            const realTime = realCandle[0];
+            if (Math.abs(realTime - currentTime) < intervalMs * 0.5) {
+                result.push(realCandle);
+                lastPrice = realCandle[4];
+                dataIndex++;
+                currentTime = realTime + intervalMs;
+                continue;
+            }
+            if (realTime < currentTime) {
+                dataIndex++;
+                continue;
+            }
+        }
+        const gapSize = dataIndex < cachedData.length
+            ? (cachedData[dataIndex][0] - currentTime) / intervalMs
+            : (adjustedTo - currentTime) / intervalMs;
+        if (gapSize <= 50) {
+            result.push([
+                currentTime,
+                lastPrice,
+                lastPrice,
+                lastPrice,
+                lastPrice,
+                0,
+            ]);
+        }
+        currentTime += intervalMs;
+        if (result.length > 10000) {
+            console_1.logger.warn("CHART", `Too many candles generated, stopping at ${result.length}`);
+            break;
+        }
+    }
+    return result;
+}
+function validateAndCleanCandles(data) {
+    const now = Date.now();
+    const minTimestamp = new Date("2015-01-01").getTime();
+    const basicValid = data.filter((candle) => {
+        if (!Array.isArray(candle) || candle.length < 5)
+            return false;
+        const [timestamp, open, high, low, close] = candle;
+        if (typeof timestamp !== 'number' || timestamp < minTimestamp || timestamp > now + 3600000) {
+            return false;
+        }
+        if (typeof open !== 'number' || typeof high !== 'number' ||
+            typeof low !== 'number' || typeof close !== 'number') {
+            return false;
+        }
+        if (high < low || high < open || high < close || low > open || low > close) {
+            return false;
+        }
+        if (!isFinite(open) || !isFinite(high) || !isFinite(low) || !isFinite(close)) {
+            return false;
+        }
+        if (open <= 0 || high <= 0 || low <= 0 || close <= 0) {
+            return false;
+        }
+        return true;
+    });
+    return removeAnomalousCandles(basicValid);
+}
+function removeAnomalousCandles(candles) {
+    if (candles.length < 3)
+        return candles;
+    const sorted = [...candles].sort((a, b) => a[0] - b[0]);
+    const closeToOpenGaps = [];
+    const candleRanges = [];
+    for (let i = 1; i < sorted.length; i++) {
+        const prevClose = sorted[i - 1][4];
+        const currOpen = sorted[i][1];
+        const gap = Math.abs(currOpen - prevClose);
+        closeToOpenGaps.push(gap);
+        const range = sorted[i][2] - sorted[i][3];
+        candleRanges.push(range);
+    }
+    const sortedGaps = [...closeToOpenGaps].sort((a, b) => a - b);
+    const medianGap = sortedGaps[Math.floor(sortedGaps.length / 2)] || 0;
+    const avgGap = closeToOpenGaps.reduce((a, b) => a + b, 0) / closeToOpenGaps.length || 0;
+    const sortedRanges = [...candleRanges].sort((a, b) => a - b);
+    const medianRange = sortedRanges[Math.floor(sortedRanges.length / 2)] || 0;
+    const avgRange = candleRanges.reduce((a, b) => a + b, 0) / candleRanges.length || 0;
+    const gapThreshold = Math.max(medianGap * 10, avgGap * 5);
+    const rangeThreshold = Math.max(medianRange * 10, avgRange * 5);
+    const result = [];
+    let removedCount = 0;
+    for (let i = 0; i < sorted.length; i++) {
+        const current = sorted[i];
+        const [timestamp, open, high, low, close] = current;
+        const currentRange = high - low;
+        let isAnomaly = false;
+        let reason = "";
+        if (i > 0) {
+            const prevClose = sorted[i - 1][4];
+            const gapFromPrev = Math.abs(open - prevClose);
+            if (gapThreshold > 0 && gapFromPrev > gapThreshold) {
+                if (i < sorted.length - 1) {
+                    const nextOpen = sorted[i + 1][1];
+                    const nextGapFromCurrent = Math.abs(nextOpen - close);
+                    const nextGapFromPrev = Math.abs(nextOpen - prevClose);
+                    if (nextGapFromPrev < nextGapFromCurrent * 0.5) {
+                        isAnomaly = true;
+                        reason = `gap from prev: ${gapFromPrev.toFixed(2)} > threshold ${gapThreshold.toFixed(2)}, next candle reverts`;
+                    }
+                }
+            }
+        }
+        if (!isAnomaly && rangeThreshold > 0 && currentRange > rangeThreshold) {
+            const neighborRanges = [];
+            for (let j = Math.max(0, i - 3); j < Math.min(sorted.length, i + 4); j++) {
+                if (j !== i) {
+                    neighborRanges.push(sorted[j][2] - sorted[j][3]);
+                }
+            }
+            if (neighborRanges.length > 0) {
+                const avgNeighborRange = neighborRanges.reduce((a, b) => a + b, 0) / neighborRanges.length;
+                if (currentRange > avgNeighborRange * 8) {
+                    isAnomaly = true;
+                    reason = `range ${currentRange.toFixed(2)} > 8x neighbor avg ${avgNeighborRange.toFixed(2)}`;
+                }
+            }
+        }
+        if (!isAnomaly) {
+            const body = Math.abs(close - open);
+            const upperWick = high - Math.max(open, close);
+            const lowerWick = Math.min(open, close) - low;
+            if (body > 0 && (upperWick > body * 20 || lowerWick > body * 20)) {
+                const neighborRanges = [];
+                for (let j = Math.max(0, i - 3); j < Math.min(sorted.length, i + 4); j++) {
+                    if (j !== i) {
+                        neighborRanges.push(sorted[j][2] - sorted[j][3]);
+                    }
+                }
+                if (neighborRanges.length > 0) {
+                    const avgNeighborRange = neighborRanges.reduce((a, b) => a + b, 0) / neighborRanges.length;
+                    const maxWick = Math.max(upperWick, lowerWick);
+                    if (maxWick > avgNeighborRange * 5) {
+                        isAnomaly = true;
+                        reason = `extreme wick: ${maxWick.toFixed(2)} > 5x neighbor range ${avgNeighborRange.toFixed(2)}`;
+                    }
+                }
+            }
+        }
+        if (isAnomaly) {
+            console_1.logger.warn("CHART", `Removing anomalous candle: time=${new Date(timestamp).toISOString()}, O=${open.toFixed(2)}, H=${high.toFixed(2)}, L=${low.toFixed(2)}, C=${close.toFixed(2)}, reason: ${reason}`);
+            removedCount++;
+        }
+        else {
+            result.push(current);
+        }
+    }
+    if (removedCount > 0) {
+        console_1.logger.info("CHART", `Removed ${removedCount} anomalous candles from dataset`);
+    }
+    return result;
+}
+function repairCandleData(candles, interval) {
+    if (candles.length < 2)
+        return candles;
+    const intervalMs = intervalToMilliseconds(interval);
+    const sorted = [...candles].sort((a, b) => a[0] - b[0]);
+    const result = [];
+    for (let i = 0; i < sorted.length; i++) {
+        const current = sorted[i];
+        result.push(current);
+        if (i < sorted.length - 1) {
+            const next = sorted[i + 1];
+            const gap = next[0] - current[0];
+            const missingCandles = Math.round(gap / intervalMs) - 1;
+            if (missingCandles > 0 && missingCandles <= 3) {
+                const currentClose = current[4];
+                const nextOpen = next[1];
+                for (let j = 1; j <= missingCandles; j++) {
+                    const ratio = j / (missingCandles + 1);
+                    const interpolatedPrice = currentClose + (nextOpen - currentClose) * ratio;
+                    const interpolatedTime = current[0] + intervalMs * j;
+                    result.push([
+                        interpolatedTime,
+                        interpolatedPrice,
+                        interpolatedPrice,
+                        interpolatedPrice,
+                        interpolatedPrice,
+                        0,
+                    ]);
+                }
+                console_1.logger.debug("CHART", `Interpolated ${missingCandles} missing candles between ${new Date(current[0]).toISOString()} and ${new Date(next[0]).toISOString()}`);
+            }
+        }
+    }
+    return result.sort((a, b) => a[0] - b[0]);
+}

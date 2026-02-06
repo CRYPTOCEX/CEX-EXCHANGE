@@ -1,1 +1,133 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.smsTemplateEngine=exports.SMSTemplateEngine=void 0;const console_1=require("@b/utils/console");class SMSTemplateEngine{constructor(){this.SINGLE_SMS_LENGTH=160;this.MULTIPART_SMS_LENGTH=153}static getInstance(){SMSTemplateEngine.instance||(SMSTemplateEngine.instance=new SMSTemplateEngine);return SMSTemplateEngine.instance}render(e,t){try{let n=e;n=n.replace(/\{\{([^}]+)\}\}/g,(e,n)=>{const r=n.trim();return void 0!==t[r]?String(t[r]):e});const r=n.length,s=this.calculateParts(n);if(r>this.SINGLE_SMS_LENGTH){console_1.logger.warn("SMSTemplateEngine",`SMS message exceeds single SMS length: ${r} chars, ${s} parts`,e);n=this.truncate(n,this.SINGLE_SMS_LENGTH)}return{message:n,length:n.length,parts:this.calculateParts(n)}}catch(t){console_1.logger.error("SMSTemplateEngine",`Failed to render SMS template: ${e}`,t instanceof Error?t:new Error(String(t)));throw t}}createFromNotification(e){let t="";e.title&&(t+=e.title);if(e.message){t.length>0&&(t+=": ");t+=e.message}if(e.link&&t.length<140){const n=process.env.APP_PUBLIC_URL||"https://yourapp.com",r=e.link.startsWith("http")?e.link:`${n}${e.link}`,s=this.shortenLink(r);t.length+s.length+1<=this.SINGLE_SMS_LENGTH&&(t+=` ${s}`)}t.length>this.SINGLE_SMS_LENGTH&&(t=this.truncate(t,this.SINGLE_SMS_LENGTH));return{message:t,length:t.length,parts:this.calculateParts(t)}}calculateParts(e){return e.length<=this.SINGLE_SMS_LENGTH?1:Math.ceil(e.length/this.MULTIPART_SMS_LENGTH)}truncate(e,t){return e.length<=t?e:e.substring(0,t-3)+"..."}shortenLink(e){let t=e.replace(/^https?:\/\//,"");t=t.replace(/^www\./,"");t=t.replace(/\/$/,"");t.length>30&&(t=t.substring(0,27)+"...");return t}validateTemplate(e,t){const n=[],r=e.match(/\{\{([^}]+)\}\}/g);if(r)for(const e of r){const r=e.replace(/\{\{|\}\}/g,"").trim();void 0===t[r]&&n.push(`Missing data for variable: ${r}`)}if(0===n.length){const r=this.render(e,t);r.parts>1&&n.push(`Template renders to ${r.parts} SMS parts (${r.length} chars)`)}return{valid:0===n.length,errors:n}}getCommonTemplates(){return{TRADE_COMPLETED:"Trade completed: {{pair}} {{side}} {{amount}} at {{price}}",TRADE_FAILED:"Trade failed: {{pair}} - {{reason}}",DEPOSIT_CONFIRMED:"Deposit confirmed: {{amount}} {{currency}} to your wallet",WITHDRAWAL_APPROVED:"Withdrawal approved: {{amount}} {{currency}} is being sent",WITHDRAWAL_COMPLETED:"Withdrawal completed: {{amount}} {{currency}}",LOGIN_NEW_DEVICE:"New login: {{device}} from {{location}}",PASSWORD_CHANGED:"Your password was changed. Contact support if not you.",TWO_FACTOR_ENABLED:"2FA enabled for your account",MAINTENANCE_ALERT:"Maintenance: {{message}} at {{time}}",SYSTEM_ALERT:"Alert: {{message}}",VERIFY_PHONE:"Your verification code: {{code}}",OTP_CODE:"Your OTP code: {{code}} - Valid for {{minutes}} minutes"}}}exports.SMSTemplateEngine=SMSTemplateEngine;exports.smsTemplateEngine=SMSTemplateEngine.getInstance();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.smsTemplateEngine = exports.SMSTemplateEngine = void 0;
+const console_1 = require("@b/utils/console");
+class SMSTemplateEngine {
+    constructor() {
+        this.SINGLE_SMS_LENGTH = 160;
+        this.MULTIPART_SMS_LENGTH = 153;
+    }
+    static getInstance() {
+        if (!SMSTemplateEngine.instance) {
+            SMSTemplateEngine.instance = new SMSTemplateEngine();
+        }
+        return SMSTemplateEngine.instance;
+    }
+    render(template, data) {
+        try {
+            let message = template;
+            message = message.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
+                const trimmedKey = key.trim();
+                return data[trimmedKey] !== undefined
+                    ? String(data[trimmedKey])
+                    : match;
+            });
+            const length = message.length;
+            const parts = this.calculateParts(message);
+            if (length > this.SINGLE_SMS_LENGTH) {
+                console_1.logger.warn("SMSTemplateEngine", `SMS message exceeds single SMS length: ${length} chars, ${parts} parts`, template);
+                message = this.truncate(message, this.SINGLE_SMS_LENGTH);
+            }
+            return {
+                message,
+                length: message.length,
+                parts: this.calculateParts(message),
+            };
+        }
+        catch (error) {
+            console_1.logger.error("SMSTemplateEngine", `Failed to render SMS template: ${template}`, error instanceof Error ? error : new Error(String(error)));
+            throw error;
+        }
+    }
+    createFromNotification(data) {
+        let sms = "";
+        if (data.title) {
+            sms += data.title;
+        }
+        if (data.message) {
+            if (sms.length > 0) {
+                sms += ": ";
+            }
+            sms += data.message;
+        }
+        if (data.link && sms.length < 140) {
+            const baseUrl = process.env.APP_PUBLIC_URL || "https://yourapp.com";
+            const fullLink = data.link.startsWith("http")
+                ? data.link
+                : `${baseUrl}${data.link}`;
+            const shortLink = this.shortenLink(fullLink);
+            if (sms.length + shortLink.length + 1 <= this.SINGLE_SMS_LENGTH) {
+                sms += ` ${shortLink}`;
+            }
+        }
+        if (sms.length > this.SINGLE_SMS_LENGTH) {
+            sms = this.truncate(sms, this.SINGLE_SMS_LENGTH);
+        }
+        return {
+            message: sms,
+            length: sms.length,
+            parts: this.calculateParts(sms),
+        };
+    }
+    calculateParts(message) {
+        if (message.length <= this.SINGLE_SMS_LENGTH) {
+            return 1;
+        }
+        return Math.ceil(message.length / this.MULTIPART_SMS_LENGTH);
+    }
+    truncate(message, maxLength) {
+        if (message.length <= maxLength) {
+            return message;
+        }
+        return message.substring(0, maxLength - 3) + "...";
+    }
+    shortenLink(url) {
+        let short = url.replace(/^https?:\/\//, "");
+        short = short.replace(/^www\./, "");
+        short = short.replace(/\/$/, "");
+        if (short.length > 30) {
+            short = short.substring(0, 27) + "...";
+        }
+        return short;
+    }
+    validateTemplate(template, data) {
+        const errors = [];
+        const variables = template.match(/\{\{([^}]+)\}\}/g);
+        if (variables) {
+            for (const variable of variables) {
+                const key = variable.replace(/\{\{|\}\}/g, "").trim();
+                if (data[key] === undefined) {
+                    errors.push(`Missing data for variable: ${key}`);
+                }
+            }
+        }
+        if (errors.length === 0) {
+            const rendered = this.render(template, data);
+            if (rendered.parts > 1) {
+                errors.push(`Template renders to ${rendered.parts} SMS parts (${rendered.length} chars)`);
+            }
+        }
+        return {
+            valid: errors.length === 0,
+            errors,
+        };
+    }
+    getCommonTemplates() {
+        return {
+            TRADE_COMPLETED: "Trade completed: {{pair}} {{side}} {{amount}} at {{price}}",
+            TRADE_FAILED: "Trade failed: {{pair}} - {{reason}}",
+            DEPOSIT_CONFIRMED: "Deposit confirmed: {{amount}} {{currency}} to your wallet",
+            WITHDRAWAL_APPROVED: "Withdrawal approved: {{amount}} {{currency}} is being sent",
+            WITHDRAWAL_COMPLETED: "Withdrawal completed: {{amount}} {{currency}}",
+            LOGIN_NEW_DEVICE: "New login: {{device}} from {{location}}",
+            PASSWORD_CHANGED: "Your password was changed. Contact support if not you.",
+            TWO_FACTOR_ENABLED: "2FA enabled for your account",
+            MAINTENANCE_ALERT: "Maintenance: {{message}} at {{time}}",
+            SYSTEM_ALERT: "Alert: {{message}}",
+            VERIFY_PHONE: "Your verification code: {{code}}",
+            OTP_CODE: "Your OTP code: {{code}} - Valid for {{minutes}} minutes",
+        };
+    }
+}
+exports.SMSTemplateEngine = SMSTemplateEngine;
+exports.smsTemplateEngine = SMSTemplateEngine.getInstance();

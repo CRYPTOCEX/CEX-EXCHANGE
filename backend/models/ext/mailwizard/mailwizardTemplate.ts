@@ -22,32 +22,32 @@ export default class mailwizardTemplate
   getMailwizardCampaigns!: Sequelize.HasManyGetAssociationsMixin<mailwizardCampaign>;
   setMailwizardCampaigns!: Sequelize.HasManySetAssociationsMixin<
     mailwizardCampaign,
-    mailwizardCampaignId
+    string
   >;
   addMailwizardCampaign!: Sequelize.HasManyAddAssociationMixin<
     mailwizardCampaign,
-    mailwizardCampaignId
+    string
   >;
   addMailwizardCampaigns!: Sequelize.HasManyAddAssociationsMixin<
     mailwizardCampaign,
-    mailwizardCampaignId
+    string
   >;
   createMailwizardCampaign!: Sequelize.HasManyCreateAssociationMixin<mailwizardCampaign>;
   removeMailwizardCampaign!: Sequelize.HasManyRemoveAssociationMixin<
     mailwizardCampaign,
-    mailwizardCampaignId
+    string
   >;
   removeMailwizardCampaigns!: Sequelize.HasManyRemoveAssociationsMixin<
     mailwizardCampaign,
-    mailwizardCampaignId
+    string
   >;
   hasMailwizardCampaign!: Sequelize.HasManyHasAssociationMixin<
     mailwizardCampaign,
-    mailwizardCampaignId
+    string
   >;
   hasMailwizardCampaigns!: Sequelize.HasManyHasAssociationsMixin<
     mailwizardCampaign,
-    mailwizardCampaignId
+    string
   >;
   countMailwizardCampaigns!: Sequelize.HasManyCountAssociationsMixin;
 

@@ -82,7 +82,7 @@ export function NotificationServiceClient() {
       });
 
       if (error) {
-        setError(error.message || "Failed to fetch dashboard data");
+        setError(error || "Failed to fetch dashboard data");
       } else {
         setDashboardData(data);
         setError(null);

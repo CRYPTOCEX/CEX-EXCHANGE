@@ -1,1 +1,256 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),notifications_1=require("@b/utils/notifications"),sequelize_1=require("sequelize"),console_1=require("@b/utils/console"),wallet_1=require("@b/services/wallet");exports.metadata={summary:"Process Refunds for Failed ICO",description:"Processes refunds for all investors of a failed ICO offering. Only the offering owner or admin can initiate refunds.",operationId:"processIcoRefunds",tags:["ICO","Refunds"],requiresAuth:!0,logModule:"ICO_REFUND",logTitle:"Process ICO refunds",requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{offeringId:{type:"string",description:"ID of the failed ICO offering"},reason:{type:"string",description:"Reason for the refund"}},required:["offeringId","reason"]}}}},responses:{200:{description:"Refunds processed successfully",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string"},refundedCount:{type:"number"},totalRefunded:{type:"number"},failedRefunds:{type:"array",items:{type:"object"}}}}}}},400:{description:"Bad Request"},401:{description:"Unauthorized"},403:{description:"Forbidden"},404:{description:"Offering not found"},500:{description:"Internal Server Error"}}};exports.default=async e=>{var r,t;const{user:n,body:s,ctx:o}=e;if(!(null==n?void 0:n.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});null==o||o.step("Validating refund request");const{offeringId:i,reason:a}=s;if(!i||!a)throw(0,error_1.createError)({statusCode:400,message:"Missing required fields"});const d=await db_1.sequelize.transaction();try{null==o||o.step("Retrieving offering details");const e=await db_1.models.icoTokenOffering.findByPk(i,{include:[{model:db_1.models.icoTokenDetail,as:"tokenDetail"}],transaction:d});if(!e)throw(0,error_1.createError)({statusCode:404,message:"Offering not found"});null==o||o.step("Verifying user permissions");const s=e.userId===n.id,u=await db_1.models.user.findByPk(n.id,{include:[{model:db_1.models.role,as:"role"}]}),l="admin"===(null===(r=null==u?void 0:u.role)||void 0===r?void 0:r.name)||"super_admin"===(null===(t=null==u?void 0:u.role)||void 0===t?void 0:t.name);if(!s&&!l)throw(0,error_1.createError)({statusCode:403,message:"Only the offering owner or admin can process refunds"});if("FAILED"!==e.status&&"CANCELLED"!==e.status)throw(0,error_1.createError)({statusCode:400,message:`Cannot process refunds for offering with status: ${e.status}`});null==o||o.step("Retrieving pending transactions for refund");const c=await db_1.models.icoTransaction.findAll({where:{offeringId:e.id,status:{[sequelize_1.Op.in]:["PENDING","VERIFICATION","REJECTED"]}},include:[{model:db_1.models.user,as:"user",attributes:["id","email","firstName","lastName"]}],transaction:d});if(0===c.length)throw(0,error_1.createError)({statusCode:400,message:"No transactions found for refund"});let f=0,p=0;const m=[];null==o||o.step(`Processing ${c.length} refund transactions`);for(const r of c)try{const t=r.amount*r.price,s=await db_1.models.wallet.findOne({where:{userId:r.userId,type:e.purchaseWalletType,currency:e.purchaseWalletCurrency},transaction:d,lock:d.LOCK.UPDATE});if(!s){m.push({transactionId:r.id,userId:r.userId,reason:"Wallet not found"});continue}const o=`ico_refund_${r.id}`;await wallet_1.walletService.credit({idempotencyKey:o,userId:r.userId,walletId:s.id,walletType:e.purchaseWalletType,currency:e.purchaseWalletCurrency,amount:t,operationType:"REFUND",referenceId:r.id,description:`ICO Refund: ${e.name} - ${a}`,metadata:{offeringId:e.id,offeringName:e.name,originalTransactionId:r.transactionId,reason:a,processedBy:n.id},transaction:d});await r.update({status:"REJECTED",notes:JSON.stringify({...JSON.parse(r.notes||"{}"),refund:{amount:t,reason:a,processedAt:(new Date).toISOString(),processedBy:n.id}})},{transaction:d});await(0,notifications_1.createNotification)({userId:r.userId,relatedId:e.id,type:"investment",title:"ICO Investment Refunded",message:`Your investment in ${e.name} has been refunded.`,details:`Amount refunded: ${t} ${e.purchaseWalletCurrency}\nReason: ${a}`,link:"/ico/dashboard?tab=transactions"});f++;p+=t}catch(e){console_1.logger.error("ICO_REFUND",`Failed to refund transaction ${r.id}`,e);m.push({transactionId:r.id,userId:r.userId,reason:e.message})}null==o||o.step("Updating offering records and creating audit log");0===m.length&&await e.update({notes:JSON.stringify({...JSON.parse(e.notes||"{}"),refund:{refundReason:a,refundedAt:(new Date).toISOString(),refundedBy:n.id,refundedCount:f,totalRefunded:p,allRefundsProcessed:!0}})},{transaction:d});await db_1.models.icoAdminActivity.create({type:"REFUNDS_PROCESSED",offeringId:e.id,offeringName:e.name,adminId:n.id,details:JSON.stringify({reason:a,refundedCount:f,totalRefunded:p,failedCount:m.length,currency:e.purchaseWalletCurrency})},{transaction:d});await d.commit();null==o||o.step("Sending notifications to offering owner");s||await(0,notifications_1.createNotification)({userId:e.userId,relatedId:e.id,type:"system",title:"ICO Refunds Processed",message:`Refunds have been processed for ${e.name}`,details:`Refunded: ${f} investors\nTotal: ${p} ${e.purchaseWalletCurrency}\nReason: ${a}`,link:`/ico/creator/token/${e.id}`});null==o||o.success(`Processed ${f} refunds totaling ${p} ${e.purchaseWalletCurrency}`);return{message:"Refunds processed successfully",refundedCount:f,totalRefunded:p,failedRefunds:m}}catch(e){await d.rollback();null==o||o.fail(e.message||"Failed to process refunds");throw e}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const notifications_1 = require("@b/utils/notifications");
+const sequelize_1 = require("sequelize");
+const console_1 = require("@b/utils/console");
+const wallet_1 = require("@b/services/wallet");
+exports.metadata = {
+    summary: "Process Refunds for Failed ICO",
+    description: "Processes refunds for all investors of a failed ICO offering. Only the offering owner or admin can initiate refunds.",
+    operationId: "processIcoRefunds",
+    tags: ["ICO", "Refunds"],
+    requiresAuth: true,
+    logModule: "ICO_REFUND",
+    logTitle: "Process ICO refunds",
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        offeringId: {
+                            type: "string",
+                            description: "ID of the failed ICO offering"
+                        },
+                        reason: {
+                            type: "string",
+                            description: "Reason for the refund"
+                        },
+                    },
+                    required: ["offeringId", "reason"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Refunds processed successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: { type: "string" },
+                            refundedCount: { type: "number" },
+                            totalRefunded: { type: "number" },
+                            failedRefunds: { type: "array", items: { type: "object" } },
+                        },
+                    },
+                },
+            },
+        },
+        400: { description: "Bad Request" },
+        401: { description: "Unauthorized" },
+        403: { description: "Forbidden" },
+        404: { description: "Offering not found" },
+        500: { description: "Internal Server Error" },
+    },
+};
+exports.default = async (data) => {
+    var _a, _b;
+    const { user, body, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating refund request");
+    const { offeringId, reason } = body;
+    if (!offeringId || !reason) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "Missing required fields" });
+    }
+    const transaction = await db_1.sequelize.transaction();
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Retrieving offering details");
+        const offering = await db_1.models.icoTokenOffering.findByPk(offeringId, {
+            include: [{
+                    model: db_1.models.icoTokenDetail,
+                    as: "tokenDetail",
+                }],
+            transaction,
+        });
+        if (!offering) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Offering not found" });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Verifying user permissions");
+        const isOwner = offering.userId === user.id;
+        const fullUser = await db_1.models.user.findByPk(user.id, {
+            include: [{ model: db_1.models.role, as: "role" }]
+        });
+        const isAdmin = ((_a = fullUser === null || fullUser === void 0 ? void 0 : fullUser.role) === null || _a === void 0 ? void 0 : _a.name) === 'admin' || ((_b = fullUser === null || fullUser === void 0 ? void 0 : fullUser.role) === null || _b === void 0 ? void 0 : _b.name) === 'super_admin';
+        if (!isOwner && !isAdmin) {
+            throw (0, error_1.createError)({
+                statusCode: 403,
+                message: "Only the offering owner or admin can process refunds"
+            });
+        }
+        if (offering.status !== 'FAILED' && offering.status !== 'CANCELLED') {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Cannot process refunds for offering with status: ${offering.status}`
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Retrieving pending transactions for refund");
+        const pendingTransactions = await db_1.models.icoTransaction.findAll({
+            where: {
+                offeringId: offering.id,
+                status: { [sequelize_1.Op.in]: ['PENDING', 'VERIFICATION', 'REJECTED'] }
+            },
+            include: [{
+                    model: db_1.models.user,
+                    as: "user",
+                    attributes: ["id", "email", "firstName", "lastName"],
+                }],
+            transaction,
+        });
+        if (pendingTransactions.length === 0) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "No transactions found for refund"
+            });
+        }
+        let refundedCount = 0;
+        let totalRefunded = 0;
+        const failedRefunds = [];
+        ctx === null || ctx === void 0 ? void 0 : ctx.step(`Processing ${pendingTransactions.length} refund transactions`);
+        for (const icoTransaction of pendingTransactions) {
+            try {
+                const refundAmount = icoTransaction.amount * icoTransaction.price;
+                const wallet = await db_1.models.wallet.findOne({
+                    where: {
+                        userId: icoTransaction.userId,
+                        type: offering.purchaseWalletType,
+                        currency: offering.purchaseWalletCurrency,
+                    },
+                    transaction,
+                    lock: transaction.LOCK.UPDATE,
+                });
+                if (!wallet) {
+                    failedRefunds.push({
+                        transactionId: icoTransaction.id,
+                        userId: icoTransaction.userId,
+                        reason: "Wallet not found",
+                    });
+                    continue;
+                }
+                const idempotencyKey = `ico_refund_${icoTransaction.id}`;
+                await wallet_1.walletService.credit({
+                    idempotencyKey,
+                    userId: icoTransaction.userId,
+                    walletId: wallet.id,
+                    walletType: offering.purchaseWalletType,
+                    currency: offering.purchaseWalletCurrency,
+                    amount: refundAmount,
+                    operationType: "REFUND",
+                    referenceId: icoTransaction.id,
+                    description: `ICO Refund: ${offering.name} - ${reason}`,
+                    metadata: {
+                        offeringId: offering.id,
+                        offeringName: offering.name,
+                        originalTransactionId: icoTransaction.id,
+                        reason,
+                        processedBy: user.id,
+                    },
+                    transaction,
+                });
+                await icoTransaction.update({
+                    status: 'REJECTED',
+                    notes: JSON.stringify({
+                        ...JSON.parse(icoTransaction.notes || '{}'),
+                        refund: {
+                            amount: refundAmount,
+                            reason,
+                            processedAt: new Date().toISOString(),
+                            processedBy: user.id,
+                        }
+                    })
+                }, { transaction });
+                await (0, notifications_1.createNotification)({
+                    userId: icoTransaction.userId,
+                    relatedId: offering.id,
+                    type: "investment",
+                    title: "ICO Investment Refunded",
+                    message: `Your investment in ${offering.name} has been refunded.`,
+                    details: `Amount refunded: ${refundAmount} ${offering.purchaseWalletCurrency}\nReason: ${reason}`,
+                    link: `/ico/dashboard?tab=transactions`,
+                });
+                refundedCount++;
+                totalRefunded += refundAmount;
+            }
+            catch (error) {
+                console_1.logger.error("ICO_REFUND", `Failed to refund transaction ${icoTransaction.id}`, error);
+                failedRefunds.push({
+                    transactionId: icoTransaction.id,
+                    userId: icoTransaction.userId,
+                    reason: error.message,
+                });
+            }
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating offering records and creating audit log");
+        if (failedRefunds.length === 0) {
+            await offering.update({
+                reviewNotes: JSON.stringify({
+                    ...JSON.parse(offering.reviewNotes || '{}'),
+                    refund: {
+                        refundReason: reason,
+                        refundedAt: new Date().toISOString(),
+                        refundedBy: user.id,
+                        refundedCount,
+                        totalRefunded,
+                        allRefundsProcessed: true,
+                    }
+                })
+            }, { transaction });
+        }
+        await db_1.models.icoAdminActivity.create({
+            type: "REFUNDS_PROCESSED",
+            offeringId: offering.id,
+            offeringName: offering.name,
+            adminId: user.id,
+            details: JSON.stringify({
+                reason,
+                refundedCount,
+                totalRefunded,
+                failedCount: failedRefunds.length,
+                currency: offering.purchaseWalletCurrency,
+            }),
+        }, { transaction });
+        await transaction.commit();
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending notifications to offering owner");
+        if (!isOwner) {
+            await (0, notifications_1.createNotification)({
+                userId: offering.userId,
+                relatedId: offering.id,
+                type: "system",
+                title: "ICO Refunds Processed",
+                message: `Refunds have been processed for ${offering.name}`,
+                details: `Refunded: ${refundedCount} investors\nTotal: ${totalRefunded} ${offering.purchaseWalletCurrency}\nReason: ${reason}`,
+                link: `/ico/creator/token/${offering.id}`,
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Processed ${refundedCount} refunds totaling ${totalRefunded} ${offering.purchaseWalletCurrency}`);
+        return {
+            message: "Refunds processed successfully",
+            refundedCount,
+            totalRefunded,
+            failedRefunds,
+        };
+    }
+    catch (err) {
+        await transaction.rollback();
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(err.message || "Failed to process refunds");
+        throw err;
+    }
+};

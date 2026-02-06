@@ -18,7 +18,7 @@ export default class providerUser
   // providerUser belongsTo user via userId
   user!: user;
   getUser!: Sequelize.BelongsToGetAssociationMixin<user>;
-  setUser!: Sequelize.BelongsToSetAssociationMixin<user, userId>;
+  setUser!: Sequelize.BelongsToSetAssociationMixin<user, string>;
   createUser!: Sequelize.BelongsToCreateAssociationMixin<user>;
 
   public static initModel(sequelize: Sequelize.Sequelize): typeof providerUser {

@@ -29,6 +29,11 @@ export interface binaryAiEngineAttributes {
   enableWhaleDetection: boolean;
   whaleThreshold: number;
   whaleStrategy: WhaleStrategy;
+  whaleWinRateCap: number;
+  whaleProfitMultiplier: number;
+  payoutMultiplier: number;
+  emergencyStopLoss: number;
+  correlationConfig?: Record<string, any>;
   simulationMode: boolean;
   logSimulatedActions: boolean;
   enableExternalCorrelation: boolean;
@@ -46,6 +51,9 @@ export interface binaryAiEngineAttributes {
   practicePeriodLosses: number;
   lastPracticePeriodResetAt: Date;
   lastSnapshotId: string | null;
+  // ML Configuration
+  mlModelWeights?: Record<string, any>;
+  enableWhaleAlerts?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -75,6 +83,11 @@ export interface binaryAiEngineCreationAttributes
     | "enableWhaleDetection"
     | "whaleThreshold"
     | "whaleStrategy"
+    | "whaleWinRateCap"
+    | "whaleProfitMultiplier"
+    | "payoutMultiplier"
+    | "emergencyStopLoss"
+    | "correlationConfig"
     | "simulationMode"
     | "logSimulatedActions"
     | "enableExternalCorrelation"
@@ -230,6 +243,24 @@ export default class binaryAiEngine
   whaleThreshold!: number;
   /** How to handle whale positions */
   whaleStrategy!: WhaleStrategy;
+  /** Maximum win rate cap for whale positions */
+  whaleWinRateCap!: number;
+  /** Profit multiplier for whale positions */
+  whaleProfitMultiplier!: number;
+
+  // ============================================
+  // PAYOUT SETTINGS
+  // ============================================
+  /** Payout multiplier for winning positions */
+  payoutMultiplier!: number;
+
+  // ============================================
+  // EMERGENCY SETTINGS
+  // ============================================
+  /** Emergency stop loss threshold */
+  emergencyStopLoss!: number;
+  /** External correlation configuration */
+  correlationConfig?: Record<string, any>;
 
   // ============================================
   // SIMULATION MODE SETTINGS (V2)
@@ -293,6 +324,10 @@ export default class binaryAiEngine
   /** Last snapshot ID for quick reference */
   lastSnapshotId!: string | null;
 
+  // ML Configuration
+  mlModelWeights?: Record<string, any>;
+  enableWhaleAlerts?: boolean;
+
   createdAt?: Date;
   updatedAt?: Date;
 
@@ -321,7 +356,6 @@ export default class binaryAiEngine
         marketMakerId: {
           type: DataTypes.UUID,
           allowNull: false,
-          unique: true,
           validate: {
             notEmpty: { msg: "marketMakerId: Market Maker ID must not be empty" },
             isUUID: { args: 4, msg: "marketMakerId: Must be a valid UUID" },
@@ -484,6 +518,50 @@ export default class binaryAiEngine
           allowNull: false,
           defaultValue: "REDUCE_EXPOSURE",
         },
+        whaleWinRateCap: {
+          type: DataTypes.DECIMAL(5, 4),
+          allowNull: false,
+          defaultValue: 0.25,
+          get() {
+            const value = this.getDataValue("whaleWinRateCap");
+            return value !== null ? parseFloat(value as any) : 0.25;
+          },
+        },
+        whaleProfitMultiplier: {
+          type: DataTypes.DECIMAL(5, 2),
+          allowNull: false,
+          defaultValue: 1.5,
+          get() {
+            const value = this.getDataValue("whaleProfitMultiplier");
+            return value !== null ? parseFloat(value as any) : 1.5;
+          },
+        },
+
+        // Payout Settings
+        payoutMultiplier: {
+          type: DataTypes.DECIMAL(5, 2),
+          allowNull: false,
+          defaultValue: 0.85,
+          get() {
+            const value = this.getDataValue("payoutMultiplier");
+            return value !== null ? parseFloat(value as any) : 0.85;
+          },
+        },
+
+        // Emergency Settings
+        emergencyStopLoss: {
+          type: DataTypes.DECIMAL(18, 8),
+          allowNull: false,
+          defaultValue: 50000.0,
+          get() {
+            const value = this.getDataValue("emergencyStopLoss");
+            return value !== null ? parseFloat(value as any) : 50000.0;
+          },
+        },
+        correlationConfig: {
+          type: DataTypes.JSON,
+          allowNull: true,
+        },
 
         // Simulation Mode Settings (V2)
         simulationMode: {
@@ -600,6 +678,17 @@ export default class binaryAiEngine
         lastSnapshotId: {
           type: DataTypes.UUID,
           allowNull: true,
+        },
+
+        // ML Configuration
+        mlModelWeights: {
+          type: DataTypes.JSON,
+          allowNull: true,
+        },
+        enableWhaleAlerts: {
+          type: DataTypes.BOOLEAN,
+          allowNull: true,
+          defaultValue: false,
         },
       },
       {

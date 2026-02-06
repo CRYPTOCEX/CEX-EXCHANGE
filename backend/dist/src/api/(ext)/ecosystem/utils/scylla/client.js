@@ -1,1 +1,298 @@
-"use strict";async function connectWithRetry(e,s){e===MAX_RETRIES&&await new Promise(e=>setTimeout(e,INITIAL_DELAY));try{await client.connect();return!0}catch(t){console_1.logger.error("ECOSYSTEM","Failed to connect to ScyllaDB",t);if(e>0){console_1.logger.warn("SCYLLA",`Connection failed. Retrying in ${s/1e3} seconds...`);await new Promise(e=>setTimeout(e,s));return connectWithRetry(e-1,2*s)}console_1.logger.error("SCYLLA","Max retries reached. Could not connect to ScyllaDB.");return!1}}function initialize(){if(initializationPromise)return initializationPromise;initializationPromise=(async()=>{if(!await connectWithRetry(MAX_RETRIES,INITIAL_DELAY))throw(0,error_1.createError)({statusCode:500,message:"Failed to connect to ScyllaDB"});await initializeDatabase(exports.scyllaKeyspace,tradingTableQueries,tradingViewQueries);await initializeDatabase(exports.scyllaFuturesKeyspace,futuresTableQueries,futuresViewQueries);client.keyspace=exports.scyllaKeyspace})();initializationPromise.catch(e=>{console_1.logger.error("ECOSYSTEM","Failed to initialize ScyllaDB",e);initializationPromise=null});return initializationPromise}async function initializeDatabase(e,s,t){try{const n=`SELECT keyspace_name FROM system_schema.keyspaces WHERE keyspace_name = '${e}'`,a=await client.execute(n);a&&a.rows&&0===a.rows.length&&await client.execute(`CREATE KEYSPACE IF NOT EXISTS ${e} WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}`);await client.execute(`USE ${e}`);try{await Promise.all(s.map(e=>client.execute(e)));await Promise.all(t.map(e=>client.execute(e)));e===exports.scyllaKeyspace&&await runMigrations(e)}catch(e){console_1.logger.error("ECOSYSTEM","Failed to create ScyllaDB tables",e)}}catch(e){console_1.logger.error("ECOSYSTEM","Failed to initialize ScyllaDB database",e)}}async function runMigrations(e){var s,t;const n=[`ALTER TABLE ${e}.orders ADD "marketMakerId" UUID`,`ALTER TABLE ${e}.orders ADD "botId" UUID`,`ALTER TABLE ${e}.orders ADD "walletType" TEXT`];for(const e of n)try{await client.execute(e)}catch(e){(null===(s=e.message)||void 0===s?void 0:s.includes("already exists"))||(null===(t=e.message)||void 0===t?void 0:t.includes("Invalid column name"))||console_1.logger.warn("SCYLLA",`Migration warning: ${e.message}`)}}var _a;Object.defineProperty(exports,"__esModule",{value:!0});exports.scyllaFuturesKeyspace=exports.scyllaKeyspace=void 0;exports.initialize=initialize;const cassandra_driver_1=require("cassandra-driver"),console_1=require("@b/utils/console"),error_1=require("@b/utils/error"),loadBalancingPolicy=new cassandra_driver_1.policies.loadBalancing.TokenAwarePolicy(new cassandra_driver_1.policies.loadBalancing.RoundRobinPolicy),scyllaUsername=process.env.SCYLLA_USERNAME,scyllaPassword=process.env.SCYLLA_PASSWORD;exports.scyllaKeyspace=process.env.SCYLLA_KEYSPACE||"trading";exports.scyllaFuturesKeyspace=process.env.SCYLLA_FUTURES_KEYSPACE||"futures";const scyllaConnectPoints=process.env.SCYLLA_CONNECT_POINTS?process.env.SCYLLA_CONNECT_POINTS.split(",").map(e=>e.trim()):["127.0.0.1:9042"],scyllaDatacenter=null!==(_a=process.env.SCYLLA_DATACENTER)&&void 0!==_a?_a:"datacenter1",clientConfig={contactPoints:scyllaConnectPoints,localDataCenter:scyllaDatacenter,policies:{loadBalancing:loadBalancingPolicy},socketOptions:{connectTimeout:2e3},pooling:{coreConnectionsPerHost:{[cassandra_driver_1.types.distance.local]:2,[cassandra_driver_1.types.distance.remote]:1}},encoding:{useUndefinedAsUnset:!0}};scyllaUsername&&""!==scyllaUsername&&scyllaPassword&&""!==scyllaPassword&&(clientConfig.authProvider=new cassandra_driver_1.auth.PlainTextAuthProvider(scyllaUsername,scyllaPassword));const client=new cassandra_driver_1.Client(clientConfig),MAX_RETRIES=5,INITIAL_DELAY=2e3;let initializationPromise=null;const tradingTableQueries=[`CREATE TABLE IF NOT EXISTS ${exports.scyllaKeyspace}.orders (\n    id UUID,\n    "userId" UUID,\n    symbol TEXT,\n    type TEXT,\n    "timeInForce" TEXT,\n    side TEXT,\n    price VARINT,\n    average VARINT,\n    amount VARINT,\n    filled VARINT,\n    remaining VARINT,\n    cost VARINT,\n    trades TEXT,\n    fee VARINT,\n    "feeCurrency" TEXT,\n    status TEXT,\n    "createdAt" TIMESTAMP,\n    "updatedAt" TIMESTAMP,\n    "marketMakerId" UUID,\n    "botId" UUID,\n    "walletType" TEXT,\n    PRIMARY KEY (("userId"), "createdAt", id)\n  ) WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,`CREATE TABLE IF NOT EXISTS ${exports.scyllaKeyspace}.candles (\n    symbol TEXT,\n    interval TEXT,\n    open DOUBLE,\n    high DOUBLE,\n    low DOUBLE,\n    close DOUBLE,\n    volume DOUBLE,\n    "createdAt" TIMESTAMP,\n    "updatedAt" TIMESTAMP,\n    PRIMARY KEY (symbol, interval, "createdAt")\n  ) WITH CLUSTERING ORDER BY (interval ASC, "createdAt" DESC);`,`CREATE TABLE IF NOT EXISTS ${exports.scyllaKeyspace}.orderbook (\n    symbol TEXT,\n    price DOUBLE,\n    amount DOUBLE,\n    side TEXT,\n    PRIMARY KEY ((symbol, side), price)\n  ) WITH CLUSTERING ORDER BY (price ASC);`,`CREATE TABLE IF NOT EXISTS ${exports.scyllaKeyspace}.trades (\n    symbol TEXT,\n    "createdAt" TIMESTAMP,\n    id UUID,\n    price DOUBLE,\n    amount DOUBLE,\n    side TEXT,\n    "isAiTrade" BOOLEAN,\n    PRIMARY KEY ((symbol), "createdAt", id)\n  ) WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`],tradingViewQueries=[`CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaKeyspace}.open_orders AS\n  SELECT * FROM ${exports.scyllaKeyspace}.orders\n  WHERE status = 'OPEN' AND "userId" IS NOT NULL AND "createdAt" IS NOT NULL AND id IS NOT NULL\n  PRIMARY KEY ((status, "userId"), "createdAt", id)\n  WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,`CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaKeyspace}.latest_candles AS\n  SELECT * FROM ${exports.scyllaKeyspace}.candles\n  WHERE symbol IS NOT NULL AND interval IS NOT NULL AND "createdAt" IS NOT NULL\n  PRIMARY KEY ((symbol, interval), "createdAt")\n  WITH CLUSTERING ORDER BY ("createdAt" DESC);`,`CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaKeyspace}.orders_by_symbol AS\n  SELECT * FROM ${exports.scyllaKeyspace}.orders\n  WHERE symbol IS NOT NULL AND "userId" IS NOT NULL AND "createdAt" IS NOT NULL AND id IS NOT NULL\n  PRIMARY KEY ((symbol, "userId"), "createdAt", id)\n  WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,`CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaKeyspace}.orderbook_by_symbol AS\n  SELECT price, side, amount FROM ${exports.scyllaKeyspace}.orderbook\n  WHERE symbol IS NOT NULL AND price IS NOT NULL AND side IS NOT NULL\n  PRIMARY KEY (symbol, price, side);`],futuresTableQueries=[`CREATE TABLE IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.orders (\n    id UUID,\n    "userId" UUID,\n    symbol TEXT,\n    type TEXT,\n    "timeInForce" TEXT,\n    side TEXT,\n    price VARINT,\n    average VARINT,\n    amount VARINT,\n    filled VARINT,\n    remaining VARINT,\n    cost VARINT,\n    leverage VARINT,\n    fee VARINT,\n    "feeCurrency" TEXT,\n    status TEXT,\n    "stopLossPrice" VARINT,\n    "takeProfitPrice" VARINT,\n    trades TEXT,\n    "createdAt" TIMESTAMP,\n    "updatedAt" TIMESTAMP,\n    PRIMARY KEY (("userId"), "createdAt", id)\n  ) WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,`CREATE TABLE IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.position (\n    id UUID,\n    "userId" UUID,\n    symbol TEXT,\n    side TEXT,\n    "entryPrice" VARINT,\n    amount VARINT,\n    leverage VARINT,\n    "unrealizedPnl" VARINT,\n    "stopLossPrice" VARINT,\n    "takeProfitPrice" VARINT,\n    status TEXT,\n    "createdAt" TIMESTAMP,\n    "updatedAt" TIMESTAMP,\n    PRIMARY KEY (("userId"), id)\n  ) WITH CLUSTERING ORDER BY (id ASC);`,`CREATE TABLE IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.orderbook (\n    symbol TEXT,\n    price DOUBLE,\n    amount DOUBLE,\n    side TEXT,\n    PRIMARY KEY ((symbol, side), price)\n  ) WITH CLUSTERING ORDER BY (price ASC);`,`CREATE TABLE IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.candles (\n    symbol TEXT,\n    interval TEXT,\n    open DOUBLE,\n    high DOUBLE,\n    low DOUBLE,\n    close DOUBLE,\n    volume DOUBLE,\n    "createdAt" TIMESTAMP,\n    "updatedAt" TIMESTAMP,\n    PRIMARY KEY (symbol, interval, "createdAt")\n  ) WITH CLUSTERING ORDER BY (interval ASC, "createdAt" DESC);`],futuresViewQueries=[`CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.open_order AS\n  SELECT * FROM ${exports.scyllaFuturesKeyspace}.orders\n  WHERE status = 'OPEN' AND "userId" IS NOT NULL AND "createdAt" IS NOT NULL AND id IS NOT NULL\n  PRIMARY KEY ((status, "userId"), "createdAt", id)\n  WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,`CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.latest_candles AS\n  SELECT * FROM ${exports.scyllaFuturesKeyspace}.candles\n  WHERE symbol IS NOT NULL AND interval IS NOT NULL AND "createdAt" IS NOT NULL\n  PRIMARY KEY ((symbol, interval), "createdAt")\n  WITH CLUSTERING ORDER BY ("createdAt" DESC);`,`CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.orders_by_symbol AS\n  SELECT * FROM ${exports.scyllaFuturesKeyspace}.orders\n  WHERE symbol IS NOT NULL AND "userId" IS NOT NULL AND "createdAt" IS NOT NULL AND id IS NOT NULL\n  PRIMARY KEY ((symbol, "userId"), "createdAt", id)\n  WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,`CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.orderbook_by_symbol AS\n  SELECT price, side, amount FROM ${exports.scyllaFuturesKeyspace}.orderbook\n  WHERE symbol IS NOT NULL AND price IS NOT NULL AND side IS NOT NULL\n  PRIMARY KEY (symbol, price, side);`,`CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.positions_by_symbol AS\n  SELECT * FROM ${exports.scyllaFuturesKeyspace}.position\n  WHERE symbol IS NOT NULL AND id IS NOT NULL AND "userId" IS NOT NULL\n  PRIMARY KEY ((symbol), id, "userId")\n  WITH CLUSTERING ORDER BY (id ASC);`],shutdown=async()=>{await client.shutdown();console_1.logger.info("SCYLLA","Client disconnected");process.exit(0)};process.on("SIGINT",shutdown);process.on("SIGTERM",shutdown);exports.default=client;
+"use strict";
+var _a;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.scyllaFuturesKeyspace = exports.scyllaKeyspace = void 0;
+exports.initialize = initialize;
+const cassandra_driver_1 = require("cassandra-driver");
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+const loadBalancingPolicy = new cassandra_driver_1.policies.loadBalancing.TokenAwarePolicy(new cassandra_driver_1.policies.loadBalancing.RoundRobinPolicy());
+const scyllaUsername = process.env.SCYLLA_USERNAME;
+const scyllaPassword = process.env.SCYLLA_PASSWORD;
+exports.scyllaKeyspace = process.env.SCYLLA_KEYSPACE || "trading";
+exports.scyllaFuturesKeyspace = process.env.SCYLLA_FUTURES_KEYSPACE || "futures";
+const scyllaConnectPoints = process.env.SCYLLA_CONNECT_POINTS
+    ? process.env.SCYLLA_CONNECT_POINTS.split(",").map((point) => point.trim())
+    : ["127.0.0.1:9042"];
+const scyllaDatacenter = (_a = process.env.SCYLLA_DATACENTER) !== null && _a !== void 0 ? _a : "datacenter1";
+const clientConfig = {
+    contactPoints: scyllaConnectPoints,
+    localDataCenter: scyllaDatacenter,
+    policies: {
+        loadBalancing: loadBalancingPolicy,
+    },
+    socketOptions: {
+        connectTimeout: 2000,
+    },
+    pooling: {
+        coreConnectionsPerHost: {
+            [cassandra_driver_1.types.distance.local]: 2,
+            [cassandra_driver_1.types.distance.remote]: 1,
+        },
+    },
+    encoding: {
+        useUndefinedAsUnset: true,
+    },
+};
+if (scyllaUsername &&
+    scyllaUsername !== "" &&
+    scyllaPassword &&
+    scyllaPassword !== "") {
+    clientConfig.authProvider = new cassandra_driver_1.auth.PlainTextAuthProvider(scyllaUsername, scyllaPassword);
+}
+const client = new cassandra_driver_1.Client(clientConfig);
+const MAX_RETRIES = 5;
+const INITIAL_DELAY = 2000;
+async function connectWithRetry(retries, delay) {
+    if (retries === MAX_RETRIES) {
+        await new Promise((resolve) => setTimeout(resolve, INITIAL_DELAY));
+    }
+    try {
+        await client.connect();
+        return true;
+    }
+    catch (err) {
+        console_1.logger.error("ECOSYSTEM", "Failed to connect to ScyllaDB", err);
+        if (retries > 0) {
+            console_1.logger.warn("SCYLLA", `Connection failed. Retrying in ${delay / 1000} seconds...`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return connectWithRetry(retries - 1, delay * 2);
+        }
+        else {
+            console_1.logger.error("SCYLLA", "Max retries reached. Could not connect to ScyllaDB.");
+            return false;
+        }
+    }
+}
+let initializationPromise = null;
+function initialize() {
+    if (initializationPromise) {
+        return initializationPromise;
+    }
+    initializationPromise = (async () => {
+        const connected = await connectWithRetry(MAX_RETRIES, INITIAL_DELAY);
+        if (!connected) {
+            throw (0, error_1.createError)({ statusCode: 500, message: "Failed to connect to ScyllaDB" });
+        }
+        await initializeDatabase(exports.scyllaKeyspace, tradingTableQueries, tradingViewQueries);
+        await initializeDatabase(exports.scyllaFuturesKeyspace, futuresTableQueries, futuresViewQueries);
+        client.keyspace = exports.scyllaKeyspace;
+    })();
+    initializationPromise.catch((err) => {
+        console_1.logger.error("ECOSYSTEM", "Failed to initialize ScyllaDB", err);
+        initializationPromise = null;
+    });
+    return initializationPromise;
+}
+async function initializeDatabase(keyspace, tableQueries, materializedViewQueries) {
+    try {
+        const query = `SELECT keyspace_name FROM system_schema.keyspaces WHERE keyspace_name = '${keyspace}'`;
+        const result = await client.execute(query);
+        if (result && result.rows && result.rows.length === 0) {
+            await client.execute(`CREATE KEYSPACE IF NOT EXISTS ${keyspace} WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}`);
+        }
+        await client.execute(`USE ${keyspace}`);
+        try {
+            await Promise.all(tableQueries.map((query) => client.execute(query)));
+            await Promise.all(materializedViewQueries.map((query) => client.execute(query)));
+            if (keyspace === exports.scyllaKeyspace) {
+                await runMigrations(keyspace);
+            }
+        }
+        catch (err) {
+            console_1.logger.error("ECOSYSTEM", "Failed to create ScyllaDB tables", err);
+        }
+    }
+    catch (error) {
+        console_1.logger.error("ECOSYSTEM", "Failed to initialize ScyllaDB database", error);
+    }
+}
+async function runMigrations(keyspace) {
+    var _a, _b;
+    const migrations = [
+        `ALTER TABLE ${keyspace}.orders ADD "marketMakerId" UUID`,
+        `ALTER TABLE ${keyspace}.orders ADD "botId" UUID`,
+        `ALTER TABLE ${keyspace}.orders ADD "walletType" TEXT`,
+    ];
+    for (const migration of migrations) {
+        try {
+            await client.execute(migration);
+        }
+        catch (err) {
+            if (!((_a = err.message) === null || _a === void 0 ? void 0 : _a.includes("already exists")) && !((_b = err.message) === null || _b === void 0 ? void 0 : _b.includes("Invalid column name"))) {
+                console_1.logger.warn("SCYLLA", `Migration warning: ${err.message}`);
+            }
+        }
+    }
+}
+const tradingTableQueries = [
+    `CREATE TABLE IF NOT EXISTS ${exports.scyllaKeyspace}.orders (
+    id UUID,
+    "userId" UUID,
+    symbol TEXT,
+    type TEXT,
+    "timeInForce" TEXT,
+    side TEXT,
+    price VARINT,
+    average VARINT,
+    amount VARINT,
+    filled VARINT,
+    remaining VARINT,
+    cost VARINT,
+    trades TEXT,
+    fee VARINT,
+    "feeCurrency" TEXT,
+    status TEXT,
+    "createdAt" TIMESTAMP,
+    "updatedAt" TIMESTAMP,
+    "marketMakerId" UUID,
+    "botId" UUID,
+    "walletType" TEXT,
+    PRIMARY KEY (("userId"), "createdAt", id)
+  ) WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,
+    `CREATE TABLE IF NOT EXISTS ${exports.scyllaKeyspace}.candles (
+    symbol TEXT,
+    interval TEXT,
+    open DOUBLE,
+    high DOUBLE,
+    low DOUBLE,
+    close DOUBLE,
+    volume DOUBLE,
+    "createdAt" TIMESTAMP,
+    "updatedAt" TIMESTAMP,
+    PRIMARY KEY (symbol, interval, "createdAt")
+  ) WITH CLUSTERING ORDER BY (interval ASC, "createdAt" DESC);`,
+    `CREATE TABLE IF NOT EXISTS ${exports.scyllaKeyspace}.orderbook (
+    symbol TEXT,
+    price DOUBLE,
+    amount DOUBLE,
+    side TEXT,
+    PRIMARY KEY ((symbol, side), price)
+  ) WITH CLUSTERING ORDER BY (price ASC);`,
+    `CREATE TABLE IF NOT EXISTS ${exports.scyllaKeyspace}.trades (
+    symbol TEXT,
+    "createdAt" TIMESTAMP,
+    id UUID,
+    price DOUBLE,
+    amount DOUBLE,
+    side TEXT,
+    "isAiTrade" BOOLEAN,
+    PRIMARY KEY ((symbol), "createdAt", id)
+  ) WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,
+];
+const tradingViewQueries = [
+    `CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaKeyspace}.open_orders AS
+  SELECT * FROM ${exports.scyllaKeyspace}.orders
+  WHERE status = 'OPEN' AND "userId" IS NOT NULL AND "createdAt" IS NOT NULL AND id IS NOT NULL
+  PRIMARY KEY ((status, "userId"), "createdAt", id)
+  WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,
+    `CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaKeyspace}.latest_candles AS
+  SELECT * FROM ${exports.scyllaKeyspace}.candles
+  WHERE symbol IS NOT NULL AND interval IS NOT NULL AND "createdAt" IS NOT NULL
+  PRIMARY KEY ((symbol, interval), "createdAt")
+  WITH CLUSTERING ORDER BY ("createdAt" DESC);`,
+    `CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaKeyspace}.orders_by_symbol AS
+  SELECT * FROM ${exports.scyllaKeyspace}.orders
+  WHERE symbol IS NOT NULL AND "userId" IS NOT NULL AND "createdAt" IS NOT NULL AND id IS NOT NULL
+  PRIMARY KEY ((symbol, "userId"), "createdAt", id)
+  WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,
+    `CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaKeyspace}.orderbook_by_symbol AS
+  SELECT price, side, amount FROM ${exports.scyllaKeyspace}.orderbook
+  WHERE symbol IS NOT NULL AND price IS NOT NULL AND side IS NOT NULL
+  PRIMARY KEY (symbol, price, side);`,
+];
+const futuresTableQueries = [
+    `CREATE TABLE IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.orders (
+    id UUID,
+    "userId" UUID,
+    symbol TEXT,
+    type TEXT,
+    "timeInForce" TEXT,
+    side TEXT,
+    price VARINT,
+    average VARINT,
+    amount VARINT,
+    filled VARINT,
+    remaining VARINT,
+    cost VARINT,
+    leverage VARINT,
+    fee VARINT,
+    "feeCurrency" TEXT,
+    status TEXT,
+    "stopLossPrice" VARINT,
+    "takeProfitPrice" VARINT,
+    trades TEXT,
+    "createdAt" TIMESTAMP,
+    "updatedAt" TIMESTAMP,
+    PRIMARY KEY (("userId"), "createdAt", id)
+  ) WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,
+    `CREATE TABLE IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.position (
+    id UUID,
+    "userId" UUID,
+    symbol TEXT,
+    side TEXT,
+    "entryPrice" VARINT,
+    amount VARINT,
+    leverage VARINT,
+    "unrealizedPnl" VARINT,
+    "stopLossPrice" VARINT,
+    "takeProfitPrice" VARINT,
+    status TEXT,
+    "createdAt" TIMESTAMP,
+    "updatedAt" TIMESTAMP,
+    PRIMARY KEY (("userId"), id)
+  ) WITH CLUSTERING ORDER BY (id ASC);`,
+    `CREATE TABLE IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.orderbook (
+    symbol TEXT,
+    price DOUBLE,
+    amount DOUBLE,
+    side TEXT,
+    PRIMARY KEY ((symbol, side), price)
+  ) WITH CLUSTERING ORDER BY (price ASC);`,
+    `CREATE TABLE IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.candles (
+    symbol TEXT,
+    interval TEXT,
+    open DOUBLE,
+    high DOUBLE,
+    low DOUBLE,
+    close DOUBLE,
+    volume DOUBLE,
+    "createdAt" TIMESTAMP,
+    "updatedAt" TIMESTAMP,
+    PRIMARY KEY (symbol, interval, "createdAt")
+  ) WITH CLUSTERING ORDER BY (interval ASC, "createdAt" DESC);`,
+];
+const futuresViewQueries = [
+    `CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.open_order AS
+  SELECT * FROM ${exports.scyllaFuturesKeyspace}.orders
+  WHERE status = 'OPEN' AND "userId" IS NOT NULL AND "createdAt" IS NOT NULL AND id IS NOT NULL
+  PRIMARY KEY ((status, "userId"), "createdAt", id)
+  WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,
+    `CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.latest_candles AS
+  SELECT * FROM ${exports.scyllaFuturesKeyspace}.candles
+  WHERE symbol IS NOT NULL AND interval IS NOT NULL AND "createdAt" IS NOT NULL
+  PRIMARY KEY ((symbol, interval), "createdAt")
+  WITH CLUSTERING ORDER BY ("createdAt" DESC);`,
+    `CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.orders_by_symbol AS
+  SELECT * FROM ${exports.scyllaFuturesKeyspace}.orders
+  WHERE symbol IS NOT NULL AND "userId" IS NOT NULL AND "createdAt" IS NOT NULL AND id IS NOT NULL
+  PRIMARY KEY ((symbol, "userId"), "createdAt", id)
+  WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,
+    `CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.orderbook_by_symbol AS
+  SELECT price, side, amount FROM ${exports.scyllaFuturesKeyspace}.orderbook
+  WHERE symbol IS NOT NULL AND price IS NOT NULL AND side IS NOT NULL
+  PRIMARY KEY (symbol, price, side);`,
+    `CREATE MATERIALIZED VIEW IF NOT EXISTS ${exports.scyllaFuturesKeyspace}.positions_by_symbol AS
+  SELECT * FROM ${exports.scyllaFuturesKeyspace}.position
+  WHERE symbol IS NOT NULL AND id IS NOT NULL AND "userId" IS NOT NULL
+  PRIMARY KEY ((symbol), id, "userId")
+  WITH CLUSTERING ORDER BY (id ASC);`,
+];
+const shutdown = async () => {
+    await client.shutdown();
+    console_1.logger.info("SCYLLA", "Client disconnected");
+    process.exit(0);
+};
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
+exports.default = client;

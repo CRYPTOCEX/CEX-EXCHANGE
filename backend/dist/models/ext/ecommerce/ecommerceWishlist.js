@@ -1,1 +1,64 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});const sequelize_1=require("sequelize");class ecommerceWishlist extends sequelize_1.Model{static initModel(e){return ecommerceWishlist.init({id:{type:sequelize_1.DataTypes.UUID,defaultValue:sequelize_1.DataTypes.UUIDV4,primaryKey:!0,allowNull:!1},userId:{type:sequelize_1.DataTypes.UUID,allowNull:!1,validate:{isUUID:{args:4,msg:"userId: User ID must be a valid UUID"}}}},{sequelize:e,modelName:"ecommerceWishlist",tableName:"ecommerce_wishlist",timestamps:!0,paranoid:!0,indexes:[{name:"PRIMARY",unique:!0,using:"BTREE",fields:[{name:"id"}]},{name:"ecommerceWishlistUserIdFkey",using:"BTREE",fields:[{name:"userId"}]}]})}static associate(e){ecommerceWishlist.hasMany(e.ecommerceWishlistItem,{as:"wishlistItems",foreignKey:"wishlistId",onDelete:"CASCADE",onUpdate:"CASCADE"});ecommerceWishlist.belongsToMany(e.ecommerceProduct,{as:"products",through:e.ecommerceWishlistItem,foreignKey:"wishlistId",otherKey:"productId",onDelete:"CASCADE",onUpdate:"CASCADE"});ecommerceWishlist.belongsTo(e.user,{as:"user",foreignKey:"userId",onDelete:"CASCADE",onUpdate:"CASCADE"})}}exports.default=ecommerceWishlist;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const sequelize_1 = require("sequelize");
+class ecommerceWishlist extends sequelize_1.Model {
+    static initModel(sequelize) {
+        return ecommerceWishlist.init({
+            id: {
+                type: sequelize_1.DataTypes.UUID,
+                defaultValue: sequelize_1.DataTypes.UUIDV4,
+                primaryKey: true,
+                allowNull: false,
+            },
+            userId: {
+                type: sequelize_1.DataTypes.UUID,
+                allowNull: false,
+                validate: {
+                    isUUID: { args: 4, msg: "userId: User ID must be a valid UUID" },
+                },
+            },
+        }, {
+            sequelize,
+            modelName: "ecommerceWishlist",
+            tableName: "ecommerce_wishlist",
+            timestamps: true,
+            paranoid: true,
+            indexes: [
+                {
+                    name: "PRIMARY",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "id" }],
+                },
+                {
+                    name: "ecommerceWishlistUserIdFkey",
+                    using: "BTREE",
+                    fields: [{ name: "userId" }],
+                },
+            ],
+        });
+    }
+    static associate(models) {
+        ecommerceWishlist.hasMany(models.ecommerceWishlistItem, {
+            as: "wishlistItems",
+            foreignKey: "wishlistId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+        ecommerceWishlist.belongsToMany(models.ecommerceProduct, {
+            as: "products",
+            through: models.ecommerceWishlistItem,
+            foreignKey: "wishlistId",
+            otherKey: "productId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+        ecommerceWishlist.belongsTo(models.user, {
+            as: "user",
+            foreignKey: "userId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+    }
+}
+exports.default = ecommerceWishlist;

@@ -1,1 +1,92 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query"),utils_1=require("@b/api/admin/finance/exchange/market/utils"),db_1=require("@b/db"),errors_1=require("@b/utils/schema/errors"),error_1=require("@b/utils/error");exports.metadata={summary:"Creates a new ecosystem market",description:"Creates a new ecosystem market with the specified currency and pair tokens. The endpoint validates that both tokens exist and are active, checks for duplicate markets, and stores the new market with trending/hot indicators and metadata. The market is created with active status by default.",operationId:"storeEcosystemMarket",tags:["Admin","Ecosystem","Market"],logModule:"ADMIN_ECO",logTitle:"Create market",requestBody:{required:!0,content:{"application/json":{schema:utils_1.MarketUpdateSchema}}},responses:{200:utils_1.MarketStoreSchema,400:errors_1.badRequestResponse,401:errors_1.unauthorizedResponse,404:(0,errors_1.notFoundResponse)("Token"),409:(0,errors_1.conflictResponse)("Ecosystem Market"),500:errors_1.serverErrorResponse},requiresAuth:!0,permission:"create.ecosystem.market"};exports.default=async e=>{const{body:r,ctx:t}=e,{currency:s,pair:a,isTrending:o,isHot:n,metadata:i}=r;null==t||t.step("Validating currency token");const c=await db_1.models.ecosystemToken.findOne({where:{id:s,status:!0}});if(!c)throw(0,error_1.createError)(404,"Currency token not found or inactive");null==t||t.step("Validating pair token");const d=await db_1.models.ecosystemToken.findOne({where:{id:a,status:!0}});if(!d)throw(0,error_1.createError)(404,"Pair token not found or inactive");null==t||t.step("Checking for existing market");if(await db_1.models.ecosystemMarket.findOne({where:{currency:c.currency,pair:d.currency}}))throw(0,error_1.createError)(409,"Ecosystem market with the given currency and pair already exists.");try{null==t||t.step("Creating market record");const e=await(0,query_1.storeRecord)({model:"ecosystemMarket",data:{currency:c.currency,pair:d.currency,isTrending:o,isHot:n,metadata:i,status:!0}});null==t||t.success("Market created successfully");return e}catch(e){if("SequelizeUniqueConstraintError"===e.name){null==t||t.fail("Market already exists");throw(0,error_1.createError)(409,"Ecosystem market already exists.")}null==t||t.fail(e.message);throw e}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+const utils_1 = require("@b/api/admin/finance/exchange/market/utils");
+const db_1 = require("@b/db");
+const errors_1 = require("@b/utils/schema/errors");
+const error_1 = require("@b/utils/error");
+exports.metadata = {
+    summary: "Creates a new ecosystem market",
+    description: "Creates a new ecosystem market with the specified currency and pair tokens. The endpoint validates that both tokens exist and are active, checks for duplicate markets, and stores the new market with trending/hot indicators and metadata. The market is created with active status by default.",
+    operationId: "storeEcosystemMarket",
+    tags: ["Admin", "Ecosystem", "Market"],
+    logModule: "ADMIN_ECO",
+    logTitle: "Create market",
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: utils_1.MarketUpdateSchema,
+            },
+        },
+    },
+    responses: {
+        200: utils_1.MarketStoreSchema,
+        400: errors_1.badRequestResponse,
+        401: errors_1.unauthorizedResponse,
+        404: (0, errors_1.notFoundResponse)("Token"),
+        409: (0, errors_1.conflictResponse)("Ecosystem Market"),
+        500: errors_1.serverErrorResponse,
+    },
+    requiresAuth: true,
+    permission: "create.ecosystem.market",
+};
+exports.default = async (data) => {
+    const { body, ctx } = data;
+    const { currency, pair, isTrending, isHot, metadata } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating currency token");
+    const currencyToken = await db_1.models.ecosystemToken.findOne({
+        where: {
+            ...(currency.length > 10 ? { id: currency } : { currency: currency }),
+            status: true
+        },
+    });
+    if (!currencyToken) {
+        throw (0, error_1.createError)(404, "Currency token not found or inactive");
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating pair token");
+    const pairToken = await db_1.models.ecosystemToken.findOne({
+        where: {
+            ...(pair.length > 10 ? { id: pair } : { currency: pair }),
+            status: true
+        },
+    });
+    if (!pairToken) {
+        throw (0, error_1.createError)(404, "Pair token not found or inactive");
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking for existing market");
+    const existingMarket = await db_1.models.ecosystemMarket.findOne({
+        where: {
+            currency: currencyToken.currency,
+            pair: pairToken.currency,
+        },
+    });
+    if (existingMarket) {
+        throw (0, error_1.createError)(409, "Ecosystem market with the given currency and pair already exists.");
+    }
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating market record");
+        const result = await (0, query_1.storeRecord)({
+            model: "ecosystemMarket",
+            data: {
+                currency: currencyToken.currency,
+                pair: pairToken.currency,
+                isTrending,
+                isHot,
+                metadata,
+                status: true,
+            },
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Market created successfully");
+        return result;
+    }
+    catch (error) {
+        if (error.name === "SequelizeUniqueConstraintError") {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Market already exists");
+            throw (0, error_1.createError)(409, "Ecosystem market already exists.");
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(error.message);
+        throw error;
+    }
+};

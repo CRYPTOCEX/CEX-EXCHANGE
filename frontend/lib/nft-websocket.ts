@@ -40,10 +40,14 @@ class NFTWebSocketService {
     this.isConnecting = true;
 
     try {
-      // Get WebSocket URL from environment or construct it
+      // Get WebSocket URL - all backends now use /api/ prefix
       const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsHost = process.env.NEXT_PUBLIC_WS_URL || window.location.host;
-      const wsUrl = `${wsProtocol}//${wsHost}/api/nft/ws`;
+      const isDev = process.env.NODE_ENV === "development";
+      const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || "4000";
+      // In development, connect directly to backend (Next.js rewrites don't support WebSocket upgrades)
+      const wsHost = process.env.NEXT_PUBLIC_WS_URL ||
+        (isDev ? `${window.location.hostname}:${backendPort}` : window.location.host);
+      const wsUrl = `${wsProtocol}//${wsHost}/api/nft`;
 
       this.ws = new WebSocket(wsUrl);
 

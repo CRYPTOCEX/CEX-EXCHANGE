@@ -25,32 +25,32 @@ export default class ecommerceDiscount
   getEcommerceUserDiscounts!: Sequelize.HasManyGetAssociationsMixin<ecommerceUserDiscount>;
   setEcommerceUserDiscounts!: Sequelize.HasManySetAssociationsMixin<
     ecommerceUserDiscount,
-    ecommerceUserDiscountId
+    string
   >;
   addEcommerceUserDiscount!: Sequelize.HasManyAddAssociationMixin<
     ecommerceUserDiscount,
-    ecommerceUserDiscountId
+    string
   >;
   addEcommerceUserDiscounts!: Sequelize.HasManyAddAssociationsMixin<
     ecommerceUserDiscount,
-    ecommerceUserDiscountId
+    string
   >;
   createEcommerceUserDiscount!: Sequelize.HasManyCreateAssociationMixin<ecommerceUserDiscount>;
   removeEcommerceUserDiscount!: Sequelize.HasManyRemoveAssociationMixin<
     ecommerceUserDiscount,
-    ecommerceUserDiscountId
+    string
   >;
   removeEcommerceUserDiscounts!: Sequelize.HasManyRemoveAssociationsMixin<
     ecommerceUserDiscount,
-    ecommerceUserDiscountId
+    string
   >;
   hasEcommerceUserDiscount!: Sequelize.HasManyHasAssociationMixin<
     ecommerceUserDiscount,
-    ecommerceUserDiscountId
+    string
   >;
   hasEcommerceUserDiscounts!: Sequelize.HasManyHasAssociationsMixin<
     ecommerceUserDiscount,
-    ecommerceUserDiscountId
+    string
   >;
   countEcommerceUserDiscounts!: Sequelize.HasManyCountAssociationsMixin;
   // ecommerceDiscount belongsTo ecommerceProduct via productId
@@ -58,7 +58,7 @@ export default class ecommerceDiscount
   getProduct!: Sequelize.BelongsToGetAssociationMixin<ecommerceProduct>;
   setProduct!: Sequelize.BelongsToSetAssociationMixin<
     ecommerceProduct,
-    ecommerceProductId
+    string
   >;
   createProduct!: Sequelize.BelongsToCreateAssociationMixin<ecommerceProduct>;
 

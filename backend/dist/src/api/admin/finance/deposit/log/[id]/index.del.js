@@ -1,1 +1,34 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),query_1=require("@b/utils/query");exports.metadata={summary:"Deletes a transaction",operationId:"deleteTransaction",tags:["Admin","Transaction"],parameters:(0,query_1.deleteRecordParams)("transaction"),responses:(0,query_1.deleteRecordResponses)("Transaction"),requiresAuth:!0,permission:"delete.deposit",logModule:"ADMIN_FIN",logTitle:"Delete deposit log"};exports.default=async e=>{const{params:t,query:s,ctx:r}=e;null==r||r.step("Fetching deposit log record");null==r||r.step("Deleting associated admin profit");await db_1.models.adminProfit.destroy({where:{transactionId:t.id}});null==r||r.step("Deleting deposit log");const o=await(0,query_1.handleSingleDelete)({model:"transaction",id:t.id,query:s});null==r||r.success("Deposit log deleted successfully");return o};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const query_1 = require("@b/utils/query");
+exports.metadata = {
+    summary: "Deletes a transaction",
+    operationId: "deleteTransaction",
+    tags: ["Admin", "Transaction"],
+    parameters: (0, query_1.deleteRecordParams)("transaction"),
+    responses: (0, query_1.deleteRecordResponses)("Transaction"),
+    requiresAuth: true,
+    permission: "delete.deposit",
+    logModule: "ADMIN_FIN",
+    logTitle: "Delete deposit log",
+};
+exports.default = async (data) => {
+    const { params, query, ctx } = data;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching deposit log record");
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Deleting associated admin profit");
+    await db_1.models.adminProfit.destroy({
+        where: {
+            transactionId: params.id,
+        },
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Deleting deposit log");
+    const result = await (0, query_1.handleSingleDelete)({
+        model: "transaction",
+        id: params.id,
+        query,
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Deposit log deleted successfully");
+    return result;
+};

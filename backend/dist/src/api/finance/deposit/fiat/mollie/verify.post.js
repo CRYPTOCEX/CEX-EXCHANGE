@@ -1,1 +1,243 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const error_1=require("@b/utils/error"),db_1=require("@b/db"),emails_1=require("@b/utils/emails"),console_1=require("@b/utils/console"),utils_1=require("./utils"),utils_2=require("@b/api/finance/utils");exports.metadata={summary:"Verifies Mollie payment status",description:"Handles return URL from Mollie and verifies payment completion",operationId:"verifyMolliePayment",tags:["Finance","Deposit","Mollie"],requiresAuth:!0,logModule:"MOLLIE_DEPOSIT",logTitle:"Verify Mollie payment",requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{transaction:{type:"string",description:"Transaction UUID"},paymentId:{type:"string",description:"Mollie payment ID (optional)"}},required:["transaction"]}}}},responses:{200:{description:"Payment verification completed",content:{"application/json":{schema:{type:"object",properties:{success:{type:"boolean"},data:{type:"object",properties:{transactionId:{type:"string"},status:{type:"string"},amount:{type:"number"},currency:{type:"string"},paymentMethod:{type:"string"},paidAt:{type:"string"}}}}}}}},400:{description:"Bad request"},401:{description:"Unauthorized"},404:{description:"Transaction not found"},500:{description:"Internal server error"}}};exports.default=async e=>{var t,a,i,o,n,r;const{body:s,user:d,ctx:u}=e;if(!(null==d?void 0:d.id))throw(0,error_1.createError)({statusCode:401,message:"Authentication required"});if(!s.transaction)throw(0,error_1.createError)({statusCode:400,message:"Transaction ID is required"});(0,utils_1.validateMollieConfig)();try{const e=await db_1.models.transaction.findOne({where:{uuid:s.transaction,userId:d.id}});if(!e)throw(0,error_1.createError)({statusCode:404,message:"Transaction not found"});if("COMPLETED"===e.status)return{success:!0,data:{transactionId:e.uuid,status:"COMPLETED",amount:e.amount,currency:(null===(t=e.metadata)||void 0===t?void 0:t.currency)||"EUR",paymentMethod:(null===(a=e.metadata)||void 0===a?void 0:a.method)||"unknown",paidAt:e.updatedAt}};const l=s.paymentId||e.referenceId||(null===(i=e.metadata)||void 0===i?void 0:i.molliePaymentId);if(!l)throw(0,error_1.createError)({statusCode:400,message:"Mollie payment ID not found"});const c=await(0,utils_1.makeApiRequest)(`/payments/${l}`);if(!c)throw(0,error_1.createError)({statusCode:404,message:"Payment not found at Mollie"});const m=(0,utils_1.mapMollieStatus)(c.status);let p=e;if("paid"===c.status&&"COMPLETED"!==e.status){const t=(null===(o=e.metadata)||void 0===o?void 0:o.currency)||"EUR";let a=0;if(c.settlementAmount&&c.amount){const e=(0,utils_1.parseMollieAmount)(c.amount.value,c.amount.currency);a=(e-(0,utils_1.parseMollieAmount)(c.settlementAmount.value,c.settlementAmount.currency))/100}await db_1.models.transaction.update({status:"COMPLETED",referenceId:c.id,fee:a,metadata:JSON.stringify({...e.metadata,molliePaymentId:c.id,mollieStatus:c.status,paymentMethod:c.method||"unknown",paidAt:c.createdAt,settlementAmount:c.settlementAmount})},{where:{uuid:e.uuid}});null==u||u.step("Processing deposit via wallet service");const i=await(0,utils_2.processFiatDeposit)({userId:d.id,currency:t,amount:e.amount,fee:a,referenceId:c.id,method:"MOLLIE",description:`Mollie deposit - ${e.amount} ${t}`,metadata:{molliePaymentId:c.id,paymentMethod:c.method||"unknown"},idempotencyKey:`mollie_deposit_${c.id}`,ctx:u});try{null==u||u.step("Sending notification email");await(0,emails_1.sendFiatTransactionEmail)(d,{id:e.uuid,type:"DEPOSIT",amount:e.amount,status:"COMPLETED",description:`Mollie deposit - ${e.amount} ${t}`},t,i.newBalance)}catch(e){console_1.logger.error("MOLLIE","Failed to send confirmation email",e)}p=await db_1.models.transaction.findOne({where:{uuid:e.uuid}})}else if(["failed","canceled","expired"].includes(c.status)){await db_1.models.transaction.update({status:m,metadata:JSON.stringify({...e.metadata,molliePaymentId:c.id,mollieStatus:c.status,failureReason:(null===(n=c.details)||void 0===n?void 0:n.failureReason)||"Payment failed"})},{where:{uuid:e.uuid}});p=await db_1.models.transaction.findOne({where:{uuid:e.uuid}})}else{await db_1.models.transaction.update({metadata:JSON.stringify({...e.metadata,molliePaymentId:c.id,mollieStatus:c.status})},{where:{uuid:e.uuid}});p=await db_1.models.transaction.findOne({where:{uuid:e.uuid}})}return{success:!0,data:{transactionId:p.uuid,status:p.status,amount:p.amount,currency:(null===(r=p.metadata)||void 0===r?void 0:r.currency)||"EUR",paymentMethod:c.method||"unknown",paidAt:"paid"===c.status?c.createdAt:null}}}catch(e){console_1.logger.error("MOLLIE","Payment verification error",e);if(e.statusCode)throw e;throw(0,error_1.createError)({statusCode:500,message:e.message||"Failed to verify Mollie payment"})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const error_1 = require("@b/utils/error");
+const db_1 = require("@b/db");
+const emails_1 = require("@b/utils/emails");
+const console_1 = require("@b/utils/console");
+const utils_1 = require("./utils");
+const utils_2 = require("@b/api/finance/utils");
+exports.metadata = {
+    summary: 'Verifies Mollie payment status',
+    description: 'Handles return URL from Mollie and verifies payment completion',
+    operationId: 'verifyMolliePayment',
+    tags: ['Finance', 'Deposit', 'Mollie'],
+    requiresAuth: true,
+    logModule: "MOLLIE_DEPOSIT",
+    logTitle: "Verify Mollie payment",
+    requestBody: {
+        required: true,
+        content: {
+            'application/json': {
+                schema: {
+                    type: 'object',
+                    properties: {
+                        transaction: {
+                            type: 'string',
+                            description: 'Transaction UUID',
+                        },
+                        paymentId: {
+                            type: 'string',
+                            description: 'Mollie payment ID (optional)',
+                        },
+                    },
+                    required: ['transaction'],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: 'Payment verification completed',
+            content: {
+                'application/json': {
+                    schema: {
+                        type: 'object',
+                        properties: {
+                            success: { type: 'boolean' },
+                            data: {
+                                type: 'object',
+                                properties: {
+                                    transactionId: { type: 'string' },
+                                    status: { type: 'string' },
+                                    amount: { type: 'number' },
+                                    currency: { type: 'string' },
+                                    paymentMethod: { type: 'string' },
+                                    paidAt: { type: 'string' },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        400: { description: 'Bad request' },
+        401: { description: 'Unauthorized' },
+        404: { description: 'Transaction not found' },
+        500: { description: 'Internal server error' },
+    },
+};
+exports.default = async (data) => {
+    var _a;
+    const { body, user, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({
+            statusCode: 401,
+            message: 'Authentication required',
+        });
+    }
+    if (!body.transaction) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: 'Transaction ID is required',
+        });
+    }
+    (0, utils_1.validateMollieConfig)();
+    try {
+        const transaction = await db_1.models.transaction.findOne({
+            where: {
+                id: body.transaction,
+                userId: user.id,
+            },
+        });
+        if (!transaction) {
+            throw (0, error_1.createError)({
+                statusCode: 404,
+                message: 'Transaction not found',
+            });
+        }
+        const existingMetadata = typeof transaction.metadata === 'string'
+            ? JSON.parse(transaction.metadata || '{}')
+            : (transaction.metadata || {});
+        if (transaction.status === 'COMPLETED') {
+            return {
+                success: true,
+                data: {
+                    transactionId: transaction.id,
+                    status: 'COMPLETED',
+                    amount: transaction.amount,
+                    currency: (existingMetadata === null || existingMetadata === void 0 ? void 0 : existingMetadata.currency) || 'EUR',
+                    paymentMethod: (existingMetadata === null || existingMetadata === void 0 ? void 0 : existingMetadata.method) || 'unknown',
+                    paidAt: transaction.updatedAt,
+                },
+            };
+        }
+        const molliePaymentId = body.paymentId || transaction.referenceId || (existingMetadata === null || existingMetadata === void 0 ? void 0 : existingMetadata.molliePaymentId);
+        if (!molliePaymentId) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: 'Mollie payment ID not found',
+            });
+        }
+        const molliePayment = await (0, utils_1.makeApiRequest)(`/payments/${molliePaymentId}`);
+        if (!molliePayment) {
+            throw (0, error_1.createError)({
+                statusCode: 404,
+                message: 'Payment not found at Mollie',
+            });
+        }
+        const newStatus = (0, utils_1.mapMollieStatus)(molliePayment.status);
+        let updatedTransaction = transaction;
+        const currentStatus = transaction.status;
+        if (molliePayment.status === 'paid' && currentStatus !== 'COMPLETED') {
+            const currency = (existingMetadata === null || existingMetadata === void 0 ? void 0 : existingMetadata.currency) || 'EUR';
+            let fee = 0;
+            if (molliePayment.settlementAmount && molliePayment.amount) {
+                const originalAmount = (0, utils_1.parseMollieAmount)(molliePayment.amount.value, molliePayment.amount.currency);
+                const settlementAmount = (0, utils_1.parseMollieAmount)(molliePayment.settlementAmount.value, molliePayment.settlementAmount.currency);
+                fee = (originalAmount - settlementAmount) / 100;
+            }
+            await db_1.models.transaction.update({
+                status: 'COMPLETED',
+                referenceId: molliePayment.id,
+                fee,
+                metadata: JSON.stringify({
+                    ...existingMetadata,
+                    molliePaymentId: molliePayment.id,
+                    mollieStatus: molliePayment.status,
+                    paymentMethod: molliePayment.method || 'unknown',
+                    paidAt: molliePayment.createdAt,
+                    settlementAmount: molliePayment.settlementAmount,
+                }),
+            }, {
+                where: { id: transaction.id },
+            });
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing deposit via wallet service");
+            const depositResult = await (0, utils_2.processFiatDeposit)({
+                userId: user.id,
+                currency,
+                amount: transaction.amount,
+                fee,
+                referenceId: molliePayment.id,
+                method: 'MOLLIE',
+                description: `Mollie deposit - ${transaction.amount} ${currency}`,
+                metadata: {
+                    molliePaymentId: molliePayment.id,
+                    paymentMethod: molliePayment.method || 'unknown',
+                },
+                idempotencyKey: `mollie_deposit_${molliePayment.id}`,
+                ctx,
+            });
+            try {
+                ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending notification email");
+                await (0, emails_1.sendFiatTransactionEmail)(user, {
+                    id: transaction.id,
+                    type: 'DEPOSIT',
+                    amount: transaction.amount,
+                    status: 'COMPLETED',
+                    description: `Mollie deposit - ${transaction.amount} ${currency}`,
+                }, currency, depositResult.newBalance);
+            }
+            catch (emailError) {
+                console_1.logger.error("MOLLIE", "Failed to send confirmation email", emailError);
+            }
+            updatedTransaction = await db_1.models.transaction.findOne({
+                where: { id: transaction.id },
+            });
+        }
+        else if (['failed', 'canceled', 'expired'].includes(molliePayment.status)) {
+            await db_1.models.transaction.update({
+                status: newStatus,
+                metadata: JSON.stringify({
+                    ...existingMetadata,
+                    molliePaymentId: molliePayment.id,
+                    mollieStatus: molliePayment.status,
+                    failureReason: ((_a = molliePayment.details) === null || _a === void 0 ? void 0 : _a.failureReason) || 'Payment failed',
+                }),
+            }, {
+                where: { id: transaction.id },
+            });
+            updatedTransaction = await db_1.models.transaction.findOne({
+                where: { id: transaction.id },
+            });
+        }
+        else {
+            await db_1.models.transaction.update({
+                metadata: JSON.stringify({
+                    ...existingMetadata,
+                    molliePaymentId: molliePayment.id,
+                    mollieStatus: molliePayment.status,
+                }),
+            }, {
+                where: { id: transaction.id },
+            });
+            updatedTransaction = await db_1.models.transaction.findOne({
+                where: { id: transaction.id },
+            });
+        }
+        const updatedMetadata = typeof (updatedTransaction === null || updatedTransaction === void 0 ? void 0 : updatedTransaction.metadata) === 'string'
+            ? JSON.parse(updatedTransaction.metadata || '{}')
+            : ((updatedTransaction === null || updatedTransaction === void 0 ? void 0 : updatedTransaction.metadata) || {});
+        return {
+            success: true,
+            data: {
+                transactionId: updatedTransaction === null || updatedTransaction === void 0 ? void 0 : updatedTransaction.id,
+                status: updatedTransaction === null || updatedTransaction === void 0 ? void 0 : updatedTransaction.status,
+                amount: updatedTransaction === null || updatedTransaction === void 0 ? void 0 : updatedTransaction.amount,
+                currency: (updatedMetadata === null || updatedMetadata === void 0 ? void 0 : updatedMetadata.currency) || 'EUR',
+                paymentMethod: molliePayment.method || 'unknown',
+                paidAt: molliePayment.status === 'paid' ? molliePayment.createdAt : null,
+            },
+        };
+    }
+    catch (error) {
+        console_1.logger.error("MOLLIE", "Payment verification error", error);
+        if (error.statusCode) {
+            throw error;
+        }
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: error.message || 'Failed to verify Mollie payment',
+        });
+    }
+};

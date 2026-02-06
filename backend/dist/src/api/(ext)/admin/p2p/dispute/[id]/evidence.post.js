@@ -1,1 +1,179 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),errors_1=require("@b/utils/schema/errors");exports.metadata={summary:"Add evidence to P2P dispute",description:"Uploads and attaches evidence files (images only) to a P2P dispute. Evidence is stored with admin information and timestamps for audit trail.",operationId:"addEvidenceToAdminP2PDispute",tags:["Admin","P2P","Dispute"],requiresAuth:!0,logModule:"ADMIN_P2P",logTitle:"Add evidence to dispute",parameters:[{index:0,name:"id",in:"path",description:"Dispute ID",required:!0,schema:{type:"string"}}],requestBody:{description:"Evidence data",required:!0,content:{"application/json":{schema:{type:"object",properties:{fileUrl:{type:"string"},fileName:{type:"string"},fileType:{type:"string"},title:{type:"string"},description:{type:"string"}},required:["fileUrl","fileName"]}}}},responses:{200:{description:"Evidence added successfully."},401:errors_1.unauthorizedResponse,404:(0,errors_1.notFoundResponse)("Resource"),500:errors_1.serverErrorResponse},permission:"edit.p2p.dispute"};exports.default=async e=>{const{params:t,body:i,user:s,ctx:a}=e,{id:r}=t,{fileUrl:d,fileName:n,fileType:o,title:l,description:m}=i;try{null==a||a.step("Fetching dispute");const e=await db_1.models.p2pDispute.findByPk(r,{include:[{model:db_1.models.p2pTrade,as:"trade",include:[{model:db_1.models.p2pOffer,as:"offer",attributes:["id","type","currency","walletType"]},{model:db_1.models.user,as:"buyer",attributes:["id","firstName","lastName","email","avatar"]},{model:db_1.models.user,as:"seller",attributes:["id","firstName","lastName","email","avatar"]}]},{model:db_1.models.user,as:"reportedBy",attributes:["id","firstName","lastName","email","avatar"]},{model:db_1.models.user,as:"against",attributes:["id","firstName","lastName","email","avatar"]}]});if(!e){null==a||a.fail("Dispute not found");throw(0,error_1.createError)({statusCode:404,message:"Dispute not found"})}null==a||a.step("Validating file type");if(o&&!["image/jpeg","image/jpg","image/png","image/gif","image/webp"].includes(o.toLowerCase())){null==a||a.fail("Invalid file type");throw(0,error_1.createError)({statusCode:400,message:"Only image files are allowed (JPEG, PNG, GIF, WebP)"})}null==a||a.step("Adding evidence");let t=e.evidence;if("string"==typeof t)try{t=JSON.parse(t)}catch(e){t=[]}Array.isArray(t)||(t=[]);const i=s.firstName&&s.lastName?`${s.firstName} ${s.lastName}`:s.email||"Admin";t.push({fileUrl:d,fileName:n,fileType:o,title:l||n,description:m||"",submittedBy:"admin",adminId:s.id,adminName:i,createdAt:(new Date).toISOString()});null==a||a.step("Saving dispute");e.evidence=t;await e.save();const p=e.get({plain:!0}),u=Array.isArray(p.messages)?p.messages.map(e=>({id:e.id||`${e.createdAt}-${e.sender}`,sender:e.senderName||e.sender||"Unknown",senderId:e.sender,content:e.content||e.message||"",timestamp:e.createdAt||e.timestamp,isAdmin:e.isAdmin||!1,avatar:e.avatar,senderInitials:e.senderName?e.senderName.split(" ").map(e=>e[0]).join("").toUpperCase():"?"})):[],c=(Array.isArray(p.activityLog)?p.activityLog:[]).filter(e=>"note"===e.type).map(e=>({content:e.content||e.note,createdAt:e.createdAt,createdBy:e.adminName||"Admin",adminId:e.adminId})),y=Array.isArray(p.evidence)?p.evidence.map(e=>({...e,submittedBy:e.submittedBy||"admin",timestamp:e.createdAt||e.timestamp})):[];null==a||a.success("Evidence added successfully");return{...p,messages:u,adminNotes:c,evidence:y}}catch(e){if(e.statusCode)throw e;null==a||a.fail("Failed to add evidence");throw(0,error_1.createError)({statusCode:500,message:"Internal Server Error: "+e.message})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const errors_1 = require("@b/utils/schema/errors");
+exports.metadata = {
+    summary: "Add evidence to P2P dispute",
+    description: "Uploads and attaches evidence files (images only) to a P2P dispute. Evidence is stored with admin information and timestamps for audit trail.",
+    operationId: "addEvidenceToAdminP2PDispute",
+    tags: ["Admin", "P2P", "Dispute"],
+    requiresAuth: true,
+    logModule: "ADMIN_P2P",
+    logTitle: "Add evidence to dispute",
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            description: "Dispute ID",
+            required: true,
+            schema: { type: "string" },
+        },
+    ],
+    requestBody: {
+        description: "Evidence data",
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        fileUrl: { type: "string" },
+                        fileName: { type: "string" },
+                        fileType: { type: "string" },
+                        title: { type: "string" },
+                        description: { type: "string" },
+                    },
+                    required: ["fileUrl", "fileName"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: { description: "Evidence added successfully." },
+        401: errors_1.unauthorizedResponse,
+        404: (0, errors_1.notFoundResponse)("Resource"),
+        500: errors_1.serverErrorResponse,
+    },
+    permission: "edit.p2p.dispute",
+};
+exports.default = async (data) => {
+    const { params, body, user, ctx } = data;
+    const { id } = params;
+    const { fileUrl, fileName, fileType, title, description } = body;
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching dispute");
+        const dispute = await db_1.models.p2pDispute.findByPk(id, {
+            include: [
+                {
+                    model: db_1.models.p2pTrade,
+                    as: "trade",
+                    include: [
+                        {
+                            model: db_1.models.p2pOffer,
+                            as: "offer",
+                            attributes: ["id", "type", "currency", "walletType"],
+                        },
+                        {
+                            model: db_1.models.user,
+                            as: "buyer",
+                            attributes: ["id", "firstName", "lastName", "email", "avatar"],
+                        },
+                        {
+                            model: db_1.models.user,
+                            as: "seller",
+                            attributes: ["id", "firstName", "lastName", "email", "avatar"],
+                        },
+                    ],
+                },
+                {
+                    model: db_1.models.user,
+                    as: "reportedBy",
+                    attributes: ["id", "firstName", "lastName", "email", "avatar"],
+                },
+                {
+                    model: db_1.models.user,
+                    as: "against",
+                    attributes: ["id", "firstName", "lastName", "email", "avatar"],
+                },
+            ],
+        });
+        if (!dispute) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Dispute not found");
+            throw (0, error_1.createError)({ statusCode: 404, message: "Dispute not found" });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating file type");
+        const allowedImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+        if (fileType && !allowedImageTypes.includes(fileType.toLowerCase())) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Invalid file type");
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Only image files are allowed (JPEG, PNG, GIF, WebP)"
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Adding evidence");
+        let existingEvidence = dispute.evidence;
+        if (typeof existingEvidence === "string") {
+            try {
+                existingEvidence = JSON.parse(existingEvidence);
+            }
+            catch (_a) {
+                existingEvidence = [];
+            }
+        }
+        if (!Array.isArray(existingEvidence)) {
+            existingEvidence = [];
+        }
+        const adminName = user.firstName && user.lastName
+            ? `${user.firstName} ${user.lastName}`
+            : user.email || "Admin";
+        existingEvidence.push({
+            fileUrl,
+            fileName,
+            fileType,
+            title: title || fileName,
+            description: description || "",
+            submittedBy: "admin",
+            adminId: user.id,
+            adminName,
+            createdAt: new Date().toISOString(),
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Saving dispute");
+        dispute.evidence = existingEvidence;
+        await dispute.save();
+        const plainDispute = dispute.get({ plain: true });
+        const messages = Array.isArray(plainDispute.messages) ? plainDispute.messages.map((msg) => ({
+            id: msg.id || `${msg.createdAt}-${msg.sender}`,
+            sender: msg.senderName || msg.sender || "Unknown",
+            senderId: msg.sender,
+            content: msg.content || msg.message || "",
+            timestamp: msg.createdAt || msg.timestamp,
+            isAdmin: msg.isAdmin || false,
+            avatar: msg.avatar,
+            senderInitials: msg.senderName ? msg.senderName.split(" ").map((n) => n[0]).join("").toUpperCase() : "?",
+        })) : [];
+        const activityLog = Array.isArray(plainDispute.activityLog) ? plainDispute.activityLog : [];
+        const adminNotes = activityLog
+            .filter((entry) => entry.type === "note")
+            .map((entry) => ({
+            content: entry.content || entry.note,
+            createdAt: entry.createdAt,
+            createdBy: entry.adminName || "Admin",
+            adminId: entry.adminId,
+        }));
+        const evidence = Array.isArray(plainDispute.evidence) ? plainDispute.evidence.map((e) => ({
+            ...e,
+            submittedBy: e.submittedBy || "admin",
+            timestamp: e.createdAt || e.timestamp,
+        })) : [];
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Evidence added successfully");
+        return {
+            ...plainDispute,
+            messages,
+            adminNotes,
+            evidence,
+        };
+    }
+    catch (err) {
+        if (err.statusCode) {
+            throw err;
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to add evidence");
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: "Internal Server Error: " + err.message,
+        });
+    }
+};

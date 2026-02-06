@@ -27,7 +27,9 @@ export default class user
     email?: boolean;
     sms?: boolean;
     push?: boolean;
-  };
+    pushTokens?: any;
+    webPushSubscriptions?: any[];
+  } | null;
   createdAt?: Date;
   deletedAt?: Date;
   updatedAt?: Date;

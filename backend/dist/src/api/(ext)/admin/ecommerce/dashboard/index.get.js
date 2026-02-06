@@ -1,1 +1,354 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),sequelize_1=require("sequelize");exports.metadata={summary:"Get Ecommerce Dashboard Data",description:"Retrieves all key data for the admin ecommerce dashboard.",operationId:"getAdminEcommerceDashboard",tags:["Ecommerce","Admin","Dashboard"],requiresAuth:!0,logModule:"ADMIN_ECOM",logTitle:"Get dashboard data",parameters:[{name:"startDate",in:"query",required:!1,schema:{type:"string",format:"date"},description:"Start date for chart/statistics range (ISO format)"},{name:"endDate",in:"query",required:!1,schema:{type:"string",format:"date"},description:"End date for chart/statistics range (ISO format)"},{name:"chartType",in:"query",required:!1,schema:{type:"string",enum:["revenue","orders","customers"]},description:"Metric to use for the sales chart"}],responses:{200:{description:"Ecommerce dashboard data retrieved",content:{"application/json":{schema:{type:"object"}}}},401:{description:"Unauthorized"},500:{description:"Internal Server Error"}},permission:"access.ecommerce.dashboard",demoMask:["recentOrders.customer.email"]};exports.default=async e=>{const{user:t,query:r,ctx:a}=e;if(!(null==t?void 0:t.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});null==a||a.step("Parsing date range and chart parameters");const s=new Date,{startDate:d,endDate:o,chartType:n}=r||{};let c=d?new Date(d):new Date(s),i=o?new Date(o):s;if(!d||!o){i=s;c=new Date(s);c.setDate(i.getDate()-7)}const u=n||"revenue",l=i.getTime()-c.getTime(),m=new Date(c.getTime()-l),g=new Date(c.getTime());try{null==a||a.step("Fetching products data");const h=(await db_1.models.ecommerceProduct.findAll({include:[{model:db_1.models.ecommerceOrderItem,as:"ecommerceOrderItems",attributes:[]},{model:db_1.models.ecommerceCategory,as:"category",attributes:["id","name"]}],attributes:{include:[[(0,sequelize_1.fn)("COALESCE",(0,sequelize_1.fn)("SUM",(0,sequelize_1.col)("ecommerceOrderItems.quantity")),0),"soldCount"]]},group:["ecommerceProduct.id","category.id"],raw:!1,paranoid:!1})).map(e=>({...e.get({plain:!0}),soldCount:Number(e.get("soldCount")||0)}));null==a||a.step("Fetching orders data");const p=(await db_1.models.ecommerceOrder.findAll({include:[{model:db_1.models.user,as:"user",attributes:["id","firstName","lastName","email"]},{model:db_1.models.ecommerceOrderItem,as:"ecommerceOrderItems",attributes:["productId","quantity"]}],order:[["createdAt","DESC"]],paranoid:!1})).map(e=>{const t=e.get({plain:!0});t.customer=t.user?{name:t.user.firstName+" "+t.user.lastName,email:t.user.email}:{name:"Guest",email:""};t.total=(t.ecommerceOrderItems||[]).reduce((e,t)=>e+(t.quantity||0),0);return t});null==a||a.step("Fetching customers data");const D=(await db_1.models.user.findAll({include:[{model:db_1.models.ecommerceOrder,as:"ecommerceOrders",required:!0,attributes:[]}],attributes:["id","firstName","lastName","email","createdAt",[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.col)("ecommerceOrders.id")),"orderCount"]],group:["user.id"],order:[["createdAt","DESC"]],paranoid:!1})).map(e=>e.get({plain:!0}));null==a||a.step("Calculating current period statistics");const f=p.filter(e=>("COMPLETED"===e.status||"DELIVERED"===e.status)&&e.createdAt>=c&&e.createdAt<=i),y=f.reduce((e,t)=>e+(t.ecommerceOrderItems||[]).reduce((e,t)=>{const r=h.find(e=>e.id===t.productId);return e+((null==r?void 0:r.price)||0)*(t.quantity||0)},0),0),b=p.filter(e=>e.createdAt>=c&&e.createdAt<=i),C=b.length,E=C>0?y/C:0,O=f.reduce((e,t)=>e+(t.ecommerceOrderItems||[]).reduce((e,t)=>e+(t.quantity||0),0),0),A=D.filter(e=>e.createdAt>=c&&e.createdAt<=i).length,q=b.filter(e=>"PENDING"===e.status).length,I=h.filter(e=>0===(e.inventoryQuantity||0)).length,M=b.filter(e=>"SHIPPED"===e.status&&e.updatedAt&&new Date(e.updatedAt).toDateString()===s.toDateString()).length,v=b.filter(e=>"DELIVERED"===e.status).length;null==a||a.step("Calculating previous period statistics");const w=p.filter(e=>("COMPLETED"===e.status||"DELIVERED"===e.status)&&e.createdAt>=m&&e.createdAt<g),S=w.reduce((e,t)=>e+(t.ecommerceOrderItems||[]).reduce((e,t)=>{const r=h.find(e=>e.id===t.productId);return e+((null==r?void 0:r.price)||0)*(t.quantity||0)},0),0),_=p.filter(e=>e.createdAt>=m&&e.createdAt<g).length,F=_>0?S/_:0,T=w.reduce((e,t)=>e+(t.ecommerceOrderItems||[]).reduce((e,t)=>e+(t.quantity||0),0),0),Y=D.filter(e=>e.createdAt>=m&&e.createdAt<g).length;function N(e,t){return 0===t&&0===e?0:0===t?100:(e-t)/t*100}const P=N(y,S),L=N(C,_),z=N(E,F),U=N(O,T),R=N(A,Y);null==a||a.step("Building chart data");function V(e,t,r){const a=[],s=[],d=r.getTime()-t.getTime()>3456e6?"month":"day",o=new Date(t);for(;o<=r;){a.push("day"===d?o.toLocaleDateString("en-US",{month:"short",day:"numeric"}):o.toLocaleDateString("en-US",{month:"short",year:"numeric"}));let t=0;if("revenue"===e||"unitsSold"===e){t=p.filter(e=>{const t=new Date(e.createdAt);return"day"===d?t.getFullYear()===o.getFullYear()&&t.getMonth()===o.getMonth()&&t.getDate()===o.getDate():t.getFullYear()===o.getFullYear()&&t.getMonth()===o.getMonth()}).reduce((t,r)=>"COMPLETED"!==r.status&&"DELIVERED"!==r.status?t:"revenue"===e?t+(r.ecommerceOrderItems||[]).reduce((e,t)=>{const r=h.find(e=>e.id===t.productId);return e+((null==r?void 0:r.price)||0)*(t.quantity||0)},0):"unitsSold"===e?t+(r.ecommerceOrderItems||[]).reduce((e,t)=>e+(t.quantity||0),0):t,0)}else"orders"===e?t=p.filter(e=>{const t=new Date(e.createdAt);return"day"===d?t.getFullYear()===o.getFullYear()&&t.getMonth()===o.getMonth()&&t.getDate()===o.getDate():t.getFullYear()===o.getFullYear()&&t.getMonth()===o.getMonth()}).length:"customers"===e&&(t=D.filter(e=>{const t=new Date(e.createdAt);return"day"===d?t.getFullYear()===o.getFullYear()&&t.getMonth()===o.getMonth()&&t.getDate()===o.getDate():t.getFullYear()===o.getFullYear()&&t.getMonth()===o.getMonth()}).length);s.push(t);if("day"===d)o.setDate(o.getDate()+1);else{const e=o.getDate();o.setMonth(o.getMonth()+1);o.getDate()<e&&o.setDate(0)}if(a.length>400)break}return{labels:a,data:s}}const x=V("revenue",c,i),k=V("orders",c,i),G=V("unitsSold",c,i),j=V("customers",c,i);null==a||a.step("Compiling dashboard summary");const B=[...h].sort((e,t)=>(t.soldCount||0)-(e.soldCount||0)).slice(0,5),H=[...p].sort((e,t)=>new Date(t.createdAt||0).getTime()-new Date(e.createdAt||0).getTime()).slice(0,5);null==a||a.success("Dashboard data retrieved successfully");return{totalRevenue:y,totalOrders:C,averageOrderValue:E,totalUnitsSold:O,newCustomers:A,revenueChange:P,ordersChange:L,averageOrderChange:z,unitsSoldChange:U,newCustomersChange:R,revenueChartData:x.data,orderValueChartData:k.data,unitsSoldChartData:G.data,customersChartData:j.data,topProducts:B,chartData:{labels:x.labels,datasets:[{label:u,data:"revenue"===u?x.data:"orders"===u?k.data:"customers"===u?j.data:[]}]},pendingOrders:q,outOfStockCount:I,shippedToday:M,completedOrders:v,recentOrders:H}}catch(Q){null==a||a.fail("Failed to fetch dashboard data");console.error("Failed to fetch ecommerce dashboard data",Q);throw(0,error_1.createError)({statusCode:500,message:"Failed to fetch dashboard data"})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const sequelize_1 = require("sequelize");
+exports.metadata = {
+    summary: "Get Ecommerce Dashboard Data",
+    description: "Retrieves all key data for the admin ecommerce dashboard.",
+    operationId: "getAdminEcommerceDashboard",
+    tags: ["Ecommerce", "Admin", "Dashboard"],
+    requiresAuth: true,
+    logModule: "ADMIN_ECOM",
+    logTitle: "Get dashboard data",
+    parameters: [
+        {
+            name: "startDate",
+            in: "query",
+            required: false,
+            schema: { type: "string", format: "date" },
+            description: "Start date for chart/statistics range (ISO format)",
+        },
+        {
+            name: "endDate",
+            in: "query",
+            required: false,
+            schema: { type: "string", format: "date" },
+            description: "End date for chart/statistics range (ISO format)",
+        },
+        {
+            name: "chartType",
+            in: "query",
+            required: false,
+            schema: { type: "string", enum: ["revenue", "orders", "customers"] },
+            description: "Metric to use for the sales chart",
+        },
+    ],
+    responses: {
+        200: {
+            description: "Ecommerce dashboard data retrieved",
+            content: {
+                "application/json": { schema: { type: "object" } },
+            },
+        },
+        401: { description: "Unauthorized" },
+        500: { description: "Internal Server Error" },
+    },
+    permission: "access.ecommerce.dashboard",
+    demoMask: ["recentOrders.customer.email"],
+};
+exports.default = async (data) => {
+    const { user, query, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id))
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Parsing date range and chart parameters");
+    const now = new Date();
+    const { startDate, endDate, chartType: chartTypeRaw } = query || {};
+    let start = startDate ? new Date(startDate) : new Date(now);
+    let end = endDate ? new Date(endDate) : now;
+    if (!startDate || !endDate) {
+        end = now;
+        start = new Date(now);
+        start.setDate(end.getDate() - 7);
+    }
+    const chartType = (chartTypeRaw || "revenue");
+    const periodMs = end.getTime() - start.getTime();
+    const prevStart = new Date(start.getTime() - periodMs);
+    const prevEnd = new Date(start.getTime());
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching products data");
+        const productsRaw = await db_1.models.ecommerceProduct.findAll({
+            include: [
+                {
+                    model: db_1.models.ecommerceOrderItem,
+                    as: "ecommerceOrderItems",
+                    attributes: [],
+                },
+                {
+                    model: db_1.models.ecommerceCategory,
+                    as: "category",
+                    attributes: ["id", "name"],
+                },
+            ],
+            attributes: {
+                include: [
+                    [
+                        (0, sequelize_1.fn)("COALESCE", (0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("ecommerceOrderItems.quantity")), 0),
+                        "soldCount",
+                    ],
+                ],
+            },
+            group: ["ecommerceProduct.id", "category.id"],
+            raw: false,
+            paranoid: false,
+        });
+        const products = productsRaw.map((p) => ({
+            ...p.get({ plain: true }),
+            soldCount: Number(p.get("soldCount") || 0),
+        }));
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching orders data");
+        const ordersRaw = await db_1.models.ecommerceOrder.findAll({
+            include: [
+                {
+                    model: db_1.models.user,
+                    as: "user",
+                    attributes: ["id", "firstName", "lastName", "email"],
+                },
+                {
+                    model: db_1.models.ecommerceOrderItem,
+                    as: "ecommerceOrderItems",
+                    attributes: ["productId", "quantity"],
+                },
+            ],
+            order: [["createdAt", "DESC"]],
+            paranoid: false,
+        });
+        const orders = ordersRaw.map((o) => {
+            const order = o.get({ plain: true });
+            order.customer = order.user
+                ? {
+                    name: order.user.firstName + " " + order.user.lastName,
+                    email: order.user.email,
+                }
+                : { name: "Guest", email: "" };
+            order.total = (order.ecommerceOrderItems || []).reduce((sum, i) => sum + (i.quantity || 0), 0);
+            return order;
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching customers data");
+        const customersRaw = await db_1.models.user.findAll({
+            include: [
+                {
+                    model: db_1.models.ecommerceOrder,
+                    as: "ecommerceOrders",
+                    required: true,
+                    attributes: [],
+                },
+            ],
+            attributes: [
+                "id",
+                "firstName",
+                "lastName",
+                "email",
+                "createdAt",
+                [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.col)("ecommerceOrders.id")), "orderCount"],
+            ],
+            group: ["user.id"],
+            order: [["createdAt", "DESC"]],
+            paranoid: false,
+        });
+        const customers = customersRaw.map((u) => u.get({ plain: true }));
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating current period statistics");
+        const completedOrders = orders.filter((o) => o.status === "COMPLETED" &&
+            o.createdAt &&
+            o.createdAt >= start &&
+            o.createdAt <= end);
+        const totalRevenue = completedOrders.reduce((sum, o) => {
+            const orderSum = (o.ecommerceOrderItems || []).reduce((os, i) => {
+                const prod = products.find((p) => p.id === i.productId);
+                return os + ((prod === null || prod === void 0 ? void 0 : prod.price) || 0) * (i.quantity || 0);
+            }, 0);
+            return sum + orderSum;
+        }, 0);
+        const ordersInPeriod = orders.filter((o) => o.createdAt && o.createdAt >= start && o.createdAt <= end);
+        const totalOrders = ordersInPeriod.length;
+        const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+        const totalUnitsSold = completedOrders.reduce((sum, o) => sum +
+            (o.ecommerceOrderItems || []).reduce((os, i) => os + (i.quantity || 0), 0), 0);
+        const newCustomersCount = customers.filter((u) => u.createdAt && u.createdAt >= start && u.createdAt <= end).length;
+        const pendingOrders = ordersInPeriod.filter((o) => o.status === "PENDING").length;
+        const outOfStockCount = products.filter((p) => (p.inventoryQuantity || 0) === 0).length;
+        const shippedToday = 0;
+        const completedOrdersCount = ordersInPeriod.filter((o) => o.status === "COMPLETED").length;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating previous period statistics");
+        const completedOrdersPrev = orders.filter((o) => o.status === "COMPLETED" &&
+            o.createdAt &&
+            o.createdAt >= prevStart &&
+            o.createdAt < prevEnd);
+        const totalRevenuePrev = completedOrdersPrev.reduce((sum, o) => {
+            const orderSum = (o.ecommerceOrderItems || []).reduce((os, i) => {
+                const prod = products.find((p) => p.id === i.productId);
+                return os + ((prod === null || prod === void 0 ? void 0 : prod.price) || 0) * (i.quantity || 0);
+            }, 0);
+            return sum + orderSum;
+        }, 0);
+        const ordersPrev = orders.filter((o) => o.createdAt && o.createdAt >= prevStart && o.createdAt < prevEnd).length;
+        const avgOrderValuePrev = ordersPrev > 0 ? totalRevenuePrev / ordersPrev : 0;
+        const unitsSoldPrev = completedOrdersPrev.reduce((sum, o) => sum +
+            (o.ecommerceOrderItems || []).reduce((os, i) => os + (i.quantity || 0), 0), 0);
+        const newCustomersPrev = customers.filter((u) => u.createdAt && u.createdAt >= prevStart && u.createdAt < prevEnd).length;
+        function calcChange(now, prev) {
+            if (prev === 0 && now === 0)
+                return 0;
+            if (prev === 0)
+                return 100;
+            return ((now - prev) / prev) * 100;
+        }
+        const revenueChange = calcChange(totalRevenue, totalRevenuePrev);
+        const ordersChange = calcChange(totalOrders, ordersPrev);
+        const averageOrderChange = calcChange(averageOrderValue, avgOrderValuePrev);
+        const unitsSoldChange = calcChange(totalUnitsSold, unitsSoldPrev);
+        const newCustomersChange = calcChange(newCustomersCount, newCustomersPrev);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Building chart data");
+        function buildChartData(key, rangeStart, rangeEnd) {
+            const chartLabels = [];
+            const chartData = [];
+            const dateUnit = rangeEnd.getTime() - rangeStart.getTime() > 40 * 24 * 3600 * 1000
+                ? "month"
+                : "day";
+            const cursor = new Date(rangeStart);
+            while (cursor <= rangeEnd) {
+                chartLabels.push(dateUnit === "day"
+                    ? cursor.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                    })
+                    : cursor.toLocaleDateString("en-US", {
+                        month: "short",
+                        year: "numeric",
+                    }));
+                let value = 0;
+                if (key === "revenue" || key === "unitsSold") {
+                    const ordersHere = orders.filter((o) => {
+                        if (!o.createdAt)
+                            return false;
+                        const d = new Date(o.createdAt);
+                        if (dateUnit === "day")
+                            return (d.getFullYear() === cursor.getFullYear() &&
+                                d.getMonth() === cursor.getMonth() &&
+                                d.getDate() === cursor.getDate());
+                        else
+                            return (d.getFullYear() === cursor.getFullYear() &&
+                                d.getMonth() === cursor.getMonth());
+                    });
+                    value = ordersHere.reduce((sum, o) => {
+                        if (o.status !== "COMPLETED")
+                            return sum;
+                        if (key === "revenue") {
+                            return (sum +
+                                (o.ecommerceOrderItems || []).reduce((os, i) => {
+                                    const prod = products.find((p) => p.id === i.productId);
+                                    return os + ((prod === null || prod === void 0 ? void 0 : prod.price) || 0) * (i.quantity || 0);
+                                }, 0));
+                        }
+                        else if (key === "unitsSold") {
+                            return (sum +
+                                (o.ecommerceOrderItems || []).reduce((os, i) => os + (i.quantity || 0), 0));
+                        }
+                        return sum;
+                    }, 0);
+                }
+                else if (key === "orders") {
+                    value = orders.filter((o) => {
+                        if (!o.createdAt)
+                            return false;
+                        const d = new Date(o.createdAt);
+                        if (dateUnit === "day")
+                            return (d.getFullYear() === cursor.getFullYear() &&
+                                d.getMonth() === cursor.getMonth() &&
+                                d.getDate() === cursor.getDate());
+                        else
+                            return (d.getFullYear() === cursor.getFullYear() &&
+                                d.getMonth() === cursor.getMonth());
+                    }).length;
+                }
+                else if (key === "customers") {
+                    value = customers.filter((u) => {
+                        if (!u.createdAt)
+                            return false;
+                        const d = new Date(u.createdAt);
+                        if (dateUnit === "day")
+                            return (d.getFullYear() === cursor.getFullYear() &&
+                                d.getMonth() === cursor.getMonth() &&
+                                d.getDate() === cursor.getDate());
+                        else
+                            return (d.getFullYear() === cursor.getFullYear() &&
+                                d.getMonth() === cursor.getMonth());
+                    }).length;
+                }
+                chartData.push(value);
+                if (dateUnit === "day") {
+                    cursor.setDate(cursor.getDate() + 1);
+                }
+                else {
+                    const origDay = cursor.getDate();
+                    cursor.setMonth(cursor.getMonth() + 1);
+                    if (cursor.getDate() < origDay) {
+                        cursor.setDate(0);
+                    }
+                }
+                if (chartLabels.length > 400)
+                    break;
+            }
+            return { labels: chartLabels, data: chartData };
+        }
+        const revenueChart = buildChartData("revenue", start, end);
+        const orderValueChart = buildChartData("orders", start, end);
+        const unitsSoldChart = buildChartData("unitsSold", start, end);
+        const customersChart = buildChartData("customers", start, end);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Compiling dashboard summary");
+        const topProducts = [...products]
+            .sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0))
+            .slice(0, 5);
+        const recentOrders = [...orders]
+            .sort((a, b) => new Date(b.createdAt || 0).getTime() -
+            new Date(a.createdAt || 0).getTime())
+            .slice(0, 5);
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Dashboard data retrieved successfully");
+        return {
+            totalRevenue,
+            totalOrders,
+            averageOrderValue,
+            totalUnitsSold,
+            newCustomers: newCustomersCount,
+            revenueChange,
+            ordersChange,
+            averageOrderChange,
+            unitsSoldChange,
+            newCustomersChange,
+            revenueChartData: revenueChart.data,
+            orderValueChartData: orderValueChart.data,
+            unitsSoldChartData: unitsSoldChart.data,
+            customersChartData: customersChart.data,
+            topProducts,
+            chartData: {
+                labels: revenueChart.labels,
+                datasets: [
+                    {
+                        label: chartType,
+                        data: chartType === "revenue"
+                            ? revenueChart.data
+                            : chartType === "orders"
+                                ? orderValueChart.data
+                                : chartType === "customers"
+                                    ? customersChart.data
+                                    : [],
+                    },
+                ],
+            },
+            pendingOrders,
+            outOfStockCount,
+            shippedToday,
+            completedOrders: completedOrdersCount,
+            recentOrders,
+        };
+    }
+    catch (err) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to fetch dashboard data");
+        console.error("Failed to fetch ecommerce dashboard data", err);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: "Failed to fetch dashboard data",
+        });
+    }
+};

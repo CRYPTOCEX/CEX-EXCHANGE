@@ -1,1 +1,283 @@
-"use strict";async function createVestingSchedule(e,t){const a=await db_1.sequelize.transaction();try{const s=await db_1.models.icoTransaction.findByPk(e,{include:[{model:db_1.models.icoTokenOffering,as:"offering"}],transaction:a});if(!s)throw(0,error_1.createError)({statusCode:404,message:"Transaction not found"});let n=null;"MILESTONE"===t.type&&t.milestones&&(n=t.milestones.map(e=>({date:e.date,percentage:e.percentage,amount:s.amount*(e.percentage/100)})));const o=await db_1.models.icoTokenVesting.create({transactionId:s.id,userId:s.userId,offeringId:s.offeringId,totalAmount:s.amount,releasedAmount:0,vestingType:t.type,startDate:t.startDate,endDate:t.endDate,cliffDuration:t.cliffDuration,releaseSchedule:n,status:"ACTIVE"},{transaction:a});if("MILESTONE"===t.type&&n)for(const e of n)await db_1.models.icoTokenVestingRelease.create({vestingId:o.id,amount:e.amount,releaseDate:e.date,status:"PENDING"},{transaction:a});await a.commit();return o}catch(e){await a.rollback();throw e}}async function calculateVestedAmount(e){const t=await db_1.models.icoTokenVesting.findByPk(e);if(!t)return 0;const a=new Date;if(a<t.startDate)return 0;if(a>=t.endDate)return t.totalAmount;switch(t.vestingType){case"LINEAR":if(t.cliffDuration){const e=new Date(t.startDate);e.setDate(e.getDate()+t.cliffDuration);if(a<e)return 0}const e=t.endDate.getTime()-t.startDate.getTime(),s=(a.getTime()-t.startDate.getTime())/e;return t.totalAmount*s;case"CLIFF":const n=new Date(t.startDate);n.setDate(n.getDate()+(t.cliffDuration||365));return a>=n?t.totalAmount:0;case"MILESTONE":if(!t.releaseSchedule)return 0;let o=0;for(const e of t.releaseSchedule)new Date(e.date)<=a&&(o+=e.amount);return o;default:return 0}}async function processVestingReleases(){const e=await db_1.sequelize.transaction();try{const t=new Date,a=await db_1.models.icoTokenVestingRelease.findAll({where:{status:"PENDING",releaseDate:{[sequelize_1.Op.lte]:t}},include:[{model:db_1.models.icoTokenVesting,as:"vesting",where:{status:"ACTIVE"},include:[{model:db_1.models.icoTransaction,as:"transaction",include:[{model:db_1.models.icoTokenOffering,as:"offering"}]}]}],transaction:e});for(const t of a)try{await t.update({status:"PROCESSING"},{transaction:e});await t.vesting.update({releasedAmount:t.vesting.releasedAmount+t.amount},{transaction:e});await(0,notifications_1.createNotification)({userId:t.vesting.userId,relatedId:t.vesting.offeringId,type:"investment",title:"Vested Tokens Available",message:`${t.amount} ${t.vesting.transaction.offering.symbol} tokens are now available for release`,details:`Your vested tokens from ${t.vesting.transaction.offering.name} are ready to be claimed.`,link:"/ico/dashboard?tab=vesting",actions:[{label:"Claim Tokens",link:`/ico/vesting/${t.vestingId}/claim`,primary:!0}]});await db_1.models.icoAdminActivity.create({type:"VESTING_RELEASE",offeringId:t.vesting.offeringId,offeringName:t.vesting.transaction.offering.name,adminId:null,details:JSON.stringify({vestingId:t.vestingId,releaseId:t.id,amount:t.amount,userId:t.vesting.userId})},{transaction:e})}catch(a){console_1.logger.error("ICO_VESTING",`Failed to process vesting release ${t.id}`,a);await t.update({status:"FAILED",notes:a.message},{transaction:e})}const s=await db_1.models.icoTokenVesting.findAll({where:{status:"ACTIVE",endDate:{[sequelize_1.Op.lte]:t}},transaction:e});for(const t of s)t.releasedAmount>=t.totalAmount&&await t.update({status:"COMPLETED"},{transaction:e});await e.commit()}catch(t){await e.rollback();console_1.logger.error("ICO_VESTING","Error processing vesting releases",t);throw t}}async function claimVestedTokens(e,t,a,s){const n=await db_1.sequelize.transaction();try{const o=await db_1.models.icoTokenVesting.findOne({where:{id:e,userId:t,status:"ACTIVE"},include:[{model:db_1.models.icoTokenVestingRelease,as:"releases",where:{status:"PROCESSING"}}],transaction:n});if(!o)throw(0,error_1.createError)({statusCode:404,message:"Vesting not found or access denied"});for(const e of o.releases)await e.update({status:"COMPLETED",transactionHash:s,notes:`Claimed to wallet: ${a}`},{transaction:n});await n.commit();await(0,notifications_1.createNotification)({userId:t,relatedId:o.offeringId,type:"investment",title:"Vested Tokens Claimed",message:"Your vested tokens have been successfully claimed",details:`Transaction hash: ${s}`,link:"/ico/dashboard?tab=vesting"})}catch(e){await n.rollback();throw e}}async function getVestingScheduleForUser(e){const t=await db_1.models.icoTokenVesting.findAll({where:{userId:e,status:{[sequelize_1.Op.in]:["ACTIVE","COMPLETED"]}},include:[{model:db_1.models.icoTokenVestingRelease,as:"releases"},{model:db_1.models.icoTransaction,as:"transaction",include:[{model:db_1.models.icoTokenOffering,as:"offering",attributes:["name","symbol"]}]}],order:[["startDate","ASC"]]});return await Promise.all(t.map(async e=>{const t=await calculateVestedAmount(e.id);return{...e.get({plain:!0}),vestedAmount:t,availableToClaim:t-e.releasedAmount}}))}Object.defineProperty(exports,"__esModule",{value:!0});exports.createVestingSchedule=createVestingSchedule;exports.calculateVestedAmount=calculateVestedAmount;exports.processVestingReleases=processVestingReleases;exports.claimVestedTokens=claimVestedTokens;exports.getVestingScheduleForUser=getVestingScheduleForUser;const db_1=require("@b/db"),sequelize_1=require("sequelize"),notifications_1=require("@b/utils/notifications"),console_1=require("@b/utils/console"),error_1=require("@b/utils/error");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createVestingSchedule = createVestingSchedule;
+exports.calculateVestedAmount = calculateVestedAmount;
+exports.processVestingReleases = processVestingReleases;
+exports.claimVestedTokens = claimVestedTokens;
+exports.getVestingScheduleForUser = getVestingScheduleForUser;
+const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
+const notifications_1 = require("@b/utils/notifications");
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+async function createVestingSchedule(transactionId, schedule) {
+    const transaction = await db_1.sequelize.transaction();
+    try {
+        const icoTransaction = await db_1.models.icoTransaction.findByPk(transactionId, {
+            include: [{
+                    model: db_1.models.icoTokenOffering,
+                    as: "offering",
+                }],
+            transaction,
+        });
+        if (!icoTransaction) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Transaction not found" });
+        }
+        let releaseSchedule = null;
+        if (schedule.type === "MILESTONE" && schedule.milestones) {
+            releaseSchedule = schedule.milestones.map(m => ({
+                date: m.date,
+                percentage: m.percentage,
+                amount: icoTransaction.amount * (m.percentage / 100),
+            }));
+        }
+        const vesting = await db_1.models.icoTokenVesting.create({
+            transactionId: icoTransaction.id,
+            userId: icoTransaction.userId,
+            offeringId: icoTransaction.offeringId,
+            totalAmount: icoTransaction.amount,
+            releasedAmount: 0,
+            vestingType: schedule.type,
+            startDate: schedule.startDate,
+            endDate: schedule.endDate,
+            cliffDuration: schedule.cliffDuration,
+            releaseSchedule,
+            status: "ACTIVE",
+        }, { transaction });
+        if (schedule.type === "MILESTONE" && releaseSchedule) {
+            for (const milestone of releaseSchedule) {
+                await db_1.models.icoTokenVestingRelease.create({
+                    vestingId: vesting.id,
+                    releaseAmount: milestone.amount,
+                    percentage: milestone.percentage,
+                    releaseDate: milestone.date,
+                }, { transaction });
+            }
+        }
+        await transaction.commit();
+        return vesting;
+    }
+    catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
+}
+async function calculateVestedAmount(vestingId) {
+    const vesting = await db_1.models.icoTokenVesting.findByPk(vestingId);
+    if (!vesting)
+        return 0;
+    const now = new Date();
+    if (now < vesting.startDate)
+        return 0;
+    if (now >= vesting.endDate)
+        return vesting.totalAmount;
+    switch (vesting.vestingType) {
+        case "LINEAR":
+            if (vesting.cliffDuration) {
+                const cliffEndDate = new Date(vesting.startDate);
+                cliffEndDate.setDate(cliffEndDate.getDate() + vesting.cliffDuration);
+                if (now < cliffEndDate)
+                    return 0;
+            }
+            const totalDuration = vesting.endDate.getTime() - vesting.startDate.getTime();
+            const elapsed = now.getTime() - vesting.startDate.getTime();
+            const percentage = elapsed / totalDuration;
+            return vesting.totalAmount * percentage;
+        case "CLIFF":
+            const cliffDate = new Date(vesting.startDate);
+            cliffDate.setDate(cliffDate.getDate() + (vesting.cliffDuration || 365));
+            return now >= cliffDate ? vesting.totalAmount : 0;
+        case "MILESTONE":
+            if (!vesting.releaseSchedule)
+                return 0;
+            let vestedAmount = 0;
+            for (const milestone of vesting.releaseSchedule) {
+                if (new Date(milestone.date) <= now) {
+                    vestedAmount += milestone.amount;
+                }
+            }
+            return vestedAmount;
+        default:
+            return 0;
+    }
+}
+async function processVestingReleases() {
+    var _a, _b, _c, _d;
+    const transaction = await db_1.sequelize.transaction();
+    try {
+        const now = new Date();
+        const pendingReleases = await db_1.models.icoTokenVestingRelease.findAll({
+            where: {
+                status: "PENDING",
+                releaseDate: { [sequelize_1.Op.lte]: now },
+            },
+            include: [{
+                    model: db_1.models.icoTokenVesting,
+                    as: "vesting",
+                    where: { status: "ACTIVE" },
+                    include: [{
+                            model: db_1.models.icoTransaction,
+                            as: "transaction",
+                            include: [{
+                                    model: db_1.models.icoTokenOffering,
+                                    as: "offering",
+                                }],
+                        }],
+                }],
+            transaction,
+        });
+        for (const release of pendingReleases) {
+            try {
+                const vesting = release.vesting;
+                if (!vesting) {
+                    console_1.logger.warn("ICO_VESTING", `Vesting not found for release ${release.id}`);
+                    continue;
+                }
+                const vestingTransaction = vesting.transaction;
+                const offering = vestingTransaction === null || vestingTransaction === void 0 ? void 0 : vestingTransaction.offering;
+                await release.update({ status: "RELEASED" }, { transaction });
+                await vesting.update({ releasedAmount: vesting.releasedAmount + release.releaseAmount }, { transaction });
+                await (0, notifications_1.createNotification)({
+                    userId: vesting.userId,
+                    relatedId: vesting.offeringId,
+                    type: "investment",
+                    title: "Vested Tokens Available",
+                    message: `${release.releaseAmount} ${(_a = offering === null || offering === void 0 ? void 0 : offering.symbol) !== null && _a !== void 0 ? _a : "tokens"} tokens are now available for release`,
+                    details: `Your vested tokens from ${(_b = offering === null || offering === void 0 ? void 0 : offering.name) !== null && _b !== void 0 ? _b : "ICO"} are ready to be claimed.`,
+                    link: `/ico/dashboard?tab=vesting`,
+                    actions: [
+                        {
+                            label: "Claim Tokens",
+                            link: `/ico/vesting/${release.vestingId}/claim`,
+                            primary: true,
+                        },
+                    ],
+                });
+                const systemAdmin = await db_1.models.user.findOne({
+                    include: [{
+                            model: db_1.models.role,
+                            as: "role",
+                            where: { name: "Super Admin" },
+                        }],
+                    order: [["createdAt", "ASC"]],
+                    transaction,
+                });
+                if (systemAdmin) {
+                    await db_1.models.icoAdminActivity.create({
+                        type: "VESTING_RELEASE",
+                        offeringId: vesting.offeringId,
+                        offeringName: (_c = offering === null || offering === void 0 ? void 0 : offering.name) !== null && _c !== void 0 ? _c : "Unknown Offering",
+                        adminId: systemAdmin.id,
+                        details: JSON.stringify({
+                            vestingId: release.vestingId,
+                            releaseId: release.id,
+                            amount: release.releaseAmount,
+                            userId: vesting.userId,
+                            systemAction: true,
+                        }),
+                    }, { transaction });
+                }
+            }
+            catch (error) {
+                console_1.logger.error("ICO_VESTING", `Failed to process vesting release ${release.id}`, error);
+                await release.update({
+                    status: "FAILED",
+                    failureReason: (_d = error.message) !== null && _d !== void 0 ? _d : "Unknown error"
+                }, { transaction });
+            }
+        }
+        const activeVestings = await db_1.models.icoTokenVesting.findAll({
+            where: {
+                status: "ACTIVE",
+                endDate: { [sequelize_1.Op.lte]: now },
+            },
+            transaction,
+        });
+        for (const vesting of activeVestings) {
+            if (vesting.releasedAmount >= vesting.totalAmount) {
+                await vesting.update({ status: "COMPLETED" }, { transaction });
+            }
+        }
+        await transaction.commit();
+    }
+    catch (error) {
+        await transaction.rollback();
+        console_1.logger.error("ICO_VESTING", "Error processing vesting releases", error);
+        throw error;
+    }
+}
+async function claimVestedTokens(vestingId, userId, walletAddress, transactionHash) {
+    var _a;
+    const transaction = await db_1.sequelize.transaction();
+    try {
+        const vesting = await db_1.models.icoTokenVesting.findOne({
+            where: {
+                id: vestingId,
+                userId,
+                status: "ACTIVE",
+            },
+            include: [{
+                    model: db_1.models.icoTokenVestingRelease,
+                    as: "releases",
+                    where: { status: "PROCESSING" },
+                }],
+            transaction,
+        });
+        if (!vesting) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Vesting not found or access denied" });
+        }
+        const releases = (_a = vesting.releases) !== null && _a !== void 0 ? _a : [];
+        for (const release of releases) {
+            await release.update({
+                status: "RELEASED",
+                transactionHash,
+            }, { transaction });
+        }
+        await transaction.commit();
+        await (0, notifications_1.createNotification)({
+            userId,
+            relatedId: vesting.offeringId,
+            type: "investment",
+            title: "Vested Tokens Claimed",
+            message: "Your vested tokens have been successfully claimed",
+            details: `Transaction hash: ${transactionHash}`,
+            link: `/ico/dashboard?tab=vesting`,
+        });
+    }
+    catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
+}
+async function getVestingScheduleForUser(userId) {
+    const vestings = await db_1.models.icoTokenVesting.findAll({
+        where: {
+            userId,
+            status: { [sequelize_1.Op.in]: ["ACTIVE", "COMPLETED"] },
+        },
+        include: [
+            {
+                model: db_1.models.icoTokenVestingRelease,
+                as: "releases",
+            },
+            {
+                model: db_1.models.icoTransaction,
+                as: "transaction",
+                include: [{
+                        model: db_1.models.icoTokenOffering,
+                        as: "offering",
+                        attributes: ["name", "symbol"],
+                    }],
+            },
+        ],
+        order: [["startDate", "ASC"]],
+    });
+    return await Promise.all(vestings.map(async (v) => {
+        const vestedAmount = await calculateVestedAmount(v.id);
+        return {
+            ...v.get({ plain: true }),
+            vestedAmount,
+            availableToClaim: vestedAmount - v.releasedAmount,
+        };
+    }));
+}

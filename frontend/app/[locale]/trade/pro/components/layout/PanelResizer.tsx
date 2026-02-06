@@ -16,7 +16,7 @@ export function PanelResizer({
 }: PanelResizerProps) {
   const [isDragging, setIsDragging] = useState(false);
   const startPosRef = useRef(0);
-  const rafRef = useRef<number>();
+  const rafRef = useRef<number | undefined>(undefined);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {

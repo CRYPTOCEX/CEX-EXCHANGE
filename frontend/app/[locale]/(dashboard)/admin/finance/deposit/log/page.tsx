@@ -2,7 +2,7 @@
 
 import DataTable from "@/components/blocks/data-table";
 import { useColumns } from "./columns";
-import { useAnalytics } from "../../transaction/analytics";
+import { useAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
 import { Wallet } from "lucide-react";
 
@@ -31,6 +31,7 @@ export default function DepositLogPage() {
       canDelete={true}
       canView={true}
       viewLink="/admin/finance/deposit/log/[id]"
+      isParanoid={true}
       title={t("deposit_log_management")}
       description={t("view_deposit_transaction_history_and_logs")}
       itemTitle="Deposit Log"

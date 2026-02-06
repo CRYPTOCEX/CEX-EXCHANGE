@@ -1,1 +1,208 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.BlockCypherProvider=void 0;const console_1=require("@b/utils/console"),error_1=require("@b/utils/error");class BlockCypherProvider{constructor(t){this.timeout=3e4;this.chain=t;this.token=process.env.BLOCKCYPHER_TOKEN;this.baseURL=this.getBaseURL(t)}getBaseURL(t){const e={BTC:`https://api.blockcypher.com/v1/btc/${"BTC"===t&&"testnet"===process.env.BTC_NETWORK?"test3":"main"}`,LTC:"https://api.blockcypher.com/v1/ltc/main",DASH:"https://api.blockcypher.com/v1/dash/main",DOGE:"https://api.blockcypher.com/v1/doge/main"};if(!e[t])throw(0,error_1.createError)({statusCode:400,message:`BlockCypher provider not available for ${t}`});return e[t]}getName(){return`BlockCypher (${this.chain})`}addToken(t){if(this.token){const e=t.includes("?")?"&":"?";return`${t}${e}token=${this.token}`}return t}async fetchFromAPI(t,e={}){const r=this.addToken(`${this.baseURL}${t}`);try{const t=await fetch(r,{...e,signal:AbortSignal.timeout(this.timeout)});if(!t.ok)throw(0,error_1.createError)({statusCode:t.status,message:`HTTP ${t.status}: ${t.statusText}`});return await t.json()}catch(t){console_1.logger.error("BLOCKCYPHER","Failed to fetch from API",t);throw t}}async fetchTransactions(t){try{const e=await this.fetchFromAPI(`/addrs/${t}`);return Array.isArray(e.txrefs)?e.txrefs.map(t=>({hash:t.tx_hash,blockHeight:t.block_height,value:t.value,confirmedTime:t.confirmed,spent:t.spent,confirmations:t.confirmations})):[]}catch(t){console_1.logger.error("BLOCKCYPHER","Failed to fetch transactions",t);return[]}}async fetchTransaction(t){try{const e=await this.fetchFromAPI(`/txs/${t}`),r=e.inputs.map(t=>({prev_hash:t.prev_hash,prevHash:t.prev_hash,output_index:t.output_index,outputIndex:t.output_index,output_value:t.output_value,addresses:t.addresses||[],script:t.script})),s=e.outputs.map(t=>({value:t.value,addresses:t.addresses||[],script:t.script,spent:t.spent||!1,spent_by:t.spent_by,spender:t.spent_by}));return{hash:e.hash,block_height:e.block_height,confirmations:e.confirmations,fee:e.fees,inputs:r,outputs:s}}catch(t){console_1.logger.error("BLOCKCYPHER","Failed to fetch transaction details",t);return null}}async fetchRawTransaction(t){try{const e=await this.fetchFromAPI(`/txs/${t}?includeHex=true`);if(!e.hex)throw(0,error_1.createError)({statusCode:500,message:"Missing hex data in response"});return e.hex}catch(t){console_1.logger.error("BLOCKCYPHER","Failed to fetch raw transaction",t);throw t}}async getBalance(t){try{const e=await this.fetchFromAPI(`/addrs/${t}/balance`);if(e.error){console_1.logger.error("BLOCKCYPHER",`Failed to get balance: ${e.error}`);return 0}return Number(e.final_balance)||0}catch(t){console_1.logger.error("BLOCKCYPHER","Failed to get balance",t);return 0}}async getUTXOs(t){try{const e=await this.fetchFromAPI(`/addrs/${t}?unspentOnly=true`);return Array.isArray(e.txrefs)?e.txrefs.map(t=>({txid:t.tx_hash,vout:t.tx_output_n,value:t.value,confirmations:t.confirmations,script:t.script})):[]}catch(t){console_1.logger.error("BLOCKCYPHER","Failed to get UTXOs",t);return[]}}async broadcastTransaction(t){try{const e=await this.fetchFromAPI("/txs/push",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({tx:t})});if(!e.tx||!e.tx.hash)throw(0,error_1.createError)({statusCode:500,message:"Transaction broadcast failed: No transaction ID returned"});return{success:!0,txid:e.tx.hash}}catch(t){console_1.logger.error("BLOCKCYPHER","Failed to broadcast transaction",t);return{success:!1,txid:null,error:t.message}}}async getFeeRate(){try{if("BTC"===this.chain){const t=await fetch("https://api.blockchain.info/mempool/fees"),e=await t.json();return e[process.env.BTC_FEE_RATE_PRIORITY||"regular"]||e.regular||1}{const t=await this.fetchFromAPI("");return(t.medium_fee_per_kb||t.medium_fee_per_kbyte)/1024}}catch(t){console_1.logger.error("BLOCKCYPHER","Failed to get fee rate",t);return 1}}async isAvailable(){try{await this.fetchFromAPI("");return!0}catch(t){return!1}}}exports.BlockCypherProvider=BlockCypherProvider;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BlockCypherProvider = void 0;
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+class BlockCypherProvider {
+    constructor(chain) {
+        this.timeout = 30000;
+        this.chain = chain;
+        this.token = process.env.BLOCKCYPHER_TOKEN;
+        this.baseURL = this.getBaseURL(chain);
+    }
+    getBaseURL(chain) {
+        const network = chain === 'BTC' && process.env.BTC_NETWORK === 'testnet' ? 'test3' : 'main';
+        const urls = {
+            'BTC': `https://api.blockcypher.com/v1/btc/${network}`,
+            'LTC': 'https://api.blockcypher.com/v1/ltc/main',
+            'DASH': 'https://api.blockcypher.com/v1/dash/main',
+            'DOGE': 'https://api.blockcypher.com/v1/doge/main',
+        };
+        if (!urls[chain]) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `BlockCypher provider not available for ${chain}` });
+        }
+        return urls[chain];
+    }
+    getName() {
+        return `BlockCypher (${this.chain})`;
+    }
+    addToken(url) {
+        if (this.token) {
+            const separator = url.includes('?') ? '&' : '?';
+            return `${url}${separator}token=${this.token}`;
+        }
+        return url;
+    }
+    async fetchFromAPI(endpoint, options = {}) {
+        const url = this.addToken(`${this.baseURL}${endpoint}`);
+        try {
+            const response = await fetch(url, {
+                ...options,
+                signal: AbortSignal.timeout(this.timeout),
+            });
+            if (!response.ok) {
+                throw (0, error_1.createError)({ statusCode: response.status, message: `HTTP ${response.status}: ${response.statusText}` });
+            }
+            return await response.json();
+        }
+        catch (error) {
+            console_1.logger.error('BLOCKCYPHER', 'Failed to fetch from API', error);
+            throw error;
+        }
+    }
+    async fetchTransactions(address) {
+        try {
+            const data = await this.fetchFromAPI(`/addrs/${address}`);
+            if (!Array.isArray(data.txrefs)) {
+                return [];
+            }
+            return data.txrefs.map((tx) => ({
+                hash: tx.tx_hash,
+                blockHeight: tx.block_height,
+                value: tx.value,
+                confirmedTime: tx.confirmed,
+                spent: tx.spent,
+                confirmations: tx.confirmations,
+            }));
+        }
+        catch (error) {
+            console_1.logger.error('BLOCKCYPHER', 'Failed to fetch transactions', error);
+            return [];
+        }
+    }
+    async fetchTransaction(txHash) {
+        try {
+            const tx = await this.fetchFromAPI(`/txs/${txHash}`);
+            const inputs = tx.inputs.map((input) => ({
+                prev_hash: input.prev_hash,
+                prevHash: input.prev_hash,
+                output_index: input.output_index,
+                outputIndex: input.output_index,
+                output_value: input.output_value,
+                addresses: input.addresses || [],
+                script: input.script,
+            }));
+            const outputs = tx.outputs.map((output) => ({
+                value: output.value,
+                addresses: output.addresses || [],
+                script: output.script,
+                spent: output.spent || false,
+                spent_by: output.spent_by,
+                spender: output.spent_by,
+            }));
+            return {
+                hash: tx.hash,
+                block_height: tx.block_height,
+                confirmations: tx.confirmations,
+                fee: tx.fees,
+                inputs: inputs,
+                outputs: outputs,
+            };
+        }
+        catch (error) {
+            console_1.logger.error('BLOCKCYPHER', 'Failed to fetch transaction details', error);
+            return null;
+        }
+    }
+    async fetchRawTransaction(txHash) {
+        try {
+            const data = await this.fetchFromAPI(`/txs/${txHash}?includeHex=true`);
+            if (!data.hex) {
+                throw (0, error_1.createError)({ statusCode: 500, message: 'Missing hex data in response' });
+            }
+            return data.hex;
+        }
+        catch (error) {
+            console_1.logger.error('BLOCKCYPHER', 'Failed to fetch raw transaction', error);
+            throw error;
+        }
+    }
+    async getBalance(address) {
+        try {
+            const data = await this.fetchFromAPI(`/addrs/${address}/balance`);
+            if (data.error) {
+                console_1.logger.error('BLOCKCYPHER', `Failed to get balance: ${data.error}`);
+                return 0;
+            }
+            return Number(data.final_balance) || 0;
+        }
+        catch (error) {
+            console_1.logger.error('BLOCKCYPHER', 'Failed to get balance', error);
+            return 0;
+        }
+    }
+    async getUTXOs(address) {
+        try {
+            const data = await this.fetchFromAPI(`/addrs/${address}?unspentOnly=true`);
+            if (!Array.isArray(data.txrefs)) {
+                return [];
+            }
+            return data.txrefs.map((ref) => ({
+                txid: ref.tx_hash,
+                vout: ref.tx_output_n,
+                value: ref.value,
+                confirmations: ref.confirmations,
+                script: ref.script,
+            }));
+        }
+        catch (error) {
+            console_1.logger.error('BLOCKCYPHER', 'Failed to get UTXOs', error);
+            return [];
+        }
+    }
+    async broadcastTransaction(rawTxHex) {
+        try {
+            const response = await this.fetchFromAPI('/txs/push', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ tx: rawTxHex }),
+            });
+            if (!response.tx || !response.tx.hash) {
+                throw (0, error_1.createError)({ statusCode: 500, message: 'Transaction broadcast failed: No transaction ID returned' });
+            }
+            return {
+                success: true,
+                txid: response.tx.hash,
+            };
+        }
+        catch (error) {
+            console_1.logger.error('BLOCKCYPHER', 'Failed to broadcast transaction', error);
+            return {
+                success: false,
+                txid: null,
+                error: error.message,
+            };
+        }
+    }
+    async getFeeRate() {
+        try {
+            if (this.chain === 'BTC') {
+                const response = await fetch('https://api.blockchain.info/mempool/fees');
+                const data = await response.json();
+                const priority = process.env.BTC_FEE_RATE_PRIORITY || 'regular';
+                return data[priority] || data.regular || 1;
+            }
+            else {
+                const data = await this.fetchFromAPI('');
+                const mediumFeePerKb = data.medium_fee_per_kb || data.medium_fee_per_kbyte;
+                return mediumFeePerKb / 1024;
+            }
+        }
+        catch (error) {
+            console_1.logger.error('BLOCKCYPHER', 'Failed to get fee rate', error);
+            return 1;
+        }
+    }
+    async isAvailable() {
+        try {
+            await this.fetchFromAPI('');
+            return true;
+        }
+        catch (error) {
+            return false;
+        }
+    }
+}
+exports.BlockCypherProvider = BlockCypherProvider;

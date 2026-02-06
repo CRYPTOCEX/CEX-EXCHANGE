@@ -22,12 +22,12 @@ export default class rolePermission
   // rolePermission belongsTo permission via permissionId
   permission!: permission;
   getPermission!: Sequelize.BelongsToGetAssociationMixin<permission>;
-  setPermission!: Sequelize.BelongsToSetAssociationMixin<permission, number>;
+  setPermission!: Sequelize.BelongsToSetAssociationMixin<permission, string>;
   createPermission!: Sequelize.BelongsToCreateAssociationMixin<permission>;
   // rolePermission belongsTo role via roleId
   role!: role;
   getRole!: Sequelize.BelongsToGetAssociationMixin<role>;
-  setRole!: Sequelize.BelongsToSetAssociationMixin<role, number>;
+  setRole!: Sequelize.BelongsToSetAssociationMixin<role, string>;
   createRole!: Sequelize.BelongsToCreateAssociationMixin<role>;
 
   public static initModel(

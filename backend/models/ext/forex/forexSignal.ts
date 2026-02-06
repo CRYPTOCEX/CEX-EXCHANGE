@@ -20,32 +20,32 @@ export default class forexSignal
   getForexAccountIdForexAccounts!: Sequelize.BelongsToManyGetAssociationsMixin<forexAccount>;
   setForexAccountIdForexAccounts!: Sequelize.BelongsToManySetAssociationsMixin<
     forexAccount,
-    forexAccountId
+    string
   >;
   addForexAccountIdForexAccount!: Sequelize.BelongsToManyAddAssociationMixin<
     forexAccount,
-    forexAccountId
+    string
   >;
   addForexAccountIdForexAccounts!: Sequelize.BelongsToManyAddAssociationsMixin<
     forexAccount,
-    forexAccountId
+    string
   >;
   createForexAccountIdForexAccount!: Sequelize.BelongsToManyCreateAssociationMixin<forexAccount>;
   removeForexAccountIdForexAccount!: Sequelize.BelongsToManyRemoveAssociationMixin<
     forexAccount,
-    forexAccountId
+    string
   >;
   removeForexAccountIdForexAccounts!: Sequelize.BelongsToManyRemoveAssociationsMixin<
     forexAccount,
-    forexAccountId
+    string
   >;
   hasForexAccountIdForexAccount!: Sequelize.BelongsToManyHasAssociationMixin<
     forexAccount,
-    forexAccountId
+    string
   >;
   hasForexAccountIdForexAccounts!: Sequelize.BelongsToManyHasAssociationsMixin<
     forexAccount,
-    forexAccountId
+    string
   >;
   countForexAccountIdForexAccounts!: Sequelize.BelongsToManyCountAssociationsMixin;
   // forexSignal hasMany forexAccountSignal via forexSignalId
@@ -53,32 +53,32 @@ export default class forexSignal
   getForexAccountSignals!: Sequelize.HasManyGetAssociationsMixin<forexAccountSignal>;
   setForexAccountSignals!: Sequelize.HasManySetAssociationsMixin<
     forexAccountSignal,
-    forexAccountSignalId
+    string
   >;
   addForexAccountSignal!: Sequelize.HasManyAddAssociationMixin<
     forexAccountSignal,
-    forexAccountSignalId
+    string
   >;
   addForexAccountSignals!: Sequelize.HasManyAddAssociationsMixin<
     forexAccountSignal,
-    forexAccountSignalId
+    string
   >;
   createForexAccountSignal!: Sequelize.HasManyCreateAssociationMixin<forexAccountSignal>;
   removeForexAccountSignal!: Sequelize.HasManyRemoveAssociationMixin<
     forexAccountSignal,
-    forexAccountSignalId
+    string
   >;
   removeForexAccountSignals!: Sequelize.HasManyRemoveAssociationsMixin<
     forexAccountSignal,
-    forexAccountSignalId
+    string
   >;
   hasForexAccountSignal!: Sequelize.HasManyHasAssociationMixin<
     forexAccountSignal,
-    forexAccountSignalId
+    string
   >;
   hasForexAccountSignals!: Sequelize.HasManyHasAssociationsMixin<
     forexAccountSignal,
-    forexAccountSignalId
+    string
   >;
   countForexAccountSignals!: Sequelize.HasManyCountAssociationsMixin;
 

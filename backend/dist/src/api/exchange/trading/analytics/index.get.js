@@ -1,1 +1,224 @@
-"use strict";function getDateFilter(e){const t=new Date;switch(e){case"day":return{gte:new Date(t.getTime()-864e5)};case"week":return{gte:new Date(t.getTime()-6048e5)};case"month":return{gte:new Date(t.getTime()-2592e6)};default:return{}}}async function computeAnalytics(e,t,r){const a={userId:e,status:"CLOSED"};t.gte&&(a.createdAt={[sequelize_1.Op.gte]:t.gte});let n=[];if(!r||"spot"===r)try{const e=await db_1.models.exchangeOrder.findAll({where:a,raw:!0});n=n.concat(e.map(e=>({...e,marketType:"spot"})))}catch(e){console.warn("[Trading Analytics] Spot orders not available")}if(!r||"futures"===r)try{const e=await db_1.models.futuresOrder.findAll({where:a,raw:!0});n=n.concat(e.map(e=>({...e,marketType:"futures"})))}catch(e){console.warn("[Trading Analytics] Futures orders not available")}if(!r||"eco"===r)try{const{getOrdersByUserId:r}=await Promise.resolve().then(()=>__importStar(require("@b/api/(ext)/ecosystem/utils/scylla/queries"))),{fromBigInt:a}=await Promise.resolve().then(()=>__importStar(require("@b/api/(ext)/ecosystem/utils/blockchain"))),o=(await r(e)).filter(e=>{const r="CLOSED"===e.status||"FILLED"===e.status;return t.gte?r&&new Date(e.createdAt)>=t.gte:r}).map(e=>({...e,marketType:"eco",amount:a(e.amount),price:a(e.price),cost:a(e.cost),fee:a(e.fee),filled:a(e.filled),remaining:a(e.remaining)}));n=n.concat(o)}catch(e){console.warn("[Trading Analytics] Ecosystem orders not available:",e.message)}const o=n.length;let i=0,s=0,u=0,c=0,l=0;const p={},d={};for(const e of n){const t=Number(e.pnl||0),r=Number(e.amount||0)*Number(e.price||0);l+=r;if(t>0){i++;u+=t}else if(t<0){s++;c+=Math.abs(t)}const a=e.symbol||"UNKNOWN";p[a]||(p[a]={trades:0,pnl:0,volume:0});p[a].trades++;p[a].pnl+=t;p[a].volume+=r;const n=e.marketType||"unknown";d[n]||(d[n]={trades:0,pnl:0,volume:0});d[n].trades++;d[n].pnl+=t;d[n].volume+=r}const m=u-c,y=o>0?i/o*100:0,g=i>0?u/i:0,f=s>0?c/s:0,b=c>0?u/c:u;return{totalTrades:o,winningTrades:i,losingTrades:s,winRate:Math.round(100*y)/100,totalPnl:Math.round(100*m)/100,avgWin:Math.round(100*g)/100,avgLoss:Math.round(100*f)/100,profitFactor:Math.round(100*b)/100,totalVolume:Math.round(100*l)/100,bySymbol:p,byMarketType:d}}var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,r,a){void 0===a&&(a=r);var n=Object.getOwnPropertyDescriptor(t,r);n&&!("get"in n?!t.__esModule:n.writable||n.configurable)||(n={enumerable:!0,get:function(){return t[r]}});Object.defineProperty(e,a,n)}:function(e,t,r,a){void 0===a&&(a=r);e[a]=t[r]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&(t[t.length]=r);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var r={};if(null!=t)for(var a=e(t),n=0;n<a.length;n++)"default"!==a[n]&&__createBinding(r,t,a[n]);__setModuleDefault(r,t);return r}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),sequelize_1=require("sequelize"),query_1=require("@b/utils/query");exports.metadata={summary:"Get computed trading analytics",operationId:"getTradingAnalytics",tags:["Trading","Analytics"],parameters:[{name:"period",in:"query",schema:{type:"string",enum:["day","week","month","all"]},description:"Time period for analytics"},{name:"marketType",in:"query",schema:{type:"string",enum:["spot","futures","eco"]},description:"Market type filter"}],responses:{200:{description:"Computed analytics data",content:{"application/json":{schema:{type:"object",properties:{totalTrades:{type:"integer"},winningTrades:{type:"integer"},losingTrades:{type:"integer"},winRate:{type:"number"},totalPnl:{type:"number"},avgWin:{type:"number"},avgLoss:{type:"number"},profitFactor:{type:"number"},totalVolume:{type:"number"},bySymbol:{type:"object"},byMarketType:{type:"object"}}}}}},401:query_1.unauthorizedResponse,500:query_1.serverErrorResponse},requiresAuth:!0};exports.default=async e=>{const{user:t,query:r}=e,{period:a="all",marketType:n}=r,o=getDateFilter(a);return await computeAnalytics(t.id,o,n)};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
+const query_1 = require("@b/utils/query");
+exports.metadata = {
+    summary: "Get computed trading analytics",
+    operationId: "getTradingAnalytics",
+    tags: ["Trading", "Analytics"],
+    parameters: [
+        {
+            name: "period",
+            in: "query",
+            schema: { type: "string", enum: ["day", "week", "month", "all"] },
+            description: "Time period for analytics",
+        },
+        {
+            name: "marketType",
+            in: "query",
+            schema: { type: "string", enum: ["spot", "futures", "eco"] },
+            description: "Market type filter",
+        },
+    ],
+    responses: {
+        200: {
+            description: "Computed analytics data",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            totalTrades: { type: "integer" },
+                            winningTrades: { type: "integer" },
+                            losingTrades: { type: "integer" },
+                            winRate: { type: "number" },
+                            totalPnl: { type: "number" },
+                            avgWin: { type: "number" },
+                            avgLoss: { type: "number" },
+                            profitFactor: { type: "number" },
+                            totalVolume: { type: "number" },
+                            bySymbol: { type: "object" },
+                            byMarketType: { type: "object" },
+                        },
+                    },
+                },
+            },
+        },
+        401: query_1.unauthorizedResponse,
+        500: query_1.serverErrorResponse,
+    },
+    requiresAuth: true,
+};
+exports.default = async (data) => {
+    const { user, query } = data;
+    const { period = "all", marketType } = query;
+    const dateFilter = getDateFilter(period);
+    const analytics = await computeAnalytics(user.id, dateFilter, marketType);
+    return analytics;
+};
+function getDateFilter(period) {
+    const now = new Date();
+    switch (period) {
+        case "day":
+            return { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) };
+        case "week":
+            return { gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
+        case "month":
+            return { gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+        default:
+            return {};
+    }
+}
+async function computeAnalytics(userId, dateFilter, marketType) {
+    const whereClause = {
+        userId,
+        status: "CLOSED",
+    };
+    if (dateFilter.gte) {
+        whereClause.createdAt = { [sequelize_1.Op.gte]: dateFilter.gte };
+    }
+    let orders = [];
+    if (!marketType || marketType === "spot") {
+        try {
+            const spotOrders = await db_1.models.exchangeOrder.findAll({
+                where: whereClause,
+                raw: true,
+            });
+            orders = orders.concat(spotOrders.map((o) => ({ ...o, marketType: "spot" })));
+        }
+        catch (error) {
+            console.warn("[Trading Analytics] Spot orders not available");
+        }
+    }
+    if (!marketType || marketType === "futures") {
+        try {
+            const futuresModel = db_1.models.futuresOrder;
+            if (futuresModel) {
+                const futuresOrders = await futuresModel.findAll({
+                    where: whereClause,
+                    raw: true,
+                });
+                orders = orders.concat(futuresOrders.map((o) => ({ ...o, marketType: "futures" })));
+            }
+        }
+        catch (error) {
+            console.warn("[Trading Analytics] Futures orders not available");
+        }
+    }
+    if (!marketType || marketType === "eco") {
+        try {
+            const { getOrdersByUserId } = await Promise.resolve().then(() => __importStar(require("@b/api/(ext)/ecosystem/utils/scylla/queries")));
+            const { fromBigInt } = await Promise.resolve().then(() => __importStar(require("@b/api/(ext)/ecosystem/utils/blockchain")));
+            const ecoOrders = await getOrdersByUserId(userId);
+            const filteredEcoOrders = ecoOrders
+                .filter((o) => {
+                const isClosed = o.status === "CLOSED" || o.status === "FILLED";
+                if (!dateFilter.gte)
+                    return isClosed;
+                return isClosed && new Date(o.createdAt) >= dateFilter.gte;
+            })
+                .map((o) => ({
+                ...o,
+                marketType: "eco",
+                amount: fromBigInt(o.amount),
+                price: fromBigInt(o.price),
+                cost: fromBigInt(o.cost),
+                fee: fromBigInt(o.fee),
+                filled: fromBigInt(o.filled),
+                remaining: fromBigInt(o.remaining),
+            }));
+            orders = orders.concat(filteredEcoOrders);
+        }
+        catch (error) {
+            console.warn("[Trading Analytics] Ecosystem orders not available:", error.message);
+        }
+    }
+    const totalTrades = orders.length;
+    let winningTrades = 0;
+    let losingTrades = 0;
+    let totalWinAmount = 0;
+    let totalLossAmount = 0;
+    let totalVolume = 0;
+    const bySymbol = {};
+    const byMarketType = {};
+    for (const order of orders) {
+        const pnl = Number(order.pnl || 0);
+        const volume = Number(order.amount || 0) * Number(order.price || 0);
+        totalVolume += volume;
+        if (pnl > 0) {
+            winningTrades++;
+            totalWinAmount += pnl;
+        }
+        else if (pnl < 0) {
+            losingTrades++;
+            totalLossAmount += Math.abs(pnl);
+        }
+        const symbol = order.symbol || "UNKNOWN";
+        if (!bySymbol[symbol]) {
+            bySymbol[symbol] = { trades: 0, pnl: 0, volume: 0 };
+        }
+        bySymbol[symbol].trades++;
+        bySymbol[symbol].pnl += pnl;
+        bySymbol[symbol].volume += volume;
+        const mType = order.marketType || "unknown";
+        if (!byMarketType[mType]) {
+            byMarketType[mType] = { trades: 0, pnl: 0, volume: 0 };
+        }
+        byMarketType[mType].trades++;
+        byMarketType[mType].pnl += pnl;
+        byMarketType[mType].volume += volume;
+    }
+    const totalPnl = totalWinAmount - totalLossAmount;
+    const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+    const avgWin = winningTrades > 0 ? totalWinAmount / winningTrades : 0;
+    const avgLoss = losingTrades > 0 ? totalLossAmount / losingTrades : 0;
+    const profitFactor = totalLossAmount > 0 ? totalWinAmount / totalLossAmount : totalWinAmount;
+    return {
+        totalTrades,
+        winningTrades,
+        losingTrades,
+        winRate: Math.round(winRate * 100) / 100,
+        totalPnl: Math.round(totalPnl * 100) / 100,
+        avgWin: Math.round(avgWin * 100) / 100,
+        avgLoss: Math.round(avgLoss * 100) / 100,
+        profitFactor: Math.round(profitFactor * 100) / 100,
+        totalVolume: Math.round(totalVolume * 100) / 100,
+        bySymbol,
+        byMarketType,
+    };
+}

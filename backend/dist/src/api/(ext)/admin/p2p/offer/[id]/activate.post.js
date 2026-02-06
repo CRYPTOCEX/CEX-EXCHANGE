@@ -1,1 +1,160 @@
-"use strict";var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,r,a){void 0===a&&(a=r);var i=Object.getOwnPropertyDescriptor(t,r);i&&!("get"in i?!t.__esModule:i.writable||i.configurable)||(i={enumerable:!0,get:function(){return t[r]}});Object.defineProperty(e,a,i)}:function(e,t,r,a){void 0===a&&(a=r);e[a]=t[r]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&(t[t.length]=r);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var r={};if(null!=t)for(var a=e(t),i=0;i<a.length;i++)"default"!==a[i]&&__createBinding(r,t,a[i]);__setModuleDefault(r,t);return r}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),Middleware_1=require("@b/handler/Middleware"),ownership_1=require("../../../../p2p/utils/ownership"),console_1=require("@b/utils/console"),errors_1=require("@b/utils/schema/errors");exports.metadata={summary:"Activate P2P offer",description:"Activates a paused, disabled, rejected, or cancelled P2P offer. Changes the offer status to ACTIVE and logs the admin action with activity trail.",operationId:"activateAdminP2POffer",tags:["Admin","P2P","Offer"],requiresAuth:!0,middleware:[Middleware_1.p2pAdminOfferRateLimit],logModule:"ADMIN_P2P",logTitle:"Activate P2P offer",parameters:[{index:0,name:"id",in:"path",description:"Offer ID",required:!0,schema:{type:"string"}}],responses:{200:{description:"Offer activated successfully."},400:errors_1.badRequestResponse,401:errors_1.unauthorizedResponse,404:(0,errors_1.notFoundResponse)("Resource"),500:errors_1.serverErrorResponse},permission:"edit.p2p.offer"};exports.default=async e=>{const{params:t,user:r,ctx:a}=e,{id:i}=t,{notifyOfferEvent:s}=await Promise.resolve().then(()=>__importStar(require("../../../../p2p/utils/notifications"))),o=await db_1.sequelize.transaction();try{null==a||a.step("Fetching offer");const e=await db_1.models.p2pOffer.findByPk(i,{include:[{model:db_1.models.user,as:"user",attributes:["id","firstName","lastName","email"]}],lock:!0,transaction:o});if(!e){await o.rollback();null==a||a.fail("Offer not found");throw(0,error_1.createError)({statusCode:404,message:"Offer not found"})}null==a||a.step("Validating offer status");if(!["PAUSED","DISABLED","REJECTED","CANCELLED"].includes(e.status)){await o.rollback();null==a||a.fail(`Cannot activate offer with status ${e.status}`);throw(0,error_1.createError)({statusCode:400,message:`Cannot activate offer with status ${e.status}. Only PAUSED, DISABLED, or REJECTED offers can be activated.`})}null==a||a.step("Getting admin information");const t=await db_1.models.user.findByPk(r.id,{attributes:["id","firstName","lastName","email"],transaction:o}),n=t&&`${t.firstName||""} ${t.lastName||""}`.trim()||"Admin",u=e.status;null==a||a.step("Activating offer");await e.update({status:"ACTIVE",activityLog:[...e.activityLog||[],{type:"ACTIVATED",adminId:r.id,adminName:n,previousStatus:u,createdAt:(new Date).toISOString()}]},{transaction:o});null==a||a.step("Logging admin activity");await(0,ownership_1.logP2PAdminAction)(r.id,"OFFER_ACTIVATED","OFFER",e.id,{offerUserId:e.userId,offerType:e.type,currency:e.currency,previousStatus:u,activatedBy:n});await o.commit();null==a||a.step("Sending notification");s(e.id,"OFFER_ACTIVATED",{activatedBy:n}).catch(e=>console_1.logger.error("P2P","Failed to send offer activated notification",e));null==a||a.success("Offer activated successfully");return{message:"Offer activated successfully.",offer:{id:e.id,status:"ACTIVE"}}}catch(e){await o.rollback();if(e.statusCode)throw e;null==a||a.fail("Failed to activate offer");throw(0,error_1.createError)({statusCode:500,message:"Internal Server Error: "+e.message})}};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const Middleware_1 = require("@b/handler/Middleware");
+const ownership_1 = require("../../../../p2p/utils/ownership");
+const console_1 = require("@b/utils/console");
+const errors_1 = require("@b/utils/schema/errors");
+exports.metadata = {
+    summary: "Activate P2P offer",
+    description: "Activates a paused, disabled, rejected, or cancelled P2P offer. Changes the offer status to ACTIVE and logs the admin action with activity trail.",
+    operationId: "activateAdminP2POffer",
+    tags: ["Admin", "P2P", "Offer"],
+    requiresAuth: true,
+    middleware: [Middleware_1.p2pAdminOfferRateLimit],
+    logModule: "ADMIN_P2P",
+    logTitle: "Activate P2P offer",
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            description: "Offer ID",
+            required: true,
+            schema: { type: "string" },
+        },
+    ],
+    responses: {
+        200: { description: "Offer activated successfully." },
+        400: errors_1.badRequestResponse,
+        401: errors_1.unauthorizedResponse,
+        404: (0, errors_1.notFoundResponse)("Resource"),
+        500: errors_1.serverErrorResponse,
+    },
+    permission: "edit.p2p.offer",
+};
+exports.default = async (data) => {
+    const { params, user, ctx } = data;
+    const { id } = params;
+    const { notifyOfferEvent } = await Promise.resolve().then(() => __importStar(require("../../../../p2p/utils/notifications")));
+    const transaction = await db_1.sequelize.transaction();
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching offer");
+        const offer = await db_1.models.p2pOffer.findByPk(id, {
+            include: [
+                {
+                    model: db_1.models.user,
+                    as: "user",
+                    attributes: ["id", "firstName", "lastName", "email"],
+                },
+            ],
+            lock: true,
+            transaction,
+        });
+        if (!offer) {
+            await transaction.rollback();
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Offer not found");
+            throw (0, error_1.createError)({ statusCode: 404, message: "Offer not found" });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating offer status");
+        const allowedStatuses = ["PAUSED", "DISABLED", "REJECTED", "CANCELLED"];
+        if (!allowedStatuses.includes(offer.status)) {
+            await transaction.rollback();
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Cannot activate offer with status ${offer.status}`);
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Cannot activate offer with status ${offer.status}. Only PAUSED, DISABLED, or REJECTED offers can be activated.`,
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Getting admin information");
+        const adminUser = await db_1.models.user.findByPk(user.id, {
+            attributes: ["id", "firstName", "lastName", "email"],
+            transaction,
+        });
+        const adminName = adminUser
+            ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'Admin'
+            : 'Admin';
+        const previousStatus = offer.status;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Activating offer");
+        await offer.update({
+            status: "ACTIVE",
+            activityLog: [
+                ...(offer.activityLog || []),
+                {
+                    type: "ACTIVATED",
+                    adminId: user.id,
+                    adminName: adminName,
+                    previousStatus,
+                    createdAt: new Date().toISOString(),
+                },
+            ],
+        }, { transaction });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Logging admin activity");
+        await (0, ownership_1.logP2PAdminAction)(user.id, "OFFER_ACTIVATED", "OFFER", offer.id, {
+            offerUserId: offer.userId,
+            offerType: offer.type,
+            currency: offer.currency,
+            previousStatus,
+            activatedBy: adminName,
+        });
+        await transaction.commit();
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending notification");
+        notifyOfferEvent(offer.id, "OFFER_ACTIVATED", {
+            activatedBy: adminName,
+        }).catch((error) => console_1.logger.error("P2P", "Failed to send offer activated notification", error));
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Offer activated successfully");
+        return {
+            message: "Offer activated successfully.",
+            offer: {
+                id: offer.id,
+                status: "ACTIVE",
+            }
+        };
+    }
+    catch (err) {
+        await transaction.rollback();
+        if (err.statusCode) {
+            throw err;
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to activate offer");
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: "Internal Server Error: " + err.message,
+        });
+    }
+};

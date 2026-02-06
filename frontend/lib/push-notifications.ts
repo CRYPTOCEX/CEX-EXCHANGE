@@ -272,7 +272,7 @@ export async function subscribeToPush(
   // Subscribe to push
   const subscription = await swRegistration.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(publicKey),
+    applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
   });
 
   // Generate a consistent device ID based on the endpoint

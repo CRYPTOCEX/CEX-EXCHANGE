@@ -1,1 +1,168 @@
-"use strict";function getAuthorizeNetConfig(){const e=process.env.APP_AUTHORIZENET_API_LOGIN_ID,t=process.env.APP_AUTHORIZENET_TRANSACTION_KEY,n="production"===process.env.NODE_ENV?"production":"sandbox",r=process.env.APP_AUTHORIZENET_SIGNATURE_KEY;if(!e||!t)throw(0,error_1.createError)({statusCode:500,message:"Authorize.Net API credentials are not set in environment variables"});return{apiLoginId:e,transactionKey:t,environment:n,signatureKey:r}}function getAuthorizeNetEndpoint(e){return"production"===e?"https://api.authorize.net/xml/v1/request.api":"https://apitest.authorize.net/xml/v1/request.api"}function getAcceptHostedEndpoint(e){return"production"===e?"https://accept.authorize.net/payment/payment":"https://test.authorize.net/payment/payment"}function verifyWebhookSignature(e,t,n){if(!n){console_1.logger.warn("AUTHORIZENET","Signature key not configured, skipping verification");return!0}return`sha512=${crypto.createHmac("sha512",n).update(e).digest("hex").toUpperCase()}`===t}async function makeAuthorizeNetRequest(e,t){const n=getAuthorizeNetEndpoint(t.environment),r=await fetch(n,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(e)});if(!r.ok)throw(0,error_1.createError)({statusCode:400,message:`Authorize.Net API request failed: ${r.status} ${r.statusText}`});return await r.json()}function generateHostedPaymentSettings(e){var t;const n=[{settingName:"hostedPaymentReturnOptions",settingValue:JSON.stringify({showReceipt:null!==(t=e.showReceipt)&&void 0!==t&&t,url:e.returnUrl,urlText:"Continue",cancelUrl:e.cancelUrl,cancelUrlText:"Cancel"})},{settingName:"hostedPaymentButtonOptions",settingValue:JSON.stringify({text:"Pay Now"})},{settingName:"hostedPaymentStyleOptions",settingValue:JSON.stringify({bgColor:"#1f2937"})},{settingName:"hostedPaymentPaymentOptions",settingValue:JSON.stringify({cardCodeRequired:!0,showCreditCard:!0,showBankAccount:!1})},{settingName:"hostedPaymentSecurityOptions",settingValue:JSON.stringify({captcha:!1})},{settingName:"hostedPaymentBillingAddressOptions",settingValue:JSON.stringify({show:!0,required:!1})},{settingName:"hostedPaymentShippingAddressOptions",settingValue:JSON.stringify({show:!1,required:!1})},{settingName:"hostedPaymentCustomerOptions",settingValue:JSON.stringify({showEmail:!1,requiredEmail:!1})}];e.iframeCommunicatorUrl&&n.push({settingName:"hostedPaymentIFrameCommunicatorUrl",settingValue:JSON.stringify({url:e.iframeCommunicatorUrl})});return{setting:n}}var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,n,r){void 0===r&&(r=n);var i=Object.getOwnPropertyDescriptor(t,n);i&&!("get"in i?!t.__esModule:i.writable||i.configurable)||(i={enumerable:!0,get:function(){return t[n]}});Object.defineProperty(e,r,i)}:function(e,t,n,r){void 0===r&&(r=n);e[r]=t[n]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[t.length]=n);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var n={};if(null!=t)for(var r=e(t),i=0;i<r.length;i++)"default"!==r[i]&&__createBinding(n,t,r[i]);__setModuleDefault(n,t);return n}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.getAuthorizeNetConfig=getAuthorizeNetConfig;exports.getAuthorizeNetEndpoint=getAuthorizeNetEndpoint;exports.getAcceptHostedEndpoint=getAcceptHostedEndpoint;exports.verifyWebhookSignature=verifyWebhookSignature;exports.makeAuthorizeNetRequest=makeAuthorizeNetRequest;exports.generateHostedPaymentSettings=generateHostedPaymentSettings;const crypto=__importStar(require("crypto")),console_1=require("@b/utils/console"),error_1=require("@b/utils/error");
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getAuthorizeNetConfig = getAuthorizeNetConfig;
+exports.getAuthorizeNetEndpoint = getAuthorizeNetEndpoint;
+exports.getAcceptHostedEndpoint = getAcceptHostedEndpoint;
+exports.verifyWebhookSignature = verifyWebhookSignature;
+exports.makeAuthorizeNetRequest = makeAuthorizeNetRequest;
+exports.generateHostedPaymentSettings = generateHostedPaymentSettings;
+const crypto = __importStar(require("crypto"));
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+function getAuthorizeNetConfig() {
+    const apiLoginId = process.env.APP_AUTHORIZENET_API_LOGIN_ID;
+    const transactionKey = process.env.APP_AUTHORIZENET_TRANSACTION_KEY;
+    const environment = process.env.NODE_ENV === "production" ? "production" : "sandbox";
+    const signatureKey = process.env.APP_AUTHORIZENET_SIGNATURE_KEY;
+    if (!apiLoginId || !transactionKey) {
+        throw (0, error_1.createError)({ statusCode: 500, message: "Authorize.Net API credentials are not set in environment variables" });
+    }
+    return {
+        apiLoginId,
+        transactionKey,
+        environment,
+        signatureKey,
+    };
+}
+function getAuthorizeNetEndpoint(environment) {
+    return environment === "production"
+        ? "https://api.authorize.net/xml/v1/request.api"
+        : "https://apitest.authorize.net/xml/v1/request.api";
+}
+function getAcceptHostedEndpoint(environment) {
+    return environment === "production"
+        ? "https://accept.authorize.net/payment/payment"
+        : "https://test.authorize.net/payment/payment";
+}
+function verifyWebhookSignature(payload, signature, signatureKey) {
+    if (!signatureKey) {
+        console_1.logger.warn("AUTHORIZENET", "Signature key not configured, skipping verification");
+        return true;
+    }
+    const hash = crypto
+        .createHmac("sha512", signatureKey)
+        .update(payload)
+        .digest("hex")
+        .toUpperCase();
+    const expectedSignature = `sha512=${hash}`;
+    return expectedSignature === signature;
+}
+async function makeAuthorizeNetRequest(request, config) {
+    const endpoint = getAuthorizeNetEndpoint(config.environment);
+    const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(request),
+    });
+    if (!response.ok) {
+        throw (0, error_1.createError)({ statusCode: 400, message: `Authorize.Net API request failed: ${response.status} ${response.statusText}` });
+    }
+    const data = await response.json();
+    return data;
+}
+function generateHostedPaymentSettings(options) {
+    var _a;
+    const settings = [
+        {
+            settingName: "hostedPaymentReturnOptions",
+            settingValue: JSON.stringify({
+                showReceipt: (_a = options.showReceipt) !== null && _a !== void 0 ? _a : false,
+                url: options.returnUrl,
+                urlText: "Continue",
+                cancelUrl: options.cancelUrl,
+                cancelUrlText: "Cancel",
+            }),
+        },
+        {
+            settingName: "hostedPaymentButtonOptions",
+            settingValue: JSON.stringify({
+                text: "Pay Now",
+            }),
+        },
+        {
+            settingName: "hostedPaymentStyleOptions",
+            settingValue: JSON.stringify({
+                bgColor: "#1f2937",
+            }),
+        },
+        {
+            settingName: "hostedPaymentPaymentOptions",
+            settingValue: JSON.stringify({
+                cardCodeRequired: true,
+                showCreditCard: true,
+                showBankAccount: false,
+            }),
+        },
+        {
+            settingName: "hostedPaymentSecurityOptions",
+            settingValue: JSON.stringify({
+                captcha: false,
+            }),
+        },
+        {
+            settingName: "hostedPaymentBillingAddressOptions",
+            settingValue: JSON.stringify({
+                show: true,
+                required: false,
+            }),
+        },
+        {
+            settingName: "hostedPaymentShippingAddressOptions",
+            settingValue: JSON.stringify({
+                show: false,
+                required: false,
+            }),
+        },
+        {
+            settingName: "hostedPaymentCustomerOptions",
+            settingValue: JSON.stringify({
+                showEmail: false,
+                requiredEmail: false,
+            }),
+        },
+    ];
+    if (options.iframeCommunicatorUrl) {
+        settings.push({
+            settingName: "hostedPaymentIFrameCommunicatorUrl",
+            settingValue: JSON.stringify({
+                url: options.iframeCommunicatorUrl,
+            }),
+        });
+    }
+    return { setting: settings };
+}

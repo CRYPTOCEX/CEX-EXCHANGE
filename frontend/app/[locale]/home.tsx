@@ -67,7 +67,7 @@ import {
   Scale,
 } from "lucide-react";
 // Image import removed - using native img tags to prevent Next.js image optimization re-requests
-import { motion, useScroll, useTransform, useInView, useSpring, MotionValue, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform, useInView, useSpring, useReducedMotion, MotionValue, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { tickersWs } from "@/services/tickers-ws";
 import { Link } from "@/i18n/routing";
@@ -285,16 +285,33 @@ function Section({ children, className, id }: { children: React.ReactNode; class
 
 // Premium ticker - memoized to prevent re-renders from WebSocket updates
 const PremiumTicker = React.memo(function PremiumTicker({ assets }: { assets: any[] }) {
+  const tickerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(tickerRef, { margin: "-100px" });
+  const [isPageVisible, setIsPageVisible] = useState(true);
+  const prefersReducedMotion = useReducedMotion();
+
+  // Pause animation when tab is not visible to save CPU
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(!document.hidden);
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
   if (!assets.length) return null;
   const tickerAssets = useMemo(() => [...assets, ...assets, ...assets], [assets]);
 
+  // Only animate when visible and page is active
+  const shouldAnimate = isInView && isPageVisible && !prefersReducedMotion;
+
   return (
-    <div className="relative overflow-hidden py-6">
+    <div ref={tickerRef} className="relative overflow-hidden py-6">
       <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10" />
       <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10" />
 
       <motion.div
-        animate={{ x: ["0%", "-33.33%"] }}
+        animate={shouldAnimate ? { x: ["0%", "-33.33%"] } : undefined}
         transition={{ duration: 50, ease: "linear", repeat: Infinity }}
         className="flex gap-6"
       >
@@ -1101,13 +1118,11 @@ function StakingSection({ feature, data }: { feature: any; data: any }) {
                 <GlassCard hover={false}>
                   <div className="p-8">
                     <div className="text-center mb-8">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                      <div
                         className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center"
                       >
                         <BadgePercent className="w-12 h-12 text-white" />
-                      </motion.div>
+                      </div>
                       <div className="text-sm text-muted-foreground mb-2">
                         {t("highest_apr")}
                       </div>
@@ -1343,16 +1358,14 @@ function GenericExtensionSection({ feature, index }: { feature: any; index: numb
               )} />
               <GlassCard hover={false}>
                 <div className="p-8 text-center">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                  <div
                     className={cn(
                       "w-24 h-24 mx-auto mb-6 rounded-2xl flex items-center justify-center",
                       `bg-gradient-to-br ${feature.gradient}`
                     )}
                   >
                     <IconComponent className="w-12 h-12 text-white" />
-                  </motion.div>
+                  </div>
                   <h3 className="text-2xl font-bold mb-2">{feature.title}</h3>
                   <p className="text-muted-foreground">{feature.description}</p>
                 </div>

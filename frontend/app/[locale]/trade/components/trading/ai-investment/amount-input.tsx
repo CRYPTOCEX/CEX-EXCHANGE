@@ -55,28 +55,35 @@ export default function AmountInput({
     }
   };
 
-  // Handle amount change
+  // Handle amount change - allow free typing without enforcing min during input
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number.parseFloat(e.target.value);
+    const inputValue = e.target.value;
+    setPercentSelected(null);
 
-    if (!isNaN(value)) {
-      // Ensure amount is within plan limits if a plan is selected
-      if (selectedPlan) {
-        if (value < selectedPlan.minAmount) {
-          setInvestmentAmount(selectedPlan.minAmount);
-        } else if (value > selectedPlan.maxAmount) {
-          setInvestmentAmount(selectedPlan.maxAmount);
-        } else {
-          setInvestmentAmount(Number.parseFloat(value.toFixed(8)));
-        }
-      } else {
-        setInvestmentAmount(Number.parseFloat(value.toFixed(8)));
-      }
-
-      setPercentSelected(null);
-    } else {
+    // Allow empty input so user can clear and type new value
+    if (inputValue === "" || inputValue === null) {
       setInvestmentAmount(0);
-      setPercentSelected(null);
+      return;
+    }
+
+    const value = Number.parseFloat(inputValue);
+
+    // Only update if it's a valid number, allow any value during typing
+    // Min validation happens on blur, not during typing
+    if (!isNaN(value) && value >= 0) {
+      // Only enforce max limit during typing to prevent excessive values
+      if (selectedPlan && value > selectedPlan.maxAmount) {
+        setInvestmentAmount(selectedPlan.maxAmount);
+      } else {
+        setInvestmentAmount(value);
+      }
+    }
+  };
+
+  // Handle blur - enforce min constraint when user finishes typing
+  const handleAmountBlur = () => {
+    if (selectedPlan && investmentAmount > 0 && investmentAmount < selectedPlan.minAmount) {
+      setInvestmentAmount(selectedPlan.minAmount);
     }
   };
 
@@ -113,6 +120,7 @@ export default function AmountInput({
           placeholder="0.00"
           value={investmentAmount || ""}
           onChange={handleAmountChange}
+          onBlur={handleAmountBlur}
           min={selectedPlan?.minAmount || 0}
           max={selectedPlan?.maxAmount || 1000000}
           step="0.00000001"

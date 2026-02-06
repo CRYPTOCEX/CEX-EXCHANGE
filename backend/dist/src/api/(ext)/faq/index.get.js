@@ -1,1 +1,140 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),sequelize_1=require("sequelize");exports.metadata={summary:"Get Public FAQs",description:"Retrieves active FAQ entries with optional search, category filters and pagination.",operationId:"getPublicFAQs",tags:["FAQ"],logModule:"FAQ",logTitle:"Get Public FAQs",parameters:[{index:0,name:"page",in:"query",required:!1,schema:{type:"number"},description:"Page number for pagination"},{index:1,name:"limit",in:"query",required:!1,schema:{type:"number"},description:"Number of items per page"},{index:2,name:"search",in:"query",required:!1,schema:{type:"string"},description:"Search query for FAQ question or answer"},{index:3,name:"category",in:"query",required:!1,schema:{type:"string"},description:"Filter by FAQ category"},{index:4,name:"active",in:"query",required:!1,schema:{type:"string"},description:"Filter by active status"}],responses:{200:{description:"FAQs retrieved successfully",content:{"application/json":{schema:{type:"object",properties:{items:{type:"array",items:{type:"object"}},pagination:{type:"object",properties:{currentPage:{type:"number"},totalPages:{type:"number"},totalItems:{type:"number"},perPage:{type:"number"}}}}}}}},500:{description:"Internal Server Error"}}};exports.default=async e=>{const{query:t,ctx:r}=e,i={};null==r||r.step("Building query filters");"false"===t.active?i.status=!1:i.status=!0;if(t.search){const e=t.search.toLowerCase();i[sequelize_1.Op.or]=[{question:{[sequelize_1.Op.like]:`%${e}%`}},{answer:{[sequelize_1.Op.like]:`%${e}%`}}]}t.category&&(i.category=t.category);try{const e=parseInt(t.page,10)||1,s=Math.min(parseInt(t.limit,10)||10,100),a=(e-1)*s;if(t.page||t.limit){null==r||r.step(`Fetching FAQs with pagination (page ${e}, limit ${s})`);const{count:t,rows:n}=await db_1.models.faq.findAndCountAll({where:i,order:[["order","ASC"]],offset:a,limit:s});null==r||r.success(`Retrieved ${n.length} FAQs (total: ${t})`);return{items:n,pagination:{currentPage:e,totalPages:Math.ceil(t/s),totalItems:t,perPage:s}}}{null==r||r.step("Fetching all FAQs (no pagination)");const e=await db_1.models.faq.findAll({where:i,order:[["order","ASC"]]});null==r||r.success(`Retrieved ${e.length} FAQs`);return e}}catch(e){console.error("Error fetching public FAQs:",e);null==r||r.fail(e instanceof Error?e.message:"Failed to fetch FAQs");throw(0,error_1.createError)({statusCode:500,message:"Failed to fetch FAQs"})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const sequelize_1 = require("sequelize");
+exports.metadata = {
+    summary: "Get Public FAQs",
+    description: "Retrieves active FAQ entries with optional search, category filters and pagination.",
+    operationId: "getPublicFAQs",
+    tags: ["FAQ"],
+    logModule: "FAQ",
+    logTitle: "Get Public FAQs",
+    parameters: [
+        {
+            index: 0,
+            name: "page",
+            in: "query",
+            required: false,
+            schema: { type: "number" },
+            description: "Page number for pagination",
+        },
+        {
+            index: 1,
+            name: "limit",
+            in: "query",
+            required: false,
+            schema: { type: "number" },
+            description: "Number of items per page",
+        },
+        {
+            index: 2,
+            name: "search",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+            description: "Search query for FAQ question or answer",
+        },
+        {
+            index: 3,
+            name: "category",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+            description: "Filter by FAQ category",
+        },
+        {
+            index: 4,
+            name: "active",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+            description: "Filter by active status",
+        },
+    ],
+    responses: {
+        200: {
+            description: "FAQs retrieved successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            items: { type: "array", items: { type: "object" } },
+                            pagination: {
+                                type: "object",
+                                properties: {
+                                    currentPage: { type: "number" },
+                                    totalPages: { type: "number" },
+                                    totalItems: { type: "number" },
+                                    perPage: { type: "number" },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        500: { description: "Internal Server Error" },
+    },
+};
+exports.default = async (data) => {
+    const { query, ctx } = data;
+    const where = {};
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Building query filters");
+    if (query.active === "false") {
+        where.status = false;
+    }
+    else {
+        where.status = true;
+    }
+    if (query.search) {
+        const search = query.search.toLowerCase();
+        where[sequelize_1.Op.or] = [
+            { question: { [sequelize_1.Op.like]: `%${search}%` } },
+            { answer: { [sequelize_1.Op.like]: `%${search}%` } },
+        ];
+    }
+    if (query.category) {
+        where.category = query.category;
+    }
+    try {
+        const page = parseInt(query.page, 10) || 1;
+        const perPage = Math.min(parseInt(query.limit, 10) || 10, 100);
+        const offset = (page - 1) * perPage;
+        if (query.page || query.limit) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step(`Fetching FAQs with pagination (page ${page}, limit ${perPage})`);
+            const { count, rows } = await db_1.models.faq.findAndCountAll({
+                where,
+                order: [["order", "ASC"]],
+                offset,
+                limit: perPage,
+            });
+            ctx === null || ctx === void 0 ? void 0 : ctx.success(`Retrieved ${rows.length} FAQs (total: ${count})`);
+            return {
+                items: rows,
+                pagination: {
+                    currentPage: page,
+                    totalPages: Math.ceil(count / perPage),
+                    totalItems: count,
+                    perPage,
+                },
+            };
+        }
+        else {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching all FAQs (no pagination)");
+            const faqs = await db_1.models.faq.findAll({
+                where,
+                order: [["order", "ASC"]],
+            });
+            ctx === null || ctx === void 0 ? void 0 : ctx.success(`Retrieved ${faqs.length} FAQs`);
+            return faqs;
+        }
+    }
+    catch (error) {
+        console.error("Error fetching public FAQs:", error);
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(error instanceof Error ? error.message : "Failed to fetch FAQs");
+        throw (0, error_1.createError)({ statusCode: 500, message: "Failed to fetch FAQs" });
+    }
+};

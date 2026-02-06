@@ -32,32 +32,32 @@ export default class forexPlan
   getForexInvestments!: Sequelize.HasManyGetAssociationsMixin<forexInvestment>;
   setForexInvestments!: Sequelize.HasManySetAssociationsMixin<
     forexInvestment,
-    forexInvestmentId
+    string
   >;
   addForexInvestment!: Sequelize.HasManyAddAssociationMixin<
     forexInvestment,
-    forexInvestmentId
+    string
   >;
   addForexInvestments!: Sequelize.HasManyAddAssociationsMixin<
     forexInvestment,
-    forexInvestmentId
+    string
   >;
   createForexInvestment!: Sequelize.HasManyCreateAssociationMixin<forexInvestment>;
   removeForexInvestment!: Sequelize.HasManyRemoveAssociationMixin<
     forexInvestment,
-    forexInvestmentId
+    string
   >;
   removeForexInvestments!: Sequelize.HasManyRemoveAssociationsMixin<
     forexInvestment,
-    forexInvestmentId
+    string
   >;
   hasForexInvestment!: Sequelize.HasManyHasAssociationMixin<
     forexInvestment,
-    forexInvestmentId
+    string
   >;
   hasForexInvestments!: Sequelize.HasManyHasAssociationsMixin<
     forexInvestment,
-    forexInvestmentId
+    string
   >;
   countForexInvestments!: Sequelize.HasManyCountAssociationsMixin;
   // forexPlan hasMany forexPlanDuration via planId
@@ -65,32 +65,32 @@ export default class forexPlan
   getDurations!: Sequelize.HasManyGetAssociationsMixin<forexPlanDuration>;
   setDurations!: Sequelize.HasManySetAssociationsMixin<
     forexPlanDuration,
-    forexPlanDurationId
+    string
   >;
   addDuration!: Sequelize.HasManyAddAssociationMixin<
     forexPlanDuration,
-    forexPlanDurationId
+    string
   >;
   addDurations!: Sequelize.HasManyAddAssociationsMixin<
     forexPlanDuration,
-    forexPlanDurationId
+    string
   >;
   createDuration!: Sequelize.HasManyCreateAssociationMixin<forexPlanDuration>;
   removeDuration!: Sequelize.HasManyRemoveAssociationMixin<
     forexPlanDuration,
-    forexPlanDurationId
+    string
   >;
   removeDurations!: Sequelize.HasManyRemoveAssociationsMixin<
     forexPlanDuration,
-    forexPlanDurationId
+    string
   >;
   hasDuration!: Sequelize.HasManyHasAssociationMixin<
     forexPlanDuration,
-    forexPlanDurationId
+    string
   >;
   hasDurations!: Sequelize.HasManyHasAssociationsMixin<
     forexPlanDuration,
-    forexPlanDurationId
+    string
   >;
   countDurations!: Sequelize.HasManyCountAssociationsMixin;
 

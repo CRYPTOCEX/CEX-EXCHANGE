@@ -30,32 +30,32 @@ export default class ecommerceShipping
   getEcommerceOrderItems!: Sequelize.HasManyGetAssociationsMixin<ecommerceOrderItem>;
   setEcommerceOrderItems!: Sequelize.HasManySetAssociationsMixin<
     ecommerceOrderItem,
-    ecommerceOrderItemId
+    string
   >;
   addEcommerceOrderItem!: Sequelize.HasManyAddAssociationMixin<
     ecommerceOrderItem,
-    ecommerceOrderItemId
+    string
   >;
   addEcommerceOrderItems!: Sequelize.HasManyAddAssociationsMixin<
     ecommerceOrderItem,
-    ecommerceOrderItemId
+    string
   >;
   createEcommerceOrderItem!: Sequelize.HasManyCreateAssociationMixin<ecommerceOrderItem>;
   removeEcommerceOrderItem!: Sequelize.HasManyRemoveAssociationMixin<
     ecommerceOrderItem,
-    ecommerceOrderItemId
+    string
   >;
   removeEcommerceOrderItems!: Sequelize.HasManyRemoveAssociationsMixin<
     ecommerceOrderItem,
-    ecommerceOrderItemId
+    string
   >;
   hasEcommerceOrderItem!: Sequelize.HasManyHasAssociationMixin<
     ecommerceOrderItem,
-    ecommerceOrderItemId
+    string
   >;
   hasEcommerceOrderItems!: Sequelize.HasManyHasAssociationsMixin<
     ecommerceOrderItem,
-    ecommerceOrderItemId
+    string
   >;
   countEcommerceOrderItems!: Sequelize.HasManyCountAssociationsMixin;
 

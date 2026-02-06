@@ -1,1 +1,100 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});const sequelize_1=require("sequelize");class exchangeMarket extends sequelize_1.Model{static initModel(e){return exchangeMarket.init({id:{type:sequelize_1.DataTypes.UUID,defaultValue:sequelize_1.DataTypes.UUIDV4,primaryKey:!0,allowNull:!1},currency:{type:sequelize_1.DataTypes.STRING(191),allowNull:!1,validate:{notEmpty:{msg:"currency: Currency must not be empty"}},comment:"Base currency symbol (e.g., BTC, ETH)"},pair:{type:sequelize_1.DataTypes.STRING(191),allowNull:!1,validate:{notEmpty:{msg:"pair: Pair must not be empty"}},comment:"Quote currency symbol (e.g., USDT, USD)"},isTrending:{type:sequelize_1.DataTypes.BOOLEAN,allowNull:!0,defaultValue:!1,comment:"Whether this market is currently trending"},isHot:{type:sequelize_1.DataTypes.BOOLEAN,allowNull:!0,defaultValue:!1,comment:"Whether this market is marked as hot/popular"},metadata:{type:sequelize_1.DataTypes.TEXT,allowNull:!0,validate:{isJSON(e){try{const t=JSON.parse(e);if("object"!=typeof t||null===t)throw new Error("Metadata must be a valid JSON object.");if("object"!=typeof t.precision)throw new Error("Invalid precision.")}catch(e){throw new Error("Metadata must be a valid JSON object: "+e.message)}}},set(e){this.setDataValue("metadata",JSON.stringify(e))},get(){const e=this.getDataValue("metadata");return e?JSON.parse(e):null},comment:"Additional market configuration and precision settings"},status:{type:sequelize_1.DataTypes.BOOLEAN,allowNull:!1,defaultValue:!0,validate:{isBoolean:{msg:"status: Status must be a boolean value"}},comment:"Market availability status (active/inactive)"}},{sequelize:e,modelName:"exchangeMarket",tableName:"exchange_market",timestamps:!1,indexes:[{name:"PRIMARY",unique:!0,using:"BTREE",fields:[{name:"id"}]},{name:"exchangeMarketCurrencyPairKey",unique:!0,using:"BTREE",fields:[{name:"currency"},{name:"pair"}]}]})}static associate(e){}}exports.default=exchangeMarket;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const sequelize_1 = require("sequelize");
+class exchangeMarket extends sequelize_1.Model {
+    static initModel(sequelize) {
+        return exchangeMarket.init({
+            id: {
+                type: sequelize_1.DataTypes.UUID,
+                defaultValue: sequelize_1.DataTypes.UUIDV4,
+                primaryKey: true,
+                allowNull: false,
+            },
+            currency: {
+                type: sequelize_1.DataTypes.STRING(191),
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "currency: Currency must not be empty" },
+                },
+                comment: "Base currency symbol (e.g., BTC, ETH)",
+            },
+            pair: {
+                type: sequelize_1.DataTypes.STRING(191),
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "pair: Pair must not be empty" },
+                },
+                comment: "Quote currency symbol (e.g., USDT, USD)",
+            },
+            isTrending: {
+                type: sequelize_1.DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false,
+                comment: "Whether this market is currently trending",
+            },
+            isHot: {
+                type: sequelize_1.DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false,
+                comment: "Whether this market is marked as hot/popular",
+            },
+            metadata: {
+                type: sequelize_1.DataTypes.TEXT,
+                allowNull: true,
+                validate: {
+                    isJSON(value) {
+                        try {
+                            const json = JSON.parse(value);
+                            if (typeof json !== "object" || json === null) {
+                                throw new Error("Metadata must be a valid JSON object.");
+                            }
+                            if (typeof json.precision !== "object")
+                                throw new Error("Invalid precision.");
+                        }
+                        catch (err) {
+                            throw new Error("Metadata must be a valid JSON object: " + err.message);
+                        }
+                    },
+                },
+                set(value) {
+                    this.setDataValue("metadata", JSON.stringify(value));
+                },
+                get() {
+                    const value = this.getDataValue("metadata");
+                    return value ? JSON.parse(value) : null;
+                },
+                comment: "Additional market configuration and precision settings",
+            },
+            status: {
+                type: sequelize_1.DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: true,
+                validate: {
+                    isBoolean: { msg: "status: Status must be a boolean value" },
+                },
+                comment: "Market availability status (active/inactive)",
+            },
+        }, {
+            sequelize,
+            modelName: "exchangeMarket",
+            tableName: "exchange_market",
+            timestamps: false,
+            indexes: [
+                {
+                    name: "PRIMARY",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "id" }],
+                },
+                {
+                    name: "exchangeMarketCurrencyPairKey",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "currency" }, { name: "pair" }],
+                },
+            ],
+        });
+    }
+    static associate(models) { }
+}
+exports.default = exchangeMarket;

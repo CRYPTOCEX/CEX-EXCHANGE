@@ -121,7 +121,13 @@ export function BadgeCell({
     }
   } else if (options && Array.isArray(options)) {
     // Look up label from options array for select-type columns
-    const matchedOption = options.find((opt) => opt.value === value);
+    // Normalize both values by removing underscores and comparing case-insensitively
+    // This handles cases where DB has "STAKINGREWARD" but options has "STAKING_REWARD"
+    const normalizeValue = (v: string) => v?.toUpperCase().replace(/_/g, "");
+    const normalizedValue = normalizeValue(String(value));
+    const matchedOption = options.find(
+      (opt) => opt.value === value || normalizeValue(opt.value) === normalizedValue
+    );
     displayValue = matchedOption?.label || String(value);
   } else {
     // For non-boolean values, convert to string

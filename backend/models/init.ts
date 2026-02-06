@@ -6,7 +6,7 @@ import { RedisSingleton } from "@b/utils/redis";
 // Check if the environment is production
 const isProduction = process.env.NODE_ENV === "production";
 
-export function initModels(sequelize: Sequelize) {
+export function initModels(sequelize: Sequelize): Models {
   if (!sequelize || !(sequelize instanceof Sequelize)) {
     throw new Error("Invalid Sequelize instance passed to initModels");
   }
@@ -73,7 +73,7 @@ export function initModels(sequelize: Sequelize) {
   }
 
   // Models initialized silently - count available via db.models
-  return models;
+  return models as Models;
 }
 
 const redis = RedisSingleton.getInstance();
@@ -147,5 +147,3 @@ export function createUserCacheHooks(
     },
   };
 }
-
-export type Models = ReturnType<typeof initModels>;

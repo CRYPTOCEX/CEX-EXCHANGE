@@ -1,1 +1,97 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});const sequelize_1=require("sequelize");class ecommerceCategory extends sequelize_1.Model{static initModel(e){return ecommerceCategory.init({id:{type:sequelize_1.DataTypes.UUID,defaultValue:sequelize_1.DataTypes.UUIDV4,primaryKey:!0,allowNull:!1},name:{type:sequelize_1.DataTypes.STRING(191),allowNull:!1,validate:{notEmpty:{msg:"name: Name must not be empty"}}},slug:{type:sequelize_1.DataTypes.STRING(191),allowNull:!1,validate:{notEmpty:{msg:"slug: Slug must not be empty"}}},description:{type:sequelize_1.DataTypes.STRING(191),allowNull:!1,validate:{notEmpty:{msg:"description: Description must not be empty"}}},image:{type:sequelize_1.DataTypes.STRING(191),allowNull:!0,validate:{is:{args:["^/(uploads|img)/.*$","i"],msg:"image: Image must be a valid URL"}}},status:{type:sequelize_1.DataTypes.BOOLEAN,allowNull:!1,defaultValue:!0,validate:{isBoolean:{msg:"status: Status must be a boolean value"}}}},{sequelize:e,modelName:"ecommerceCategory",tableName:"ecommerce_category",timestamps:!0,paranoid:!0,indexes:[{name:"PRIMARY",unique:!0,using:"BTREE",fields:[{name:"id"}]}],hooks:{async beforeValidate(e){!e.slug&&e.name&&(e.slug=await ecommerceCategory.generateUniqueSlug(e.name))}}})}static associate(e){ecommerceCategory.hasMany(e.ecommerceProduct,{as:"ecommerceProducts",foreignKey:"categoryId",onDelete:"CASCADE",onUpdate:"CASCADE"})}static async generateUniqueSlug(e){const a=e.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");let t=a,s=1;for(;await ecommerceCategory.findOne({where:{slug:t}});){t=`${a}-${s}`;s++}return t}}exports.default=ecommerceCategory;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const sequelize_1 = require("sequelize");
+class ecommerceCategory extends sequelize_1.Model {
+    static initModel(sequelize) {
+        return ecommerceCategory.init({
+            id: {
+                type: sequelize_1.DataTypes.UUID,
+                defaultValue: sequelize_1.DataTypes.UUIDV4,
+                primaryKey: true,
+                allowNull: false,
+            },
+            name: {
+                type: sequelize_1.DataTypes.STRING(191),
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "name: Name must not be empty" },
+                },
+            },
+            slug: {
+                type: sequelize_1.DataTypes.STRING(191),
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "slug: Slug must not be empty" },
+                },
+            },
+            description: {
+                type: sequelize_1.DataTypes.STRING(191),
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "description: Description must not be empty" },
+                },
+            },
+            image: {
+                type: sequelize_1.DataTypes.STRING(191),
+                allowNull: true,
+                validate: {
+                    is: {
+                        args: ["^/(uploads|img)/.*$", "i"],
+                        msg: "image: Image must be a valid URL",
+                    },
+                },
+            },
+            status: {
+                type: sequelize_1.DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: true,
+                validate: {
+                    isBoolean: { msg: "status: Status must be a boolean value" },
+                },
+            },
+        }, {
+            sequelize,
+            modelName: "ecommerceCategory",
+            tableName: "ecommerce_category",
+            timestamps: true,
+            paranoid: true,
+            indexes: [
+                {
+                    name: "PRIMARY",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "id" }],
+                },
+            ],
+            hooks: {
+                async beforeValidate(category) {
+                    if (!category.slug && category.name) {
+                        category.slug = await ecommerceCategory.generateUniqueSlug(category.name);
+                    }
+                },
+            },
+        });
+    }
+    static associate(models) {
+        ecommerceCategory.hasMany(models.ecommerceProduct, {
+            as: "ecommerceProducts",
+            foreignKey: "categoryId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+    }
+    static async generateUniqueSlug(name) {
+        const baseSlug = name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+        let uniqueSlug = baseSlug;
+        let counter = 1;
+        while (await ecommerceCategory.findOne({ where: { slug: uniqueSlug } })) {
+            uniqueSlug = `${baseSlug}-${counter}`;
+            counter++;
+        }
+        return uniqueSlug;
+    }
+}
+exports.default = ecommerceCategory;

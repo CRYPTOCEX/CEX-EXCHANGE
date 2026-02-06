@@ -31,32 +31,32 @@ export default class aiInvestmentPlan
   getAiTradings!: Sequelize.HasManyGetAssociationsMixin<aiInvestment>;
   setAiTradings!: Sequelize.HasManySetAssociationsMixin<
     aiInvestment,
-    aiInvestmentId
+    string
   >;
   addAiTrading!: Sequelize.HasManyAddAssociationMixin<
     aiInvestment,
-    aiInvestmentId
+    string
   >;
   addAiTradings!: Sequelize.HasManyAddAssociationsMixin<
     aiInvestment,
-    aiInvestmentId
+    string
   >;
   createAiTrading!: Sequelize.HasManyCreateAssociationMixin<aiInvestment>;
   removeAiTrading!: Sequelize.HasManyRemoveAssociationMixin<
     aiInvestment,
-    aiInvestmentId
+    string
   >;
   removeAiTradings!: Sequelize.HasManyRemoveAssociationsMixin<
     aiInvestment,
-    aiInvestmentId
+    string
   >;
   hasAiTrading!: Sequelize.HasManyHasAssociationMixin<
     aiInvestment,
-    aiInvestmentId
+    string
   >;
   hasAiTradings!: Sequelize.HasManyHasAssociationsMixin<
     aiInvestment,
-    aiInvestmentId
+    string
   >;
   countAiTradings!: Sequelize.HasManyCountAssociationsMixin;
   // aiInvestmentPlan hasMany aiInvestmentPlanDuration via planId
@@ -64,32 +64,32 @@ export default class aiInvestmentPlan
   getDurations!: Sequelize.HasManyGetAssociationsMixin<aiInvestmentPlanDuration>;
   setDurations!: Sequelize.HasManySetAssociationsMixin<
     aiInvestmentPlanDuration,
-    aiInvestmentPlanDurationId
+    string
   >;
   addDuration!: Sequelize.HasManyAddAssociationMixin<
     aiInvestmentPlanDuration,
-    aiInvestmentPlanDurationId
+    string
   >;
   addDurations!: Sequelize.HasManyAddAssociationsMixin<
     aiInvestmentPlanDuration,
-    aiInvestmentPlanDurationId
+    string
   >;
   createDuration!: Sequelize.HasManyCreateAssociationMixin<aiInvestmentPlanDuration>;
   removeDuration!: Sequelize.HasManyRemoveAssociationMixin<
     aiInvestmentPlanDuration,
-    aiInvestmentPlanDurationId
+    string
   >;
   removeDurations!: Sequelize.HasManyRemoveAssociationsMixin<
     aiInvestmentPlanDuration,
-    aiInvestmentPlanDurationId
+    string
   >;
   hasDuration!: Sequelize.HasManyHasAssociationMixin<
     aiInvestmentPlanDuration,
-    aiInvestmentPlanDurationId
+    string
   >;
   hasDurations!: Sequelize.HasManyHasAssociationsMixin<
     aiInvestmentPlanDuration,
-    aiInvestmentPlanDurationId
+    string
   >;
   countDurations!: Sequelize.HasManyCountAssociationsMixin;
 

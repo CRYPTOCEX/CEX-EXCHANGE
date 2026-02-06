@@ -1,5 +1,4 @@
 "use strict";
-const { v4: uuidv4 } = require("uuid");
 
 const predefinedConditions = [
   // ===== DEPOSIT CONDITIONS =====
@@ -351,6 +350,31 @@ const predefinedConditions = [
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
+    // Dynamic import for ES Module
+    const { v4: uuidv4 } = await import("uuid");
+
+    // Check if minAmount column exists and get allowed ENUM values
+    let hasMinAmount = false;
+    let hasStatus = false;
+    let allowedTypes = new Set();
+    try {
+      const tableInfo = await queryInterface.describeTable('mlm_referral_condition');
+      hasMinAmount = !!tableInfo.minAmount;
+      hasStatus = !!tableInfo.status;
+
+      // Extract allowed ENUM values from database
+      if (tableInfo.type && tableInfo.type.type) {
+        const enumMatch = tableInfo.type.type.match(/ENUM\((.*)\)/);
+        if (enumMatch) {
+          const enumValues = enumMatch[1].split(',').map(v => v.replace(/'/g, '').trim());
+          allowedTypes = new Set(enumValues);
+          console.log(`Database allows these types: ${Array.from(allowedTypes).join(', ')}`);
+        }
+      }
+    } catch (error) {
+      console.log('Could not check table structure:', error.message);
+    }
+
     const existingConditions = await queryInterface.sequelize.query(
       `SELECT name FROM mlm_referral_condition;`,
       { type: queryInterface.sequelize.QueryTypes.SELECT }
@@ -360,23 +384,51 @@ module.exports = {
     );
 
     const newConditions = predefinedConditions
-      .filter((cond) => !existingConditionNames.has(cond.name))
-      .map((cond) => ({
-        id: uuidv4(),
-        type: cond.type,
-        title: cond.title,
-        name: cond.name,
-        description: cond.description,
-        reward: cond.reward,
-        rewardType: cond.rewardType,
-        rewardWalletType: "FIAT",
-        rewardCurrency: "USD",
-        rewardChain: null,
-        minAmount: cond.minAmount || 0,
-      }));
+      .filter((cond) => {
+        // Skip if already exists
+        if (existingConditionNames.has(cond.name)) return false;
+
+        // Skip if type is not allowed in database
+        if (allowedTypes.size > 0 && !allowedTypes.has(cond.type)) {
+          console.log(`Skipping condition "${cond.name}" - type "${cond.type}" not in database ENUM`);
+          return false;
+        }
+
+        return true;
+      })
+      .map((cond) => {
+        const condition = {
+          id: uuidv4(),
+          type: cond.type,
+          title: cond.title,
+          name: cond.name,
+          description: cond.description,
+          reward: cond.reward,
+          rewardType: cond.rewardType,
+          rewardWalletType: "FIAT",
+          rewardCurrency: "USD",
+          rewardChain: null,
+        };
+
+        // Only add minAmount if column exists
+        if (hasMinAmount) {
+          condition.minAmount = cond.minAmount || 0;
+        }
+
+        // Only add status if column exists
+        if (hasStatus) {
+          condition.status = true;
+        }
+
+        return condition;
+      });
 
     if (newConditions.length > 0) {
+      console.log(`Inserting ${newConditions.length} new conditions`);
       await queryInterface.bulkInsert("mlm_referral_condition", newConditions);
+      console.log(`✓ Successfully inserted ${newConditions.length} conditions`);
+    } else {
+      console.log('No new conditions to insert');
     }
   },
 

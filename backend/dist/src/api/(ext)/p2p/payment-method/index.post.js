@@ -1,1 +1,174 @@
-"use strict";var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,a,r){void 0===r&&(r=a);var i=Object.getOwnPropertyDescriptor(t,a);i&&!("get"in i?!t.__esModule:i.writable||i.configurable)||(i={enumerable:!0,get:function(){return t[a]}});Object.defineProperty(e,r,i)}:function(e,t,a,r){void 0===r&&(r=a);e[r]=t[a]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var a in e)Object.prototype.hasOwnProperty.call(e,a)&&(t[t.length]=a);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var a={};if(null!=t)for(var r=e(t),i=0;i<r.length;i++)"default"!==r[i]&&__createBinding(a,t,r[i]);__setModuleDefault(a,t);return a}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),console_1=require("@b/utils/console");exports.metadata={summary:"Create Payment Method",description:"Creates a new custom payment method for the authenticated user.",operationId:"createPaymentMethod",tags:["P2P","Payment Method"],requiresAuth:!0,middleware:["p2pPaymentMethodCreateRateLimit"],logModule:"P2P_PAYMENT",logTitle:"Create payment method",requestBody:{description:"Payment method data",required:!0,content:{"application/json":{schema:{type:"object",properties:{name:{type:"string"},icon:{type:"string"},description:{type:"string"},instructions:{type:"string"},metadata:{type:"object",description:"Flexible key-value pairs for payment details (e.g., { 'PayPal Email': 'user@example.com' })",additionalProperties:{type:"string"}},processingTime:{type:"string"},available:{type:"boolean"}},required:["name"]}}}},responses:{200:{description:"Payment method created successfully."},401:{description:"Unauthorized."},500:{description:"Internal Server Error."}}};exports.default=async e=>{const{body:t,user:a,ctx:r}=e;if(!(null==a?void 0:a.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});null==r||r.step("Validating payment method data");const{validatePaymentMethod:i}=await Promise.resolve().then(()=>__importStar(require("../utils/validation")));try{const e=i(t);null==r||r.step("Checking user payment method limits");const o=await db_1.models.p2pPaymentMethod.count({where:{userId:a.id,deletedAt:null}}),n=20;if(o>=n)throw(0,error_1.createError)({statusCode:400,message:`You can only have up to ${n} payment methods`});if(await db_1.models.p2pPaymentMethod.findOne({where:{userId:a.id,name:e.name,deletedAt:null}}))throw(0,error_1.createError)({statusCode:400,message:"You already have a payment method with this name. Please use a different name or edit your existing method."});let s=null;if(t.metadata&&"object"==typeof t.metadata&&!Array.isArray(t.metadata)){const e={},a=20;let r=0;for(const[i,o]of Object.entries(t.metadata)){if(r>=a)break;if("string"==typeof i&&"string"==typeof o){const t=i.trim().substring(0,100),a=o.trim().substring(0,500);if(t&&a){e[t]=a;r++}}}Object.keys(e).length>0&&(s=e)}null==r||r.step("Creating payment method");const d=await db_1.models.p2pPaymentMethod.create({userId:a.id,...e,metadata:s,available:"boolean"!=typeof t.available||t.available,isGlobal:!1,popularityRank:999});console_1.logger.info("P2P_PAYMENT_METHOD",`Created custom payment method: ${d.id} - ${d.name} for user ${a.id}`);await db_1.models.p2pActivityLog.create({userId:a.id,type:"PAYMENT_METHOD",action:"CREATED",relatedEntity:"PAYMENT_METHOD",relatedEntityId:d.id,details:JSON.stringify({name:e.name,icon:e.icon})});null==r||r.success(`Created payment method: ${e.name}`);return{message:"Payment method created successfully.",paymentMethod:{id:d.id,userId:d.userId,name:d.name,icon:d.icon,description:d.description,instructions:d.instructions,metadata:d.metadata,processingTime:d.processingTime,available:d.available,popularityRank:d.popularityRank,createdAt:d.createdAt}}}catch(e){if(e.statusCode)throw e;throw(0,error_1.createError)({statusCode:500,message:"Failed to create payment method: "+e.message})}};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const console_1 = require("@b/utils/console");
+exports.metadata = {
+    summary: "Create Payment Method",
+    description: "Creates a new custom payment method for the authenticated user.",
+    operationId: "createPaymentMethod",
+    tags: ["P2P", "Payment Method"],
+    requiresAuth: true,
+    middleware: ["p2pPaymentMethodCreateRateLimit"],
+    logModule: "P2P_PAYMENT",
+    logTitle: "Create payment method",
+    requestBody: {
+        description: "Payment method data",
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        name: { type: "string" },
+                        icon: { type: "string" },
+                        description: { type: "string" },
+                        instructions: { type: "string" },
+                        metadata: {
+                            type: ["object", "null"],
+                            description: "Flexible key-value pairs for payment details (e.g., { 'PayPal Email': 'user@example.com' })",
+                            additionalProperties: { type: "string" },
+                        },
+                        processingTime: { type: "string" },
+                        available: { type: "boolean" },
+                    },
+                    required: ["name"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: { description: "Payment method created successfully." },
+        401: { description: "Unauthorized." },
+        500: { description: "Internal Server Error." },
+    },
+};
+exports.default = async (data) => {
+    const { body, user, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating payment method data");
+    const { validatePaymentMethod } = await Promise.resolve().then(() => __importStar(require("../utils/validation")));
+    try {
+        const validatedData = validatePaymentMethod(body);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking user payment method limits");
+        const existingCountResult = await db_1.models.p2pPaymentMethod.count({ where: { userId: user.id } });
+        const MAX_PAYMENT_METHODS = 20;
+        if (existingCountResult >= MAX_PAYMENT_METHODS) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `You can only have up to ${MAX_PAYMENT_METHODS} payment methods`,
+            });
+        }
+        const duplicate = await db_1.models.p2pPaymentMethod.findOne({ where: { userId: user.id, name: validatedData.name } });
+        if (duplicate) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "You already have a payment method with this name. Please use a different name or edit your existing method.",
+            });
+        }
+        let sanitizedMetadata = null;
+        if (body.metadata && typeof body.metadata === "object" && !Array.isArray(body.metadata)) {
+            const tempMetadata = {};
+            const MAX_FIELDS = 20;
+            let fieldCount = 0;
+            for (const [key, value] of Object.entries(body.metadata)) {
+                if (fieldCount >= MAX_FIELDS)
+                    break;
+                if (typeof key === "string" && typeof value === "string") {
+                    const sanitizedKey = key.trim().substring(0, 100);
+                    const sanitizedValue = value.trim().substring(0, 500);
+                    if (sanitizedKey && sanitizedValue) {
+                        tempMetadata[sanitizedKey] = sanitizedValue;
+                        fieldCount++;
+                    }
+                }
+            }
+            if (Object.keys(tempMetadata).length > 0) {
+                sanitizedMetadata = tempMetadata;
+            }
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating payment method");
+        const paymentMethod = await db_1.models.p2pPaymentMethod.create({
+            userId: user.id,
+            ...validatedData,
+            metadata: sanitizedMetadata || undefined,
+            available: typeof body.available === "boolean" ? body.available : true,
+            isGlobal: false,
+            popularityRank: 999,
+        });
+        console_1.logger.info("P2P_PAYMENT_METHOD", `Created custom payment method: ${paymentMethod.id} - ${paymentMethod.name} for user ${user.id}`);
+        await db_1.models.p2pActivityLog.create({
+            userId: user.id,
+            type: "PAYMENT_METHOD",
+            action: "CREATED",
+            relatedEntity: "PAYMENT_METHOD",
+            relatedEntityId: paymentMethod.id,
+            details: JSON.stringify({
+                name: validatedData.name,
+                icon: validatedData.icon,
+            }),
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Created payment method: ${validatedData.name}`);
+        return {
+            message: "Payment method created successfully.",
+            paymentMethod: {
+                id: paymentMethod.id,
+                userId: paymentMethod.userId,
+                name: paymentMethod.name,
+                icon: paymentMethod.icon,
+                description: paymentMethod.description,
+                instructions: paymentMethod.instructions,
+                metadata: paymentMethod.metadata,
+                processingTime: paymentMethod.processingTime,
+                available: paymentMethod.available,
+                popularityRank: paymentMethod.popularityRank,
+                createdAt: paymentMethod.createdAt,
+            },
+        };
+    }
+    catch (err) {
+        if (err.statusCode) {
+            throw err;
+        }
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: "Failed to create payment method: " + err.message,
+        });
+    }
+};

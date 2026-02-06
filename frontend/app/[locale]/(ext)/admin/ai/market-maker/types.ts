@@ -86,11 +86,6 @@ export type MarketMakerStatus =
 
 export type AggressionLevel = "CONSERVATIVE" | "MODERATE" | "AGGRESSIVE";
 
-// Multi-Timeframe Volatility System Types
-export type PriceMode = "AUTONOMOUS" | "FOLLOW_EXTERNAL" | "HYBRID";
-export type MarketBias = "BULLISH" | "BEARISH" | "NEUTRAL";
-export type MarketPhase = "ACCUMULATION" | "MARKUP" | "DISTRIBUTION" | "MARKDOWN";
-
 export interface MarketMaker {
   id: string;
   ecosystemMarketId: string;
@@ -104,50 +99,12 @@ export interface MarketMaker {
   currentDailyVolume: number;
   volatilityPauseEnabled: boolean;
   volatilityThreshold: number;
-
-  // Multi-Timeframe Volatility System Fields
-  priceMode?: PriceMode;
-  externalSymbol?: string | null;
-  correlationStrength?: number;
-  marketBias?: MarketBias;
-  biasStrength?: number;
-  currentPhase?: MarketPhase;
-  phaseStartedAt?: string | null;
-  nextPhaseChangeAt?: string | null;
-  phaseTargetPrice?: number | null;
-  baseVolatility?: number;
-  volatilityMultiplier?: number;
-  momentumDecay?: number;
-  lastKnownPrice?: number | null;
-  trendMomentum?: number;
-  lastMomentumUpdate?: string | null;
-
   market?: EcosystemMarket;
   pool?: Pool;
   bots?: Bot[];
   recentTrades?: RecentTrade[];
   createdAt: string;
   updatedAt: string;
-}
-
-// Phase Status Response
-export interface PhaseStatus {
-  currentPhase: MarketPhase;
-  phaseStartedAt: string | null;
-  nextPhaseChangeAt: string | null;
-  phaseTargetPrice: number;
-  progress: number;
-  elapsedHours: number;
-  remainingHours: number;
-  marketBias: MarketBias;
-  biasStrength: number;
-  trendMomentum: number;
-  lastMomentumUpdate: string | null;
-  lastKnownPrice: number;
-  priceMode: PriceMode;
-  externalSymbol: string | null;
-  baseVolatility: number;
-  volatilityMultiplier: number;
 }
 
 // ============================================
@@ -179,10 +136,7 @@ export type HistoryAction =
   | "STOP"
   | "CONFIG_CHANGE"
   | "EMERGENCY_STOP"
-  | "AUTO_PAUSE"
-  | "PHASE_CHANGE"
-  | "BIAS_CHANGE"
-  | "MOMENTUM_EVENT";
+  | "AUTO_PAUSE";
 
 export interface HistoryDetails {
   // For TRADE actions
@@ -214,20 +168,6 @@ export interface HistoryDetails {
   triggeredBy?: "ADMIN" | "SYSTEM" | "BOT";
   adminId?: string;
   note?: string;
-  // For PHASE_CHANGE actions
-  previousPhase?: MarketPhase;
-  newPhase?: MarketPhase;
-  phaseDuration?: number;
-  phaseTargetPrice?: number;
-  // For BIAS_CHANGE actions
-  previousBias?: MarketBias;
-  newBias?: MarketBias;
-  previousStrength?: number;
-  newStrength?: number;
-  // For MOMENTUM_EVENT actions
-  eventType?: "SURGE" | "DUMP" | "SPIKE" | "FLASH_CRASH";
-  magnitude?: number;
-  duration?: number;
 }
 
 export interface HistoryEntry {
@@ -337,15 +277,6 @@ export interface MarketMakerConfigUpdate {
   maxDailyVolume?: number;
   volatilityPauseEnabled?: boolean;
   volatilityThreshold?: number;
-  // Multi-Timeframe Volatility System Updates
-  priceMode?: PriceMode;
-  externalSymbol?: string | null;
-  correlationStrength?: number;
-  marketBias?: MarketBias;
-  biasStrength?: number;
-  baseVolatility?: number;
-  volatilityMultiplier?: number;
-  momentumDecay?: number;
 }
 
 export interface BotConfigUpdate {

@@ -1,1 +1,169 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.ledgerService=exports.LedgerService=void 0;const db_1=require("@b/db"),console_1=require("@b/utils/console"),precision_1=require("./utils/precision"),constants_1=require("./constants");class LedgerService{constructor(){}static getInstance(){LedgerService.instance||(LedgerService.instance=new LedgerService);return LedgerService.instance}async updateLedger(e){var t,r,n;const{walletId:i,index:s,currency:a,chain:o,amount:c,transaction:d}=e,l={walletId:i,index:s,currency:a,chain:o,network:this.getNetworkForChain(o)},g=d?{transaction:d}:{},u=await(null===(t=db_1.models.ecosystemPrivateLedger)||void 0===t?void 0:t.findOne({where:l,...g}));if(u){const e=parseFloat((null===(r=u.offchainDifference)||void 0===r?void 0:r.toString())||"0"),t=(0,precision_1.safeAdd)(e,c,a);await db_1.models.ecosystemPrivateLedger.update({offchainDifference:t},{where:l,...g});console_1.logger.debug("LEDGER",`Updated ledger for ${i}/${o}: ${e} -> ${t}`);return{...this.toAttributes(u),offchainDifference:t}}{const e=await(null===(n=db_1.models.ecosystemPrivateLedger)||void 0===n?void 0:n.create({...l,offchainDifference:c},d?{transaction:d}:void 0));console_1.logger.debug("LEDGER",`Created ledger entry for ${i}/${o}: ${c}`);return this.toAttributes(e)}}async credit(e,t,r,n,i,s){return this.updateLedger({walletId:e,index:t,currency:r,chain:n,amount:Math.abs(i),transaction:s})}async debit(e,t,r,n,i,s){return this.updateLedger({walletId:e,index:t,currency:r,chain:n,amount:-Math.abs(i),transaction:s})}async getLedgerEntry(e,t,r,n){if(!db_1.models.ecosystemPrivateLedger)return null;const i=this.getNetworkForChain(n),s=await db_1.models.ecosystemPrivateLedger.findOne({where:{walletId:e,index:t,currency:r,chain:n,network:i}});return s?this.toAttributes(s):null}async getOffchainDifference(e,t,r,n){const i=await this.getLedgerEntry(e,t,r,n);return(null==i?void 0:i.offchainDifference)||0}async getTotalAvailable(e,t,r,n,i){const s=await this.getOffchainDifference(e,t,r,n);return(0,precision_1.safeAdd)(i,s,r)}async getWalletLedgerEntries(e){if(!db_1.models.ecosystemPrivateLedger)return[];return(await db_1.models.ecosystemPrivateLedger.findAll({where:{walletId:e}})).map(e=>this.toAttributes(e))}async getChainLedgerEntries(e){if(!db_1.models.ecosystemPrivateLedger)return[];const t=this.getNetworkForChain(e);return(await db_1.models.ecosystemPrivateLedger.findAll({where:{chain:e,network:t}})).map(e=>this.toAttributes(e))}async reconcileLedger(e,t,r,n){const i=r-n;if(Math.abs(i)<1e-8)return{discrepancy:0,adjusted:!1};console_1.logger.warn("LEDGER",`Discrepancy detected for ${e}/${t}: ${i}`);return{discrepancy:i,adjusted:!1}}async resetLedger(e,t,r,n,i){if(!db_1.models.ecosystemPrivateLedger)return;const s=this.getNetworkForChain(n);await db_1.models.ecosystemPrivateLedger.update({offchainDifference:0},{where:{walletId:e,index:t,currency:r,chain:n,network:s},...i&&{transaction:i}});console_1.logger.info("LEDGER",`Reset ledger for ${e}/${n}`)}getNetworkForChain(e){if((0,constants_1.isSpecialChain)(e)){const t=`${e.toUpperCase()}_NETWORK`;return process.env[t]||"mainnet"}const t=`${e.toUpperCase()}_NETWORK`,r=process.env[t];return r||"mainnet"}async exists(e,t,r,n){if(!db_1.models.ecosystemPrivateLedger)return!1;const i=this.getNetworkForChain(n);return await db_1.models.ecosystemPrivateLedger.count({where:{walletId:e,index:t,currency:r,chain:n,network:i}})>0}async delete(e,t,r,n,i){if(!db_1.models.ecosystemPrivateLedger)return;const s=this.getNetworkForChain(n);await db_1.models.ecosystemPrivateLedger.destroy({where:{walletId:e,index:t,currency:r,chain:n,network:s},...i&&{transaction:i}})}toAttributes(e){var t;const r=(null==e?void 0:e.get)?e.get({plain:!0}):e;return{...r,offchainDifference:parseFloat((null===(t=null==r?void 0:r.offchainDifference)||void 0===t?void 0:t.toString())||"0")}}}exports.LedgerService=LedgerService;exports.ledgerService=LedgerService.getInstance();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ledgerService = exports.LedgerService = void 0;
+const db_1 = require("@b/db");
+const console_1 = require("@b/utils/console");
+const precision_1 = require("./utils/precision");
+const constants_1 = require("./constants");
+class LedgerService {
+    constructor() { }
+    static getInstance() {
+        if (!LedgerService.instance) {
+            LedgerService.instance = new LedgerService();
+        }
+        return LedgerService.instance;
+    }
+    async updateLedger(request) {
+        var _a, _b, _c;
+        const { walletId, index, currency, chain, amount, transaction } = request;
+        const network = this.getNetworkForChain(chain);
+        const uniqueIdentifier = {
+            walletId,
+            index,
+            currency,
+            chain,
+            network,
+        };
+        const queryOptions = transaction ? { transaction } : {};
+        const existingLedger = await ((_a = db_1.models.ecosystemPrivateLedger) === null || _a === void 0 ? void 0 : _a.findOne({
+            where: uniqueIdentifier,
+            ...queryOptions,
+        }));
+        if (existingLedger) {
+            const currentDifference = parseFloat(((_b = existingLedger.offchainDifference) === null || _b === void 0 ? void 0 : _b.toString()) || "0");
+            const newDifference = (0, precision_1.safeAdd)(currentDifference, amount, currency);
+            await db_1.models.ecosystemPrivateLedger.update({ offchainDifference: newDifference }, { where: uniqueIdentifier, ...queryOptions });
+            console_1.logger.debug("LEDGER", `Updated ledger for ${walletId}/${chain}: ${currentDifference} -> ${newDifference}`);
+            return {
+                ...this.toAttributes(existingLedger),
+                offchainDifference: newDifference,
+            };
+        }
+        else {
+            const newEntry = await ((_c = db_1.models.ecosystemPrivateLedger) === null || _c === void 0 ? void 0 : _c.create({
+                ...uniqueIdentifier,
+                offchainDifference: amount,
+            }, transaction ? { transaction } : undefined));
+            console_1.logger.debug("LEDGER", `Created ledger entry for ${walletId}/${chain}: ${amount}`);
+            return this.toAttributes(newEntry);
+        }
+    }
+    async credit(walletId, index, currency, chain, amount, transaction) {
+        return this.updateLedger({
+            walletId,
+            index,
+            currency,
+            chain,
+            amount: Math.abs(amount),
+            transaction,
+        });
+    }
+    async debit(walletId, index, currency, chain, amount, transaction) {
+        return this.updateLedger({
+            walletId,
+            index,
+            currency,
+            chain,
+            amount: -Math.abs(amount),
+            transaction,
+        });
+    }
+    async getLedgerEntry(walletId, index, currency, chain) {
+        if (!db_1.models.ecosystemPrivateLedger) {
+            return null;
+        }
+        const network = this.getNetworkForChain(chain);
+        const entry = await db_1.models.ecosystemPrivateLedger.findOne({
+            where: { walletId, index, currency, chain, network },
+        });
+        return entry ? this.toAttributes(entry) : null;
+    }
+    async getOffchainDifference(walletId, index, currency, chain) {
+        const entry = await this.getLedgerEntry(walletId, index, currency, chain);
+        return (entry === null || entry === void 0 ? void 0 : entry.offchainDifference) || 0;
+    }
+    async getTotalAvailable(walletId, index, currency, chain, onChainBalance) {
+        const offchainDiff = await this.getOffchainDifference(walletId, index, currency, chain);
+        return (0, precision_1.safeAdd)(onChainBalance, offchainDiff, currency);
+    }
+    async getWalletLedgerEntries(walletId) {
+        if (!db_1.models.ecosystemPrivateLedger) {
+            return [];
+        }
+        const entries = await db_1.models.ecosystemPrivateLedger.findAll({
+            where: { walletId },
+        });
+        return entries.map((e) => this.toAttributes(e));
+    }
+    async getChainLedgerEntries(chain) {
+        if (!db_1.models.ecosystemPrivateLedger) {
+            return [];
+        }
+        const network = this.getNetworkForChain(chain);
+        const entries = await db_1.models.ecosystemPrivateLedger.findAll({
+            where: { chain, network },
+        });
+        return entries.map((e) => this.toAttributes(e));
+    }
+    async reconcileLedger(walletId, chain, actualOnChainBalance, expectedBalance) {
+        const discrepancy = actualOnChainBalance - expectedBalance;
+        if (Math.abs(discrepancy) < 0.00000001) {
+            return { discrepancy: 0, adjusted: false };
+        }
+        console_1.logger.warn("LEDGER", `Discrepancy detected for ${walletId}/${chain}: ${discrepancy}`);
+        return { discrepancy, adjusted: false };
+    }
+    async resetLedger(walletId, index, currency, chain, transaction) {
+        if (!db_1.models.ecosystemPrivateLedger) {
+            return;
+        }
+        const network = this.getNetworkForChain(chain);
+        await db_1.models.ecosystemPrivateLedger.update({ offchainDifference: 0 }, {
+            where: { walletId, index, currency, chain, network },
+            ...(transaction && { transaction }),
+        });
+        console_1.logger.info("LEDGER", `Reset ledger for ${walletId}/${chain}`);
+    }
+    getNetworkForChain(chain) {
+        if ((0, constants_1.isSpecialChain)(chain)) {
+            const envVar = `${chain.toUpperCase()}_NETWORK`;
+            return process.env[envVar] || "mainnet";
+        }
+        const envVar = `${chain.toUpperCase()}_NETWORK`;
+        const network = process.env[envVar];
+        if (!network) {
+            return "mainnet";
+        }
+        return network;
+    }
+    async exists(walletId, index, currency, chain) {
+        if (!db_1.models.ecosystemPrivateLedger) {
+            return false;
+        }
+        const network = this.getNetworkForChain(chain);
+        const count = await db_1.models.ecosystemPrivateLedger.count({
+            where: { walletId, index, currency, chain, network },
+        });
+        return count > 0;
+    }
+    async delete(walletId, index, currency, chain, transaction) {
+        if (!db_1.models.ecosystemPrivateLedger) {
+            return;
+        }
+        const network = this.getNetworkForChain(chain);
+        await db_1.models.ecosystemPrivateLedger.destroy({
+            where: { walletId, index, currency, chain, network },
+            ...(transaction && { transaction }),
+        });
+    }
+    toAttributes(entry) {
+        var _a;
+        const plain = (entry === null || entry === void 0 ? void 0 : entry.get) ? entry.get({ plain: true }) : entry;
+        return {
+            ...plain,
+            offchainDifference: parseFloat(((_a = plain === null || plain === void 0 ? void 0 : plain.offchainDifference) === null || _a === void 0 ? void 0 : _a.toString()) || "0"),
+        };
+    }
+}
+exports.LedgerService = LedgerService;
+exports.ledgerService = LedgerService.getInstance();

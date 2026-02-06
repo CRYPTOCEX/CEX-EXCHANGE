@@ -25,6 +25,7 @@ export default function CategoryPage() {
       canEdit
       canDelete
       canView
+      isParanoid={false}
       title={t("category_management")}
       description={t("organize_and_manage_blog_post_categories")}
       itemTitle="Category"

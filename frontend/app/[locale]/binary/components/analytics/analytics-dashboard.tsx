@@ -6,7 +6,7 @@
  * Main component that combines all analytics sub-components.
  */
 
-import { memo, useState } from "react";
+import { memo, useState, useMemo } from "react";
 import {
   BarChart2,
   TrendingUp,
@@ -63,8 +63,13 @@ export const AnalyticsDashboard = memo(function AnalyticsDashboard({
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { fetchCompletedOrders, completedOrders } = useBinaryStore();
+  const { fetchCompletedOrders, completedOrders, tradingMode } = useBinaryStore();
   const analytics = useTradingAnalytics();
+
+  // Filter completed orders by current trading mode
+  const filteredCompletedOrders = useMemo(() => {
+    return completedOrders.filter(order => order.isDemo === (tradingMode === "demo"));
+  }, [completedOrders, tradingMode]);
 
   // Theme classes - matching overlay-theme.ts for consistency
   const bgClass = theme === "dark" ? "bg-zinc-900" : "bg-white";
@@ -95,8 +100,8 @@ export const AnalyticsDashboard = memo(function AnalyticsDashboard({
 
   // Extract currency from symbol
   const getCurrency = () => {
-    if (completedOrders.length > 0) {
-      const parts = completedOrders[0].symbol.split("/");
+    if (filteredCompletedOrders.length > 0) {
+      const parts = filteredCompletedOrders[0].symbol.split("/");
       return parts[1] || "USDT";
     }
     return "USDT";
@@ -453,7 +458,7 @@ export const AnalyticsDashboard = memo(function AnalyticsDashboard({
 
             {activeTab === "journal" && (
               <TradeJournal
-                trades={completedOrders}
+                trades={filteredCompletedOrders}
                 currency={currency}
                 theme={theme}
               />
@@ -463,7 +468,7 @@ export const AnalyticsDashboard = memo(function AnalyticsDashboard({
               <div className="max-w-2xl mx-auto space-y-6">
                 {/* Export component */}
                 <ExportTrades
-                  trades={completedOrders}
+                  trades={filteredCompletedOrders}
                   currency={currency}
                   theme={theme}
                 />

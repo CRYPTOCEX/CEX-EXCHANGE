@@ -610,7 +610,6 @@ const PushNotificationChannel = memo(function PushNotificationChannel({
                     body: "This notification was triggered locally. If you see this, your device CAN show notifications!",
                     icon: "/img/logo/android-chrome-192x192.png",
                     tag: "local-test-" + Date.now(),
-                    renotify: true,
                   });
                   setTestState({
                     sending: false,

@@ -1,1 +1,149 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const error_1=require("@b/utils/error"),token_1=require("@b/utils/token"),db_1=require("@b/db"),passwords_1=require("@b/utils/passwords"),utils_1=require("../utils");exports.metadata={summary:"Verifies a password reset token and sets the new password",operationId:"verifyPasswordReset",tags:["Auth"],description:"Verifies a password reset token and sets the new password",requiresAuth:!1,logModule:"PASSWORD",logTitle:"Password reset confirmation",requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{token:{type:"string",description:"The password reset token"},newPassword:{type:"string",description:"The new password"}},required:["token","newPassword"]}}}},responses:{200:{description:"Password reset successfully, new password set",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Success message"},cookies:{type:"object",properties:{accessToken:{type:"string",description:"The new access token"},refreshToken:{type:"string",description:"The new refresh token"},sessionId:{type:"string",description:"The new session ID"},csrfToken:{type:"string",description:"The new CSRF token"}},required:["accessToken","refreshToken","csrfToken"]}}}}}},400:{description:"Invalid request (e.g., missing token or newPassword)"},401:{description:"Unauthorized or invalid token"}}};exports.default=async e=>{const{body:s,ctx:r}=e,{token:t,newPassword:o}=s;try{null==r||r.step("Validating password reset token");if(!t||!o){null==r||r.fail("Token and new password are required");throw(0,error_1.createError)({statusCode:400,message:"Token and new password are required"})}null==r||r.step("Verifying reset token");const e=await(0,token_1.verifyResetToken)(t);if(!e){null==r||r.fail("Invalid or expired token");throw(0,error_1.createError)({statusCode:401,message:"Invalid token"})}null==r||r.step("Checking token usage");try{if(e.jti!==await(0,utils_1.addOneTimeToken)(e.jti,new Date)){null==r||r.fail("Token already used");throw(0,error_1.createError)({statusCode:500,message:"Token has already been used"})}}catch(e){null==r||r.fail("Token validation failed");throw(0,error_1.createError)({statusCode:500,message:e.message})}null==r||r.step("Hashing new password");const s=await(0,passwords_1.hashPassword)(o);null==r||r.step("Looking up user");const n=await db_1.models.user.findByPk(e.sub.user.id);if(!n){null==r||r.fail("User not found");throw(0,error_1.createError)({statusCode:404,message:"User not found"})}null==r||r.step("Updating password");await n.update({password:s});null==r||r.step("Generating session tokens");const a=await(0,utils_1.returnUserWithTokens)({user:n,message:"Password reset successfully"});null==r||r.success(`Password reset successfully for user ${n.email}`);return a}catch(e){null==r||r.fail(e.message||"Password reset failed");throw e}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const error_1 = require("@b/utils/error");
+const token_1 = require("@b/utils/token");
+const db_1 = require("@b/db");
+const passwords_1 = require("@b/utils/passwords");
+const utils_1 = require("../utils");
+exports.metadata = {
+    summary: "Verifies a password reset token and sets the new password",
+    operationId: "verifyPasswordReset",
+    tags: ["Auth"],
+    description: "Verifies a password reset token and sets the new password",
+    requiresAuth: false,
+    logModule: "PASSWORD",
+    logTitle: "Password reset confirmation",
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        token: {
+                            type: "string",
+                            description: "The password reset token",
+                        },
+                        newPassword: {
+                            type: "string",
+                            description: "The new password",
+                        },
+                    },
+                    required: ["token", "newPassword"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Password reset successfully, new password set",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: {
+                                type: "string",
+                                description: "Success message",
+                            },
+                            cookies: {
+                                type: "object",
+                                properties: {
+                                    accessToken: {
+                                        type: "string",
+                                        description: "The new access token",
+                                    },
+                                    refreshToken: {
+                                        type: "string",
+                                        description: "The new refresh token",
+                                    },
+                                    sessionId: {
+                                        type: "string",
+                                        description: "The new session ID",
+                                    },
+                                    csrfToken: {
+                                        type: "string",
+                                        description: "The new CSRF token",
+                                    },
+                                },
+                                required: ["accessToken", "refreshToken", "csrfToken"],
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        400: {
+            description: "Invalid request (e.g., missing token or newPassword)",
+        },
+        401: {
+            description: "Unauthorized or invalid token",
+        },
+    },
+};
+exports.default = async (data) => {
+    const { body, ctx } = data;
+    const { token, newPassword } = body;
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating password reset token");
+        if (!token || !newPassword) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Token and new password are required");
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Token and new password are required",
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Verifying reset token");
+        const decodedToken = await (0, token_1.verifyResetToken)(token);
+        if (!decodedToken) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Invalid or expired token");
+            throw (0, error_1.createError)({
+                statusCode: 401,
+                message: "Invalid token",
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking token usage");
+        try {
+            if (decodedToken.jti !== (await (0, utils_1.addOneTimeToken)(decodedToken.jti, new Date()))) {
+                ctx === null || ctx === void 0 ? void 0 : ctx.fail("Token already used");
+                throw (0, error_1.createError)({
+                    statusCode: 500,
+                    message: "Token has already been used",
+                });
+            }
+        }
+        catch (error) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Token validation failed");
+            throw (0, error_1.createError)({
+                statusCode: 500,
+                message: error.message,
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Hashing new password");
+        const errorOrHashedPassword = await (0, passwords_1.hashPassword)(newPassword);
+        const hashedPassword = errorOrHashedPassword;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Looking up user");
+        const user = await db_1.models.user.findByPk(decodedToken.sub.user.id);
+        if (!user) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("User not found");
+            throw (0, error_1.createError)({
+                statusCode: 404,
+                message: "User not found",
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating password");
+        await user.update({ password: hashedPassword });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Generating session tokens");
+        const result = await (0, utils_1.returnUserWithTokens)({
+            user,
+            message: "Password reset successfully",
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Password reset successfully for user ${user.email}`);
+        return result;
+    }
+    catch (error) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(error.message || "Password reset failed");
+        throw error;
+    }
+};

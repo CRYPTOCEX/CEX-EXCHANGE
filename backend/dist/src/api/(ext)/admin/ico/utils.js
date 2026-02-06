@@ -1,1 +1,28 @@
-"use strict";async function sendIcoEmail(e,l,a,i){var s,c,n;try{null===(s=null==i?void 0:i.step)||void 0===s||s.call(i,`Sending ${e} email to ${l}`);const n={TO:l,...a};await emails_1.emailQueue.add({emailData:n,emailType:e});null===(c=null==i?void 0:i.success)||void 0===c||c.call(i,`Email ${e} queued successfully`)}catch(l){null===(n=null==i?void 0:i.fail)||void 0===n||n.call(i,l.message||`Failed to send ${e} email`);throw l}}async function sendIcoBuyerEmail(e,l,a){await sendIcoEmail("IcoInvestmentOccurredBuyer",e,l,a)}async function sendIcoSellerEmail(e,l,a){await sendIcoEmail("IcoInvestmentOccurredSeller",e,l,a)}Object.defineProperty(exports,"__esModule",{value:!0});exports.sendIcoEmail=sendIcoEmail;exports.sendIcoBuyerEmail=sendIcoBuyerEmail;exports.sendIcoSellerEmail=sendIcoSellerEmail;const emails_1=require("@b/utils/emails");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendIcoEmail = sendIcoEmail;
+exports.sendIcoBuyerEmail = sendIcoBuyerEmail;
+exports.sendIcoSellerEmail = sendIcoSellerEmail;
+const emails_1 = require("@b/utils/emails");
+async function sendIcoEmail(emailType, recipientEmail, replacements, ctx) {
+    var _a, _b, _c;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Sending ${emailType} email to ${recipientEmail}`);
+        const emailData = {
+            TO: recipientEmail,
+            ...replacements,
+        };
+        await emails_1.emailQueue.add({ emailData, emailType });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Email ${emailType} queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message || `Failed to send ${emailType} email`);
+        throw error;
+    }
+}
+async function sendIcoBuyerEmail(recipientEmail, replacements, ctx) {
+    await sendIcoEmail("IcoInvestmentOccurredBuyer", recipientEmail, replacements, ctx);
+}
+async function sendIcoSellerEmail(recipientEmail, replacements, ctx) {
+    await sendIcoEmail("IcoInvestmentOccurredSeller", recipientEmail, replacements, ctx);
+}

@@ -27,6 +27,7 @@ export default function TagPage() {
       canEdit
       canDelete
       canView
+      isParanoid={false}
       title={t("tag_management")}
       description={t("manage_blog_tags_to_help_categorize")}
       itemTitle="Tag"

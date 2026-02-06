@@ -1,1 +1,96 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.MessageBroker=void 0;const console_1=require("@b/utils/console");class MessageBroker{constructor(e){this.clients=e}sendToClientOnRoute(e,s,t,o=!1){const r=this.clients.get(e);if(r){const e=r.get(s);if(e){e.ws.cork(()=>{if(o){const s=Buffer.from(JSON.stringify(t));e.ws.send(s,!0)}else e.ws.send(JSON.stringify(t))});return!0}}return!1}sendToClient(e,s,t=!1){let o=!1;for(const[r,n]of this.clients.entries())if(n.has(e)){const r=n.get(e);try{r.ws.cork(()=>{if(t){const e=Buffer.from(JSON.stringify(s));r.ws.send(e,!0)}else r.ws.send(JSON.stringify(s))})}catch(s){console_1.logger.error("WS",`Failed to send message to client ${e}`,s);n.delete(e)}o=!0}o||console_1.logger.debug("WS",`Client ${e} not found in any route`)}broadcastToRoute(e,s){const t=JSON.stringify(s);if(this.clients.has(e)){this.clients.get(e).forEach(s=>{try{s.ws.cork(()=>{s.ws.send(t)})}catch(s){console_1.logger.error("WS",`Failed to broadcast to route ${e}`,s)}})}}broadcastToSubscribedClients(e,s,t){try{const o=JSON.stringify(s),r=this.clients.get(e);if(r){let e=0;for(const[s,n]of r)if(n.subscriptions.has(o))try{n.ws.send(JSON.stringify(t));e++}catch(e){console_1.logger.error("WS",`Failed to send to client ${s}`,e);r.delete(s)}}}catch(e){console_1.logger.error("WS","Error in broadcastToSubscribedClients",e)}}}exports.MessageBroker=MessageBroker;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MessageBroker = void 0;
+const console_1 = require("@b/utils/console");
+class MessageBroker {
+    constructor(clients) {
+        this.clients = clients;
+    }
+    sendToClientOnRoute(route, clientId, message, isBinary = false) {
+        const routeClients = this.clients.get(route);
+        if (routeClients) {
+            const clientRecord = routeClients.get(clientId);
+            if (clientRecord) {
+                clientRecord.ws.cork(() => {
+                    if (isBinary) {
+                        const bufferMessage = Buffer.from(JSON.stringify(message));
+                        clientRecord.ws.send(bufferMessage, true);
+                    }
+                    else {
+                        clientRecord.ws.send(JSON.stringify(message));
+                    }
+                });
+                return true;
+            }
+        }
+        return false;
+    }
+    sendToClient(clientId, message, isBinary = false) {
+        let found = false;
+        for (const [route, routeClients] of this.clients.entries()) {
+            if (routeClients.has(clientId)) {
+                const clientRecord = routeClients.get(clientId);
+                try {
+                    clientRecord.ws.cork(() => {
+                        if (isBinary) {
+                            const bufferMessage = Buffer.from(JSON.stringify(message));
+                            clientRecord.ws.send(bufferMessage, true);
+                        }
+                        else {
+                            clientRecord.ws.send(JSON.stringify(message));
+                        }
+                    });
+                }
+                catch (error) {
+                    console_1.logger.error("WS", `Failed to send message to client ${clientId}`, error);
+                    routeClients.delete(clientId);
+                }
+                found = true;
+            }
+        }
+        if (!found) {
+            console_1.logger.debug("WS", `Client ${clientId} not found in any route`);
+        }
+    }
+    broadcastToRoute(route, message) {
+        const msgString = JSON.stringify(message);
+        if (this.clients.has(route)) {
+            const routeClients = this.clients.get(route);
+            routeClients.forEach((clientRecord) => {
+                try {
+                    clientRecord.ws.cork(() => {
+                        clientRecord.ws.send(msgString);
+                    });
+                }
+                catch (error) {
+                    console_1.logger.error("WS", `Failed to broadcast to route ${route}`, error);
+                }
+            });
+        }
+    }
+    broadcastToSubscribedClients(route, payload, message) {
+        try {
+            const subscriptionKey = JSON.stringify(payload);
+            const routeClients = this.clients.get(route);
+            if (routeClients) {
+                let matchedClients = 0;
+                for (const [clientId, clientRecord] of routeClients) {
+                    if (clientRecord.subscriptions.has(subscriptionKey)) {
+                        try {
+                            clientRecord.ws.send(JSON.stringify(message));
+                            matchedClients++;
+                        }
+                        catch (error) {
+                            console_1.logger.error("WS", `Failed to send to client ${clientId}`, error);
+                            routeClients.delete(clientId);
+                        }
+                    }
+                }
+            }
+        }
+        catch (error) {
+            console_1.logger.error("WS", "Error in broadcastToSubscribedClients", error);
+        }
+    }
+}
+exports.MessageBroker = MessageBroker;

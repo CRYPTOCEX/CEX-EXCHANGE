@@ -57,11 +57,14 @@ export const ReviewSidebar = ({
           </Button>
 
           <Button
-            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white shadow-sm h-9 px-4"
+            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white shadow-sm h-9 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => onStatusChange("ADDITIONAL_INFO_REQUIRED")}
             disabled={
-              updatingStatus || currentStatus === "ADDITIONAL_INFO_REQUIRED"
+              updatingStatus ||
+              currentStatus === "ADDITIONAL_INFO_REQUIRED" ||
+              !adminNotes.trim()
             }
+            title={!adminNotes.trim() ? tCommon("please_add_notes_before_requesting_info") : ""}
           >
             <AlertCircle className="h-4 w-4" />
             <span className="hidden sm:inline">
@@ -88,6 +91,11 @@ export const ReviewSidebar = ({
       <div>
         <label className="text-sm font-medium mb-2 block text-zinc-700 dark:text-zinc-300">
           {tCommon("admin_notes")}
+          {!adminNotes.trim() && (
+            <span className="text-xs font-normal text-amber-600 dark:text-amber-400 ml-2">
+              ({tCommon("required_for_additional_info_request")})
+            </span>
+          )}
         </label>
         <Textarea
           placeholder={tDashboard("add_notes_about_this_application_ellipsis")}

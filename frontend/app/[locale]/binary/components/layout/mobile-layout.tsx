@@ -145,25 +145,30 @@ export default function MobileLayout({
   // Get completed orders for analytics
   const { completedOrders } = useBinaryStore();
 
+  // Filter completed orders by current trading mode
+  const filteredCompletedOrders = useMemo(() => {
+    return completedOrders.filter(order => order.isDemo === (tradingMode === "demo"));
+  }, [completedOrders, tradingMode]);
+
   // One-click trading hook
   const oneClickTrading = useOneClickTrading(balance * 0.5);
 
   // Martingale hook
   const martingale = useMartingale(defaultOrderAmount);
 
-  // Calculate trading stats from completed orders
+  // Calculate trading stats from completed orders - filtered by mode
   const tradingStats = useMemo(() => {
-    if (completedOrders.length === 0) {
+    if (filteredCompletedOrders.length === 0) {
       return { winRate: 55, avgProfit: 0, avgLoss: 0 };
     }
-    const wins = completedOrders.filter(o => o.status === "WIN");
-    const losses = completedOrders.filter(o => o.status === "LOSS");
+    const wins = filteredCompletedOrders.filter(o => o.status === "WIN");
+    const losses = filteredCompletedOrders.filter(o => o.status === "LOSS");
     return {
-      winRate: (wins.length / completedOrders.length) * 100,
+      winRate: (wins.length / filteredCompletedOrders.length) * 100,
       avgProfit: wins.length > 0 ? wins.reduce((sum, o) => sum + (o.profit || 0), 0) / wins.length : 0,
       avgLoss: losses.length > 0 ? Math.abs(losses.reduce((sum, o) => sum + (o.profit || 0), 0) / losses.length) : 0,
     };
-  }, [completedOrders]);
+  }, [filteredCompletedOrders]);
 
   // Helper to close all overlays
   const closeAllOverlays = useCallback(() => {
@@ -442,7 +447,7 @@ export default function MobileLayout({
         activePanel={activePanel}
         setActivePanel={handleSetActivePanel}
         activePositionsCount={
-          orders.filter((order) => order.status === "PENDING").length
+          orders.filter((order) => order.status === "PENDING" && order.mode === tradingMode).length
         }
         currentPrice={currentPrice}
         symbol={symbol}
@@ -461,7 +466,7 @@ export default function MobileLayout({
         isLeaderboardOpen={showLeaderboard}
         isChallengesOpen={showChallenges}
         isSettingsOpen={showSettingsOverlay}
-        completedTradesCount={completedOrders.length}
+        completedTradesCount={filteredCompletedOrders.length}
       />
     </div>
   );

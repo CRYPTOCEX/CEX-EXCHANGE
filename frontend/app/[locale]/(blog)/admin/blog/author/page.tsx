@@ -28,6 +28,7 @@ export default function AuthorPage(): React.JSX.Element {
       canEdit
       canDelete
       canView
+      isParanoid={true}
       title={t("author_management")}
       description={t("manage_blog_author_applications_and_approve")}
       itemTitle="Author"

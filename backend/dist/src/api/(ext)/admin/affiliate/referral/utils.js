@@ -1,1 +1,40 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.mlmReferralStoreSchema=exports.mlmReferralUpdateSchema=exports.baseMlmReferralSchema=exports.mlmReferralSchema=void 0;const schema_1=require("@b/utils/schema"),id=(0,schema_1.baseStringSchema)("ID of the MLM Referral"),referrerId=(0,schema_1.baseStringSchema)("ID of the referrer"),referredId=(0,schema_1.baseStringSchema)("ID of the referred"),status=(0,schema_1.baseEnumSchema)("Status of the referral",["PENDING","ACTIVE","REJECTED"]),createdAt=(0,schema_1.baseDateTimeSchema)("Creation date of the referral"),updatedAt=(0,schema_1.baseDateTimeSchema)("Last update date of the referral",!0),deletedAt=(0,schema_1.baseDateTimeSchema)("Deletion date of the MLM Referral, if any");exports.mlmReferralSchema={id:id,referrerId:referrerId,referredId:referredId,status:status,createdAt:createdAt,updatedAt:updatedAt};exports.baseMlmReferralSchema={id:id,referrerId:referrerId,referredId:referredId,status:status,createdAt:createdAt,updatedAt:updatedAt,deletedAt:deletedAt};exports.mlmReferralUpdateSchema={type:"object",properties:{status:status},required:["status"]};exports.mlmReferralStoreSchema=exports.baseMlmReferralSchema;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.mlmReferralStoreSchema = exports.mlmReferralUpdateSchema = exports.baseMlmReferralSchema = exports.mlmReferralSchema = void 0;
+const schema_1 = require("@b/utils/schema");
+const id = (0, schema_1.baseStringSchema)("ID of the MLM Referral");
+const referrerId = (0, schema_1.baseStringSchema)("ID of the referrer");
+const referredId = (0, schema_1.baseStringSchema)("ID of the referred");
+const status = (0, schema_1.baseEnumSchema)("Status of the referral", [
+    "PENDING",
+    "ACTIVE",
+    "REJECTED",
+]);
+const createdAt = (0, schema_1.baseDateTimeSchema)("Creation date of the referral");
+const updatedAt = (0, schema_1.baseDateTimeSchema)("Last update date of the referral", true);
+const deletedAt = (0, schema_1.baseDateTimeSchema)("Deletion date of the MLM Referral, if any");
+exports.mlmReferralSchema = {
+    id,
+    referrerId,
+    referredId,
+    status,
+    createdAt,
+    updatedAt,
+};
+exports.baseMlmReferralSchema = {
+    id,
+    referrerId,
+    referredId,
+    status,
+    createdAt,
+    updatedAt,
+    deletedAt,
+};
+exports.mlmReferralUpdateSchema = {
+    type: "object",
+    properties: {
+        status,
+    },
+    required: ["status"],
+};
+exports.mlmReferralStoreSchema = exports.baseMlmReferralSchema;

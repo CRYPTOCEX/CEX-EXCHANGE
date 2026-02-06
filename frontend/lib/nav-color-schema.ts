@@ -283,6 +283,36 @@ export const NAV_COLOR_SCHEMAS: Record<string, NavColorSchema> = {
     gradientDirection: 'to-r',
   },
 
+  // Trading Bot - Orange/Amber Automation Theme
+  'trading-bot': {
+    primary: 'orange',
+    secondary: 'amber',
+    text: 'text-zinc-600 dark:text-zinc-400',
+    textHover: 'text-orange-600 dark:text-orange-400',
+    textActive: 'text-orange-600 dark:text-orange-400',
+    bgHover: 'hover:bg-orange-50 dark:hover:bg-orange-950/30',
+    bgActive: 'bg-orange-50 dark:bg-orange-950/30',
+    borderActive: 'border-orange-500 dark:border-orange-400',
+    glow: 'shadow-orange-500/20 dark:shadow-orange-400/20',
+    indicatorStyle: 'gradient-underline',
+    gradientDirection: 'to-r',
+  },
+
+  // Trading Bot alias with underscore
+  trading_bot: {
+    primary: 'orange',
+    secondary: 'amber',
+    text: 'text-zinc-600 dark:text-zinc-400',
+    textHover: 'text-orange-600 dark:text-orange-400',
+    textActive: 'text-orange-600 dark:text-orange-400',
+    bgHover: 'hover:bg-orange-50 dark:hover:bg-orange-950/30',
+    bgActive: 'bg-orange-50 dark:bg-orange-950/30',
+    borderActive: 'border-orange-500 dark:border-orange-400',
+    glow: 'shadow-orange-500/20 dark:shadow-orange-400/20',
+    indicatorStyle: 'gradient-underline',
+    gradientDirection: 'to-r',
+  },
+
   // Default - Primary Theme
   default: {
     primary: 'primary',

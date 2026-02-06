@@ -96,6 +96,11 @@ export function useTradingAnalytics(): TradingAnalytics {
     tradingMode,
   } = useBinaryStore();
 
+  // Filter completed orders by current trading mode
+  const filteredOrders = useMemo(() => {
+    return completedOrders.filter(order => order.isDemo === (tradingMode === "demo"));
+  }, [completedOrders, tradingMode]);
+
   // Get starting balance based on trading mode
   const startingBalance = useMemo(() => {
     return tradingMode === "demo" ? 10000 : (realBalance ?? 0);
@@ -106,48 +111,48 @@ export function useTradingAnalytics(): TradingAnalytics {
     return tradingMode === "demo" ? demoBalance : (realBalance ?? 0);
   }, [tradingMode, demoBalance, realBalance]);
 
-  // Core statistics
+  // Core statistics (use filtered orders by trading mode)
   const stats = useMemo(() => {
-    return calculateTradingStats(completedOrders);
-  }, [completedOrders]);
+    return calculateTradingStats(filteredOrders);
+  }, [filteredOrders]);
 
   // Statistics by symbol
   const statsBySymbol = useMemo(() => {
-    return calculateStatsBySymbol(completedOrders);
-  }, [completedOrders]);
+    return calculateStatsBySymbol(filteredOrders);
+  }, [filteredOrders]);
 
   // Statistics by hour
   const statsByHour = useMemo(() => {
-    return calculateStatsByHour(completedOrders);
-  }, [completedOrders]);
+    return calculateStatsByHour(filteredOrders);
+  }, [filteredOrders]);
 
   // Statistics by day
   const statsByDay = useMemo(() => {
-    return calculateStatsByDay(completedOrders);
-  }, [completedOrders]);
+    return calculateStatsByDay(filteredOrders);
+  }, [filteredOrders]);
 
   // Streaks
   const streaks = useMemo(() => {
-    return calculateStreaks(completedOrders);
-  }, [completedOrders]);
+    return calculateStreaks(filteredOrders);
+  }, [filteredOrders]);
 
   // Equity curve
   const equityCurve = useMemo(() => {
     // Use starting balance as base for equity calculation
     const baseBalance = startingBalance || 10000;
-    return calculateEquityCurve(completedOrders, baseBalance);
-  }, [completedOrders, startingBalance]);
+    return calculateEquityCurve(filteredOrders, baseBalance);
+  }, [filteredOrders, startingBalance]);
 
   // Advanced metrics
   const advancedMetrics = useMemo((): AdvancedMetrics => {
-    const sharpeRatio = calculateSharpeRatio(completedOrders);
-    const sortinoRatio = calculateSortinoRatio(completedOrders);
+    const sharpeRatio = calculateSharpeRatio(filteredOrders);
+    const sortinoRatio = calculateSortinoRatio(filteredOrders);
     const { maxDrawdown, maxDrawdownPercent } = calculateMaxDrawdown(
-      completedOrders,
+      filteredOrders,
       startingBalance || 10000
     );
     const recoveryFactor = calculateRecoveryFactor(
-      completedOrders,
+      filteredOrders,
       startingBalance || 10000
     );
 
@@ -173,14 +178,14 @@ export function useTradingAnalytics(): TradingAnalytics {
       expectancy,
       riskRewardRatio,
     };
-  }, [completedOrders, startingBalance, stats]);
+  }, [filteredOrders, startingBalance, stats]);
 
   // Recent trades (last 20)
   const recentTrades = useMemo(() => {
-    return [...completedOrders]
+    return [...filteredOrders]
       .sort((a, b) => b.expiryTime.getTime() - a.expiryTime.getTime())
       .slice(0, 20);
-  }, [completedOrders]);
+  }, [filteredOrders]);
 
   // Best/worst symbols
   const bestSymbol = useMemo(() => {
@@ -227,7 +232,7 @@ export function useTradingAnalytics(): TradingAnalytics {
     bestHour,
     worstHour,
     isLoading: isLoadingOrders,
-    hasData: completedOrders.length > 0,
+    hasData: filteredOrders.length > 0,
   };
 }
 

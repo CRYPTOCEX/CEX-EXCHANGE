@@ -1,1 +1,398 @@
-"use strict";async function getMlmSystemAndSettings(){const e=cache_1.CacheManager.getInstance(),r=await e.getSettings(),t=r.get("affiliateMlmSystem")||r.get("mlmSystem")||"DIRECT",l={};if("BINARY"===t){const e=parseInt(r.get("affiliateBinaryLevels")||"2");if(e>=2&&e<=7){const t=[];for(let l=1;l<=e;l++){const e=parseFloat(r.get(`affiliateBinaryLevel${l}`)||"0");t.push({level:l,value:e})}l.binary={levels:e,levelsPercentage:t}}}else if("UNILEVEL"===t){const e=parseInt(r.get("affiliateUnilevelLevels")||"2");if(e>=2&&e<=7){const t=[];for(let l=1;l<=e;l++){const e=parseFloat(r.get(`affiliateUnilevelLevel${l}`)||"0");t.push({level:l,value:e})}l.unilevel={levels:e,levelsPercentage:t}}}return{mlmSystem:t,mlmSettings:l}}async function listDirectReferrals(e,r){var t,l,a,s,i,d,n;try{null===(t=null==r?void 0:r.step)||void 0===t||t.call(r,"Fetching direct referrals");const n=e.id,o=await db_1.models.mlmReferral.findAll({where:{referrerId:n},include:[{model:db_1.models.user,as:"referred",attributes:["id","firstName","lastName","avatar","createdAt","status"],include:[{model:db_1.models.mlmReferral,as:"referrerReferrals",attributes:["id"]}]},{model:db_1.models.user,as:"referrer",include:[{model:db_1.models.mlmReferralReward,as:"referralRewards",attributes:["id"]}]}]});null===(l=null==r?void 0:r.step)||void 0===l||l.call(r,"Processing referrals data");const u=o.map(e=>{var r,t,l,a,s,i,d,n;return{id:null===(r=e.referred)||void 0===r?void 0:r.id,firstName:null===(t=e.referred)||void 0===t?void 0:t.firstName,lastName:null===(l=e.referred)||void 0===l?void 0:l.lastName,avatar:null===(a=e.referred)||void 0===a?void 0:a.avatar,createdAt:null===(s=e.referred)||void 0===s?void 0:s.createdAt,status:null===(i=e.referred)||void 0===i?void 0:i.status,level:2,rewardsCount:0,referredCount:(null===(n=null===(d=e.referred)||void 0===d?void 0:d.referrerReferrals)||void 0===n?void 0:n.length)||0,downlines:[]}}),f=(null===(i=null===(s=null===(a=o[0])||void 0===a?void 0:a.referrer)||void 0===s?void 0:s.referralRewards)||void 0===i?void 0:i.length)||0,c={id:e.id,firstName:e.firstName,lastName:e.lastName,avatar:e.avatar,createdAt:e.createdAt,status:e.status,level:1,rewardsCount:f,referredCount:o.length,downlines:u};null===(d=null==r?void 0:r.success)||void 0===d||d.call(r,"Direct referrals fetched successfully");return c}catch(e){null===(n=null==r?void 0:r.fail)||void 0===n||n.call(r,e.message);throw e}}async function listUnilevelReferrals(e,r,t){var l,a,s,i,d,n;try{null===(l=null==t?void 0:t.step)||void 0===l||l.call(t,"Fetching unilevel referrals");const o=e.id;if(!(null===(a=null==r?void 0:r.unilevel)||void 0===a?void 0:a.levels)){null===(s=null==t?void 0:t.step)||void 0===s||s.call(t,"Unilevel settings not configured, returning empty structure");return{id:e.id,firstName:e.firstName,lastName:e.lastName,avatar:e.avatar,createdAt:e.createdAt,status:e.status,level:1,rewardsCount:0,referredCount:0,downlines:[]}}const u=e.referrerReferrals||[],f={id:e.id,firstName:e.firstName,lastName:e.lastName,avatar:e.avatar,createdAt:e.createdAt,status:e.status,level:1,rewardsCount:await db_1.models.mlmReferralReward.count({where:{referrerId:o}}),referredCount:u.length,downlines:[]},c=new Set([e.id]);async function m(e,l){var a,s;if(l>r.unilevel.levels||!e.length)return[];null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,`Building downlines for level ${l}`);const i=[];for(const r of e){const e=r.referred;if(c.has(e.id))continue;c.add(e.id);const t=await db_1.models.mlmReferral.findAll({where:{referrerId:e.id},include:[{model:db_1.models.user,as:"referred",attributes:["id","firstName","lastName","avatar","createdAt","status"],include:[{model:db_1.models.mlmReferralReward,as:"referralRewards",attributes:["id"]}]}],raw:!0,nest:!0}),a={id:e.id,firstName:e.firstName,lastName:e.lastName,avatar:e.avatar,createdAt:e.createdAt,status:e.status,level:l,rewardsCount:(null===(s=e.referralRewards)||void 0===s?void 0:s.length)||0,referredCount:t.length,downlines:await m(t,l+1)};i.push(a)}return i}null===(i=null==t?void 0:t.step)||void 0===i||i.call(t,"Building downline hierarchy");f.downlines=await m(u,2);null===(d=null==t?void 0:t.success)||void 0===d||d.call(t,"Unilevel referrals fetched successfully");return f}catch(v){null===(n=null==t?void 0:t.fail)||void 0===n||n.call(t,v.message);throw v}}async function listBinaryReferrals(e,r,t){var l,a,s,i,d,n,o,u;try{null===(l=null==t?void 0:t.step)||void 0===l||l.call(t,"Fetching binary referrals");const f=e.id;if(!(null===(a=null==r?void 0:r.binary)||void 0===a?void 0:a.levels)){null===(s=null==t?void 0:t.step)||void 0===s||s.call(t,"Binary settings not configured, returning empty structure");return{id:e.id,firstName:e.firstName,lastName:e.lastName,avatar:e.avatar,createdAt:e.createdAt,status:e.status,level:1,rewardsCount:0,referredCount:0,downlines:[]}}const c=await db_1.models.mlmReferral.findOne({where:{referrerId:f,referredId:f},attributes:["id"],raw:!0});if(!c){null===(i=null==t?void 0:t.step)||void 0===i||i.call(t,"No self-referral found, returning empty structure");return{id:e.id,firstName:e.firstName,lastName:e.lastName,avatar:e.avatar,createdAt:e.createdAt,status:e.status,level:1,rewardsCount:0,referredCount:0,downlines:[]}}const m=await db_1.models.mlmBinaryNode.findOne({where:{referralId:c.id},attributes:["id"],raw:!0});if(!m){null===(d=null==t?void 0:t.step)||void 0===d||d.call(t,"No root node found, returning empty structure");return{id:e.id,firstName:e.firstName,lastName:e.lastName,avatar:e.avatar,createdAt:e.createdAt,status:e.status,level:1,rewardsCount:0,referredCount:0,downlines:[]}}const v=new Set([e.id]);async function w(e,l=2){var a,s,i;if(l>r.binary.levels||l>10)return[];null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,`Fetching binary downlines for level ${l}`);const d=await db_1.models.mlmBinaryNode.findAll({where:{parentId:{[sequelize_1.Op.in]:e}},include:[{model:db_1.models.mlmReferral,as:"referral",include:[{model:db_1.models.user,as:"referred",attributes:["id","firstName","lastName","avatar","createdAt","status"],include:[{model:db_1.models.mlmReferralReward,as:"referralRewards",attributes:["id"]},{model:db_1.models.mlmReferral,as:"referrerReferrals",attributes:["id"]}]}]},{model:db_1.models.mlmBinaryNode,as:"leftChild",attributes:["id"]},{model:db_1.models.mlmBinaryNode,as:"rightChild",attributes:["id"]}],raw:!0,nest:!0}),n=[];for(const e of d){const r=e.referral.referred;if(v.has(r.id))continue;v.add(r.id);const t=e.leftChild?await w([e.leftChild.id],l+1):[],a=e.rightChild?await w([e.rightChild.id],l+1):[];n.push({id:r.id,firstName:r.firstName,lastName:r.lastName,avatar:r.avatar,createdAt:r.createdAt,status:r.status,level:l,rewardsCount:(null===(s=r.referralRewards)||void 0===s?void 0:s.length)||0,referredCount:(null===(i=r.referrerReferrals)||void 0===i?void 0:i.length)||0,downlines:[...t,...a]})}return n}null===(n=null==t?void 0:t.step)||void 0===n||n.call(t,"Building binary tree structure");const h=await w([m.id],2),g=await db_1.models.mlmReferralReward.count({where:{referrerId:f}}),N={id:e.id,firstName:e.firstName,lastName:e.lastName,avatar:e.avatar,createdAt:e.createdAt,status:e.status,level:1,rewardsCount:g,referredCount:h.reduce((e,r)=>e+r.referredCount,0),downlines:h};null===(o=null==t?void 0:t.success)||void 0===o||o.call(t,"Binary referrals fetched successfully");return N}catch(b){null===(u=null==t?void 0:t.fail)||void 0===u||u.call(t,b.message);throw b}}Object.defineProperty(exports,"__esModule",{value:!0});exports.baseReferralSchema=void 0;exports.getMlmSystemAndSettings=getMlmSystemAndSettings;exports.listDirectReferrals=listDirectReferrals;exports.listUnilevelReferrals=listUnilevelReferrals;exports.listBinaryReferrals=listBinaryReferrals;const db_1=require("@b/db"),schema_1=require("@b/utils/schema"),sequelize_1=require("sequelize"),cache_1=require("@b/utils/cache");exports.baseReferralSchema={id:(0,schema_1.baseStringSchema)("Referral ID"),referredId:(0,schema_1.baseStringSchema)("Referred user UUID"),referrerId:(0,schema_1.baseStringSchema)("Referrer user UUID"),createdAt:(0,schema_1.baseStringSchema)("Date of referral")};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.baseReferralSchema = void 0;
+exports.getMlmSystemAndSettings = getMlmSystemAndSettings;
+exports.listDirectReferrals = listDirectReferrals;
+exports.listUnilevelReferrals = listUnilevelReferrals;
+exports.listBinaryReferrals = listBinaryReferrals;
+const db_1 = require("@b/db");
+const schema_1 = require("@b/utils/schema");
+const sequelize_1 = require("sequelize");
+const cache_1 = require("@b/utils/cache");
+async function getMlmSystemAndSettings() {
+    const cacheManager = cache_1.CacheManager.getInstance();
+    const settings = await cacheManager.getSettings();
+    const mlmSystem = (settings.get("affiliateMlmSystem") || settings.get("mlmSystem") || "DIRECT");
+    const mlmSettings = {};
+    if (mlmSystem === "BINARY") {
+        const binaryLevels = parseInt(settings.get("affiliateBinaryLevels") || "2");
+        if (binaryLevels >= 2 && binaryLevels <= 7) {
+            const levelsPercentage = [];
+            for (let i = 1; i <= binaryLevels; i++) {
+                const value = parseFloat(settings.get(`affiliateBinaryLevel${i}`) || "0");
+                levelsPercentage.push({ level: i, value });
+            }
+            mlmSettings.binary = {
+                levels: binaryLevels,
+                levelsPercentage,
+            };
+        }
+    }
+    else if (mlmSystem === "UNILEVEL") {
+        const unilevelLevels = parseInt(settings.get("affiliateUnilevelLevels") || "2");
+        if (unilevelLevels >= 2 && unilevelLevels <= 7) {
+            const levelsPercentage = [];
+            for (let i = 1; i <= unilevelLevels; i++) {
+                const value = parseFloat(settings.get(`affiliateUnilevelLevel${i}`) || "0");
+                levelsPercentage.push({ level: i, value });
+            }
+            mlmSettings.unilevel = {
+                levels: unilevelLevels,
+                levelsPercentage,
+            };
+        }
+    }
+    return { mlmSystem, mlmSettings };
+}
+exports.baseReferralSchema = {
+    id: (0, schema_1.baseStringSchema)("Referral ID"),
+    referredId: (0, schema_1.baseStringSchema)("Referred user UUID"),
+    referrerId: (0, schema_1.baseStringSchema)("Referrer user UUID"),
+    createdAt: (0, schema_1.baseStringSchema)("Date of referral"),
+};
+async function listDirectReferrals(user, ctx) {
+    var _a, _b, _c, _d, _e, _f, _g;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Fetching direct referrals");
+        const referrerId = user.id;
+        const referrals = (await db_1.models.mlmReferral.findAll({
+            where: { referrerId },
+            include: [
+                {
+                    model: db_1.models.user,
+                    as: "referred",
+                    attributes: [
+                        "id",
+                        "firstName",
+                        "lastName",
+                        "avatar",
+                        "createdAt",
+                        "status",
+                    ],
+                    include: [
+                        {
+                            model: db_1.models.mlmReferral,
+                            as: "referrerReferrals",
+                            attributes: ["id"],
+                        },
+                    ],
+                },
+                {
+                    model: db_1.models.user,
+                    as: "referrer",
+                    include: [
+                        {
+                            model: db_1.models.mlmReferralReward,
+                            as: "referralRewards",
+                            attributes: ["id"],
+                        },
+                    ],
+                },
+            ],
+        }));
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Processing referrals data");
+        const downlines = referrals.map((referral) => {
+            var _a, _b, _c, _d, _e, _f, _g, _h;
+            return ({
+                id: (_a = referral.referred) === null || _a === void 0 ? void 0 : _a.id,
+                firstName: (_b = referral.referred) === null || _b === void 0 ? void 0 : _b.firstName,
+                lastName: (_c = referral.referred) === null || _c === void 0 ? void 0 : _c.lastName,
+                avatar: (_d = referral.referred) === null || _d === void 0 ? void 0 : _d.avatar,
+                createdAt: (_e = referral.referred) === null || _e === void 0 ? void 0 : _e.createdAt,
+                status: (_f = referral.referred) === null || _f === void 0 ? void 0 : _f.status,
+                level: 2,
+                rewardsCount: 0,
+                referredCount: ((_h = (_g = referral.referred) === null || _g === void 0 ? void 0 : _g.referrerReferrals) === null || _h === void 0 ? void 0 : _h.length) || 0,
+                downlines: [],
+            });
+        });
+        const rootUserRewardsCount = ((_e = (_d = (_c = referrals[0]) === null || _c === void 0 ? void 0 : _c.referrer) === null || _d === void 0 ? void 0 : _d.referralRewards) === null || _e === void 0 ? void 0 : _e.length) || 0;
+        const result = {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            avatar: user.avatar,
+            createdAt: user.createdAt,
+            status: user.status,
+            level: 1,
+            rewardsCount: rootUserRewardsCount,
+            referredCount: referrals.length,
+            downlines,
+        };
+        (_f = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _f === void 0 ? void 0 : _f.call(ctx, "Direct referrals fetched successfully");
+        return result;
+    }
+    catch (error) {
+        (_g = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _g === void 0 ? void 0 : _g.call(ctx, error.message);
+        throw error;
+    }
+}
+async function listUnilevelReferrals(user, mlmSettings, ctx) {
+    var _a, _b, _c, _d, _e, _f;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Fetching unilevel referrals");
+        const userId = user.id;
+        if (!((_b = mlmSettings === null || mlmSettings === void 0 ? void 0 : mlmSettings.unilevel) === null || _b === void 0 ? void 0 : _b.levels)) {
+            (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Unilevel settings not configured, returning empty structure");
+            return {
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                avatar: user.avatar,
+                createdAt: user.createdAt,
+                status: user.status,
+                level: 1,
+                rewardsCount: 0,
+                referredCount: 0,
+                downlines: [],
+            };
+        }
+        const directReferrals = await db_1.models.mlmReferral.findAll({
+            where: { referrerId: userId },
+            include: [
+                {
+                    model: db_1.models.user,
+                    as: "referred",
+                    attributes: [
+                        "id",
+                        "firstName",
+                        "lastName",
+                        "avatar",
+                        "createdAt",
+                        "status",
+                    ],
+                    include: [
+                        {
+                            model: db_1.models.mlmReferralReward,
+                            as: "referralRewards",
+                            attributes: ["id"],
+                        },
+                    ],
+                },
+            ],
+            raw: true,
+            nest: true,
+        });
+        const rootUser = {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            avatar: user.avatar,
+            createdAt: user.createdAt,
+            status: user.status,
+            level: 1,
+            rewardsCount: await db_1.models.mlmReferralReward.count({
+                where: { referrerId: userId },
+            }),
+            referredCount: directReferrals.length,
+            downlines: [],
+        };
+        const processedIds = new Set([user.id]);
+        async function buildDownlines(referrals, level) {
+            var _a, _b;
+            if (level > mlmSettings.unilevel.levels || !referrals.length)
+                return [];
+            (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Building downlines for level ${level}`);
+            const downlines = [];
+            for (const referral of referrals) {
+                const referredUser = referral.referred;
+                if (processedIds.has(referredUser.id))
+                    continue;
+                processedIds.add(referredUser.id);
+                const nextLevelReferrals = await db_1.models.mlmReferral.findAll({
+                    where: { referrerId: referredUser.id },
+                    include: [
+                        {
+                            model: db_1.models.user,
+                            as: "referred",
+                            attributes: [
+                                "id",
+                                "firstName",
+                                "lastName",
+                                "avatar",
+                                "createdAt",
+                                "status",
+                            ],
+                            include: [
+                                {
+                                    model: db_1.models.mlmReferralReward,
+                                    as: "referralRewards",
+                                    attributes: ["id"],
+                                },
+                            ],
+                        },
+                    ],
+                    raw: true,
+                    nest: true,
+                });
+                const downline = {
+                    id: referredUser.id,
+                    firstName: referredUser.firstName,
+                    lastName: referredUser.lastName,
+                    avatar: referredUser.avatar,
+                    createdAt: referredUser.createdAt,
+                    status: referredUser.status,
+                    level,
+                    rewardsCount: ((_b = referredUser.referralRewards) === null || _b === void 0 ? void 0 : _b.length) || 0,
+                    referredCount: nextLevelReferrals.length,
+                    downlines: await buildDownlines(nextLevelReferrals, level + 1),
+                };
+                downlines.push(downline);
+            }
+            return downlines;
+        }
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Building downline hierarchy");
+        rootUser.downlines = await buildDownlines(directReferrals, 2);
+        (_e = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _e === void 0 ? void 0 : _e.call(ctx, "Unilevel referrals fetched successfully");
+        return rootUser;
+    }
+    catch (error) {
+        (_f = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _f === void 0 ? void 0 : _f.call(ctx, error.message);
+        throw error;
+    }
+}
+async function listBinaryReferrals(user, mlmSettings, ctx) {
+    var _a, _b, _c, _d, _e, _f, _g, _h;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Fetching binary referrals");
+        const referrerId = user.id;
+        if (!((_b = mlmSettings === null || mlmSettings === void 0 ? void 0 : mlmSettings.binary) === null || _b === void 0 ? void 0 : _b.levels)) {
+            (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Binary settings not configured, returning empty structure");
+            return {
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                avatar: user.avatar,
+                createdAt: user.createdAt,
+                status: user.status,
+                level: 1,
+                rewardsCount: 0,
+                referredCount: 0,
+                downlines: [],
+            };
+        }
+        let selfReferralData = await db_1.models.mlmReferral.findOne({
+            where: { referrerId, referredId: referrerId },
+            attributes: ["id"],
+            raw: true,
+        });
+        if (!selfReferralData) {
+            (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Creating self-referral for legacy user");
+            const newSelfReferral = await db_1.models.mlmReferral.create({
+                referrerId,
+                referredId: referrerId,
+                status: "ACTIVE",
+            });
+            selfReferralData = { id: newSelfReferral.id };
+        }
+        const selfReferralId = selfReferralData.id;
+        let rootNodeData = await db_1.models.mlmBinaryNode.findOne({
+            where: { referralId: selfReferralId },
+            attributes: ["id"],
+            raw: true,
+        });
+        if (!rootNodeData) {
+            (_e = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _e === void 0 ? void 0 : _e.call(ctx, "Creating binary root node for legacy user");
+            const newRootNode = await db_1.models.mlmBinaryNode.create({
+                referralId: selfReferralId,
+            });
+            rootNodeData = { id: newRootNode.id };
+        }
+        const rootNodeId = rootNodeData.id;
+        const processedIds = new Set([user.id]);
+        async function fetchBinaryDownlines(nodeIds, level = 2) {
+            var _a, _b, _c;
+            if (level > mlmSettings.binary.levels || level > 10)
+                return [];
+            (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Fetching binary downlines for level ${level}`);
+            const nodes = (await db_1.models.mlmBinaryNode.findAll({
+                where: { parentId: { [sequelize_1.Op.in]: nodeIds } },
+                include: [
+                    {
+                        model: db_1.models.mlmReferral,
+                        as: "referral",
+                        include: [
+                            {
+                                model: db_1.models.user,
+                                as: "referred",
+                                attributes: [
+                                    "id",
+                                    "firstName",
+                                    "lastName",
+                                    "avatar",
+                                    "createdAt",
+                                    "status",
+                                ],
+                                include: [
+                                    {
+                                        model: db_1.models.mlmReferralReward,
+                                        as: "referralRewards",
+                                        attributes: ["id"],
+                                    },
+                                    {
+                                        model: db_1.models.mlmReferral,
+                                        as: "referrerReferrals",
+                                        attributes: ["id"],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    { model: db_1.models.mlmBinaryNode, as: "leftChild", attributes: ["id"] },
+                    { model: db_1.models.mlmBinaryNode, as: "rightChild", attributes: ["id"] },
+                ],
+                raw: true,
+                nest: true,
+            }));
+            const downlines = [];
+            for (const node of nodes) {
+                const referredUser = node.referral.referred;
+                if (processedIds.has(referredUser.id))
+                    continue;
+                processedIds.add(referredUser.id);
+                const leftDownlines = node.leftChild
+                    ? await fetchBinaryDownlines([node.leftChild.id], level + 1)
+                    : [];
+                const rightDownlines = node.rightChild
+                    ? await fetchBinaryDownlines([node.rightChild.id], level + 1)
+                    : [];
+                downlines.push({
+                    id: referredUser.id,
+                    firstName: referredUser.firstName,
+                    lastName: referredUser.lastName,
+                    avatar: referredUser.avatar,
+                    createdAt: referredUser.createdAt,
+                    status: referredUser.status,
+                    level,
+                    rewardsCount: ((_b = referredUser.referralRewards) === null || _b === void 0 ? void 0 : _b.length) || 0,
+                    referredCount: ((_c = referredUser.referrerReferrals) === null || _c === void 0 ? void 0 : _c.length) || 0,
+                    downlines: [...leftDownlines, ...rightDownlines],
+                });
+            }
+            return downlines;
+        }
+        (_f = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _f === void 0 ? void 0 : _f.call(ctx, "Building binary tree structure");
+        const topLevelDownlines = await fetchBinaryDownlines([rootNodeId], 2);
+        const rootUserRewardsCount = await db_1.models.mlmReferralReward.count({
+            where: { referrerId },
+        });
+        const result = {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            avatar: user.avatar,
+            createdAt: user.createdAt,
+            status: user.status,
+            level: 1,
+            rewardsCount: rootUserRewardsCount,
+            referredCount: topLevelDownlines.reduce((acc, line) => acc + line.referredCount, 0),
+            downlines: topLevelDownlines,
+        };
+        (_g = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _g === void 0 ? void 0 : _g.call(ctx, "Binary referrals fetched successfully");
+        return result;
+    }
+    catch (error) {
+        (_h = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _h === void 0 ? void 0 : _h.call(ctx, error.message);
+        throw error;
+    }
+}

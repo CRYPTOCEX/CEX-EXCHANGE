@@ -1,1 +1,244 @@
-"use strict";async function generateTokens(e){const s=await(0,exports.generateAccessToken)(e),r=await(0,exports.generateRefreshToken)(e),t=crypto_1.default.randomBytes(24).toString("hex"),n=crypto_1.default.randomBytes(24).toString("hex"),o=`sessionId:${n}`,i=process.env.JWT_REFRESH_EXPIRY||"14d",a=getExpiryInSeconds(i),c={refreshToken:r,csrfToken:t,sessionId:n,user:e};await redis.set(o,JSON.stringify(c),"EX",a);return{accessToken:s,refreshToken:r,csrfToken:t,sessionId:n}}async function refreshTokens(e,s){const r=await(0,exports.generateAccessToken)(e),t=crypto_1.default.randomBytes(24).toString("hex"),n=`sessionId:${s}`,o=await redis.get(n);if(!o)throw(0,error_1.createError)({statusCode:401,message:"Session not found. Please re-authenticate."});const i=JSON.parse(o);i.csrfToken=t;i.accessToken=r;const a=process.env.JWT_REFRESH_EXPIRY||"14d",c=getExpiryInSeconds(a);await redis.set(n,JSON.stringify(i),"EX",c);return{accessToken:r,csrfToken:t}}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.verifyUnsubscribeToken=exports.generateUnsubscribeToken=exports.deleteSession=exports.createSession=exports.generateCsrfToken=exports.generateEmailToken=exports.verifyResetToken=exports.generateResetToken=exports.verifyEmailCode=exports.generateEmailCode=exports.verifyRefreshToken=exports.generateRefreshToken=exports.verifyAccessToken=exports.generateAccessToken=exports.issuerKey=void 0;exports.generateTokens=generateTokens;exports.refreshTokens=refreshTokens;const jose_1=require("jose"),crypto_1=__importDefault(require("crypto")),passwords_1=require("./passwords"),redis_1=require("./redis"),console_1=require("@b/utils/console"),error_1=require("@b/utils/error");exports.issuerKey="platform";const redis=redis_1.RedisSingleton.getInstance(),getExpiryInSeconds=e=>{const s=e.slice(-1),r=parseInt(e.slice(0,-1),10);switch(s){case"s":return r;case"m":return 60*r;case"h":return 60*r*60;case"d":return 60*r*60*24;default:throw(0,error_1.createError)({statusCode:400,message:`Invalid expiry format: ${e}`})}},generateAccessToken=async e=>{const s=process.env.JWT_EXPIRY||"15m",r={sub:e,iss:exports.issuerKey,jti:(0,passwords_1.makeUuid)()},t=process.env.APP_ACCESS_TOKEN_SECRET||"secret";return new jose_1.SignJWT(r).setProtectedHeader({alg:"HS256"}).setIssuedAt().setExpirationTime(s).sign((new TextEncoder).encode(t))};exports.generateAccessToken=generateAccessToken;const verifyAccessToken=async e=>{if(!e)return null;const s=e.includes(" ")?e.split(" ")[1]:e,r=process.env.APP_ACCESS_TOKEN_SECRET||"secret";try{const{payload:e}=await(0,jose_1.jwtVerify)(s,(new TextEncoder).encode(r));return e}catch(e){'"exp" claim timestamp check failed'!==e.message&&console_1.logger.debug("AUTH",`JWT verification failed: ${e.message}`);return null}};exports.verifyAccessToken=verifyAccessToken;const generateRefreshToken=async e=>{const s={sub:e,iss:exports.issuerKey,jti:(0,passwords_1.makeUuid)()},r=process.env.APP_REFRESH_TOKEN_SECRET||"secret",t=process.env.JWT_REFRESH_EXPIRY||"14d";return new jose_1.SignJWT(s).setProtectedHeader({alg:"HS256"}).setIssuedAt().setExpirationTime(t).sign((new TextEncoder).encode(r))};exports.generateRefreshToken=generateRefreshToken;const verifyRefreshToken=async e=>{if(!e)return null;const s=e.includes(" ")?e.split(" ")[1]:e,r=process.env.APP_REFRESH_TOKEN_SECRET||"secret";try{const{payload:e}=await(0,jose_1.jwtVerify)(s,(new TextEncoder).encode(r));return e}catch(e){console_1.logger.debug("AUTH",`Refresh token verification failed: ${e.message}`);return null}};exports.verifyRefreshToken=verifyRefreshToken;const generateEmailCode=async e=>{const s=Math.floor(1e5+9e5*Math.random()).toString();await redis.set(`email-verification:${s}`,e,"EX",300);return s};exports.generateEmailCode=generateEmailCode;const verifyEmailCode=async e=>{const s=await redis.get(`email-verification:${e}`);if(s){await redis.del(`email-verification:${e}`);return s}return null};exports.verifyEmailCode=verifyEmailCode;const generateResetToken=async e=>{const s={sub:e,iss:exports.issuerKey,jti:(0,passwords_1.makeUuid)()},r=process.env.APP_RESET_TOKEN_SECRET||"secret",t=process.env.JWT_RESET_EXPIRY||"1h";return new jose_1.SignJWT(s).setProtectedHeader({alg:"HS256"}).setIssuedAt().setExpirationTime(t).sign((new TextEncoder).encode(r))};exports.generateResetToken=generateResetToken;const verifyResetToken=async e=>{if(!e)return null;const s=e.includes(" ")?e.split(" ")[1]:e;try{const e=process.env.APP_RESET_TOKEN_SECRET||"secret",{payload:r}=await(0,jose_1.jwtVerify)(s,(new TextEncoder).encode(e));return r}catch(e){console_1.logger.debug("AUTH",`Reset token verification failed: ${e.message}`);return null}};exports.verifyResetToken=verifyResetToken;const generateEmailToken=async e=>{const s={sub:e,iss:exports.issuerKey,jti:(0,passwords_1.makeUuid)()},r=process.env.APP_RESET_TOKEN_SECRET||"secret";return new jose_1.SignJWT(s).setProtectedHeader({alg:"HS256"}).setIssuedAt().setExpirationTime("24h").sign((new TextEncoder).encode(r))};exports.generateEmailToken=generateEmailToken;const generateCsrfToken=()=>crypto_1.default.randomBytes(32).toString("hex");exports.generateCsrfToken=generateCsrfToken;const createSession=async(e,s,r,t,n,o="")=>{const i=(0,passwords_1.makeUuid)(),a=`sessionId:${i}`,c=JSON.stringify({userId:e,roleId:s,sid:(0,passwords_1.makeUuid)(),accessToken:r,csrfToken:t,refreshToken:n,ipAddress:o}),d=process.env.JWT_REFRESH_EXPIRY||"14d",u=getExpiryInSeconds(d);await redis.set(a,c,"EX",u);return{sid:i,userId:e,roleId:s}};exports.createSession=createSession;const deleteSession=async e=>{const s=`sessionId:${e}`;await redis.del(s)};exports.deleteSession=deleteSession;const generateUnsubscribeToken=async e=>{const s={sub:e,iss:exports.issuerKey,jti:(0,passwords_1.makeUuid)(),type:"unsubscribe"},r=process.env.APP_ACCESS_TOKEN_SECRET||"secret";return new jose_1.SignJWT(s).setProtectedHeader({alg:"HS256"}).setIssuedAt().setExpirationTime("365d").sign((new TextEncoder).encode(r))};exports.generateUnsubscribeToken=generateUnsubscribeToken;const verifyUnsubscribeToken=async e=>{if(!e)return null;const s=process.env.APP_ACCESS_TOKEN_SECRET||"secret";try{const{payload:r}=await(0,jose_1.jwtVerify)(e,(new TextEncoder).encode(s));return"unsubscribe"!==r.type?null:r.sub}catch(e){console_1.logger.debug("AUTH",`Unsubscribe token verification failed: ${e.message}`);return null}};exports.verifyUnsubscribeToken=verifyUnsubscribeToken;
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.verifyUnsubscribeToken = exports.generateUnsubscribeToken = exports.deleteSession = exports.createSession = exports.generateCsrfToken = exports.generateEmailToken = exports.verifyResetToken = exports.generateResetToken = exports.verifyEmailCode = exports.generateEmailCode = exports.verifyRefreshToken = exports.generateRefreshToken = exports.verifyAccessToken = exports.generateAccessToken = exports.issuerKey = void 0;
+exports.generateTokens = generateTokens;
+exports.refreshTokens = refreshTokens;
+const jose_1 = require("jose");
+const crypto_1 = __importDefault(require("crypto"));
+const passwords_1 = require("./passwords");
+const redis_1 = require("./redis");
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+exports.issuerKey = "platform";
+const redis = redis_1.RedisSingleton.getInstance();
+const getExpiryInSeconds = (expiry) => {
+    const unit = expiry.slice(-1);
+    const value = parseInt(expiry.slice(0, -1), 10);
+    switch (unit) {
+        case "s":
+            return value;
+        case "m":
+            return value * 60;
+        case "h":
+            return value * 60 * 60;
+        case "d":
+            return value * 60 * 60 * 24;
+        default:
+            throw (0, error_1.createError)({ statusCode: 400, message: `Invalid expiry format: ${expiry}` });
+    }
+};
+async function generateTokens(user) {
+    const accessToken = await (0, exports.generateAccessToken)(user);
+    const refreshToken = await (0, exports.generateRefreshToken)(user);
+    const csrfToken = crypto_1.default.randomBytes(24).toString("hex");
+    const sessionId = crypto_1.default.randomBytes(24).toString("hex");
+    const userSessionKey = `sessionId:${sessionId}`;
+    const JWT_REFRESH_EXPIRY = process.env.JWT_REFRESH_EXPIRY || "14d";
+    const refreshTokenExpiryInSeconds = getExpiryInSeconds(JWT_REFRESH_EXPIRY);
+    const userData = { refreshToken, csrfToken, sessionId, user };
+    await redis.set(userSessionKey, JSON.stringify(userData), "EX", refreshTokenExpiryInSeconds);
+    return { accessToken, refreshToken, csrfToken, sessionId };
+}
+async function refreshTokens(user, sessionId) {
+    const accessToken = await (0, exports.generateAccessToken)(user);
+    const csrfToken = crypto_1.default.randomBytes(24).toString("hex");
+    const userSessionKey = `sessionId:${sessionId}`;
+    const sessionData = await redis.get(userSessionKey);
+    if (!sessionData) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Session not found. Please re-authenticate." });
+    }
+    const session = JSON.parse(sessionData);
+    session.csrfToken = csrfToken;
+    session.accessToken = accessToken;
+    const JWT_REFRESH_EXPIRY = process.env.JWT_REFRESH_EXPIRY || "14d";
+    const refreshTokenExpiryInSeconds = getExpiryInSeconds(JWT_REFRESH_EXPIRY);
+    await redis.set(userSessionKey, JSON.stringify(session), "EX", refreshTokenExpiryInSeconds);
+    return { accessToken, csrfToken };
+}
+const generateAccessToken = async (user) => {
+    const JWT_EXPIRY = process.env.JWT_EXPIRY || "15m";
+    const jwtClaims = {
+        sub: user,
+        iss: exports.issuerKey,
+        jti: (0, passwords_1.makeUuid)(),
+    };
+    const APP_ACCESS_TOKEN_SECRET = process.env.APP_ACCESS_TOKEN_SECRET || "secret";
+    return new jose_1.SignJWT(jwtClaims)
+        .setProtectedHeader({ alg: "HS256" })
+        .setIssuedAt()
+        .setExpirationTime(JWT_EXPIRY)
+        .sign(new TextEncoder().encode(APP_ACCESS_TOKEN_SECRET));
+};
+exports.generateAccessToken = generateAccessToken;
+const verifyAccessToken = async (token) => {
+    if (!token) {
+        return null;
+    }
+    const cookieToken = token.includes(" ") ? token.split(" ")[1] : token;
+    const APP_ACCESS_TOKEN_SECRET = process.env.APP_ACCESS_TOKEN_SECRET || "secret";
+    try {
+        const { payload } = await (0, jose_1.jwtVerify)(cookieToken, new TextEncoder().encode(APP_ACCESS_TOKEN_SECRET));
+        return payload;
+    }
+    catch (error) {
+        if (error.message !== `"exp" claim timestamp check failed`) {
+            console_1.logger.debug("AUTH", `JWT verification failed: ${error.message}`);
+        }
+        return null;
+    }
+};
+exports.verifyAccessToken = verifyAccessToken;
+const generateRefreshToken = async (user) => {
+    const jwtClaims = {
+        sub: user,
+        iss: exports.issuerKey,
+        jti: (0, passwords_1.makeUuid)(),
+    };
+    const APP_REFRESH_TOKEN_SECRET = process.env.APP_REFRESH_TOKEN_SECRET || "secret";
+    const JWT_REFRESH_EXPIRY = process.env.JWT_REFRESH_EXPIRY || "14d";
+    return new jose_1.SignJWT(jwtClaims)
+        .setProtectedHeader({ alg: "HS256" })
+        .setIssuedAt()
+        .setExpirationTime(JWT_REFRESH_EXPIRY)
+        .sign(new TextEncoder().encode(APP_REFRESH_TOKEN_SECRET));
+};
+exports.generateRefreshToken = generateRefreshToken;
+const verifyRefreshToken = async (token) => {
+    if (!token) {
+        return null;
+    }
+    const cookieToken = token.includes(" ") ? token.split(" ")[1] : token;
+    const APP_REFRESH_TOKEN_SECRET = process.env.APP_REFRESH_TOKEN_SECRET || "secret";
+    try {
+        const { payload } = await (0, jose_1.jwtVerify)(cookieToken, new TextEncoder().encode(APP_REFRESH_TOKEN_SECRET));
+        return payload;
+    }
+    catch (error) {
+        console_1.logger.debug("AUTH", `Refresh token verification failed: ${error.message}`);
+        return null;
+    }
+};
+exports.verifyRefreshToken = verifyRefreshToken;
+const generateEmailCode = async (userId) => {
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    await redis.set(`email-verification:${verificationCode}`, userId, "EX", 300);
+    return verificationCode;
+};
+exports.generateEmailCode = generateEmailCode;
+const verifyEmailCode = async (code) => {
+    const userId = await redis.get(`email-verification:${code}`);
+    if (userId) {
+        await redis.del(`email-verification:${code}`);
+        return userId;
+    }
+    return null;
+};
+exports.verifyEmailCode = verifyEmailCode;
+const generateResetToken = async (user) => {
+    const jwtClaims = {
+        sub: user,
+        iss: exports.issuerKey,
+        jti: (0, passwords_1.makeUuid)(),
+    };
+    const APP_RESET_TOKEN_SECRET = process.env.APP_RESET_TOKEN_SECRET || "secret";
+    const JWT_RESET_EXPIRY = process.env.JWT_RESET_EXPIRY || "1h";
+    return new jose_1.SignJWT(jwtClaims)
+        .setProtectedHeader({ alg: "HS256" })
+        .setIssuedAt()
+        .setExpirationTime(JWT_RESET_EXPIRY)
+        .sign(new TextEncoder().encode(APP_RESET_TOKEN_SECRET));
+};
+exports.generateResetToken = generateResetToken;
+const verifyResetToken = async (token) => {
+    if (!token) {
+        return null;
+    }
+    const cookieToken = token.includes(" ") ? token.split(" ")[1] : token;
+    try {
+        const APP_RESET_TOKEN_SECRET = process.env.APP_RESET_TOKEN_SECRET || "secret";
+        const { payload } = await (0, jose_1.jwtVerify)(cookieToken, new TextEncoder().encode(APP_RESET_TOKEN_SECRET));
+        return payload;
+    }
+    catch (error) {
+        console_1.logger.debug("AUTH", `Reset token verification failed: ${error.message}`);
+        return null;
+    }
+};
+exports.verifyResetToken = verifyResetToken;
+const generateEmailToken = async (user) => {
+    const jwtClaims = {
+        sub: user,
+        iss: exports.issuerKey,
+        jti: (0, passwords_1.makeUuid)(),
+    };
+    const APP_RESET_TOKEN_SECRET = process.env.APP_RESET_TOKEN_SECRET || "secret";
+    return new jose_1.SignJWT(jwtClaims)
+        .setProtectedHeader({ alg: "HS256" })
+        .setIssuedAt()
+        .setExpirationTime("24h")
+        .sign(new TextEncoder().encode(APP_RESET_TOKEN_SECRET));
+};
+exports.generateEmailToken = generateEmailToken;
+const generateCsrfToken = () => {
+    return crypto_1.default.randomBytes(32).toString("hex");
+};
+exports.generateCsrfToken = generateCsrfToken;
+const createSession = async (userId, roleId, accessToken, csrfToken, refreshToken, ipAddress = "") => {
+    const sessionId = (0, passwords_1.makeUuid)();
+    const userSessionKey = `sessionId:${sessionId}`;
+    const sessionData = JSON.stringify({
+        userId,
+        roleId,
+        sid: (0, passwords_1.makeUuid)(),
+        accessToken,
+        csrfToken,
+        refreshToken,
+        ipAddress,
+    });
+    const JWT_REFRESH_EXPIRY = process.env.JWT_REFRESH_EXPIRY || "14d";
+    const refreshTokenExpiryInSeconds = getExpiryInSeconds(JWT_REFRESH_EXPIRY);
+    await redis.set(userSessionKey, sessionData, "EX", refreshTokenExpiryInSeconds);
+    return { sid: sessionId, userId, roleId };
+};
+exports.createSession = createSession;
+const deleteSession = async (sessionId) => {
+    const userSessionKey = `sessionId:${sessionId}`;
+    await redis.del(userSessionKey);
+};
+exports.deleteSession = deleteSession;
+const generateUnsubscribeToken = async (userId) => {
+    const jwtClaims = {
+        sub: userId,
+        iss: exports.issuerKey,
+        jti: (0, passwords_1.makeUuid)(),
+        type: "unsubscribe",
+    };
+    const APP_ACCESS_TOKEN_SECRET = process.env.APP_ACCESS_TOKEN_SECRET || "secret";
+    return new jose_1.SignJWT(jwtClaims)
+        .setProtectedHeader({ alg: "HS256" })
+        .setIssuedAt()
+        .setExpirationTime("365d")
+        .sign(new TextEncoder().encode(APP_ACCESS_TOKEN_SECRET));
+};
+exports.generateUnsubscribeToken = generateUnsubscribeToken;
+const verifyUnsubscribeToken = async (token) => {
+    if (!token) {
+        return null;
+    }
+    const APP_ACCESS_TOKEN_SECRET = process.env.APP_ACCESS_TOKEN_SECRET || "secret";
+    try {
+        const { payload } = await (0, jose_1.jwtVerify)(token, new TextEncoder().encode(APP_ACCESS_TOKEN_SECRET));
+        if (payload.type !== "unsubscribe") {
+            return null;
+        }
+        return payload.sub;
+    }
+    catch (error) {
+        console_1.logger.debug("AUTH", `Unsubscribe token verification failed: ${error.message}`);
+        return null;
+    }
+};
+exports.verifyUnsubscribeToken = verifyUnsubscribeToken;

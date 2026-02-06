@@ -20,7 +20,7 @@ export interface IcoTransactionExtended {
     symbol: string;
     currentPrice: number | null;
     tokenPrice: number;
-    icon: string;
+    icon?: string;
     type?: {
       id: string;
       name: string;
@@ -28,10 +28,11 @@ export interface IcoTransactionExtended {
       description: string;
     };
   };
-  invested: number;
-  currentValue: number;
-  profitLoss: number;
-  profitLossPercentage: number;
+  // Server-calculated fields (Decimal precision from Rust backend)
+  invested?: number;
+  currentValue?: number;
+  profitLoss?: number;
+  profitLossPercentage?: number;
   transactionDate: string;
 }
 
@@ -50,32 +51,28 @@ export const useIcoTransactionStore = create<icoTransactionStoreState>(
     transactions: [],
 
     fetchTransactions: async () => {
-      const { data, error } = await $fetch<IcoTransactionExtended[]>({
+      const { data, error } = await $fetch<{
+        items: IcoTransactionExtended[];
+        total: number;
+        page: number;
+        limit: number;
+      }>({
         url: "/api/ico/transaction",
         silent: true,
       });
 
       if (data && !error) {
-        const enriched = data.map((tx) => {
-          const invested = tx.amount * tx.price;
-          const currentPrice =
-            tx.offering && (tx.offering.currentPrice ?? tx.offering.tokenPrice)
-              ? (tx.offering.currentPrice ?? tx.offering.tokenPrice)
-              : tx.price;
-          const currentValue = tx.amount * currentPrice;
-          const profitLoss = currentValue - invested;
-          const profitLossPercentage =
-            invested > 0 ? (profitLoss / invested) * 100 : 0;
-
-          return {
-            ...tx,
-            invested,
-            currentValue,
-            profitLoss,
-            profitLossPercentage,
-            transactionDate: tx.createdAt,
-          };
-        });
+        // Use server-calculated values (Decimal precision from Rust backend)
+        // No client-side recalculation needed
+        const enriched = data.items.map((tx) => ({
+          ...tx,
+          // Fallback to client calculation only if server didn't provide values
+          invested: tx.invested ?? tx.amount * tx.price,
+          currentValue: tx.currentValue ?? tx.amount * tx.price,
+          profitLoss: tx.profitLoss ?? 0,
+          profitLossPercentage: tx.profitLossPercentage ?? 0,
+          transactionDate: tx.createdAt,
+        }));
         set({ transactions: enriched });
       }
     },

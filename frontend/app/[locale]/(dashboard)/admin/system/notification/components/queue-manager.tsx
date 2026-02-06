@@ -5,41 +5,74 @@ import { $fetch } from "@/lib/api";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Database, Trash2, RefreshCw, AlertCircle, CheckCircle2, Clock, Play } from "lucide-react";
+import {
+  Database,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  Play,
+  Mail,
+  Bell,
+  MessageSquare,
+  Smartphone,
+  User,
+  ListIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface QueueStats {
   waiting: number;
   active: number;
   completed: number;
   failed: number;
-  delayed: number;
+}
+
+interface QueueHealth {
+  status: string;
+  totalJobs: number;
+  failureRate: string;
+}
+
+interface QueueItem {
+  id: string;
+  userId: string;
+  title: string;
+  type: string;
+  channels: string[] | null;
+  template: string | null;
+  queuedAt: string;
+  age: string;
+  status: "pending" | "processing";
 }
 
 interface QueueManagerProps {
   onRefresh: () => void;
 }
 
+const channelIcons: Record<string, React.ElementType> = {
+  Email: Mail,
+  Sms: MessageSquare,
+  Push: Smartphone,
+  InApp: Bell,
+};
+
 export function QueueManager({ onRefresh }: QueueManagerProps) {
   const [stats, setStats] = useState<QueueStats | null>(null);
+  const [health, setHealth] = useState<QueueHealth | null>(null);
+  const [queueItems, setQueueItems] = useState<QueueItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isCleaning, setIsCleaning] = useState(false);
-  const [cleanOlderThan, setCleanOlderThan] = useState("24");
+  const [isLoadingItems, setIsLoadingItems] = useState(false);
 
   const fetchStats = async () => {
     setIsLoading(true);
@@ -53,6 +86,7 @@ export function QueueManager({ onRefresh }: QueueManagerProps) {
         toast.error("Failed to fetch queue statistics");
       } else {
         setStats(data.queue);
+        setHealth(data.health);
       }
     } catch (err) {
       console.error("Queue stats fetch error:", err);
@@ -61,44 +95,43 @@ export function QueueManager({ onRefresh }: QueueManagerProps) {
     }
   };
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const handleClean = async () => {
-    setIsCleaning(true);
+  const fetchQueueItems = async () => {
+    setIsLoadingItems(true);
     try {
-      const olderThanMs = parseFloat(cleanOlderThan) * 3600000; // Convert hours to milliseconds
       const { data, error } = await $fetch({
-        url: "/api/admin/system/notification/queue/clean",
-        method: "POST",
-        body: { olderThan: olderThanMs },
+        url: "/api/admin/system/notification/queue/items?limit=50",
+        silent: true,
       });
 
       if (error) {
-        toast.error("Failed to clean queue");
+        console.error("Failed to fetch queue items:", error);
       } else {
-        toast.success(`Successfully cleaned ${data.removed.total} jobs from queue`);
-        fetchStats();
-        onRefresh();
+        setQueueItems(data.items || []);
       }
     } catch (err) {
-      console.error("Queue clean error:", err);
-      toast.error("An error occurred while cleaning queue");
+      console.error("Queue items fetch error:", err);
     } finally {
-      setIsCleaning(false);
+      setIsLoadingItems(false);
     }
   };
 
+  useEffect(() => {
+    fetchStats();
+    fetchQueueItems();
+    // Auto-refresh every 5 seconds
+    const interval = setInterval(() => {
+      fetchStats();
+      fetchQueueItems();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const totalJobs = stats
-    ? stats.waiting + stats.active + stats.completed + stats.failed + (stats.delayed || 0)
+    ? stats.waiting + stats.active + stats.completed + stats.failed
     : 0;
 
-  const failureRate = stats && stats.completed + stats.failed > 0
-    ? ((stats.failed / (stats.completed + stats.failed)) * 100).toFixed(2)
-    : "0.00";
-
-  const queueStatus = stats && stats.failed > stats.completed * 0.1 ? "degraded" : "healthy";
+  const failureRate = health?.failureRate || "0.00";
+  const queueStatus = health?.status || "healthy";
 
   return (
     <div className="space-y-6">
@@ -116,7 +149,7 @@ export function QueueManager({ onRefresh }: QueueManagerProps) {
                   <Database className="h-5 w-5" />
                   Queue Statistics
                 </CardTitle>
-                <CardDescription>Real-time notification queue metrics</CardDescription>
+                <CardDescription>Real-time notification queue metrics (auto-refreshes every 5s)</CardDescription>
               </div>
               <div className="flex items-center gap-2">
                 <Badge
@@ -134,6 +167,7 @@ export function QueueManager({ onRefresh }: QueueManagerProps) {
                   variant="outline"
                   onClick={() => {
                     fetchStats();
+                    fetchQueueItems();
                     onRefresh();
                   }}
                   disabled={isLoading}
@@ -153,11 +187,11 @@ export function QueueManager({ onRefresh }: QueueManagerProps) {
                 index={0}
               />
               <StatsCard
-                label="Active"
+                label="Processing"
                 value={stats?.active || 0}
                 icon={Play}
                 {...statsCardColors.blue}
-                change={stats?.active || 0 > 0 ? "Processing" : "Idle"}
+                change={(stats?.active || 0) > 0 ? "Active" : "Idle"}
                 index={1}
               />
               <StatsCard
@@ -178,7 +212,7 @@ export function QueueManager({ onRefresh }: QueueManagerProps) {
                 index={3}
               />
               <StatsCard
-                label="Total Jobs"
+                label="Total"
                 value={totalJobs}
                 icon={Database}
                 {...statsCardColors.purple}
@@ -204,7 +238,7 @@ export function QueueManager({ onRefresh }: QueueManagerProps) {
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Based on completed and failed jobs
+                  Based on completed and failed notifications
                 </p>
               </div>
               <div className="p-4 rounded-lg border">
@@ -224,15 +258,32 @@ export function QueueManager({ onRefresh }: QueueManagerProps) {
                 <p className="text-xs text-muted-foreground mt-1">
                   {queueStatus === "healthy"
                     ? "Queue is operating normally"
-                    : "High failure rate detected"}
+                    : (stats?.waiting || 0) > 100
+                      ? "Queue backing up - notifications waiting"
+                      : "High failure rate detected"}
                 </p>
+              </div>
+            </div>
+
+            {/* Info about Redis persistence */}
+            <div className="mt-4 p-4 rounded-lg border bg-muted/50">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Redis-Backed Queue</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Notifications are persisted to Redis before processing. If the server crashes or restarts,
+                    pending notifications are automatically recovered and re-processed. Statistics (completed/failed)
+                    are also persisted to Redis and survive restarts.
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
       </motion.div>
 
-      {/* Queue Maintenance */}
+      {/* Queue Items */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -243,73 +294,108 @@ export function QueueManager({ onRefresh }: QueueManagerProps) {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  <Trash2 className="h-5 w-5" />
-                  Queue Maintenance
+                  <ListIcon className="h-5 w-5" />
+                  Pending Notifications
                 </CardTitle>
-                <CardDescription>Clean up old completed and failed jobs</CardDescription>
+                <CardDescription>
+                  {queueItems.length > 0
+                    ? `${queueItems.length} notification${queueItems.length !== 1 ? "s" : ""} waiting in queue`
+                    : "No notifications in queue"}
+                </CardDescription>
               </div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm" disabled={isCleaning}>
-                    {isCleaning ? (
-                      <>
-                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                        Cleaning...
-                      </>
-                    ) : (
-                      <>
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Clean Queue
-                      </>
-                    )}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Clean Queue Jobs?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will permanently remove all completed and failed jobs older than {cleanOlderThan}{" "}
-                      hours. This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleClean}>Clean Queue</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={fetchQueueItems}
+                disabled={isLoadingItems}
+              >
+                <RefreshCw className={`h-4 w-4 ${isLoadingItems ? "animate-spin" : ""}`} />
+              </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="cleanOlderThan">Remove jobs older than (hours)</Label>
-              <Input
-                id="cleanOlderThan"
-                type="number"
-                min="1"
-                value={cleanOlderThan}
-                onChange={(e) => setCleanOlderThan(e.target.value)}
-                placeholder="24"
-              />
-              <p className="text-xs text-muted-foreground">
-                Default: 24 hours. Removes completed and failed jobs older than the specified time.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-lg border bg-muted/50">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Important Notes</p>
-                  <ul className="text-xs text-muted-foreground mt-2 space-y-1">
-                    <li>• Only completed and failed jobs will be removed</li>
-                    <li>• Active and waiting jobs are never affected</li>
-                    <li>• This helps maintain queue performance</li>
-                    <li>• Regular cleanup is recommended for production environments</li>
-                  </ul>
-                </div>
+          <CardContent>
+            {queueItems.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Database className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p className="text-sm">Queue is empty</p>
+                <p className="text-xs mt-1">Notifications will appear here when queued</p>
               </div>
-            </div>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>User</TableHead>
+                      <TableHead>Channels</TableHead>
+                      <TableHead>Age</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {queueItems.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell>
+                          <Badge
+                            variant={item.status === "processing" ? "default" : "secondary"}
+                            className={
+                              item.status === "processing"
+                                ? "bg-blue-500/10 text-blue-500"
+                                : "bg-amber-500/10 text-amber-500"
+                            }
+                          >
+                            {item.status === "processing" ? (
+                              <Play className="h-3 w-3 mr-1" />
+                            ) : (
+                              <Clock className="h-3 w-3 mr-1" />
+                            )}
+                            {item.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {item.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate" title={item.title}>
+                          {item.title}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <User className="h-3 w-3" />
+                            <span className="truncate max-w-[100px]" title={item.userId}>
+                              {item.userId.substring(0, 8)}...
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            {item.channels?.map((channel) => {
+                              const Icon = channelIcons[channel] || Bell;
+                              return (
+                                <span
+                                  key={channel}
+                                  title={channel}
+                                  className="p-1 rounded bg-muted"
+                                >
+                                  <Icon className="h-3 w-3" />
+                                </span>
+                              );
+                            }) || (
+                              <span className="text-xs text-muted-foreground">Default</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs text-muted-foreground">{item.age}</span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>

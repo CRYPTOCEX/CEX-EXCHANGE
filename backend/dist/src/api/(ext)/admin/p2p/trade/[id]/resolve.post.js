@@ -1,1 +1,373 @@
-"use strict";var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,r,a){void 0===a&&(a=r);var o=Object.getOwnPropertyDescriptor(t,r);o&&!("get"in o?!t.__esModule:o.writable||o.configurable)||(o={enumerable:!0,get:function(){return t[r]}});Object.defineProperty(e,a,o)}:function(e,t,r,a){void 0===a&&(a=r);e[a]=t[r]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&(t[t.length]=r);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var r={};if(null!=t)for(var a=e(t),o=0;o<a.length;o++)"default"!==a[o]&&__createBinding(r,t,a[o]);__setModuleDefault(r,t);return r}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),console_1=require("@b/utils/console"),wallet_1=require("@b/services/wallet"),Middleware_1=require("@b/handler/Middleware"),ownership_1=require("../../../../p2p/utils/ownership");exports.metadata={summary:"Resolve Trade (Admin)",description:"Resolves a disputed trade by updating its status, handling funds based on resolution outcome.",operationId:"resolveAdminP2PTrade",tags:["Admin","Trades","P2P"],requiresAuth:!0,middleware:[Middleware_1.p2pAdminTradeRateLimit],logModule:"ADMIN_P2P",logTitle:"Resolve P2P trade",parameters:[{index:0,name:"id",in:"path",description:"Trade ID",required:!0,schema:{type:"string"}}],requestBody:{description:"Resolution details",required:!0,content:{"application/json":{schema:{type:"object",properties:{resolution:{type:"string",enum:["BUYER_WINS","SELLER_WINS","SPLIT","CANCELLED"],description:"Resolution outcome"},notes:{type:"string",description:"Admin notes about the resolution"}},required:["resolution"]}}}},responses:{200:{description:"Trade resolved successfully."},401:{description:"Unauthorized."},404:{description:"Trade not found."},500:{description:"Internal Server Error."}},permission:"edit.p2p.trade"};exports.default=async e=>{var t,r;const{params:a,body:o,user:i,ctx:n}=e,{id:s}=a,{resolution:l,notes:d}=o,{notifyTradeEvent:u}=await Promise.resolve().then(()=>__importStar(require("../../../../p2p/utils/notifications"))),{broadcastP2PTradeEvent:c}=await Promise.resolve().then(()=>__importStar(require("../../../../p2p/trade/[id]/index.ws"))),{getWalletSafe:f}=await Promise.resolve().then(()=>__importStar(require("@b/api/finance/wallet/utils"))),{sanitizeInput:p}=await Promise.resolve().then(()=>__importStar(require("../../../../p2p/utils/validation"))),{parseAmountConfig:m}=await Promise.resolve().then(()=>__importStar(require("../../../../p2p/utils/json-parser"))),_=await db_1.sequelize.transaction();try{null==n||n.step("Fetching trade");const e=await db_1.models.p2pTrade.findByPk(s,{include:[{model:db_1.models.p2pOffer,as:"offer",attributes:["currency","walletType","type","id"]}],lock:!0,transaction:_});if(!e){await _.rollback();null==n||n.fail("Trade not found");throw(0,error_1.createError)({statusCode:404,message:"Trade not found"})}null==n||n.step("Validating trade status");if(!["DISPUTED","PAYMENT_SENT","PENDING"].includes(e.status)){await _.rollback();null==n||n.fail(`Cannot resolve trade with status: ${e.status}`);throw(0,error_1.createError)({statusCode:400,message:`Cannot resolve trade with status: ${e.status}`})}const a=d?p(d):"",o=e.status;let E="COMPLETED",w=!1;null==n||n.step(`Processing resolution: ${l}`);if("BUYER_WINS"===l||"SPLIT"===l){if(e.offer&&"COMPLETED"!==e.status){const t=await f(e.sellerId,e.offer.walletType,e.offer.currency);if(t){const r=Math.min(e.amount,t.inOrder);if(r>0){const a=parseFloat(e.escrowFee||"0"),o=Math.max(0,e.amount-a),n=`p2p_resolve_seller_${e.id}`;await wallet_1.walletService.executeFromHold({idempotencyKey:n,userId:e.sellerId,walletId:t.id,walletType:e.offer.walletType,currency:e.offer.currency,amount:e.amount,operationType:"P2P_TRADE_RESOLVE",fee:a,description:`P2P trade resolved by admin - ${l}`,metadata:{tradeId:e.id,resolution:l,adminId:i.id},transaction:_});r<e.amount&&console_1.logger.warn("P2P_RESOLVE",`Partial fund handling for trade ${e.id}: unlocked=${r}`);const s=await wallet_1.walletCreationService.getOrCreateWallet(e.buyerId,e.offer.walletType,e.offer.currency),d=`p2p_resolve_buyer_${e.id}_${Date.now()}`;await wallet_1.walletService.credit({idempotencyKey:d,userId:e.buyerId,walletId:s.id,walletType:e.offer.walletType,currency:e.offer.currency,amount:o,operationType:"P2P_TRADE_RECEIVE",description:"P2P trade resolved - buyer wins",metadata:{tradeId:e.id,resolution:l,adminId:i.id,originalAmount:e.amount,platformFee:a},transaction:_});if(a>0){await db_1.models.p2pCommission.create({adminId:i.id,amount:a,description:`P2P escrow fee for resolved trade #${e.id.slice(0,8)}... - ${e.amount} ${e.offer.currency}`,tradeId:e.id},{transaction:_});console_1.logger.info("P2P_RESOLVE",`Platform commission recorded for trade ${e.id}: ${a} ${e.offer.currency}`)}w=!0}else console_1.logger.warn("P2P_RESOLVE",`No funds available to transfer for trade ${e.id}`)}}E="COMPLETED"}else if("SELLER_WINS"===l||"CANCELLED"===l){if(e.offer&&"COMPLETED"!==e.status){if("BUY"===e.offer.type){const t=await f(e.sellerId,e.offer.walletType,e.offer.currency);if(t){const r=Math.min(e.amount,t.inOrder);if(r>0){const a=`p2p_resolve_release_${e.id}_${Date.now()}`;await wallet_1.walletService.release({idempotencyKey:a,userId:e.sellerId,walletId:t.id,walletType:e.offer.walletType,currency:e.offer.currency,amount:r,operationType:"P2P_TRADE_RESOLVE",description:`P2P trade resolved - ${l}`,metadata:{tradeId:e.id,resolution:l,adminId:i.id},transaction:_});w=!0;console_1.logger.info("P2P_RESOLVE",`${l}: Unlocked ${r} for trade ${e.id} (BUY offer)`);r<e.amount&&console_1.logger.warn("P2P_RESOLVE",`${l}: Partial unlock for trade ${e.id}: ${r}/${e.amount}`)}else console_1.logger.warn("P2P_RESOLVE",`${l}: No funds to unlock for trade ${e.id}`)}}else console_1.logger.info("P2P_RESOLVE",`${l}: SELL offer - funds remain locked for offer ${e.offerId}`);if(e.offerId){const r=await db_1.models.p2pOffer.findByPk(e.offerId,{lock:!0,transaction:_});if(r&&["ACTIVE","PAUSED"].includes(r.status)){const a=m(r.amountConfig),o=null!==(t=a.originalTotal)&&void 0!==t?t:a.total+e.amount,i=a.total+e.amount,n=Math.min(i,o);if(n>a.total){await r.update({amountConfig:{...a,total:n,originalTotal:o}},{transaction:_});console_1.logger.info("P2P_RESOLVE",`${l}: Restored offer ${r.id} amount: ${a.total} -> ${n}`)}}}}E="CANCELLED"}let y=e.timeline||[];if("string"==typeof y)try{y=JSON.parse(y)}catch(e){y=[]}Array.isArray(y)||(y=[]);y.push({event:"ADMIN_RESOLVED",message:`Trade resolved by admin: ${l}${a?` - ${a}`:""}`,userId:i.id,adminName:`${i.firstName} ${i.lastName}`,resolution:l,createdAt:(new Date).toISOString()});null==n||n.step("Updating trade status");await e.update({status:E,timeline:y,resolution:{outcome:l,notes:a,resolvedBy:i.id},completedAt:"COMPLETED"===E?new Date:null,cancelledAt:"CANCELLED"===E?new Date:null},{transaction:_});null==n||n.step("Updating related dispute if exists");const P=await db_1.models.p2pDispute.findOne({where:{tradeId:s},transaction:_});P&&await P.update({status:"RESOLVED",resolution:{outcome:l,notes:a,resolvedBy:i.id,resolvedAt:(new Date).toISOString()},resolvedOn:new Date},{transaction:_});null==n||n.step("Logging activity");await db_1.models.p2pActivityLog.create({userId:i.id,type:"ADMIN_TRADE_RESOLVED",action:"ADMIN_TRADE_RESOLVED",relatedEntity:"TRADE",relatedEntityId:e.id,details:JSON.stringify({previousStatus:o,finalStatus:E,resolution:l,notes:a,fundsReleased:w,adminId:i.id,adminName:`${i.firstName} ${i.lastName}`})},{transaction:_});await(0,ownership_1.logP2PAdminAction)(i.id,"TRADE_RESOLVED","TRADE",e.id,{previousStatus:o,finalStatus:E,resolution:l,fundsReleased:w});await _.commit();null==n||n.step("Sending notifications");u(e.id,"COMPLETED"===E?"TRADE_COMPLETED":"TRADE_CANCELLED",{buyerId:e.buyerId,sellerId:e.sellerId,amount:e.amount,currency:(null===(r=e.offer)||void 0===r?void 0:r.currency)||e.currency,adminResolved:!0,resolution:l}).catch(e=>console_1.logger.error("P2P_RESOLVE",`Notification error: ${e}`));c(e.id,{type:"STATUS_CHANGE",data:{status:E,previousStatus:o,resolution:l,adminResolved:!0,timeline:y}});null==n||n.success("Trade resolved successfully");return{message:"Trade resolved successfully.",trade:{id:e.id,status:E,resolution:l,fundsReleased:w}}}catch(e){await _.rollback();if(e.statusCode)throw e;null==n||n.fail("Failed to resolve trade");throw(0,error_1.createError)({statusCode:500,message:"Internal Server Error: "+e.message})}};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const console_1 = require("@b/utils/console");
+const wallet_1 = require("@b/services/wallet");
+const Middleware_1 = require("@b/handler/Middleware");
+const ownership_1 = require("../../../../p2p/utils/ownership");
+exports.metadata = {
+    summary: "Resolve Trade (Admin)",
+    description: "Resolves a disputed trade by updating its status, handling funds based on resolution outcome.",
+    operationId: "resolveAdminP2PTrade",
+    tags: ["Admin", "Trades", "P2P"],
+    requiresAuth: true,
+    middleware: [Middleware_1.p2pAdminTradeRateLimit],
+    logModule: "ADMIN_P2P",
+    logTitle: "Resolve P2P trade",
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            description: "Trade ID",
+            required: true,
+            schema: { type: "string" },
+        },
+    ],
+    requestBody: {
+        description: "Resolution details",
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        resolution: {
+                            type: "string",
+                            enum: ["BUYER_WINS", "SELLER_WINS", "SPLIT", "CANCELLED"],
+                            description: "Resolution outcome"
+                        },
+                        notes: { type: "string", description: "Admin notes about the resolution" },
+                    },
+                    required: ["resolution"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: { description: "Trade resolved successfully." },
+        401: { description: "Unauthorized." },
+        404: { description: "Trade not found." },
+        500: { description: "Internal Server Error." },
+    },
+    permission: "edit.p2p.trade",
+};
+exports.default = async (data) => {
+    var _a, _b, _c, _d, _e, _f, _g;
+    const { params, body, user, ctx } = data;
+    const { id } = params;
+    const { resolution, notes } = body;
+    const { notifyTradeEvent } = await Promise.resolve().then(() => __importStar(require("../../../../p2p/utils/notifications")));
+    const { broadcastP2PTradeEvent } = await Promise.resolve().then(() => __importStar(require("../../../../p2p/trade/[id]/index.ws")));
+    const { getWalletSafe } = await Promise.resolve().then(() => __importStar(require("@b/api/finance/wallet/utils")));
+    const { sanitizeInput } = await Promise.resolve().then(() => __importStar(require("../../../../p2p/utils/validation")));
+    const { parseAmountConfig } = await Promise.resolve().then(() => __importStar(require("../../../../p2p/utils/json-parser")));
+    const transaction = await db_1.sequelize.transaction();
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching trade");
+        const trade = await db_1.models.p2pTrade.findByPk(id, {
+            include: [{
+                    model: db_1.models.p2pOffer,
+                    as: "offer",
+                    attributes: ["currency", "walletType", "type", "id"],
+                }],
+            lock: true,
+            transaction,
+        });
+        if (!trade) {
+            await transaction.rollback();
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Trade not found");
+            throw (0, error_1.createError)({ statusCode: 404, message: "Trade not found" });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating trade status");
+        if (!["DISPUTED", "PAYMENT_SENT", "PENDING"].includes(trade.status)) {
+            await transaction.rollback();
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Cannot resolve trade with status: ${trade.status}`);
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Cannot resolve trade with status: ${trade.status}`
+            });
+        }
+        const sanitizedNotes = notes ? sanitizeInput(notes) : "";
+        const previousStatus = trade.status;
+        let finalStatus = "COMPLETED";
+        let fundsReleased = false;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step(`Processing resolution: ${resolution}`);
+        if (resolution === "BUYER_WINS" || resolution === "SPLIT") {
+            if (trade.offer && trade.status !== "COMPLETED") {
+                const sellerWallet = await getWalletSafe(trade.sellerId, trade.offer.walletType, trade.offer.currency);
+                if (sellerWallet) {
+                    const safeUnlockAmount = Math.min((_a = trade.amount) !== null && _a !== void 0 ? _a : 0, (_b = sellerWallet.inOrder) !== null && _b !== void 0 ? _b : 0);
+                    if (safeUnlockAmount > 0) {
+                        const platformFee = parseFloat(trade.escrowFee || "0");
+                        const buyerNetAmount = Math.max(0, trade.amount - platformFee);
+                        const idempotencyKey = `p2p_resolve_seller_${trade.id}`;
+                        await wallet_1.walletService.executeFromHold({
+                            idempotencyKey,
+                            userId: trade.sellerId,
+                            walletId: sellerWallet.id,
+                            walletType: trade.offer.walletType,
+                            currency: trade.offer.currency,
+                            amount: trade.amount,
+                            operationType: "P2P_TRADE_RESOLVE",
+                            description: `P2P trade resolved by admin - ${resolution}`,
+                            metadata: {
+                                tradeId: trade.id,
+                                resolution,
+                                adminId: user.id,
+                                platformFee,
+                            },
+                            transaction,
+                        });
+                        if (safeUnlockAmount < trade.amount) {
+                            console_1.logger.warn("P2P_RESOLVE", `Partial fund handling for trade ${trade.id}: unlocked=${safeUnlockAmount}`);
+                        }
+                        const buyerWallet = await wallet_1.walletCreationService.getOrCreateWallet(trade.buyerId, trade.offer.walletType, trade.offer.currency);
+                        const buyerIdempotencyKey = `p2p_resolve_buyer_${trade.id}_${Date.now()}`;
+                        await wallet_1.walletService.credit({
+                            idempotencyKey: buyerIdempotencyKey,
+                            userId: trade.buyerId,
+                            walletId: buyerWallet.id,
+                            walletType: trade.offer.walletType,
+                            currency: trade.offer.currency,
+                            amount: buyerNetAmount,
+                            operationType: "P2P_TRADE_RECEIVE",
+                            description: `P2P trade resolved - buyer wins`,
+                            metadata: {
+                                tradeId: trade.id,
+                                resolution,
+                                adminId: user.id,
+                                originalAmount: trade.amount,
+                                platformFee,
+                            },
+                            transaction,
+                        });
+                        if (platformFee > 0) {
+                            await db_1.models.p2pCommission.create({
+                                adminId: user.id,
+                                amount: platformFee,
+                                description: `P2P escrow fee for resolved trade #${trade.id.slice(0, 8)}... - ${trade.amount} ${trade.offer.currency}`,
+                                tradeId: trade.id,
+                            }, { transaction });
+                            console_1.logger.info("P2P_RESOLVE", `Platform commission recorded for trade ${trade.id}: ${platformFee} ${trade.offer.currency}`);
+                        }
+                        fundsReleased = true;
+                    }
+                    else {
+                        console_1.logger.warn("P2P_RESOLVE", `No funds available to transfer for trade ${trade.id}`);
+                    }
+                }
+            }
+            finalStatus = "COMPLETED";
+        }
+        else if (resolution === "SELLER_WINS" || resolution === "CANCELLED") {
+            if (trade.offer && trade.status !== "COMPLETED") {
+                const isBuyOffer = trade.offer.type === "BUY";
+                if (isBuyOffer) {
+                    const sellerWallet = await getWalletSafe(trade.sellerId, trade.offer.walletType, trade.offer.currency);
+                    if (sellerWallet) {
+                        const safeUnlockAmount = Math.min((_c = trade.amount) !== null && _c !== void 0 ? _c : 0, (_d = sellerWallet.inOrder) !== null && _d !== void 0 ? _d : 0);
+                        if (safeUnlockAmount > 0) {
+                            const releaseIdempotencyKey = `p2p_resolve_release_${trade.id}_${Date.now()}`;
+                            await wallet_1.walletService.release({
+                                idempotencyKey: releaseIdempotencyKey,
+                                userId: trade.sellerId,
+                                walletId: sellerWallet.id,
+                                walletType: trade.offer.walletType,
+                                currency: trade.offer.currency,
+                                amount: safeUnlockAmount,
+                                operationType: "P2P_TRADE_RESOLVE",
+                                description: `P2P trade resolved - ${resolution}`,
+                                metadata: {
+                                    tradeId: trade.id,
+                                    resolution,
+                                    adminId: user.id,
+                                },
+                                transaction,
+                            });
+                            fundsReleased = true;
+                            console_1.logger.info("P2P_RESOLVE", `${resolution}: Unlocked ${safeUnlockAmount} for trade ${trade.id} (BUY offer)`);
+                            if (safeUnlockAmount < trade.amount) {
+                                console_1.logger.warn("P2P_RESOLVE", `${resolution}: Partial unlock for trade ${trade.id}: ${safeUnlockAmount}/${trade.amount}`);
+                            }
+                        }
+                        else {
+                            console_1.logger.warn("P2P_RESOLVE", `${resolution}: No funds to unlock for trade ${trade.id}`);
+                        }
+                    }
+                }
+                else {
+                    console_1.logger.info("P2P_RESOLVE", `${resolution}: SELL offer - funds remain locked for offer ${trade.offerId}`);
+                }
+                if (trade.offerId) {
+                    const offer = await db_1.models.p2pOffer.findByPk(trade.offerId, {
+                        lock: true,
+                        transaction,
+                    });
+                    if (offer && ["ACTIVE", "PAUSED"].includes(offer.status)) {
+                        const amountConfig = parseAmountConfig(offer.amountConfig);
+                        const tradeAmount = (_e = trade.amount) !== null && _e !== void 0 ? _e : 0;
+                        const originalTotal = (_f = amountConfig.originalTotal) !== null && _f !== void 0 ? _f : (amountConfig.total + tradeAmount);
+                        const proposedTotal = amountConfig.total + tradeAmount;
+                        const safeTotal = Math.min(proposedTotal, originalTotal);
+                        if (safeTotal > amountConfig.total) {
+                            await offer.update({
+                                amountConfig: {
+                                    ...amountConfig,
+                                    total: safeTotal,
+                                    originalTotal,
+                                },
+                            }, { transaction });
+                            console_1.logger.info("P2P_RESOLVE", `${resolution}: Restored offer ${offer.id} amount: ${amountConfig.total} -> ${safeTotal}`);
+                        }
+                    }
+                }
+            }
+            finalStatus = "CANCELLED";
+        }
+        let timeline = trade.timeline || [];
+        if (typeof timeline === "string") {
+            try {
+                timeline = JSON.parse(timeline);
+            }
+            catch (e) {
+                timeline = [];
+            }
+        }
+        if (!Array.isArray(timeline)) {
+            timeline = [];
+        }
+        timeline.push({
+            event: "ADMIN_RESOLVED",
+            message: `Trade resolved by admin: ${resolution}${sanitizedNotes ? ` - ${sanitizedNotes}` : ""}`,
+            userId: user.id,
+            adminName: `${user.firstName} ${user.lastName}`,
+            resolution,
+            createdAt: new Date().toISOString(),
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating trade status");
+        await trade.update({
+            status: finalStatus,
+            timeline,
+            resolution: { outcome: resolution, notes: sanitizedNotes, resolvedBy: user.id },
+            completedAt: finalStatus === "COMPLETED" ? new Date() : null,
+            cancelledAt: finalStatus === "CANCELLED" ? new Date() : null,
+        }, { transaction });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating related dispute if exists");
+        const dispute = await db_1.models.p2pDispute.findOne({
+            where: { tradeId: id },
+            transaction,
+        });
+        if (dispute) {
+            await dispute.update({
+                status: "RESOLVED",
+                resolution: {
+                    outcome: resolution,
+                    notes: sanitizedNotes,
+                    resolvedBy: user.id,
+                    resolvedAt: new Date().toISOString(),
+                },
+                resolvedOn: new Date(),
+            }, { transaction });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Logging activity");
+        await db_1.models.p2pActivityLog.create({
+            userId: user.id,
+            type: "ADMIN_TRADE_RESOLVED",
+            action: "ADMIN_TRADE_RESOLVED",
+            relatedEntity: "TRADE",
+            relatedEntityId: trade.id,
+            details: JSON.stringify({
+                previousStatus,
+                finalStatus,
+                resolution,
+                notes: sanitizedNotes,
+                fundsReleased,
+                adminId: user.id,
+                adminName: `${user.firstName} ${user.lastName}`,
+            }),
+        }, { transaction });
+        await (0, ownership_1.logP2PAdminAction)(user.id, "TRADE_RESOLVED", "TRADE", trade.id, {
+            previousStatus,
+            finalStatus,
+            resolution,
+            fundsReleased,
+        });
+        await transaction.commit();
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending notifications");
+        notifyTradeEvent(trade.id, finalStatus === "COMPLETED" ? "TRADE_COMPLETED" : "TRADE_CANCELLED", {
+            buyerId: trade.buyerId,
+            sellerId: trade.sellerId,
+            amount: trade.amount,
+            currency: ((_g = trade.offer) === null || _g === void 0 ? void 0 : _g.currency) || trade.currency,
+            adminResolved: true,
+            resolution,
+        }).catch((err) => console_1.logger.error("P2P_RESOLVE", `Notification error: ${err}`));
+        broadcastP2PTradeEvent(trade.id, {
+            type: "STATUS_CHANGE",
+            data: {
+                status: finalStatus,
+                previousStatus,
+                resolution,
+                adminResolved: true,
+                timeline,
+            },
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Trade resolved successfully");
+        return {
+            message: "Trade resolved successfully.",
+            trade: {
+                id: trade.id,
+                status: finalStatus,
+                resolution,
+                fundsReleased,
+            }
+        };
+    }
+    catch (err) {
+        await transaction.rollback();
+        if (err.statusCode) {
+            throw err;
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to resolve trade");
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: "Internal Server Error: " + err.message,
+        });
+    }
+};

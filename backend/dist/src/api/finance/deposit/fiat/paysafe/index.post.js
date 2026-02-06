@@ -1,1 +1,340 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),console_1=require("@b/utils/console"),utils_1=require("./utils");exports.metadata={summary:"Creates a Paysafe payment session",description:"Initiates a payment with Paysafe using Payment Handles API and returns checkout URL for various payment methods",operationId:"createPaysafePayment",tags:["Finance","Deposit","Paysafe"],requiresAuth:!0,logModule:"PAYSAFE_DEPOSIT",logTitle:"Create Paysafe payment session",requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{amount:{type:"number",description:"Payment amount",minimum:.01},currency:{type:"string",description:"Payment currency code",example:"USD"},paymentType:{type:"string",description:"Preferred payment method type",enum:["CARD","PAYPAL","VENMO","SKRILL","NETELLER","APPLEPAY","GOOGLEPAY","ACH","EFT","PAYSAFECARD","PAYSAFECASH"],default:"CARD"},locale:{type:"string",description:"User locale for payment page",example:"en_US"}},required:["amount","currency"]}}}},responses:{200:{description:"Paysafe payment session created successfully",content:{"application/json":{schema:{type:"object",properties:{success:{type:"boolean"},data:{type:"object",properties:{transaction_id:{type:"string"},payment_handle_id:{type:"string"},payment_handle_token:{type:"string"},checkout_url:{type:"string"},reference:{type:"string"},status:{type:"string"},gateway:{type:"string"},amount:{type:"number"},currency:{type:"string"},payment_type:{type:"string"},expires_at:{type:"string"},available_methods:{type:"object",additionalProperties:{type:"string"}}}}}}}}},400:{description:"Bad request - Invalid parameters",content:{"application/json":{schema:{type:"object",properties:{error:{type:"string"},details:{type:"object"}}}}}},401:{description:"Unauthorized"},404:{description:"Payment gateway not found"},500:{description:"Internal server error"}}};exports.default=async e=>{var t,r,a,s,o,n;const{user:i,body:d}=e,{amount:u,currency:c,paymentType:p="CARD",locale:l="en_US"}=d;if(!(null==i?void 0:i.id))throw(0,error_1.createError)({statusCode:401,message:"User not authenticated"});if(!u||u<=0)throw(0,error_1.createError)({statusCode:400,message:"Invalid amount provided"});if(!c)throw(0,error_1.createError)({statusCode:400,message:"Currency is required"});const y=c.toUpperCase();try{(0,utils_1.validatePaysafeConfig)();if(!(0,utils_1.isCurrencySupported)(y))throw(0,error_1.createError)({statusCode:400,message:`Currency ${y} is not supported by Paysafe`});const d=await db_1.models.depositGateway.findOne({where:{id:"paysafe"}});if(!d||!d.status)throw(0,error_1.createError)({statusCode:400,message:"Paysafe payment gateway is not available"});if(!JSON.parse(d.currencies||"[]").includes(y))throw(0,error_1.createError)({statusCode:400,message:`Currency ${y} is not supported`});const m=d.getMinAmount(c),f=d.getMaxAmount(c);if(u<m)throw(0,error_1.createError)({statusCode:400,message:`Minimum amount is ${m} ${y}`});if(null!==f&&u>f)throw(0,error_1.createError)({statusCode:400,message:`Maximum amount is ${f} ${y}`});const g=(0,utils_1.generatePaysafeReference)(),_=await db_1.models.transaction.create({uuid:g,userId:i.id,type:"DEPOSIT",status:"PENDING",amount:u,fee:0,description:`Paysafe deposit - ${u} ${y}`,metadata:JSON.stringify({gateway:"paysafe",currency:y,originalAmount:u,paymentType:p,locale:l})}),h=await db_1.models.user.findByPk(i.id,{attributes:["firstName","lastName","email","phone"]}),P={merchantRefNum:g,transactionType:"PAYMENT",amount:(0,utils_1.formatPaysafeAmount)(u,y),currencyCode:y,paymentType:p,customerIp:e.remoteAddress||"127.0.0.1",billingDetails:{street:(null==h?void 0:h.firstName)||"N/A",city:"N/A",zip:"00000",country:(0,utils_1.getRegionFromCurrency)(y)},customer:{merchantCustomerId:i.id,firstName:(null==h?void 0:h.firstName)||"Customer",lastName:(null==h?void 0:h.lastName)||"User",email:(null==h?void 0:h.email)||`user${i.id}@example.com`,phone:(null==h?void 0:h.phone)||"+1234567890",ip:e.remoteAddress||"127.0.0.1"},merchantDescriptor:{dynamicDescriptor:"Paysafe Payment",phone:"+1234567890"},returnLinks:[{rel:"on_completed",href:(0,utils_1.buildReturnUrl)(),method:"GET"},{rel:"on_failed",href:(0,utils_1.buildCancelUrl)(),method:"GET"},{rel:"default",href:(0,utils_1.buildReturnUrl)(),method:"GET"}],webhookUrl:(0,utils_1.buildWebhookUrl)()},w=await(0,utils_1.makeApiRequest)("paymenthandles",{method:"POST",body:P});await _.update({metadata:{..._.metadata,paymentHandleId:w.id,paymentHandleToken:w.paymentHandleToken,gatewayId:null===(t=w.gatewayResponse)||void 0===t?void 0:t.id,processorId:null===(r=w.gatewayResponse)||void 0===r?void 0:r.processor}});const A=null===(a=w.links)||void 0===a?void 0:a.find(e=>"redirect_payment"===e.rel||"checkout"===e.rel);if(!A)throw(0,error_1.createError)({statusCode:500,message:"No checkout URL received from Paysafe"});const b=(0,utils_1.getAvailablePaymentMethods)(y).reduce((e,t)=>{e[t]=(0,utils_1.getPaymentMethodDisplayName)(t);return e},{}),v=new Date(Date.now()+1e3*w.timeToLiveSeconds).toISOString();return{success:!0,data:{transaction_id:_.id,payment_handle_id:w.id,payment_handle_token:w.paymentHandleToken,checkout_url:A.href,reference:g,status:"PENDING",gateway:"paysafe",amount:u,currency:y,payment_type:p,expires_at:v,available_methods:b,processor:(null===(s=w.gatewayResponse)||void 0===s?void 0:s.processor)||"PAYSAFE",gateway_response:{id:null===(o=w.gatewayResponse)||void 0===o?void 0:o.id,processor:null===(n=w.gatewayResponse)||void 0===n?void 0:n.processor,action:w.action,execution_mode:w.executionMode,usage:w.usage}}}}catch(e){console_1.logger.error("PAYSAFE","Payment creation error",e);if(e instanceof utils_1.PaysafeError)throw(0,error_1.createError)({statusCode:e.status,message:`Paysafe Error: ${e.message}`});throw(0,error_1.createError)({statusCode:500,message:e.message||"Failed to create Paysafe payment"})}};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const console_1 = require("@b/utils/console");
+const utils_1 = require("./utils");
+exports.metadata = {
+    summary: 'Creates a Paysafe payment session',
+    description: 'Initiates a payment with Paysafe using Payment Handles API and returns checkout URL for various payment methods',
+    operationId: 'createPaysafePayment',
+    tags: ['Finance', 'Deposit', 'Paysafe'],
+    requiresAuth: true,
+    logModule: "PAYSAFE_DEPOSIT",
+    logTitle: "Create Paysafe payment session",
+    requestBody: {
+        required: true,
+        content: {
+            'application/json': {
+                schema: {
+                    type: 'object',
+                    properties: {
+                        amount: {
+                            type: 'number',
+                            description: 'Payment amount',
+                            minimum: 0.01,
+                        },
+                        currency: {
+                            type: 'string',
+                            description: 'Payment currency code',
+                            example: 'USD',
+                        },
+                        paymentType: {
+                            type: 'string',
+                            description: 'Preferred payment method type',
+                            enum: ['CARD', 'PAYPAL', 'VENMO', 'SKRILL', 'NETELLER', 'APPLEPAY', 'GOOGLEPAY', 'ACH', 'EFT', 'PAYSAFECARD', 'PAYSAFECASH'],
+                            default: 'CARD',
+                        },
+                        locale: {
+                            type: 'string',
+                            description: 'User locale for payment page',
+                            example: 'en_US',
+                        },
+                    },
+                    required: ['amount', 'currency'],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: 'Paysafe payment session created successfully',
+            content: {
+                'application/json': {
+                    schema: {
+                        type: 'object',
+                        properties: {
+                            success: { type: 'boolean' },
+                            data: {
+                                type: 'object',
+                                properties: {
+                                    transaction_id: { type: 'string' },
+                                    payment_handle_id: { type: 'string' },
+                                    payment_handle_token: { type: 'string' },
+                                    checkout_url: { type: 'string' },
+                                    reference: { type: 'string' },
+                                    status: { type: 'string' },
+                                    gateway: { type: 'string' },
+                                    amount: { type: 'number' },
+                                    currency: { type: 'string' },
+                                    payment_type: { type: 'string' },
+                                    expires_at: { type: 'string' },
+                                    available_methods: {
+                                        type: 'object',
+                                        additionalProperties: { type: 'string' }
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        400: {
+            description: 'Bad request - Invalid parameters',
+            content: {
+                'application/json': {
+                    schema: {
+                        type: 'object',
+                        properties: {
+                            error: { type: 'string' },
+                            details: { type: 'object' },
+                        },
+                    },
+                },
+            },
+        },
+        401: {
+            description: 'Unauthorized',
+        },
+        404: {
+            description: 'Payment gateway not found',
+        },
+        500: {
+            description: 'Internal server error',
+        },
+    },
+};
+exports.default = async (data) => {
+    var _a, _b, _c, _d, _e, _f;
+    const { user, body } = data;
+    const { amount, currency, paymentType = 'CARD', locale = 'en_US' } = body;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({
+            statusCode: 401,
+            message: 'User not authenticated',
+        });
+    }
+    if (!amount || amount <= 0) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: 'Invalid amount provided',
+        });
+    }
+    if (!currency) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: 'Currency is required',
+        });
+    }
+    const currencyCode = currency.toUpperCase();
+    try {
+        (0, utils_1.validatePaysafeConfig)();
+        if (!(0, utils_1.isCurrencySupported)(currencyCode)) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Currency ${currencyCode} is not supported by Paysafe`,
+            });
+        }
+        const gateway = await db_1.models.depositGateway.findOne({
+            where: { id: 'paysafe' },
+        });
+        if (!gateway || !gateway.status) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: 'Paysafe payment gateway is not available',
+            });
+        }
+        const rawCurrencies = gateway.currencies || '[]';
+        const supportedCurrencies = Array.isArray(rawCurrencies) ? rawCurrencies : JSON.parse(rawCurrencies);
+        if (!supportedCurrencies.includes(currencyCode)) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Currency ${currencyCode} is not supported`,
+            });
+        }
+        const minAmount = gateway.getMinAmount(currency);
+        const maxAmount = gateway.getMaxAmount(currency);
+        if (amount < minAmount) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Minimum amount is ${minAmount} ${currencyCode}`,
+            });
+        }
+        if (maxAmount !== null && amount > maxAmount) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Maximum amount is ${maxAmount} ${currencyCode}`,
+            });
+        }
+        const reference = (0, utils_1.generatePaysafeReference)();
+        const { walletCreationService } = await Promise.resolve().then(() => __importStar(require('@b/services/wallet')));
+        const walletResult = await walletCreationService.getOrCreateWallet(user.id, 'FIAT', currencyCode);
+        const wallet = walletResult.wallet;
+        const transaction = await db_1.models.transaction.create({
+            userId: user.id,
+            walletId: wallet.id,
+            type: 'DEPOSIT',
+            status: 'PENDING',
+            amount: amount,
+            fee: 0,
+            description: `Paysafe deposit - ${amount} ${currencyCode}`,
+            referenceId: reference,
+            metadata: JSON.stringify({
+                gateway: 'paysafe',
+                currency: currencyCode,
+                originalAmount: amount,
+                paymentType: paymentType,
+                locale: locale,
+            })
+        });
+        const profile = await db_1.models.user.findByPk(user.id, {
+            attributes: ['firstName', 'lastName', 'email', 'phone']
+        });
+        const paymentHandleRequest = {
+            merchantRefNum: transaction.id,
+            transactionType: 'PAYMENT',
+            amount: (0, utils_1.formatPaysafeAmount)(amount, currencyCode),
+            currencyCode: currencyCode,
+            paymentType: paymentType,
+            customerIp: data.remoteAddress || '127.0.0.1',
+            billingDetails: {
+                street: (profile === null || profile === void 0 ? void 0 : profile.firstName) || 'N/A',
+                city: 'N/A',
+                zip: '00000',
+                country: (0, utils_1.getRegionFromCurrency)(currencyCode),
+            },
+            customer: {
+                merchantCustomerId: user.id,
+                firstName: (profile === null || profile === void 0 ? void 0 : profile.firstName) || 'Customer',
+                lastName: (profile === null || profile === void 0 ? void 0 : profile.lastName) || 'User',
+                email: (profile === null || profile === void 0 ? void 0 : profile.email) || `user${user.id}@example.com`,
+                phone: (profile === null || profile === void 0 ? void 0 : profile.phone) || '+1234567890',
+                ip: data.remoteAddress || '127.0.0.1',
+            },
+            merchantDescriptor: {
+                dynamicDescriptor: 'Paysafe Payment',
+                phone: '+1234567890',
+            },
+            returnLinks: [
+                {
+                    rel: 'on_completed',
+                    href: (0, utils_1.buildReturnUrl)(),
+                    method: 'GET',
+                },
+                {
+                    rel: 'on_failed',
+                    href: (0, utils_1.buildCancelUrl)(),
+                    method: 'GET',
+                },
+                {
+                    rel: 'default',
+                    href: (0, utils_1.buildReturnUrl)(),
+                    method: 'GET',
+                },
+            ],
+            webhookUrl: (0, utils_1.buildWebhookUrl)(),
+        };
+        const paymentHandle = await (0, utils_1.makeApiRequest)('paymenthandles', {
+            method: 'POST',
+            body: paymentHandleRequest,
+        });
+        const existingMetadata = typeof transaction.metadata === 'string'
+            ? JSON.parse(transaction.metadata || '{}')
+            : (transaction.metadata || {});
+        await transaction.update({
+            metadata: JSON.stringify({
+                ...existingMetadata,
+                paymentHandleId: paymentHandle.id,
+                paymentHandleToken: paymentHandle.paymentHandleToken,
+                gatewayId: (_a = paymentHandle.gatewayResponse) === null || _a === void 0 ? void 0 : _a.id,
+                processorId: (_b = paymentHandle.gatewayResponse) === null || _b === void 0 ? void 0 : _b.processor,
+            })
+        });
+        const checkoutLink = (_c = paymentHandle.links) === null || _c === void 0 ? void 0 : _c.find(link => link.rel === 'redirect_payment' || link.rel === 'checkout');
+        if (!checkoutLink) {
+            throw (0, error_1.createError)({
+                statusCode: 500,
+                message: 'No checkout URL received from Paysafe',
+            });
+        }
+        const availableMethods = (0, utils_1.getAvailablePaymentMethods)(currencyCode);
+        const methodsDisplay = availableMethods.reduce((acc, method) => {
+            acc[method] = (0, utils_1.getPaymentMethodDisplayName)(method);
+            return acc;
+        }, {});
+        const expiresAt = new Date(Date.now() + (paymentHandle.timeToLiveSeconds * 1000)).toISOString();
+        return {
+            success: true,
+            data: {
+                transaction_id: transaction.id,
+                payment_handle_id: paymentHandle.id,
+                payment_handle_token: paymentHandle.paymentHandleToken,
+                checkout_url: checkoutLink.href,
+                reference: reference,
+                status: 'PENDING',
+                gateway: 'paysafe',
+                amount: amount,
+                currency: currencyCode,
+                payment_type: paymentType,
+                expires_at: expiresAt,
+                available_methods: methodsDisplay,
+                processor: ((_d = paymentHandle.gatewayResponse) === null || _d === void 0 ? void 0 : _d.processor) || 'PAYSAFE',
+                gateway_response: {
+                    id: (_e = paymentHandle.gatewayResponse) === null || _e === void 0 ? void 0 : _e.id,
+                    processor: (_f = paymentHandle.gatewayResponse) === null || _f === void 0 ? void 0 : _f.processor,
+                    action: paymentHandle.action,
+                    execution_mode: paymentHandle.executionMode,
+                    usage: paymentHandle.usage,
+                },
+            },
+        };
+    }
+    catch (error) {
+        console_1.logger.error('PAYSAFE', 'Payment creation error', error);
+        if (error instanceof utils_1.PaysafeError) {
+            throw (0, error_1.createError)({
+                statusCode: error.status,
+                message: `Paysafe Error: ${error.message}`,
+            });
+        }
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: error.message || 'Failed to create Paysafe payment',
+        });
+    }
+};

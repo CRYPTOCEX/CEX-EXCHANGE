@@ -1,1 +1,140 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.EmailChannel=void 0;const BaseChannel_1=require("./BaseChannel"),NotificationQueue_1=require("../queue/NotificationQueue"),TemplateEngine_1=require("../templates/TemplateEngine"),db_1=require("@b/db");class EmailChannel extends BaseChannel_1.BaseChannel{constructor(){super("EMAIL")}async send(e,t){try{this.log("Sending email notification",{userId:e.userId,type:e.type});const r=await db_1.models.user.findByPk(e.userId,{attributes:["email","firstName","lastName"],transaction:t});if(!r||!r.email)return{success:!1,error:"User email not found"};const i=process.env.APP_EMAILER||"nodemailer",a=this.getProviderFromEmailer(i),n=e.data||{},s={user:{firstName:r.firstName,lastName:r.lastName,email:r.email},notification:{title:n.title,message:n.message,link:n.link,type:e.type,priority:e.priority||"NORMAL"},...n.templateData};let o;if(n.templateName)try{o=await TemplateEngine_1.templateEngine.render(n.templateName,s)}catch(e){this.logError("Template rendering failed, using simple email",{templateName:n.templateName,error:e});o=TemplateEngine_1.templateEngine.createSimpleEmail(n.title,n.message,n.templateData)}else o=TemplateEngine_1.templateEngine.createSimpleEmail(n.title,n.message,n.templateData);const l={to:r.email,subject:o.subject,html:o.html,text:o.text,from:n.from||void 0,replyTo:n.replyTo||void 0,attachments:n.attachments||void 0},m=this.getQueuePriority(e.priority),u=await NotificationQueue_1.notificationQueue.addEmailJob(a,l,n.relatedId||`notif-${Date.now()}`,e.userId,m);this.log("Email queued successfully",{userId:e.userId,jobId:u.id,provider:a,to:r.email});return{success:!0,messageId:`email-job-${u.id}`,externalId:String(u.id)}}catch(e){this.logError("Failed to queue email",e);return{success:!1,error:e.message||"Failed to queue email notification"}}}getProviderFromEmailer(e){return e.includes("sendgrid")?"sendgrid":"nodemailer"}getQueuePriority(e){switch(e){case"URGENT":return 10;case"HIGH":return 5;case"NORMAL":default:return 0;case"LOW":return-5}}validateConfig(){const e=process.env.APP_EMAILER;if(!e){this.logError("APP_EMAILER not configured",{});return!1}if(e.includes("sendgrid")){if(!process.env.APP_SENDGRID_API_KEY){this.logError("SendGrid API key not configured",{});return!1}}else{if(!process.env.APP_NODEMAILER_SERVICE&&!process.env.APP_NODEMAILER_SMTP_HOST){this.logError("Nodemailer service/host not configured",{});return!1}if(!process.env.APP_NODEMAILER_SMTP_USERNAME||!process.env.APP_NODEMAILER_SMTP_PASSWORD){this.logError("Nodemailer credentials not configured",{});return!1}}return!0}}exports.EmailChannel=EmailChannel;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.EmailChannel = void 0;
+const BaseChannel_1 = require("./BaseChannel");
+const NotificationQueue_1 = require("../queue/NotificationQueue");
+const TemplateEngine_1 = require("../templates/TemplateEngine");
+const db_1 = require("@b/db");
+class EmailChannel extends BaseChannel_1.BaseChannel {
+    constructor() {
+        super("EMAIL");
+    }
+    async send(operation, transaction) {
+        try {
+            this.log("Sending email notification", {
+                userId: operation.userId,
+                type: operation.type,
+            });
+            const user = await db_1.models.user.findByPk(operation.userId, {
+                attributes: ["email", "firstName", "lastName"],
+                transaction,
+            });
+            if (!user || !user.email) {
+                return {
+                    success: false,
+                    error: "User email not found",
+                };
+            }
+            const emailer = process.env.APP_EMAILER || "nodemailer";
+            const provider = this.getProviderFromEmailer(emailer);
+            const data = operation.data || {};
+            const templateData = {
+                user: {
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                },
+                notification: {
+                    title: data.title,
+                    message: data.message,
+                    link: data.link,
+                    type: operation.type,
+                    priority: operation.priority || "NORMAL",
+                },
+                ...data.templateData,
+            };
+            let emailContent;
+            if (data.templateName) {
+                try {
+                    emailContent = await TemplateEngine_1.templateEngine.render(data.templateName, templateData);
+                }
+                catch (templateError) {
+                    this.logError("Template rendering failed, using simple email", {
+                        templateName: data.templateName,
+                        error: templateError,
+                    });
+                    emailContent = TemplateEngine_1.templateEngine.createSimpleEmail(data.title, data.message, data.templateData);
+                }
+            }
+            else {
+                emailContent = TemplateEngine_1.templateEngine.createSimpleEmail(data.title, data.message, data.templateData);
+            }
+            const emailData = {
+                to: user.email,
+                subject: emailContent.subject,
+                html: emailContent.html,
+                text: emailContent.text,
+                from: data.from || undefined,
+                replyTo: data.replyTo || undefined,
+                attachments: data.attachments || undefined,
+            };
+            const queuePriority = this.getQueuePriority(operation.priority);
+            const job = await NotificationQueue_1.notificationQueue.addEmailJob(provider, emailData, data.relatedId || `notif-${Date.now()}`, operation.userId, queuePriority);
+            this.log("Email queued successfully", {
+                userId: operation.userId,
+                jobId: job.id,
+                provider,
+                to: user.email,
+            });
+            return {
+                success: true,
+                messageId: `email-job-${job.id}`,
+                externalId: String(job.id),
+            };
+        }
+        catch (error) {
+            this.logError("Failed to queue email", error);
+            return {
+                success: false,
+                error: error.message || "Failed to queue email notification",
+            };
+        }
+    }
+    getProviderFromEmailer(emailer) {
+        if (emailer.includes("sendgrid")) {
+            return "sendgrid";
+        }
+        return "nodemailer";
+    }
+    getQueuePriority(priority) {
+        switch (priority) {
+            case "URGENT":
+                return 10;
+            case "HIGH":
+                return 5;
+            case "NORMAL":
+                return 0;
+            case "LOW":
+                return -5;
+            default:
+                return 0;
+        }
+    }
+    validateConfig() {
+        const emailer = process.env.APP_EMAILER;
+        if (!emailer) {
+            this.logError("APP_EMAILER not configured", {});
+            return false;
+        }
+        if (emailer.includes("sendgrid")) {
+            if (!process.env.APP_SENDGRID_API_KEY) {
+                this.logError("SendGrid API key not configured", {});
+                return false;
+            }
+        }
+        else {
+            if (!process.env.APP_NODEMAILER_SERVICE &&
+                !process.env.APP_NODEMAILER_SMTP_HOST) {
+                this.logError("Nodemailer service/host not configured", {});
+                return false;
+            }
+            if (!process.env.APP_NODEMAILER_SMTP_USERNAME ||
+                !process.env.APP_NODEMAILER_SMTP_PASSWORD) {
+                this.logError("Nodemailer credentials not configured", {});
+                return false;
+            }
+        }
+        return true;
+    }
+}
+exports.EmailChannel = EmailChannel;

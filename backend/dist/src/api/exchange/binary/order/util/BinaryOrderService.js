@@ -1,1 +1,1367 @@
-"use strict";function calculateCumulativeProfitAdjustment(e,r,t){var a,o;const i=[...e.durations].sort((e,r)=>e.minutes-r.minutes);let s=0;for(const e of i){const i=(null===(o=null===(a=e.orderTypeOverrides)||void 0===a?void 0:a[t])||void 0===o?void 0:o.profitAdjustment)||0;0!==i&&(s+=i);if(e.minutes>=r)break}return s}function applyFinalPayout(e,r){switch(e.status){case"WIN":return r+e.amount+e.profit;case"LOSS":return 0===e.profit?r:r+e.amount+e.profit;case"DRAW":return r+e.amount;default:return r}}function determineRiseFallStatus(e,r,t){const a=e.profitPercentage||85;if("RISE"===e.side)if(r>e.price){t.status="WIN";t.profit=e.amount*(a/100)}else if(r===e.price)t.status="DRAW";else{t.status="LOSS";t.profit=0}else if(r<e.price){t.status="WIN";t.profit=e.amount*(a/100)}else if(r===e.price)t.status="DRAW";else{t.status="LOSS";t.profit=0}return t}function determineHigherLowerStatus(e,r,t){const a=e.profitPercentage||85,o=e.barrier;if("HIGHER"===e.side)if(r>o){t.status="WIN";t.profit=e.amount*(a/100)}else if(r===o)t.status="DRAW";else{t.status="LOSS";t.profit=0}else if(r<o){t.status="WIN";t.profit=e.amount*(a/100)}else if(r===o)t.status="DRAW";else{t.status="LOSS";t.profit=0}return t}function determineTouchNoTouchStatus(e,r,t){const a=e.profitPercentage||85;if("TOUCH"===e.side)if(r){t.status="WIN";t.profit=e.amount*(a/100)}else{t.status="LOSS";t.profit=0}else if(r){t.status="LOSS";t.profit=0}else{t.status="WIN";t.profit=e.amount*(a/100)}return t}function determineCallPutStatus(e,r,t){const a=e.profitPercentage||85,{strikePrice:o}=e;if(!o){console_1.logger.error("BINARY",`CALL_PUT order ${e.id} missing strikePrice. Defaulting to LOSS.`);t.status="LOSS";t.profit=0;return t}if("CALL"===e.side)if(r>o){t.status="WIN";t.profit=e.amount*(a/100)}else if(r===o)t.status="DRAW";else{t.status="LOSS";t.profit=0}else if(r<o){t.status="WIN";t.profit=e.amount*(a/100)}else if(r===o)t.status="DRAW";else{t.status="LOSS";t.profit=0}return t}function determineTurboStatus(e,r,t,a){const{barrier:o,payoutPerPoint:i}=e;if(!o||!i){console_1.logger.error("BINARY",`TURBO order ${e.id} missing barrier or payoutPerPoint. Defaulting to LOSS.`);a.status="LOSS";a.profit=-e.amount;return a}if(t){a.status="LOSS";a.profit=-e.amount;return a}let s=0;if("UP"===e.side)if(r>o){s=(r-o)*i;if(s>e.amount){a.status="WIN";a.profit=s-e.amount}else if(s===e.amount)a.status="DRAW";else{a.status="LOSS";a.profit=s-e.amount}}else if(r===o)a.status="DRAW";else{a.status="LOSS";a.profit=-e.amount}else if(r<o){s=(o-r)*i;if(s>e.amount){a.status="WIN";a.profit=s-e.amount}else if(s===e.amount)a.status="DRAW";else{a.status="LOSS";a.profit=s-e.amount}}else if(r===o)a.status="DRAW";else{a.status="LOSS";a.profit=-e.amount}return a}function validateIsPositiveNumber(e,r,t){("number"!=typeof e||isNaN(e)||e<=0)&&t.push(`${r} is required and must be a positive number`)}function validateNumberInRange(e,r,t,a,o){("number"!=typeof e||isNaN(e)||e<t||e>a)&&o.push(`${r} must be between ${t} and ${a}`)}function validateAllowedValues(e,r,t,a){r.includes(e)||a.push(`Invalid ${t}: ${e}`)}function validateCreateOrderInput(e){const{side:r,type:t,barrier:a,strikePrice:o,payoutPerPoint:i,durationType:s}=e,n=[];if(!(t in typeConfig))throw(0,error_1.createError)({statusCode:400,message:`Invalid type: ${t}`});const d=typeConfig[t];validateAllowedValues(r,d.validSides,"side",n);d.requiresBarrier&&validateIsPositiveNumber(a,"barrier",n);d.requiresStrikePrice&&validateIsPositiveNumber(o,"strikePrice",n);d.requiresPayoutPerPoint&&validateNumberInRange(i,"payoutPerPoint",.01,1e3,n);d.requiresDurationType?s?validateAllowedValues(s,d.requiresDurationType,"durationType",n):n.push("durationType is required"):s&&"TIME"!==s&&n.push(`durationType "${s}" is not valid for ${t} orders. Only TURBO orders support TICKS duration type.`);if(n.length>0){const e=n.join(", ");throw(0,error_1.createError)({statusCode:400,message:e})}}var __createBinding=this&&this.__createBinding||(Object.create?function(e,r,t,a){void 0===a&&(a=t);var o=Object.getOwnPropertyDescriptor(r,t);o&&!("get"in o?!r.__esModule:o.writable||o.configurable)||(o={enumerable:!0,get:function(){return r[t]}});Object.defineProperty(e,a,o)}:function(e,r,t,a){void 0===a&&(a=t);e[a]=r[t]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,r){Object.defineProperty(e,"default",{enumerable:!0,value:r})}:function(e,r){e.default=r}),__importStar=this&&this.__importStar||function(){var e=function(r){e=Object.getOwnPropertyNames||function(e){var r=[];for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[r.length]=t);return r};return e(r)};return function(r){if(r&&r.__esModule)return r;var t={};if(null!=r)for(var a=e(r),o=0;o<a.length;o++)"default"!==a[o]&&__createBinding(t,r,a[o]);__setModuleDefault(t,r);return t}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.BinaryOrderService=void 0;exports.validateCreateOrderInput=validateCreateOrderInput;const db_1=require("@b/db"),sequelize_1=require("sequelize"),error_1=require("@b/utils/error"),emails_1=require("@b/utils/emails"),notifications_1=require("@b/utils/notifications"),Websocket_1=require("@b/handler/Websocket"),utils_1=require("../utils"),broadcast_1=require("@b/cron/broadcast"),console_1=require("@b/utils/console"),binary_settings_cache_1=require("@b/utils/binary-settings-cache"),wallet_1=require("@b/services/wallet"),ORDER_CONFIG={DUPLICATE_CHECK_WINDOW_MS:5e3,REDLOCK_TTL_MS:5e3,MIN_PRICE_VALUE:1e-8,MAX_PRICE_VALUE:1e9,DEFAULT_MIN_AMOUNT:1,DEFAULT_MAX_AMOUNT:1e5,MS_PER_MINUTE:6e4,CANDLE_LOOKBACK_MS:12e4,BATCH_SIZE:10,DELAY_BETWEEN_BATCHES_MS:1e3};class BinaryOrderService{static async createOrder({userId:e,currency:r,pair:t,amount:a,side:o,type:i,durationId:s,durationType:n="TIME",barrier:d,barrierLevelId:c,strikePrice:l,strikeLevelId:u,payoutPerPoint:f,closedAt:m,isDemo:_,idempotencyKey:p}){var g,b,O,y,h,w,E,T,C;validateCreateOrderInput({side:o,type:i,barrier:d,strikePrice:l,payoutPerPoint:f,durationType:n});if(p){const r=await db_1.models.binaryOrder.findOne({where:{userId:e,metadata:{idempotencyKey:p}}});if(r){console_1.logger.info("BINARY",`Idempotent request detected for user ${e} with key ${p}. Returning existing order ${r.id}`);return r}}const I=await db_1.models.exchangeMarket.findOne({where:{currency:r,pair:t}});if(!I||!I.metadata)throw(0,error_1.createError)({statusCode:404,message:"Market data not found"});const A="string"==typeof I.metadata?JSON.parse(I.metadata):I.metadata,N=Number(null!==(O=null===(b=null===(g=null==A?void 0:A.limits)||void 0===g?void 0:g.amount)||void 0===b?void 0:b.min)&&void 0!==O?O:ORDER_CONFIG.DEFAULT_MIN_AMOUNT),S=Number(null!==(w=null===(h=null===(y=null==A?void 0:A.limits)||void 0===y?void 0:y.amount)||void 0===h?void 0:h.max)&&void 0!==w?w:ORDER_CONFIG.DEFAULT_MAX_AMOUNT);if(N<=0||S<=0||S<N)throw(0,error_1.createError)({statusCode:500,message:"Market configuration error: Invalid amount limits in market metadata"});if(a<N||a>S)throw(0,error_1.createError)({statusCode:400,message:`Amount must be between ${N} and ${S} ${t}`});const P=new Date(m),R=Date.now();if(P.getTime()<=R)throw(0,error_1.createError)({statusCode:400,message:"closedAt must be a future time"});const v=await(0,binary_settings_cache_1.getBinarySettings)();if(!v.global.enabled)throw(0,error_1.createError)({statusCode:400,message:"Binary trading is currently disabled"});const L=v.orderTypes[i];if(!L||!L.enabled)throw(0,error_1.createError)({statusCode:400,message:`Order type ${i} is not currently available`});const $=v.durations.find(e=>e.id===s);if(!$||!$.enabled){const e=v.durations.filter(e=>e.enabled).map(e=>`${e.minutes}m`).join(", ");throw(0,error_1.createError)({statusCode:400,message:`Invalid or inactive duration selected. Available durations: ${e||"none"}`})}const D=null===(E=$.orderTypeOverrides)||void 0===E?void 0:E[i];if(!1===(null==D?void 0:D.enabled))throw(0,error_1.createError)({statusCode:400,message:`Duration ${$.minutes}m is not available for ${i} orders`});const B=v.durations.filter(e=>e.enabled),U=Math.max(...B.map(e=>e.minutes)),k=60*U*1e3;if(P.getTime()-R>k)throw(0,error_1.createError)({statusCode:400,message:`Order duration cannot exceed ${U} minutes (maximum configured duration)`});const W=$.minutes,H=P.getMinutes(),M=P.getSeconds(),q=P.getMilliseconds(),x=H%W===0&&M<=5&&q<=1e3,F=P.getTime()-R,Y=1e3*v.global.orderExpirationBuffer;if(!x)throw(0,error_1.createError)({statusCode:400,message:`closedAt timestamp must align to ${W}-minute boundaries (e.g., ${Array.from({length:Math.floor(60/W)},(e,r)=>`:${String(r*W).padStart(2,"0")}`).join(", ")})`});if(F<Y)throw(0,error_1.createError)({statusCode:400,message:`Order must be placed at least ${v.global.orderExpirationBuffer} seconds before expiry. Time until expiry: ${Math.round(F/1e3)} seconds`});const K=_?"demo":"live";if(L.tradingModes&&!L.tradingModes[K])throw(0,error_1.createError)({statusCode:400,message:`Order type ${i} is not available in ${K} mode`});if(a<=0)throw(0,error_1.createError)({statusCode:400,message:"Amount must be positive"});let G=L.profitPercentage,V=null,j=null;if("HIGHER_LOWER"===i||"TOUCH_NO_TOUCH"===i||"TURBO"===i){const e=(null===(T=L.barrierLevels)||void 0===T?void 0:T.filter(e=>e.enabled))||[];if(0===e.length)throw(0,error_1.createError)({statusCode:400,message:`No barrier levels are configured for ${i} orders`});if(null==d)throw(0,error_1.createError)({statusCode:400,message:`Barrier price is required for ${i} orders`});if(!c)throw(0,error_1.createError)({statusCode:400,message:`Barrier level selection is required for ${i} orders`});V=e.find(e=>e.id===c)||null;if(!V)throw(0,error_1.createError)({statusCode:400,message:"Invalid barrier level selected. Please choose from available levels."});G=V.profitPercent;if("TOUCH_NO_TOUCH"===i){const e=L;"TOUCH"===o?G*=e.touchProfitMultiplier||1:"NO_TOUCH"===o&&(G*=e.noTouchProfitMultiplier||1)}if("TURBO"===i){const e=L;if(null==f)throw(0,error_1.createError)({statusCode:400,message:"Payout per point is required for TURBO orders"});const{min:r,max:t}=e.payoutPerPointRange||{min:.1,max:10};if(f<r||f>t)throw(0,error_1.createError)({statusCode:400,message:`Payout per point must be between ${r} and ${t}`});const a=e.maxDuration||5;if($.minutes>a)throw(0,error_1.createError)({statusCode:400,message:`TURBO orders cannot exceed ${a} minute duration`})}}if("CALL_PUT"===i){const e=(null===(C=L.strikeLevels)||void 0===C?void 0:C.filter(e=>e.enabled))||[];if(0===e.length)throw(0,error_1.createError)({statusCode:400,message:"No strike levels are configured for CALL_PUT orders"});if(null==l)throw(0,error_1.createError)({statusCode:400,message:"Strike price is required for CALL_PUT orders"});if(!u)throw(0,error_1.createError)({statusCode:400,message:"Strike level selection is required for CALL_PUT orders"});j=e.find(e=>e.id===u)||null;if(!j)throw(0,error_1.createError)({statusCode:400,message:"Invalid strike level selected. Please choose from available levels."});G=j.profitPercent}const z=calculateCumulativeProfitAdjustment(v,$.minutes,i);G+=G*z/100;if(G<0||G>1e3)throw(0,error_1.createError)({statusCode:400,message:"Profit percentage must be between 0% and 1000%"});if(await db_1.models.binaryOrder.count({where:{userId:e,symbol:`${r}/${t}`,status:"PENDING",closedAt:P,amount:a,side:o,type:i,createdAt:{[sequelize_1.Op.gte]:new Date(Date.now()-ORDER_CONFIG.DUPLICATE_CHECK_WINDOW_MS)}}})>0)throw(0,error_1.createError)({statusCode:400,message:"Duplicate order detected. Please wait before placing another identical order."});await(0,utils_1.ensureNotBanned)();return await db_1.sequelize.transaction(async c=>{let u;if(!_){u=await db_1.models.wallet.findOne({where:{userId:e,currency:t,type:"SPOT"},transaction:c,lock:c.LOCK.UPDATE});if(!u)throw(0,error_1.createError)({statusCode:404,message:`Wallet not found for currency ${t}. Please ensure you have a ${t} wallet.`});if(u.balance<a)throw(0,error_1.createError)({statusCode:400,message:"Insufficient balance"});const n=p?`binary_order_debit_${p}`:`binary_order_debit_${e}_${r}_${t}_${m}`;await wallet_1.walletService.debit({idempotencyKey:n,userId:e,walletId:u.id,walletType:"SPOT",currency:t,amount:a,operationType:"BINARY_ORDER",description:`Binary ${i} order: ${r}/${t}`,metadata:{orderType:i,currency:r,pair:t,side:o,durationId:s},transaction:c})}const g=await(0,utils_1.ensureExchange)();await(0,utils_1.ensureNotBanned)();let b;try{b=await g.fetchTicker(`${r}/${t}`)}catch(e){console_1.logger.error("BINARY",`Error fetching market data for ${r}/${t}: ${e.message}`);throw(0,error_1.createError)({statusCode:500,message:"Error fetching market data from exchange"})}const O=null==b?void 0:b.last;if(!O||O<=0||isNaN(O)||!isFinite(O))throw(0,error_1.createError)({statusCode:500,message:"Invalid price data from exchange. Please try again."});if(O<ORDER_CONFIG.MIN_PRICE_VALUE||O>ORDER_CONFIG.MAX_PRICE_VALUE)throw(0,error_1.createError)({statusCode:500,message:"Price data from exchange is outside acceptable range. Please contact support."});if("CALL_PUT"===i&&void 0!==l){const e=1e-4*O;if(Math.abs(l-O)<e)throw(0,error_1.createError)({statusCode:400,message:"Strike price must be at least 0.01% away from current price to avoid guaranteed DRAW"});const r=.5*O;if(Math.abs(l-O)>r)throw(0,error_1.createError)({statusCode:400,message:"Strike price must be within 50% of current price for risk management"})}const y=await db_1.models.binaryOrder.create({userId:e,symbol:`${r}/${t}`,type:i,side:o,status:"PENDING",price:O,profit:0,amount:a,isDemo:_,closedAt:P,profitPercentage:G,barrier:["HIGHER_LOWER","TOUCH_NO_TOUCH","TURBO"].includes(i)?d:null,strikePrice:"CALL_PUT"===i?l:null,payoutPerPoint:"CALL_PUT"===i||"TURBO"===i?f:null,durationType:"TURBO"===i?n:"TIME",metadata:p?{idempotencyKey:p}:void 0},{transaction:c});this.scheduleOrderProcessing(y,e);return y})}static async processOrder(e,r,t){const{redlock:a}=await Promise.resolve().then(()=>__importStar(require("@b/utils/redis")));let o;try{o=await a.acquire([`binary:order:${r}`],ORDER_CONFIG.REDLOCK_TTL_MS)}catch(e){console_1.logger.warn("BINARY",`Could not acquire lock for order ${r}. Another process is handling it.`);return}try{await(0,utils_1.ensureNotBanned)();const a=await(0,utils_1.ensureExchange)(),o=await a.fetchTicker(t),i=null==o?void 0:o.last;if(null==i){console_1.logger.error("BINARY",`No close price found for ${t}. Order: ${r}`);return}await db_1.sequelize.transaction({isolationLevel:sequelize_1.Transaction.ISOLATION_LEVELS.REPEATABLE_READ},async t=>{const o=await db_1.models.binaryOrder.findOne({where:{id:r,userId:e,status:"PENDING"},transaction:t,lock:t.LOCK.UPDATE});if(!o){console_1.logger.warn("BINARY",`Order ${r} already processed or not found. Skipping.`);return}let s=!1;"TOUCH_NO_TOUCH"===o.type&&null!=o.barrier&&o.createdAt&&(s=await this.checkIfBarrierTouched(a,o.symbol,o.createdAt,o.closedAt,o.barrier));let n=!1;"TURBO"!==o.type||null==o.barrier||"UP"!==o.side&&"DOWN"!==o.side||!o.createdAt||(n=await this.checkTurboBarrierBreach(a,o.symbol,o.createdAt,o.closedAt,o.barrier,o.side));const d=this.determineOrderStatus(o,i,s,n);await this.updateBinaryOrderWithTransaction(o.id,d,t);this.orderIntervals.delete(o.id)})}catch(e){console_1.logger.error("BINARY",`Error processing order ${r}: ${e}`)}finally{if(o)try{await o.release()}catch(e){console_1.logger.error("BINARY",`Error releasing lock for order ${r}: ${e}`)}}}static async checkTurboBarrierBreach(e,r,t,a,o,i){const s=t.getTime(),n=a.getTime();let d=!1,c=s;try{for(;!d&&c<n;){const t=await e.fetchOHLCV(r,"1m",c,1e3);if(!t||0===t.length){console_1.logger.warn("BINARY",`No OHLCV data for ${r} between ${new Date(c)} and ${new Date(n)}. Assuming no more data.`);break}for(const e of t){const[r,,t,a]=e;if("UP"===i&&a<o){d=!0;break}if("DOWN"===i&&t>o){d=!0;break}if(r>=n)break}const a=t[t.length-1][0];if(a<=c){console_1.logger.warn("BINARY","No progress in OHLCV time. Stopping fetch loop.");break}c=a+6e4}}catch(e){console_1.logger.error("BINARY",`Error fetching OHLC data for TURBO barrier check: ${e}`);throw(0,error_1.createError)({statusCode:500,message:`Failed to check TURBO barrier: ${e}`})}return d}static async checkIfBarrierTouched(e,r,t,a,o){const i=t.getTime(),s=a.getTime();let n=!1,d=i;try{for(;!n&&d<s;){const t=await e.fetchOHLCV(r,"1m",d,1e3);if(!t||0===t.length){console_1.logger.warn("BINARY",`No OHLCV data for ${r} between ${new Date(d)} and ${new Date(s)}.`);break}for(const e of t){const[r,,t,a]=e;if(t>=o&&a<=o){n=!0;break}if(r>=s)break}const a=t[t.length-1][0];if(a<=d){console_1.logger.warn("BINARY","No progress in OHLCV time. Stopping fetch loop.");break}d=a+6e4}}catch(e){console_1.logger.error("BINARY",`Error fetching OHLC data for TOUCH_NO_TOUCH barrier check: ${e}`);throw(0,error_1.createError)({statusCode:500,message:`Failed to check barrier touch: ${e}`})}return n}static async cancelOrder(e,r,t){var a,o;const i=await(0,utils_1.getBinaryOrder)(e,r);if(!i)throw(0,error_1.createError)(404,"Order not found");if(["CANCELED","WIN","LOSS","DRAW"].includes(i.status)){console_1.logger.error("BINARY",`Order ${r} is already ${i.status}. Cannot cancel again.`);return{message:"Order already processed or canceled."}}await(0,utils_1.ensureNotBanned)();const s=await(0,utils_1.ensureExchange)(),n=(await s.fetchTicker(i.symbol)).last;if(!n)throw(0,error_1.createError)(500,"Error fetching current price for the order symbol");const d=await(0,binary_settings_cache_1.getBinarySettings)();if(!(null===(a=d.cancellation)||void 0===a?void 0:a.enabled))throw(0,error_1.createError)(400,"Order cancellation is disabled");const c=null===(o=d.cancellation.rules)||void 0===o?void 0:o[i.type];if(!c||!c.enabled)throw(0,error_1.createError)(400,`Cancellation is not available for ${i.type} orders`);const l=Date.now(),u=new Date(i.closedAt).getTime()-l,f=u/1e3;if(u<=1e3*c.minTimeBeforeExpirySeconds)throw(0,error_1.createError)(400,`Cannot cancel ${i.type} order within ${c.minTimeBeforeExpirySeconds} seconds of expiry. Time remaining: ${Math.round(f)} seconds`);if("TOUCH_NO_TOUCH"===i.type&&i.barrier&&i.createdAt)try{if(await this.checkIfBarrierTouched(s,i.symbol,i.createdAt,new Date,i.barrier))throw(0,error_1.createError)(400,"Cannot cancel TOUCH_NO_TOUCH order: barrier has been touched")}catch(e){console_1.logger.warn("BINARY",`Could not check barrier touch status for order ${r}: ${e.message}`)}if("TURBO"===i.type&&i.barrier&&i.createdAt&&("UP"===i.side||"DOWN"===i.side)){if("TICKS"===i.durationType)throw(0,error_1.createError)(400,"Cannot sell a TURBO contract with TICKS duration early.");try{if(await this.checkTurboBarrierBreach(s,i.symbol,i.createdAt,new Date,i.barrier,i.side))throw(0,error_1.createError)(400,"Cannot cancel TURBO order: barrier has been breached")}catch(e){console_1.logger.warn("BINARY",`Could not check barrier breach status for order ${r}: ${e.message}`)}}let m=c.penaltyPercentage;if(c.penaltyByTimeRemaining){const e=c.penaltyByTimeRemaining;m=f>60?e.above60Seconds:f>30?e.above30Seconds:e.below30Seconds}const _=null!=t?t:m;await this.processStandardCancel(i,n,_);return{message:"Order cancelled",penaltyApplied:_,refundPercentage:100-_}}static async processStandardCancel(e,r,t){await db_1.sequelize.transaction(async a=>{if(!e.isDemo){const r=await db_1.models.transaction.findOne({where:{referenceId:e.id},transaction:a,lock:a.LOCK.UPDATE});if(!r)throw(0,error_1.createError)(404,"Transaction not found for completed order");const o=await db_1.models.wallet.findOne({where:{id:r.walletId},transaction:a,lock:a.LOCK.UPDATE});if(!o)throw(0,error_1.createError)(404,"Wallet not found");let i=e.amount;if(void 0!==t){const r=e.amount*(Math.abs(t)/100);i=e.amount-r;i<0&&(i=0)}if(i>0){const r=`binary_cancel_${e.id}`;await wallet_1.walletService.credit({idempotencyKey:r,userId:e.userId,walletId:o.id,walletType:"SPOT",currency:o.currency,amount:i,operationType:"REFUND",referenceId:e.id,description:`Binary order cancelled - refund ${i} ${o.currency}`,metadata:{orderId:e.id,refundPercentage:t||100,originalAmount:e.amount},transaction:a})}await db_1.models.transaction.update({status:"CANCELLED",metadata:JSON.stringify({cancelledAt:Date.now(),refundPercentage:t||100,refundAmount:i,reason:"Order cancelled by user"})},{where:{id:r.id},transaction:a})}if(this.orderIntervals.has(e.id)){clearTimeout(this.orderIntervals.get(e.id));this.orderIntervals.delete(e.id)}await db_1.models.binaryOrder.update({status:"CANCELED",closePrice:r,profit:0},{where:{id:e.id},transaction:a})})}static async processPendingOrders(e=!0){const r="processPendingOrders",{redlock:t}=await Promise.resolve().then(()=>__importStar(require("@b/utils/redis")));try{const a=await(0,utils_1.getBinaryOrdersByStatus)("PENDING"),o=Date.now(),i=a.filter(e=>new Date(e.closedAt).getTime()<=o&&!this.orderIntervals.has(e.id)),s=await(0,utils_1.ensureExchange)(),n=ORDER_CONFIG.BATCH_SIZE,d=ORDER_CONFIG.DELAY_BETWEEN_BATCHES_MS;for(let a=0;a<i.length;a+=n){const o=i.slice(a,a+n);await Promise.all(o.map(async a=>{let o;try{o=await t.acquire([`binary:order:${a.id}`],ORDER_CONFIG.REDLOCK_TTL_MS)}catch(t){e&&(0,broadcast_1.broadcastLog)(r,`Order ${a.id} is being processed by another instance. Skipping.`,"info");return}try{if("PENDING"!==a.status){e&&(0,broadcast_1.broadcastLog)(r,`Order ${a.id} already processed as ${a.status}. Skipping.`,"error");return}const t="1m";let o;try{const i=Number(a.closedAt),n=await s.fetchOHLCV(a.symbol,t,i-ORDER_CONFIG.CANDLE_LOOKBACK_MS,3);if(n&&n.length>0){const t=n.find(e=>{const r=e[0];return i>=r&&i<r+ORDER_CONFIG.MS_PER_MINUTE});if(t)o=t[4];else{e&&(0,broadcast_1.broadcastLog)(r,`No candle found containing expiry time for order ${a.id}. Using ticker.`,"warning");o=(await s.fetchTicker(a.symbol)).last}}else{e&&(0,broadcast_1.broadcastLog)(r,`Not enough OHLCV data for order ${a.id} to determine closePrice. Using ticker.`,"warning");o=(await s.fetchTicker(a.symbol)).last}}catch(t){e&&(0,broadcast_1.broadcastLog)(r,`Error fetching OHLCV for pending order ${a.id}: ${t.message}`,"error");o=(await s.fetchTicker(a.symbol)).last}if(void 0===o){e&&(0,broadcast_1.broadcastLog)(r,`Unable to determine closePrice for order ${a.id}. Skipping.`,"error");return}const i=this.determineOrderStatus(a,o);await this.updateBinaryOrder(a.id,i)}finally{if(o)try{await o.release()}catch(t){e&&(0,broadcast_1.broadcastLog)(r,`Error releasing lock for order ${a.id}: ${t}`,"error")}}}));a+n<i.length&&await new Promise(e=>setTimeout(e,d))}}catch(t){e&&(0,broadcast_1.broadcastLog)(r,`Error in processPendingOrders: ${t.message}`,"error");throw t}}static determineOrderStatus(e,r,t,a){const o={closePrice:r,profit:0};switch(e.type){case"RISE_FALL":return determineRiseFallStatus(e,r,o);case"HIGHER_LOWER":return determineHigherLowerStatus(e,r,o);case"TOUCH_NO_TOUCH":return determineTouchNoTouchStatus(e,t,o);case"CALL_PUT":return determineCallPutStatus(e,r,o);case"TURBO":return determineTurboStatus(e,r,a,o);default:o.status="LOSS";return o}}static async updateBinaryOrderWithTransaction(e,r,t){const a=await db_1.models.binaryOrder.findOne({where:{id:e},transaction:t});a&&r.status&&console_1.logger.info("BINARY",`Order ${e} state transition: ${a.status} -> ${r.status} | Entry Price: ${a.price} | Close Price: ${r.closePrice||"N/A"} | Profit: ${void 0!==r.profit?r.profit:"N/A"} | Type: ${a.type} | Side: ${a.side} | Amount: ${a.amount}`);await db_1.models.binaryOrder.update(r,{where:{id:e},transaction:t});const o=await db_1.models.binaryOrder.findOne({where:{id:e},transaction:t,lock:t.LOCK.UPDATE});if(!o)throw(0,error_1.createError)({statusCode:404,message:"Order not found after update"});if(!o.isDemo&&["WIN","LOSS","DRAW"].includes(o.status)){const r=await db_1.models.transaction.findOne({where:{referenceId:e},transaction:t});if(!r)throw(0,error_1.createError)({statusCode:404,message:"Transaction not found for completed order"});await db_1.models.transaction.update({status:"COMPLETED"},{where:{id:r.id},transaction:t});const a=await db_1.models.wallet.findOne({where:{id:r.walletId},transaction:t,lock:t.LOCK.UPDATE});if(!a)throw(0,error_1.createError)({statusCode:404,message:"Wallet not found to update balance"});let i=0,s="REFUND";if("WIN"===o.status){i=o.amount+o.profit;s="BINARY_ORDER_WIN"}else if("LOSS"===o.status){if(0!==o.profit){i=o.amount+o.profit;i>0&&(s="BINARY_ORDER_LOSS")}}else if("DRAW"===o.status){i=o.amount;s="REFUND"}if(i>0){const r=`binary_finalize_${e}_${o.status}`;await wallet_1.walletService.credit({idempotencyKey:r,userId:o.userId,walletId:a.id,walletType:"SPOT",currency:a.currency,amount:i,operationType:s,referenceId:`${e}_payout`,description:`Binary order ${o.status}: ${o.symbol}`,metadata:{orderId:e,orderStatus:o.status,originalAmount:o.amount,profit:o.profit},transaction:t})}const n=await db_1.models.wallet.findOne({where:{id:a.id},transaction:t});await Websocket_1.messageBroker.broadcastToSubscribedClients("/api/finance/wallet",{type:"wallet",userId:o.userId,currency:a.currency},{type:"BALANCE_UPDATED",currency:a.currency,balance:(null==n?void 0:n.balance)||a.balance,timestamp:Date.now()})}if(["WIN","LOSS","DRAW"].includes(o.status)){await Websocket_1.messageBroker.broadcastToSubscribedClients("/api/exchange/binary/order",{type:"order",symbol:o.symbol,userId:o.userId},{type:"ORDER_COMPLETED",order:o});const e=await db_1.models.user.findOne({where:{id:o.userId},transaction:t});if(e)try{await(0,emails_1.sendBinaryOrderEmail)(e,o);await(0,notifications_1.createNotification)({userId:e.id,relatedId:o.id,title:"Binary Order Completed",message:`Your binary order for ${o.symbol} has been completed with a status of ${o.status}`,type:"system",link:`/binary?symbol=${encodeURIComponent(o.symbol)}`,actions:[{label:"View Trade",link:`/binary?symbol=${encodeURIComponent(o.symbol)}`,primary:!0}]})}catch(r){console_1.logger.error("BINARY",`Error sending binary order email for user ${e.id}, order ${o.id}: ${r}`)}}}static async updateBinaryOrder(e,r){await db_1.sequelize.transaction(async t=>{await this.updateBinaryOrderWithTransaction(e,r,t)})}static async initializePendingOrders(){try{const e=await db_1.models.binaryOrder.findAll({where:{status:"PENDING"}}),r=Date.now();let t=0,a=0;for(const o of e){if(new Date(o.closedAt).getTime()<=r){await this.processOrder(o.userId,o.id,o.symbol);t++}else{this.scheduleOrderProcessing(o,o.userId);a++}}console_1.logger.info("BINARY",`Initialized pending orders: ${t} processed immediately, ${a} rescheduled`)}catch(e){console_1.logger.error("BINARY",`Failed to initialize pending orders: ${e.message}`)}}static scheduleOrderProcessing(e,r){const t=Date.now(),a=e.closedAt.getTime()-t;if(a<0){console_1.logger.warn("BINARY",`Order ${e.id} closedAt is in the past. Processing immediately.`);this.processOrder(r,e.id,e.symbol);return}const o=setTimeout(()=>{this.processOrder(r,e.id,e.symbol)},a);this.orderIntervals.set(e.id,o)}}exports.BinaryOrderService=BinaryOrderService;BinaryOrderService.orderIntervals=new Map;const typeConfig={RISE_FALL:{validSides:["RISE","FALL"]},HIGHER_LOWER:{validSides:["HIGHER","LOWER"],requiresBarrier:!0},TOUCH_NO_TOUCH:{validSides:["TOUCH","NO_TOUCH"],requiresBarrier:!0},CALL_PUT:{validSides:["CALL","PUT"],requiresStrikePrice:!0,requiresPayoutPerPoint:!0},TURBO:{validSides:["UP","DOWN"],requiresBarrier:!0,requiresPayoutPerPoint:!0,requiresDurationType:["TIME","TICKS"]}};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BinaryOrderService = void 0;
+exports.validateCreateOrderInput = validateCreateOrderInput;
+const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
+const error_1 = require("@b/utils/error");
+const emails_1 = require("@b/utils/emails");
+const notifications_1 = require("@b/utils/notifications");
+const Websocket_1 = require("@b/handler/Websocket");
+const utils_1 = require("../utils");
+const broadcast_1 = require("@b/cron/broadcast");
+const console_1 = require("@b/utils/console");
+const binary_settings_cache_1 = require("@b/utils/binary-settings-cache");
+const wallet_1 = require("@b/services/wallet");
+const ORDER_CONFIG = {
+    DUPLICATE_CHECK_WINDOW_MS: 5000,
+    REDLOCK_TTL_MS: 5000,
+    MIN_PRICE_VALUE: 0.00000001,
+    MAX_PRICE_VALUE: 1000000000,
+    DEFAULT_MIN_AMOUNT: 1,
+    DEFAULT_MAX_AMOUNT: 100000,
+    MS_PER_MINUTE: 60000,
+    CANDLE_LOOKBACK_MS: 120000,
+    BATCH_SIZE: 10,
+    DELAY_BETWEEN_BATCHES_MS: 1000,
+};
+function calculateCumulativeProfitAdjustment(settings, targetDurationMinutes, orderType) {
+    var _a, _b;
+    const sortedDurations = [...settings.durations].sort((a, b) => a.minutes - b.minutes);
+    let cumulativeAdjustment = 0;
+    for (const duration of sortedDurations) {
+        const adjustment = ((_b = (_a = duration.orderTypeOverrides) === null || _a === void 0 ? void 0 : _a[orderType]) === null || _b === void 0 ? void 0 : _b.profitAdjustment) || 0;
+        if (adjustment !== 0) {
+            cumulativeAdjustment += adjustment;
+        }
+        if (duration.minutes >= targetDurationMinutes) {
+            break;
+        }
+    }
+    return cumulativeAdjustment;
+}
+class BinaryOrderService {
+    static async createOrder({ userId, currency, pair, amount, side, type, durationId, durationType = "TIME", barrier, barrierLevelId, strikePrice, strikeLevelId, payoutPerPoint, closedAt, isDemo, idempotencyKey, }) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        validateCreateOrderInput({
+            side,
+            type,
+            barrier,
+            strikePrice,
+            payoutPerPoint,
+            durationType,
+        });
+        if (idempotencyKey) {
+            const existingOrder = await db_1.models.binaryOrder.findOne({
+                where: {
+                    userId,
+                    metadata: {
+                        idempotencyKey: idempotencyKey,
+                    },
+                },
+            });
+            if (existingOrder) {
+                console_1.logger.info("BINARY", `Idempotent request detected for user ${userId} with key ${idempotencyKey}. Returning existing order ${existingOrder.id}`);
+                return existingOrder;
+            }
+        }
+        const market = (await db_1.models.exchangeMarket.findOne({
+            where: { currency, pair },
+        }));
+        if (!market || !market.metadata) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Market data not found" });
+        }
+        const metadata = typeof market.metadata === "string"
+            ? JSON.parse(market.metadata)
+            : market.metadata;
+        const minAmount = Number((_c = (_b = (_a = metadata === null || metadata === void 0 ? void 0 : metadata.limits) === null || _a === void 0 ? void 0 : _a.amount) === null || _b === void 0 ? void 0 : _b.min) !== null && _c !== void 0 ? _c : ORDER_CONFIG.DEFAULT_MIN_AMOUNT);
+        const maxAmount = Number((_f = (_e = (_d = metadata === null || metadata === void 0 ? void 0 : metadata.limits) === null || _d === void 0 ? void 0 : _d.amount) === null || _e === void 0 ? void 0 : _e.max) !== null && _f !== void 0 ? _f : ORDER_CONFIG.DEFAULT_MAX_AMOUNT);
+        if (minAmount <= 0 || maxAmount <= 0 || maxAmount < minAmount) {
+            throw (0, error_1.createError)({
+                statusCode: 500,
+                message: "Market configuration error: Invalid amount limits in market metadata",
+            });
+        }
+        if (amount < minAmount || amount > maxAmount) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Amount must be between ${minAmount} and ${maxAmount} ${pair}`,
+            });
+        }
+        const closeAtDate = new Date(closedAt);
+        const now = Date.now();
+        if (closeAtDate.getTime() <= now) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "closedAt must be a future time",
+            });
+        }
+        const binarySettings = await (0, binary_settings_cache_1.getBinarySettings)();
+        if (!binarySettings.global.enabled) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Binary trading is currently disabled",
+            });
+        }
+        const orderTypeConfig = binarySettings.orderTypes[type];
+        if (!orderTypeConfig || !orderTypeConfig.enabled) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Order type ${type} is not currently available`,
+            });
+        }
+        const durationConfig = binarySettings.durations.find(d => d.id === durationId);
+        if (!durationConfig || !durationConfig.enabled) {
+            const availableDurations = binarySettings.durations
+                .filter(d => d.enabled)
+                .map(d => `${d.minutes}m`)
+                .join(', ');
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Invalid or inactive duration selected. Available durations: ${availableDurations || 'none'}`,
+            });
+        }
+        const durationOverride = (_g = durationConfig.orderTypeOverrides) === null || _g === void 0 ? void 0 : _g[type];
+        if ((durationOverride === null || durationOverride === void 0 ? void 0 : durationOverride.enabled) === false) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Duration ${durationConfig.minutes}m is not available for ${type} orders`,
+            });
+        }
+        const enabledDurations = binarySettings.durations.filter(d => d.enabled);
+        const maxConfiguredDuration = Math.max(...enabledDurations.map(d => d.minutes));
+        const maxDurationMs = maxConfiguredDuration * 60 * 1000;
+        const actualDuration = closeAtDate.getTime() - now;
+        if (actualDuration > maxDurationMs) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Order duration cannot exceed ${maxConfiguredDuration} minutes (maximum configured duration)`,
+            });
+        }
+        const durationMinutes = durationConfig.minutes;
+        const closeAtMinutes = closeAtDate.getMinutes();
+        const closeAtSeconds = closeAtDate.getSeconds();
+        const closeAtMs = closeAtDate.getMilliseconds();
+        const isAlignedToBoundary = (closeAtMinutes % durationMinutes === 0) && closeAtSeconds <= 5 && closeAtMs <= 1000;
+        const timeUntilExpiry = closeAtDate.getTime() - now;
+        const minimumTimeBeforeExpiry = binarySettings.global.orderExpirationBuffer * 1000;
+        if (!isAlignedToBoundary) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `closedAt timestamp must align to ${durationMinutes}-minute boundaries (e.g., ${Array.from({ length: Math.floor(60 / durationMinutes) }, (_, i) => `:${String(i * durationMinutes).padStart(2, '0')}`).join(', ')})`,
+            });
+        }
+        if (timeUntilExpiry < minimumTimeBeforeExpiry) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Order must be placed at least ${binarySettings.global.orderExpirationBuffer} seconds before expiry. Time until expiry: ${Math.round(timeUntilExpiry / 1000)} seconds`,
+            });
+        }
+        const tradingMode = isDemo ? 'demo' : 'live';
+        if (orderTypeConfig.tradingModes && !orderTypeConfig.tradingModes[tradingMode]) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Order type ${type} is not available in ${tradingMode} mode`,
+            });
+        }
+        if (amount <= 0) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Amount must be positive",
+            });
+        }
+        let profitPercentage = orderTypeConfig.profitPercentage;
+        let selectedBarrierLevel = null;
+        let selectedStrikeLevel = null;
+        if (type === "HIGHER_LOWER" || type === "TOUCH_NO_TOUCH" || type === "TURBO") {
+            const barrierConfig = orderTypeConfig;
+            const enabledBarrierLevels = ((_h = barrierConfig.barrierLevels) === null || _h === void 0 ? void 0 : _h.filter(l => l.enabled)) || [];
+            if (enabledBarrierLevels.length === 0) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: `No barrier levels are configured for ${type} orders`,
+                });
+            }
+            if (barrier === undefined || barrier === null) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: `Barrier price is required for ${type} orders`,
+                });
+            }
+            if (!barrierLevelId) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: `Barrier level selection is required for ${type} orders`,
+                });
+            }
+            selectedBarrierLevel = enabledBarrierLevels.find(l => l.id === barrierLevelId) || null;
+            if (!selectedBarrierLevel) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: `Invalid barrier level selected. Please choose from available levels.`,
+                });
+            }
+            profitPercentage = selectedBarrierLevel.profitPercent;
+            if (type === "TOUCH_NO_TOUCH") {
+                const touchConfig = orderTypeConfig;
+                if (side === "TOUCH") {
+                    profitPercentage = profitPercentage * (touchConfig.touchProfitMultiplier || 1);
+                }
+                else if (side === "NO_TOUCH") {
+                    profitPercentage = profitPercentage * (touchConfig.noTouchProfitMultiplier || 1);
+                }
+            }
+            if (type === "TURBO") {
+                const turboConfig = orderTypeConfig;
+                if (payoutPerPoint === undefined || payoutPerPoint === null) {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: "Payout per point is required for TURBO orders",
+                    });
+                }
+                const { min: minPayout, max: maxPayout } = turboConfig.payoutPerPointRange || { min: 0.1, max: 10 };
+                if (payoutPerPoint < minPayout || payoutPerPoint > maxPayout) {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: `Payout per point must be between ${minPayout} and ${maxPayout}`,
+                    });
+                }
+                const turboMaxDuration = turboConfig.maxDuration || 5;
+                if (durationConfig.minutes > turboMaxDuration) {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: `TURBO orders cannot exceed ${turboMaxDuration} minute duration`,
+                    });
+                }
+            }
+        }
+        if (type === "CALL_PUT") {
+            const callPutConfig = orderTypeConfig;
+            const enabledStrikeLevels = ((_j = callPutConfig.strikeLevels) === null || _j === void 0 ? void 0 : _j.filter((l) => l.enabled)) || [];
+            if (enabledStrikeLevels.length === 0) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "No strike levels are configured for CALL_PUT orders",
+                });
+            }
+            if (strikePrice === undefined || strikePrice === null) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "Strike price is required for CALL_PUT orders",
+                });
+            }
+            if (!strikeLevelId) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "Strike level selection is required for CALL_PUT orders",
+                });
+            }
+            selectedStrikeLevel = enabledStrikeLevels.find((l) => l.id === strikeLevelId) || null;
+            if (!selectedStrikeLevel) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "Invalid strike level selected. Please choose from available levels.",
+                });
+            }
+            profitPercentage = selectedStrikeLevel.profitPercent;
+        }
+        const cumulativeAdjustment = calculateCumulativeProfitAdjustment(binarySettings, durationConfig.minutes, type);
+        profitPercentage = profitPercentage + (profitPercentage * cumulativeAdjustment / 100);
+        if (profitPercentage < 0 || profitPercentage > 1000) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Profit percentage must be between 0% and 1000%",
+            });
+        }
+        const existingPendingOrders = await db_1.models.binaryOrder.count({
+            where: {
+                userId: userId,
+                symbol: `${currency}/${pair}`,
+                status: 'PENDING',
+                closedAt: closeAtDate,
+                amount: amount,
+                side: side,
+                type: type,
+                createdAt: {
+                    [sequelize_1.Op.gte]: new Date(Date.now() - ORDER_CONFIG.DUPLICATE_CHECK_WINDOW_MS),
+                },
+            },
+        });
+        if (existingPendingOrders > 0) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Duplicate order detected. Please wait before placing another identical order.",
+            });
+        }
+        await (0, utils_1.ensureNotBanned)();
+        return await db_1.sequelize.transaction(async (t) => {
+            let wallet;
+            if (!isDemo) {
+                wallet = await db_1.models.wallet.findOne({
+                    where: {
+                        userId: userId,
+                        currency: pair,
+                        type: "SPOT",
+                    },
+                    transaction: t,
+                    lock: t.LOCK.UPDATE,
+                });
+                if (!wallet) {
+                    throw (0, error_1.createError)({
+                        statusCode: 404,
+                        message: `Wallet not found for currency ${pair}. Please ensure you have a ${pair} wallet.`
+                    });
+                }
+                if (wallet.balance < amount) {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: "Insufficient balance",
+                    });
+                }
+            }
+            const exchange = await (0, utils_1.ensureExchange)();
+            await (0, utils_1.ensureNotBanned)();
+            let ticker;
+            try {
+                ticker = await exchange.fetchTicker(`${currency}/${pair}`);
+            }
+            catch (err) {
+                console_1.logger.error("BINARY", `Error fetching market data for ${currency}/${pair}: ${err.message}`);
+                throw (0, error_1.createError)({
+                    statusCode: 500,
+                    message: "Error fetching market data from exchange",
+                });
+            }
+            const price = ticker === null || ticker === void 0 ? void 0 : ticker.last;
+            if (!price || price <= 0 || isNaN(price) || !isFinite(price)) {
+                throw (0, error_1.createError)({
+                    statusCode: 500,
+                    message: "Invalid price data from exchange. Please try again.",
+                });
+            }
+            if (price < ORDER_CONFIG.MIN_PRICE_VALUE || price > ORDER_CONFIG.MAX_PRICE_VALUE) {
+                throw (0, error_1.createError)({
+                    statusCode: 500,
+                    message: "Price data from exchange is outside acceptable range. Please contact support.",
+                });
+            }
+            if (type === "CALL_PUT" && strikePrice !== undefined) {
+                const minDifference = price * 0.0001;
+                if (Math.abs(strikePrice - price) < minDifference) {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: "Strike price must be at least 0.01% away from current price to avoid guaranteed DRAW",
+                    });
+                }
+                const maxDifference = price * 0.5;
+                if (Math.abs(strikePrice - price) > maxDifference) {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: "Strike price must be within 50% of current price for risk management",
+                    });
+                }
+            }
+            const finalOrder = await db_1.models.binaryOrder.create({
+                userId: userId,
+                symbol: `${currency}/${pair}`,
+                type: type,
+                side: side,
+                status: "PENDING",
+                price: price,
+                profit: 0,
+                amount: amount,
+                isDemo: isDemo,
+                closedAt: closeAtDate,
+                profitPercentage: profitPercentage,
+                barrier: ["HIGHER_LOWER", "TOUCH_NO_TOUCH", "TURBO"].includes(type)
+                    ? barrier
+                    : undefined,
+                strikePrice: type === "CALL_PUT" ? strikePrice : undefined,
+                payoutPerPoint: type === "CALL_PUT" || type === "TURBO" ? payoutPerPoint : undefined,
+                durationType: type === "TURBO" ? durationType : "TIME",
+                metadata: idempotencyKey ? { idempotencyKey } : undefined,
+            }, { transaction: t });
+            if (!isDemo && wallet) {
+                const debitIdempotencyKey = idempotencyKey
+                    ? `binary_order_debit_${idempotencyKey}`
+                    : `binary_order_debit_${userId}_${currency}_${pair}_${closedAt}`;
+                await wallet_1.walletService.debit({
+                    idempotencyKey: debitIdempotencyKey,
+                    userId,
+                    walletId: wallet.id,
+                    walletType: "SPOT",
+                    currency: pair,
+                    amount,
+                    operationType: "BINARY_ORDER",
+                    referenceId: finalOrder.id,
+                    description: `Binary ${type} order: ${currency}/${pair}`,
+                    metadata: {
+                        orderType: type,
+                        currency,
+                        pair,
+                        side,
+                        durationId,
+                        orderId: finalOrder.id,
+                    },
+                    transaction: t,
+                });
+            }
+            this.scheduleOrderProcessing(finalOrder, userId);
+            return finalOrder;
+        });
+    }
+    static async processOrder(userId, orderId, symbol) {
+        const { redlock } = await Promise.resolve().then(() => __importStar(require("@b/utils/redis")));
+        let lock;
+        try {
+            lock = await redlock.acquire([`binary:order:${orderId}`], ORDER_CONFIG.REDLOCK_TTL_MS);
+        }
+        catch (error) {
+            console_1.logger.warn("BINARY", `Could not acquire lock for order ${orderId}. Another process is handling it.`);
+            return;
+        }
+        try {
+            await (0, utils_1.ensureNotBanned)();
+            const exchange = await (0, utils_1.ensureExchange)();
+            const ticker = await exchange.fetchTicker(symbol);
+            const closePrice = ticker === null || ticker === void 0 ? void 0 : ticker.last;
+            if (closePrice == null) {
+                console_1.logger.error("BINARY", `No close price found for ${symbol}. Order: ${orderId}`);
+                return;
+            }
+            await db_1.sequelize.transaction({
+                isolationLevel: sequelize_1.Transaction.ISOLATION_LEVELS.REPEATABLE_READ
+            }, async (t) => {
+                const order = await db_1.models.binaryOrder.findOne({
+                    where: {
+                        id: orderId,
+                        userId,
+                        status: "PENDING"
+                    },
+                    transaction: t,
+                    lock: t.LOCK.UPDATE
+                });
+                if (!order) {
+                    console_1.logger.warn("BINARY", `Order ${orderId} already processed or not found. Skipping.`);
+                    return;
+                }
+                let touched = false;
+                if (order.type === "TOUCH_NO_TOUCH" &&
+                    order.barrier != null &&
+                    order.createdAt) {
+                    touched = await this.checkIfBarrierTouched(exchange, order.symbol, order.createdAt, order.closedAt, order.barrier);
+                }
+                let turboBreached = false;
+                if (order.type === "TURBO" &&
+                    order.barrier != null &&
+                    (order.side === "UP" || order.side === "DOWN") &&
+                    order.createdAt) {
+                    turboBreached = await this.checkTurboBarrierBreach(exchange, order.symbol, order.createdAt, order.closedAt, order.barrier, order.side);
+                }
+                const updateData = this.determineOrderStatus(order, closePrice, touched, turboBreached);
+                await this.updateBinaryOrderWithTransaction(order.id, updateData, t);
+                this.orderIntervals.delete(order.id);
+            });
+        }
+        catch (error) {
+            console_1.logger.error("BINARY", `Error processing order ${orderId}: ${error}`);
+        }
+        finally {
+            if (lock) {
+                try {
+                    await lock.release();
+                }
+                catch (unlockError) {
+                    console_1.logger.error("BINARY", `Error releasing lock for order ${orderId}: ${unlockError}`);
+                }
+            }
+        }
+    }
+    static async checkTurboBarrierBreach(exchange, symbol, start, end, barrier, side) {
+        const timeframe = "1m";
+        const since = start.getTime();
+        const until = end.getTime();
+        let breached = false;
+        let from = since;
+        const limit = 1000;
+        try {
+            while (!breached && from < until) {
+                const ohlcv = await exchange.fetchOHLCV(symbol, timeframe, from, limit);
+                if (!ohlcv || ohlcv.length === 0) {
+                    console_1.logger.warn("BINARY", `No OHLCV data for ${symbol} between ${new Date(from)} and ${new Date(until)}. Assuming no more data.`);
+                    break;
+                }
+                for (const candle of ohlcv) {
+                    const [timestamp, , high, low] = candle;
+                    if (side === "UP" && low < barrier) {
+                        breached = true;
+                        break;
+                    }
+                    else if (side === "DOWN" && high > barrier) {
+                        breached = true;
+                        break;
+                    }
+                    if (timestamp >= until) {
+                        break;
+                    }
+                }
+                const lastCandleTime = ohlcv[ohlcv.length - 1][0];
+                if (lastCandleTime <= from) {
+                    console_1.logger.warn("BINARY", "No progress in OHLCV time. Stopping fetch loop.");
+                    break;
+                }
+                from = lastCandleTime + 60000;
+            }
+        }
+        catch (err) {
+            console_1.logger.error("BINARY", `Error fetching OHLC data for TURBO barrier check: ${err}`);
+            throw (0, error_1.createError)({ statusCode: 500, message: `Failed to check TURBO barrier: ${err}` });
+        }
+        return breached;
+    }
+    static async checkIfBarrierTouched(exchange, symbol, start, end, barrier) {
+        const timeframe = "1m";
+        const since = start.getTime();
+        const until = end.getTime();
+        let touched = false;
+        let from = since;
+        const limit = 1000;
+        try {
+            while (!touched && from < until) {
+                const ohlcv = await exchange.fetchOHLCV(symbol, timeframe, from, limit);
+                if (!ohlcv || ohlcv.length === 0) {
+                    console_1.logger.warn("BINARY", `No OHLCV data for ${symbol} between ${new Date(from)} and ${new Date(until)}.`);
+                    break;
+                }
+                for (const candle of ohlcv) {
+                    const [timestamp, , high, low] = candle;
+                    if (high >= barrier && low <= barrier) {
+                        touched = true;
+                        break;
+                    }
+                    if (timestamp >= until)
+                        break;
+                }
+                const lastCandleTime = ohlcv[ohlcv.length - 1][0];
+                if (lastCandleTime <= from) {
+                    console_1.logger.warn("BINARY", "No progress in OHLCV time. Stopping fetch loop.");
+                    break;
+                }
+                from = lastCandleTime + 60000;
+            }
+        }
+        catch (err) {
+            console_1.logger.error("BINARY", `Error fetching OHLC data for TOUCH_NO_TOUCH barrier check: ${err}`);
+            throw (0, error_1.createError)({ statusCode: 500, message: `Failed to check barrier touch: ${err}` });
+        }
+        return touched;
+    }
+    static async cancelOrder(userId, orderId, percentage) {
+        var _a, _b;
+        const order = await (0, utils_1.getBinaryOrder)(userId, orderId);
+        if (!order) {
+            throw (0, error_1.createError)(404, "Order not found");
+        }
+        if (["CANCELED", "WIN", "LOSS", "DRAW"].includes(order.status)) {
+            console_1.logger.error("BINARY", `Order ${orderId} is already ${order.status}. Cannot cancel again.`);
+            return { message: "Order already processed or canceled." };
+        }
+        await (0, utils_1.ensureNotBanned)();
+        const exchange = await (0, utils_1.ensureExchange)();
+        const ticker = await exchange.fetchTicker(order.symbol);
+        const currentPrice = ticker.last;
+        if (!currentPrice) {
+            throw (0, error_1.createError)(500, "Error fetching current price for the order symbol");
+        }
+        const binarySettings = await (0, binary_settings_cache_1.getBinarySettings)();
+        if (!((_a = binarySettings.cancellation) === null || _a === void 0 ? void 0 : _a.enabled)) {
+            throw (0, error_1.createError)(400, "Order cancellation is disabled");
+        }
+        const cancellationRule = (_b = binarySettings.cancellation.rules) === null || _b === void 0 ? void 0 : _b[order.type];
+        if (!cancellationRule || !cancellationRule.enabled) {
+            throw (0, error_1.createError)(400, `Cancellation is not available for ${order.type} orders`);
+        }
+        const now = Date.now();
+        const expiryTime = new Date(order.closedAt).getTime();
+        const timeUntilExpiry = expiryTime - now;
+        const timeUntilExpirySeconds = timeUntilExpiry / 1000;
+        const minTimeBeforeExpiry = cancellationRule.minTimeBeforeExpirySeconds * 1000;
+        if (timeUntilExpiry <= minTimeBeforeExpiry) {
+            throw (0, error_1.createError)(400, `Cannot cancel ${order.type} order within ${cancellationRule.minTimeBeforeExpirySeconds} seconds of expiry. Time remaining: ${Math.round(timeUntilExpirySeconds)} seconds`);
+        }
+        if (order.type === "TOUCH_NO_TOUCH" && order.barrier && order.createdAt) {
+            try {
+                const touched = await this.checkIfBarrierTouched(exchange, order.symbol, order.createdAt, new Date(), order.barrier);
+                if (touched) {
+                    throw (0, error_1.createError)(400, "Cannot cancel TOUCH_NO_TOUCH order: barrier has been touched");
+                }
+            }
+            catch (error) {
+                console_1.logger.warn("BINARY", `Could not check barrier touch status for order ${orderId}: ${error.message}`);
+            }
+        }
+        if (order.type === "TURBO" && order.barrier && order.createdAt && (order.side === "UP" || order.side === "DOWN")) {
+            if (order.durationType === "TICKS") {
+                throw (0, error_1.createError)(400, "Cannot sell a TURBO contract with TICKS duration early.");
+            }
+            try {
+                const breached = await this.checkTurboBarrierBreach(exchange, order.symbol, order.createdAt, new Date(), order.barrier, order.side);
+                if (breached) {
+                    throw (0, error_1.createError)(400, "Cannot cancel TURBO order: barrier has been breached");
+                }
+            }
+            catch (error) {
+                console_1.logger.warn("BINARY", `Could not check barrier breach status for order ${orderId}: ${error.message}`);
+            }
+        }
+        let penaltyPercentage = cancellationRule.penaltyPercentage;
+        if (cancellationRule.penaltyByTimeRemaining) {
+            const graduated = cancellationRule.penaltyByTimeRemaining;
+            if (timeUntilExpirySeconds > 60) {
+                penaltyPercentage = graduated.above60Seconds;
+            }
+            else if (timeUntilExpirySeconds > 30) {
+                penaltyPercentage = graduated.above30Seconds;
+            }
+            else {
+                penaltyPercentage = graduated.below30Seconds;
+            }
+        }
+        const finalPenaltyPercentage = percentage !== null && percentage !== void 0 ? percentage : penaltyPercentage;
+        await this.processStandardCancel(order, currentPrice, finalPenaltyPercentage);
+        return {
+            message: "Order cancelled",
+            penaltyApplied: finalPenaltyPercentage,
+            refundPercentage: 100 - finalPenaltyPercentage
+        };
+    }
+    static async processStandardCancel(order, currentPrice, percentage) {
+        await db_1.sequelize.transaction(async (t) => {
+            if (!order.isDemo) {
+                let transactionRecord = await db_1.models.transaction.findOne({
+                    where: { referenceId: order.id },
+                    transaction: t,
+                    lock: t.LOCK.UPDATE,
+                });
+                if (!transactionRecord) {
+                    transactionRecord = await db_1.models.transaction.findOne({
+                        where: {
+                            userId: order.userId,
+                            type: "BINARY",
+                            status: "COMPLETED",
+                            amount: order.amount,
+                            [sequelize_1.Op.and]: db_1.sequelize.literal(`JSON_EXTRACT(metadata, '$.orderId') = '${order.id}'`),
+                        },
+                        transaction: t,
+                        lock: t.LOCK.UPDATE,
+                    });
+                }
+                let wallet;
+                if (!transactionRecord) {
+                    console_1.logger.warn("BINARY", `Transaction not found for cancelled order ${order.id}. Looking up wallet directly.`);
+                    const [, quoteCurrency] = order.symbol.split("/");
+                    wallet = await db_1.models.wallet.findOne({
+                        where: {
+                            userId: order.userId,
+                            currency: quoteCurrency,
+                            type: "SPOT",
+                        },
+                        transaction: t,
+                        lock: t.LOCK.UPDATE,
+                    });
+                }
+                else {
+                    wallet = await db_1.models.wallet.findOne({
+                        where: { id: transactionRecord.walletId },
+                        transaction: t,
+                        lock: t.LOCK.UPDATE,
+                    });
+                }
+                if (!wallet) {
+                    throw (0, error_1.createError)(404, "Wallet not found");
+                }
+                let partialReturn = order.amount;
+                if (percentage !== undefined) {
+                    const cutAmount = order.amount * (Math.abs(percentage) / 100);
+                    partialReturn = order.amount - cutAmount;
+                    if (partialReturn < 0)
+                        partialReturn = 0;
+                }
+                if (partialReturn > 0) {
+                    const idempotencyKey = `binary_cancel_${order.id}`;
+                    await wallet_1.walletService.credit({
+                        idempotencyKey,
+                        userId: order.userId,
+                        walletId: wallet.id,
+                        walletType: "SPOT",
+                        currency: wallet.currency,
+                        amount: partialReturn,
+                        operationType: "REFUND",
+                        referenceId: order.id,
+                        description: `Binary order cancelled - refund ${partialReturn} ${wallet.currency}`,
+                        metadata: {
+                            orderId: order.id,
+                            refundPercentage: percentage || 100,
+                            originalAmount: order.amount,
+                        },
+                        transaction: t,
+                    });
+                }
+                if (transactionRecord) {
+                    await db_1.models.transaction.update({
+                        status: "CANCELLED",
+                        metadata: JSON.stringify({
+                            cancelledAt: Date.now(),
+                            refundPercentage: percentage || 100,
+                            refundAmount: partialReturn,
+                            reason: "Order cancelled by user",
+                        }),
+                    }, {
+                        where: { id: transactionRecord.id },
+                        transaction: t,
+                    });
+                }
+            }
+            if (this.orderIntervals.has(order.id)) {
+                clearTimeout(this.orderIntervals.get(order.id));
+                this.orderIntervals.delete(order.id);
+            }
+            await db_1.models.binaryOrder.update({ status: "CANCELED", closePrice: currentPrice, profit: 0 }, { where: { id: order.id }, transaction: t });
+        });
+    }
+    static async processPendingOrders(shouldBroadcast = true) {
+        const cronName = "processPendingOrders";
+        const { redlock } = await Promise.resolve().then(() => __importStar(require("@b/utils/redis")));
+        try {
+            const pendingOrders = await (0, utils_1.getBinaryOrdersByStatus)("PENDING");
+            const currentTime = Date.now();
+            const unmonitoredOrders = pendingOrders.filter((order) => {
+                const closedAtTime = new Date(order.closedAt).getTime();
+                return (closedAtTime <= currentTime && !this.orderIntervals.has(order.id));
+            });
+            const exchange = await (0, utils_1.ensureExchange)();
+            const BATCH_SIZE = ORDER_CONFIG.BATCH_SIZE;
+            const DELAY_BETWEEN_BATCHES = ORDER_CONFIG.DELAY_BETWEEN_BATCHES_MS;
+            for (let i = 0; i < unmonitoredOrders.length; i += BATCH_SIZE) {
+                const batch = unmonitoredOrders.slice(i, i + BATCH_SIZE);
+                await Promise.all(batch.map(async (order) => {
+                    let lock;
+                    try {
+                        lock = await redlock.acquire([`binary:order:${order.id}`], ORDER_CONFIG.REDLOCK_TTL_MS);
+                    }
+                    catch (lockError) {
+                        if (shouldBroadcast) {
+                            (0, broadcast_1.broadcastLog)(cronName, `Order ${order.id} is being processed by another instance. Skipping.`, "info");
+                        }
+                        return;
+                    }
+                    try {
+                        if (order.status !== "PENDING") {
+                            if (shouldBroadcast) {
+                                (0, broadcast_1.broadcastLog)(cronName, `Order ${order.id} already processed as ${order.status}. Skipping.`, "error");
+                            }
+                            return;
+                        }
+                        const timeframe = "1m";
+                        let closePrice;
+                        try {
+                            const expiryTimestamp = Number(order.closedAt);
+                            const ohlcv = await exchange.fetchOHLCV(order.symbol, timeframe, expiryTimestamp - ORDER_CONFIG.CANDLE_LOOKBACK_MS, 3);
+                            if (ohlcv && ohlcv.length > 0) {
+                                const expiryCandle = ohlcv.find(candle => {
+                                    const candleTime = candle[0];
+                                    const candleCloseTime = candleTime + ORDER_CONFIG.MS_PER_MINUTE;
+                                    return expiryTimestamp >= candleTime && expiryTimestamp < candleCloseTime;
+                                });
+                                if (expiryCandle) {
+                                    closePrice = expiryCandle[4];
+                                }
+                                else {
+                                    if (shouldBroadcast) {
+                                        (0, broadcast_1.broadcastLog)(cronName, `No candle found containing expiry time for order ${order.id}. Using ticker.`, "warning");
+                                    }
+                                    const ticker = await exchange.fetchTicker(order.symbol);
+                                    closePrice = ticker.last;
+                                }
+                            }
+                            else {
+                                if (shouldBroadcast) {
+                                    (0, broadcast_1.broadcastLog)(cronName, `Not enough OHLCV data for order ${order.id} to determine closePrice. Using ticker.`, "warning");
+                                }
+                                const ticker = await exchange.fetchTicker(order.symbol);
+                                closePrice = ticker.last;
+                            }
+                        }
+                        catch (err) {
+                            if (shouldBroadcast) {
+                                (0, broadcast_1.broadcastLog)(cronName, `Error fetching OHLCV for pending order ${order.id}: ${err.message}`, "error");
+                            }
+                            const ticker = await exchange.fetchTicker(order.symbol);
+                            closePrice = ticker.last;
+                        }
+                        if (closePrice === undefined) {
+                            if (shouldBroadcast) {
+                                (0, broadcast_1.broadcastLog)(cronName, `Unable to determine closePrice for order ${order.id}. Skipping.`, "error");
+                            }
+                            return;
+                        }
+                        const updateData = this.determineOrderStatus(order, closePrice);
+                        await this.updateBinaryOrder(order.id, updateData);
+                    }
+                    finally {
+                        if (lock) {
+                            try {
+                                await lock.release();
+                            }
+                            catch (unlockError) {
+                                if (shouldBroadcast) {
+                                    (0, broadcast_1.broadcastLog)(cronName, `Error releasing lock for order ${order.id}: ${unlockError}`, "error");
+                                }
+                            }
+                        }
+                    }
+                }));
+                if (i + BATCH_SIZE < unmonitoredOrders.length) {
+                    await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES));
+                }
+            }
+        }
+        catch (error) {
+            if (shouldBroadcast) {
+                (0, broadcast_1.broadcastLog)(cronName, `Error in processPendingOrders: ${error.message}`, "error");
+            }
+            throw error;
+        }
+    }
+    static determineOrderStatus(order, closePrice, touched, turboBreached) {
+        const updateData = {
+            closePrice,
+            profit: 0,
+        };
+        switch (order.type) {
+            case "RISE_FALL":
+                return determineRiseFallStatus(order, closePrice, updateData);
+            case "HIGHER_LOWER":
+                return determineHigherLowerStatus(order, closePrice, updateData);
+            case "TOUCH_NO_TOUCH":
+                return determineTouchNoTouchStatus(order, touched, updateData);
+            case "CALL_PUT":
+                return determineCallPutStatus(order, closePrice, updateData);
+            case "TURBO":
+                return determineTurboStatus(order, closePrice, turboBreached, updateData);
+            default:
+                updateData.status = "LOSS";
+                return updateData;
+        }
+    }
+    static async updateBinaryOrderWithTransaction(orderId, updateData, t) {
+        const beforeOrder = await db_1.models.binaryOrder.findOne({
+            where: { id: orderId },
+            transaction: t,
+        });
+        if (beforeOrder && updateData.status) {
+            console_1.logger.info("BINARY", `Order ${orderId} state transition: ${beforeOrder.status} -> ${updateData.status} | ` +
+                `Entry Price: ${beforeOrder.price} | Close Price: ${updateData.closePrice || 'N/A'} | ` +
+                `Profit: ${updateData.profit !== undefined ? updateData.profit : 'N/A'} | ` +
+                `Type: ${beforeOrder.type} | Side: ${beforeOrder.side} | Amount: ${beforeOrder.amount}`);
+        }
+        await db_1.models.binaryOrder.update(updateData, {
+            where: { id: orderId },
+            transaction: t,
+        });
+        const order = (await db_1.models.binaryOrder.findOne({
+            where: { id: orderId },
+            transaction: t,
+            lock: t.LOCK.UPDATE,
+        }));
+        if (!order)
+            throw (0, error_1.createError)({ statusCode: 404, message: "Order not found after update" });
+        if (!order.isDemo && ["WIN", "LOSS", "DRAW"].includes(order.status)) {
+            let transactionRecord = await db_1.models.transaction.findOne({
+                where: { referenceId: orderId },
+                transaction: t,
+            });
+            if (!transactionRecord) {
+                transactionRecord = await db_1.models.transaction.findOne({
+                    where: {
+                        userId: order.userId,
+                        type: "BINARY",
+                        status: "COMPLETED",
+                        amount: order.amount,
+                        [sequelize_1.Op.and]: db_1.sequelize.literal(`JSON_EXTRACT(metadata, '$.orderId') = '${orderId}'`),
+                    },
+                    transaction: t,
+                });
+            }
+            let wallet;
+            if (!transactionRecord) {
+                console_1.logger.warn("BINARY", `Transaction not found for completed order ${orderId}. Looking up wallet directly.`);
+                const [, quoteCurrency] = order.symbol.split("/");
+                wallet = await db_1.models.wallet.findOne({
+                    where: {
+                        userId: order.userId,
+                        currency: quoteCurrency,
+                        type: "SPOT",
+                    },
+                    transaction: t,
+                    lock: t.LOCK.UPDATE,
+                });
+            }
+            else {
+                await db_1.models.transaction.update({ status: "COMPLETED" }, { where: { id: transactionRecord.id }, transaction: t });
+                wallet = await db_1.models.wallet.findOne({
+                    where: { id: transactionRecord.walletId },
+                    transaction: t,
+                    lock: t.LOCK.UPDATE,
+                });
+            }
+            if (!wallet)
+                throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found to update balance" });
+            let payoutAmount = 0;
+            let operationType = "REFUND";
+            if (order.status === "WIN") {
+                payoutAmount = order.amount + order.profit;
+                operationType = "BINARY_ORDER_WIN";
+            }
+            else if (order.status === "LOSS") {
+                if (order.profit !== 0) {
+                    payoutAmount = order.amount + order.profit;
+                    if (payoutAmount > 0) {
+                        operationType = "BINARY_ORDER_LOSS";
+                    }
+                }
+            }
+            else if (order.status === "DRAW") {
+                payoutAmount = order.amount;
+                operationType = "REFUND";
+            }
+            if (payoutAmount > 0) {
+                const idempotencyKey = `binary_finalize_${orderId}_${order.status}`;
+                console_1.logger.info("BINARY", `Crediting wallet for order ${orderId}: amount=${order.amount}, profit=${order.profit}, payout=${payoutAmount}, status=${order.status}`);
+                try {
+                    await wallet_1.walletService.credit({
+                        idempotencyKey,
+                        userId: order.userId,
+                        walletId: wallet.id,
+                        walletType: "SPOT",
+                        currency: wallet.currency,
+                        amount: payoutAmount,
+                        operationType,
+                        referenceId: `${orderId}_payout`,
+                        description: `Binary order ${order.status}: ${order.symbol}`,
+                        metadata: {
+                            orderId,
+                            orderStatus: order.status,
+                            originalAmount: order.amount,
+                            profit: order.profit,
+                        },
+                        transaction: t,
+                    });
+                    console_1.logger.info("BINARY", `Successfully credited ${payoutAmount} ${wallet.currency} for order ${orderId}`);
+                }
+                catch (creditError) {
+                    console_1.logger.error("BINARY", `Failed to credit wallet for order ${orderId}: ${creditError.message}`, creditError);
+                    throw creditError;
+                }
+            }
+            else {
+                console_1.logger.info("BINARY", `No payout for order ${orderId}: status=${order.status}, amount=${order.amount}, profit=${order.profit}`);
+            }
+            const updatedWallet = await db_1.models.wallet.findOne({
+                where: { id: wallet.id },
+                transaction: t,
+            });
+            await Websocket_1.messageBroker.broadcastToSubscribedClients("/api/finance/wallet", { type: "wallet", userId: order.userId, currency: wallet.currency }, {
+                type: "BALANCE_UPDATED",
+                currency: wallet.currency,
+                balance: (updatedWallet === null || updatedWallet === void 0 ? void 0 : updatedWallet.balance) || wallet.balance,
+                timestamp: Date.now(),
+            });
+        }
+        if (["WIN", "LOSS", "DRAW"].includes(order.status)) {
+            await Websocket_1.messageBroker.broadcastToSubscribedClients("/api/exchange/binary/order", { type: "order", symbol: order.symbol, userId: order.userId }, {
+                type: "ORDER_COMPLETED",
+                order,
+            });
+            const user = await db_1.models.user.findOne({
+                where: { id: order.userId },
+                transaction: t,
+            });
+            if (user) {
+                try {
+                    await (0, emails_1.sendBinaryOrderEmail)(user, order);
+                    await (0, notifications_1.createNotification)({
+                        userId: user.id,
+                        relatedId: order.id,
+                        title: "Binary Order Completed",
+                        message: `Your binary order for ${order.symbol} has been completed with a status of ${order.status}`,
+                        type: "system",
+                        link: `/binary?symbol=${encodeURIComponent(order.symbol)}`,
+                        actions: [
+                            {
+                                label: "View Trade",
+                                link: `/binary?symbol=${encodeURIComponent(order.symbol)}`,
+                                primary: true,
+                            },
+                        ],
+                    });
+                }
+                catch (error) {
+                    console_1.logger.error("BINARY", `Error sending binary order email for user ${user.id}, order ${order.id}: ${error}`);
+                }
+            }
+        }
+    }
+    static async updateBinaryOrder(orderId, updateData) {
+        await db_1.sequelize.transaction(async (t) => {
+            await this.updateBinaryOrderWithTransaction(orderId, updateData, t);
+        });
+    }
+    static async initializePendingOrders() {
+        try {
+            const pendingOrders = await db_1.models.binaryOrder.findAll({
+                where: { status: 'PENDING' },
+            });
+            const now = Date.now();
+            let processedCount = 0;
+            let rescheduledCount = 0;
+            for (const order of pendingOrders) {
+                const closedAt = new Date(order.closedAt).getTime();
+                if (closedAt <= now) {
+                    await this.processOrder(order.userId, order.id, order.symbol);
+                    processedCount++;
+                }
+                else {
+                    this.scheduleOrderProcessing(order, order.userId);
+                    rescheduledCount++;
+                }
+            }
+            console_1.logger.info("BINARY", `Initialized pending orders: ${processedCount} processed immediately, ${rescheduledCount} rescheduled`);
+        }
+        catch (error) {
+            console_1.logger.error("BINARY", `Failed to initialize pending orders: ${error.message}`);
+        }
+    }
+    static scheduleOrderProcessing(order, userId) {
+        const currentTimeUtc = Date.now();
+        const closedAt = order.closedAt.getTime();
+        const delay = closedAt - currentTimeUtc;
+        if (delay < 0) {
+            console_1.logger.warn("BINARY", `Order ${order.id} closedAt is in the past. Processing immediately.`);
+            this.processOrder(userId, order.id, order.symbol);
+            return;
+        }
+        const timer = setTimeout(() => {
+            this.processOrder(userId, order.id, order.symbol);
+        }, delay);
+        this.orderIntervals.set(order.id, timer);
+    }
+}
+exports.BinaryOrderService = BinaryOrderService;
+BinaryOrderService.orderIntervals = new Map();
+function applyFinalPayout(order, balance) {
+    switch (order.status) {
+        case "WIN":
+            return balance + order.amount + order.profit;
+        case "LOSS":
+            if (order.profit === 0) {
+                return balance;
+            }
+            else {
+                return balance + order.amount + order.profit;
+            }
+        case "DRAW":
+            return balance + order.amount;
+        default:
+            return balance;
+    }
+}
+function determineRiseFallStatus(order, closePrice, updateData) {
+    const profitPercentage = order.profitPercentage || 85;
+    if (order.side === "RISE") {
+        if (closePrice > order.price) {
+            updateData.status = "WIN";
+            updateData.profit = order.amount * (profitPercentage / 100);
+        }
+        else if (closePrice === order.price) {
+            updateData.status = "DRAW";
+        }
+        else {
+            updateData.status = "LOSS";
+            updateData.profit = 0;
+        }
+    }
+    else {
+        if (closePrice < order.price) {
+            updateData.status = "WIN";
+            updateData.profit = order.amount * (profitPercentage / 100);
+        }
+        else if (closePrice === order.price) {
+            updateData.status = "DRAW";
+        }
+        else {
+            updateData.status = "LOSS";
+            updateData.profit = 0;
+        }
+    }
+    return updateData;
+}
+function determineHigherLowerStatus(order, closePrice, updateData) {
+    const profitPercentage = order.profitPercentage || 85;
+    const hlBarrier = order.barrier;
+    if (order.side === "HIGHER") {
+        if (closePrice > hlBarrier) {
+            updateData.status = "WIN";
+            updateData.profit = order.amount * (profitPercentage / 100);
+        }
+        else if (closePrice === hlBarrier) {
+            updateData.status = "DRAW";
+        }
+        else {
+            updateData.status = "LOSS";
+            updateData.profit = 0;
+        }
+    }
+    else {
+        if (closePrice < hlBarrier) {
+            updateData.status = "WIN";
+            updateData.profit = order.amount * (profitPercentage / 100);
+        }
+        else if (closePrice === hlBarrier) {
+            updateData.status = "DRAW";
+        }
+        else {
+            updateData.status = "LOSS";
+            updateData.profit = 0;
+        }
+    }
+    return updateData;
+}
+function determineTouchNoTouchStatus(order, touched, updateData) {
+    const profitPercentage = order.profitPercentage || 85;
+    if (order.side === "TOUCH") {
+        if (touched) {
+            updateData.status = "WIN";
+            updateData.profit = order.amount * (profitPercentage / 100);
+        }
+        else {
+            updateData.status = "LOSS";
+            updateData.profit = 0;
+        }
+    }
+    else {
+        if (!touched) {
+            updateData.status = "WIN";
+            updateData.profit = order.amount * (profitPercentage / 100);
+        }
+        else {
+            updateData.status = "LOSS";
+            updateData.profit = 0;
+        }
+    }
+    return updateData;
+}
+function determineCallPutStatus(order, closePrice, updateData) {
+    const profitPercentage = order.profitPercentage || 85;
+    const { strikePrice } = order;
+    if (!strikePrice) {
+        console_1.logger.error("BINARY", `CALL_PUT order ${order.id} missing strikePrice. Defaulting to LOSS.`);
+        updateData.status = "LOSS";
+        updateData.profit = 0;
+        return updateData;
+    }
+    if (order.side === "CALL") {
+        if (closePrice > strikePrice) {
+            updateData.status = "WIN";
+            updateData.profit = order.amount * (profitPercentage / 100);
+        }
+        else if (closePrice === strikePrice) {
+            updateData.status = "DRAW";
+        }
+        else {
+            updateData.status = "LOSS";
+            updateData.profit = 0;
+        }
+    }
+    else {
+        if (closePrice < strikePrice) {
+            updateData.status = "WIN";
+            updateData.profit = order.amount * (profitPercentage / 100);
+        }
+        else if (closePrice === strikePrice) {
+            updateData.status = "DRAW";
+        }
+        else {
+            updateData.status = "LOSS";
+            updateData.profit = 0;
+        }
+    }
+    return updateData;
+}
+function determineTurboStatus(order, closePrice, turboBreached, updateData) {
+    const { barrier, payoutPerPoint } = order;
+    if (!barrier || !payoutPerPoint) {
+        console_1.logger.error("BINARY", `TURBO order ${order.id} missing barrier or payoutPerPoint. Defaulting to LOSS.`);
+        updateData.status = "LOSS";
+        updateData.profit = -order.amount;
+        return updateData;
+    }
+    if (turboBreached) {
+        updateData.status = "LOSS";
+        updateData.profit = -order.amount;
+        return updateData;
+    }
+    let payoutValue = 0;
+    if (order.side === "UP") {
+        if (closePrice > barrier) {
+            payoutValue = (closePrice - barrier) * payoutPerPoint;
+            if (payoutValue > order.amount) {
+                updateData.status = "WIN";
+                updateData.profit = payoutValue - order.amount;
+            }
+            else if (payoutValue === order.amount) {
+                updateData.status = "DRAW";
+            }
+            else {
+                updateData.status = "LOSS";
+                updateData.profit = payoutValue - order.amount;
+            }
+        }
+        else if (closePrice === barrier) {
+            updateData.status = "DRAW";
+        }
+        else {
+            updateData.status = "LOSS";
+            updateData.profit = -order.amount;
+        }
+    }
+    else {
+        if (closePrice < barrier) {
+            payoutValue = (barrier - closePrice) * payoutPerPoint;
+            if (payoutValue > order.amount) {
+                updateData.status = "WIN";
+                updateData.profit = payoutValue - order.amount;
+            }
+            else if (payoutValue === order.amount) {
+                updateData.status = "DRAW";
+            }
+            else {
+                updateData.status = "LOSS";
+                updateData.profit = payoutValue - order.amount;
+            }
+        }
+        else if (closePrice === barrier) {
+            updateData.status = "DRAW";
+        }
+        else {
+            updateData.status = "LOSS";
+            updateData.profit = -order.amount;
+        }
+    }
+    return updateData;
+}
+function validateIsPositiveNumber(value, fieldName, errors) {
+    if (typeof value !== "number" || isNaN(value) || value <= 0) {
+        errors.push(`${fieldName} is required and must be a positive number`);
+    }
+}
+function validateNumberInRange(value, fieldName, min, max, errors) {
+    if (typeof value !== "number" || isNaN(value) || value < min || value > max) {
+        errors.push(`${fieldName} must be between ${min} and ${max}`);
+    }
+}
+function validateAllowedValues(value, allowedValues, fieldName, errors) {
+    if (!allowedValues.includes(value)) {
+        errors.push(`Invalid ${fieldName}: ${value}`);
+    }
+}
+const typeConfig = {
+    RISE_FALL: { validSides: ["RISE", "FALL"] },
+    HIGHER_LOWER: {
+        validSides: ["HIGHER", "LOWER"],
+        requiresBarrier: true,
+    },
+    TOUCH_NO_TOUCH: {
+        validSides: ["TOUCH", "NO_TOUCH"],
+        requiresBarrier: true,
+    },
+    CALL_PUT: {
+        validSides: ["CALL", "PUT"],
+        requiresStrikePrice: true,
+        requiresPayoutPerPoint: true,
+    },
+    TURBO: {
+        validSides: ["UP", "DOWN"],
+        requiresBarrier: true,
+        requiresPayoutPerPoint: true,
+        requiresDurationType: ["TIME", "TICKS"],
+    },
+};
+function validateCreateOrderInput(params) {
+    const { side, type, barrier, strikePrice, payoutPerPoint, durationType } = params;
+    const errors = [];
+    if (!(type in typeConfig)) {
+        throw (0, error_1.createError)({ statusCode: 400, message: `Invalid type: ${type}` });
+    }
+    const config = typeConfig[type];
+    validateAllowedValues(side, config.validSides, "side", errors);
+    if (config.requiresBarrier) {
+        validateIsPositiveNumber(barrier, "barrier", errors);
+    }
+    if (config.requiresStrikePrice) {
+        validateIsPositiveNumber(strikePrice, "strikePrice", errors);
+    }
+    if (config.requiresPayoutPerPoint) {
+        validateNumberInRange(payoutPerPoint, "payoutPerPoint", 0.01, 1000, errors);
+    }
+    if (config.requiresDurationType) {
+        if (!durationType) {
+            errors.push("durationType is required");
+        }
+        else {
+            validateAllowedValues(durationType, config.requiresDurationType, "durationType", errors);
+        }
+    }
+    else {
+        if (durationType && durationType !== "TIME") {
+            errors.push(`durationType "${durationType}" is not valid for ${type} orders. Only TURBO orders support TICKS duration type.`);
+        }
+    }
+    if (errors.length > 0) {
+        const errorMessage = errors.join(", ");
+        throw (0, error_1.createError)({ statusCode: 400, message: errorMessage });
+    }
+}

@@ -1,1 +1,69 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query"),utils_1=require("./utils"),db_1=require("@b/db"),error_1=require("@b/utils/error");exports.metadata={summary:"Stores or updates a CMS page",operationId:"storePage",tags:["Admin","Content","Page"],requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:utils_1.basePageSchema,required:["title","content","slug","status"]}}}},responses:(0,query_1.storeRecordResponses)(utils_1.pageStoreSchema,"Page"),requiresAuth:!0,permission:"create.page",logModule:"ADMIN_CMS",logTitle:"Create page"};exports.default=async e=>{const{body:t,user:s,ctx:r}=e,{title:o,content:i,description:a,image:u,slug:l,status:n,order:c,isHome:g,isBuilderPage:d,template:p,category:m,seoTitle:y,seoDescription:_,seoKeywords:b,ogImage:q,ogTitle:S,ogDescription:C,settings:P,customCss:M,customJs:f}=t;null==r||r.step("Validating page data");if(P)try{JSON.parse(P)}catch(e){null==r||r.fail("Invalid settings JSON");throw(0,error_1.createError)({statusCode:400,message:"settings: Must be valid JSON"})}null==r||r.step("Creating page");const h=await db_1.models.page.create({title:o,content:i,description:a,image:u,slug:l,status:n,order:c,isHome:g,isBuilderPage:d,template:p,category:m,seoTitle:y,seoDescription:_,seoKeywords:b,ogImage:q,ogTitle:S,ogDescription:C,settings:P,customCss:M,customJs:f,lastModifiedBy:(null==s?void 0:s.id)||null});null==r||r.success(`Page "${o}" created successfully`);return h};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+const utils_1 = require("./utils");
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+exports.metadata = {
+    summary: "Stores or updates a CMS page",
+    operationId: "storePage",
+    tags: ["Admin", "Content", "Page"],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: utils_1.basePageSchema,
+                    required: ["title", "content", "slug", "status"],
+                },
+            },
+        },
+    },
+    responses: (0, query_1.storeRecordResponses)(utils_1.pageStoreSchema, "Page"),
+    requiresAuth: true,
+    permission: "create.page",
+    logModule: "ADMIN_CMS",
+    logTitle: "Create page",
+};
+exports.default = async (data) => {
+    const { body, user, ctx } = data;
+    const { title, content, description, image, slug, status, order, isHome, isBuilderPage, template, category, seoTitle, seoDescription, seoKeywords, ogImage, ogTitle, ogDescription, settings, customCss, customJs, } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating page data");
+    if (settings) {
+        try {
+            JSON.parse(settings);
+        }
+        catch (err) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Invalid settings JSON");
+            throw (0, error_1.createError)({ statusCode: 400, message: "settings: Must be valid JSON" });
+        }
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating page");
+    const page = await db_1.models.page.create({
+        title,
+        content,
+        description,
+        image,
+        slug,
+        status,
+        order,
+        isHome,
+        isBuilderPage,
+        template,
+        category,
+        seoTitle,
+        seoDescription,
+        seoKeywords,
+        ogImage,
+        ogTitle,
+        ogDescription,
+        settings,
+        customCss,
+        customJs,
+        lastModifiedBy: (user === null || user === void 0 ? void 0 : user.id) || null,
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Page "${title}" created successfully`);
+    return page;
+};

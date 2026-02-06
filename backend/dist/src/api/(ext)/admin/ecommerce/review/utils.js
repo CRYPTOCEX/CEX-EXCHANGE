@@ -1,1 +1,35 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.reviewUpdateSchema=exports.baseEcommerceReviewSchema=exports.ecommerceReviewSchema=void 0;const schema_1=require("@b/utils/schema"),id=(0,schema_1.baseStringSchema)("ID of the e-commerce review"),productId=(0,schema_1.baseStringSchema)("Product ID associated with the review"),userId=(0,schema_1.baseStringSchema)("User ID who wrote the review"),rating=(0,schema_1.baseNumberSchema)("Rating given in the review"),comment=(0,schema_1.baseStringSchema)("Comment made in the review",191,0,!0),status=(0,schema_1.baseBooleanSchema)("Status of the review");exports.ecommerceReviewSchema={id:id,productId:productId,userId:userId,rating:rating,comment:comment,status:status};exports.baseEcommerceReviewSchema={id:id,productId:productId,userId:userId,rating:rating,comment:comment,status:status};exports.reviewUpdateSchema={type:"object",properties:{rating:rating,comment:comment,status:status},required:["rating","status"]};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.reviewUpdateSchema = exports.baseEcommerceReviewSchema = exports.ecommerceReviewSchema = void 0;
+const schema_1 = require("@b/utils/schema");
+const id = (0, schema_1.baseStringSchema)("ID of the e-commerce review");
+const productId = (0, schema_1.baseStringSchema)("Product ID associated with the review");
+const userId = (0, schema_1.baseStringSchema)("User ID who wrote the review");
+const rating = (0, schema_1.baseNumberSchema)("Rating given in the review");
+const comment = (0, schema_1.baseStringSchema)("Comment made in the review", 191, 0, true);
+const status = (0, schema_1.baseBooleanSchema)("Status of the review");
+exports.ecommerceReviewSchema = {
+    id,
+    productId,
+    userId,
+    rating,
+    comment,
+    status,
+};
+exports.baseEcommerceReviewSchema = {
+    id,
+    productId,
+    userId,
+    rating,
+    comment,
+    status,
+};
+exports.reviewUpdateSchema = {
+    type: "object",
+    properties: {
+        rating,
+        comment,
+        status,
+    },
+    required: ["rating", "status"],
+};

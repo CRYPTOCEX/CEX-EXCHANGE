@@ -19,19 +19,19 @@ export default class author
   // author hasMany post via authorId
   posts!: post[];
   getPosts!: Sequelize.HasManyGetAssociationsMixin<post>;
-  setPosts!: Sequelize.HasManySetAssociationsMixin<post, postId>;
-  addPost!: Sequelize.HasManyAddAssociationMixin<post, postId>;
-  addPosts!: Sequelize.HasManyAddAssociationsMixin<post, postId>;
+  setPosts!: Sequelize.HasManySetAssociationsMixin<post, string>;
+  addPost!: Sequelize.HasManyAddAssociationMixin<post, string>;
+  addPosts!: Sequelize.HasManyAddAssociationsMixin<post, string>;
   createPost!: Sequelize.HasManyCreateAssociationMixin<post>;
-  removePost!: Sequelize.HasManyRemoveAssociationMixin<post, postId>;
-  removePosts!: Sequelize.HasManyRemoveAssociationsMixin<post, postId>;
-  hasPost!: Sequelize.HasManyHasAssociationMixin<post, postId>;
-  hasPosts!: Sequelize.HasManyHasAssociationsMixin<post, postId>;
+  removePost!: Sequelize.HasManyRemoveAssociationMixin<post, string>;
+  removePosts!: Sequelize.HasManyRemoveAssociationsMixin<post, string>;
+  hasPost!: Sequelize.HasManyHasAssociationMixin<post, string>;
+  hasPosts!: Sequelize.HasManyHasAssociationsMixin<post, string>;
   countPosts!: Sequelize.HasManyCountAssociationsMixin;
   // author belongsTo user via userId
   user!: user;
   getUser!: Sequelize.BelongsToGetAssociationMixin<user>;
-  setUser!: Sequelize.BelongsToSetAssociationMixin<user, userId>;
+  setUser!: Sequelize.BelongsToSetAssociationMixin<user, string>;
   createUser!: Sequelize.BelongsToCreateAssociationMixin<user>;
 
   public static initModel(sequelize: Sequelize.Sequelize): typeof author {

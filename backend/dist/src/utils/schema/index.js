@@ -1,1 +1,57 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.baseDateTimeSchema=exports.baseObjectSchema=exports.baseIntegerSchema=exports.baseEnumSchema=exports.baseBooleanSchema=exports.baseNumberSchema=exports.baseStringSchema=void 0;const baseStringSchema=(e,a=255,t=0,s=!1,n=null,c=null)=>{const r={type:"string",description:e,maxLength:a,minLength:t,nullable:s};n&&(r.pattern=n);c&&(r["x-expectedFormat"]=c);return r};exports.baseStringSchema=baseStringSchema;const baseNumberSchema=(e,a=!1)=>({type:"number",description:e,nullable:a});exports.baseNumberSchema=baseNumberSchema;const baseBooleanSchema=e=>({type:"boolean",description:e});exports.baseBooleanSchema=baseBooleanSchema;const baseEnumSchema=(e,a)=>({type:"string",description:e,enum:a});exports.baseEnumSchema=baseEnumSchema;const baseIntegerSchema=(e,a=!1)=>({type:"integer",description:e,nullable:a});exports.baseIntegerSchema=baseIntegerSchema;const baseObjectSchema=(e,a=!1,t=!1)=>({type:"object",description:e,additionalProperties:a,nullable:t});exports.baseObjectSchema=baseObjectSchema;const baseDateTimeSchema=(e,a=!1)=>({type:"string",format:"date-time",description:e,nullable:a});exports.baseDateTimeSchema=baseDateTimeSchema;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.baseDateTimeSchema = exports.baseObjectSchema = exports.baseIntegerSchema = exports.baseEnumSchema = exports.baseBooleanSchema = exports.baseNumberSchema = exports.baseStringSchema = void 0;
+const baseStringSchema = (description, maxLength = 255, minLength = 0, nullable = false, pattern = null, expectedFormat = null) => {
+    const schema = {
+        type: "string",
+        description,
+        maxLength,
+        minLength,
+        nullable,
+    };
+    if (pattern) {
+        schema.pattern = pattern;
+    }
+    if (expectedFormat) {
+        schema["x-expectedFormat"] = expectedFormat;
+    }
+    return schema;
+};
+exports.baseStringSchema = baseStringSchema;
+const baseNumberSchema = (description, nullable = false) => ({
+    type: "number",
+    description: description,
+    nullable: nullable,
+});
+exports.baseNumberSchema = baseNumberSchema;
+const baseBooleanSchema = (description) => ({
+    type: "boolean",
+    description: description,
+});
+exports.baseBooleanSchema = baseBooleanSchema;
+const baseEnumSchema = (description, enumOptions) => ({
+    type: "string",
+    description: description,
+    enum: enumOptions,
+});
+exports.baseEnumSchema = baseEnumSchema;
+const baseIntegerSchema = (description, nullable = false) => ({
+    type: "integer",
+    description: description,
+    nullable: nullable,
+});
+exports.baseIntegerSchema = baseIntegerSchema;
+const baseObjectSchema = (description, additionalProperties = false, nullable = false) => ({
+    type: "object",
+    description: description,
+    additionalProperties: additionalProperties,
+    nullable: nullable,
+});
+exports.baseObjectSchema = baseObjectSchema;
+const baseDateTimeSchema = (description, nullable = false) => ({
+    type: "string",
+    format: "date-time",
+    description: description,
+    nullable: nullable,
+});
+exports.baseDateTimeSchema = baseDateTimeSchema;

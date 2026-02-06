@@ -1,1 +1,100 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),errors_1=require("@b/utils/schema/errors");exports.metadata={summary:"Submit Feedback for FAQ",description:"Creates a new feedback record for a specific FAQ. Users can indicate if the FAQ was helpful and optionally provide a comment.",operationId:"submitFaqFeedback",tags:["Admin","FAQ","Feedback"],requiresAuth:!0,parameters:[{index:0,name:"id",in:"path",required:!0,schema:{type:"string",format:"uuid"},description:"FAQ ID"}],requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{isHelpful:{type:"boolean",description:"Indicates if the FAQ was helpful"},comment:{type:"string",description:"Optional feedback comment"}},required:["isHelpful"]}}}},responses:{200:{description:"Feedback submitted successfully",content:{"application/json":{schema:{type:"object",description:"Created feedback record"}}}},400:errors_1.badRequestResponse,401:errors_1.unauthorizedResponse,500:errors_1.serverErrorResponse},permission:"create.faq.feedback",logModule:"ADMIN_FAQ",logTitle:"Submit FAQ feedback"};exports.default=async e=>{const{params:r,body:s,ctx:t}=e,{id:a}=r;if(!a||"boolean"!=typeof s.isHelpful){null==t||t.fail("FAQ ID and isHelpful are required");throw(0,error_1.createError)({statusCode:400,message:"FAQ ID and isHelpful are required"})}try{null==t||t.step("Creating feedback record");const e=await db_1.models.faqFeedback.create({faqId:a,isHelpful:s.isHelpful,comment:s.comment});null==t||t.success("Feedback submitted successfully");return e}catch(e){console.error("Error submitting FAQ feedback:",e);null==t||t.fail("Failed to submit feedback");throw(0,error_1.createError)({statusCode:500,message:e instanceof Error?e.message:"Failed to submit feedback"})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const errors_1 = require("@b/utils/schema/errors");
+exports.metadata = {
+    summary: "Submit Feedback for FAQ",
+    description: "Creates a new feedback record for a specific FAQ. Users can indicate if the FAQ was helpful and optionally provide a comment.",
+    operationId: "submitFaqFeedback",
+    tags: ["Admin", "FAQ", "Feedback"],
+    requiresAuth: true,
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+            description: "FAQ ID",
+        },
+    ],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        isHelpful: {
+                            type: "boolean",
+                            description: "Indicates if the FAQ was helpful",
+                        },
+                        comment: {
+                            type: "string",
+                            description: "Optional feedback comment",
+                        },
+                    },
+                    required: ["isHelpful"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Feedback submitted successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        description: "Created feedback record",
+                    },
+                },
+            },
+        },
+        400: errors_1.badRequestResponse,
+        401: errors_1.unauthorizedResponse,
+        500: errors_1.serverErrorResponse,
+    },
+    permission: "create.faq.feedback",
+    logModule: "ADMIN_FAQ",
+    logTitle: "Submit FAQ feedback",
+};
+exports.default = async (data) => {
+    const { params, body, ctx, user } = data;
+    const { id } = params;
+    if (!id || typeof body.isHelpful !== "boolean") {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("FAQ ID and isHelpful are required");
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "FAQ ID and isHelpful are required",
+        });
+    }
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("User authentication required");
+        throw (0, error_1.createError)({
+            statusCode: 401,
+            message: "User authentication required",
+        });
+    }
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating feedback record");
+        const feedback = await db_1.models.faqFeedback.create({
+            faqId: id,
+            userId: user.id,
+            isHelpful: body.isHelpful,
+            comment: body.comment,
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Feedback submitted successfully");
+        return feedback;
+    }
+    catch (error) {
+        console.error("Error submitting FAQ feedback:", error);
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to submit feedback");
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: error instanceof Error ? error.message : "Failed to submit feedback",
+        });
+    }
+};

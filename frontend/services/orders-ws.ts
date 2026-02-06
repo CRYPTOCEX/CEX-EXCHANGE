@@ -50,18 +50,35 @@ export class OrdersWebSocketService {
   private wsConnections: Map<MarketType, string> = new Map();
 
   constructor() {
+    // All backends now use /api/ prefix
     // Initialize WebSocket URLs for different market types
     if (typeof window !== "undefined") {
-      const baseWsUrl =
-        process.env.NEXT_PUBLIC_WEBSOCKET_URL ||
-        `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}`;
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const isDev = process.env.NODE_ENV === "development";
+      const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || "4000";
+
+      // In development, connect directly to backend (Next.js rewrites don't support WebSocket upgrades)
+      // In production, use same host (frontend and backend are served from same domain)
+      let baseWsUrl: string;
+      if (process.env.NEXT_PUBLIC_WEBSOCKET_URL) {
+        baseWsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
+      } else if (isDev) {
+        // Development: connect directly to backend port
+        baseWsUrl = `${protocol}//${window.location.hostname}:${backendPort}`;
+      } else {
+        // Production: use same host
+        baseWsUrl = `${protocol}//${window.location.host}`;
+      }
+
       this.wsConnections.set("spot", `${baseWsUrl}/api/exchange/order`);
       this.wsConnections.set("eco", `${baseWsUrl}/api/ecosystem/order`);
       this.wsConnections.set("futures", `${baseWsUrl}/api/futures/order`);
     } else {
-      this.wsConnections.set("spot", "ws://localhost:3000/api/exchange/order");
-      this.wsConnections.set("eco", "ws://localhost:3000/api/ecosystem/order");
-      this.wsConnections.set("futures", "ws://localhost:3000/api/futures/order");
+      // Server-side rendering fallback
+      const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || "4000";
+      this.wsConnections.set("spot", `ws://localhost:${backendPort}/api/exchange/order`);
+      this.wsConnections.set("eco", `ws://localhost:${backendPort}/api/ecosystem/order`);
+      this.wsConnections.set("futures", `ws://localhost:${backendPort}/api/futures/order`);
     }
 
     // Initialize connection status for all market types

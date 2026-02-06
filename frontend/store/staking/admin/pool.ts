@@ -35,7 +35,9 @@ export const useStakingAdminPoolsStore = create<PoolsState>((set, get) => ({
         silentSuccess: true,
       });
       if (!error) {
-        set({ pools: data, isLoading: false });
+        // Handle both array and paginated responses
+        const pools = Array.isArray(data) ? data : (data?.items || []);
+        set({ pools, isLoading: false });
       }
     } catch (err) {
       console.error("Error fetching staking pools:", err);

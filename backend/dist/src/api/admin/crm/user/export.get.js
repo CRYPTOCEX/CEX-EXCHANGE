@@ -1,1 +1,92 @@
-"use strict";var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,r,i){void 0===i&&(i=r);var s=Object.getOwnPropertyDescriptor(t,r);s&&!("get"in s?!t.__esModule:s.writable||s.configurable)||(s={enumerable:!0,get:function(){return t[r]}});Object.defineProperty(e,i,s)}:function(e,t,r,i){void 0===i&&(i=r);e[i]=t[r]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&(t[t.length]=r);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var r={};if(null!=t)for(var i=e(t),s=0;s<i.length;s++)"default"!==i[s]&&__createBinding(r,t,i[s]);__setModuleDefault(r,t);return r}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const error_1=require("@b/utils/error"),db_1=require("@b/db"),XLSX=__importStar(require("xlsx")),fs=__importStar(require("fs")),path=__importStar(require("path")),demoMask_1=require("@b/utils/demoMask");exports.metadata={summary:"Export all users as an Excel file with detailed information",operationId:"exportUsersToExcel",tags:["Admin","CRM","User"],responses:{200:{description:"Excel file created successfully"}},requiresAuth:!0,permission:"view.user"};exports.default=async e=>{const{user:t}=e;if(!(null==t?void 0:t.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized access"});const r=(await db_1.models.user.findAll({include:[{model:db_1.models.role,as:"role"},{model:db_1.models.kycApplication,as:"kyc"}]})).map(e=>{var t,r,i,s;return{ID:e.id,FirstName:e.firstName||"N/A",LastName:e.lastName||"N/A",Email:e.email||"N/A",EmailVerified:e.emailVerified?"Yes":"No",Phone:e.phone||"N/A",Role:(null===(t=e.role)||void 0===t?void 0:t.name)||"N/A",Status:e.status,KYC_Status:(null===(r=e.kyc)||void 0===r?void 0:r.status)||"N/A",CreatedAt:(null===(i=e.createdAt)||void 0===i?void 0:i.toISOString())||"N/A",LastLogin:(null===(s=e.lastLogin)||void 0===s?void 0:s.toISOString())||"N/A"}}),i=(0,demoMask_1.applyDemoMask)(r,["Email","Phone"]),s=XLSX.utils.json_to_sheet(i),o=XLSX.utils.book_new();XLSX.utils.book_append_sheet(o,s,"Users");const a=path.join(process.cwd(),"exports","users.xlsx");fs.mkdirSync(path.dirname(a),{recursive:!0});XLSX.writeFile(o,a);return{message:`Excel file created successfully at ${a}`}};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const error_1 = require("@b/utils/error");
+const db_1 = require("@b/db");
+const XLSX = __importStar(require("xlsx"));
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
+const demoMask_1 = require("@b/utils/demoMask");
+exports.metadata = {
+    summary: "Export all users as an Excel file with detailed information",
+    operationId: "exportUsersToExcel",
+    tags: ["Admin", "CRM", "User"],
+    responses: {
+        200: {
+            description: "Excel file created successfully",
+        },
+    },
+    requiresAuth: true,
+    permission: "view.user",
+};
+exports.default = async (data) => {
+    const { user } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized access" });
+    }
+    const users = await db_1.models.user.findAll({
+        include: [
+            { model: db_1.models.role, as: "role" },
+            { model: db_1.models.kycApplication, as: "kyc" },
+        ],
+    });
+    const userData = users.map((user) => {
+        var _a, _b, _c, _d;
+        return ({
+            ID: user.id,
+            FirstName: user.firstName || "N/A",
+            LastName: user.lastName || "N/A",
+            Email: user.email || "N/A",
+            EmailVerified: user.emailVerified ? "Yes" : "No",
+            Phone: user.phone || "N/A",
+            Role: ((_a = user.role) === null || _a === void 0 ? void 0 : _a.name) || "N/A",
+            Status: user.status,
+            KYC_Status: ((_b = user.kyc) === null || _b === void 0 ? void 0 : _b.status) || "N/A",
+            CreatedAt: ((_c = user.createdAt) === null || _c === void 0 ? void 0 : _c.toISOString()) || "N/A",
+            LastLogin: ((_d = user.lastLogin) === null || _d === void 0 ? void 0 : _d.toISOString()) || "N/A",
+        });
+    });
+    const maskedData = (0, demoMask_1.applyDemoMask)(userData, ["Email", "Phone"]);
+    const worksheet = XLSX.utils.json_to_sheet(maskedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+    const filePath = path.join(process.cwd(), "exports", "users.xlsx");
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    XLSX.writeFile(workbook, filePath);
+    return {
+        message: `Excel file created successfully at ${filePath}`,
+    };
+};

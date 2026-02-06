@@ -1,1 +1,403 @@
-"use strict";function getTimeAgo(e){const t=Math.floor(((new Date).getTime()-e.getTime())/1e3);if(t<60)return`${t}s ago`;const a=Math.floor(t/60);if(a<60)return`${a}m ago`;const o=Math.floor(a/60);if(o<24)return`${o}h ago`;return`${Math.floor(o/24)}d ago`}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),sequelize_1=require("sequelize");exports.metadata={summary:"Get Staking landing page data",description:"Retrieves comprehensive data for the Staking landing page including stats, featured pools, token diversity, and activity.",operationId:"getStakingLanding",tags:["Staking","Landing"],requiresAuth:!1,responses:{200:{description:"Staking landing page data retrieved successfully",content:{"application/json":{schema:{type:"object",properties:{stats:{type:"object"},featuredPools:{type:"array"},highestAprPools:{type:"array"},flexiblePools:{type:"array"},upcomingPools:{type:"array"},tokenStats:{type:"array"},recentActivity:{type:"array"},performance:{type:"object"},earningFrequencies:{type:"array"},calculatorPreview:{type:"object"}}}}}}}};exports.default=async()=>{const e=new Date,t=new Date(e.getTime()-2592e6),a=new Date(e.getTime()-6048e5),o=new Date(e.getFullYear(),e.getMonth(),1),l=new Date(e.getFullYear(),e.getMonth()-1,1),i=new Date(e.getFullYear(),e.getMonth(),0),[r,s,n,d,u,p,m,c,g,E,A]=await Promise.all([db_1.models.stakingPool.findOne({attributes:[[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.col)("id")),"totalPools"],[(0,sequelize_1.fn)("SUM",(0,sequelize_1.literal)("CASE WHEN status = 'ACTIVE' THEN 1 ELSE 0 END")),"activePools"],[(0,sequelize_1.fn)("AVG",(0,sequelize_1.literal)("CASE WHEN status = 'ACTIVE' THEN apr ELSE NULL END")),"avgApr"],[(0,sequelize_1.fn)("MAX",(0,sequelize_1.literal)("CASE WHEN status = 'ACTIVE' THEN apr ELSE NULL END")),"highestApr"],[(0,sequelize_1.fn)("MIN",(0,sequelize_1.literal)("CASE WHEN status = 'ACTIVE' THEN apr ELSE NULL END")),"lowestApr"],[(0,sequelize_1.fn)("AVG",(0,sequelize_1.literal)("CASE WHEN status = 'ACTIVE' THEN lockPeriod ELSE NULL END")),"avgLockPeriod"]],raw:!0}),db_1.models.stakingPosition.findOne({attributes:[[(0,sequelize_1.fn)("SUM",(0,sequelize_1.col)("amount")),"totalStaked"],[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.literal)("DISTINCT userId")),"activeUsers"],[(0,sequelize_1.fn)("AVG",(0,sequelize_1.col)("amount")),"avgStakeAmount"],[(0,sequelize_1.fn)("SUM",(0,sequelize_1.literal)("CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END")),"completedPositions"],[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.col)("id")),"totalPositions"],[(0,sequelize_1.fn)("SUM",(0,sequelize_1.literal)(`CASE WHEN createdAt >= '${o.toISOString()}' THEN amount ELSE 0 END`)),"currentStaked"],[(0,sequelize_1.fn)("SUM",(0,sequelize_1.literal)(`CASE WHEN createdAt BETWEEN '${l.toISOString()}' AND '${i.toISOString()}' THEN amount ELSE 0 END`)),"previousStaked"]],where:{status:{[sequelize_1.Op.in]:["ACTIVE","COMPLETED"]}},raw:!0}),db_1.models.stakingEarningRecord.findOne({attributes:[[(0,sequelize_1.fn)("SUM",(0,sequelize_1.col)("amount")),"totalRewards"],[(0,sequelize_1.fn)("SUM",(0,sequelize_1.literal)("CASE WHEN isClaimed = true THEN amount ELSE 0 END")),"totalClaimed"],[(0,sequelize_1.fn)("SUM",(0,sequelize_1.literal)(`CASE WHEN createdAt >= '${a.toISOString()}' THEN amount ELSE 0 END`)),"last7DaysRewards"],[(0,sequelize_1.fn)("SUM",(0,sequelize_1.literal)(`CASE WHEN createdAt >= '${t.toISOString()}' THEN amount ELSE 0 END`)),"last30DaysRewards"]],raw:!0}),db_1.models.stakingPool.findAll({where:{status:"ACTIVE",isPromoted:!0},order:[["order","ASC"]],limit:6}),db_1.models.stakingPool.findAll({where:{status:"ACTIVE"},order:[["apr","DESC"]],limit:4}),db_1.models.stakingPool.findAll({where:{status:"ACTIVE",lockPeriod:{[sequelize_1.Op.lte]:30}},order:[["lockPeriod","ASC"]],limit:4}),db_1.models.stakingPool.findAll({where:{status:"COMING_SOON"},order:[["order","ASC"]],limit:3}),db_1.models.stakingPool.findAll({attributes:["token","symbol","icon",[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.col)("id")),"poolCount"],[(0,sequelize_1.fn)("AVG",(0,sequelize_1.col)("apr")),"avgApr"],[(0,sequelize_1.fn)("MAX",(0,sequelize_1.col)("apr")),"highestApr"]],where:{status:"ACTIVE"},group:["token","symbol","icon"],order:[[(0,sequelize_1.literal)("poolCount"),"DESC"]],limit:6,raw:!0}),db_1.models.stakingPosition.findAll({attributes:["amount","createdAt","poolId"],where:{createdAt:{[sequelize_1.Op.gte]:t}},order:[["createdAt","DESC"]],limit:5,include:[{model:db_1.models.stakingPool,as:"pool",attributes:["name","symbol"]}]}),db_1.models.stakingEarningRecord.findAll({attributes:["amount","claimedAt","positionId"],where:{isClaimed:!0,claimedAt:{[sequelize_1.Op.gte]:t}},order:[["claimedAt","DESC"]],limit:5,include:[{model:db_1.models.stakingPosition,as:"position",attributes:["poolId"],include:[{model:db_1.models.stakingPool,as:"pool",attributes:["name","symbol"]}]}]}),db_1.models.stakingPool.findAll({attributes:["earningFrequency",[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.col)("id")),"poolCount"],[(0,sequelize_1.fn)("AVG",(0,sequelize_1.col)("apr")),"avgApr"]],where:{status:"ACTIVE"},group:["earningFrequency"],raw:!0})]),S=parseFloat(null==s?void 0:s.totalStaked)||0,y=parseInt(null==s?void 0:s.activeUsers)||0,_=parseInt(null==r?void 0:r.totalPools)||0,q=parseInt(null==r?void 0:r.activePools)||0,v=parseFloat(null==r?void 0:r.avgApr)||0,k=parseFloat(null==r?void 0:r.highestApr)||0,w=parseFloat(null==r?void 0:r.lowestApr)||0,b=parseFloat(null==r?void 0:r.avgLockPeriod)||0,C=parseFloat(null==s?void 0:s.avgStakeAmount)||0,f=parseInt(null==s?void 0:s.completedPositions)||0,z=parseInt(null==s?void 0:s.totalPositions)||0,P=z>0?Math.round(f/z*100):0,h=parseFloat(null==n?void 0:n.totalRewards)||0,N=parseFloat(null==n?void 0:n.totalClaimed)||0,T=h-N,I=parseFloat(null==n?void 0:n.last7DaysRewards)||0,D=parseFloat(null==n?void 0:n.last30DaysRewards)||0,M=D/30,F=parseFloat(null==s?void 0:s.currentStaked)||0,O=parseFloat(null==s?void 0:s.previousStaked)||0,L=O>0?Math.round((F-O)/O*100):0,R=d.map(e=>e.id),U=R.length>0?await db_1.models.stakingPosition.findAll({attributes:["poolId",[(0,sequelize_1.fn)("SUM",(0,sequelize_1.col)("amount")),"totalStaked"],[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.literal)("DISTINCT userId")),"totalStakers"]],where:{poolId:{[sequelize_1.Op.in]:R},status:{[sequelize_1.Op.in]:["ACTIVE","COMPLETED"]}},group:["poolId"],raw:!0}):[],H={};U.forEach(e=>{H[e.poolId]=e});const V=d.map(e=>{const t=H[e.id]||{},a=parseFloat(t.totalStaked)||0,o=a+e.availableToStake,l=o>0?Math.round(a/o*100):0;return{id:e.id,name:e.name,symbol:e.symbol,icon:e.icon,description:e.description,apr:e.apr,lockPeriod:e.lockPeriod,minStake:e.minStake,maxStake:e.maxStake,availableToStake:e.availableToStake,totalStaked:a,capacity:l,earningFrequency:e.earningFrequency,autoCompound:e.autoCompound,totalStakers:parseInt(t.totalStakers)||0,walletType:e.walletType}}),W=u.map(e=>({id:e.id,name:e.name,symbol:e.symbol,icon:e.icon,apr:e.apr,lockPeriod:e.lockPeriod,earningFrequency:e.earningFrequency})),G=p.map(e=>({id:e.id,name:e.name,symbol:e.symbol,icon:e.icon,apr:e.apr,lockPeriod:e.lockPeriod,earlyWithdrawalFee:e.earlyWithdrawalFee})),x=m.map(e=>({id:e.id,name:e.name,symbol:e.symbol,icon:e.icon,description:e.description,apr:e.apr,lockPeriod:e.lockPeriod})),$=c.map(e=>({token:e.token,symbol:e.symbol,icon:e.icon,poolCount:parseInt(e.poolCount)||0,avgApr:parseFloat(e.avgApr)||0,highestApr:parseFloat(e.highestApr)||0})),j=[...g.map(e=>{var t,a;return{type:"STAKE",amount:e.amount,symbol:(null===(t=e.pool)||void 0===t?void 0:t.symbol)||"TOKEN",poolName:(null===(a=e.pool)||void 0===a?void 0:a.name)||"Pool",timeAgo:getTimeAgo(new Date(e.createdAt))}}),...E.map(e=>{var t,a,o,l;return{type:"CLAIM",amount:e.amount,symbol:(null===(a=null===(t=e.position)||void 0===t?void 0:t.pool)||void 0===a?void 0:a.symbol)||"TOKEN",poolName:(null===(l=null===(o=e.position)||void 0===o?void 0:o.pool)||void 0===l?void 0:l.name)||"Pool",timeAgo:getTimeAgo(new Date(e.claimedAt))}})].sort((e,t)=>e.timeAgo.localeCompare(t.timeAgo)).slice(0,8),K=A.map(e=>({frequency:e.earningFrequency,poolCount:parseInt(e.poolCount)||0,avgApr:parseFloat(e.avgApr)||0})),Y=u[0],X=Y?{samplePool:{name:Y.name,symbol:Y.symbol,apr:Y.apr},examples:[{amount:100,dailyReward:100*Y.apr/100/365,monthlyReward:100*Y.apr/100/12,yearlyReward:100*Y.apr/100},{amount:1e3,dailyReward:1e3*Y.apr/100/365,monthlyReward:1e3*Y.apr/100/12,yearlyReward:1e3*Y.apr/100},{amount:1e4,dailyReward:1e4*Y.apr/100/365,monthlyReward:1e4*Y.apr/100/12,yearlyReward:1e4*Y.apr/100}]}:null;return{stats:{totalStaked:S,activeUsers:y,totalPools:_,activePools:q,avgApr:Math.round(100*v)/100,highestApr:k,lowestApr:w,totalRewards:h,totalClaimed:N,unclaimedRewards:T,stakedGrowth:L,usersGrowth:0,rewardsGrowth:0,avgLockPeriod:Math.round(b),avgStakeAmount:Math.round(100*C)/100,completionRate:P},featuredPools:V,highestAprPools:W,flexiblePools:G,upcomingPools:x,tokenStats:$,recentActivity:j,performance:{last7DaysRewards:I,last30DaysRewards:D,avgDailyRewards:Math.round(100*M)/100,peakApr:k,peakAprDate:null},earningFrequencies:K,calculatorPreview:X}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
+exports.metadata = {
+    summary: "Get Staking landing page data",
+    description: "Retrieves comprehensive data for the Staking landing page including stats, featured pools, token diversity, and activity.",
+    operationId: "getStakingLanding",
+    tags: ["Staking", "Landing"],
+    requiresAuth: false,
+    responses: {
+        200: {
+            description: "Staking landing page data retrieved successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            stats: { type: "object" },
+                            featuredPools: { type: "array" },
+                            highestAprPools: { type: "array" },
+                            flexiblePools: { type: "array" },
+                            upcomingPools: { type: "array" },
+                            tokenStats: { type: "array" },
+                            recentActivity: { type: "array" },
+                            performance: { type: "object" },
+                            earningFrequencies: { type: "array" },
+                            calculatorPreview: { type: "object" },
+                        },
+                    },
+                },
+            },
+        },
+    },
+};
+exports.default = async (data) => {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const [poolStats, positionStats, earningStats, featuredPools, highestAprPools, flexiblePools, upcomingPools, tokenAggregates, recentPositions, recentClaims, earningFrequencyStats,] = await Promise.all([
+        db_1.models.stakingPool.findOne({
+            attributes: [
+                [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.col)("id")), "totalPools"],
+                [
+                    (0, sequelize_1.fn)("SUM", (0, sequelize_1.literal)("CASE WHEN status = 'ACTIVE' THEN 1 ELSE 0 END")),
+                    "activePools",
+                ],
+                [
+                    (0, sequelize_1.fn)("AVG", (0, sequelize_1.literal)("CASE WHEN status = 'ACTIVE' THEN apr ELSE NULL END")),
+                    "avgApr",
+                ],
+                [
+                    (0, sequelize_1.fn)("MAX", (0, sequelize_1.literal)("CASE WHEN status = 'ACTIVE' THEN apr ELSE NULL END")),
+                    "highestApr",
+                ],
+                [
+                    (0, sequelize_1.fn)("MIN", (0, sequelize_1.literal)("CASE WHEN status = 'ACTIVE' THEN apr ELSE NULL END")),
+                    "lowestApr",
+                ],
+                [
+                    (0, sequelize_1.fn)("AVG", (0, sequelize_1.literal)("CASE WHEN status = 'ACTIVE' THEN lockPeriod ELSE NULL END")),
+                    "avgLockPeriod",
+                ],
+            ],
+            raw: true,
+        }),
+        db_1.models.stakingPosition.findOne({
+            attributes: [
+                [(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("amount")), "totalStaked"],
+                [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.literal)("DISTINCT userId")), "activeUsers"],
+                [(0, sequelize_1.fn)("AVG", (0, sequelize_1.col)("amount")), "avgStakeAmount"],
+                [
+                    (0, sequelize_1.fn)("SUM", (0, sequelize_1.literal)("CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END")),
+                    "completedPositions",
+                ],
+                [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.col)("id")), "totalPositions"],
+                [
+                    (0, sequelize_1.fn)("SUM", (0, sequelize_1.literal)(`CASE WHEN createdAt >= '${currentMonthStart.toISOString()}' THEN amount ELSE 0 END`)),
+                    "currentStaked",
+                ],
+                [
+                    (0, sequelize_1.fn)("SUM", (0, sequelize_1.literal)(`CASE WHEN createdAt BETWEEN '${previousMonthStart.toISOString()}' AND '${previousMonthEnd.toISOString()}' THEN amount ELSE 0 END`)),
+                    "previousStaked",
+                ],
+            ],
+            where: { status: { [sequelize_1.Op.in]: ["ACTIVE", "COMPLETED"] } },
+            raw: true,
+        }),
+        db_1.models.stakingEarningRecord.findOne({
+            attributes: [
+                [(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("amount")), "totalRewards"],
+                [
+                    (0, sequelize_1.fn)("SUM", (0, sequelize_1.literal)("CASE WHEN isClaimed = true THEN amount ELSE 0 END")),
+                    "totalClaimed",
+                ],
+                [
+                    (0, sequelize_1.fn)("SUM", (0, sequelize_1.literal)(`CASE WHEN createdAt >= '${sevenDaysAgo.toISOString()}' THEN amount ELSE 0 END`)),
+                    "last7DaysRewards",
+                ],
+                [
+                    (0, sequelize_1.fn)("SUM", (0, sequelize_1.literal)(`CASE WHEN createdAt >= '${thirtyDaysAgo.toISOString()}' THEN amount ELSE 0 END`)),
+                    "last30DaysRewards",
+                ],
+            ],
+            raw: true,
+        }),
+        db_1.models.stakingPool.findAll({
+            where: { status: "ACTIVE", isPromoted: true },
+            order: [["order", "ASC"]],
+            limit: 6,
+        }),
+        db_1.models.stakingPool.findAll({
+            where: { status: "ACTIVE" },
+            order: [["apr", "DESC"]],
+            limit: 4,
+        }),
+        db_1.models.stakingPool.findAll({
+            where: { status: "ACTIVE", lockPeriod: { [sequelize_1.Op.lte]: 30 } },
+            order: [["lockPeriod", "ASC"]],
+            limit: 4,
+        }),
+        db_1.models.stakingPool.findAll({
+            where: { status: "COMING_SOON" },
+            order: [["order", "ASC"]],
+            limit: 3,
+        }),
+        db_1.models.stakingPool.findAll({
+            attributes: [
+                "token",
+                "symbol",
+                "icon",
+                [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.col)("id")), "poolCount"],
+                [(0, sequelize_1.fn)("AVG", (0, sequelize_1.col)("apr")), "avgApr"],
+                [(0, sequelize_1.fn)("MAX", (0, sequelize_1.col)("apr")), "highestApr"],
+            ],
+            where: { status: "ACTIVE" },
+            group: ["token", "symbol", "icon"],
+            order: [[(0, sequelize_1.literal)("poolCount"), "DESC"]],
+            limit: 6,
+            raw: true,
+        }),
+        db_1.models.stakingPosition.findAll({
+            attributes: ["amount", "createdAt", "poolId"],
+            where: { createdAt: { [sequelize_1.Op.gte]: thirtyDaysAgo } },
+            order: [["createdAt", "DESC"]],
+            limit: 5,
+            include: [
+                {
+                    model: db_1.models.stakingPool,
+                    as: "pool",
+                    attributes: ["name", "symbol"],
+                },
+            ],
+        }),
+        db_1.models.stakingEarningRecord.findAll({
+            attributes: ["amount", "claimedAt", "positionId"],
+            where: { isClaimed: true, claimedAt: { [sequelize_1.Op.gte]: thirtyDaysAgo } },
+            order: [["claimedAt", "DESC"]],
+            limit: 5,
+            include: [
+                {
+                    model: db_1.models.stakingPosition,
+                    as: "position",
+                    attributes: ["poolId"],
+                    include: [
+                        {
+                            model: db_1.models.stakingPool,
+                            as: "pool",
+                            attributes: ["name", "symbol"],
+                        },
+                    ],
+                },
+            ],
+        }),
+        db_1.models.stakingPool.findAll({
+            attributes: [
+                "earningFrequency",
+                [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.col)("id")), "poolCount"],
+                [(0, sequelize_1.fn)("AVG", (0, sequelize_1.col)("apr")), "avgApr"],
+            ],
+            where: { status: "ACTIVE" },
+            group: ["earningFrequency"],
+            raw: true,
+        }),
+    ]);
+    const totalStaked = parseFloat(positionStats === null || positionStats === void 0 ? void 0 : positionStats.totalStaked) || 0;
+    const activeUsers = parseInt(positionStats === null || positionStats === void 0 ? void 0 : positionStats.activeUsers) || 0;
+    const totalPools = parseInt(poolStats === null || poolStats === void 0 ? void 0 : poolStats.totalPools) || 0;
+    const activePools = parseInt(poolStats === null || poolStats === void 0 ? void 0 : poolStats.activePools) || 0;
+    const avgApr = parseFloat(poolStats === null || poolStats === void 0 ? void 0 : poolStats.avgApr) || 0;
+    const highestApr = parseFloat(poolStats === null || poolStats === void 0 ? void 0 : poolStats.highestApr) || 0;
+    const lowestApr = parseFloat(poolStats === null || poolStats === void 0 ? void 0 : poolStats.lowestApr) || 0;
+    const avgLockPeriod = parseFloat(poolStats === null || poolStats === void 0 ? void 0 : poolStats.avgLockPeriod) || 0;
+    const avgStakeAmount = parseFloat(positionStats === null || positionStats === void 0 ? void 0 : positionStats.avgStakeAmount) || 0;
+    const completedPositions = parseInt(positionStats === null || positionStats === void 0 ? void 0 : positionStats.completedPositions) || 0;
+    const totalPositions = parseInt(positionStats === null || positionStats === void 0 ? void 0 : positionStats.totalPositions) || 0;
+    const completionRate = totalPositions > 0
+        ? Math.round((completedPositions / totalPositions) * 100)
+        : 0;
+    const totalRewards = parseFloat(earningStats === null || earningStats === void 0 ? void 0 : earningStats.totalRewards) || 0;
+    const totalClaimed = parseFloat(earningStats === null || earningStats === void 0 ? void 0 : earningStats.totalClaimed) || 0;
+    const unclaimedRewards = totalRewards - totalClaimed;
+    const last7DaysRewards = parseFloat(earningStats === null || earningStats === void 0 ? void 0 : earningStats.last7DaysRewards) || 0;
+    const last30DaysRewards = parseFloat(earningStats === null || earningStats === void 0 ? void 0 : earningStats.last30DaysRewards) || 0;
+    const avgDailyRewards = last30DaysRewards / 30;
+    const currentStaked = parseFloat(positionStats === null || positionStats === void 0 ? void 0 : positionStats.currentStaked) || 0;
+    const previousStaked = parseFloat(positionStats === null || positionStats === void 0 ? void 0 : positionStats.previousStaked) || 0;
+    const stakedGrowth = previousStaked > 0
+        ? Math.round(((currentStaked - previousStaked) / previousStaked) * 100)
+        : 0;
+    const featuredPoolIds = featuredPools.map((p) => p.id);
+    const poolAnalytics = featuredPoolIds.length > 0
+        ? await db_1.models.stakingPosition.findAll({
+            attributes: [
+                "poolId",
+                [(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("amount")), "totalStaked"],
+                [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.literal)("DISTINCT userId")), "totalStakers"],
+            ],
+            where: {
+                poolId: { [sequelize_1.Op.in]: featuredPoolIds },
+                status: { [sequelize_1.Op.in]: ["ACTIVE", "COMPLETED"] },
+            },
+            group: ["poolId"],
+            raw: true,
+        })
+        : [];
+    const analyticsMap = {};
+    poolAnalytics.forEach((a) => {
+        analyticsMap[a.poolId] = a;
+    });
+    const transformedFeatured = featuredPools.map((pool) => {
+        const analytics = analyticsMap[pool.id] || {};
+        const poolTotalStaked = parseFloat(analytics.totalStaked) || 0;
+        const totalCapacity = poolTotalStaked + pool.availableToStake;
+        const capacity = totalCapacity > 0
+            ? Math.round((poolTotalStaked / totalCapacity) * 100)
+            : 0;
+        return {
+            id: pool.id,
+            name: pool.name,
+            symbol: pool.symbol,
+            icon: pool.icon,
+            description: pool.description,
+            apr: pool.apr,
+            lockPeriod: pool.lockPeriod,
+            minStake: pool.minStake,
+            maxStake: pool.maxStake,
+            availableToStake: pool.availableToStake,
+            totalStaked: poolTotalStaked,
+            capacity,
+            earningFrequency: pool.earningFrequency,
+            autoCompound: pool.autoCompound,
+            totalStakers: parseInt(analytics.totalStakers) || 0,
+            walletType: pool.walletType,
+        };
+    });
+    const transformedHighApr = highestAprPools.map((pool) => ({
+        id: pool.id,
+        name: pool.name,
+        symbol: pool.symbol,
+        icon: pool.icon,
+        apr: pool.apr,
+        lockPeriod: pool.lockPeriod,
+        earningFrequency: pool.earningFrequency,
+    }));
+    const transformedFlexible = flexiblePools.map((pool) => ({
+        id: pool.id,
+        name: pool.name,
+        symbol: pool.symbol,
+        icon: pool.icon,
+        apr: pool.apr,
+        lockPeriod: pool.lockPeriod,
+        earlyWithdrawalFee: pool.earlyWithdrawalFee,
+    }));
+    const transformedUpcoming = upcomingPools.map((pool) => ({
+        id: pool.id,
+        name: pool.name,
+        symbol: pool.symbol,
+        icon: pool.icon,
+        description: pool.description,
+        apr: pool.apr,
+        lockPeriod: pool.lockPeriod,
+    }));
+    const tokenStats = tokenAggregates.map((t) => ({
+        token: t.token,
+        symbol: t.symbol,
+        icon: t.icon,
+        poolCount: parseInt(t.poolCount) || 0,
+        avgApr: parseFloat(t.avgApr) || 0,
+        highestApr: parseFloat(t.highestApr) || 0,
+    }));
+    const recentActivity = [
+        ...recentPositions.map((pos) => {
+            var _a, _b;
+            return ({
+                type: "STAKE",
+                amount: pos.amount,
+                symbol: ((_a = pos.pool) === null || _a === void 0 ? void 0 : _a.symbol) || "TOKEN",
+                poolName: ((_b = pos.pool) === null || _b === void 0 ? void 0 : _b.name) || "Pool",
+                timeAgo: getTimeAgo(new Date(pos.createdAt)),
+            });
+        }),
+        ...recentClaims.map((claim) => {
+            var _a, _b, _c, _d;
+            return ({
+                type: "CLAIM",
+                amount: claim.amount,
+                symbol: ((_b = (_a = claim.position) === null || _a === void 0 ? void 0 : _a.pool) === null || _b === void 0 ? void 0 : _b.symbol) || "TOKEN",
+                poolName: ((_d = (_c = claim.position) === null || _c === void 0 ? void 0 : _c.pool) === null || _d === void 0 ? void 0 : _d.name) || "Pool",
+                timeAgo: getTimeAgo(new Date(claim.claimedAt)),
+            });
+        }),
+    ]
+        .sort((a, b) => a.timeAgo.localeCompare(b.timeAgo))
+        .slice(0, 8);
+    const earningFrequencies = earningFrequencyStats.map((f) => ({
+        frequency: f.earningFrequency,
+        poolCount: parseInt(f.poolCount) || 0,
+        avgApr: parseFloat(f.avgApr) || 0,
+    }));
+    const samplePool = highestAprPools[0];
+    const calculatorPreview = samplePool
+        ? {
+            samplePool: {
+                name: samplePool.name,
+                symbol: samplePool.symbol,
+                apr: samplePool.apr,
+            },
+            examples: [
+                {
+                    amount: 100,
+                    dailyReward: ((100 * samplePool.apr) / 100 / 365),
+                    monthlyReward: ((100 * samplePool.apr) / 100 / 12),
+                    yearlyReward: (100 * samplePool.apr) / 100,
+                },
+                {
+                    amount: 1000,
+                    dailyReward: ((1000 * samplePool.apr) / 100 / 365),
+                    monthlyReward: ((1000 * samplePool.apr) / 100 / 12),
+                    yearlyReward: (1000 * samplePool.apr) / 100,
+                },
+                {
+                    amount: 10000,
+                    dailyReward: ((10000 * samplePool.apr) / 100 / 365),
+                    monthlyReward: ((10000 * samplePool.apr) / 100 / 12),
+                    yearlyReward: (10000 * samplePool.apr) / 100,
+                },
+            ],
+        }
+        : null;
+    return {
+        stats: {
+            totalStaked,
+            activeUsers,
+            totalPools,
+            activePools,
+            avgApr: Math.round(avgApr * 100) / 100,
+            highestApr,
+            lowestApr,
+            totalRewards,
+            totalClaimed,
+            unclaimedRewards,
+            stakedGrowth,
+            usersGrowth: 0,
+            rewardsGrowth: 0,
+            avgLockPeriod: Math.round(avgLockPeriod),
+            avgStakeAmount: Math.round(avgStakeAmount * 100) / 100,
+            completionRate,
+        },
+        featuredPools: transformedFeatured,
+        highestAprPools: transformedHighApr,
+        flexiblePools: transformedFlexible,
+        upcomingPools: transformedUpcoming,
+        tokenStats,
+        recentActivity,
+        performance: {
+            last7DaysRewards,
+            last30DaysRewards,
+            avgDailyRewards: Math.round(avgDailyRewards * 100) / 100,
+            peakApr: highestApr,
+            peakAprDate: null,
+        },
+        earningFrequencies,
+        calculatorPreview,
+    };
+};
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+    if (seconds < 60)
+        return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60)
+        return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24)
+        return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+}

@@ -1,1 +1,1114 @@
-"use strict";async function sendEmail(e,a,l){var i,t,o,n,s,r,d;let u,c;try{null===(i=null==l?void 0:l.step)||void 0===i||i.call(l,`Processing email template: ${a}`);const t=await(0,mailer_1.fetchAndProcessEmailTemplate)(e,a);u=t.processedTemplate;c=t.processedSubject}catch(e){console_1.logger.error("EMAIL","Error processing email template",e);null===(t=null==l?void 0:l.fail)||void 0===t||t.call(l,e.message);throw e}let m,p={};if(e.USER_ID)try{const a=await(0,token_1.generateUnsubscribeToken)(e.USER_ID);p={userId:e.USER_ID,locale:e.LOCALE||"en",unsubscribeToken:a}}catch(e){console_1.logger.warn("EMAIL","Failed to generate unsubscribe token",e)}try{null===(o=null==l?void 0:l.step)||void 0===o||o.call(l,"Preparing email template");m=await(0,mailer_1.prepareEmailTemplate)(u,c,p)}catch(e){console_1.logger.error("EMAIL","Error preparing email template",e);null===(n=null==l?void 0:l.fail)||void 0===n||n.call(l,e.message);throw e}const E={to:e.TO,subject:c,html:m},T=APP_EMAILER;try{null===(s=null==l?void 0:l.step)||void 0===s||s.call(l,`Sending email to ${e.TO}`);await(0,mailer_1.sendEmailWithProvider)(T,E);null===(r=null==l?void 0:l.success)||void 0===r||r.call(l,`Email sent successfully to ${e.TO}`)}catch(e){console_1.logger.error("EMAIL","Error sending email with provider",e);null===(d=null==l?void 0:l.fail)||void 0===d||d.call(l,e.message);throw e}}async function sendChatEmail(e,a,l,i,t,o){var n,s,r;null===(n=null==o?void 0:o.step)||void 0===n||n.call(o,`Queueing chat email to ${a.email}`);const d={TO:a.email,SENDER_NAME:e.firstName,RECEIVER_NAME:a.firstName,MESSAGE:i.text,TICKET_ID:l.id};try{await exports.emailQueue.add({emailData:d,emailType:t});null===(s=null==o?void 0:o.success)||void 0===s||s.call(o,"Chat email queued successfully")}catch(e){null===(r=null==o?void 0:o.fail)||void 0===r||r.call(o,e.message);throw e}}async function sendFiatTransactionEmail(e,a,l,i,t){var o,n,s;null===(o=null==t?void 0:t.step)||void 0===o||o.call(t,`Queueing fiat transaction email to ${e.email}`);const r={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,TRANSACTION_TYPE:a.type,TRANSACTION_ID:a.id,AMOUNT:a.amount,CURRENCY:l,TRANSACTION_STATUS:a.status,NEW_BALANCE:i,DESCRIPTION:a.description||"N/A"};try{await exports.emailQueue.add({emailData:r,emailType:"FiatWalletTransaction"});null===(n=null==t?void 0:t.success)||void 0===n||n.call(t,"Fiat transaction email queued successfully")}catch(e){null===(s=null==t?void 0:t.fail)||void 0===s||s.call(t,e.message);throw e}}function getBinaryOrderEmailTemplate(e,a){const l={RISE_FALL:"BinaryRiseFall",HIGHER_LOWER:"BinaryHigherLower",TOUCH_NO_TOUCH:"BinaryTouchNoTouch",CALL_PUT:"BinaryCallPut",TURBO:"BinaryTurbo"}[e]||"BinaryRiseFall";switch(a){case"WIN":return`${l}Win`;case"LOSS":return`${l}Loss`;case"DRAW":return`${l}Draw`;default:return"BinaryOrderResult"}}async function sendBinaryOrderEmail(e,a,l){var i,t,o;null===(i=null==l?void 0:l.step)||void 0===i||i.call(l,`Queueing binary order email to ${e.email}`);const n=getBinaryOrderEmailTemplate(a.type,a.status);let s=0,r="";switch(a.status){case"WIN":s=a.profit;r="+";break;case"LOSS":s=a.amount;r="-";break;case"DRAW":s=0;r=""}const d=a.symbol.split("/")[1],u={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,ORDER_ID:a.id,RESULT:a.status,MARKET:a.symbol,CURRENCY:d,AMOUNT:a.amount,PROFIT:`${r}${s}`,ENTRY_PRICE:a.price,CLOSE_PRICE:a.closePrice,SIDE:a.side};switch(a.type){case"HIGHER_LOWER":case"TURBO":if(a.barrier){u.BARRIER=a.barrier;u.BARRIER_LEVEL=a.barrierLevelId||"Custom"}break;case"TOUCH_NO_TOUCH":a.barrier&&(u.BARRIER=a.barrier);const e="TOUCH"===a.side;a.status;if("WIN"===a.status){u.TOUCH_RESULT=e?"The price touched your barrier level!":"The price never touched your barrier level!";u.MULTIPLIER_INFO=e?"Touch Multiplier Applied":"No Touch Multiplier Applied"}else u.TOUCH_RESULT=e?"The price did not touch your barrier level before expiry.":"The price touched your barrier level before expiry.";break;case"CALL_PUT":if(a.strikePrice){u.STRIKE=a.strikePrice;u.STRIKE_LEVEL=a.strikeLevelId||"Custom"}}try{await exports.emailQueue.add({emailData:u,emailType:n});null===(t=null==l?void 0:l.success)||void 0===t||t.call(l,`Binary order email queued successfully (${n})`)}catch(e){null===(o=null==l?void 0:l.fail)||void 0===o||o.call(l,e.message);throw e}}async function sendWalletBalanceUpdateEmail(e,a,l,i,t,o){var n,s,r;null===(n=null==o?void 0:o.step)||void 0===n||n.call(o,`Queueing wallet balance update email to ${e.email}`);const d={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,ACTION:l,AMOUNT:i,CURRENCY:a.currency,NEW_BALANCE:t};try{await exports.emailQueue.add({emailData:d,emailType:"WalletBalanceUpdate"});null===(s=null==o?void 0:o.success)||void 0===s||s.call(o,"Wallet balance update email queued successfully")}catch(e){null===(r=null==o?void 0:o.fail)||void 0===r||r.call(o,e.message);throw e}}async function sendTransactionStatusUpdateEmail(e,a,l,i,t,o){var n,s,r;null===(n=null==o?void 0:o.step)||void 0===n||n.call(o,`Queueing transaction status update email to ${e.email}`);const d={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,TRANSACTION_TYPE:a.type,TRANSACTION_ID:a.id,TRANSACTION_STATUS:a.status,AMOUNT:a.amount,CURRENCY:l.currency,NEW_BALANCE:i,NOTE:t||"N/A"};try{await exports.emailQueue.add({emailData:d,emailType:"TransactionStatusUpdate"});null===(s=null==o?void 0:o.success)||void 0===s||s.call(o,"Transaction status update email queued successfully")}catch(e){null===(r=null==o?void 0:o.fail)||void 0===r||r.call(o,e.message);throw e}}async function sendAuthorStatusUpdateEmail(e,a,l){var i,t,o;null===(i=null==l?void 0:l.step)||void 0===i||i.call(l,`Queueing author status update email to ${e.email}`);const n={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,AUTHOR_STATUS:a.status,APPLICATION_ID:a.id};try{await exports.emailQueue.add({emailData:n,emailType:"AuthorStatusUpdate"});null===(t=null==l?void 0:l.success)||void 0===t||t.call(l,"Author status update email queued successfully")}catch(e){null===(o=null==l?void 0:l.fail)||void 0===o||o.call(l,e.message);throw e}}async function sendOutgoingTransferEmail(e,a,l,i,t,o){var n,s,r;null===(n=null==o?void 0:o.step)||void 0===n||n.call(o,`Queueing outgoing transfer email to ${e.email}`);const d={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,AMOUNT:i,CURRENCY:l.currency,NEW_BALANCE:l.balance,TRANSACTION_ID:t,RECIPIENT_NAME:`${a.firstName} ${a.lastName}`};try{await exports.emailQueue.add({emailData:d,emailType:"OutgoingWalletTransfer"});null===(s=null==o?void 0:o.success)||void 0===s||s.call(o,"Outgoing transfer email queued successfully")}catch(e){null===(r=null==o?void 0:o.fail)||void 0===r||r.call(o,e.message);throw e}}async function sendIncomingTransferEmail(e,a,l,i,t,o){var n,s,r;null===(n=null==o?void 0:o.step)||void 0===n||n.call(o,`Queueing incoming transfer email to ${e.email}`);const d={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,AMOUNT:i,CURRENCY:l.currency,NEW_BALANCE:l.balance,TRANSACTION_ID:t,SENDER_NAME:`${a.firstName} ${a.lastName}`};try{await exports.emailQueue.add({emailData:d,emailType:"IncomingWalletTransfer"});null===(s=null==o?void 0:o.success)||void 0===s||s.call(o,"Incoming transfer email queued successfully")}catch(e){null===(r=null==o?void 0:o.fail)||void 0===r||r.call(o,e.message);throw e}}async function sendSpotWalletWithdrawalConfirmationEmail(e,a,l,i){var t,o,n;null===(t=null==i?void 0:i.step)||void 0===t||t.call(i,`Queueing spot wallet withdrawal confirmation email to ${e.email}`);const s={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,AMOUNT:a.amount,CURRENCY:l.currency,ADDRESS:a.metadata.address,FEE:a.fee,CHAIN:a.metadata.chain,MEMO:a.metadata.memo||"N/A",STATUS:a.status};try{await exports.emailQueue.add({emailData:s,emailType:"SpotWalletWithdrawalConfirmation"});null===(o=null==i?void 0:i.success)||void 0===o||o.call(i,"Spot wallet withdrawal confirmation email queued successfully")}catch(e){null===(n=null==i?void 0:i.fail)||void 0===n||n.call(i,e.message);throw e}}async function sendSpotWalletDepositConfirmationEmail(e,a,l,i,t){var o,n,s;null===(o=null==t?void 0:t.step)||void 0===o||o.call(t,`Queueing spot wallet deposit confirmation email to ${e.email}`);const r={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,TRANSACTION_ID:a.referenceId,AMOUNT:a.amount,CURRENCY:l.currency,CHAIN:i,FEE:a.fee};try{await exports.emailQueue.add({emailData:r,emailType:"SpotWalletDepositConfirmation"});null===(n=null==t?void 0:t.success)||void 0===n||n.call(t,"Spot wallet deposit confirmation email queued successfully")}catch(e){null===(s=null==t?void 0:t.fail)||void 0===s||s.call(t,e.message);throw e}}async function sendAiInvestmentEmail(e,a,l,i,t,o){var n,s,r;null===(n=null==o?void 0:o.step)||void 0===n||n.call(o,`Queueing AI investment email to ${e.email}`);const d="WIN"===i.result?"+":"LOSS"===i.result?"-":"",u={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,PLAN_NAME:a.title,AMOUNT:i.amount.toString(),CURRENCY:i.symbol.split("/")[1],DURATION:l.duration.toString(),TIMEFRAME:l.timeframe,STATUS:i.status,PROFIT:void 0!==i.profit?`${d}${i.profit}`:"N/A"};try{await exports.emailQueue.add({emailData:u,emailType:t});null===(s=null==o?void 0:o.success)||void 0===s||s.call(o,"AI investment email queued successfully")}catch(e){null===(r=null==o?void 0:o.fail)||void 0===r||r.call(o,e.message);throw e}}async function sendInvestmentEmail(e,a,l,i,t,o){var n,s,r;null===(n=null==o?void 0:o.step)||void 0===n||n.call(o,`Queueing investment email to ${e.email}`);const d="WIN"===i.result?"+":"LOSS"===i.result?"-":"",u={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,PLAN_NAME:a.title,AMOUNT:i.amount.toString(),DURATION:l.duration.toString(),TIMEFRAME:l.timeframe,STATUS:i.status,PROFIT:`${d}${i.profit}`||"N/A"};try{await exports.emailQueue.add({emailData:u,emailType:t});null===(s=null==o?void 0:o.success)||void 0===s||s.call(o,"Investment email queued successfully")}catch(e){null===(r=null==o?void 0:o.fail)||void 0===r||r.call(o,e.message);throw e}}async function sendIcoContributionEmail(e,a,l,i,t,o,n){var s,r,d;null===(s=null==n?void 0:n.step)||void 0===s||s.call(n,`Queueing ICO contribution email to ${e.email}`);const u=new Date(a.createdAt).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric",hour:"2-digit",minute:"2-digit"}),c={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,TOKEN_NAME:l.name,PHASE_NAME:i.name,AMOUNT:a.amount.toString(),CURRENCY:l.purchaseCurrency,DATE:u};"IcoContributionPaid"===t?c.TRANSACTION_ID=o||"N/A":"IcoNewContribution"===t&&(c.CONTRIBUTION_STATUS=a.status);try{await exports.emailQueue.add({emailData:c,emailType:t});null===(r=null==n?void 0:n.success)||void 0===r||r.call(n,"ICO contribution email queued successfully")}catch(e){null===(d=null==n?void 0:n.fail)||void 0===d||d.call(n,e.message);throw e}}async function sendStakingInitiationEmail(e,a,l,i,t){var o,n,s;null===(o=null==t?void 0:t.step)||void 0===o||o.call(t,`Queueing staking initiation email to ${e.email}`);const r=new Date(a.stakeDate).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric",hour:"2-digit",minute:"2-digit"}),d=new Date(a.releaseDate).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric",hour:"2-digit",minute:"2-digit"}),u={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,TOKEN_NAME:l.name,STAKE_AMOUNT:a.amount.toString(),TOKEN_SYMBOL:l.currency,STAKE_DATE:r,RELEASE_DATE:d,EXPECTED_REWARD:i};try{await exports.emailQueue.add({emailData:u,emailType:"StakingInitiationConfirmation"});null===(n=null==t?void 0:t.success)||void 0===n||n.call(t,"Staking initiation email queued successfully")}catch(e){null===(s=null==t?void 0:t.fail)||void 0===s||s.call(t,e.message);throw e}}async function sendStakingRewardEmail(e,a,l,i,t){var o,n,s;null===(o=null==t?void 0:t.step)||void 0===o||o.call(t,`Queueing staking reward email to ${e.email}`);const r=(0,date_fns_1.format)(new Date(a.releaseDate),"MMMM do, yyyy 'at' hh:mm a"),d={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,TOKEN_NAME:l.name,REWARD_AMOUNT:i.toString(),TOKEN_SYMBOL:l.currency,DISTRIBUTION_DATE:r};try{await exports.emailQueue.add({emailData:d,emailType:"StakingRewardDistribution"});null===(n=null==t?void 0:t.success)||void 0===n||n.call(t,"Staking reward email queued successfully")}catch(e){null===(s=null==t?void 0:t.fail)||void 0===s||s.call(t,e.message);throw e}}async function sendOrderConfirmationEmail(e,a,l,i){var t,o,n,s,r,d;null===(t=null==i?void 0:i.step)||void 0===t||t.call(i,`Queueing order confirmation email to ${e.email}`);const u=new Date(a.createdAt).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}),c=await db_1.models.ecommerceOrder.findByPk(a.id,{include:[{model:db_1.models.ecommerceOrderItem,as:"orderItems",include:[{model:db_1.models.ecommerceProduct,as:"product"}]}]}),m=(null===(o=null==c?void 0:c.orderItems)||void 0===o?void 0:o.reduce((e,a)=>e+a.product.price*a.quantity,0))||l.price,p=(await db_1.models.settings.findAll()).reduce((e,a)=>{e[a.key]=a.value;return e},{});let E=0;"PHYSICAL"===l.type&&"true"===p.ecommerceShippingEnabled&&(E=parseFloat(p.ecommerceDefaultShippingCost||"0"));let T=0;if("true"===p.ecommerceTaxEnabled){T=m*(parseFloat(p.ecommerceDefaultTaxRate||"0")/100)}const y=m+E+T,v={TO:e.email,CUSTOMER_NAME:e.firstName,ORDER_NUMBER:a.id,ORDER_DATE:u,PRODUCT_NAME:l.name,QUANTITY:(null===(s=null===(n=null==c?void 0:c.orderItems)||void 0===n?void 0:n[0])||void 0===s?void 0:s.quantity)||1,PRODUCT_PRICE:l.price.toString(),PRODUCT_CURRENCY:l.currency,SUBTOTAL:m.toFixed(2),SHIPPING_COST:E.toFixed(2),TAX_AMOUNT:T.toFixed(2),ORDER_TOTAL:y.toFixed(2),ORDER_STATUS:a.status,PRODUCT_TYPE:l.type};try{await exports.emailQueue.add({emailData:v,emailType:"OrderConfirmation"});null===(r=null==i?void 0:i.success)||void 0===r||r.call(i,"Order confirmation email queued successfully")}catch(e){null===(d=null==i?void 0:i.fail)||void 0===d||d.call(i,e.message);throw e}}async function sendEmailToTargetWithTemplate(e,a,l,i){var t,o,n;null===(t=null==i?void 0:i.step)||void 0===t||t.call(i,`Sending email to ${e}`);const s={to:e,subject:a,html:l},r=APP_EMAILER;try{await(0,mailer_1.sendEmailWithProvider)(r,s);null===(o=null==i?void 0:i.success)||void 0===o||o.call(i,`Email sent successfully to ${e}`)}catch(e){null===(n=null==i?void 0:i.fail)||void 0===n||n.call(i,e.message);throw e}}async function sendKycEmail(e,a,l,i){var t,o,n;null===(t=null==i?void 0:i.step)||void 0===t||t.call(i,`Queueing KYC email to ${e.email}`);const s="KycSubmission"===l?"CREATED_AT":"UPDATED_AT",r="KycSubmission"===l?new Date(a.createdAt).toISOString():new Date(a.updatedAt).toISOString(),d={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,[s]:r,LEVEL:a.level,STATUS:a.status};"KycRejected"===l&&a.adminNotes&&(d.MESSAGE=a.adminNotes);try{await exports.emailQueue.add({emailData:d,emailType:l});null===(o=null==i?void 0:i.success)||void 0===o||o.call(i,"KYC email queued successfully")}catch(e){null===(n=null==i?void 0:i.fail)||void 0===n||n.call(i,e.message);throw e}}async function sendForexTransactionEmail(e,a,l,i,t,o){var n,s,r;null===(n=null==o?void 0:o.step)||void 0===n||n.call(o,`Queueing forex transaction email to ${e.email}`);const d={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,ACCOUNT_ID:l.accountId,TRANSACTION_ID:a.id,AMOUNT:a.amount.toString(),CURRENCY:i,STATUS:a.status};let u="";"FOREX_DEPOSIT"===t?u="ForexDepositConfirmation":"FOREX_WITHDRAW"===t&&(u="ForexWithdrawalConfirmation");try{await exports.emailQueue.add({emailData:d,emailType:u});null===(s=null==o?void 0:o.success)||void 0===s||s.call(o,"Forex transaction email queued successfully")}catch(e){null===(r=null==o?void 0:o.fail)||void 0===r||r.call(o,e.message);throw e}}async function sendCopyTradingLeaderApplicationEmail(e,a,l){var i,t,o;null===(i=null==l?void 0:l.step)||void 0===i||i.call(l,`Queueing copy trading leader application email to ${e.email}`);const n={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,DISPLAY_NAME:a.displayName,CREATED_AT:(0,date_fns_1.format)(new Date(a.createdAt),"MMMM do, yyyy 'at' hh:mm a")};try{await exports.emailQueue.add({emailData:n,emailType:"CopyTradingLeaderApplicationSubmitted"});null===(t=null==l?void 0:l.success)||void 0===t||t.call(l,"Copy trading leader application email queued successfully")}catch(e){null===(o=null==l?void 0:l.fail)||void 0===o||o.call(l,e.message);console_1.logger.error("EMAIL","Failed to queue copy trading leader application email",e)}}async function sendCopyTradingLeaderApprovedEmail(e,a){var l,i,t;null===(l=null==a?void 0:a.step)||void 0===l||l.call(a,`Queueing copy trading leader approval email to ${e.email}`);const o={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,URL:process.env.NEXT_PUBLIC_SITE_URL||"https://yoursite.com"};try{await exports.emailQueue.add({emailData:o,emailType:"CopyTradingLeaderApplicationApproved"});null===(i=null==a?void 0:a.success)||void 0===i||i.call(a,"Copy trading leader approval email queued successfully")}catch(e){null===(t=null==a?void 0:a.fail)||void 0===t||t.call(a,e.message);console_1.logger.error("EMAIL","Failed to queue copy trading leader approval email",e)}}async function sendCopyTradingLeaderRejectedEmail(e,a,l){var i,t,o;null===(i=null==l?void 0:l.step)||void 0===i||i.call(l,`Queueing copy trading leader rejection email to ${e.email}`);const n={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,REJECTION_REASON:a};try{await exports.emailQueue.add({emailData:n,emailType:"CopyTradingLeaderApplicationRejected"});null===(t=null==l?void 0:l.success)||void 0===t||t.call(l,"Copy trading leader rejection email queued successfully")}catch(e){null===(o=null==l?void 0:l.fail)||void 0===o||o.call(l,e.message);console_1.logger.error("EMAIL","Failed to queue copy trading leader rejection email",e)}}async function sendCopyTradingLeaderSuspendedEmail(e,a,l){var i,t,o;null===(i=null==l?void 0:l.step)||void 0===i||i.call(l,`Queueing copy trading leader suspension email to ${e.email}`);const n={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,SUSPENSION_REASON:a};try{await exports.emailQueue.add({emailData:n,emailType:"CopyTradingLeaderSuspended"});null===(t=null==l?void 0:l.success)||void 0===t||t.call(l,"Copy trading leader suspension email queued successfully")}catch(e){null===(o=null==l?void 0:l.fail)||void 0===o||o.call(l,e.message);console_1.logger.error("EMAIL","Failed to queue copy trading leader suspension email",e)}}async function sendCopyTradingNewFollowerEmail(e,a,l,i){var t,o,n;null===(t=null==i?void 0:i.step)||void 0===t||t.call(i,`Queueing new follower email to ${e.email}`);const s={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,FOLLOWER_NAME:`${l.firstName} ${l.lastName}`,COPY_MODE:a.copyMode,STARTED_AT:(0,date_fns_1.format)(new Date(a.createdAt),"MMMM do, yyyy 'at' hh:mm a"),URL:process.env.NEXT_PUBLIC_SITE_URL||"https://yoursite.com"};try{await exports.emailQueue.add({emailData:s,emailType:"CopyTradingLeaderNewFollower"});null===(o=null==i?void 0:i.success)||void 0===o||o.call(i,"New follower email queued successfully")}catch(e){null===(n=null==i?void 0:i.fail)||void 0===n||n.call(i,e.message);console_1.logger.error("EMAIL","Failed to queue new follower email",e)}}async function sendCopyTradingFollowerStoppedEmail(e,a,l,i){var t,o,n;null===(t=null==i?void 0:i.step)||void 0===t||t.call(i,`Queueing follower stopped email to ${e.email}`);const s=new Date(a.createdAt),r=new Date,d=Math.floor((r.getTime()-s.getTime())/864e5),u={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,FOLLOWER_NAME:`${l.firstName} ${l.lastName}`,STOPPED_AT:(0,date_fns_1.format)(r,"MMMM do, yyyy 'at' hh:mm a"),DAYS_FOLLOWED:d.toString(),URL:process.env.NEXT_PUBLIC_SITE_URL||"https://yoursite.com"};try{await exports.emailQueue.add({emailData:u,emailType:"CopyTradingLeaderFollowerStopped"});null===(o=null==i?void 0:i.success)||void 0===o||o.call(i,"Follower stopped email queued successfully")}catch(e){null===(n=null==i?void 0:i.fail)||void 0===n||n.call(i,e.message);console_1.logger.error("EMAIL","Failed to queue follower stopped email",e)}}async function sendCopyTradingSubscriptionStartedEmail(e,a,l,i){var t,o,n,s,r,d;null===(t=null==i?void 0:i.step)||void 0===t||t.call(i,`Queueing subscription started email to ${e.email}`);const u={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,LEADER_NAME:l.displayName,RISK_LEVEL:l.riskLevel||"Medium",TRADING_STYLE:l.tradingStyle||"Balanced",WIN_RATE:(null===(o=l.winRate)||void 0===o?void 0:o.toString())||"N/A",COPY_MODE:a.copyMode,MAX_DAILY_LOSS:(null===(n=a.maxDailyLoss)||void 0===n?void 0:n.toString())||"Not Set",MAX_POSITION_SIZE:(null===(s=a.maxPositionSize)||void 0===s?void 0:s.toString())||"Not Set",URL:process.env.NEXT_PUBLIC_SITE_URL||"https://yoursite.com"};try{await exports.emailQueue.add({emailData:u,emailType:"CopyTradingFollowerSubscriptionStarted"});null===(r=null==i?void 0:i.success)||void 0===r||r.call(i,"Subscription started email queued successfully")}catch(e){null===(d=null==i?void 0:i.fail)||void 0===d||d.call(i,e.message);console_1.logger.error("EMAIL","Failed to queue subscription started email",e)}}async function sendCopyTradingSubscriptionPausedEmail(e,a,l,i){var t,o,n;null===(t=null==i?void 0:i.step)||void 0===t||t.call(i,`Queueing subscription paused email to ${e.email}`);const s={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,LEADER_NAME:a,PAUSE_REASON:l,URL:process.env.NEXT_PUBLIC_SITE_URL||"https://yoursite.com"};try{await exports.emailQueue.add({emailData:s,emailType:"CopyTradingFollowerSubscriptionPaused"});null===(o=null==i?void 0:i.success)||void 0===o||o.call(i,"Subscription paused email queued successfully")}catch(e){null===(n=null==i?void 0:i.fail)||void 0===n||n.call(i,e.message);console_1.logger.error("EMAIL","Failed to queue subscription paused email",e)}}async function sendCopyTradingSubscriptionResumedEmail(e,a,l,i){var t,o,n;null===(t=null==i?void 0:i.step)||void 0===t||t.call(i,`Queueing subscription resumed email to ${e.email}`);const s={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,LEADER_NAME:a,COPY_MODE:l,URL:process.env.NEXT_PUBLIC_SITE_URL||"https://yoursite.com"};try{await exports.emailQueue.add({emailData:s,emailType:"CopyTradingFollowerSubscriptionResumed"});null===(o=null==i?void 0:i.success)||void 0===o||o.call(i,"Subscription resumed email queued successfully")}catch(e){null===(n=null==i?void 0:i.fail)||void 0===n||n.call(i,e.message);console_1.logger.error("EMAIL","Failed to queue subscription resumed email",e)}}async function sendCopyTradingSubscriptionStoppedEmail(e,a,l,i){var t,o,n;null===(t=null==i?void 0:i.step)||void 0===t||t.call(i,`Queueing subscription stopped email to ${e.email}`);const s={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,LEADER_NAME:a,TOTAL_TRADES:l.totalTrades.toString(),WIN_RATE:l.winRate.toFixed(2),TOTAL_PROFIT:l.totalProfit.toFixed(2),ROI:l.roi.toFixed(2),URL:process.env.NEXT_PUBLIC_SITE_URL||"https://yoursite.com"};try{await exports.emailQueue.add({emailData:s,emailType:"CopyTradingFollowerSubscriptionStopped"});null===(o=null==i?void 0:i.success)||void 0===o||o.call(i,"Subscription stopped email queued successfully")}catch(e){null===(n=null==i?void 0:i.fail)||void 0===n||n.call(i,e.message);console_1.logger.error("EMAIL","Failed to queue subscription stopped email",e)}}async function sendCopyTradingTradeProfitEmail(e,a,l,i){var t,o,n;null===(t=null==i?void 0:i.step)||void 0===t||t.call(i,`Queueing trade profit email to ${e.email}`);const s={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,LEADER_NAME:a,SYMBOL:l.symbol,SIDE:l.side,ENTRY_PRICE:l.entryPrice.toString(),EXIT_PRICE:l.exitPrice.toString(),PROFIT:l.profit.toFixed(2),YOUR_PROFIT:l.yourProfit.toFixed(2),PROFIT_SHARE_PERCENT:l.profitSharePercent.toString(),LEADER_PROFIT_SHARE:l.leaderProfitShare.toFixed(2),URL:process.env.NEXT_PUBLIC_SITE_URL||"https://yoursite.com"};try{await exports.emailQueue.add({emailData:s,emailType:"CopyTradingTradeProfit"});null===(o=null==i?void 0:i.success)||void 0===o||o.call(i,"Trade profit email queued successfully")}catch(e){null===(n=null==i?void 0:i.fail)||void 0===n||n.call(i,e.message);console_1.logger.error("EMAIL","Failed to queue trade profit email",e)}}async function sendCopyTradingTradeLossEmail(e,a,l,i,t){var o,n,s;null===(o=null==t?void 0:t.step)||void 0===o||o.call(t,`Queueing trade loss email to ${e.email}`);const r={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,LEADER_NAME:a,SYMBOL:i.symbol,SIDE:i.side,ENTRY_PRICE:i.entryPrice.toString(),EXIT_PRICE:i.exitPrice.toString(),LOSS:i.loss.toFixed(2),SUBSCRIPTION_ID:l,URL:process.env.NEXT_PUBLIC_SITE_URL||"https://yoursite.com"};try{await exports.emailQueue.add({emailData:r,emailType:"CopyTradingTradeLoss"});null===(n=null==t?void 0:t.success)||void 0===n||n.call(t,"Trade loss email queued successfully")}catch(e){null===(s=null==t?void 0:t.fail)||void 0===s||s.call(t,e.message);console_1.logger.error("EMAIL","Failed to queue trade loss email",e)}}async function sendCopyTradingDailyLossLimitEmail(e,a,l,i,t){var o,n,s;null===(o=null==t?void 0:t.step)||void 0===o||o.call(t,`Queueing daily loss limit email to ${e.email}`);const r={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,LEADER_NAME:a,DAILY_LOSS_LIMIT:l.toFixed(2),CURRENT_LOSS:i.toFixed(2),URL:process.env.NEXT_PUBLIC_SITE_URL||"https://yoursite.com"};try{await exports.emailQueue.add({emailData:r,emailType:"CopyTradingDailyLossLimitReached"});null===(n=null==t?void 0:t.success)||void 0===n||n.call(t,"Daily loss limit email queued successfully")}catch(e){null===(s=null==t?void 0:t.fail)||void 0===s||s.call(t,e.message);console_1.logger.error("EMAIL","Failed to queue daily loss limit email",e)}}async function sendCopyTradingInsufficientBalanceEmail(e,a,l,i,t,o,n){var s,r,d;null===(s=null==n?void 0:n.step)||void 0===s||s.call(n,`Queueing insufficient balance email to ${e.email}`);const u={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,LEADER_NAME:a,SYMBOL:i,REQUIRED_AMOUNT:t.toFixed(2),AVAILABLE_BALANCE:o.toFixed(2),SUBSCRIPTION_ID:l,URL:process.env.NEXT_PUBLIC_SITE_URL||"https://yoursite.com"};try{await exports.emailQueue.add({emailData:u,emailType:"CopyTradingInsufficientBalance"});null===(r=null==n?void 0:n.success)||void 0===r||r.call(n,"Insufficient balance email queued successfully")}catch(e){null===(d=null==n?void 0:n.fail)||void 0===d||d.call(n,e.message);console_1.logger.error("EMAIL","Failed to queue insufficient balance email",e)}}async function sendCopyTradingProfitShareEarnedEmail(e,a,l,i,t,o,n){var s,r,d;null===(s=null==n?void 0:n.step)||void 0===s||s.call(n,`Queueing profit share earned email to ${e.email}`);const u={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,FOLLOWER_NAME:a,SYMBOL:l,FOLLOWER_PROFIT:i.toFixed(2),PROFIT_SHARE_PERCENT:t.toString(),PROFIT_SHARE_AMOUNT:o.toFixed(2),URL:process.env.NEXT_PUBLIC_SITE_URL||"https://yoursite.com"};try{await exports.emailQueue.add({emailData:u,emailType:"CopyTradingProfitShareEarned"});null===(r=null==n?void 0:n.success)||void 0===r||r.call(n,"Profit share earned email queued successfully")}catch(e){null===(d=null==n?void 0:n.fail)||void 0===d||d.call(n,e.message);console_1.logger.error("EMAIL","Failed to queue profit share earned email",e)}}async function sendCopyTradingProfitSharePaidEmail(e,a,l,i,t,o,n,s){var r,d,u;null===(r=null==s?void 0:s.step)||void 0===r||r.call(s,`Queueing profit share paid email to ${e.email}`);const c={TO:e.email,USER_ID:e.id,FIRSTNAME:e.firstName,LEADER_NAME:a,SYMBOL:l,YOUR_PROFIT:i.toFixed(2),PROFIT_SHARE_PERCENT:t.toString(),PROFIT_SHARE_AMOUNT:o.toFixed(2),NET_PROFIT:n.toFixed(2),URL:process.env.NEXT_PUBLIC_SITE_URL||"https://yoursite.com"};try{await exports.emailQueue.add({emailData:c,emailType:"CopyTradingProfitSharePaid"});null===(d=null==s?void 0:s.success)||void 0===d||d.call(s,"Profit share paid email queued successfully")}catch(e){null===(u=null==s?void 0:s.fail)||void 0===u||u.call(s,e.message);console_1.logger.error("EMAIL","Failed to queue profit share paid email",e)}}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.emailQueue=void 0;exports.sendEmail=sendEmail;exports.sendChatEmail=sendChatEmail;exports.sendFiatTransactionEmail=sendFiatTransactionEmail;exports.sendBinaryOrderEmail=sendBinaryOrderEmail;exports.sendWalletBalanceUpdateEmail=sendWalletBalanceUpdateEmail;exports.sendTransactionStatusUpdateEmail=sendTransactionStatusUpdateEmail;exports.sendAuthorStatusUpdateEmail=sendAuthorStatusUpdateEmail;exports.sendOutgoingTransferEmail=sendOutgoingTransferEmail;exports.sendIncomingTransferEmail=sendIncomingTransferEmail;exports.sendSpotWalletWithdrawalConfirmationEmail=sendSpotWalletWithdrawalConfirmationEmail;exports.sendSpotWalletDepositConfirmationEmail=sendSpotWalletDepositConfirmationEmail;exports.sendAiInvestmentEmail=sendAiInvestmentEmail;exports.sendInvestmentEmail=sendInvestmentEmail;exports.sendIcoContributionEmail=sendIcoContributionEmail;exports.sendStakingInitiationEmail=sendStakingInitiationEmail;exports.sendStakingRewardEmail=sendStakingRewardEmail;exports.sendOrderConfirmationEmail=sendOrderConfirmationEmail;exports.sendEmailToTargetWithTemplate=sendEmailToTargetWithTemplate;exports.sendKycEmail=sendKycEmail;exports.sendForexTransactionEmail=sendForexTransactionEmail;exports.sendCopyTradingLeaderApplicationEmail=sendCopyTradingLeaderApplicationEmail;exports.sendCopyTradingLeaderApprovedEmail=sendCopyTradingLeaderApprovedEmail;exports.sendCopyTradingLeaderRejectedEmail=sendCopyTradingLeaderRejectedEmail;exports.sendCopyTradingLeaderSuspendedEmail=sendCopyTradingLeaderSuspendedEmail;exports.sendCopyTradingNewFollowerEmail=sendCopyTradingNewFollowerEmail;exports.sendCopyTradingFollowerStoppedEmail=sendCopyTradingFollowerStoppedEmail;exports.sendCopyTradingSubscriptionStartedEmail=sendCopyTradingSubscriptionStartedEmail;exports.sendCopyTradingSubscriptionPausedEmail=sendCopyTradingSubscriptionPausedEmail;exports.sendCopyTradingSubscriptionResumedEmail=sendCopyTradingSubscriptionResumedEmail;exports.sendCopyTradingSubscriptionStoppedEmail=sendCopyTradingSubscriptionStoppedEmail;exports.sendCopyTradingTradeProfitEmail=sendCopyTradingTradeProfitEmail;exports.sendCopyTradingTradeLossEmail=sendCopyTradingTradeLossEmail;exports.sendCopyTradingDailyLossLimitEmail=sendCopyTradingDailyLossLimitEmail;exports.sendCopyTradingInsufficientBalanceEmail=sendCopyTradingInsufficientBalanceEmail;exports.sendCopyTradingProfitShareEarnedEmail=sendCopyTradingProfitShareEarnedEmail;exports.sendCopyTradingProfitSharePaidEmail=sendCopyTradingProfitSharePaidEmail;const bull_1=__importDefault(require("bull")),mailer_1=require("./mailer"),date_fns_1=require("date-fns"),db_1=require("@b/db"),console_1=require("@b/utils/console"),token_1=require("@b/utils/token"),APP_EMAILER=process.env.APP_EMAILER||"nodemailer-service";exports.emailQueue=new bull_1.default("emailQueue",{redis:{host:"127.0.0.1",port:6379}});exports.emailQueue.process(async e=>{const{emailData:a,emailType:l}=e.data;try{await sendEmail(a,l);console_1.logger.debug("EMAIL",`Email sent: ${l}`)}catch(e){console_1.logger.error("EMAIL",`Failed to send email: ${l}`,e);throw e}});
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.emailQueue = void 0;
+exports.sendEmail = sendEmail;
+exports.sendChatEmail = sendChatEmail;
+exports.sendFiatTransactionEmail = sendFiatTransactionEmail;
+exports.sendBinaryOrderEmail = sendBinaryOrderEmail;
+exports.sendWalletBalanceUpdateEmail = sendWalletBalanceUpdateEmail;
+exports.sendTransactionStatusUpdateEmail = sendTransactionStatusUpdateEmail;
+exports.sendAuthorStatusUpdateEmail = sendAuthorStatusUpdateEmail;
+exports.sendOutgoingTransferEmail = sendOutgoingTransferEmail;
+exports.sendIncomingTransferEmail = sendIncomingTransferEmail;
+exports.sendSpotWalletWithdrawalConfirmationEmail = sendSpotWalletWithdrawalConfirmationEmail;
+exports.sendSpotWalletDepositConfirmationEmail = sendSpotWalletDepositConfirmationEmail;
+exports.sendAiInvestmentEmail = sendAiInvestmentEmail;
+exports.sendInvestmentEmail = sendInvestmentEmail;
+exports.sendIcoContributionEmail = sendIcoContributionEmail;
+exports.sendStakingInitiationEmail = sendStakingInitiationEmail;
+exports.sendStakingRewardEmail = sendStakingRewardEmail;
+exports.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
+exports.sendEmailToTargetWithTemplate = sendEmailToTargetWithTemplate;
+exports.sendKycEmail = sendKycEmail;
+exports.sendForexTransactionEmail = sendForexTransactionEmail;
+exports.sendCopyTradingLeaderApplicationEmail = sendCopyTradingLeaderApplicationEmail;
+exports.sendCopyTradingLeaderApprovedEmail = sendCopyTradingLeaderApprovedEmail;
+exports.sendCopyTradingLeaderRejectedEmail = sendCopyTradingLeaderRejectedEmail;
+exports.sendCopyTradingLeaderSuspendedEmail = sendCopyTradingLeaderSuspendedEmail;
+exports.sendCopyTradingNewFollowerEmail = sendCopyTradingNewFollowerEmail;
+exports.sendCopyTradingFollowerStoppedEmail = sendCopyTradingFollowerStoppedEmail;
+exports.sendCopyTradingSubscriptionStartedEmail = sendCopyTradingSubscriptionStartedEmail;
+exports.sendCopyTradingSubscriptionPausedEmail = sendCopyTradingSubscriptionPausedEmail;
+exports.sendCopyTradingSubscriptionResumedEmail = sendCopyTradingSubscriptionResumedEmail;
+exports.sendCopyTradingSubscriptionStoppedEmail = sendCopyTradingSubscriptionStoppedEmail;
+exports.sendCopyTradingTradeProfitEmail = sendCopyTradingTradeProfitEmail;
+exports.sendCopyTradingTradeLossEmail = sendCopyTradingTradeLossEmail;
+exports.sendCopyTradingDailyLossLimitEmail = sendCopyTradingDailyLossLimitEmail;
+exports.sendCopyTradingInsufficientBalanceEmail = sendCopyTradingInsufficientBalanceEmail;
+exports.sendCopyTradingProfitShareEarnedEmail = sendCopyTradingProfitShareEarnedEmail;
+exports.sendCopyTradingProfitSharePaidEmail = sendCopyTradingProfitSharePaidEmail;
+const bull_1 = __importDefault(require("bull"));
+const mailer_1 = require("./mailer");
+const date_fns_1 = require("date-fns");
+const db_1 = require("@b/db");
+const console_1 = require("@b/utils/console");
+const token_1 = require("@b/utils/token");
+const APP_EMAILER = process.env.APP_EMAILER || "nodemailer-service";
+exports.emailQueue = new bull_1.default("emailQueue", {
+    redis: {
+        host: "127.0.0.1",
+        port: 6379,
+    },
+});
+exports.emailQueue.process(async (job) => {
+    const { emailData, emailType } = job.data;
+    try {
+        await sendEmail(emailData, emailType);
+        console_1.logger.debug("EMAIL", `Email sent: ${emailType}`);
+    }
+    catch (error) {
+        console_1.logger.error("EMAIL", `Failed to send email: ${emailType}`, error);
+        throw error;
+    }
+});
+async function sendEmail(specificVariables, templateName, ctx) {
+    var _a, _b, _c, _d, _e, _f, _g;
+    let processedTemplate;
+    let processedSubject;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Processing email template: ${templateName}`);
+        const result = await (0, mailer_1.fetchAndProcessEmailTemplate)(specificVariables, templateName);
+        processedTemplate = result.processedTemplate;
+        processedSubject = result.processedSubject;
+    }
+    catch (error) {
+        console_1.logger.error("EMAIL", "Error processing email template", error);
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _b === void 0 ? void 0 : _b.call(ctx, error.message);
+        throw error;
+    }
+    let prepareOptions = {};
+    if (specificVariables["USER_ID"]) {
+        try {
+            const unsubscribeToken = await (0, token_1.generateUnsubscribeToken)(specificVariables["USER_ID"]);
+            prepareOptions = {
+                userId: specificVariables["USER_ID"],
+                locale: specificVariables["LOCALE"] || "en",
+                unsubscribeToken,
+            };
+        }
+        catch (error) {
+            console_1.logger.warn("EMAIL", "Failed to generate unsubscribe token", error);
+        }
+    }
+    let finalEmailHtml;
+    try {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Preparing email template");
+        finalEmailHtml = await (0, mailer_1.prepareEmailTemplate)(processedTemplate, processedSubject, prepareOptions);
+    }
+    catch (error) {
+        console_1.logger.error("EMAIL", "Error preparing email template", error);
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _d === void 0 ? void 0 : _d.call(ctx, error.message);
+        throw error;
+    }
+    const options = {
+        to: specificVariables["TO"],
+        subject: processedSubject,
+        html: finalEmailHtml,
+    };
+    const emailer = APP_EMAILER;
+    try {
+        (_e = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _e === void 0 ? void 0 : _e.call(ctx, `Sending email to ${specificVariables["TO"]}`);
+        await (0, mailer_1.sendEmailWithProvider)(emailer, options);
+        (_f = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _f === void 0 ? void 0 : _f.call(ctx, `Email sent successfully to ${specificVariables["TO"]}`);
+    }
+    catch (error) {
+        console_1.logger.error("EMAIL", "Error sending email with provider", error);
+        (_g = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _g === void 0 ? void 0 : _g.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendChatEmail(sender, receiver, chat, message, emailType, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing chat email to ${receiver.email}`);
+    const emailData = {
+        TO: receiver.email,
+        SENDER_NAME: sender.firstName,
+        RECEIVER_NAME: receiver.firstName,
+        MESSAGE: message.text,
+        TICKET_ID: chat.id,
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType,
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Chat email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendFiatTransactionEmail(user, transaction, currency, newBalance, ctx) {
+    var _a, _b, _c;
+    const emailType = "FiatWalletTransaction";
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing fiat transaction email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        TRANSACTION_TYPE: transaction.type,
+        TRANSACTION_ID: transaction.id,
+        AMOUNT: transaction.amount,
+        CURRENCY: currency,
+        TRANSACTION_STATUS: transaction.status,
+        NEW_BALANCE: newBalance,
+        DESCRIPTION: transaction.description || "N/A",
+    };
+    try {
+        await exports.emailQueue.add({ emailData, emailType });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Fiat transaction email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+function getBinaryOrderEmailTemplate(orderType, status) {
+    const typeToTemplate = {
+        RISE_FALL: "BinaryRiseFall",
+        HIGHER_LOWER: "BinaryHigherLower",
+        TOUCH_NO_TOUCH: "BinaryTouchNoTouch",
+        CALL_PUT: "BinaryCallPut",
+        TURBO: "BinaryTurbo",
+    };
+    const templatePrefix = typeToTemplate[orderType] || "BinaryRiseFall";
+    switch (status) {
+        case "WIN":
+            return `${templatePrefix}Win`;
+        case "LOSS":
+            return `${templatePrefix}Loss`;
+        case "DRAW":
+            return `${templatePrefix}Draw`;
+        default:
+            return "BinaryOrderResult";
+    }
+}
+async function sendBinaryOrderEmail(user, order, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing binary order email to ${user.email}`);
+    const emailType = getBinaryOrderEmailTemplate(order.type, order.status);
+    let profit = 0;
+    let sign = "";
+    switch (order.status) {
+        case "WIN":
+            profit = order.profit;
+            sign = "+";
+            break;
+        case "LOSS":
+            profit = order.amount;
+            sign = "-";
+            break;
+        case "DRAW":
+            profit = 0;
+            sign = "";
+            break;
+    }
+    const currency = order.symbol.split("/")[1];
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        ORDER_ID: order.id,
+        RESULT: order.status,
+        MARKET: order.symbol,
+        CURRENCY: currency,
+        AMOUNT: order.amount,
+        PROFIT: `${sign}${profit}`,
+        ENTRY_PRICE: order.price,
+        CLOSE_PRICE: order.closePrice,
+        SIDE: order.side,
+    };
+    switch (order.type) {
+        case "HIGHER_LOWER":
+        case "TURBO":
+            if (order.barrier) {
+                emailData.BARRIER = order.barrier;
+                emailData.BARRIER_LEVEL = order.barrierLevelId || "Custom";
+            }
+            break;
+        case "TOUCH_NO_TOUCH":
+            if (order.barrier) {
+                emailData.BARRIER = order.barrier;
+            }
+            const isTouchSide = order.side === "TOUCH";
+            const didTouch = order.status === "WIN" ? isTouchSide : !isTouchSide;
+            if (order.status === "WIN") {
+                emailData.TOUCH_RESULT = isTouchSide
+                    ? "The price touched your barrier level!"
+                    : "The price never touched your barrier level!";
+                emailData.MULTIPLIER_INFO = isTouchSide
+                    ? "Touch Multiplier Applied"
+                    : "No Touch Multiplier Applied";
+            }
+            else {
+                emailData.TOUCH_RESULT = isTouchSide
+                    ? "The price did not touch your barrier level before expiry."
+                    : "The price touched your barrier level before expiry.";
+            }
+            break;
+        case "CALL_PUT":
+            if (order.strikePrice) {
+                emailData.STRIKE = order.strikePrice;
+                emailData.STRIKE_LEVEL = order.strikeLevelId || "Custom";
+            }
+            break;
+    }
+    try {
+        await exports.emailQueue.add({ emailData, emailType });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Binary order email queued successfully (${emailType})`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendWalletBalanceUpdateEmail(user, wallet, action, amount, newBalance, ctx) {
+    var _a, _b, _c;
+    const emailType = "WalletBalanceUpdate";
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing wallet balance update email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        ACTION: action,
+        AMOUNT: amount,
+        CURRENCY: wallet.currency,
+        NEW_BALANCE: newBalance,
+    };
+    try {
+        await exports.emailQueue.add({ emailData, emailType });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Wallet balance update email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendTransactionStatusUpdateEmail(user, transaction, wallet, newBalance, note, ctx) {
+    var _a, _b, _c;
+    const emailType = "TransactionStatusUpdate";
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing transaction status update email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        TRANSACTION_TYPE: transaction.type,
+        TRANSACTION_ID: transaction.id,
+        TRANSACTION_STATUS: transaction.status,
+        AMOUNT: transaction.amount,
+        CURRENCY: wallet.currency,
+        NEW_BALANCE: newBalance,
+        NOTE: note || "N/A",
+    };
+    try {
+        await exports.emailQueue.add({ emailData, emailType });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Transaction status update email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendAuthorStatusUpdateEmail(user, author, ctx) {
+    var _a, _b, _c;
+    const emailType = "AuthorStatusUpdate";
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing author status update email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        AUTHOR_STATUS: author.status,
+        APPLICATION_ID: author.id,
+    };
+    try {
+        await exports.emailQueue.add({ emailData, emailType });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Author status update email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendOutgoingTransferEmail(user, toUser, wallet, amount, transactionId, ctx) {
+    var _a, _b, _c;
+    const emailType = "OutgoingWalletTransfer";
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing outgoing transfer email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        AMOUNT: amount,
+        CURRENCY: wallet.currency,
+        NEW_BALANCE: wallet.balance,
+        TRANSACTION_ID: transactionId,
+        RECIPIENT_NAME: `${toUser.firstName} ${toUser.lastName}`,
+    };
+    try {
+        await exports.emailQueue.add({ emailData, emailType });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Outgoing transfer email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendIncomingTransferEmail(user, fromUser, wallet, amount, transactionId, ctx) {
+    var _a, _b, _c;
+    const emailType = "IncomingWalletTransfer";
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing incoming transfer email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        AMOUNT: amount,
+        CURRENCY: wallet.currency,
+        NEW_BALANCE: wallet.balance,
+        TRANSACTION_ID: transactionId,
+        SENDER_NAME: `${fromUser.firstName} ${fromUser.lastName}`,
+    };
+    try {
+        await exports.emailQueue.add({ emailData, emailType });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Incoming transfer email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendSpotWalletWithdrawalConfirmationEmail(user, transaction, wallet, ctx) {
+    var _a, _b, _c;
+    const emailType = "SpotWalletWithdrawalConfirmation";
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing spot wallet withdrawal confirmation email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        AMOUNT: transaction.amount,
+        CURRENCY: wallet.currency,
+        ADDRESS: transaction.metadata.address,
+        FEE: transaction.fee,
+        CHAIN: transaction.metadata.chain,
+        MEMO: transaction.metadata.memo || "N/A",
+        STATUS: transaction.status,
+    };
+    try {
+        await exports.emailQueue.add({ emailData, emailType });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Spot wallet withdrawal confirmation email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendSpotWalletDepositConfirmationEmail(user, transaction, wallet, chain, ctx) {
+    var _a, _b, _c;
+    const emailType = "SpotWalletDepositConfirmation";
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing spot wallet deposit confirmation email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        TRANSACTION_ID: transaction.referenceId,
+        AMOUNT: transaction.amount,
+        CURRENCY: wallet.currency,
+        CHAIN: chain,
+        FEE: transaction.fee,
+    };
+    try {
+        await exports.emailQueue.add({ emailData, emailType });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Spot wallet deposit confirmation email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendAiInvestmentEmail(user, plan, duration, investment, emailType, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing AI investment email to ${user.email}`);
+    const resultSign = investment.result === "WIN" ? "+" : investment.result === "LOSS" ? "-" : "";
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        PLAN_NAME: plan.title,
+        AMOUNT: investment.amount.toString(),
+        CURRENCY: investment.symbol.split("/")[1],
+        DURATION: duration.duration.toString(),
+        TIMEFRAME: duration.timeframe,
+        STATUS: investment.status,
+        PROFIT: investment.profit !== undefined
+            ? `${resultSign}${investment.profit}`
+            : "N/A",
+    };
+    try {
+        await exports.emailQueue.add({ emailData, emailType });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `AI investment email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendInvestmentEmail(user, plan, duration, investment, emailType, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing investment email to ${user.email}`);
+    const resultSign = investment.result === "WIN" ? "+" : investment.result === "LOSS" ? "-" : "";
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        PLAN_NAME: plan.title,
+        AMOUNT: investment.amount.toString(),
+        DURATION: duration.duration.toString(),
+        TIMEFRAME: duration.timeframe,
+        STATUS: investment.status,
+        PROFIT: `${resultSign}${investment.profit}` || "N/A",
+    };
+    try {
+        await exports.emailQueue.add({ emailData, emailType });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Investment email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendIcoContributionEmail(user, contribution, token, phase, emailType, transactionId, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing ICO contribution email to ${user.email}`);
+    const contributionDate = new Date(contribution.createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        TOKEN_NAME: token.name,
+        PHASE_NAME: phase.name,
+        AMOUNT: contribution.amount.toString(),
+        CURRENCY: token.purchaseCurrency,
+        DATE: contributionDate,
+    };
+    if (emailType === "IcoContributionPaid") {
+        emailData["TRANSACTION_ID"] = transactionId || "N/A";
+    }
+    else if (emailType === "IcoNewContribution") {
+        emailData["CONTRIBUTION_STATUS"] = contribution.status;
+    }
+    try {
+        await exports.emailQueue.add({ emailData, emailType });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `ICO contribution email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendStakingInitiationEmail(user, stake, pool, reward, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing staking initiation email to ${user.email}`);
+    const stakeDate = new Date(stake.stakeDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+    const releaseDate = new Date(stake.releaseDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        TOKEN_NAME: pool.name,
+        STAKE_AMOUNT: stake.amount.toString(),
+        TOKEN_SYMBOL: pool.currency,
+        STAKE_DATE: stakeDate,
+        RELEASE_DATE: releaseDate,
+        EXPECTED_REWARD: reward,
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "StakingInitiationConfirmation",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Staking initiation email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendStakingRewardEmail(user, stake, pool, reward, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing staking reward email to ${user.email}`);
+    const distributionDate = (0, date_fns_1.format)(new Date(stake.releaseDate), "MMMM do, yyyy 'at' hh:mm a");
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        TOKEN_NAME: pool.name,
+        REWARD_AMOUNT: reward.toString(),
+        TOKEN_SYMBOL: pool.currency,
+        DISTRIBUTION_DATE: distributionDate,
+    };
+    try {
+        await exports.emailQueue.add({ emailData, emailType: "StakingRewardDistribution" });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Staking reward email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendOrderConfirmationEmail(user, order, product, ctx) {
+    var _a, _b, _c, _d, _e, _f;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing order confirmation email to ${user.email}`);
+    const orderDate = new Date(order.createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
+    const fullOrder = await db_1.models.ecommerceOrder.findByPk(order.id, {
+        include: [
+            {
+                model: db_1.models.ecommerceOrderItem,
+                as: "orderItems",
+                include: [
+                    {
+                        model: db_1.models.ecommerceProduct,
+                        as: "product",
+                    },
+                ],
+            },
+        ],
+    });
+    const subtotal = ((_b = fullOrder === null || fullOrder === void 0 ? void 0 : fullOrder.orderItems) === null || _b === void 0 ? void 0 : _b.reduce((total, item) => {
+        var _a, _b;
+        return total + (((_b = (_a = item.product) === null || _a === void 0 ? void 0 : _a.price) !== null && _b !== void 0 ? _b : 0) * item.quantity);
+    }, 0)) || product.price;
+    const systemSettings = await db_1.models.settings.findAll();
+    const settings = systemSettings.reduce((acc, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+    }, {});
+    let shippingCost = 0;
+    if (product.type === "PHYSICAL" && settings.ecommerceShippingEnabled === "true") {
+        shippingCost = parseFloat(settings.ecommerceDefaultShippingCost || "0");
+    }
+    let taxAmount = 0;
+    if (settings.ecommerceTaxEnabled === "true") {
+        const taxRate = parseFloat(settings.ecommerceDefaultTaxRate || "0") / 100;
+        taxAmount = subtotal * taxRate;
+    }
+    const orderTotal = subtotal + shippingCost + taxAmount;
+    const emailData = {
+        TO: user.email,
+        CUSTOMER_NAME: user.firstName,
+        ORDER_NUMBER: order.id,
+        ORDER_DATE: orderDate,
+        PRODUCT_NAME: product.name,
+        QUANTITY: ((_d = (_c = fullOrder === null || fullOrder === void 0 ? void 0 : fullOrder.orderItems) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.quantity) || 1,
+        PRODUCT_PRICE: product.price.toString(),
+        PRODUCT_CURRENCY: product.currency,
+        SUBTOTAL: subtotal.toFixed(2),
+        SHIPPING_COST: shippingCost.toFixed(2),
+        TAX_AMOUNT: taxAmount.toFixed(2),
+        ORDER_TOTAL: orderTotal.toFixed(2),
+        ORDER_STATUS: order.status,
+        PRODUCT_TYPE: product.type,
+    };
+    try {
+        await exports.emailQueue.add({ emailData, emailType: "OrderConfirmation" });
+        (_e = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _e === void 0 ? void 0 : _e.call(ctx, `Order confirmation email queued successfully`);
+    }
+    catch (error) {
+        (_f = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _f === void 0 ? void 0 : _f.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendEmailToTargetWithTemplate(to, subject, html, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Sending email to ${to}`);
+    const options = {
+        to,
+        subject,
+        html,
+    };
+    const emailer = APP_EMAILER;
+    try {
+        await (0, mailer_1.sendEmailWithProvider)(emailer, options);
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Email sent successfully to ${to}`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendKycEmail(user, kyc, type, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing KYC email to ${user.email}`);
+    const timestampLabel = type === "KycSubmission" ? "CREATED_AT" : "UPDATED_AT";
+    const timestampDate = type === "KycSubmission"
+        ? new Date(kyc.createdAt).toISOString()
+        : new Date(kyc.updatedAt).toISOString();
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        [timestampLabel]: timestampDate,
+        LEVEL: kyc.level,
+        STATUS: kyc.status,
+    };
+    if (type === "KycRejected" && kyc.adminNotes) {
+        emailData["MESSAGE"] = kyc.adminNotes;
+    }
+    try {
+        await exports.emailQueue.add({ emailData, emailType: type });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `KYC email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendForexTransactionEmail(user, transaction, account, currency, transactionType, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing forex transaction email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        ACCOUNT_ID: account.accountId,
+        TRANSACTION_ID: transaction.id,
+        AMOUNT: transaction.amount.toString(),
+        CURRENCY: currency,
+        STATUS: transaction.status,
+    };
+    let emailType = "";
+    if (transactionType === "FOREX_DEPOSIT") {
+        emailType = "ForexDepositConfirmation";
+    }
+    else if (transactionType === "FOREX_WITHDRAW") {
+        emailType = "ForexWithdrawalConfirmation";
+    }
+    try {
+        await exports.emailQueue.add({ emailData, emailType });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Forex transaction email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function sendCopyTradingLeaderApplicationEmail(user, leader, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing copy trading leader application email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        DISPLAY_NAME: leader.displayName,
+        CREATED_AT: (0, date_fns_1.format)(new Date(leader.createdAt), "MMMM do, yyyy 'at' hh:mm a"),
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingLeaderApplicationSubmitted",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Copy trading leader application email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue copy trading leader application email", error);
+    }
+}
+async function sendCopyTradingLeaderApprovedEmail(user, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing copy trading leader approval email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingLeaderApplicationApproved",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Copy trading leader approval email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue copy trading leader approval email", error);
+    }
+}
+async function sendCopyTradingLeaderRejectedEmail(user, rejectionReason, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing copy trading leader rejection email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        REJECTION_REASON: rejectionReason,
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingLeaderApplicationRejected",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Copy trading leader rejection email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue copy trading leader rejection email", error);
+    }
+}
+async function sendCopyTradingLeaderSuspendedEmail(user, suspensionReason, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing copy trading leader suspension email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        SUSPENSION_REASON: suspensionReason,
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingLeaderSuspended",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Copy trading leader suspension email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue copy trading leader suspension email", error);
+    }
+}
+async function sendCopyTradingNewFollowerEmail(user, follower, followerUser, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing new follower email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        FOLLOWER_NAME: `${followerUser.firstName} ${followerUser.lastName}`,
+        COPY_MODE: follower.copyMode,
+        STARTED_AT: (0, date_fns_1.format)(new Date(follower.createdAt), "MMMM do, yyyy 'at' hh:mm a"),
+        URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingLeaderNewFollower",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `New follower email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue new follower email", error);
+    }
+}
+async function sendCopyTradingFollowerStoppedEmail(user, follower, followerUser, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing follower stopped email to ${user.email}`);
+    const startDate = new Date(follower.createdAt);
+    const endDate = new Date();
+    const daysFollowed = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        FOLLOWER_NAME: `${followerUser.firstName} ${followerUser.lastName}`,
+        STOPPED_AT: (0, date_fns_1.format)(endDate, "MMMM do, yyyy 'at' hh:mm a"),
+        DAYS_FOLLOWED: daysFollowed.toString(),
+        URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingLeaderFollowerStopped",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Follower stopped email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue follower stopped email", error);
+    }
+}
+async function sendCopyTradingSubscriptionStartedEmail(user, follower, leader, ctx) {
+    var _a, _b, _c, _d, _e, _f;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing subscription started email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        LEADER_NAME: leader.displayName,
+        RISK_LEVEL: leader.riskLevel || "Medium",
+        TRADING_STYLE: leader.tradingStyle || "Balanced",
+        WIN_RATE: ((_b = leader.winRate) === null || _b === void 0 ? void 0 : _b.toString()) || "N/A",
+        COPY_MODE: follower.copyMode,
+        MAX_DAILY_LOSS: ((_c = follower.maxDailyLoss) === null || _c === void 0 ? void 0 : _c.toString()) || "Not Set",
+        MAX_POSITION_SIZE: ((_d = follower.maxPositionSize) === null || _d === void 0 ? void 0 : _d.toString()) || "Not Set",
+        URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingFollowerSubscriptionStarted",
+        });
+        (_e = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _e === void 0 ? void 0 : _e.call(ctx, `Subscription started email queued successfully`);
+    }
+    catch (error) {
+        (_f = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _f === void 0 ? void 0 : _f.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue subscription started email", error);
+    }
+}
+async function sendCopyTradingSubscriptionPausedEmail(user, leaderName, pauseReason, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing subscription paused email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        LEADER_NAME: leaderName,
+        PAUSE_REASON: pauseReason,
+        URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingFollowerSubscriptionPaused",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Subscription paused email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue subscription paused email", error);
+    }
+}
+async function sendCopyTradingSubscriptionResumedEmail(user, leaderName, copyMode, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing subscription resumed email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        LEADER_NAME: leaderName,
+        COPY_MODE: copyMode,
+        URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingFollowerSubscriptionResumed",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Subscription resumed email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue subscription resumed email", error);
+    }
+}
+async function sendCopyTradingSubscriptionStoppedEmail(user, leaderName, stats, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing subscription stopped email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        LEADER_NAME: leaderName,
+        TOTAL_TRADES: stats.totalTrades.toString(),
+        WIN_RATE: stats.winRate.toFixed(2),
+        TOTAL_PROFIT: stats.totalProfit.toFixed(2),
+        ROI: stats.roi.toFixed(2),
+        URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingFollowerSubscriptionStopped",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Subscription stopped email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue subscription stopped email", error);
+    }
+}
+async function sendCopyTradingTradeProfitEmail(user, leaderName, trade, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing trade profit email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        LEADER_NAME: leaderName,
+        SYMBOL: trade.symbol,
+        SIDE: trade.side,
+        ENTRY_PRICE: trade.entryPrice.toString(),
+        EXIT_PRICE: trade.exitPrice.toString(),
+        PROFIT: trade.profit.toFixed(2),
+        YOUR_PROFIT: trade.yourProfit.toFixed(2),
+        PROFIT_SHARE_PERCENT: trade.profitSharePercent.toString(),
+        LEADER_PROFIT_SHARE: trade.leaderProfitShare.toFixed(2),
+        URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingTradeProfit",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Trade profit email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue trade profit email", error);
+    }
+}
+async function sendCopyTradingTradeLossEmail(user, leaderName, subscriptionId, trade, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing trade loss email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        LEADER_NAME: leaderName,
+        SYMBOL: trade.symbol,
+        SIDE: trade.side,
+        ENTRY_PRICE: trade.entryPrice.toString(),
+        EXIT_PRICE: trade.exitPrice.toString(),
+        LOSS: trade.loss.toFixed(2),
+        SUBSCRIPTION_ID: subscriptionId,
+        URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingTradeLoss",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Trade loss email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue trade loss email", error);
+    }
+}
+async function sendCopyTradingDailyLossLimitEmail(user, leaderName, dailyLossLimit, currentLoss, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing daily loss limit email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        LEADER_NAME: leaderName,
+        DAILY_LOSS_LIMIT: dailyLossLimit.toFixed(2),
+        CURRENT_LOSS: currentLoss.toFixed(2),
+        URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingDailyLossLimitReached",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Daily loss limit email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue daily loss limit email", error);
+    }
+}
+async function sendCopyTradingInsufficientBalanceEmail(user, leaderName, subscriptionId, symbol, requiredAmount, availableBalance, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing insufficient balance email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        LEADER_NAME: leaderName,
+        SYMBOL: symbol,
+        REQUIRED_AMOUNT: requiredAmount.toFixed(2),
+        AVAILABLE_BALANCE: availableBalance.toFixed(2),
+        SUBSCRIPTION_ID: subscriptionId,
+        URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingInsufficientBalance",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Insufficient balance email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue insufficient balance email", error);
+    }
+}
+async function sendCopyTradingProfitShareEarnedEmail(user, followerName, symbol, followerProfit, profitSharePercent, profitShareAmount, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing profit share earned email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        FOLLOWER_NAME: followerName,
+        SYMBOL: symbol,
+        FOLLOWER_PROFIT: followerProfit.toFixed(2),
+        PROFIT_SHARE_PERCENT: profitSharePercent.toString(),
+        PROFIT_SHARE_AMOUNT: profitShareAmount.toFixed(2),
+        URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingProfitShareEarned",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Profit share earned email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue profit share earned email", error);
+    }
+}
+async function sendCopyTradingProfitSharePaidEmail(user, leaderName, symbol, yourProfit, profitSharePercent, profitShareAmount, netProfit, ctx) {
+    var _a, _b, _c;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Queueing profit share paid email to ${user.email}`);
+    const emailData = {
+        TO: user.email,
+        USER_ID: user.id,
+        FIRSTNAME: user.firstName,
+        LEADER_NAME: leaderName,
+        SYMBOL: symbol,
+        YOUR_PROFIT: yourProfit.toFixed(2),
+        PROFIT_SHARE_PERCENT: profitSharePercent.toString(),
+        PROFIT_SHARE_AMOUNT: profitShareAmount.toFixed(2),
+        NET_PROFIT: netProfit.toFixed(2),
+        URL: process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com",
+    };
+    try {
+        await exports.emailQueue.add({
+            emailData,
+            emailType: "CopyTradingProfitSharePaid",
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Profit share paid email queued successfully`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("EMAIL", "Failed to queue profit share paid email", error);
+    }
+}

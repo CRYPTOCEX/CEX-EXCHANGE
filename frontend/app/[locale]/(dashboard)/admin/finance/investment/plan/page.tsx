@@ -23,6 +23,7 @@ export default function InvestmentPlanPage() {
       canEdit
       canDelete
       canView
+      isParanoid={true}
       title={t("investment_plan_management")}
       description={t("manage_investment_plans_and_packages")}
       itemTitle="Investment Plan"

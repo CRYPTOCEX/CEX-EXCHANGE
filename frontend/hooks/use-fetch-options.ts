@@ -22,6 +22,27 @@ const optionsCache: Record<string, { options: Option[]; timestamp: number }> =
 // Set cache duration (in milliseconds). For example, 5 minutes.
 const CACHE_DURATION = 5 * 60 * 1000;
 
+/**
+ * Invalidate the options cache for a specific URL or all URLs matching a pattern
+ * @param urlPattern - If provided, only invalidates caches for URLs containing this pattern.
+ *                     If not provided, clears the entire cache.
+ */
+export function invalidateOptionsCache(urlPattern?: string) {
+  if (urlPattern) {
+    // Invalidate specific URLs matching the pattern
+    Object.keys(optionsCache).forEach((key) => {
+      if (key.includes(urlPattern)) {
+        delete optionsCache[key];
+      }
+    });
+  } else {
+    // Clear all cache
+    Object.keys(optionsCache).forEach((key) => {
+      delete optionsCache[key];
+    });
+  }
+}
+
 export function useFetchOptions(apiEndpoint?: ApiEndpoint | null) {
   const [options, setOptions] = useState<Option[]>([]);
   const [loading, setLoading] = useState(false);

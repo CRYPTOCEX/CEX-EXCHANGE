@@ -1,1 +1,163 @@
-"use strict";async function updateOrderBookState(e,o){const t=["asks","bids"];try{await Promise.all(t.map(async t=>{for(const[r,n]of Object.entries(o[t])){const o=BigInt(n);if(e[t][r]){e[t][r]+=o;e[t][r]<=BigInt(0)&&delete e[t][r]}else e[t][r]=o>BigInt(0)?o:BigInt(0)}}))}catch(e){console_1.logger.error("ORDERBOOK","Failed to update order book state",e)}}function applyUpdatesToOrderBook(e,o){const t={bids:{...e.bids},asks:{...e.asks}};["bids","asks"].forEach(e=>{if(o[e]){for(const[r,n]of Object.entries(o[e]))if(null!=n)try{const o=BigInt(n);o>BigInt(0)?t[e][r]=o:delete t[e][r]}catch(e){console_1.logger.error("ORDERBOOK",`Error converting ${n} to BigInt`,e)}}else console_1.logger.warn("ORDERBOOK",`No updates for ${e}`)});return t}async function fetchExistingAmounts(e){try{const o=await client_1.default.execute("SELECT price, side, amount FROM orderbook_by_symbol WHERE symbol = ?;",[e]),t={bids:{},asks:{}};o.rows.forEach(e=>{const o="BIDS"===e.side?"bids":"asks",r=(0,blockchain_1.removeTolerance)((0,blockchain_1.toBigIntFloat)(e.price)).toString();t[o][r]=(0,blockchain_1.removeTolerance)((0,blockchain_1.toBigIntFloat)(e.amount))});return t}catch(o){console_1.logger.error("ORDERBOOK",`Failed to fetch existing amounts for ${e}`,o);throw(0,error_1.createError)({statusCode:500,message:`Failed to fetch existing amounts for ${e}`})}}async function updateSingleOrderBook(e,o){try{const t=await client_1.default.execute("SELECT price, side, amount FROM orderbook_by_symbol WHERE symbol = ?;",[e.symbol]),r={bids:{},asks:{}};t.rows.forEach(e=>{const o="BIDS"===e.side?"bids":"asks";r[o][(0,blockchain_1.removeTolerance)((0,blockchain_1.toBigIntFloat)(e.price)).toString()]=(0,blockchain_1.removeTolerance)((0,blockchain_1.toBigIntFloat)(e.amount))});const n="BUY"===e.side?"bids":"asks",i=(0,blockchain_1.removeTolerance)(BigInt(e.price)),a=r[n][i.toString()]||BigInt(0);let s=BigInt(0);"add"===o?s=a+(0,blockchain_1.removeTolerance)(BigInt(e.amount)):"subtract"===o&&(s=a-(0,blockchain_1.removeTolerance)(BigInt(e.amount)));if(s>BigInt(0)){await client_1.default.execute("INSERT INTO orderbook (symbol, price, side, amount) VALUES (?, ?, ?, ?)",[e.symbol,(0,blockchain_1.fromBigInt)(i),"BUY"===e.side?"BIDS":"ASKS",(0,blockchain_1.fromBigInt)(s)]);r[n][i.toString()]=s}else{await client_1.default.execute("DELETE FROM orderbook WHERE symbol = ? AND price = ? AND side = ?",[e.symbol,(0,blockchain_1.fromBigInt)(i),"BUY"===e.side?"BIDS":"ASKS"]);delete r[n][i.toString()]}return r}catch(e){console_1.logger.error("ORDERBOOK","Failed to update order book in database",e);throw(0,error_1.createError)({statusCode:500,message:"Failed to update order book in database"})}}function generateOrderBookUpdateQueries(e){const o=[];for(const[t,r]of Object.entries(e))for(const[e,n]of Object.entries(r))if(0!==Object.keys(n).length)for(const[r,i]of Object.entries(n))i>BigInt(0)?o.push({query:"UPDATE orderbook SET amount = ? WHERE symbol = ? AND price = ? AND side = ?",params:[(0,blockchain_1.fromBigInt)((0,blockchain_1.removeTolerance)(BigInt(i))),t,(0,blockchain_1.fromBigInt)((0,blockchain_1.removeTolerance)(BigInt(r))),e.toUpperCase()]}):o.push({query:"DELETE FROM orderbook WHERE symbol = ? AND price = ? AND side = ?",params:[t,(0,blockchain_1.fromBigInt)((0,blockchain_1.removeTolerance)(BigInt(r))),e.toUpperCase()]});else o.push({query:"DELETE FROM orderbook WHERE symbol = ? AND side = ?",params:[t,e.toUpperCase()]});return o}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.updateOrderBookState=updateOrderBookState;exports.applyUpdatesToOrderBook=applyUpdatesToOrderBook;exports.fetchExistingAmounts=fetchExistingAmounts;exports.updateSingleOrderBook=updateSingleOrderBook;exports.generateOrderBookUpdateQueries=generateOrderBookUpdateQueries;const blockchain_1=require("./blockchain"),client_1=__importDefault(require("./scylla/client")),console_1=require("@b/utils/console"),error_1=require("@b/utils/error");
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateOrderBookState = updateOrderBookState;
+exports.applyUpdatesToOrderBook = applyUpdatesToOrderBook;
+exports.fetchExistingAmounts = fetchExistingAmounts;
+exports.updateSingleOrderBook = updateSingleOrderBook;
+exports.generateOrderBookUpdateQueries = generateOrderBookUpdateQueries;
+const blockchain_1 = require("./blockchain");
+const client_1 = __importDefault(require("./scylla/client"));
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+async function updateOrderBookState(symbolOrderBook, bookUpdates) {
+    const sides = ["asks", "bids"];
+    try {
+        await Promise.all(sides.map(async (side) => {
+            for (const [price, amount] of Object.entries(bookUpdates[side])) {
+                const bigAmount = BigInt(amount);
+                if (!symbolOrderBook[side][price]) {
+                    symbolOrderBook[side][price] =
+                        bigAmount > BigInt(0) ? bigAmount : BigInt(0);
+                }
+                else {
+                    symbolOrderBook[side][price] += bigAmount;
+                    if (symbolOrderBook[side][price] <= BigInt(0)) {
+                        delete symbolOrderBook[side][price];
+                    }
+                }
+            }
+        }));
+    }
+    catch (error) {
+        console_1.logger.error("ORDERBOOK", "Failed to update order book state", error);
+    }
+}
+function applyUpdatesToOrderBook(currentOrderBook, updates) {
+    const updatedOrderBook = {
+        bids: { ...currentOrderBook.bids },
+        asks: { ...currentOrderBook.asks },
+    };
+    ["bids", "asks"].forEach((side) => {
+        if (!updates[side]) {
+            console_1.logger.warn("ORDERBOOK", `No updates for ${side}`);
+            return;
+        }
+        for (const [price, updatedAmountStr] of Object.entries(updates[side])) {
+            if (updatedAmountStr === undefined || updatedAmountStr === null) {
+                continue;
+            }
+            try {
+                const updatedAmount = BigInt(updatedAmountStr);
+                if (updatedAmount > BigInt(0)) {
+                    updatedOrderBook[side][price] = updatedAmount;
+                }
+                else {
+                    delete updatedOrderBook[side][price];
+                }
+            }
+            catch (e) {
+                console_1.logger.error("ORDERBOOK", `Error converting ${updatedAmountStr} to BigInt`, e);
+            }
+        }
+    });
+    return updatedOrderBook;
+}
+async function fetchExistingAmounts(symbol) {
+    try {
+        const result = await client_1.default.execute("SELECT price, side, amount FROM orderbook_by_symbol WHERE symbol = ?;", [symbol]);
+        const symbolOrderBook = { bids: {}, asks: {} };
+        result.rows.forEach((row) => {
+            const side = row.side === "BIDS" ? "bids" : "asks";
+            const priceStr = (0, blockchain_1.removeTolerance)((0, blockchain_1.toBigIntFloat)(row.price)).toString();
+            symbolOrderBook[side][priceStr] = (0, blockchain_1.removeTolerance)((0, blockchain_1.toBigIntFloat)(row.amount));
+        });
+        return symbolOrderBook;
+    }
+    catch (error) {
+        console_1.logger.error("ORDERBOOK", `Failed to fetch existing amounts for ${symbol}`, error);
+        throw (0, error_1.createError)({ statusCode: 500, message: `Failed to fetch existing amounts for ${symbol}` });
+    }
+}
+async function updateSingleOrderBook(order, operation) {
+    try {
+        const result = await client_1.default.execute("SELECT price, side, amount FROM orderbook_by_symbol WHERE symbol = ?;", [order.symbol]);
+        const symbolOrderBook = { bids: {}, asks: {} };
+        result.rows.forEach((row) => {
+            const side = row.side === "BIDS" ? "bids" : "asks";
+            symbolOrderBook[side][(0, blockchain_1.removeTolerance)((0, blockchain_1.toBigIntFloat)(row.price)).toString()] = (0, blockchain_1.removeTolerance)((0, blockchain_1.toBigIntFloat)(row.amount));
+        });
+        const side = order.side === "BUY" ? "bids" : "asks";
+        const price = (0, blockchain_1.removeTolerance)(BigInt(order.price));
+        const existingAmount = symbolOrderBook[side][price.toString()] || BigInt(0);
+        let newAmount = BigInt(0);
+        if (operation === "add") {
+            newAmount = existingAmount + (0, blockchain_1.removeTolerance)(BigInt(order.amount));
+        }
+        else if (operation === "subtract") {
+            newAmount = existingAmount - (0, blockchain_1.removeTolerance)(BigInt(order.amount));
+        }
+        if (newAmount > BigInt(0)) {
+            await client_1.default.execute("INSERT INTO orderbook (symbol, price, side, amount) VALUES (?, ?, ?, ?)", [
+                order.symbol,
+                (0, blockchain_1.fromBigInt)(price),
+                order.side === "BUY" ? "BIDS" : "ASKS",
+                (0, blockchain_1.fromBigInt)(newAmount),
+            ]);
+            symbolOrderBook[side][price.toString()] = newAmount;
+        }
+        else {
+            await client_1.default.execute("DELETE FROM orderbook WHERE symbol = ? AND price = ? AND side = ?", [
+                order.symbol,
+                (0, blockchain_1.fromBigInt)(price),
+                order.side === "BUY" ? "BIDS" : "ASKS",
+            ]);
+            delete symbolOrderBook[side][price.toString()];
+        }
+        return symbolOrderBook;
+    }
+    catch (err) {
+        console_1.logger.error("ORDERBOOK", "Failed to update order book in database", err);
+        throw (0, error_1.createError)({ statusCode: 500, message: "Failed to update order book in database" });
+    }
+}
+function generateOrderBookUpdateQueries(mappedOrderBook) {
+    const queries = [];
+    for (const [symbol, sides] of Object.entries(mappedOrderBook)) {
+        for (const [side, priceAmountMap] of Object.entries(sides)) {
+            if (Object.keys(priceAmountMap).length === 0) {
+                queries.push({
+                    query: `DELETE FROM orderbook WHERE symbol = ? AND side = ?`,
+                    params: [symbol, side.toUpperCase()],
+                });
+                continue;
+            }
+            for (const [price, amount] of Object.entries(priceAmountMap)) {
+                if (amount > BigInt(0)) {
+                    queries.push({
+                        query: `UPDATE orderbook SET amount = ? WHERE symbol = ? AND price = ? AND side = ?`,
+                        params: [
+                            (0, blockchain_1.fromBigInt)((0, blockchain_1.removeTolerance)(BigInt(amount))),
+                            symbol,
+                            (0, blockchain_1.fromBigInt)((0, blockchain_1.removeTolerance)(BigInt(price))),
+                            side.toUpperCase(),
+                        ],
+                    });
+                }
+                else {
+                    queries.push({
+                        query: `DELETE FROM orderbook WHERE symbol = ? AND price = ? AND side = ?`,
+                        params: [
+                            symbol,
+                            (0, blockchain_1.fromBigInt)((0, blockchain_1.removeTolerance)(BigInt(price))),
+                            side.toUpperCase(),
+                        ],
+                    });
+                }
+            }
+        }
+    }
+    return queries;
+}

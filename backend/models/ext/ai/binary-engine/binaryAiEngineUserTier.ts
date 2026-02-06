@@ -86,6 +86,11 @@ export default class binaryAiEngineUserTier
   // Associations
   engine?: any;
 
+  /** @alias maxVolume is not in DB, but code uses it - default to Infinity */
+  get maxVolume(): number {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
   public static initModel(
     sequelize: Sequelize.Sequelize
   ): typeof binaryAiEngineUserTier {
@@ -109,7 +114,7 @@ export default class binaryAiEngineUserTier
           type: DataTypes.STRING(20),
           allowNull: false,
           validate: {
-            notEmpty: { msg: "tierName: Tier name must not be empty" },
+            notEmpty: { msg: "tierName: Name must not be empty" },
           },
         },
         tierOrder: {

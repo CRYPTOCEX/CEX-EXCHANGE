@@ -95,8 +95,9 @@ export function CronManagementClient() {
     // 1. Fetch the initial list of cron jobs
     fetchInitialCrons();
 
-    // 2. Initialize the WebSocket connection
-    const wsManager = new WebSocketManager("/api/admin/system/cron");
+    // 2. Initialize the WebSocket connection - all backends now use /api/ prefix
+    const wsPath = "/api/admin/system/cron";
+    const wsManager = new WebSocketManager(wsPath);
 
     wsManager.on("open", () => {
       useCronStore.getState().setIsConnected(true);

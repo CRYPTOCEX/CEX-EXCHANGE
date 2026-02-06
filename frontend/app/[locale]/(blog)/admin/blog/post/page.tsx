@@ -27,6 +27,7 @@ export default function PostPage() {
       canEdit
       canDelete
       canView
+      isParanoid={true}
       title={t("post_management")}
       description={t("create_edit_and_publish_blog_posts")}
       itemTitle="Post"

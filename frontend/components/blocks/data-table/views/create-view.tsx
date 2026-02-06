@@ -10,8 +10,9 @@ import {
   generateSchema,
   processFormValues,
   getDefaultValues,
-} from "../utils/drawer";
+} from "../utils/form";
 import { handleSubmit as handleSubmitAction } from "../utils/api";
+import { invalidateOptionsCache } from "@/hooks/use-fetch-options";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -111,6 +112,8 @@ export function CreateView({ columns, title, formConfig, hasHero = false }: Crea
           });
         } else {
           // Success - go back to overview and refresh data
+          // Invalidate options cache so next create shows updated options
+          invalidateOptionsCache(apiEndpoint);
           form.reset(defaultValues);
           goToOverview();
           useTableStore.getState().fetchData();

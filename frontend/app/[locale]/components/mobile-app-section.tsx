@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { motion, useScroll, useTransform, useSpring, MotionValue } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useReducedMotion, MotionValue } from "framer-motion";
 import {
   Download,
   Smartphone,
@@ -22,6 +22,12 @@ import { useConfigStore } from "@/store/config";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
+// Check if device is mobile for reduced animations
+const isMobileDevice = () => {
+  if (typeof window === "undefined") return false;
+  return window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
 // Floating shape component with parallax
 interface ShapeData {
   id: number;
@@ -38,22 +44,30 @@ interface ShapeData {
 function FloatingShape({
   shape,
   scrollYProgress,
+  isMobile,
 }: {
   shape: ShapeData;
   scrollYProgress: MotionValue<number>;
+  isMobile: boolean;
 }) {
+  // Reduce parallax intensity on mobile to prevent jumping
+  const parallaxScale = isMobile ? 0.3 : 1;
   const y = useTransform(
     scrollYProgress,
     [0, 1],
-    [-60 * shape.parallaxMultiplier, 60 * shape.parallaxMultiplier]
+    [-30 * shape.parallaxMultiplier * parallaxScale, 30 * shape.parallaxMultiplier * parallaxScale]
   );
   const rotate = useTransform(
     scrollYProgress,
     [0, 1],
-    [shape.rotation, shape.rotation + 60]
+    [shape.rotation, shape.rotation + (isMobile ? 20 : 60)]
   );
-  const smoothY = useSpring(y, { stiffness: 50, damping: 20 });
-  const smoothRotate = useSpring(rotate, { stiffness: 50, damping: 20 });
+  // Higher stiffness and damping for smoother, less jumpy motion on mobile
+  const springConfig = isMobile
+    ? { stiffness: 100, damping: 30 }
+    : { stiffness: 50, damping: 20 };
+  const smoothY = useSpring(y, springConfig);
+  const smoothRotate = useSpring(rotate, springConfig);
 
   const renderShape = () => {
     switch (shape.type) {
@@ -153,6 +167,16 @@ export function MobileAppSection() {
   const { settings } = useConfigStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isScrollReady, setIsScrollReady] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
+
+  // Detect mobile device
+  useEffect(() => {
+    setIsMobile(isMobileDevice());
+    const handleResize = () => setIsMobile(isMobileDevice());
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Use requestAnimationFrame to ensure DOM is painted before enabling scroll tracking
   useEffect(() => {
@@ -175,12 +199,15 @@ export function MobileAppSection() {
   const hasGooglePlayLink = settings?.googlePlayLink && settings.googlePlayLink.trim() !== "";
   const showSection = hasAppStoreLink || hasGooglePlayLink;
 
+  // Reduce number of floating shapes on mobile for better performance
+  const shapeCount = isMobile ? 4 : 12;
+
   // Generate floating shapes
   const shapes = useMemo<ShapeData[]>(() => {
     const colors = ["#3b82f6", "#8b5cf6", "#06b6d4", "#ec4899", "#10b981"];
     const types: ShapeData["type"][] = ["circle", "square", "triangle", "ring", "hexagon"];
 
-    return Array.from({ length: 12 }, (_, i) => {
+    return Array.from({ length: shapeCount }, (_, i) => {
       const seed = i * 1234;
       const seededRandom = (s: number) => {
         const x = Math.sin(s) * 10000;
@@ -199,13 +226,22 @@ export function MobileAppSection() {
         blur: seededRandom(seed + 7) > 0.7 ? 2 : 0,
       };
     });
-  }, []);
+  }, [shapeCount]);
 
-  // Phone float animation
-  const phoneY = useTransform(scrollYProgress, [0, 1], [50, -50]);
-  const phoneRotate = useTransform(scrollYProgress, [0, 1], [-5, 5]);
-  const smoothPhoneY = useSpring(phoneY, { stiffness: 50, damping: 20 });
-  const smoothPhoneRotate = useSpring(phoneRotate, { stiffness: 50, damping: 20 });
+  // Phone float animation - reduced intensity on mobile
+  const phoneYRange = isMobile ? [20, -20] : [50, -50];
+  const phoneRotateRange = isMobile ? [-2, 2] : [-5, 5];
+  const phoneY = useTransform(scrollYProgress, [0, 1], phoneYRange);
+  const phoneRotate = useTransform(scrollYProgress, [0, 1], phoneRotateRange);
+  // Higher stiffness/damping on mobile for smoother motion
+  const phoneSpringConfig = isMobile
+    ? { stiffness: 100, damping: 30 }
+    : { stiffness: 50, damping: 20 };
+  const smoothPhoneY = useSpring(phoneY, phoneSpringConfig);
+  const smoothPhoneRotate = useSpring(phoneRotate, phoneSpringConfig);
+
+  // Skip animations entirely if user prefers reduced motion
+  const shouldAnimate = !prefersReducedMotion;
 
   if (!showSection) {
     return null;
@@ -243,33 +279,36 @@ export function MobileAppSection() {
       ref={containerRef}
       className="relative py-24 lg:py-32 overflow-hidden"
     >
-      {/* Floating Shapes Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {isScrollReady && shapes.map((shape) => (
-          <FloatingShape
-            key={shape.id}
-            shape={shape}
-            scrollYProgress={scrollYProgress}
-          />
-        ))}
-      </div>
+      {/* Floating Shapes Background - hidden on mobile for performance */}
+      {!isMobile && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {isScrollReady && shapes.map((shape) => (
+            <FloatingShape
+              key={shape.id}
+              shape={shape}
+              scrollYProgress={scrollYProgress}
+              isMobile={isMobile}
+            />
+          ))}
+        </div>
+      )}
 
-      {/* Gradient Orbs */}
+      {/* Gradient Orbs - static on mobile, animated on desktop */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          animate={{
+          animate={shouldAnimate && !isMobile ? {
             scale: [1, 1.2, 1],
             x: [0, 30, 0],
-          }}
+          } : undefined}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-1/4 -left-32 w-96 h-96 rounded-full opacity-30 blur-[100px]"
           style={{ background: "radial-gradient(circle, rgba(139, 92, 246, 0.6) 0%, transparent 70%)" }}
         />
         <motion.div
-          animate={{
+          animate={shouldAnimate && !isMobile ? {
             scale: [1, 1.1, 1],
             x: [0, -20, 0],
-          }}
+          } : undefined}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 5 }}
           className="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full opacity-30 blur-[100px]"
           style={{ background: "radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, transparent 70%)" }}

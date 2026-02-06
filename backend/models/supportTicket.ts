@@ -2,6 +2,14 @@ import * as Sequelize from "sequelize";
 import { DataTypes, Model } from "sequelize";
 import { logger } from "@b/utils/console";
 
+export interface SupportMessage {
+  type: string;
+  text: string;
+  time: string | Date;
+  userId?: string;
+  attachments?: string[];
+}
+
 export default class supportTicket extends Model<any, any> {
   id!: string;
   userId!: string;

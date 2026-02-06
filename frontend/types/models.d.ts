@@ -11,7 +11,9 @@ interface UserProfile {
   location: {
     address: string;
     city: string;
+    state: string;
     country: string;
+    countryCode: string;
     zip: string;
   };
   social: {

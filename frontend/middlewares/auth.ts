@@ -136,9 +136,20 @@ async function refreshToken(request: NextRequest) {
     clearTimeout(timeoutId);
 
     if (res.ok) {
+      // Use getSetCookie() to properly handle multiple Set-Cookie headers
+      // res.headers.get("set-cookie") may only return the first cookie
+      const cookies = res.headers.getSetCookie?.() || [];
+      for (const cookie of cookies) {
+        // Match accessToken with or without trailing semicolon
+        const match = cookie.match(/^accessToken=([^;]+)/);
+        if (match) {
+          return match[1];
+        }
+      }
+      // Fallback: try the old method in case getSetCookie is not available
       const setCookie = res.headers.get("set-cookie");
       if (setCookie) {
-        const accessToken = setCookie.match(/accessToken=([^;]+);/)?.[1];
+        const accessToken = setCookie.match(/accessToken=([^;]+)/)?.[1];
         if (accessToken) {
           return accessToken;
         }

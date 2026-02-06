@@ -1,1 +1,171 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query"),error_1=require("@b/utils/error"),console_1=require("@b/utils/console"),utils_1=require("./utils"),db_1=require("@b/db"),publicUrl=process.env.NEXT_PUBLIC_SITE_URL,isProduction="production"===process.env.NODE_ENV;exports.metadata={summary:"Creates an Adyen payment session",description:"Initiates an Adyen payment process by creating a payment session using Adyen's Sessions flow. This endpoint supports web checkout with multiple payment methods including cards, digital wallets, and local payment methods.",operationId:"createAdyenPayment",tags:["Finance","Deposit"],logModule:"ADYEN_DEPOSIT",logTitle:"Create Adyen payment session",requestBody:{description:"Payment information for Adyen session creation",content:{"application/json":{schema:{type:"object",properties:{amount:{type:"number",description:"Payment amount in base currency units"},currency:{type:"string",description:"Currency code (e.g., USD, EUR)"},countryCode:{type:"string",description:"Country code for payment method localization",nullable:!0}},required:["amount","currency"]}}}},responses:{200:{description:"Adyen payment session created successfully. Returns session data for Adyen Web Drop-in integration.",content:{"application/json":{schema:{type:"object",properties:{sessionId:{type:"string",description:"Adyen session ID"},sessionData:{type:"string",description:"Adyen session data for client-side integration"},amount:{type:"object",properties:{value:{type:"number",description:"Payment amount in minor units"},currency:{type:"string",description:"Currency code"}}},reference:{type:"string",description:"Payment reference"},returnUrl:{type:"string",description:"Return URL after payment completion"}}}}}},401:query_1.unauthorizedResponse,404:(0,query_1.notFoundMetadataResponse)("Adyen"),500:query_1.serverErrorResponse},requiresAuth:!0};exports.default=async e=>{var t;const{user:n,body:r,query:s,ctx:o}=e;if(!n)throw(0,error_1.createError)({statusCode:401,message:"User not authenticated"});const{amount:i,currency:a,countryCode:c="US"}=r;null==o||o.step("Fetching payment gateway configuration");const u=await db_1.models.depositGateway.findOne({where:{alias:"adyen",status:!0}});if(!u)throw(0,error_1.createError)({statusCode:404,message:"Adyen gateway not found or disabled"});if(!(null===(t=u.currencies)||void 0===t?void 0:t.includes(a)))throw(0,error_1.createError)({statusCode:400,message:`Currency ${a} is not supported by Adyen`});const{fixedFee:d,percentageFee:p}=u,y=i*(p||0)/100+(d||0),l=i+y;try{const e=(0,utils_1.getAdyenConfig)(),t=(0,utils_1.convertToMinorUnits)(l,a),r=`DEP-${n.id}-${Date.now()}`,s={amount:{value:t,currency:a.toUpperCase()},reference:r,merchantAccount:e.merchantAccount,returnUrl:`${publicUrl}${isProduction?"":":3000"}/finance/deposit?gateway=adyen&status=success&reference=${r}`,countryCode:c.toUpperCase(),shopperEmail:n.email,shopperReference:n.id.toString(),channel:"Web"},u=await(0,utils_1.makeAdyenApiRequest)("/sessions",s,e);null==o||o.step("Creating transaction record");const d=await db_1.models.transaction.create({uuid:r,userId:n.id,type:"DEPOSIT",status:"PENDING",amount:l,fee:y,description:`Adyen deposit of ${l} ${a}`,metadata:JSON.stringify({gateway:"adyen",sessionId:u.id,pspReference:null,currency:a,originalAmount:i,feeAmount:y,countryCode:c})});null==o||o.success("Adyen deposit completed successfully");return{sessionId:u.id,sessionData:u.sessionData,amount:u.amount,reference:u.reference,returnUrl:u.returnUrl,transactionId:d.uuid}}catch(e){console_1.logger.error("ADYEN","Payment session creation error",e);throw(0,error_1.createError)({statusCode:500,message:`Failed to create Adyen payment session: ${e.message}`})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+const error_1 = require("@b/utils/error");
+const console_1 = require("@b/utils/console");
+const utils_1 = require("./utils");
+const db_1 = require("@b/db");
+const wallet_1 = require("@b/services/wallet");
+const publicUrl = process.env.NEXT_PUBLIC_SITE_URL;
+const isProduction = process.env.NODE_ENV === "production";
+exports.metadata = {
+    summary: "Creates an Adyen payment session",
+    description: "Initiates an Adyen payment process by creating a payment session using Adyen's Sessions flow. This endpoint supports web checkout with multiple payment methods including cards, digital wallets, and local payment methods.",
+    operationId: "createAdyenPayment",
+    tags: ["Finance", "Deposit"],
+    logModule: "ADYEN_DEPOSIT",
+    logTitle: "Create Adyen payment session",
+    requestBody: {
+        description: "Payment information for Adyen session creation",
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        amount: {
+                            type: "number",
+                            description: "Payment amount in base currency units",
+                        },
+                        currency: {
+                            type: "string",
+                            description: "Currency code (e.g., USD, EUR)",
+                        },
+                        countryCode: {
+                            type: "string",
+                            description: "Country code for payment method localization",
+                            nullable: true,
+                        },
+                    },
+                    required: ["amount", "currency"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Adyen payment session created successfully. Returns session data for Adyen Web Drop-in integration.",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            sessionId: {
+                                type: "string",
+                                description: "Adyen session ID",
+                            },
+                            sessionData: {
+                                type: "string",
+                                description: "Adyen session data for client-side integration",
+                            },
+                            amount: {
+                                type: "object",
+                                properties: {
+                                    value: {
+                                        type: "number",
+                                        description: "Payment amount in minor units",
+                                    },
+                                    currency: {
+                                        type: "string",
+                                        description: "Currency code",
+                                    },
+                                },
+                            },
+                            reference: {
+                                type: "string",
+                                description: "Payment reference",
+                            },
+                            returnUrl: {
+                                type: "string",
+                                description: "Return URL after payment completion",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        401: query_1.unauthorizedResponse,
+        404: (0, query_1.notFoundMetadataResponse)("Adyen"),
+        500: query_1.serverErrorResponse,
+    },
+    requiresAuth: true,
+};
+exports.default = async (data) => {
+    var _a;
+    const { user, body, query, ctx } = data;
+    if (!user)
+        throw (0, error_1.createError)({ statusCode: 401, message: "User not authenticated" });
+    const { amount, currency, countryCode = "US" } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching payment gateway configuration");
+    const gateway = await db_1.models.depositGateway.findOne({
+        where: { alias: "adyen", status: true },
+    });
+    if (!gateway)
+        throw (0, error_1.createError)({ statusCode: 404, message: "Adyen gateway not found or disabled" });
+    if (!((_a = gateway.currencies) === null || _a === void 0 ? void 0 : _a.includes(currency))) {
+        throw (0, error_1.createError)({ statusCode: 400, message: `Currency ${currency} is not supported by Adyen` });
+    }
+    const { fixedFee, percentageFee } = gateway;
+    const percentageFeeNum = typeof percentageFee === 'number' ? percentageFee : 0;
+    const fixedFeeNum = typeof fixedFee === 'number' ? fixedFee : 0;
+    const feeAmount = (amount * percentageFeeNum) / 100 + fixedFeeNum;
+    const totalAmount = amount + feeAmount;
+    try {
+        const config = (0, utils_1.getAdyenConfig)();
+        const amountInMinorUnits = (0, utils_1.convertToMinorUnits)(totalAmount, currency);
+        const reference = `DEP-${user.id}-${Date.now()}`;
+        const sessionRequest = {
+            amount: {
+                value: amountInMinorUnits,
+                currency: currency.toUpperCase(),
+            },
+            reference,
+            merchantAccount: config.merchantAccount,
+            returnUrl: `${publicUrl}${isProduction ? "" : ":3000"}/finance/deposit?gateway=adyen&status=success&reference=${reference}`,
+            countryCode: countryCode.toUpperCase(),
+            shopperEmail: user.email,
+            shopperReference: user.id.toString(),
+            channel: "Web",
+        };
+        const sessionResponse = await (0, utils_1.makeAdyenApiRequest)("/sessions", sessionRequest, config);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Getting or creating wallet");
+        const walletResult = await wallet_1.walletCreationService.getOrCreateWallet(user.id, "FIAT", currency);
+        const wallet = walletResult.wallet;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating transaction record");
+        const transaction = await db_1.models.transaction.create({
+            referenceId: reference,
+            userId: user.id,
+            walletId: wallet.id,
+            type: "DEPOSIT",
+            status: "PENDING",
+            amount: totalAmount,
+            fee: feeAmount,
+            description: `Adyen deposit of ${totalAmount} ${currency}`,
+            metadata: JSON.stringify({
+                gateway: "adyen",
+                sessionId: sessionResponse.id,
+                pspReference: null,
+                currency,
+                originalAmount: amount,
+                feeAmount,
+                countryCode,
+            }),
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Adyen deposit completed successfully");
+        return {
+            sessionId: sessionResponse.id,
+            sessionData: sessionResponse.sessionData,
+            amount: sessionResponse.amount,
+            reference: sessionResponse.reference,
+            returnUrl: sessionResponse.returnUrl,
+            transactionId: transaction.id,
+        };
+    }
+    catch (error) {
+        console_1.logger.error("ADYEN", "Payment session creation error", error);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Failed to create Adyen payment session: ${(error === null || error === void 0 ? void 0 : error.message) || String(error)}`
+        });
+    }
+};

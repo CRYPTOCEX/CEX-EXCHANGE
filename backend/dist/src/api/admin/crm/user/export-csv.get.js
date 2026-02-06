@@ -1,1 +1,149 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const error_1=require("@b/utils/error"),db_1=require("@b/db"),sync_1=require("csv-stringify/sync"),demoMask_1=require("@b/utils/demoMask");exports.metadata={summary:"Export all users as a CSV file",operationId:"exportUsersToCSV",tags:["Admin","CRM","User"],parameters:[{name:"includePasswords",in:"query",description:"Include encrypted passwords in export",required:!1,schema:{type:"boolean",default:!1}},{name:"status",in:"query",description:"Filter by user status",required:!1,schema:{type:"string",enum:["ACTIVE","INACTIVE","BANNED","SUSPENDED"]}}],responses:{200:{description:"CSV file with user data",content:{"text/csv":{schema:{type:"string"}}}},401:{description:"Unauthorized access"}},requiresAuth:!0,permission:"export.user"};exports.default=async e=>{const{user:t,query:i}=e;if(!(null==t?void 0:t.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized access"});const r="true"===(null==i?void 0:i.includePasswords),s=null==i?void 0:i.status,o={};s&&(o.status=s);const a=(await db_1.models.user.findAll({where:o,include:[{model:db_1.models.role,as:"role"}],order:[["createdAt","DESC"]]})).map(e=>{var t,i,s,o,a,l,d,n,u,c;const p={email:e.email||"",firstName:e.firstName||"",lastName:e.lastName||"",password:r?e.password:"",phone:e.phone||"",status:e.status||"ACTIVE",emailVerified:e.emailVerified?"true":"false",twoFactor:e.twoFactor?"true":"false",roleId:e.roleId||"",avatar:e.avatar||""};if(e.profile){const r="string"==typeof e.profile?JSON.parse(e.profile):e.profile;p.bio=r.bio||"";p.address=(null===(t=r.location)||void 0===t?void 0:t.address)||"";p.city=(null===(i=r.location)||void 0===i?void 0:i.city)||"";p.country=(null===(s=r.location)||void 0===s?void 0:s.country)||"";p.zip=(null===(o=r.location)||void 0===o?void 0:o.zip)||"";p.facebook=(null===(a=r.social)||void 0===a?void 0:a.facebook)||"";p.twitter=(null===(l=r.social)||void 0===l?void 0:l.twitter)||"";p.instagram=(null===(d=r.social)||void 0===d?void 0:d.instagram)||"";p.github=(null===(n=r.social)||void 0===n?void 0:n.github)||"";p.dribbble=(null===(u=r.social)||void 0===u?void 0:u.dribbble)||"";p.gitlab=(null===(c=r.social)||void 0===c?void 0:c.gitlab)||""}else{p.bio="";p.address="";p.city="";p.country="";p.zip="";p.facebook="";p.twitter="";p.instagram="";p.github="";p.dribbble="";p.gitlab=""}return p}),l=(0,demoMask_1.applyDemoMask)(a,["email","phone"]);return{data:(0,sync_1.stringify)(l,{header:!0,columns:["email","firstName","lastName","password","phone","status","emailVerified","twoFactor","roleId","avatar","bio","address","city","country","zip","facebook","twitter","instagram","github","dribbble","gitlab"]}),headers:{"Content-Type":"text/csv","Content-Disposition":`attachment; filename="users_export_${(new Date).toISOString().split("T")[0]}.csv"`}}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const error_1 = require("@b/utils/error");
+const db_1 = require("@b/db");
+const sync_1 = require("csv-stringify/sync");
+const demoMask_1 = require("@b/utils/demoMask");
+exports.metadata = {
+    summary: "Export all users as a CSV file",
+    operationId: "exportUsersToCSV",
+    tags: ["Admin", "CRM", "User"],
+    parameters: [
+        {
+            name: "includePasswords",
+            in: "query",
+            description: "Include encrypted passwords in export",
+            required: false,
+            schema: {
+                type: "boolean",
+                default: false,
+            },
+        },
+        {
+            name: "status",
+            in: "query",
+            description: "Filter by user status",
+            required: false,
+            schema: {
+                type: "string",
+                enum: ["ACTIVE", "INACTIVE", "BANNED", "SUSPENDED"],
+            },
+        },
+    ],
+    responses: {
+        200: {
+            description: "CSV file with user data",
+            content: {
+                "text/csv": {
+                    schema: {
+                        type: "string",
+                    },
+                },
+            },
+        },
+        401: {
+            description: "Unauthorized access",
+        },
+    },
+    requiresAuth: true,
+    permission: "export.user",
+};
+exports.default = async (data) => {
+    const { user, query } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized access" });
+    }
+    const includePasswords = (query === null || query === void 0 ? void 0 : query.includePasswords) === "true";
+    const statusFilter = query === null || query === void 0 ? void 0 : query.status;
+    const whereConditions = {};
+    if (statusFilter) {
+        whereConditions.status = statusFilter;
+    }
+    const users = await db_1.models.user.findAll({
+        where: whereConditions,
+        include: [
+            { model: db_1.models.role, as: "role" },
+        ],
+        order: [["createdAt", "DESC"]],
+    });
+    const csvData = users.map((user) => {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        const userData = {
+            email: user.email || "",
+            firstName: user.firstName || "",
+            lastName: user.lastName || "",
+            password: includePasswords ? user.password : "",
+            phone: user.phone || "",
+            status: user.status || "ACTIVE",
+            emailVerified: user.emailVerified ? "true" : "false",
+            twoFactor: user.twoFactor ? "true" : "false",
+            roleId: user.roleId || "",
+            avatar: user.avatar || "",
+        };
+        if (user.profile) {
+            const profile = typeof user.profile === "string"
+                ? JSON.parse(user.profile)
+                : user.profile;
+            userData.bio = profile.bio || "";
+            userData.address = ((_a = profile.location) === null || _a === void 0 ? void 0 : _a.address) || "";
+            userData.city = ((_b = profile.location) === null || _b === void 0 ? void 0 : _b.city) || "";
+            userData.country = ((_c = profile.location) === null || _c === void 0 ? void 0 : _c.country) || "";
+            userData.zip = ((_d = profile.location) === null || _d === void 0 ? void 0 : _d.zip) || "";
+            userData.facebook = ((_e = profile.social) === null || _e === void 0 ? void 0 : _e.facebook) || "";
+            userData.twitter = ((_f = profile.social) === null || _f === void 0 ? void 0 : _f.twitter) || "";
+            userData.instagram = ((_g = profile.social) === null || _g === void 0 ? void 0 : _g.instagram) || "";
+            userData.github = ((_h = profile.social) === null || _h === void 0 ? void 0 : _h.github) || "";
+            userData.dribbble = ((_j = profile.social) === null || _j === void 0 ? void 0 : _j.dribbble) || "";
+            userData.gitlab = ((_k = profile.social) === null || _k === void 0 ? void 0 : _k.gitlab) || "";
+        }
+        else {
+            userData.bio = "";
+            userData.address = "";
+            userData.city = "";
+            userData.country = "";
+            userData.zip = "";
+            userData.facebook = "";
+            userData.twitter = "";
+            userData.instagram = "";
+            userData.github = "";
+            userData.dribbble = "";
+            userData.gitlab = "";
+        }
+        return userData;
+    });
+    const maskedData = (0, demoMask_1.applyDemoMask)(csvData, ["email", "phone"]);
+    const csv = (0, sync_1.stringify)(maskedData, {
+        header: true,
+        columns: [
+            "email",
+            "firstName",
+            "lastName",
+            "password",
+            "phone",
+            "status",
+            "emailVerified",
+            "twoFactor",
+            "roleId",
+            "avatar",
+            "bio",
+            "address",
+            "city",
+            "country",
+            "zip",
+            "facebook",
+            "twitter",
+            "instagram",
+            "github",
+            "dribbble",
+            "gitlab",
+        ],
+    });
+    return {
+        data: csv,
+        headers: {
+            "Content-Type": "text/csv",
+            "Content-Disposition": `attachment; filename="users_export_${new Date().toISOString().split("T")[0]}.csv"`,
+        },
+    };
+};

@@ -1,1 +1,35 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.BaseChannel=void 0;const RedisCache_1=require("../cache/RedisCache");class BaseChannel{constructor(e){this.channelName=e}validate(e){if(!e.userId)throw new Error("userId is required");if(!e.data&&!e.template)throw new Error("Either data or template must be provided")}async trackDelivery(e,a){await RedisCache_1.redisCache.trackDelivery(e,this.channelName,a)}getChannelName(){return this.channelName}async isAvailableForUser(e){return!0}log(e,a){const r=(new Date).toISOString();console.log(`[${this.channelName}] ${r} - ${e}`,a?JSON.stringify(a):"")}logError(e,a){const r=(new Date).toISOString();console.error(`[${this.channelName}] ${r} - ERROR: ${e}`,a)}}exports.BaseChannel=BaseChannel;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BaseChannel = void 0;
+const RedisCache_1 = require("../cache/RedisCache");
+class BaseChannel {
+    constructor(channelName) {
+        this.channelName = channelName;
+    }
+    validate(operation) {
+        if (!operation.userId) {
+            throw new Error("userId is required");
+        }
+        if (!operation.data && !operation.template) {
+            throw new Error("Either data or template must be provided");
+        }
+    }
+    async trackDelivery(notificationId, status) {
+        await RedisCache_1.redisCache.trackDelivery(notificationId, this.channelName, status);
+    }
+    getChannelName() {
+        return this.channelName;
+    }
+    async isAvailableForUser(userId) {
+        return true;
+    }
+    log(message, data) {
+        const timestamp = new Date().toISOString();
+        console.log(`[${this.channelName}] ${timestamp} - ${message}`, data ? JSON.stringify(data) : "");
+    }
+    logError(message, error) {
+        const timestamp = new Date().toISOString();
+        console.error(`[${this.channelName}] ${timestamp} - ERROR: ${message}`, error);
+    }
+}
+exports.BaseChannel = BaseChannel;

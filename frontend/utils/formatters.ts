@@ -1,10 +1,13 @@
 /**
  * Formats a number as currency
- * @param value The number to format
+ * @param value The number or string to format
  * @param currency The currency code (default: USD)
  * @returns Formatted currency string
  */
-export const formatCurrency = (value: number, currency = "USD"): string => {
+export const formatCurrency = (value: number | string, currency = "USD"): string => {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) return `${currency} 0.00`;
+
   // List of valid ISO 4217 currency codes that Intl.NumberFormat supports
   const validCurrencyCodes = [
     "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD",
@@ -21,30 +24,32 @@ export const formatCurrency = (value: number, currency = "USD"): string => {
         currency,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }).format(value);
+      }).format(num);
     } catch (error) {
       // Fallback if there's still an error
-      return `${currency} ${value.toFixed(2)}`;
+      return `${currency} ${num.toFixed(2)}`;
     }
   } else {
     // For cryptocurrencies and other non-ISO currencies, format manually
     const formattedValue = new Intl.NumberFormat("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 8, // Cryptocurrencies often have more decimal places
-    }).format(value);
-    
+    }).format(num);
+
     return `${formattedValue} ${currency}`;
   }
 };
 
 /**
  * Formats a percentage value
- * @param value The number to format as percentage
+ * @param value The number or string to format as percentage
  * @param decimals Number of decimal places (default: 2)
  * @returns Formatted percentage string
  */
-export const formatPercentage = (value: number, decimals = 2): string => {
-  return `${value.toFixed(decimals)}%`;
+export const formatPercentage = (value: number | string, decimals = 2): string => {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) return '0%';
+  return `${num.toFixed(decimals)}%`;
 };
 
 /**

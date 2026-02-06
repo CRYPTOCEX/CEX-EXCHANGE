@@ -1,1 +1,278 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query"),error_1=require("@b/utils/error"),utils_1=require("./utils"),db_1=require("@b/db"),emails_1=require("@b/utils/emails"),console_1=require("@b/utils/console"),wallet_1=require("@b/services/wallet");exports.metadata={summary:"Handles Klarna webhook notifications",description:"Processes webhook notifications from Klarna for order status updates and payment confirmations.",operationId:"klarnaWebhook",tags:["Finance","Webhook"],logModule:"WEBHOOK",logTitle:"Klarna webhook",requestBody:{description:"Klarna webhook notification data",content:{"application/json":{schema:{type:"object",properties:{order_id:{type:"string",description:"Klarna order ID"},event_type:{type:"string",description:"Type of webhook event"},event_id:{type:"string",description:"Unique event identifier"},timestamp:{type:"string",description:"Event timestamp"}},required:["order_id","event_type"]}}}},responses:{200:{description:"Webhook processed successfully",content:{"application/json":{schema:{type:"object",properties:{status:{type:"string",description:"Processing status"},message:{type:"string",description:"Response message"}}}}}},400:{description:"Invalid webhook data",content:{"application/json":{schema:{type:"object",properties:{error:{type:"string"}}}}}},404:(0,query_1.notFoundMetadataResponse)("Order"),500:query_1.serverErrorResponse},requiresAuth:!1};exports.default=async e=>{const{body:t,headers:r,ctx:s}=e;console_1.logger.info("KLARNA",`Webhook received - event: ${t.event_type}, order: ${t.order_id}`);const{order_id:a,event_type:o,event_id:n,timestamp:i}=t;if(!a||!o)throw(0,error_1.createError)({statusCode:400,message:"Missing required webhook data: order_id and event_type"});try{const e=await db_1.models.transaction.findOne({where:{type:"DEPOSIT",status:["PENDING","PROCESSING"]},include:[{model:db_1.models.user,as:"user",required:!0}],order:[["createdAt","DESC"]]});if(!e){console_1.logger.warn("KLARNA",`No pending transaction found for order: ${a}`);null==s||s.success("Klarna deposit completed successfully");return{status:"ignored",message:"No matching transaction found"}}const t=JSON.parse(e.metadata||"{}");if(t.order_id!==a){console_1.logger.debug("KLARNA",`Order ID mismatch: expected ${t.order_id}, got ${a}`);return{status:"ignored",message:"Order ID does not match transaction"}}if(t.processed_events&&t.processed_events.includes(n)){console_1.logger.debug("KLARNA",`Event ${n} already processed for order ${a}`);return{status:"duplicate",message:"Event already processed"}}const r=await(0,utils_1.makeKlarnaRequest)(`/ordermanagement/v1/orders/${a}`,"GET");if(!r)throw(0,error_1.createError)({statusCode:500,message:`Failed to retrieve order details for ${a}`});console_1.logger.info("KLARNA",`Order ${a} status: ${r.status}`);const d=r.status&&utils_1.KLARNA_STATUS_MAPPING[r.status]||"PENDING",c={...t,last_event_type:o,last_event_id:n,last_event_timestamp:i,current_klarna_status:r.status,processed_events:[...t.processed_events||[],n],webhook_updated_at:(new Date).toISOString()};if("COMPLETED"===d||"CAPTURED"===r.status){const r=e.user,n=t.purchase_currency;null==s||s.step("Finding or creating wallet");const i=(await wallet_1.walletCreationService.getOrCreateWallet(r.id,"FIAT",n)).wallet;null==s||s.step("Validating currency");const d=await db_1.models.currency.findOne({where:{id:i.currency}});if(!d){null==s||s.fail("Currency not found");throw(0,error_1.createError)({statusCode:404,message:"Currency not found"})}const l=e.amount-e.fee;let u=i.balance+l;u=parseFloat(u.toFixed(d.precision||2));await db_1.sequelize.transaction(async t=>{await db_1.models.transaction.update({status:"COMPLETED",metadata:JSON.stringify({...c,completed_at:(new Date).toISOString()}),description:`Klarna deposit of ${l} ${n} completed by ${r.firstName} ${r.lastName}`},{where:{id:e.id},transaction:t});null==s||s.step("Updating wallet balance via wallet service");const d=`klarna_webhook_${a}`;await wallet_1.walletService.credit({idempotencyKey:d,userId:r.id,walletId:i.id,walletType:"FIAT",currency:n,amount:l,operationType:"DEPOSIT",referenceId:a,description:`Klarna deposit of ${l} ${n}`,metadata:{method:"KLARNA",orderId:a,eventType:o},transaction:t});e.fee>0&&await db_1.models.adminProfit.create({amount:e.fee,currency:i.currency,type:"DEPOSIT",description:`Klarna deposit fee from ${r.firstName} ${r.lastName}`},{transaction:t})});try{null==s||s.step("Sending notification email");await(0,emails_1.sendFiatTransactionEmail)(r,{...e.dataValues,type:"DEPOSIT",amount:l,status:"COMPLETED",description:`Klarna deposit of ${l} ${n} completed`},n,u)}catch(e){console_1.logger.error("KLARNA","Failed to send confirmation email",e)}console_1.logger.success("KLARNA",`Payment completed for user ${r.id}, order ${a}`);return{status:"completed",message:"Payment processed successfully",order_id:a,transaction_id:e.id}}if("FAILED"===d||"CANCELLED"===r.status){await db_1.models.transaction.update({status:"FAILED",metadata:JSON.stringify({...c,failure_reason:`Klarna order status: ${r.status}`,failed_at:(new Date).toISOString()})},{where:{id:e.id}});console_1.logger.warn("KLARNA",`Payment failed for order ${a}, status: ${r.status}`);return{status:"failed",message:"Payment failed",order_id:a,reason:r.status}}await db_1.models.transaction.update({metadata:JSON.stringify(c)},{where:{id:e.id}});console_1.logger.info("KLARNA",`Order ${a} status updated to: ${r.status}`);return{status:"updated",message:"Status updated",order_id:a,current_status:r.status}}catch(e){console_1.logger.error("KLARNA","Webhook processing error",e);if(e instanceof utils_1.KlarnaError)throw(0,error_1.createError)({statusCode:400,message:`Klarna webhook error: ${e.message}`});throw(0,error_1.createError)({statusCode:500,message:`Webhook processing failed: ${e.message}`})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+const error_1 = require("@b/utils/error");
+const utils_1 = require("./utils");
+const db_1 = require("@b/db");
+const emails_1 = require("@b/utils/emails");
+const console_1 = require("@b/utils/console");
+const wallet_1 = require("@b/services/wallet");
+exports.metadata = {
+    summary: "Handles Klarna webhook notifications",
+    description: "Processes webhook notifications from Klarna for order status updates and payment confirmations.",
+    operationId: "klarnaWebhook",
+    tags: ["Finance", "Webhook"],
+    logModule: "WEBHOOK",
+    logTitle: "Klarna webhook",
+    requestBody: {
+        description: "Klarna webhook notification data",
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        order_id: {
+                            type: "string",
+                            description: "Klarna order ID",
+                        },
+                        event_type: {
+                            type: "string",
+                            description: "Type of webhook event",
+                        },
+                        event_id: {
+                            type: "string",
+                            description: "Unique event identifier",
+                        },
+                        timestamp: {
+                            type: "string",
+                            description: "Event timestamp",
+                        },
+                    },
+                    required: ["order_id", "event_type"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Webhook processed successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            status: {
+                                type: "string",
+                                description: "Processing status",
+                            },
+                            message: {
+                                type: "string",
+                                description: "Response message",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        400: {
+            description: "Invalid webhook data",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            error: { type: "string" },
+                        },
+                    },
+                },
+            },
+        },
+        404: (0, query_1.notFoundMetadataResponse)("Order"),
+        500: query_1.serverErrorResponse,
+    },
+    requiresAuth: false,
+};
+exports.default = async (data) => {
+    var _a;
+    const { body, headers, ctx } = data;
+    console_1.logger.info("KLARNA", `Webhook received - event: ${body.event_type}, order: ${body.order_id}`);
+    const { order_id, event_type, event_id, timestamp } = body;
+    if (!order_id || !event_type) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "Missing required webhook data: order_id and event_type" });
+    }
+    try {
+        const transaction = await db_1.models.transaction.findOne({
+            where: {
+                type: "DEPOSIT",
+                status: ["PENDING", "PROCESSING"],
+            },
+            include: [
+                {
+                    model: db_1.models.user,
+                    as: "user",
+                    required: true,
+                },
+            ],
+            order: [["createdAt", "DESC"]],
+        });
+        if (!transaction) {
+            console_1.logger.warn("KLARNA", `No pending transaction found for order: ${order_id}`);
+            ctx === null || ctx === void 0 ? void 0 : ctx.success("Klarna deposit completed successfully");
+            return {
+                status: "ignored",
+                message: "No matching transaction found",
+            };
+        }
+        const transactionMetadata = JSON.parse(transaction.metadata || "{}");
+        if (transactionMetadata.order_id !== order_id) {
+            console_1.logger.debug("KLARNA", `Order ID mismatch: expected ${transactionMetadata.order_id}, got ${order_id}`);
+            return {
+                status: "ignored",
+                message: "Order ID does not match transaction",
+            };
+        }
+        if (transactionMetadata.processed_events &&
+            transactionMetadata.processed_events.includes(event_id)) {
+            console_1.logger.debug("KLARNA", `Event ${event_id} already processed for order ${order_id}`);
+            return {
+                status: "duplicate",
+                message: "Event already processed",
+            };
+        }
+        const orderDetails = await (0, utils_1.makeKlarnaRequest)(`/ordermanagement/v1/orders/${order_id}`, "GET");
+        if (!orderDetails) {
+            throw (0, error_1.createError)({ statusCode: 500, message: `Failed to retrieve order details for ${order_id}` });
+        }
+        console_1.logger.info("KLARNA", `Order ${order_id} status: ${orderDetails.status}`);
+        const mappedStatus = orderDetails.status ? utils_1.KLARNA_STATUS_MAPPING[orderDetails.status] || "PENDING" : "PENDING";
+        const updatedMetadata = {
+            ...transactionMetadata,
+            last_event_type: event_type,
+            last_event_id: event_id,
+            last_event_timestamp: timestamp,
+            current_klarna_status: orderDetails.status,
+            processed_events: [
+                ...(transactionMetadata.processed_events || []),
+                event_id
+            ],
+            webhook_updated_at: new Date().toISOString(),
+        };
+        if (mappedStatus === "COMPLETED" || orderDetails.status === "CAPTURED") {
+            const user = transaction.user;
+            if (!user) {
+                throw (0, error_1.createError)({ statusCode: 404, message: "User not found for transaction" });
+            }
+            const currency = transactionMetadata.purchase_currency;
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding or creating wallet");
+            const walletResult = await wallet_1.walletCreationService.getOrCreateWallet(user.id, "FIAT", currency);
+            const wallet = walletResult.wallet;
+            if (!wallet) {
+                throw (0, error_1.createError)({ statusCode: 500, message: "Failed to create or find wallet" });
+            }
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating currency");
+            const currencyData = await db_1.models.currency.findOne({
+                where: { id: wallet.currency },
+            });
+            if (!currencyData) {
+                ctx === null || ctx === void 0 ? void 0 : ctx.fail("Currency not found");
+                throw (0, error_1.createError)({ statusCode: 404, message: "Currency not found" });
+            }
+            const depositAmount = transaction.amount - ((_a = transaction.fee) !== null && _a !== void 0 ? _a : 0);
+            let newBalance = wallet.balance + depositAmount;
+            newBalance = parseFloat(newBalance.toFixed(currencyData.precision || 2));
+            await db_1.sequelize.transaction(async (t) => {
+                var _a;
+                await db_1.models.transaction.update({
+                    status: "COMPLETED",
+                    metadata: JSON.stringify({
+                        ...updatedMetadata,
+                        completed_at: new Date().toISOString(),
+                    }),
+                    description: `Klarna deposit of ${depositAmount} ${currency} completed by ${user.firstName} ${user.lastName}`,
+                }, {
+                    where: { id: transaction.id },
+                    transaction: t,
+                });
+                ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating wallet balance via wallet service");
+                const idempotencyKey = `klarna_webhook_${order_id}`;
+                await wallet_1.walletService.credit({
+                    idempotencyKey,
+                    userId: user.id,
+                    walletId: wallet.id,
+                    walletType: "FIAT",
+                    currency,
+                    amount: depositAmount,
+                    operationType: "DEPOSIT",
+                    referenceId: order_id,
+                    description: `Klarna deposit of ${depositAmount} ${currency}`,
+                    metadata: {
+                        method: "KLARNA",
+                        orderId: order_id,
+                        eventType: event_type,
+                    },
+                    transaction: t,
+                });
+                if (((_a = transaction.fee) !== null && _a !== void 0 ? _a : 0) > 0) {
+                    await db_1.models.adminProfit.create({
+                        amount: transaction.fee,
+                        currency: wallet.currency,
+                        type: "DEPOSIT",
+                        transactionId: transaction.id,
+                        description: `Klarna deposit fee from ${user.firstName} ${user.lastName}`,
+                    }, { transaction: t });
+                }
+            });
+            try {
+                ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending notification email");
+                await (0, emails_1.sendFiatTransactionEmail)(user, {
+                    ...transaction.dataValues,
+                    type: "DEPOSIT",
+                    amount: depositAmount,
+                    status: "COMPLETED",
+                    description: `Klarna deposit of ${depositAmount} ${currency} completed`,
+                }, currency, newBalance);
+            }
+            catch (emailError) {
+                console_1.logger.error("KLARNA", "Failed to send confirmation email", emailError);
+            }
+            console_1.logger.success("KLARNA", `Payment completed for user ${user.id}, order ${order_id}`);
+            return {
+                status: "completed",
+                message: "Payment processed successfully",
+                order_id,
+                transaction_id: transaction.id,
+            };
+        }
+        else if (mappedStatus === "FAILED" || orderDetails.status === "CANCELLED") {
+            await db_1.models.transaction.update({
+                status: "FAILED",
+                metadata: JSON.stringify({
+                    ...updatedMetadata,
+                    failure_reason: `Klarna order status: ${orderDetails.status}`,
+                    failed_at: new Date().toISOString(),
+                }),
+            }, {
+                where: { id: transaction.id },
+            });
+            console_1.logger.warn("KLARNA", `Payment failed for order ${order_id}, status: ${orderDetails.status}`);
+            return {
+                status: "failed",
+                message: "Payment failed",
+                order_id,
+                reason: orderDetails.status,
+            };
+        }
+        else {
+            await db_1.models.transaction.update({
+                metadata: JSON.stringify(updatedMetadata),
+            }, {
+                where: { id: transaction.id },
+            });
+            console_1.logger.info("KLARNA", `Order ${order_id} status updated to: ${orderDetails.status}`);
+            return {
+                status: "updated",
+                message: "Status updated",
+                order_id,
+                current_status: orderDetails.status,
+            };
+        }
+    }
+    catch (error) {
+        console_1.logger.error("KLARNA", "Webhook processing error", error);
+        if (error instanceof utils_1.KlarnaError) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Klarna webhook error: ${error.message}` });
+        }
+        throw (0, error_1.createError)({ statusCode: 500, message: `Webhook processing failed: ${error instanceof Error ? error.message : String(error)}` });
+    }
+};

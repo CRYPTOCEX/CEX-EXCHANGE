@@ -1,1 +1,182 @@
-"use strict";function formatActionTitle(e){return{ADMIN_UPDATE:"Offer Updated",ADMIN_ADMIN_UPDATE:"Offer Updated",ADMIN_APPROVE:"Offer Approved",ADMIN_REJECT:"Offer Rejected",ADMIN_FLAG:"Offer Flagged",ADMIN_DISABLE:"Offer Disabled",ADMIN_OFFER_APPROVED:"Offer Approved",ADMIN_OFFER_REJECTED:"Offer Rejected",ADMIN_OFFER_FLAGGED:"Offer Flagged",ADMIN_OFFER_DISABLED:"Offer Disabled",ADMIN_OFFER_UPDATED:"Offer Updated",ADMIN_PAYMENT_METHOD:"Payment Method Updated",ADMIN_DISPUTE_UPDATE:"Dispute Updated",OFFER_APPROVED:"Offer Approved",OFFER_REJECTED:"Offer Rejected",OFFER_FLAGGED:"Offer Flagged",OFFER_DISABLED:"Offer Disabled",OFFER_CREATED:"Offer Created",OFFER_UPDATED:"Offer Updated",TRADE_STARTED:"Trade Started",TRADE_COMPLETED:"Trade Completed",TRADE_CANCELLED:"Trade Cancelled",TRADE_DISPUTED:"Trade Disputed"}[e]||e.replace(/_/g," ").replace(/ADMIN /g,"").toLowerCase().replace(/\b\w/g,e=>e.toUpperCase())}function formatDescription(e,r,t){try{const a="string"==typeof e?JSON.parse(e):e,i=t||a.updatedBy||a.approvedBy||a.rejectedBy||a.flaggedBy||a.disabledBy||a.adminName||null,s=e=>i&&"undefined undefined"!==i&&i.trim()?`${e} by ${i}`:e;if(r.includes("APPROVE"))return s("Offer was approved");if(r.includes("REJECT")){return s("Offer was rejected"+(a.reason?`: ${a.reason}`:""))}if(r.includes("FLAG")){return s("Offer was flagged for review"+(a.reason?`: ${a.reason}`:""))}if(r.includes("DISABLE")){return s("Offer was disabled"+(a.reason?`: ${a.reason}`:""))}if(r.includes("UPDATE")){const e=[];a.currency&&e.push(`currency: ${a.currency}`);a.price&&e.push(`price: ${a.price}`);a.minAmount&&e.push(`min: ${a.minAmount}`);a.maxAmount&&e.push(`max: ${a.maxAmount}`);return e.length>0?s(`Updated ${e.join(", ")}`):s("Offer details were updated")}if(r.includes("PAYMENT_METHOD")){const e=a.action||"updated";return s(`Payment method${a.name?` "${a.name}"`:""} ${e}`)}if("TRADE_STARTED"===r)return`New trade started for ${a.amount||"N/A"} ${a.currency||""}`;if("TRADE_COMPLETED"===r)return`Trade completed successfully for ${a.amount||"N/A"} ${a.currency||""}`;if("TRADE_DISPUTED"===r)return`Trade disputed: ${a.reason||"No reason provided"}`;if(r.includes("DISPUTE")){return s(`Dispute updated${a.status?` to ${a.status}`:""}`)}const d=[];a.amount&&d.push(`Amount: ${a.amount}`);a.currency&&d.push(`Currency: ${a.currency}`);a.status&&d.push(`Status: ${a.status}`);return d.length>0?d.join(", "):"Activity recorded"}catch(r){return e||"Activity recorded"}}function getPriority(e){return e.includes("DISPUTE")||e.includes("FLAG")?"high":e.includes("APPROVE")||e.includes("REJECT")?"medium":"low"}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error");exports.metadata={summary:"Get Recent Activity (Admin)",description:"Retrieves a list of recent activity logs for the admin dashboard.",operationId:"getRecentAdminP2PActivity",tags:["Admin","Dashboard","Activity","P2P"],logModule:"ADMIN_P2P",logTitle:"Get Recent P2P Activities",requiresAuth:!0,responses:{200:{description:"Recent activity logs retrieved successfully."},401:{description:"Unauthorized."},500:{description:"Internal Server Error."}},permission:"view.p2p.activity",demoMask:["user.email"]};exports.default=async()=>{try{const e=await db_1.models.p2pActivityLog.findAll({order:[["createdAt","DESC"]],limit:5,include:[{model:db_1.models.user,as:"user",attributes:["id","firstName","lastName","email","avatar"]}]});return e.map(e=>{const r=e.get({plain:!0}),t=r.user?`${r.user.firstName} ${r.user.lastName}`:void 0;return{id:r.id,type:r.type.includes("TRADE")?"trade":r.type.includes("DISPUTE")?"dispute":r.type.includes("PAYMENT")?"payment":r.type.includes("USER")?"user":"system",title:formatActionTitle(r.type),description:formatDescription(r.details,r.type,t),createdAt:new Date(r.createdAt).toLocaleString(),status:"active",priority:getPriority(r.type),user:r.user?{id:r.user.id,firstName:r.user.firstName||"Unknown",lastName:r.user.lastName||"User",email:r.user.email||"",avatar:r.user.avatar||"/placeholder.svg"}:{id:r.userId,firstName:"System",lastName:"User",email:"",avatar:"/placeholder.svg"}}})}catch(e){throw(0,error_1.createError)({statusCode:500,message:"Internal Server Error: "+e.message})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+exports.metadata = {
+    summary: "Get Recent Activity (Admin)",
+    description: "Retrieves a list of recent activity logs for the admin dashboard.",
+    operationId: "getRecentAdminP2PActivity",
+    tags: ["Admin", "Dashboard", "Activity", "P2P"],
+    logModule: "ADMIN_P2P",
+    logTitle: "Get Recent P2P Activities",
+    requiresAuth: true,
+    responses: {
+        200: { description: "Recent activity logs retrieved successfully." },
+        401: { description: "Unauthorized." },
+        500: { description: "Internal Server Error." },
+    },
+    permission: "view.p2p.activity",
+    demoMask: ["user.email"],
+};
+function formatActionTitle(type) {
+    const actionMap = {
+        ADMIN_UPDATE: "Offer Updated",
+        ADMIN_ADMIN_UPDATE: "Offer Updated",
+        ADMIN_APPROVE: "Offer Approved",
+        ADMIN_REJECT: "Offer Rejected",
+        ADMIN_FLAG: "Offer Flagged",
+        ADMIN_DISABLE: "Offer Disabled",
+        ADMIN_OFFER_APPROVED: "Offer Approved",
+        ADMIN_OFFER_REJECTED: "Offer Rejected",
+        ADMIN_OFFER_FLAGGED: "Offer Flagged",
+        ADMIN_OFFER_DISABLED: "Offer Disabled",
+        ADMIN_OFFER_UPDATED: "Offer Updated",
+        ADMIN_PAYMENT_METHOD: "Payment Method Updated",
+        ADMIN_DISPUTE_UPDATE: "Dispute Updated",
+        OFFER_APPROVED: "Offer Approved",
+        OFFER_REJECTED: "Offer Rejected",
+        OFFER_FLAGGED: "Offer Flagged",
+        OFFER_DISABLED: "Offer Disabled",
+        OFFER_CREATED: "Offer Created",
+        OFFER_UPDATED: "Offer Updated",
+        TRADE_STARTED: "Trade Started",
+        TRADE_COMPLETED: "Trade Completed",
+        TRADE_CANCELLED: "Trade Cancelled",
+        TRADE_DISPUTED: "Trade Disputed",
+    };
+    return actionMap[type] || type.replace(/_/g, ' ').replace(/ADMIN /g, '').toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase());
+}
+function formatDescription(details, type, userName) {
+    try {
+        const data = typeof details === 'string' ? JSON.parse(details) : details;
+        const updaterName = userName ||
+            data.updatedBy || data.approvedBy || data.rejectedBy ||
+            data.flaggedBy || data.disabledBy || data.adminName ||
+            null;
+        const addUpdaterName = (text) => {
+            if (updaterName && updaterName !== 'undefined undefined' && updaterName.trim()) {
+                return `${text} by ${updaterName}`;
+            }
+            return text;
+        };
+        if (type.includes("APPROVE")) {
+            return addUpdaterName("Offer was approved");
+        }
+        if (type.includes("REJECT")) {
+            const base = `Offer was rejected${data.reason ? `: ${data.reason}` : ""}`;
+            return addUpdaterName(base);
+        }
+        if (type.includes("FLAG")) {
+            const base = `Offer was flagged for review${data.reason ? `: ${data.reason}` : ""}`;
+            return addUpdaterName(base);
+        }
+        if (type.includes("DISABLE")) {
+            const base = `Offer was disabled${data.reason ? `: ${data.reason}` : ""}`;
+            return addUpdaterName(base);
+        }
+        if (type.includes("UPDATE")) {
+            const changes = [];
+            if (data.currency)
+                changes.push(`currency: ${data.currency}`);
+            if (data.price)
+                changes.push(`price: ${data.price}`);
+            if (data.minAmount)
+                changes.push(`min: ${data.minAmount}`);
+            if (data.maxAmount)
+                changes.push(`max: ${data.maxAmount}`);
+            if (changes.length > 0) {
+                return addUpdaterName(`Updated ${changes.join(", ")}`);
+            }
+            return addUpdaterName("Offer details were updated");
+        }
+        if (type.includes("PAYMENT_METHOD")) {
+            const action = data.action || "updated";
+            const methodName = data.name ? ` "${data.name}"` : "";
+            return addUpdaterName(`Payment method${methodName} ${action}`);
+        }
+        if (type === "TRADE_STARTED") {
+            return `New trade started for ${data.amount || "N/A"} ${data.currency || ""}`;
+        }
+        if (type === "TRADE_COMPLETED") {
+            return `Trade completed successfully for ${data.amount || "N/A"} ${data.currency || ""}`;
+        }
+        if (type === "TRADE_DISPUTED") {
+            return `Trade disputed: ${data.reason || "No reason provided"}`;
+        }
+        if (type.includes("DISPUTE")) {
+            const statusText = data.status ? ` to ${data.status}` : "";
+            return addUpdaterName(`Dispute updated${statusText}`);
+        }
+        const relevantData = [];
+        if (data.amount)
+            relevantData.push(`Amount: ${data.amount}`);
+        if (data.currency)
+            relevantData.push(`Currency: ${data.currency}`);
+        if (data.status)
+            relevantData.push(`Status: ${data.status}`);
+        return relevantData.length > 0 ? relevantData.join(", ") : "Activity recorded";
+    }
+    catch (error) {
+        return details || "Activity recorded";
+    }
+}
+function getPriority(type) {
+    if (type.includes("DISPUTE") || type.includes("FLAG"))
+        return "high";
+    if (type.includes("APPROVE") || type.includes("REJECT"))
+        return "medium";
+    return "low";
+}
+exports.default = async (data) => {
+    try {
+        const activityLogs = await db_1.models.p2pActivityLog.findAll({
+            order: [["createdAt", "DESC"]],
+            limit: 5,
+            include: [
+                {
+                    model: db_1.models.user,
+                    as: "user",
+                    attributes: ["id", "firstName", "lastName", "email", "avatar"],
+                },
+            ],
+        });
+        const recentActivity = activityLogs.map((log) => {
+            var _a, _b;
+            const plainLog = log.get({ plain: true });
+            const actorName = plainLog.user ? `${plainLog.user.firstName} ${plainLog.user.lastName}` : undefined;
+            return {
+                id: plainLog.id,
+                type: plainLog.type.includes("TRADE") ? "trade" :
+                    plainLog.type.includes("DISPUTE") ? "dispute" :
+                        plainLog.type.includes("PAYMENT") ? "payment" :
+                            plainLog.type.includes("USER") ? "user" : "system",
+                title: formatActionTitle(plainLog.type),
+                description: formatDescription((_a = plainLog.details) !== null && _a !== void 0 ? _a : "", plainLog.type, actorName),
+                createdAt: new Date((_b = plainLog.createdAt) !== null && _b !== void 0 ? _b : new Date()).toLocaleString(),
+                status: "active",
+                priority: getPriority(plainLog.type),
+                user: plainLog.user ? {
+                    id: plainLog.user.id,
+                    firstName: plainLog.user.firstName || "Unknown",
+                    lastName: plainLog.user.lastName || "User",
+                    email: plainLog.user.email || "",
+                    avatar: plainLog.user.avatar || "/placeholder.svg",
+                } : {
+                    id: plainLog.userId,
+                    firstName: "System",
+                    lastName: "User",
+                    email: "",
+                    avatar: "/placeholder.svg",
+                },
+            };
+        });
+        return recentActivity;
+    }
+    catch (err) {
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: "Internal Server Error: " + err.message,
+        });
+    }
+};

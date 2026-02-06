@@ -1,1 +1,420 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.logDebug=exports.logError=exports.logWarn=exports.logSuccess=exports.logInfo=exports.console$=exports.logger=void 0;const colors_1=require("./colors"),LOG_LEVEL_PRIORITY={debug:0,info:1,warn:2,error:3,silent:4};class Logger{constructor(){var o;this.level="info";this.sectionTimers=new Map;this.taskTimers=new Map;this.activeTasks=new Set;this.activeGroups=new Map;this.moduleGroupAliases=new Map;this.liveGroupHandles=new Map;this.liveConsole=null;this.liveConsoleLoaded=!1;const s=null===(o=process.env.LOG_LEVEL)||void 0===o?void 0:o.toLowerCase();s&&void 0!==LOG_LEVEL_PRIORITY[s]&&(this.level=s)}setLevel(o){this.level=o}shouldLog(o){return LOG_LEVEL_PRIORITY[o]>=LOG_LEVEL_PRIORITY[this.level]}formatModule(o){return`${colors_1.colors.cyan}[${o.toUpperCase()}]${colors_1.colors.reset}`}getTimestamp(){const o=new Date;return`${colors_1.colors.gray}${o.toISOString().split("T")[1].slice(0,8)}${colors_1.colors.reset}`}tryLogToLiveTask(o,s,r){var e,l;return!!(null===(l=null===(e=this.liveConsole)||void 0===e?void 0:e.hasActiveTask)||void 0===l?void 0:l.call(e,o))&&this.liveConsole.addStepToTask(o,s,r)}info(o,s,...r){if(!this.shouldLog("info"))return;if(this.tryLogToLiveTask(o,s,"info"))return;const e=this.getParentGroup(o);e?this.groupItem(e,s,"info"):console.log(`${this.getTimestamp()} ${this.formatModule(o)} ${colors_1.colors.blue}${colors_1.icons.info}${colors_1.colors.reset}  ${s}`,...r)}success(o,s,...r){if(!this.shouldLog("info"))return;if(this.tryLogToLiveTask(o,s,"success"))return;const e=this.getParentGroup(o);e?this.groupItem(e,s,"success"):console.log(`${this.getTimestamp()} ${this.formatModule(o)} ${colors_1.colors.green}${colors_1.icons.success}${colors_1.colors.reset}  ${s}`,...r)}warn(o,s,...r){if(!this.shouldLog("warn"))return;if(this.tryLogToLiveTask(o,s,"warn"))return;const e=this.getParentGroup(o);e?this.groupItem(e,s,"warn"):console.warn(`${this.getTimestamp()} ${this.formatModule(o)} ${colors_1.colors.yellow}${colors_1.icons.warning}${colors_1.colors.reset}  ${colors_1.colors.yellow}${s}${colors_1.colors.reset}`,...r)}error(o,s,r){if(!this.shouldLog("error"))return;let e="";if(r){const o=r instanceof Error?r.message:String(r);o&&o!==s&&!s.includes(o)&&(e=`: ${o}`)}const l=`${s}${e}`;if(this.tryLogToLiveTask(o,l,"error"))return;const c=this.getParentGroup(o);if(c)this.groupItem(c,l,"error");else{console.error(`${this.getTimestamp()} ${this.formatModule(o)} ${colors_1.colors.red}${colors_1.icons.error}${colors_1.colors.reset}  ${colors_1.colors.red}${l}${colors_1.colors.reset}`);r instanceof Error&&r.stack&&"debug"===this.level&&console.error(`${colors_1.colors.dim}${r.stack}${colors_1.colors.reset}`)}}debug(o,s,...r){this.shouldLog("debug")&&console.log(`${this.getTimestamp()} ${this.formatModule(o)} ${colors_1.colors.gray}${colors_1.icons.debug}${colors_1.colors.reset}  ${colors_1.colors.dim}${s}${colors_1.colors.reset}`,...r)}step(o,s,r,e){if(!this.shouldLog("info"))return;const l=Math.round(s/r*100),c=this.progressBar(l,20);console.log(`${this.getTimestamp()} ${this.formatModule(o)} ${c} ${colors_1.colors.dim}${s}/${r}${colors_1.colors.reset} ${e}`)}task(o,s){if(!this.shouldLog("info"))return;const r=`${o}:${s}`;this.taskTimers.set(r,Date.now());this.activeTasks.add(r);console.log(`${this.getTimestamp()} ${this.formatModule(o)} ${colors_1.colors.cyan}${colors_1.icons.arrow}${colors_1.colors.reset}  ${colors_1.colors.bold}${s}${colors_1.colors.reset}`)}taskUpdate(o,s,r,e="info"){if(!this.shouldLog("info"))return;const l=`${o}:${s}`;this.activeTasks.has(l)||this.task(o,s);let c,t;switch(e){case"success":c=colors_1.icons.success;t=colors_1.colors.green;break;case"warn":c=colors_1.icons.warning;t=colors_1.colors.yellow;break;case"error":c=colors_1.icons.error;t=colors_1.colors.red;break;default:c=colors_1.icons.bullet;t=colors_1.colors.dim}console.log(`${this.getTimestamp()} ${" ".repeat(o.length+2)}   ${t}${c}${colors_1.colors.reset}  ${colors_1.colors.dim}${r}${colors_1.colors.reset}`)}taskEnd(o,s,r,e=!0){if(!this.shouldLog("info"))return;const l=`${o}:${s}`,c=this.taskTimers.get(l),t=c?Date.now()-c:0,i=t>0?` ${colors_1.colors.gray}(${this.formatDuration(t)})${colors_1.colors.reset}`:"",n=e?colors_1.icons.success:colors_1.icons.error,$=e?colors_1.colors.green:colors_1.colors.red,a=r||(e?"Done":"Failed");console.log(`${this.getTimestamp()} ${" ".repeat(o.length+2)}   ${$}${n}${colors_1.colors.reset}  ${a}${i}`);this.taskTimers.delete(l);this.activeTasks.delete(l)}progressBar(o,s=20){const r=Math.round(o/100*s),e=s-r;return`${colors_1.colors.green}${"█".repeat(r)}${colors_1.colors.gray}${"░".repeat(e)}${colors_1.colors.reset}`}group(o,s){if(!this.shouldLog("info"))return;const r=this.live(o,s);this.liveGroupHandles.set(o,r);this.activeGroups.set(o,{module:o,title:s,startTime:Date.now(),items:[]})}groupItem(o,s,r="info"){if(!this.shouldLog("info"))return;const e=this.liveGroupHandles.get(o);e&&e.step(s,r);const l=this.activeGroups.get(o);l&&l.items.push({message:s,status:r})}groupEnd(o,s,r=!0){if(!this.shouldLog("info"))return;const e=this.liveGroupHandles.get(o);if(e){r?e.succeed(s):e.fail(s);this.liveGroupHandles.delete(o)}this.activeGroups.delete(o)}hasActiveGroup(o){return this.activeGroups.has(o)}registerGroupAlias(o,s){this.moduleGroupAliases.set(o,s)}unregisterGroupAlias(o){this.moduleGroupAliases.delete(o)}getParentGroup(o){const s=this.moduleGroupAliases.get(o);return s&&this.activeGroups.has(s)?s:null}registerLiveAlias(o,s){var r;this.ensureLiveConsoleLoaded();(null===(r=this.liveConsole)||void 0===r?void 0:r.registerAlias)&&this.liveConsole.registerAlias(o,s);this.registerGroupAlias(o,s)}unregisterLiveAlias(o){var s;(null===(s=this.liveConsole)||void 0===s?void 0:s.unregisterAlias)&&this.liveConsole.unregisterAlias(o);this.unregisterGroupAlias(o)}ensureLiveConsoleLoaded(){if(!this.liveConsoleLoaded){try{this.liveConsole=require("./live-console").liveConsole}catch(o){this.liveConsole=null}this.liveConsoleLoaded=!0}}live(o,s){var r;this.ensureLiveConsoleLoaded();if(null===(r=this.liveConsole)||void 0===r?void 0:r.enabled){const r=this.liveConsole.startTask(o,s);return{step:(o,s)=>{r.step(o,s||"info")},progress:(o,e)=>{r.update(e||s,{progress:o})},succeed:o=>r.succeed(o||"Done"),fail:o=>r.fail(o),warn:o=>r.warn(o||"Warning"),setRequest:(o,s)=>r.setRequest(o,s)}}const e=Date.now();console.log(`${this.getTimestamp()} ${this.formatModule(o)} ${colors_1.colors.cyan}${colors_1.icons.arrow}${colors_1.colors.reset}  ${s}`);const l=" ".repeat(o.length+12);return{step:(o,s)=>{let r=colors_1.icons.bullet,e=colors_1.colors.dim;if("success"===s){r=colors_1.icons.success;e=colors_1.colors.green}else if("warn"===s){r=colors_1.icons.warning;e=colors_1.colors.yellow}else if("error"===s){r=colors_1.icons.error;e=colors_1.colors.red}console.log(`${l}├─ ${e}${r}${colors_1.colors.reset} ${colors_1.colors.dim}${o}${colors_1.colors.reset}`)},progress:(o,s)=>{s&&console.log(`${l}├─ ${colors_1.colors.dim}${colors_1.icons.bullet}${colors_1.colors.reset} ${colors_1.colors.dim}${s} (${o}%)${colors_1.colors.reset}`)},succeed:o=>{const s=this.formatDuration(Date.now()-e);console.log(`${l}└─ ${colors_1.colors.green}${colors_1.icons.success}${colors_1.colors.reset} ${colors_1.colors.green}${o||"Done"}${colors_1.colors.reset} ${colors_1.colors.gray}(${s})${colors_1.colors.reset}`)},fail:o=>{const s=this.formatDuration(Date.now()-e);console.log(`${l}└─ ${colors_1.colors.red}${colors_1.icons.error}${colors_1.colors.reset} ${colors_1.colors.red}${o||"Failed"}${colors_1.colors.reset} ${colors_1.colors.gray}(${s})${colors_1.colors.reset}`)},warn:o=>{const s=this.formatDuration(Date.now()-e);console.log(`${l}└─ ${colors_1.colors.yellow}${colors_1.icons.warning}${colors_1.colors.reset} ${colors_1.colors.yellow}${o||"Warning"}${colors_1.colors.reset} ${colors_1.colors.gray}(${s})${colors_1.colors.reset}`)},setRequest:()=>{}}}banner(o,s,r){const e=colors_1.box.horizontal.repeat(48);console.log("");console.log(`${colors_1.colors.cyan}${colors_1.box.topLeft}${e}${colors_1.box.topRight}${colors_1.colors.reset}`);console.log(`${colors_1.colors.cyan}${colors_1.box.vertical}${colors_1.colors.reset}${this.center(` ${colors_1.icons.rocket} ${colors_1.colors.bold}${colors_1.colors.brightCyan}${o}${colors_1.colors.reset} `,48)}${colors_1.colors.cyan}${colors_1.box.vertical}${colors_1.colors.reset}`);console.log(`${colors_1.colors.cyan}${colors_1.box.vertical}${colors_1.colors.reset}${this.center(`${colors_1.colors.gray}v${s} • ${r}${colors_1.colors.reset}`,48)}${colors_1.colors.cyan}${colors_1.box.vertical}${colors_1.colors.reset}`);console.log(`${colors_1.colors.cyan}${colors_1.box.bottomLeft}${e}${colors_1.box.bottomRight}${colors_1.colors.reset}`);console.log("")}section(o){this.sectionTimers.set(o,Date.now());console.log(`${colors_1.colors.cyan}${colors_1.icons.arrow}${colors_1.colors.reset} ${colors_1.colors.bold}${o}${colors_1.colors.reset}`)}sectionEnd(o,s){const r=this.sectionTimers.get(o),e=r?Date.now()-r:0,l=this.formatDuration(e);s?console.log(`  ${colors_1.colors.green}${colors_1.icons.success}${colors_1.colors.reset} ${colors_1.colors.dim}${s}${colors_1.colors.reset} ${colors_1.colors.gray}(${l})${colors_1.colors.reset}`):console.log(`  ${colors_1.colors.green}${colors_1.icons.success}${colors_1.colors.reset} ${colors_1.colors.dim}Done${colors_1.colors.reset} ${colors_1.colors.gray}(${l})${colors_1.colors.reset}`)}timings(o){const s=o.map(o=>{const s=this.formatDuration(o.ms);return`${colors_1.colors.dim}${o.name}${colors_1.colors.reset} ${colors_1.colors.gray}${s}${colors_1.colors.reset}`});console.log(`  ${colors_1.colors.gray}${colors_1.box.teeRight}${colors_1.box.horizontal}${colors_1.colors.reset} ${s.join(` ${colors_1.colors.gray}│${colors_1.colors.reset} `)}`)}ready(o,s){const r=s?Date.now()-s:0,e=r>0?` ${colors_1.colors.gray}(${this.formatDuration(r)})${colors_1.colors.reset}`:"";console.log("");console.log(`${colors_1.colors.green}${colors_1.icons.success}${colors_1.colors.reset} ${colors_1.colors.bold}${colors_1.colors.green}Server ready${colors_1.colors.reset} ${colors_1.colors.dim}on port${colors_1.colors.reset} ${colors_1.colors.cyan}${o}${colors_1.colors.reset}${e}`);console.log("")}initialized(o,s,r){const e=[r.extensions>0?`${r.extensions} extensions`:null,r.crons>0?`${r.crons} crons`:null,r.routes?`${r.routes} routes`:null].filter(Boolean).join(" │ ");console.log(`  ${colors_1.colors.gray}${colors_1.box.bottomLeft}${colors_1.box.horizontal}${colors_1.colors.reset} ${colors_1.colors.dim}${e}${colors_1.colors.reset}`);console.log("")}newline(){console.log("")}kv(o,s,r){this.shouldLog("info")&&console.log(`${this.getTimestamp()} ${this.formatModule(o)} ${colors_1.colors.dim}${s}:${colors_1.colors.reset} ${r}`)}kvMultiple(o,s){if(this.shouldLog("info")){console.log(`${this.getTimestamp()} ${this.formatModule(o)}`);for(const[o,r]of Object.entries(s))console.log(`  ${colors_1.colors.gray}${colors_1.icons.bullet}${colors_1.colors.reset} ${colors_1.colors.dim}${o}:${colors_1.colors.reset} ${r}`)}}table(o,s,r){if(this.shouldLog("info")){console.log(`${this.getTimestamp()} ${this.formatModule(o)}`);console.table(s,r)}}center(o,s){const r=o.replace(/\x1b\[[0-9;]*m/g,"").length,e=Math.max(0,s-r),l=Math.floor(e/2),c=e-l;return" ".repeat(l)+o+" ".repeat(c)}formatDuration(o){if(o<1e3)return`${o}ms`;if(o<6e4)return`${(o/1e3).toFixed(1)}s`;return`${Math.floor(o/6e4)}m ${(o%6e4/1e3).toFixed(0)}s`}}exports.logger=new Logger;exports.console$=exports.logger;exports.default=exports.logger;const logInfo=(o,s,...r)=>exports.logger.info(o,s,...r);exports.logInfo=logInfo;const logSuccess=(o,s,...r)=>exports.logger.success(o,s,...r);exports.logSuccess=logSuccess;const logWarn=(o,s,...r)=>exports.logger.warn(o,s,...r);exports.logWarn=logWarn;const logError=(o,s,r)=>exports.logger.error(o,s,r);exports.logError=logError;const logDebug=(o,s,...r)=>exports.logger.debug(o,s,...r);exports.logDebug=logDebug;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.logDebug = exports.logError = exports.logWarn = exports.logSuccess = exports.logInfo = exports.console$ = exports.logger = void 0;
+const colors_1 = require("./colors");
+const LOG_LEVEL_PRIORITY = {
+    debug: 0,
+    info: 1,
+    warn: 2,
+    error: 3,
+    silent: 4,
+};
+class Logger {
+    constructor() {
+        var _a;
+        this.level = "info";
+        this.sectionTimers = new Map();
+        this.taskTimers = new Map();
+        this.activeTasks = new Set();
+        this.activeGroups = new Map();
+        this.moduleGroupAliases = new Map();
+        this.liveGroupHandles = new Map();
+        this.liveConsole = null;
+        this.liveConsoleLoaded = false;
+        const envLevel = (_a = process.env.LOG_LEVEL) === null || _a === void 0 ? void 0 : _a.toLowerCase();
+        if (envLevel && LOG_LEVEL_PRIORITY[envLevel] !== undefined) {
+            this.level = envLevel;
+        }
+    }
+    setLevel(level) {
+        this.level = level;
+    }
+    shouldLog(messageLevel) {
+        return LOG_LEVEL_PRIORITY[messageLevel] >= LOG_LEVEL_PRIORITY[this.level];
+    }
+    formatModule(module) {
+        return `${colors_1.colors.cyan}[${module.toUpperCase()}]${colors_1.colors.reset}`;
+    }
+    getTimestamp() {
+        const now = new Date();
+        return `${colors_1.colors.gray}${now.toISOString().split("T")[1].slice(0, 8)}${colors_1.colors.reset}`;
+    }
+    tryLogToLiveTask(module, message, status) {
+        var _a, _b;
+        if ((_b = (_a = this.liveConsole) === null || _a === void 0 ? void 0 : _a.hasActiveTask) === null || _b === void 0 ? void 0 : _b.call(_a, module)) {
+            return this.liveConsole.addStepToTask(module, message, status);
+        }
+        return false;
+    }
+    info(module, message, ...args) {
+        if (!this.shouldLog("info"))
+            return;
+        if (this.tryLogToLiveTask(module, message, "info"))
+            return;
+        const parentGroup = this.getParentGroup(module);
+        if (parentGroup) {
+            this.groupItem(parentGroup, message, "info");
+            return;
+        }
+        console.log(`${this.getTimestamp()} ${this.formatModule(module)} ${colors_1.colors.blue}${colors_1.icons.info}${colors_1.colors.reset}  ${message}`, ...args);
+    }
+    success(module, message, ...args) {
+        if (!this.shouldLog("info"))
+            return;
+        if (this.tryLogToLiveTask(module, message, "success"))
+            return;
+        const parentGroup = this.getParentGroup(module);
+        if (parentGroup) {
+            this.groupItem(parentGroup, message, "success");
+            return;
+        }
+        console.log(`${this.getTimestamp()} ${this.formatModule(module)} ${colors_1.colors.green}${colors_1.icons.success}${colors_1.colors.reset}  ${message}`, ...args);
+    }
+    warn(module, message, ...args) {
+        if (!this.shouldLog("warn"))
+            return;
+        if (this.tryLogToLiveTask(module, message, "warn"))
+            return;
+        const parentGroup = this.getParentGroup(module);
+        if (parentGroup) {
+            this.groupItem(parentGroup, message, "warn");
+            return;
+        }
+        console.warn(`${this.getTimestamp()} ${this.formatModule(module)} ${colors_1.colors.yellow}${colors_1.icons.warning}${colors_1.colors.reset}  ${colors_1.colors.yellow}${message}${colors_1.colors.reset}`, ...args);
+    }
+    error(module, message, error) {
+        if (!this.shouldLog("error"))
+            return;
+        let errorDetail = "";
+        if (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            if (errorMsg && errorMsg !== message && !message.includes(errorMsg)) {
+                errorDetail = `: ${errorMsg}`;
+            }
+        }
+        const fullMessage = `${message}${errorDetail}`;
+        if (this.tryLogToLiveTask(module, fullMessage, "error"))
+            return;
+        const parentGroup = this.getParentGroup(module);
+        if (parentGroup) {
+            this.groupItem(parentGroup, fullMessage, "error");
+            return;
+        }
+        console.error(`${this.getTimestamp()} ${this.formatModule(module)} ${colors_1.colors.red}${colors_1.icons.error}${colors_1.colors.reset}  ${colors_1.colors.red}${fullMessage}${colors_1.colors.reset}`);
+        if (error instanceof Error && error.stack && this.level === "debug") {
+            console.error(`${colors_1.colors.dim}${error.stack}${colors_1.colors.reset}`);
+        }
+    }
+    debug(module, message, ...args) {
+        if (!this.shouldLog("debug"))
+            return;
+        console.log(`${this.getTimestamp()} ${this.formatModule(module)} ${colors_1.colors.gray}${colors_1.icons.debug}${colors_1.colors.reset}  ${colors_1.colors.dim}${message}${colors_1.colors.reset}`, ...args);
+    }
+    step(module, current, total, message) {
+        if (!this.shouldLog("info"))
+            return;
+        const percent = Math.round((current / total) * 100);
+        const bar = this.progressBar(percent, 20);
+        console.log(`${this.getTimestamp()} ${this.formatModule(module)} ${bar} ${colors_1.colors.dim}${current}/${total}${colors_1.colors.reset} ${message}`);
+    }
+    task(module, taskName) {
+        if (!this.shouldLog("info"))
+            return;
+        const key = `${module}:${taskName}`;
+        this.taskTimers.set(key, Date.now());
+        this.activeTasks.add(key);
+        console.log(`${this.getTimestamp()} ${this.formatModule(module)} ${colors_1.colors.cyan}${colors_1.icons.arrow}${colors_1.colors.reset}  ${colors_1.colors.bold}${taskName}${colors_1.colors.reset}`);
+    }
+    taskUpdate(module, taskName, message, status = "info") {
+        if (!this.shouldLog("info"))
+            return;
+        const key = `${module}:${taskName}`;
+        if (!this.activeTasks.has(key)) {
+            this.task(module, taskName);
+        }
+        let icon;
+        let color;
+        switch (status) {
+            case "success":
+                icon = colors_1.icons.success;
+                color = colors_1.colors.green;
+                break;
+            case "warn":
+                icon = colors_1.icons.warning;
+                color = colors_1.colors.yellow;
+                break;
+            case "error":
+                icon = colors_1.icons.error;
+                color = colors_1.colors.red;
+                break;
+            default:
+                icon = colors_1.icons.bullet;
+                color = colors_1.colors.dim;
+        }
+        console.log(`${this.getTimestamp()} ${" ".repeat(module.length + 2)}   ${color}${icon}${colors_1.colors.reset}  ${colors_1.colors.dim}${message}${colors_1.colors.reset}`);
+    }
+    taskEnd(module, taskName, message, success = true) {
+        if (!this.shouldLog("info"))
+            return;
+        const key = `${module}:${taskName}`;
+        const startTime = this.taskTimers.get(key);
+        const duration = startTime ? Date.now() - startTime : 0;
+        const timeStr = duration > 0 ? ` ${colors_1.colors.gray}(${this.formatDuration(duration)})${colors_1.colors.reset}` : "";
+        const icon = success ? colors_1.icons.success : colors_1.icons.error;
+        const color = success ? colors_1.colors.green : colors_1.colors.red;
+        const finalMessage = message || (success ? "Done" : "Failed");
+        console.log(`${this.getTimestamp()} ${" ".repeat(module.length + 2)}   ${color}${icon}${colors_1.colors.reset}  ${finalMessage}${timeStr}`);
+        this.taskTimers.delete(key);
+        this.activeTasks.delete(key);
+    }
+    progressBar(percent, width = 20) {
+        const filled = Math.round((percent / 100) * width);
+        const empty = width - filled;
+        return `${colors_1.colors.green}${"█".repeat(filled)}${colors_1.colors.gray}${"░".repeat(empty)}${colors_1.colors.reset}`;
+    }
+    group(module, title) {
+        if (!this.shouldLog("info"))
+            return;
+        const handle = this.live(module, title);
+        this.liveGroupHandles.set(module, handle);
+        this.activeGroups.set(module, {
+            module,
+            title,
+            startTime: Date.now(),
+            items: []
+        });
+    }
+    groupItem(module, message, status = "info") {
+        if (!this.shouldLog("info"))
+            return;
+        const handle = this.liveGroupHandles.get(module);
+        if (handle) {
+            handle.step(message, status);
+        }
+        const group = this.activeGroups.get(module);
+        if (group) {
+            group.items.push({ message, status });
+        }
+    }
+    groupEnd(module, message, success = true) {
+        if (!this.shouldLog("info"))
+            return;
+        const handle = this.liveGroupHandles.get(module);
+        if (handle) {
+            if (success) {
+                handle.succeed(message);
+            }
+            else {
+                handle.fail(message);
+            }
+            this.liveGroupHandles.delete(module);
+        }
+        this.activeGroups.delete(module);
+    }
+    hasActiveGroup(module) {
+        return this.activeGroups.has(module);
+    }
+    registerGroupAlias(childModule, parentModule) {
+        this.moduleGroupAliases.set(childModule, parentModule);
+    }
+    unregisterGroupAlias(childModule) {
+        this.moduleGroupAliases.delete(childModule);
+    }
+    getParentGroup(module) {
+        const parentModule = this.moduleGroupAliases.get(module);
+        if (parentModule && this.activeGroups.has(parentModule)) {
+            return parentModule;
+        }
+        return null;
+    }
+    registerLiveAlias(childModule, parentModule) {
+        var _a;
+        this.ensureLiveConsoleLoaded();
+        if ((_a = this.liveConsole) === null || _a === void 0 ? void 0 : _a.registerAlias) {
+            this.liveConsole.registerAlias(childModule, parentModule);
+        }
+        this.registerGroupAlias(childModule, parentModule);
+    }
+    unregisterLiveAlias(childModule) {
+        var _a;
+        if ((_a = this.liveConsole) === null || _a === void 0 ? void 0 : _a.unregisterAlias) {
+            this.liveConsole.unregisterAlias(childModule);
+        }
+        this.unregisterGroupAlias(childModule);
+    }
+    ensureLiveConsoleLoaded() {
+        if (!this.liveConsoleLoaded) {
+            try {
+                this.liveConsole = require("./live-console").liveConsole;
+            }
+            catch (_a) {
+                this.liveConsole = null;
+            }
+            this.liveConsoleLoaded = true;
+        }
+    }
+    live(module, title) {
+        var _a;
+        this.ensureLiveConsoleLoaded();
+        if ((_a = this.liveConsole) === null || _a === void 0 ? void 0 : _a.enabled) {
+            const handle = this.liveConsole.startTask(module, title);
+            return {
+                step: (message, status) => {
+                    handle.step(message, status || "info");
+                },
+                progress: (percent, message) => {
+                    handle.update(message || title, { progress: percent });
+                },
+                succeed: (message) => handle.succeed(message || "Done"),
+                fail: (message) => handle.fail(message),
+                warn: (message) => handle.warn(message || "Warning"),
+                setRequest: (method, url) => handle.setRequest(method, url),
+            };
+        }
+        const startTime = Date.now();
+        console.log(`${this.getTimestamp()} ${this.formatModule(module)} ${colors_1.colors.cyan}${colors_1.icons.arrow}${colors_1.colors.reset}  ${title}`);
+        const indent = " ".repeat(module.length + 12);
+        return {
+            step: (message, status) => {
+                let icon = colors_1.icons.bullet;
+                let color = colors_1.colors.dim;
+                if (status === "success") {
+                    icon = colors_1.icons.success;
+                    color = colors_1.colors.green;
+                }
+                else if (status === "warn") {
+                    icon = colors_1.icons.warning;
+                    color = colors_1.colors.yellow;
+                }
+                else if (status === "error") {
+                    icon = colors_1.icons.error;
+                    color = colors_1.colors.red;
+                }
+                console.log(`${indent}├─ ${color}${icon}${colors_1.colors.reset} ${colors_1.colors.dim}${message}${colors_1.colors.reset}`);
+            },
+            progress: (percent, message) => {
+                if (message) {
+                    console.log(`${indent}├─ ${colors_1.colors.dim}${colors_1.icons.bullet}${colors_1.colors.reset} ${colors_1.colors.dim}${message} (${percent}%)${colors_1.colors.reset}`);
+                }
+            },
+            succeed: (message) => {
+                const duration = this.formatDuration(Date.now() - startTime);
+                console.log(`${indent}└─ ${colors_1.colors.green}${colors_1.icons.success}${colors_1.colors.reset} ${colors_1.colors.green}${message || "Done"}${colors_1.colors.reset} ${colors_1.colors.gray}(${duration})${colors_1.colors.reset}`);
+            },
+            fail: (message) => {
+                const duration = this.formatDuration(Date.now() - startTime);
+                console.log(`${indent}└─ ${colors_1.colors.red}${colors_1.icons.error}${colors_1.colors.reset} ${colors_1.colors.red}${message || "Failed"}${colors_1.colors.reset} ${colors_1.colors.gray}(${duration})${colors_1.colors.reset}`);
+            },
+            warn: (message) => {
+                const duration = this.formatDuration(Date.now() - startTime);
+                console.log(`${indent}└─ ${colors_1.colors.yellow}${colors_1.icons.warning}${colors_1.colors.reset} ${colors_1.colors.yellow}${message || "Warning"}${colors_1.colors.reset} ${colors_1.colors.gray}(${duration})${colors_1.colors.reset}`);
+            },
+            setRequest: () => { },
+        };
+    }
+    banner(name, version, env) {
+        const width = 50;
+        const line = colors_1.box.horizontal.repeat(width - 2);
+        console.log("");
+        console.log(`${colors_1.colors.cyan}${colors_1.box.topLeft}${line}${colors_1.box.topRight}${colors_1.colors.reset}`);
+        console.log(`${colors_1.colors.cyan}${colors_1.box.vertical}${colors_1.colors.reset}${this.center(` ${colors_1.icons.rocket} ${colors_1.colors.bold}${colors_1.colors.brightCyan}${name}${colors_1.colors.reset} `, width - 2)}${colors_1.colors.cyan}${colors_1.box.vertical}${colors_1.colors.reset}`);
+        console.log(`${colors_1.colors.cyan}${colors_1.box.vertical}${colors_1.colors.reset}${this.center(`${colors_1.colors.gray}v${version} • ${env}${colors_1.colors.reset}`, width - 2)}${colors_1.colors.cyan}${colors_1.box.vertical}${colors_1.colors.reset}`);
+        console.log(`${colors_1.colors.cyan}${colors_1.box.bottomLeft}${line}${colors_1.box.bottomRight}${colors_1.colors.reset}`);
+        console.log("");
+    }
+    section(title) {
+        this.sectionTimers.set(title, Date.now());
+        console.log(`${colors_1.colors.cyan}${colors_1.icons.arrow}${colors_1.colors.reset} ${colors_1.colors.bold}${title}${colors_1.colors.reset}`);
+    }
+    sectionEnd(title, details) {
+        const startTime = this.sectionTimers.get(title);
+        const duration = startTime ? Date.now() - startTime : 0;
+        const timeStr = this.formatDuration(duration);
+        if (details) {
+            console.log(`  ${colors_1.colors.green}${colors_1.icons.success}${colors_1.colors.reset} ${colors_1.colors.dim}${details}${colors_1.colors.reset} ${colors_1.colors.gray}(${timeStr})${colors_1.colors.reset}`);
+        }
+        else {
+            console.log(`  ${colors_1.colors.green}${colors_1.icons.success}${colors_1.colors.reset} ${colors_1.colors.dim}Done${colors_1.colors.reset} ${colors_1.colors.gray}(${timeStr})${colors_1.colors.reset}`);
+        }
+    }
+    timings(items) {
+        const parts = items.map((item) => {
+            const timeStr = this.formatDuration(item.ms);
+            return `${colors_1.colors.dim}${item.name}${colors_1.colors.reset} ${colors_1.colors.gray}${timeStr}${colors_1.colors.reset}`;
+        });
+        console.log(`  ${colors_1.colors.gray}${colors_1.box.teeRight}${colors_1.box.horizontal}${colors_1.colors.reset} ${parts.join(` ${colors_1.colors.gray}│${colors_1.colors.reset} `)}`);
+    }
+    ready(port, startTime) {
+        const duration = startTime ? Date.now() - startTime : 0;
+        const timeStr = duration > 0 ? ` ${colors_1.colors.gray}(${this.formatDuration(duration)})${colors_1.colors.reset}` : "";
+        console.log("");
+        console.log(`${colors_1.colors.green}${colors_1.icons.success}${colors_1.colors.reset} ${colors_1.colors.bold}${colors_1.colors.green}Server ready${colors_1.colors.reset} ${colors_1.colors.dim}on port${colors_1.colors.reset} ${colors_1.colors.cyan}${port}${colors_1.colors.reset}${timeStr}`);
+        console.log("");
+    }
+    initialized(thread, totalMs, stats) {
+        const statsStr = [
+            stats.extensions > 0 ? `${stats.extensions} extensions` : null,
+            stats.crons > 0 ? `${stats.crons} crons` : null,
+            stats.routes ? `${stats.routes} routes` : null,
+        ]
+            .filter(Boolean)
+            .join(" │ ");
+        console.log(`  ${colors_1.colors.gray}${colors_1.box.bottomLeft}${colors_1.box.horizontal}${colors_1.colors.reset} ${colors_1.colors.dim}${statsStr}${colors_1.colors.reset}`);
+        console.log("");
+    }
+    newline() {
+        console.log("");
+    }
+    kv(module, key, value) {
+        if (!this.shouldLog("info"))
+            return;
+        console.log(`${this.getTimestamp()} ${this.formatModule(module)} ${colors_1.colors.dim}${key}:${colors_1.colors.reset} ${value}`);
+    }
+    kvMultiple(module, data) {
+        if (!this.shouldLog("info"))
+            return;
+        console.log(`${this.getTimestamp()} ${this.formatModule(module)}`);
+        for (const [key, value] of Object.entries(data)) {
+            console.log(`  ${colors_1.colors.gray}${colors_1.icons.bullet}${colors_1.colors.reset} ${colors_1.colors.dim}${key}:${colors_1.colors.reset} ${value}`);
+        }
+    }
+    table(module, data, columns) {
+        if (!this.shouldLog("info"))
+            return;
+        console.log(`${this.getTimestamp()} ${this.formatModule(module)}`);
+        console.table(data, columns);
+    }
+    center(text, width) {
+        const actualLength = text.replace(/\x1b\[[0-9;]*m/g, "").length;
+        const padding = Math.max(0, width - actualLength);
+        const leftPad = Math.floor(padding / 2);
+        const rightPad = padding - leftPad;
+        return " ".repeat(leftPad) + text + " ".repeat(rightPad);
+    }
+    formatDuration(ms) {
+        if (ms < 1000) {
+            return `${ms}ms`;
+        }
+        else if (ms < 60000) {
+            return `${(ms / 1000).toFixed(1)}s`;
+        }
+        else {
+            const mins = Math.floor(ms / 60000);
+            const secs = ((ms % 60000) / 1000).toFixed(0);
+            return `${mins}m ${secs}s`;
+        }
+    }
+}
+exports.logger = new Logger();
+exports.console$ = exports.logger;
+exports.default = exports.logger;
+const logInfo = (module, message, ...args) => exports.logger.info(module, message, ...args);
+exports.logInfo = logInfo;
+const logSuccess = (module, message, ...args) => exports.logger.success(module, message, ...args);
+exports.logSuccess = logSuccess;
+const logWarn = (module, message, ...args) => exports.logger.warn(module, message, ...args);
+exports.logWarn = logWarn;
+const logError = (module, message, error) => exports.logger.error(module, message, error);
+exports.logError = logError;
+const logDebug = (module, message, ...args) => exports.logger.debug(module, message, ...args);
+exports.logDebug = logDebug;

@@ -1,1 +1,541 @@
-"use strict";async function processRewards(e,r,l,a,n){var i,t,o,s,d,c,f;null===(i=null==n?void 0:n.step)||void 0===i||i.call(n,"Checking MLM extension status");const u=cache_1.CacheManager.getInstance();if(!(await u.getExtensions()).has("mlm"))return;null===(t=null==n?void 0:n.step)||void 0===t||t.call(n,"Loading MLM settings");const v=await u.getSettings(),g=v.get("affiliateMlmSystem")||v.get("mlmSystem")||"DIRECT",w={};if("BINARY"===g){const e=parseInt(v.get("affiliateBinaryLevels")||"0");if(e>=2&&e<=7){const r=[];for(let l=1;l<=e;l++){const e=parseFloat(v.get(`affiliateBinaryLevel${l}`)||"0");r.push({level:l,value:e})}w.binary={levels:e,levelsPercentage:r}}}else if("UNILEVEL"===g){const e=parseInt(v.get("affiliateUnilevelLevels")||"0");if(e>=2&&e<=7){const r=[];for(let l=1;l<=e;l++){const e=parseFloat(v.get(`affiliateUnilevelLevel${l}`)||"0");r.push({level:l,value:e})}w.unilevel={levels:e,levelsPercentage:r}}}if("BINARY"===g&&!w.binary)return;if("UNILEVEL"===g&&!w.unilevel)return;const{mlmReferralCondition:m}=db_1.models;try{null===(o=null==n?void 0:n.step)||void 0===o||o.call(n,"Looking up referral condition");const i=await m.findOne({where:{name:l,status:!0}});if(!i){console_1.logger.warn("MLM",`Referral condition not found or inactive: ${l}`);return}null===(s=null==n?void 0:n.step)||void 0===s||s.call(n,"Validating transaction against condition requirements");if(!isValidTransaction(l,r,a,i.minAmount)){console_1.logger.warn("MLM",`Transaction validation failed: ${l}, amount=${r}, currency=${a}, minAmount=${i.minAmount}`);return}let t=!1;null===(d=null==n?void 0:n.step)||void 0===d||d.call(n,`Processing ${g} rewards`);switch(g){case"DIRECT":t=await processDirectRewards(i,e,r,n);break;case"BINARY":t=await processBinaryRewards(i,e,r,w,n);break;case"UNILEVEL":t=await processUnilevelRewards(i,e,r,w,n);break;default:console_1.logger.error("MLM","Invalid MLM system type",new Error("Invalid MLM system type"))}if(t){null===(c=null==n?void 0:n.step)||void 0===c||c.call(n,"Sending reward notifications");await(0,notifications_1.createNotification)({userId:e,relatedId:i.id?i.id.toString():void 0,title:"Reward Processed",message:`Your reward for ${l} of ${r} ${a} has been successfully processed.`,type:"system",link:"/mlm/rewards",actions:[{label:"View Rewards",link:"/mlm/rewards",primary:!0}]},n);await(0,notifications_1.createAdminNotification)("View MLM Rewards","MLM Reward Processed",`A reward for ${l} of ${r} ${a} was processed for user ${e}.`,"system","/admin/mlm/rewards",void 0,void 0,n)}}catch(e){null===(f=null==n?void 0:n.fail)||void 0===f||f.call(n,e.message||"Failed to process rewards");console_1.logger.error("MLM","Failed to process rewards",e)}}function isValidTransaction(e,r,l,a){if(!e||"string"!=typeof e)return!1;if("number"!=typeof r||r<=0||!isFinite(r))return!1;if(!l||"string"!=typeof l)return!1;if(r<a)return!1;switch(e){case"WELCOME_BONUS":case"MONTHLY_TRADE_VOLUME":case"BINARY_TRADE_VOLUME":return"USDT"===l;case"FIRST_DEPOSIT_BONUS":case"DEPOSIT":case"SPOT_TRADE":case"SPOT_TRADE_VOLUME":case"TRADE":case"TRADE_COMMISSION":case"BINARY_WIN":case"BINARY_WIN_COMMISSION":case"INVESTMENT":case"GENERAL_INVESTMENT":case"AI_INVESTMENT":case"AI_INVESTMENT_PROFIT":case"FOREX_INVESTMENT":case"FOREX_PROFIT":case"FOREX_TRADE":case"ICO_CONTRIBUTION":case"ICO_PURCHASE":case"STAKING":case"STAKING_LOYALTY":case"ECOMMERCE_PURCHASE":case"ECOMMERCE_ORDER":case"P2P_TRADE":case"P2P_TRADE_COMPLETION":case"NFT_PURCHASE":case"NFT_SALE":case"NFT_TRADE":case"COPY_TRADING":case"COPY_TRADING_PROFIT":case"FUTURES_TRADE":case"FUTURES_PROFIT":case"FUTURES_VOLUME":case"TOKEN_PURCHASE":case"TOKEN_SALE":return!0;default:console_1.logger.warn("MLM",`Unknown condition name attempted: ${e}`);return!1}}async function processDirectRewards(e,r,l,a){var n,i,t,o;try{null===(n=null==a?void 0:a.step)||void 0===n||n.call(a,"Finding referral record");const s=await db_1.models.mlmReferral.findOne({where:{referredId:r}});if(!s)return!1;null===(i=null==a?void 0:a.step)||void 0===i||i.call(a,"Checking for duplicate rewards");if(await db_1.models.mlmReferralReward.findOne({where:{referrerId:s.referrerId,conditionId:e.id}})){console_1.logger.error("MLM",`Duplicate reward prevented for referrer ${s.referrerId}, condition ${e.id}`,new Error(`Duplicate reward prevented for referrer ${s.referrerId}, condition ${e.id}`));return!1}null===(t=null==a?void 0:a.step)||void 0===t||t.call(a,"Calculating reward amount");const d="PERCENTAGE"===e.rewardType?l*(e.reward/100):e.reward;if(d<=0){console_1.logger.error("MLM",`Invalid reward amount calculated: ${d}`,new Error(`Invalid reward amount calculated: ${d}`));return!1}null===(o=null==a?void 0:a.step)||void 0===o||o.call(a,"Creating reward record");await db_1.models.mlmReferralReward.create({referrerId:s.referrerId,conditionId:e.id,reward:d});return!0}catch(e){console_1.logger.error("MLM","Failed to process direct rewards",e);return!1}}async function findUplines(e,r,l){const a=[];let n=e;const i="BINARY"===r?db_1.models.mlmBinaryNode:db_1.models.mlmUnilevelNode;for(let e=0;e<l;e++)try{const l=await db_1.models.mlmReferral.findOne({where:{referredId:n},include:[{model:i,as:"BINARY"===r?"node":"unilevelNode",required:!0}]});if(!l||!l.referrerId)break;a.push({level:e+1,referrerId:l.referrerId});n=l.referrerId}catch(e){console_1.logger.error("MLM","Failed to find uplines",e);break}return a}async function createRewardRecord(e,r,l){try{if(!e||!l)throw(0,error_1.createError)({statusCode:400,message:"referrerId and conditionId are required"});if("number"!=typeof r||r<=0||!isFinite(r))throw(0,error_1.createError)({statusCode:400,message:`Invalid reward amount: ${r}`});if(await db_1.models.mlmReferralReward.findOne({where:{referrerId:e,conditionId:l,createdAt:{[sequelize_1.Op.gte]:new Date(Date.now()-6e4)}}})){console_1.logger.error("MLM",`Duplicate reward prevented for referrer ${e}, condition ${l}`,new Error(`Duplicate reward prevented for referrer ${e}, condition ${l}`));return!1}await db_1.models.mlmReferralReward.create({referrerId:e,reward:r,conditionId:l});return!0}catch(e){console_1.logger.error("MLM","Failed to create reward record",e);return!1}}async function processBinaryRewards(e,r,l,a,n){var i,t,o,s;try{null===(i=null==n?void 0:n.step)||void 0===i||i.call(n,"Validating binary MLM settings");if(!a.binary||!a.binary.levels)return!1;if(a.binary.levelsPercentage&&Array.isArray(a.binary.levelsPercentage)){const e=a.binary.levelsPercentage.reduce((e,r)=>e+("number"==typeof r.value?r.value:0),0);if(e>100){console_1.logger.error("MLM",`Total binary commission percentages (${e}%) cannot exceed 100%`,new Error(`Total binary commission percentages (${e}%) cannot exceed 100%`));return!1}}null===(t=null==n?void 0:n.step)||void 0===t||t.call(n,"Finding binary uplines");const d=a.binary.levels,c=await findUplines(r,"BINARY",d);if(!c.length)return!1;null===(o=null==n?void 0:n.step)||void 0===o||o.call(n,`Processing rewards for ${c.length} uplines`);for(let r=c.length-1;r>=0;r--){const n=c[r],i=d-r,t=null===(s=a.binary.levelsPercentage.find(e=>e.level===i))||void 0===s?void 0:s.value;if(void 0===t)continue;let o;if("PERCENTAGE"===e.rewardType){o=l*(e.reward/100)*(t/100)}else o=e.reward*(t/100);await createRewardRecord(n.referrerId,o,e.id)}return!0}catch(e){console_1.logger.error("MLM","Failed to process binary rewards",e);return!1}}async function processUnilevelRewards(e,r,l,a,n){var i,t,o,s;try{null===(i=null==n?void 0:n.step)||void 0===i||i.call(n,"Validating unilevel MLM settings");if(!a.unilevel||!a.unilevel.levels)return!1;if(a.unilevel.levelsPercentage&&Array.isArray(a.unilevel.levelsPercentage)){const e=a.unilevel.levelsPercentage.reduce((e,r)=>e+("number"==typeof r.value?r.value:0),0);if(e>100){console_1.logger.error("MLM",`Total unilevel commission percentages (${e}%) cannot exceed 100%`,new Error(`Total unilevel commission percentages (${e}%) cannot exceed 100%`));return!1}}null===(t=null==n?void 0:n.step)||void 0===t||t.call(n,"Finding unilevel uplines");const d=a.unilevel.levels,c=await findUplines(r,"UNILEVEL",d);if(!c.length)return!1;null===(o=null==n?void 0:n.step)||void 0===o||o.call(n,`Processing rewards for ${c.length} uplines`);for(let r=c.length-1;r>=0;r--){const n=c[r],i=d-r,t=null===(s=a.unilevel.levelsPercentage.find(e=>e.level===i))||void 0===s?void 0:s.value;if(void 0===t)continue;let o;if("PERCENTAGE"===e.rewardType){o=l*(e.reward/100)*(t/100)}else o=e.reward*(t/100);await createRewardRecord(n.referrerId,o,e.id)}return!0}catch(e){console_1.logger.error("MLM","Failed to process unilevel rewards",e);return!1}}Object.defineProperty(exports,"__esModule",{value:!0});exports.handleUnilevelMlmReferralRegister=exports.handleBinaryMlmReferralRegister=exports.handleReferralRegister=void 0;exports.processRewards=processRewards;const db_1=require("@b/db"),notifications_1=require("./notifications"),console_1=require("@b/utils/console"),cache_1=require("@b/utils/cache"),error_1=require("@b/utils/error"),sequelize_1=require("sequelize"),handleReferralRegister=async(e,r,l)=>{var a,n,i,t,o,s;try{null===(a=null==l?void 0:l.step)||void 0===a||a.call(l,"Finding referrer user");const s=await db_1.models.user.findByPk(e);if(s){null===(n=null==l?void 0:l.step)||void 0===n||n.call(l,"Loading referral settings");const e=cache_1.CacheManager.getInstance(),a=await e.getSettings(),d=!!a.has("referralApprovalRequired")&&"true"===a.get("referralApprovalRequired");null===(i=null==l?void 0:l.step)||void 0===i||i.call(l,"Creating referral record");const c=await db_1.models.mlmReferral.create({referrerId:s.id,referredId:r,status:d?"PENDING":"ACTIVE"}),f=a.get("affiliateMlmSystem")||a.get("mlmSystem")||null;if("DIRECT"===f)return;if("BINARY"===f){null===(t=null==l?void 0:l.step)||void 0===t||t.call(l,"Registering binary MLM node");await(0,exports.handleBinaryMlmReferralRegister)(s.id,c,db_1.models.mlmBinaryNode,l)}else if("UNILEVEL"===f){null===(o=null==l?void 0:l.step)||void 0===o||o.call(l,"Registering unilevel MLM node");await(0,exports.handleUnilevelMlmReferralRegister)(s.id,c,db_1.models.mlmUnilevelNode,l)}}}catch(e){null===(s=null==l?void 0:l.fail)||void 0===s||s.call(l,e.message||"Failed to handle referral register");console_1.logger.error("MLM","Failed to handle referral register",e);throw e}};exports.handleReferralRegister=handleReferralRegister;const checkCycleForBinary=async(e,r,l)=>{let a=e;for(;a;){const e=await db_1.models.mlmReferral.findOne({where:{id:a.referralId}});if(e&&e.referredId===r)return!0;if(!a.parentId)break;a=await l.findByPk(a.parentId)}return!1},checkCycleForUnilevel=async(e,r,l)=>{let a=e;for(;a;){const e=await db_1.models.mlmReferral.findOne({where:{id:a.referralId}});if(e&&e.referredId===r)return!0;if(!a.parentId)break;a=await l.findByPk(a.parentId)}return!1},handleBinaryMlmReferralRegister=async(e,r,l,a)=>await db_1.sequelize.transaction(async n=>{var i,t,o,s;try{null===(i=null==a?void 0:a.step)||void 0===i||i.call(a,"Finding or creating referrer referral record");let d=await db_1.models.mlmReferral.findOne({where:{referrerId:e,referredId:e},transaction:n});d||(d=await db_1.models.mlmReferral.create({referrerId:e,referredId:e,status:"ACTIVE"},{transaction:n}));null===(t=null==a?void 0:a.step)||void 0===t||t.call(a,"Finding or creating binary node for referrer");let c=await l.findOne({where:{referralId:d.id},transaction:n,lock:n.LOCK.UPDATE});c||(c=await l.create({referralId:d.id,parentId:null},{transaction:n}));null===(o=null==a?void 0:a.step)||void 0===o||o.call(a,"Checking for referral cycles");if(await checkCycleForBinary(c,r.referredId,l))throw(0,error_1.createError)({statusCode:409,message:"Referral loop detected: the referred user is already an ancestor."});null===(s=null==a?void 0:a.step)||void 0===s||s.call(a,"Creating binary node for new referral");const f=c.leftChildId?"rightChildId":"leftChildId",u=await l.create({referralId:r.id,parentId:c.id},{transaction:n});c[f]=u.id;await c.save({transaction:n});return u}catch(e){console_1.logger.error("MLM","Failed to handle binary MLM referral register",e);throw e}});exports.handleBinaryMlmReferralRegister=handleBinaryMlmReferralRegister;const handleUnilevelMlmReferralRegister=async(e,r,l,a)=>await db_1.sequelize.transaction(async n=>{var i,t,o,s;try{null===(i=null==a?void 0:a.step)||void 0===i||i.call(a,"Finding or creating referrer referral record");let d=await db_1.models.mlmReferral.findOne({where:{referrerId:e,referredId:e},transaction:n});d||(d=await db_1.models.mlmReferral.create({referrerId:e,referredId:e,status:"ACTIVE"},{transaction:n}));null===(t=null==a?void 0:a.step)||void 0===t||t.call(a,"Finding or creating unilevel node for referrer");let c=await l.findOne({where:{referralId:d.id},transaction:n,lock:n.LOCK.UPDATE});c||(c=await l.create({referralId:d.id,parentId:null},{transaction:n}));null===(o=null==a?void 0:a.step)||void 0===o||o.call(a,"Checking for referral cycles");if(await checkCycleForUnilevel(c,r.referredId,l))throw(0,error_1.createError)({statusCode:409,message:"Referral loop detected: the referred user is already an ancestor."});null===(s=null==a?void 0:a.step)||void 0===s||s.call(a,"Creating unilevel node for new referral");return await l.create({referralId:r.id,parentId:c.id},{transaction:n})}catch(e){console_1.logger.error("MLM","Failed to handle unilevel MLM referral register",e);throw e}});exports.handleUnilevelMlmReferralRegister=handleUnilevelMlmReferralRegister;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.handleUnilevelMlmReferralRegister = exports.handleBinaryMlmReferralRegister = exports.handleReferralRegister = void 0;
+exports.processRewards = processRewards;
+const db_1 = require("@b/db");
+const notifications_1 = require("./notifications");
+const console_1 = require("@b/utils/console");
+const cache_1 = require("@b/utils/cache");
+const error_1 = require("@b/utils/error");
+const sequelize_1 = require("sequelize");
+async function processRewards(userId, amount, conditionName, currency, ctx) {
+    var _a, _b, _c, _d, _e, _f, _g;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Checking MLM extension status");
+    const cacheManager = cache_1.CacheManager.getInstance();
+    const extensions = await cacheManager.getExtensions();
+    if (!extensions.has("mlm"))
+        return;
+    (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Loading MLM settings");
+    const settings = await cacheManager.getSettings();
+    const mlmSystem = settings.get("affiliateMlmSystem") || settings.get("mlmSystem") || "DIRECT";
+    const mlmSettings = {};
+    if (mlmSystem === "BINARY") {
+        const binaryLevels = parseInt(settings.get("affiliateBinaryLevels") || "0");
+        if (binaryLevels >= 2 && binaryLevels <= 7) {
+            const levelsPercentage = [];
+            for (let i = 1; i <= binaryLevels; i++) {
+                const value = parseFloat(settings.get(`affiliateBinaryLevel${i}`) || "0");
+                levelsPercentage.push({ level: i, value });
+            }
+            mlmSettings.binary = {
+                levels: binaryLevels,
+                levelsPercentage,
+            };
+        }
+    }
+    else if (mlmSystem === "UNILEVEL") {
+        const unilevelLevels = parseInt(settings.get("affiliateUnilevelLevels") || "0");
+        if (unilevelLevels >= 2 && unilevelLevels <= 7) {
+            const levelsPercentage = [];
+            for (let i = 1; i <= unilevelLevels; i++) {
+                const value = parseFloat(settings.get(`affiliateUnilevelLevel${i}`) || "0");
+                levelsPercentage.push({ level: i, value });
+            }
+            mlmSettings.unilevel = {
+                levels: unilevelLevels,
+                levelsPercentage,
+            };
+        }
+    }
+    if (mlmSystem === "BINARY" && !mlmSettings.binary) {
+        return;
+    }
+    else if (mlmSystem === "UNILEVEL" && !mlmSettings.unilevel) {
+        return;
+    }
+    const { mlmReferralCondition } = db_1.models;
+    try {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Looking up referral condition");
+        const condition = await mlmReferralCondition.findOne({
+            where: { name: conditionName, status: true },
+        });
+        if (!condition) {
+            console_1.logger.warn("MLM", `Referral condition not found or inactive: ${conditionName}`);
+            return;
+        }
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Validating transaction against condition requirements");
+        if (!isValidTransaction(conditionName, amount, currency, condition.minAmount)) {
+            console_1.logger.warn("MLM", `Transaction validation failed: ${conditionName}, amount=${amount}, currency=${currency}, minAmount=${condition.minAmount}`);
+            return;
+        }
+        let rewardsProcessed = false;
+        (_e = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _e === void 0 ? void 0 : _e.call(ctx, `Processing ${mlmSystem} rewards`);
+        switch (mlmSystem) {
+            case "DIRECT":
+                rewardsProcessed = await processDirectRewards(condition, userId, amount, ctx);
+                break;
+            case "BINARY":
+                rewardsProcessed = await processBinaryRewards(condition, userId, amount, mlmSettings, ctx);
+                break;
+            case "UNILEVEL":
+                rewardsProcessed = await processUnilevelRewards(condition, userId, amount, mlmSettings, ctx);
+                break;
+            default:
+                console_1.logger.error("MLM", "Invalid MLM system type", new Error("Invalid MLM system type"));
+                break;
+        }
+        if (rewardsProcessed) {
+            (_f = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _f === void 0 ? void 0 : _f.call(ctx, "Sending reward notifications");
+            await (0, notifications_1.createNotification)({
+                userId,
+                relatedId: condition.id ? condition.id.toString() : undefined,
+                title: "Reward Processed",
+                message: `Your reward for ${conditionName} of ${amount} ${currency} has been successfully processed.`,
+                type: "system",
+                link: `/mlm/rewards`,
+                actions: [
+                    {
+                        label: "View Rewards",
+                        link: `/mlm/rewards`,
+                        primary: true,
+                    },
+                ],
+            }, ctx);
+            await (0, notifications_1.createAdminNotification)("View MLM Rewards", "MLM Reward Processed", `A reward for ${conditionName} of ${amount} ${currency} was processed for user ${userId}.`, "system", `/admin/mlm/rewards`, undefined, undefined, ctx);
+        }
+    }
+    catch (error) {
+        (_g = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _g === void 0 ? void 0 : _g.call(ctx, error.message || "Failed to process rewards");
+        console_1.logger.error("MLM", "Failed to process rewards", error);
+    }
+}
+function isValidTransaction(conditionName, amount, currency, minAmount) {
+    if (!conditionName || typeof conditionName !== 'string') {
+        return false;
+    }
+    if (typeof amount !== 'number' || amount <= 0 || !isFinite(amount)) {
+        return false;
+    }
+    if (!currency || typeof currency !== 'string') {
+        return false;
+    }
+    if (amount < minAmount) {
+        return false;
+    }
+    switch (conditionName) {
+        case "WELCOME_BONUS":
+            return currency === "USDT";
+        case "MONTHLY_TRADE_VOLUME":
+            return currency === "USDT";
+        case "BINARY_TRADE_VOLUME":
+            return currency === "USDT";
+        case "FIRST_DEPOSIT_BONUS":
+        case "DEPOSIT":
+        case "SPOT_TRADE":
+        case "SPOT_TRADE_VOLUME":
+        case "TRADE":
+        case "TRADE_COMMISSION":
+        case "BINARY_WIN":
+        case "BINARY_WIN_COMMISSION":
+        case "INVESTMENT":
+        case "GENERAL_INVESTMENT":
+        case "AI_INVESTMENT":
+        case "AI_INVESTMENT_PROFIT":
+        case "FOREX_INVESTMENT":
+        case "FOREX_PROFIT":
+        case "FOREX_TRADE":
+        case "ICO_CONTRIBUTION":
+        case "ICO_PURCHASE":
+        case "STAKING":
+        case "STAKING_LOYALTY":
+        case "ECOMMERCE_PURCHASE":
+        case "ECOMMERCE_ORDER":
+        case "P2P_TRADE":
+        case "P2P_TRADE_COMPLETION":
+        case "NFT_PURCHASE":
+        case "NFT_SALE":
+        case "NFT_TRADE":
+        case "COPY_TRADING":
+        case "COPY_TRADING_PROFIT":
+        case "FUTURES_TRADE":
+        case "FUTURES_PROFIT":
+        case "FUTURES_VOLUME":
+        case "TOKEN_PURCHASE":
+        case "TOKEN_SALE":
+            return true;
+        default:
+            console_1.logger.warn("MLM", `Unknown condition name attempted: ${conditionName}`);
+            return false;
+    }
+}
+async function processDirectRewards(condition, referredId, amount, ctx) {
+    var _a, _b, _c, _d;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Finding referral record");
+        const referral = await db_1.models.mlmReferral.findOne({
+            where: { referredId },
+        });
+        if (!referral)
+            return false;
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Checking for duplicate rewards within short time window");
+        const existingReward = await db_1.models.mlmReferralReward.findOne({
+            where: {
+                referrerId: referral.referrerId,
+                conditionId: condition.id,
+                createdAt: {
+                    [sequelize_1.Op.gte]: new Date(Date.now() - 60000)
+                }
+            },
+        });
+        if (existingReward) {
+            console_1.logger.warn("MLM", `Duplicate reward prevented (within 60s window) for referrer ${referral.referrerId}, condition ${condition.id}`);
+            return false;
+        }
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Calculating reward amount");
+        const rewardAmount = condition.rewardType === "PERCENTAGE"
+            ? amount * (condition.reward / 100)
+            : condition.reward;
+        if (rewardAmount <= 0) {
+            console_1.logger.warn("MLM", `Invalid reward amount calculated: ${rewardAmount} (amount=${amount}, reward=${condition.reward}, type=${condition.rewardType})`);
+            return false;
+        }
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Creating reward record");
+        await db_1.models.mlmReferralReward.create({
+            referrerId: referral.referrerId,
+            conditionId: condition.id,
+            reward: rewardAmount,
+        });
+        console_1.logger.info("MLM", `Direct reward created: ${rewardAmount} for referrer ${referral.referrerId}, condition ${condition.name || condition.id}`);
+        return true;
+    }
+    catch (error) {
+        console_1.logger.error("MLM", "Failed to process direct rewards", error);
+        return false;
+    }
+}
+async function findUplines(userId, systemType, levels) {
+    const uplines = [];
+    let currentUserId = userId;
+    for (let i = 0; i < levels; i++) {
+        try {
+            const referral = await db_1.models.mlmReferral.findOne({
+                where: {
+                    referredId: currentUserId,
+                    status: "ACTIVE"
+                },
+            });
+            if (!referral || !referral.referrerId) {
+                console_1.logger.info("MLM", `No more uplines found at level ${i + 1} for user ${currentUserId}`);
+                break;
+            }
+            uplines.push({
+                level: i + 1,
+                referrerId: referral.referrerId,
+            });
+            currentUserId = referral.referrerId;
+        }
+        catch (error) {
+            console_1.logger.error("MLM", `Failed to find upline at level ${i + 1}`, error);
+            break;
+        }
+    }
+    console_1.logger.info("MLM", `Found ${uplines.length} uplines for user ${userId}: ${JSON.stringify(uplines)}`);
+    return uplines;
+}
+async function createRewardRecord(referrerId, rewardAmount, conditionId) {
+    try {
+        if (!referrerId || !conditionId) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "referrerId and conditionId are required" });
+        }
+        if (typeof rewardAmount !== 'number' || rewardAmount <= 0 || !isFinite(rewardAmount)) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Invalid reward amount: ${rewardAmount}` });
+        }
+        const existingReward = await db_1.models.mlmReferralReward.findOne({
+            where: {
+                referrerId,
+                conditionId,
+                createdAt: {
+                    [sequelize_1.Op.gte]: new Date(Date.now() - 60000)
+                }
+            }
+        });
+        if (existingReward) {
+            console_1.logger.error("MLM", `Duplicate reward prevented for referrer ${referrerId}, condition ${conditionId}`, new Error(`Duplicate reward prevented for referrer ${referrerId}, condition ${conditionId}`));
+            return false;
+        }
+        await db_1.models.mlmReferralReward.create({
+            referrerId,
+            reward: rewardAmount,
+            conditionId: conditionId,
+        });
+        return true;
+    }
+    catch (error) {
+        console_1.logger.error("MLM", "Failed to create reward record", error);
+        return false;
+    }
+}
+async function processBinaryRewards(condition, userId, depositAmount, mlmSettings, ctx) {
+    var _a, _b, _c, _d;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Validating binary MLM settings");
+        if (!mlmSettings.binary || !mlmSettings.binary.levels) {
+            return false;
+        }
+        if (mlmSettings.binary.levelsPercentage && Array.isArray(mlmSettings.binary.levelsPercentage)) {
+            const totalCommission = mlmSettings.binary.levelsPercentage.reduce((sum, level) => {
+                const percentage = typeof level.value === 'number' ? level.value : 0;
+                return sum + percentage;
+            }, 0);
+            if (totalCommission > 100) {
+                console_1.logger.error("MLM", `Total binary commission percentages (${totalCommission}%) cannot exceed 100%`, new Error(`Total binary commission percentages (${totalCommission}%) cannot exceed 100%`));
+                return false;
+            }
+        }
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Finding binary uplines");
+        const binaryLevels = mlmSettings.binary.levels;
+        const uplines = await findUplines(userId, "BINARY", binaryLevels);
+        if (!uplines.length) {
+            return false;
+        }
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, `Processing rewards for ${uplines.length} uplines`);
+        for (const upline of uplines) {
+            const levelRewardPercentage = (_d = mlmSettings.binary.levelsPercentage.find((l) => l.level === upline.level)) === null || _d === void 0 ? void 0 : _d.value;
+            if (levelRewardPercentage === undefined) {
+                console_1.logger.info("MLM", `No reward percentage configured for binary level ${upline.level}`);
+                continue;
+            }
+            let finalReward;
+            if (condition.rewardType === "PERCENTAGE") {
+                const conditionReward = depositAmount * (condition.reward / 100);
+                finalReward = conditionReward * (levelRewardPercentage / 100);
+            }
+            else {
+                finalReward = condition.reward * (levelRewardPercentage / 100);
+            }
+            console_1.logger.info("MLM", `Binary reward for level ${upline.level}: ${finalReward} (${levelRewardPercentage}% of base)`);
+            await createRewardRecord(upline.referrerId, finalReward, condition.id);
+        }
+        return true;
+    }
+    catch (error) {
+        console_1.logger.error("MLM", "Failed to process binary rewards", error);
+        return false;
+    }
+}
+async function processUnilevelRewards(condition, userId, depositAmount, mlmSettings, ctx) {
+    var _a, _b, _c, _d;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Validating unilevel MLM settings");
+        if (!mlmSettings.unilevel || !mlmSettings.unilevel.levels) {
+            return false;
+        }
+        if (mlmSettings.unilevel.levelsPercentage && Array.isArray(mlmSettings.unilevel.levelsPercentage)) {
+            const totalCommission = mlmSettings.unilevel.levelsPercentage.reduce((sum, level) => {
+                const percentage = typeof level.value === 'number' ? level.value : 0;
+                return sum + percentage;
+            }, 0);
+            if (totalCommission > 100) {
+                console_1.logger.error("MLM", `Total unilevel commission percentages (${totalCommission}%) cannot exceed 100%`, new Error(`Total unilevel commission percentages (${totalCommission}%) cannot exceed 100%`));
+                return false;
+            }
+        }
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Finding unilevel uplines");
+        const unilevelLevels = mlmSettings.unilevel.levels;
+        const uplines = await findUplines(userId, "UNILEVEL", unilevelLevels);
+        if (!uplines.length) {
+            return false;
+        }
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, `Processing rewards for ${uplines.length} uplines`);
+        for (const upline of uplines) {
+            const levelRewardPercentage = (_d = mlmSettings.unilevel.levelsPercentage.find((l) => l.level === upline.level)) === null || _d === void 0 ? void 0 : _d.value;
+            if (levelRewardPercentage === undefined) {
+                console_1.logger.info("MLM", `No reward percentage configured for unilevel level ${upline.level}`);
+                continue;
+            }
+            let finalReward;
+            if (condition.rewardType === "PERCENTAGE") {
+                const conditionReward = depositAmount * (condition.reward / 100);
+                finalReward = conditionReward * (levelRewardPercentage / 100);
+            }
+            else {
+                finalReward = condition.reward * (levelRewardPercentage / 100);
+            }
+            console_1.logger.info("MLM", `Unilevel reward for level ${upline.level}: ${finalReward} (${levelRewardPercentage}% of base)`);
+            await createRewardRecord(upline.referrerId, finalReward, condition.id);
+        }
+        return true;
+    }
+    catch (error) {
+        console_1.logger.error("MLM", "Failed to process unilevel rewards", error);
+        return false;
+    }
+}
+const handleReferralRegister = async (refId, userId, ctx) => {
+    var _a, _b, _c, _d, _e, _f;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Finding referrer user");
+        const referrer = await db_1.models.user.findByPk(refId);
+        if (referrer) {
+            (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Loading referral settings");
+            const cacheManager = cache_1.CacheManager.getInstance();
+            const settings = await cacheManager.getSettings();
+            const referralApprovalRequired = settings.has("referralApprovalRequired")
+                ? settings.get("referralApprovalRequired") === "true"
+                : false;
+            (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Creating referral record");
+            const referral = await db_1.models.mlmReferral.create({
+                referrerId: referrer.id,
+                referredId: userId,
+                status: referralApprovalRequired ? "PENDING" : "ACTIVE",
+            });
+            const mlmSystem = settings.get("affiliateMlmSystem") || settings.get("mlmSystem") || null;
+            if (mlmSystem === "DIRECT") {
+                return;
+            }
+            else if (mlmSystem === "BINARY") {
+                (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Registering binary MLM node");
+                await (0, exports.handleBinaryMlmReferralRegister)(referrer.id, referral, db_1.models.mlmBinaryNode, ctx);
+            }
+            else if (mlmSystem === "UNILEVEL") {
+                (_e = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _e === void 0 ? void 0 : _e.call(ctx, "Registering unilevel MLM node");
+                await (0, exports.handleUnilevelMlmReferralRegister)(referrer.id, referral, db_1.models.mlmUnilevelNode, ctx);
+            }
+        }
+    }
+    catch (error) {
+        (_f = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _f === void 0 ? void 0 : _f.call(ctx, error.message || "Failed to handle referral register");
+        console_1.logger.error("MLM", "Failed to handle referral register", error);
+        throw error;
+    }
+};
+exports.handleReferralRegister = handleReferralRegister;
+const checkCycleForBinary = async (referrerNode, newUserId, mlmBinaryNodeModel) => {
+    let current = referrerNode;
+    while (current) {
+        const referral = await db_1.models.mlmReferral.findOne({
+            where: { id: current.referralId },
+        });
+        if (referral && referral.referredId === newUserId) {
+            return true;
+        }
+        if (!current.parentId)
+            break;
+        current = await mlmBinaryNodeModel.findByPk(current.parentId);
+    }
+    return false;
+};
+const checkCycleForUnilevel = async (referrerNode, newUserId, mlmUnilevelNodeModel) => {
+    let current = referrerNode;
+    while (current) {
+        const referral = await db_1.models.mlmReferral.findOne({
+            where: { id: current.referralId },
+        });
+        if (referral && referral.referredId === newUserId) {
+            return true;
+        }
+        if (!current.parentId)
+            break;
+        current = await mlmUnilevelNodeModel.findByPk(current.parentId);
+    }
+    return false;
+};
+const handleBinaryMlmReferralRegister = async (referrerUserId, newReferral, mlmBinaryNode, ctx) => {
+    return await db_1.sequelize.transaction(async (transaction) => {
+        var _a, _b, _c, _d;
+        try {
+            (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Finding or creating referrer referral record");
+            let referrerReferral = await db_1.models.mlmReferral.findOne({
+                where: { referrerId: referrerUserId, referredId: referrerUserId },
+                transaction,
+            });
+            if (!referrerReferral) {
+                referrerReferral = await db_1.models.mlmReferral.create({
+                    referrerId: referrerUserId,
+                    referredId: referrerUserId,
+                    status: "ACTIVE",
+                }, { transaction });
+            }
+            (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Finding or creating binary node for referrer");
+            let referrerNode = await mlmBinaryNode.findOne({
+                where: { referralId: referrerReferral.id },
+                transaction,
+                lock: transaction.LOCK.UPDATE,
+            });
+            if (!referrerNode) {
+                referrerNode = await mlmBinaryNode.create({
+                    referralId: referrerReferral.id,
+                    parentId: null,
+                }, { transaction });
+            }
+            (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Checking for referral cycles");
+            const cycleExists = await checkCycleForBinary(referrerNode, newReferral.referredId, mlmBinaryNode);
+            if (cycleExists) {
+                throw (0, error_1.createError)({ statusCode: 409, message: "Referral loop detected: the referred user is already an ancestor." });
+            }
+            (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Creating binary node for new referral");
+            const placementField = referrerNode.leftChildId
+                ? "rightChildId"
+                : "leftChildId";
+            const newNode = await mlmBinaryNode.create({
+                referralId: newReferral.id,
+                parentId: referrerNode.id,
+            }, { transaction });
+            referrerNode[placementField] = newNode.id;
+            await referrerNode.save({ transaction });
+            return newNode;
+        }
+        catch (error) {
+            console_1.logger.error("MLM", "Failed to handle binary MLM referral register", error);
+            throw error;
+        }
+    });
+};
+exports.handleBinaryMlmReferralRegister = handleBinaryMlmReferralRegister;
+const handleUnilevelMlmReferralRegister = async (referrerUserId, newReferral, mlmUnilevelNode, ctx) => {
+    return await db_1.sequelize.transaction(async (transaction) => {
+        var _a, _b, _c, _d;
+        try {
+            (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Finding or creating referrer referral record");
+            let referrerReferral = await db_1.models.mlmReferral.findOne({
+                where: { referrerId: referrerUserId, referredId: referrerUserId },
+                transaction,
+            });
+            if (!referrerReferral) {
+                referrerReferral = await db_1.models.mlmReferral.create({
+                    referrerId: referrerUserId,
+                    referredId: referrerUserId,
+                    status: "ACTIVE",
+                }, { transaction });
+            }
+            (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Finding or creating unilevel node for referrer");
+            let referrerNode = await mlmUnilevelNode.findOne({
+                where: { referralId: referrerReferral.id },
+                transaction,
+                lock: transaction.LOCK.UPDATE,
+            });
+            if (!referrerNode) {
+                referrerNode = await mlmUnilevelNode.create({
+                    referralId: referrerReferral.id,
+                    parentId: null,
+                }, { transaction });
+            }
+            (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Checking for referral cycles");
+            const cycleExists = await checkCycleForUnilevel(referrerNode, newReferral.referredId, mlmUnilevelNode);
+            if (cycleExists) {
+                throw (0, error_1.createError)({ statusCode: 409, message: "Referral loop detected: the referred user is already an ancestor." });
+            }
+            (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Creating unilevel node for new referral");
+            const newNode = await mlmUnilevelNode.create({
+                referralId: newReferral.id,
+                parentId: referrerNode.id,
+            }, { transaction });
+            return newNode;
+        }
+        catch (error) {
+            console_1.logger.error("MLM", "Failed to handle unilevel MLM referral register", error);
+            throw error;
+        }
+    });
+};
+exports.handleUnilevelMlmReferralRegister = handleUnilevelMlmReferralRegister;

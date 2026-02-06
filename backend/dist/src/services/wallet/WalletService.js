@@ -1,1 +1,928 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.walletService=exports.WalletService=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),sequelize_1=require("sequelize"),errors_1=require("./errors"),precision_1=require("./utils/precision"),AuditLogger_1=require("./audit/AuditLogger"),PrecisionCacheService_1=require("./PrecisionCacheService");class WalletService{constructor(){this.auditLogger=new AuditLogger_1.AuditLogger}static getInstance(){WalletService.instance||(WalletService.instance=new WalletService);return WalletService.instance}async getWallet(e,a,t,r){const{transaction:n,lock:i=!1,createIfMissing:s=!1}=r||{},o={where:{userId:e,type:a,currency:t}};if(n){o.transaction=n;i&&(o.lock=sequelize_1.Transaction.LOCK.UPDATE)}let c=await db_1.models.wallet.findOne(o);!c&&s&&(c=await this.createBasicWallet(e,a,t,n));if(!c)throw new errors_1.WalletNotFoundError(`${e}/${a}/${t}`);return this.toWalletAttributes(c)}async getWalletById(e,a){const{transaction:t,lock:r=!1}=a||{},n={where:{id:e}};if(t){n.transaction=t;r&&(n.lock=sequelize_1.Transaction.LOCK.UPDATE)}const i=await db_1.models.wallet.findOne(n);if(!i)throw new errors_1.WalletNotFoundError(e);return this.toWalletAttributes(i)}async getWalletSafe(e,a,t,r){try{return await this.getWallet(e,a,t,r)}catch(e){if(e instanceof errors_1.WalletNotFoundError)return null;throw e}}async createBasicWallet(e,a,t,r){return await db_1.models.wallet.create({userId:e,type:a,currency:t,balance:0,inOrder:0,status:!0},r?{transaction:r}:void 0)}toWalletAttributes(e){var a,t;const r=e.get?e.get({plain:!0}):e;return{...r,balance:parseFloat((null===(a=r.balance)||void 0===a?void 0:a.toString())||"0"),inOrder:parseFloat((null===(t=r.inOrder)||void 0===t?void 0:t.toString())||"0")}}async checkIdempotency(e,a){const t=await db_1.models.transaction.findOne({where:{[sequelize_1.Op.or]:[{id:e},{metadata:{[sequelize_1.Op.like]:`%"idempotencyKey":"${e}"%`}}]},attributes:["id"],...a&&{transaction:a}});return t?{isDuplicate:!0,existingTransactionId:t.id}:{isDuplicate:!1}}validateAmount(e,a){if(e<=0)throw new errors_1.InvalidAmountError(e,`${a} amount must be positive`);if(!isFinite(e))throw new errors_1.InvalidAmountError(e,"Amount must be a finite number")}validateWalletStatus(e){if(!e.status)throw new errors_1.WalletDisabledError(e.id)}mapOperationTypeToTransactionType(e){return{DEPOSIT:"DEPOSIT",WITHDRAW:"WITHDRAW",INCOMING_TRANSFER:"INCOMING_TRANSFER",OUTGOING_TRANSFER:"OUTGOING_TRANSFER",PAYMENT:"PAYMENT",REFUND:"REFUND",BINARY_ORDER:"BINARY_ORDER",EXCHANGE_ORDER:"EXCHANGE_ORDER",INVESTMENT:"INVESTMENT",INVESTMENT_ROI:"INVESTMENT_ROI",AI_INVESTMENT:"AI_INVESTMENT",AI_INVESTMENT_ROI:"AI_INVESTMENT_ROI",INVOICE:"INVOICE",FOREX_DEPOSIT:"FOREX_DEPOSIT",FOREX_WITHDRAW:"FOREX_WITHDRAW",FOREX_INVESTMENT:"FOREX_INVESTMENT",FOREX_INVESTMENT_ROI:"FOREX_INVESTMENT_ROI",ICO_CONTRIBUTION:"ICO_CONTRIBUTION",REFERRAL_REWARD:"REFERRAL_REWARD",STAKING:"STAKING",STAKING_REWARD:"STAKING_REWARD",P2P_OFFER_TRANSFER:"P2P_OFFER_TRANSFER",P2P_TRADE:"P2P_TRADE",NFT_PURCHASE:"NFT_PURCHASE",NFT_SALE:"NFT_SALE",NFT_MINT:"NFT_MINT",NFT_BURN:"NFT_BURN",NFT_TRANSFER:"NFT_TRANSFER",NFT_AUCTION_BID:"NFT_AUCTION_BID",NFT_AUCTION_SETTLE:"NFT_AUCTION_SETTLE",NFT_OFFER:"NFT_OFFER",BINARY_ORDER_WIN:"BINARY_ORDER",BINARY_ORDER_LOSS:"BINARY_ORDER",HOLD:"EXCHANGE_ORDER",RELEASE:"EXCHANGE_ORDER",TRADE_DEBIT:"EXCHANGE_ORDER",TRADE_CREDIT:"EXCHANGE_ORDER",FEE:"PAYMENT",REFUND_WITHDRAWAL:"REFUND",ADJUSTMENT:"DEPOSIT",STAKING_DEPOSIT:"STAKING",STAKING_WITHDRAW:"STAKING",ECO_DEPOSIT:"DEPOSIT",ECO_WITHDRAW:"WITHDRAW",ECO_REFUND:"REFUND",COPY_TRADING_REVERSAL:"REFUND",P2P_DISPUTE_RESOLVE:"P2P_TRADE",P2P_DISPUTE_RECEIVE:"P2P_TRADE",P2P_TRADE_RESOLVE:"P2P_TRADE",P2P_TRADE_RECEIVE:"P2P_TRADE",P2P_TRADE_RELEASE:"P2P_TRADE",P2P_TRADE_LOCK:"P2P_TRADE",P2P_TRADE_CANCEL:"P2P_TRADE",P2P_TRADE_EXPIRED:"P2P_TRADE",P2P_OFFER_LOCK:"P2P_OFFER_TRANSFER",P2P_OFFER_DELETE:"P2P_OFFER_TRANSFER",P2P_ADMIN_OFFER_DISABLE:"P2P_OFFER_TRANSFER",P2P_ADMIN_OFFER_REJECT:"P2P_OFFER_TRANSFER"}[e]||"PAYMENT"}async credit(e){this.validateAmount(e.amount,"Credit");const a=async a=>{const{isDuplicate:t,existingTransactionId:r}=await this.checkIdempotency(e.idempotencyKey,a);if(t)throw new errors_1.DuplicateOperationError(e.idempotencyKey,r);const n=e.walletId?await this.getWalletById(e.walletId,{transaction:a,lock:!0}):await this.getWallet(e.userId,e.walletType,e.currency,{transaction:a,lock:!0,createIfMissing:!0});this.validateWalletStatus(n);const i=(0,precision_1.roundToPrecision)(e.amount,e.currency),s=n.balance,o=(0,precision_1.safeAdd)(s,i,e.currency);await db_1.models.wallet.update({balance:o},{where:{id:n.id},transaction:a});const c=await db_1.models.transaction.create({userId:e.userId,walletId:n.id,type:this.mapOperationTypeToTransactionType(e.operationType),status:"COMPLETED",amount:i,fee:e.fee||0,description:e.description,referenceId:e.referenceId,metadata:JSON.stringify({idempotencyKey:e.idempotencyKey,operationType:e.operationType,previousBalance:s,newBalance:o,...e.metadata})},{transaction:a});await this.auditLogger.logCredit(n.id,e.userId,i,s,o,c.id,e.idempotencyKey,e.metadata);return{success:!0,walletId:n.id,transactionId:c.id,previousBalance:s,newBalance:o,previousInOrder:n.inOrder,newInOrder:n.inOrder,timestamp:new Date}};return e.transaction?a(e.transaction):await db_1.sequelize.transaction(a)}async debit(e){this.validateAmount(e.amount,"Debit");const a=async a=>{const{isDuplicate:t,existingTransactionId:r}=await this.checkIdempotency(e.idempotencyKey,a);if(t)throw new errors_1.DuplicateOperationError(e.idempotencyKey,r);const n=e.walletId?await this.getWalletById(e.walletId,{transaction:a,lock:!0}):await this.getWallet(e.userId,e.walletType,e.currency,{transaction:a,lock:!0});this.validateWalletStatus(n);const i=(0,precision_1.roundToPrecision)(e.amount,e.currency),s=(0,precision_1.roundToPrecision)(e.fee||0,e.currency),o=(0,precision_1.safeAdd)(i,s,e.currency),c=n.balance;if(c<o)throw new errors_1.InsufficientFundsError(c,o,e.currency);const d=(0,precision_1.safeSubtract)(c,o,e.currency);if(d<0)throw new errors_1.NegativeBalanceError(n.id,d);await db_1.models.wallet.update({balance:d},{where:{id:n.id},transaction:a});const l=await db_1.models.transaction.create({userId:e.userId,walletId:n.id,type:this.mapOperationTypeToTransactionType(e.operationType),status:"COMPLETED",amount:i,fee:s,description:e.description,referenceId:e.referenceId,metadata:JSON.stringify({idempotencyKey:e.idempotencyKey,operationType:e.operationType,previousBalance:c,newBalance:d,totalDebit:o,...e.metadata})},{transaction:a});await this.auditLogger.logDebit(n.id,e.userId,o,c,d,l.id,e.idempotencyKey,e.metadata);return{success:!0,walletId:n.id,transactionId:l.id,previousBalance:c,newBalance:d,previousInOrder:n.inOrder,newInOrder:n.inOrder,timestamp:new Date}};return e.transaction?a(e.transaction):await db_1.sequelize.transaction(a)}async hold(e){this.validateAmount(e.amount,"Hold");const a=async a=>{const{isDuplicate:t,existingTransactionId:r}=await this.checkIdempotency(e.idempotencyKey,a);if(t)throw new errors_1.DuplicateOperationError(e.idempotencyKey,r);const n=e.walletId?await this.getWalletById(e.walletId,{transaction:a,lock:!0}):await this.getWallet(e.userId,e.walletType,e.currency,{transaction:a,lock:!0});this.validateWalletStatus(n);const i=(0,precision_1.roundToPrecision)(e.amount,e.currency),s=n.balance,o=n.inOrder;if(s<i)throw new errors_1.InsufficientFundsError(s,i,e.currency);const c=(0,precision_1.safeSubtract)(s,i,e.currency),d=(0,precision_1.safeAdd)(o,i,e.currency);if(c<0)throw new errors_1.NegativeBalanceError(n.id,c);await db_1.models.wallet.update({balance:c,inOrder:d},{where:{id:n.id},transaction:a});const l=await db_1.models.transaction.create({userId:e.userId,walletId:n.id,type:this.mapOperationTypeToTransactionType(e.operationType||"HOLD"),status:"COMPLETED",amount:i,fee:0,description:e.reason,metadata:JSON.stringify({idempotencyKey:e.idempotencyKey,operationType:e.operationType||"HOLD",previousBalance:s,newBalance:c,previousInOrder:o,newInOrder:d,expiresAt:e.expiresAt,...e.metadata})},{transaction:a});await this.auditLogger.logHold(n.id,e.userId,i,s,c,o,d,l.id,e.idempotencyKey,e.metadata);return{success:!0,walletId:n.id,transactionId:l.id,previousBalance:s,newBalance:c,previousInOrder:o,newInOrder:d,timestamp:new Date}};return e.transaction?a(e.transaction):await db_1.sequelize.transaction(a)}async release(e){this.validateAmount(e.amount,"Release");const a=async a=>{const{isDuplicate:t,existingTransactionId:r}=await this.checkIdempotency(e.idempotencyKey,a);if(t)throw new errors_1.DuplicateOperationError(e.idempotencyKey,r);const n=e.walletId?await this.getWalletById(e.walletId,{transaction:a,lock:!0}):await this.getWallet(e.userId,e.walletType,e.currency,{transaction:a,lock:!0});this.validateWalletStatus(n);const i=(0,precision_1.roundToPrecision)(e.amount,e.currency),s=n.balance,o=n.inOrder;if(o<i)throw new errors_1.InsufficientHeldFundsError(o,i,e.currency);const c=(0,precision_1.safeAdd)(s,i,e.currency),d=(0,precision_1.safeSubtract)(o,i,e.currency);if(d<0)throw new errors_1.NegativeInOrderError(n.id,d);await db_1.models.wallet.update({balance:c,inOrder:d},{where:{id:n.id},transaction:a});const l=await db_1.models.transaction.create({userId:e.userId,walletId:n.id,type:this.mapOperationTypeToTransactionType(e.operationType||"RELEASE"),status:"COMPLETED",amount:i,fee:0,description:e.reason,metadata:JSON.stringify({idempotencyKey:e.idempotencyKey,operationType:e.operationType||"RELEASE",previousBalance:s,newBalance:c,previousInOrder:o,newInOrder:d,...e.metadata})},{transaction:a});await this.auditLogger.logRelease(n.id,e.userId,i,s,c,o,d,l.id,e.idempotencyKey,e.metadata);return{success:!0,walletId:n.id,transactionId:l.id,previousBalance:s,newBalance:c,previousInOrder:o,newInOrder:d,timestamp:new Date}};return e.transaction?a(e.transaction):await db_1.sequelize.transaction(a)}async executeFromHold(e){this.validateAmount(e.amount,"Execute");const a=async a=>{const{isDuplicate:t,existingTransactionId:r}=await this.checkIdempotency(e.idempotencyKey,a);if(t)throw new errors_1.DuplicateOperationError(e.idempotencyKey,r);const n=e.walletId?await this.getWalletById(e.walletId,{transaction:a,lock:!0}):await this.getWallet(e.userId,e.walletType,e.currency,{transaction:a,lock:!0});this.validateWalletStatus(n);const i=(0,precision_1.roundToPrecision)(e.amount,e.currency),s=(0,precision_1.roundToPrecision)(e.fee||0,e.currency),o=(0,precision_1.safeAdd)(i,s,e.currency),c=n.inOrder,d=n.balance;if(c<o)throw new errors_1.InsufficientHeldFundsError(c,o,e.currency);const l=(0,precision_1.safeSubtract)(c,o,e.currency);if(l<0)throw new errors_1.NegativeInOrderError(n.id,l);await db_1.models.wallet.update({inOrder:l},{where:{id:n.id},transaction:a});const u=await db_1.models.transaction.create({userId:e.userId,walletId:n.id,type:this.mapOperationTypeToTransactionType(e.operationType),status:"COMPLETED",amount:i,fee:s,description:e.description,referenceId:e.referenceId,metadata:JSON.stringify({idempotencyKey:e.idempotencyKey,operationType:e.operationType,previousInOrder:c,newInOrder:l,...e.metadata})},{transaction:a});await this.auditLogger.logExecuteFromHold(n.id,e.userId,o,c,l,u.id,e.idempotencyKey,e.metadata);return{success:!0,walletId:n.id,transactionId:u.id,previousBalance:d,newBalance:d,previousInOrder:c,newInOrder:l,timestamp:new Date}};return e.transaction?a(e.transaction):await db_1.sequelize.transaction(a)}async transfer(e){this.validateAmount(e.amount,"Transfer");if(e.fromUserId===e.toUserId&&e.fromWalletType===e.toWalletType&&e.fromCurrency===e.toCurrency)throw new errors_1.TransferError("Cannot transfer to the same wallet");const a=async a=>{const{isDuplicate:t,existingTransactionId:r}=await this.checkIdempotency(e.idempotencyKey,a);if(t)throw new errors_1.DuplicateOperationError(e.idempotencyKey,r);const n=await this.getWallet(e.fromUserId,e.fromWalletType,e.fromCurrency,{transaction:a,lock:!0}),i=await this.getWallet(e.toUserId,e.toWalletType,e.toCurrency,{transaction:a,lock:!0,createIfMissing:!0});this.validateWalletStatus(n);this.validateWalletStatus(i);const s=(0,precision_1.roundToPrecision)(e.amount,e.fromCurrency),o=e.feePercentage||0,c=(0,precision_1.roundToPrecision)(s*o/100,e.fromCurrency),d=(0,precision_1.safeAdd)(s,c,e.fromCurrency),l=e.exchangeRate||1,u=(0,precision_1.roundToPrecision)(s*l,e.toCurrency),p=n.balance;if(p<d)throw new errors_1.InsufficientFundsError(p,d,e.fromCurrency);const w=(0,precision_1.safeSubtract)(p,d,e.fromCurrency),I=i.balance,E=(0,precision_1.safeAdd)(I,u,e.toCurrency);if(w<0)throw new errors_1.NegativeBalanceError(n.id,w);await db_1.models.wallet.update({balance:w},{where:{id:n.id},transaction:a});await db_1.models.wallet.update({balance:E},{where:{id:i.id},transaction:a});const y=await db_1.models.transaction.create({userId:e.fromUserId,walletId:n.id,type:"OUTGOING_TRANSFER",status:"COMPLETED",amount:s,fee:c,description:e.description,metadata:JSON.stringify({idempotencyKey:e.idempotencyKey,previousBalance:p,newBalance:w,toWalletId:i.id,toUserId:e.toUserId,exchangeRate:l,...e.metadata})},{transaction:a}),_=await db_1.models.transaction.create({userId:e.toUserId,walletId:i.id,type:"INCOMING_TRANSFER",status:"COMPLETED",amount:u,fee:0,description:e.description,metadata:JSON.stringify({idempotencyKey:`${e.idempotencyKey}_receive`,previousBalance:I,newBalance:E,fromWalletId:n.id,fromUserId:e.fromUserId,exchangeRate:l,...e.metadata})},{transaction:a});c>0&&db_1.models.adminProfit&&await db_1.models.adminProfit.create({amount:c,currency:e.fromCurrency,type:"TRANSFER",transactionId:y.id,description:`Transfer fee from user ${e.fromUserId}`},{transaction:a});await this.auditLogger.logTransferOut(n.id,e.fromUserId,d,p,w,y.id,e.idempotencyKey,i.id,c,e.metadata);await this.auditLogger.logTransferIn(i.id,e.toUserId,u,I,E,_.id,`${e.idempotencyKey}_receive`,n.id,e.metadata);return{fromResult:{success:!0,walletId:n.id,transactionId:y.id,previousBalance:p,newBalance:w,previousInOrder:n.inOrder,newInOrder:n.inOrder,timestamp:new Date},toResult:{success:!0,walletId:i.id,transactionId:_.id,previousBalance:I,newBalance:E,previousInOrder:i.inOrder,newInOrder:i.inOrder,timestamp:new Date},fee:c}};return e.transaction?a(e.transaction):await db_1.sequelize.transaction(a)}async getTotalValue(e,a,t){const r=await this.getWallet(e,a,t);return(0,precision_1.safeAdd)(r.balance,r.inOrder,t)}async getAvailableBalance(e,a,t){return(await this.getWallet(e,a,t)).balance}async getUserWallets(e,a){const t={userId:e};a&&(t.type=a);return(await db_1.models.wallet.findAll({where:t})).map(e=>{var a,t;const r=e.get({plain:!0}),n=parseFloat((null===(a=r.balance)||void 0===a?void 0:a.toString())||"0"),i=parseFloat((null===(t=r.inOrder)||void 0===t?void 0:t.toString())||"0");return{walletId:r.id,userId:r.userId,type:r.type,currency:r.currency,balance:n,inOrder:i,totalValue:n+i,timestamp:new Date}})}async verifyWalletIntegrity(e){var a,t;const r=await this.getWalletById(e),n=await db_1.models.transaction.findAll({where:{walletId:e,status:"COMPLETED"}});let i=0;for(const e of n){const r=parseFloat((null===(a=e.amount)||void 0===a?void 0:a.toString())||"0"),n=parseFloat((null===(t=e.fee)||void 0===t?void 0:t.toString())||"0"),s=("string"==typeof e.metadata?JSON.parse(e.metadata):e.metadata||{}).operationType||e.type;switch(e.type){case"DEPOSIT":case"INCOMING_TRANSFER":case"REFUND":case"REFUND_WITHDRAWAL":case"TRADE_CREDIT":case"BINARY_ORDER_WIN":case"AI_INVESTMENT_ROI":case"STAKING_REWARD":i+=r;break;case"WITHDRAW":case"OUTGOING_TRANSFER":case"FEE":case"TRADE_DEBIT":case"BINARY_ORDER":case"BINARY_ORDER_LOSS":case"AI_INVESTMENT":case"ICO_CONTRIBUTION":case"STAKING_DEPOSIT":i-=r+n;break;case"EXCHANGE_ORDER":"HOLD"===s?i-=r:"RELEASE"===s&&(i+=r)}}const s=r.balance,o=Math.abs(i-s);return{isValid:o<1e-8,expectedBalance:(0,precision_1.roundToPrecision)(i,r.currency),actualBalance:s,discrepancy:o}}async hasSufficientBalance(e,a,t,r){try{return(await this.getWallet(e,a,t)).balance>=r}catch(e){if(e instanceof errors_1.WalletNotFoundError)return!1;throw e}}async getChainPrecision(e,a){return await PrecisionCacheService_1.precisionCacheService.getPrecision("ECO",e,a)}async updateBalancePrecision(e,a,t){const r=await this.getChainPrecision(a,t);return parseFloat(e.toFixed(r))}parseAddressJson(e){if("object"==typeof e&&null!==e)return e;try{return JSON.parse(e||"{}")}catch(e){return{}}}async ecoCredit(e){this.validateAmount(e.amount,"Eco Credit");const a=async a=>{var t,r;const{isDuplicate:n,existingTransactionId:i}=await this.checkIdempotency(e.idempotencyKey,a);if(n)throw new errors_1.DuplicateOperationError(e.idempotencyKey,i);const s=await db_1.models.wallet.findOne({where:{id:e.walletId},lock:sequelize_1.Transaction.LOCK.UPDATE,transaction:a});if(!s)throw new errors_1.WalletNotFoundError(e.walletId);const o=this.toWalletAttributes(s);this.validateWalletStatus(o);const c=this.parseAddressJson(o.address),d=e.chain,l=e.currency,u=await this.updateBalancePrecision(e.amount,l,d);let p=0,w=0;if(c[d]){p=await this.updateBalancePrecision(parseFloat((null===(t=c[d].balance)||void 0===t?void 0:t.toString())||"0"),l,d);w=await this.updateBalancePrecision(p+u,l,d);c[d].balance=w}const I=o.balance,E=await this.updateBalancePrecision(I+u,l,d);await db_1.models.wallet.update({balance:E,address:JSON.stringify(c)},{where:{id:o.id},transaction:a});const y=await db_1.models.walletData.findOne({where:{walletId:o.id,chain:d},transaction:a});if(y){const e=parseFloat((null===(r=y.balance)||void 0===r?void 0:r.toString())||"0"),t=await this.updateBalancePrecision(e+u,l,d);await db_1.models.walletData.update({balance:t},{where:{walletId:o.id,chain:d},transaction:a})}const _=Array.isArray(e.fromAddress)?e.fromAddress[0]||"Unknown":e.fromAddress||"Unknown",T=await db_1.models.transaction.create({userId:e.userId,walletId:o.id,type:"DEPOSIT",status:"COMPLETED",amount:u,fee:e.fee||0,description:e.description||`Deposit of ${u} ${e.currency} from ${_}`,trxId:e.txHash,referenceId:e.referenceId,metadata:JSON.stringify({idempotencyKey:e.idempotencyKey,chain:d,currency:e.currency,previousBalance:I,newBalance:E,previousChainBalance:p,newChainBalance:w,from:e.fromAddress,to:e.toAddress,...e.metadata})},{transaction:a});await this.auditLogger.logCredit(o.id,e.userId,u,I,E,T.id,e.idempotencyKey,{chain:d,previousChainBalance:p,newChainBalance:w,...e.metadata});return{success:!0,walletId:o.id,transactionId:T.id,previousBalance:I,newBalance:E,previousChainBalance:p,newChainBalance:w,chain:d,timestamp:new Date}};return e.transaction?a(e.transaction):await db_1.sequelize.transaction(a)}async ecoDebit(e){this.validateAmount(e.amount,"Eco Debit");const a=async a=>{var t,r;const{isDuplicate:n,existingTransactionId:i}=await this.checkIdempotency(e.idempotencyKey,a);if(n)throw new errors_1.DuplicateOperationError(e.idempotencyKey,i);const s=await db_1.models.wallet.findOne({where:{id:e.walletId},lock:sequelize_1.Transaction.LOCK.UPDATE,transaction:a});if(!s)throw new errors_1.WalletNotFoundError(e.walletId);const o=this.toWalletAttributes(s);this.validateWalletStatus(o);const c=this.parseAddressJson(o.address),d=e.chain,l=e.currency,u=await this.updateBalancePrecision(e.amount,l,d);let p=0,w=0;if(!c[d])throw(0,error_1.createError)({statusCode:404,message:`Chain ${d} not found in wallet addresses`});p=await this.updateBalancePrecision(parseFloat((null===(t=c[d].balance)||void 0===t?void 0:t.toString())||"0"),l,d);w=await this.updateBalancePrecision(p-u,l,d);if(w<0)throw new errors_1.InsufficientFundsError(p,u,l);c[d].balance=w;const I=o.balance,E=await this.updateBalancePrecision(I-u,l,d);if(E<0)throw new errors_1.NegativeBalanceError(o.id,E);await db_1.models.wallet.update({balance:E,address:JSON.stringify(c)},{where:{id:o.id},transaction:a});const y=await db_1.models.walletData.findOne({where:{walletId:o.id,chain:d},transaction:a});if(y){const e=parseFloat((null===(r=y.balance)||void 0===r?void 0:r.toString())||"0"),t=await this.updateBalancePrecision(e-u,l,d);await db_1.models.walletData.update({balance:t},{where:{walletId:o.id,chain:d},transaction:a})}await this.auditLogger.logDebit(o.id,e.userId,u,I,E,e.idempotencyKey,e.idempotencyKey,{chain:d,previousChainBalance:p,newChainBalance:w,...e.metadata});return{success:!0,walletId:o.id,transactionId:e.idempotencyKey,previousBalance:I,newBalance:E,previousChainBalance:p,newChainBalance:w,chain:d,timestamp:new Date}};return e.transaction?a(e.transaction):await db_1.sequelize.transaction(a)}async ecoRefund(e){this.validateAmount(e.amount,"Eco Refund");const a=async a=>{var t,r;const{isDuplicate:n,existingTransactionId:i}=await this.checkIdempotency(e.idempotencyKey,a);if(n)throw new errors_1.DuplicateOperationError(e.idempotencyKey,i);const s=await db_1.models.wallet.findOne({where:{id:e.walletId},lock:sequelize_1.Transaction.LOCK.UPDATE,transaction:a});if(!s)throw new errors_1.WalletNotFoundError(e.walletId);const o=this.toWalletAttributes(s),c=this.parseAddressJson(o.address),d=e.chain,l=e.currency,u=await this.updateBalancePrecision(e.amount,l,d);let p=0,w=0;if(d&&c[d]){p=await this.updateBalancePrecision(parseFloat((null===(t=c[d].balance)||void 0===t?void 0:t.toString())||"0"),l,d);w=await this.updateBalancePrecision(p+u,l,d);c[d].balance=w}const I=o.balance,E=await this.updateBalancePrecision(I+u,l,d);await db_1.models.wallet.update({balance:E,address:JSON.stringify(c)},{where:{id:o.id},transaction:a});if(d){const e=await db_1.models.walletData.findOne({where:{walletId:o.id,chain:d},transaction:a});if(e){const t=parseFloat((null===(r=e.balance)||void 0===r?void 0:r.toString())||"0"),n=await this.updateBalancePrecision(t+u,l,d);await db_1.models.walletData.update({balance:n},{where:{walletId:o.id,chain:d},transaction:a})}}await this.auditLogger.logCredit(o.id,e.userId,u,I,E,e.idempotencyKey,e.idempotencyKey,{chain:d,previousChainBalance:p,newChainBalance:w,refund:!0,...e.metadata});return{success:!0,walletId:o.id,transactionId:e.idempotencyKey,previousBalance:I,newBalance:E,previousChainBalance:p,newChainBalance:w,chain:d,timestamp:new Date}};return e.transaction?a(e.transaction):await db_1.sequelize.transaction(a)}}exports.WalletService=WalletService;exports.walletService=WalletService.getInstance();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.walletService = exports.WalletService = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const sequelize_1 = require("sequelize");
+const errors_1 = require("./errors");
+const precision_1 = require("./utils/precision");
+const AuditLogger_1 = require("./audit/AuditLogger");
+const PrecisionCacheService_1 = require("./PrecisionCacheService");
+class WalletService {
+    constructor() {
+        this.auditLogger = new AuditLogger_1.AuditLogger();
+    }
+    static getInstance() {
+        if (!WalletService.instance) {
+            WalletService.instance = new WalletService();
+        }
+        return WalletService.instance;
+    }
+    async getWallet(userId, type, currency, options) {
+        const { transaction, lock = false, createIfMissing = false } = options || {};
+        const queryOptions = {
+            where: { userId, type, currency },
+        };
+        if (transaction) {
+            queryOptions.transaction = transaction;
+            if (lock) {
+                queryOptions.lock = sequelize_1.Transaction.LOCK.UPDATE;
+            }
+        }
+        let wallet = await db_1.models.wallet.findOne(queryOptions);
+        if (!wallet && createIfMissing) {
+            wallet = await this.createBasicWallet(userId, type, currency, transaction);
+        }
+        if (!wallet) {
+            throw new errors_1.WalletNotFoundError(`${userId}/${type}/${currency}`);
+        }
+        return this.toWalletAttributes(wallet);
+    }
+    async getWalletById(walletId, options) {
+        const { transaction, lock = false } = options || {};
+        const queryOptions = {
+            where: { id: walletId },
+        };
+        if (transaction) {
+            queryOptions.transaction = transaction;
+            if (lock) {
+                queryOptions.lock = sequelize_1.Transaction.LOCK.UPDATE;
+            }
+        }
+        const wallet = await db_1.models.wallet.findOne(queryOptions);
+        if (!wallet) {
+            throw new errors_1.WalletNotFoundError(walletId);
+        }
+        return this.toWalletAttributes(wallet);
+    }
+    async getWalletSafe(userId, type, currency, options) {
+        try {
+            return await this.getWallet(userId, type, currency, options);
+        }
+        catch (error) {
+            if (error instanceof errors_1.WalletNotFoundError) {
+                return null;
+            }
+            throw error;
+        }
+    }
+    async createBasicWallet(userId, type, currency, transaction) {
+        return await db_1.models.wallet.create({
+            userId,
+            type,
+            currency,
+            balance: 0,
+            inOrder: 0,
+            status: true,
+        }, transaction ? { transaction } : undefined);
+    }
+    toWalletAttributes(wallet) {
+        var _a, _b;
+        const plain = wallet.get ? wallet.get({ plain: true }) : wallet;
+        return {
+            ...plain,
+            balance: parseFloat(((_a = plain.balance) === null || _a === void 0 ? void 0 : _a.toString()) || "0"),
+            inOrder: parseFloat(((_b = plain.inOrder) === null || _b === void 0 ? void 0 : _b.toString()) || "0"),
+        };
+    }
+    async checkIdempotency(idempotencyKey, transaction) {
+        const existing = await db_1.models.transaction.findOne({
+            where: {
+                [sequelize_1.Op.or]: [
+                    { id: idempotencyKey },
+                    {
+                        metadata: {
+                            [sequelize_1.Op.like]: `%"idempotencyKey":"${idempotencyKey}"%`,
+                        },
+                    },
+                ],
+            },
+            attributes: ["id"],
+            ...(transaction && { transaction }),
+        });
+        if (existing) {
+            return { isDuplicate: true, existingTransactionId: existing.id };
+        }
+        return { isDuplicate: false };
+    }
+    validateAmount(amount, operation) {
+        if (amount <= 0) {
+            throw new errors_1.InvalidAmountError(amount, `${operation} amount must be positive`);
+        }
+        if (!isFinite(amount)) {
+            throw new errors_1.InvalidAmountError(amount, "Amount must be a finite number");
+        }
+    }
+    validateWalletStatus(wallet) {
+        if (!wallet.status) {
+            throw new errors_1.WalletDisabledError(wallet.id);
+        }
+    }
+    mapOperationTypeToTransactionType(operationType) {
+        const mapping = {
+            DEPOSIT: "DEPOSIT",
+            WITHDRAW: "WITHDRAW",
+            INCOMING_TRANSFER: "INCOMING_TRANSFER",
+            OUTGOING_TRANSFER: "OUTGOING_TRANSFER",
+            PAYMENT: "PAYMENT",
+            REFUND: "REFUND",
+            BINARY_ORDER: "BINARY_ORDER",
+            EXCHANGE_ORDER: "EXCHANGE_ORDER",
+            INVESTMENT: "INVESTMENT",
+            INVESTMENT_ROI: "INVESTMENT_ROI",
+            AI_INVESTMENT: "AI_INVESTMENT",
+            AI_INVESTMENT_ROI: "AI_INVESTMENT_ROI",
+            INVOICE: "INVOICE",
+            FOREX_DEPOSIT: "FOREX_DEPOSIT",
+            FOREX_WITHDRAW: "FOREX_WITHDRAW",
+            FOREX_INVESTMENT: "FOREX_INVESTMENT",
+            FOREX_INVESTMENT_ROI: "FOREX_INVESTMENT_ROI",
+            ICO_CONTRIBUTION: "ICO_CONTRIBUTION",
+            REFERRAL_REWARD: "REFERRAL_REWARD",
+            STAKING: "STAKING",
+            STAKING_REWARD: "STAKING_REWARD",
+            P2P_OFFER_TRANSFER: "P2P_OFFER_TRANSFER",
+            P2P_TRADE: "P2P_TRADE",
+            NFT_PURCHASE: "NFT_PURCHASE",
+            NFT_SALE: "NFT_SALE",
+            NFT_MINT: "NFT_MINT",
+            NFT_BURN: "NFT_BURN",
+            NFT_TRANSFER: "NFT_TRANSFER",
+            NFT_AUCTION_BID: "NFT_AUCTION_BID",
+            NFT_AUCTION_SETTLE: "NFT_AUCTION_SETTLE",
+            NFT_OFFER: "NFT_OFFER",
+            BINARY_ORDER_WIN: "BINARY_ORDER",
+            BINARY_ORDER_LOSS: "BINARY_ORDER",
+            HOLD: "EXCHANGE_ORDER",
+            RELEASE: "EXCHANGE_ORDER",
+            TRADE_DEBIT: "EXCHANGE_ORDER",
+            TRADE_CREDIT: "EXCHANGE_ORDER",
+            FEE: "PAYMENT",
+            REFUND_WITHDRAWAL: "REFUND",
+            ADJUSTMENT: "DEPOSIT",
+            STAKING_DEPOSIT: "STAKING",
+            STAKING_WITHDRAW: "STAKING",
+            ECO_DEPOSIT: "DEPOSIT",
+            ECO_WITHDRAW: "WITHDRAW",
+            ECO_REFUND: "REFUND",
+            COPY_TRADING_REVERSAL: "REFUND",
+            P2P_DISPUTE_RESOLVE: "P2P_TRADE",
+            P2P_DISPUTE_RECEIVE: "P2P_TRADE",
+            P2P_TRADE_RESOLVE: "P2P_TRADE",
+            P2P_TRADE_RECEIVE: "P2P_TRADE",
+            P2P_TRADE_RELEASE: "P2P_TRADE",
+            P2P_TRADE_LOCK: "P2P_TRADE",
+            P2P_TRADE_CANCEL: "P2P_TRADE",
+            P2P_TRADE_EXPIRED: "P2P_TRADE",
+            P2P_OFFER_LOCK: "P2P_OFFER_TRANSFER",
+            P2P_OFFER_DELETE: "P2P_OFFER_TRANSFER",
+            P2P_ADMIN_OFFER_DISABLE: "P2P_OFFER_TRANSFER",
+            P2P_ADMIN_OFFER_REJECT: "P2P_OFFER_TRANSFER",
+        };
+        return (mapping[operationType] || "PAYMENT");
+    }
+    async credit(operation) {
+        this.validateAmount(operation.amount, "Credit");
+        const executeInTransaction = async (t) => {
+            const { isDuplicate, existingTransactionId } = await this.checkIdempotency(operation.idempotencyKey, t);
+            if (isDuplicate) {
+                throw new errors_1.DuplicateOperationError(operation.idempotencyKey, existingTransactionId);
+            }
+            const wallet = operation.walletId
+                ? await this.getWalletById(operation.walletId, { transaction: t, lock: true })
+                : await this.getWallet(operation.userId, operation.walletType, operation.currency, {
+                    transaction: t,
+                    lock: true,
+                    createIfMissing: true,
+                });
+            this.validateWalletStatus(wallet);
+            const creditAmount = (0, precision_1.roundToPrecision)(operation.amount, operation.currency);
+            const previousBalance = wallet.balance;
+            const newBalance = (0, precision_1.safeAdd)(previousBalance, creditAmount, operation.currency);
+            await db_1.models.wallet.update({ balance: newBalance }, { where: { id: wallet.id }, transaction: t });
+            const txRecord = await db_1.models.transaction.create({
+                userId: operation.userId,
+                walletId: wallet.id,
+                type: this.mapOperationTypeToTransactionType(operation.operationType),
+                status: "COMPLETED",
+                amount: creditAmount,
+                fee: operation.fee || 0,
+                description: operation.description,
+                referenceId: operation.referenceId,
+                metadata: JSON.stringify({
+                    idempotencyKey: operation.idempotencyKey,
+                    operationType: operation.operationType,
+                    previousBalance,
+                    newBalance,
+                    ...operation.metadata,
+                }),
+            }, { transaction: t });
+            await this.auditLogger.logCredit(wallet.id, operation.userId, creditAmount, previousBalance, newBalance, txRecord.id, operation.idempotencyKey, operation.metadata);
+            return {
+                success: true,
+                walletId: wallet.id,
+                transactionId: txRecord.id,
+                previousBalance,
+                newBalance,
+                previousInOrder: wallet.inOrder,
+                newInOrder: wallet.inOrder,
+                timestamp: new Date(),
+            };
+        };
+        if (operation.transaction) {
+            return executeInTransaction(operation.transaction);
+        }
+        return await db_1.sequelize.transaction(executeInTransaction);
+    }
+    async debit(operation) {
+        this.validateAmount(operation.amount, "Debit");
+        const executeInTransaction = async (t) => {
+            const { isDuplicate, existingTransactionId } = await this.checkIdempotency(operation.idempotencyKey, t);
+            if (isDuplicate) {
+                throw new errors_1.DuplicateOperationError(operation.idempotencyKey, existingTransactionId);
+            }
+            const wallet = operation.walletId
+                ? await this.getWalletById(operation.walletId, { transaction: t, lock: true })
+                : await this.getWallet(operation.userId, operation.walletType, operation.currency, {
+                    transaction: t,
+                    lock: true,
+                });
+            this.validateWalletStatus(wallet);
+            const debitAmount = (0, precision_1.roundToPrecision)(operation.amount, operation.currency);
+            const feeAmount = (0, precision_1.roundToPrecision)(operation.fee || 0, operation.currency);
+            const totalDebit = (0, precision_1.safeAdd)(debitAmount, feeAmount, operation.currency);
+            const previousBalance = wallet.balance;
+            if (previousBalance < totalDebit) {
+                throw new errors_1.InsufficientFundsError(previousBalance, totalDebit, operation.currency);
+            }
+            const newBalance = (0, precision_1.safeSubtract)(previousBalance, totalDebit, operation.currency);
+            if (newBalance < 0) {
+                throw new errors_1.NegativeBalanceError(wallet.id, newBalance);
+            }
+            await db_1.models.wallet.update({ balance: newBalance }, { where: { id: wallet.id }, transaction: t });
+            const txRecord = await db_1.models.transaction.create({
+                userId: operation.userId,
+                walletId: wallet.id,
+                type: this.mapOperationTypeToTransactionType(operation.operationType),
+                status: "COMPLETED",
+                amount: debitAmount,
+                fee: feeAmount,
+                description: operation.description,
+                referenceId: operation.referenceId,
+                metadata: JSON.stringify({
+                    idempotencyKey: operation.idempotencyKey,
+                    operationType: operation.operationType,
+                    previousBalance,
+                    newBalance,
+                    totalDebit,
+                    ...operation.metadata,
+                }),
+            }, { transaction: t });
+            await this.auditLogger.logDebit(wallet.id, operation.userId, totalDebit, previousBalance, newBalance, txRecord.id, operation.idempotencyKey, operation.metadata);
+            return {
+                success: true,
+                walletId: wallet.id,
+                transactionId: txRecord.id,
+                previousBalance,
+                newBalance,
+                previousInOrder: wallet.inOrder,
+                newInOrder: wallet.inOrder,
+                timestamp: new Date(),
+            };
+        };
+        if (operation.transaction) {
+            return executeInTransaction(operation.transaction);
+        }
+        return await db_1.sequelize.transaction(executeInTransaction);
+    }
+    async hold(operation) {
+        this.validateAmount(operation.amount, "Hold");
+        const executeInTransaction = async (t) => {
+            const { isDuplicate, existingTransactionId } = await this.checkIdempotency(operation.idempotencyKey, t);
+            if (isDuplicate) {
+                throw new errors_1.DuplicateOperationError(operation.idempotencyKey, existingTransactionId);
+            }
+            const wallet = operation.walletId
+                ? await this.getWalletById(operation.walletId, { transaction: t, lock: true })
+                : await this.getWallet(operation.userId, operation.walletType, operation.currency, {
+                    transaction: t,
+                    lock: true,
+                });
+            this.validateWalletStatus(wallet);
+            const holdAmount = (0, precision_1.roundToPrecision)(operation.amount, operation.currency);
+            const previousBalance = wallet.balance;
+            const previousInOrder = wallet.inOrder;
+            if (previousBalance < holdAmount) {
+                throw new errors_1.InsufficientFundsError(previousBalance, holdAmount, operation.currency);
+            }
+            const newBalance = (0, precision_1.safeSubtract)(previousBalance, holdAmount, operation.currency);
+            const newInOrder = (0, precision_1.safeAdd)(previousInOrder, holdAmount, operation.currency);
+            if (newBalance < 0) {
+                throw new errors_1.NegativeBalanceError(wallet.id, newBalance);
+            }
+            await db_1.models.wallet.update({ balance: newBalance, inOrder: newInOrder }, { where: { id: wallet.id }, transaction: t });
+            const txRecord = await db_1.models.transaction.create({
+                userId: operation.userId,
+                walletId: wallet.id,
+                type: this.mapOperationTypeToTransactionType(operation.operationType || "HOLD"),
+                status: "COMPLETED",
+                amount: holdAmount,
+                fee: 0,
+                description: operation.reason,
+                metadata: JSON.stringify({
+                    idempotencyKey: operation.idempotencyKey,
+                    operationType: operation.operationType || "HOLD",
+                    previousBalance,
+                    newBalance,
+                    previousInOrder,
+                    newInOrder,
+                    expiresAt: operation.expiresAt,
+                    ...operation.metadata,
+                }),
+            }, { transaction: t });
+            await this.auditLogger.logHold(wallet.id, operation.userId, holdAmount, previousBalance, newBalance, previousInOrder, newInOrder, txRecord.id, operation.idempotencyKey, operation.metadata);
+            return {
+                success: true,
+                walletId: wallet.id,
+                transactionId: txRecord.id,
+                previousBalance,
+                newBalance,
+                previousInOrder,
+                newInOrder,
+                timestamp: new Date(),
+            };
+        };
+        if (operation.transaction) {
+            return executeInTransaction(operation.transaction);
+        }
+        return await db_1.sequelize.transaction(executeInTransaction);
+    }
+    async release(operation) {
+        this.validateAmount(operation.amount, "Release");
+        const executeInTransaction = async (t) => {
+            const { isDuplicate, existingTransactionId } = await this.checkIdempotency(operation.idempotencyKey, t);
+            if (isDuplicate) {
+                throw new errors_1.DuplicateOperationError(operation.idempotencyKey, existingTransactionId);
+            }
+            const wallet = operation.walletId
+                ? await this.getWalletById(operation.walletId, { transaction: t, lock: true })
+                : await this.getWallet(operation.userId, operation.walletType, operation.currency, {
+                    transaction: t,
+                    lock: true,
+                });
+            this.validateWalletStatus(wallet);
+            const releaseAmount = (0, precision_1.roundToPrecision)(operation.amount, operation.currency);
+            const previousBalance = wallet.balance;
+            const previousInOrder = wallet.inOrder;
+            if (previousInOrder < releaseAmount) {
+                throw new errors_1.InsufficientHeldFundsError(previousInOrder, releaseAmount, operation.currency);
+            }
+            const newBalance = (0, precision_1.safeAdd)(previousBalance, releaseAmount, operation.currency);
+            const newInOrder = (0, precision_1.safeSubtract)(previousInOrder, releaseAmount, operation.currency);
+            if (newInOrder < 0) {
+                throw new errors_1.NegativeInOrderError(wallet.id, newInOrder);
+            }
+            await db_1.models.wallet.update({ balance: newBalance, inOrder: newInOrder }, { where: { id: wallet.id }, transaction: t });
+            const txRecord = await db_1.models.transaction.create({
+                userId: operation.userId,
+                walletId: wallet.id,
+                type: this.mapOperationTypeToTransactionType(operation.operationType || "RELEASE"),
+                status: "COMPLETED",
+                amount: releaseAmount,
+                fee: 0,
+                description: operation.reason,
+                metadata: JSON.stringify({
+                    idempotencyKey: operation.idempotencyKey,
+                    operationType: operation.operationType || "RELEASE",
+                    previousBalance,
+                    newBalance,
+                    previousInOrder,
+                    newInOrder,
+                    ...operation.metadata,
+                }),
+            }, { transaction: t });
+            await this.auditLogger.logRelease(wallet.id, operation.userId, releaseAmount, previousBalance, newBalance, previousInOrder, newInOrder, txRecord.id, operation.idempotencyKey, operation.metadata);
+            return {
+                success: true,
+                walletId: wallet.id,
+                transactionId: txRecord.id,
+                previousBalance,
+                newBalance,
+                previousInOrder,
+                newInOrder,
+                timestamp: new Date(),
+            };
+        };
+        if (operation.transaction) {
+            return executeInTransaction(operation.transaction);
+        }
+        return await db_1.sequelize.transaction(executeInTransaction);
+    }
+    async executeFromHold(operation) {
+        this.validateAmount(operation.amount, "Execute");
+        const executeInTransaction = async (t) => {
+            const { isDuplicate, existingTransactionId } = await this.checkIdempotency(operation.idempotencyKey, t);
+            if (isDuplicate) {
+                throw new errors_1.DuplicateOperationError(operation.idempotencyKey, existingTransactionId);
+            }
+            const wallet = operation.walletId
+                ? await this.getWalletById(operation.walletId, { transaction: t, lock: true })
+                : await this.getWallet(operation.userId, operation.walletType, operation.currency, {
+                    transaction: t,
+                    lock: true,
+                });
+            this.validateWalletStatus(wallet);
+            const executeAmount = (0, precision_1.roundToPrecision)(operation.amount, operation.currency);
+            const feeAmount = (0, precision_1.roundToPrecision)(operation.fee || 0, operation.currency);
+            const totalExecute = (0, precision_1.safeAdd)(executeAmount, feeAmount, operation.currency);
+            const previousInOrder = wallet.inOrder;
+            const previousBalance = wallet.balance;
+            if (previousInOrder < totalExecute) {
+                throw new errors_1.InsufficientHeldFundsError(previousInOrder, totalExecute, operation.currency);
+            }
+            const newInOrder = (0, precision_1.safeSubtract)(previousInOrder, totalExecute, operation.currency);
+            if (newInOrder < 0) {
+                throw new errors_1.NegativeInOrderError(wallet.id, newInOrder);
+            }
+            await db_1.models.wallet.update({ inOrder: newInOrder }, { where: { id: wallet.id }, transaction: t });
+            const txRecord = await db_1.models.transaction.create({
+                userId: operation.userId,
+                walletId: wallet.id,
+                type: this.mapOperationTypeToTransactionType(operation.operationType),
+                status: "COMPLETED",
+                amount: executeAmount,
+                fee: feeAmount,
+                description: operation.description,
+                referenceId: operation.referenceId,
+                metadata: JSON.stringify({
+                    idempotencyKey: operation.idempotencyKey,
+                    operationType: operation.operationType,
+                    previousInOrder,
+                    newInOrder,
+                    ...operation.metadata,
+                }),
+            }, { transaction: t });
+            await this.auditLogger.logExecuteFromHold(wallet.id, operation.userId, totalExecute, previousInOrder, newInOrder, txRecord.id, operation.idempotencyKey, operation.metadata);
+            return {
+                success: true,
+                walletId: wallet.id,
+                transactionId: txRecord.id,
+                previousBalance,
+                newBalance: previousBalance,
+                previousInOrder,
+                newInOrder,
+                timestamp: new Date(),
+            };
+        };
+        if (operation.transaction) {
+            return executeInTransaction(operation.transaction);
+        }
+        return await db_1.sequelize.transaction(executeInTransaction);
+    }
+    async transfer(operation) {
+        this.validateAmount(operation.amount, "Transfer");
+        if (operation.fromUserId === operation.toUserId &&
+            operation.fromWalletType === operation.toWalletType &&
+            operation.fromCurrency === operation.toCurrency) {
+            throw new errors_1.TransferError("Cannot transfer to the same wallet");
+        }
+        const executeInTransaction = async (t) => {
+            const { isDuplicate, existingTransactionId } = await this.checkIdempotency(operation.idempotencyKey, t);
+            if (isDuplicate) {
+                throw new errors_1.DuplicateOperationError(operation.idempotencyKey, existingTransactionId);
+            }
+            const fromWallet = await this.getWallet(operation.fromUserId, operation.fromWalletType, operation.fromCurrency, { transaction: t, lock: true });
+            const toWallet = await this.getWallet(operation.toUserId, operation.toWalletType, operation.toCurrency, { transaction: t, lock: true, createIfMissing: true });
+            this.validateWalletStatus(fromWallet);
+            this.validateWalletStatus(toWallet);
+            const transferAmount = (0, precision_1.roundToPrecision)(operation.amount, operation.fromCurrency);
+            const feePercentage = operation.feePercentage || 0;
+            const feeAmount = (0, precision_1.roundToPrecision)((transferAmount * feePercentage) / 100, operation.fromCurrency);
+            const totalDebit = (0, precision_1.safeAdd)(transferAmount, feeAmount, operation.fromCurrency);
+            const exchangeRate = operation.exchangeRate || 1;
+            const receiveAmount = (0, precision_1.roundToPrecision)(transferAmount * exchangeRate, operation.toCurrency);
+            const fromBalance = fromWallet.balance;
+            if (fromBalance < totalDebit) {
+                throw new errors_1.InsufficientFundsError(fromBalance, totalDebit, operation.fromCurrency);
+            }
+            const newFromBalance = (0, precision_1.safeSubtract)(fromBalance, totalDebit, operation.fromCurrency);
+            const toBalance = toWallet.balance;
+            const newToBalance = (0, precision_1.safeAdd)(toBalance, receiveAmount, operation.toCurrency);
+            if (newFromBalance < 0) {
+                throw new errors_1.NegativeBalanceError(fromWallet.id, newFromBalance);
+            }
+            await db_1.models.wallet.update({ balance: newFromBalance }, { where: { id: fromWallet.id }, transaction: t });
+            await db_1.models.wallet.update({ balance: newToBalance }, { where: { id: toWallet.id }, transaction: t });
+            const fromTx = await db_1.models.transaction.create({
+                userId: operation.fromUserId,
+                walletId: fromWallet.id,
+                type: "OUTGOING_TRANSFER",
+                status: "COMPLETED",
+                amount: transferAmount,
+                fee: feeAmount,
+                description: operation.description,
+                metadata: JSON.stringify({
+                    idempotencyKey: operation.idempotencyKey,
+                    previousBalance: fromBalance,
+                    newBalance: newFromBalance,
+                    toWalletId: toWallet.id,
+                    toUserId: operation.toUserId,
+                    exchangeRate,
+                    ...operation.metadata,
+                }),
+            }, { transaction: t });
+            const toTx = await db_1.models.transaction.create({
+                userId: operation.toUserId,
+                walletId: toWallet.id,
+                type: "INCOMING_TRANSFER",
+                status: "COMPLETED",
+                amount: receiveAmount,
+                fee: 0,
+                description: operation.description,
+                metadata: JSON.stringify({
+                    idempotencyKey: `${operation.idempotencyKey}_receive`,
+                    previousBalance: toBalance,
+                    newBalance: newToBalance,
+                    fromWalletId: fromWallet.id,
+                    fromUserId: operation.fromUserId,
+                    exchangeRate,
+                    ...operation.metadata,
+                }),
+            }, { transaction: t });
+            if (feeAmount > 0 && db_1.models.adminProfit) {
+                await db_1.models.adminProfit.create({
+                    amount: feeAmount,
+                    currency: operation.fromCurrency,
+                    type: "TRANSFER",
+                    transactionId: fromTx.id,
+                    description: `Transfer fee from user ${operation.fromUserId}`,
+                }, { transaction: t });
+            }
+            await this.auditLogger.logTransferOut(fromWallet.id, operation.fromUserId, totalDebit, fromBalance, newFromBalance, fromTx.id, operation.idempotencyKey, toWallet.id, feeAmount, operation.metadata);
+            await this.auditLogger.logTransferIn(toWallet.id, operation.toUserId, receiveAmount, toBalance, newToBalance, toTx.id, `${operation.idempotencyKey}_receive`, fromWallet.id, operation.metadata);
+            return {
+                fromResult: {
+                    success: true,
+                    walletId: fromWallet.id,
+                    transactionId: fromTx.id,
+                    previousBalance: fromBalance,
+                    newBalance: newFromBalance,
+                    previousInOrder: fromWallet.inOrder,
+                    newInOrder: fromWallet.inOrder,
+                    timestamp: new Date(),
+                },
+                toResult: {
+                    success: true,
+                    walletId: toWallet.id,
+                    transactionId: toTx.id,
+                    previousBalance: toBalance,
+                    newBalance: newToBalance,
+                    previousInOrder: toWallet.inOrder,
+                    newInOrder: toWallet.inOrder,
+                    timestamp: new Date(),
+                },
+                fee: feeAmount,
+            };
+        };
+        if (operation.transaction) {
+            return executeInTransaction(operation.transaction);
+        }
+        return await db_1.sequelize.transaction(executeInTransaction);
+    }
+    async getTotalValue(userId, type, currency) {
+        const wallet = await this.getWallet(userId, type, currency);
+        return (0, precision_1.safeAdd)(wallet.balance, wallet.inOrder, currency);
+    }
+    async getAvailableBalance(userId, type, currency) {
+        const wallet = await this.getWallet(userId, type, currency);
+        return wallet.balance;
+    }
+    async getUserWallets(userId, type) {
+        const where = { userId };
+        if (type) {
+            where.type = type;
+        }
+        const wallets = await db_1.models.wallet.findAll({ where });
+        return wallets.map((w) => {
+            var _a, _b;
+            const plain = w.get({ plain: true });
+            const balance = parseFloat(((_a = plain.balance) === null || _a === void 0 ? void 0 : _a.toString()) || "0");
+            const inOrder = parseFloat(((_b = plain.inOrder) === null || _b === void 0 ? void 0 : _b.toString()) || "0");
+            return {
+                walletId: plain.id,
+                userId: plain.userId,
+                type: plain.type,
+                currency: plain.currency,
+                balance,
+                inOrder,
+                totalValue: balance + inOrder,
+                timestamp: new Date(),
+            };
+        });
+    }
+    async verifyWalletIntegrity(walletId) {
+        var _a, _b;
+        const wallet = await this.getWalletById(walletId);
+        const transactions = await db_1.models.transaction.findAll({
+            where: { walletId, status: "COMPLETED" },
+        });
+        let expectedBalance = 0;
+        for (const tx of transactions) {
+            const amount = parseFloat(((_a = tx.amount) === null || _a === void 0 ? void 0 : _a.toString()) || "0");
+            const fee = parseFloat(((_b = tx.fee) === null || _b === void 0 ? void 0 : _b.toString()) || "0");
+            const metadata = typeof tx.metadata === 'string'
+                ? JSON.parse(tx.metadata)
+                : tx.metadata || {};
+            const operationType = metadata.operationType || tx.type;
+            switch (operationType) {
+                case "DEPOSIT":
+                case "INCOMING_TRANSFER":
+                case "REFUND":
+                case "REFUND_WITHDRAWAL":
+                case "TRADE_CREDIT":
+                case "BINARY_ORDER_WIN":
+                case "AI_INVESTMENT_ROI":
+                case "STAKING_REWARD":
+                case "RELEASE":
+                    expectedBalance += amount;
+                    break;
+                case "WITHDRAW":
+                case "OUTGOING_TRANSFER":
+                case "FEE":
+                case "TRADE_DEBIT":
+                case "BINARY_ORDER":
+                case "BINARY_ORDER_LOSS":
+                case "AI_INVESTMENT":
+                case "ICO_CONTRIBUTION":
+                case "STAKING_DEPOSIT":
+                case "HOLD":
+                    expectedBalance -= amount + fee;
+                    break;
+                case "EXCHANGE_ORDER":
+                    break;
+            }
+        }
+        const actualBalance = wallet.balance;
+        const discrepancy = Math.abs(expectedBalance - actualBalance);
+        return {
+            isValid: discrepancy < 0.00000001,
+            expectedBalance: (0, precision_1.roundToPrecision)(expectedBalance, wallet.currency),
+            actualBalance,
+            discrepancy,
+        };
+    }
+    async hasSufficientBalance(userId, type, currency, amount) {
+        try {
+            const wallet = await this.getWallet(userId, type, currency);
+            return wallet.balance >= amount;
+        }
+        catch (error) {
+            if (error instanceof errors_1.WalletNotFoundError) {
+                return false;
+            }
+            throw error;
+        }
+    }
+    async getChainPrecision(currency, chain) {
+        return await PrecisionCacheService_1.precisionCacheService.getPrecision("ECO", currency, chain);
+    }
+    async updateBalancePrecision(amount, currency, chain) {
+        const precision = await this.getChainPrecision(currency, chain);
+        return parseFloat(amount.toFixed(precision));
+    }
+    parseAddressJson(addressStr) {
+        if (typeof addressStr === "object" && addressStr !== null) {
+            return addressStr;
+        }
+        try {
+            return JSON.parse(addressStr || "{}");
+        }
+        catch (_a) {
+            return {};
+        }
+    }
+    async ecoCredit(operation) {
+        this.validateAmount(operation.amount, "Eco Credit");
+        const executeInTransaction = async (t) => {
+            var _a, _b;
+            const { isDuplicate, existingTransactionId } = await this.checkIdempotency(operation.idempotencyKey, t);
+            if (isDuplicate) {
+                throw new errors_1.DuplicateOperationError(operation.idempotencyKey, existingTransactionId);
+            }
+            const walletRecord = await db_1.models.wallet.findOne({
+                where: { id: operation.walletId },
+                lock: sequelize_1.Transaction.LOCK.UPDATE,
+                transaction: t,
+            });
+            if (!walletRecord) {
+                throw new errors_1.WalletNotFoundError(operation.walletId);
+            }
+            const wallet = this.toWalletAttributes(walletRecord);
+            this.validateWalletStatus(wallet);
+            const addresses = this.parseAddressJson(wallet.address);
+            const chain = operation.chain;
+            const currency = operation.currency;
+            const precisionAmount = await this.updateBalancePrecision(operation.amount, currency, chain);
+            let previousChainBalance = 0;
+            let newChainBalance = 0;
+            if (addresses[chain]) {
+                previousChainBalance = await this.updateBalancePrecision(parseFloat(((_a = addresses[chain].balance) === null || _a === void 0 ? void 0 : _a.toString()) || "0"), currency, chain);
+                newChainBalance = await this.updateBalancePrecision(previousChainBalance + precisionAmount, currency, chain);
+                addresses[chain].balance = newChainBalance;
+            }
+            const previousBalance = wallet.balance;
+            const newBalance = await this.updateBalancePrecision(previousBalance + precisionAmount, currency, chain);
+            await db_1.models.wallet.update({
+                balance: newBalance,
+                address: addresses,
+            }, { where: { id: wallet.id }, transaction: t });
+            const walletData = await db_1.models.walletData.findOne({
+                where: { walletId: wallet.id, chain },
+                transaction: t,
+            });
+            if (walletData) {
+                const currentWalletDataBalance = parseFloat(((_b = walletData.balance) === null || _b === void 0 ? void 0 : _b.toString()) || "0");
+                const newWalletDataBalance = await this.updateBalancePrecision(currentWalletDataBalance + precisionAmount, currency, chain);
+                await db_1.models.walletData.update({ balance: newWalletDataBalance }, { where: { walletId: wallet.id, chain }, transaction: t });
+            }
+            const fromAddress = Array.isArray(operation.fromAddress)
+                ? operation.fromAddress[0] || "Unknown"
+                : operation.fromAddress || "Unknown";
+            const txRecord = await db_1.models.transaction.create({
+                userId: operation.userId,
+                walletId: wallet.id,
+                type: "DEPOSIT",
+                status: "COMPLETED",
+                amount: precisionAmount,
+                fee: operation.fee || 0,
+                description: operation.description || `Deposit of ${precisionAmount} ${operation.currency} from ${fromAddress}`,
+                trxId: operation.txHash,
+                referenceId: operation.referenceId,
+                metadata: JSON.stringify({
+                    idempotencyKey: operation.idempotencyKey,
+                    chain,
+                    currency: operation.currency,
+                    previousBalance,
+                    newBalance,
+                    previousChainBalance,
+                    newChainBalance,
+                    from: operation.fromAddress,
+                    to: operation.toAddress,
+                    ...operation.metadata,
+                }),
+            }, { transaction: t });
+            await this.auditLogger.logCredit(wallet.id, operation.userId, precisionAmount, previousBalance, newBalance, txRecord.id, operation.idempotencyKey, { chain, previousChainBalance, newChainBalance, ...operation.metadata });
+            return {
+                success: true,
+                walletId: wallet.id,
+                transactionId: txRecord.id,
+                previousBalance,
+                newBalance,
+                previousChainBalance,
+                newChainBalance,
+                chain,
+                timestamp: new Date(),
+            };
+        };
+        if (operation.transaction) {
+            return executeInTransaction(operation.transaction);
+        }
+        return await db_1.sequelize.transaction(executeInTransaction);
+    }
+    async ecoDebit(operation) {
+        this.validateAmount(operation.amount, "Eco Debit");
+        const executeInTransaction = async (t) => {
+            var _a, _b;
+            const { isDuplicate, existingTransactionId } = await this.checkIdempotency(operation.idempotencyKey, t);
+            if (isDuplicate) {
+                throw new errors_1.DuplicateOperationError(operation.idempotencyKey, existingTransactionId);
+            }
+            const walletRecord = await db_1.models.wallet.findOne({
+                where: { id: operation.walletId },
+                lock: sequelize_1.Transaction.LOCK.UPDATE,
+                transaction: t,
+            });
+            if (!walletRecord) {
+                throw new errors_1.WalletNotFoundError(operation.walletId);
+            }
+            const wallet = this.toWalletAttributes(walletRecord);
+            this.validateWalletStatus(wallet);
+            const addresses = this.parseAddressJson(wallet.address);
+            const chain = operation.chain;
+            const currency = operation.currency;
+            const precisionAmount = await this.updateBalancePrecision(operation.amount, currency, chain);
+            let previousChainBalance = 0;
+            let newChainBalance = 0;
+            if (addresses[chain]) {
+                previousChainBalance = await this.updateBalancePrecision(parseFloat(((_a = addresses[chain].balance) === null || _a === void 0 ? void 0 : _a.toString()) || "0"), currency, chain);
+                newChainBalance = await this.updateBalancePrecision(previousChainBalance - precisionAmount, currency, chain);
+                if (newChainBalance < 0) {
+                    throw new errors_1.InsufficientFundsError(previousChainBalance, precisionAmount, currency);
+                }
+                addresses[chain].balance = newChainBalance;
+            }
+            else {
+                throw (0, error_1.createError)({ statusCode: 404, message: `Chain ${chain} not found in wallet addresses` });
+            }
+            const previousBalance = wallet.balance;
+            const newBalance = await this.updateBalancePrecision(previousBalance - precisionAmount, currency, chain);
+            if (newBalance < 0) {
+                throw new errors_1.NegativeBalanceError(wallet.id, newBalance);
+            }
+            await db_1.models.wallet.update({
+                balance: newBalance,
+                address: addresses,
+            }, { where: { id: wallet.id }, transaction: t });
+            const walletData = await db_1.models.walletData.findOne({
+                where: { walletId: wallet.id, chain },
+                transaction: t,
+            });
+            if (walletData) {
+                const currentWalletDataBalance = parseFloat(((_b = walletData.balance) === null || _b === void 0 ? void 0 : _b.toString()) || "0");
+                const newWalletDataBalance = await this.updateBalancePrecision(currentWalletDataBalance - precisionAmount, currency, chain);
+                await db_1.models.walletData.update({ balance: newWalletDataBalance }, { where: { walletId: wallet.id, chain }, transaction: t });
+            }
+            await this.auditLogger.logDebit(wallet.id, operation.userId, precisionAmount, previousBalance, newBalance, operation.idempotencyKey, operation.idempotencyKey, { chain, previousChainBalance, newChainBalance, ...operation.metadata });
+            return {
+                success: true,
+                walletId: wallet.id,
+                transactionId: operation.idempotencyKey,
+                previousBalance,
+                newBalance,
+                previousChainBalance,
+                newChainBalance,
+                chain,
+                timestamp: new Date(),
+            };
+        };
+        if (operation.transaction) {
+            return executeInTransaction(operation.transaction);
+        }
+        return await db_1.sequelize.transaction(executeInTransaction);
+    }
+    async ecoRefund(operation) {
+        this.validateAmount(operation.amount, "Eco Refund");
+        const executeInTransaction = async (t) => {
+            var _a, _b;
+            const { isDuplicate, existingTransactionId } = await this.checkIdempotency(operation.idempotencyKey, t);
+            if (isDuplicate) {
+                throw new errors_1.DuplicateOperationError(operation.idempotencyKey, existingTransactionId);
+            }
+            const walletRecord = await db_1.models.wallet.findOne({
+                where: { id: operation.walletId },
+                lock: sequelize_1.Transaction.LOCK.UPDATE,
+                transaction: t,
+            });
+            if (!walletRecord) {
+                throw new errors_1.WalletNotFoundError(operation.walletId);
+            }
+            const wallet = this.toWalletAttributes(walletRecord);
+            const addresses = this.parseAddressJson(wallet.address);
+            const chain = operation.chain;
+            const currency = operation.currency;
+            const precisionAmount = await this.updateBalancePrecision(operation.amount, currency, chain);
+            let previousChainBalance = 0;
+            let newChainBalance = 0;
+            if (chain && addresses[chain]) {
+                previousChainBalance = await this.updateBalancePrecision(parseFloat(((_a = addresses[chain].balance) === null || _a === void 0 ? void 0 : _a.toString()) || "0"), currency, chain);
+                newChainBalance = await this.updateBalancePrecision(previousChainBalance + precisionAmount, currency, chain);
+                addresses[chain].balance = newChainBalance;
+            }
+            const previousBalance = wallet.balance;
+            const newBalance = await this.updateBalancePrecision(previousBalance + precisionAmount, currency, chain);
+            await db_1.models.wallet.update({
+                balance: newBalance,
+                address: addresses,
+            }, { where: { id: wallet.id }, transaction: t });
+            if (chain) {
+                const walletData = await db_1.models.walletData.findOne({
+                    where: { walletId: wallet.id, chain },
+                    transaction: t,
+                });
+                if (walletData) {
+                    const currentWalletDataBalance = parseFloat(((_b = walletData.balance) === null || _b === void 0 ? void 0 : _b.toString()) || "0");
+                    const newWalletDataBalance = await this.updateBalancePrecision(currentWalletDataBalance + precisionAmount, currency, chain);
+                    await db_1.models.walletData.update({ balance: newWalletDataBalance }, { where: { walletId: wallet.id, chain }, transaction: t });
+                }
+            }
+            await this.auditLogger.logCredit(wallet.id, operation.userId, precisionAmount, previousBalance, newBalance, operation.idempotencyKey, operation.idempotencyKey, { chain, previousChainBalance, newChainBalance, refund: true, ...operation.metadata });
+            return {
+                success: true,
+                walletId: wallet.id,
+                transactionId: operation.idempotencyKey,
+                previousBalance,
+                newBalance,
+                previousChainBalance,
+                newChainBalance,
+                chain,
+                timestamp: new Date(),
+            };
+        };
+        if (operation.transaction) {
+            return executeInTransaction(operation.transaction);
+        }
+        return await db_1.sequelize.transaction(executeInTransaction);
+    }
+}
+exports.WalletService = WalletService;
+exports.walletService = WalletService.getInstance();

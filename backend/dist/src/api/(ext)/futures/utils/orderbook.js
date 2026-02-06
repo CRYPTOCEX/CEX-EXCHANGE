@@ -1,1 +1,58 @@
-"use strict";async function updateOrderBookState(e,o){const t=["asks","bids"];try{await Promise.all(t.map(async t=>{for(const[r,s]of Object.entries(o[t])){const o=BigInt(s);if(e[t][r]){e[t][r]+=o;e[t][r]<=BigInt(0)&&delete e[t][r]}else e[t][r]=o>BigInt(0)?o:BigInt(0)}}))}catch(e){console_1.logger.error("ORDERBOOK","Failed to update order book state",e)}}function applyUpdatesToOrderBook(e,o){const t={bids:{...e.bids},asks:{...e.asks}};["bids","asks"].forEach(e=>{if(o[e]){for(const[r,s]of Object.entries(o[e]))if(null!=s)try{const o=BigInt(s);o>BigInt(0)?t[e][r]=o:delete t[e][r]}catch(e){console_1.logger.error("ORDERBOOK",`Error converting ${s} to BigInt`,e)}}else console_1.logger.warn("ORDERBOOK",`No updates for ${e}`)});return t}Object.defineProperty(exports,"__esModule",{value:!0});exports.updateOrderBookState=updateOrderBookState;exports.applyUpdatesToOrderBook=applyUpdatesToOrderBook;const console_1=require("@b/utils/console");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateOrderBookState = updateOrderBookState;
+exports.applyUpdatesToOrderBook = applyUpdatesToOrderBook;
+const console_1 = require("@b/utils/console");
+async function updateOrderBookState(symbolOrderBook, bookUpdates) {
+    const sides = ["asks", "bids"];
+    try {
+        await Promise.all(sides.map(async (side) => {
+            for (const [price, amount] of Object.entries(bookUpdates[side])) {
+                const bigAmount = BigInt(amount);
+                if (!symbolOrderBook[side][price]) {
+                    symbolOrderBook[side][price] =
+                        bigAmount > BigInt(0) ? bigAmount : BigInt(0);
+                }
+                else {
+                    symbolOrderBook[side][price] += bigAmount;
+                    if (symbolOrderBook[side][price] <= BigInt(0)) {
+                        delete symbolOrderBook[side][price];
+                    }
+                }
+            }
+        }));
+    }
+    catch (error) {
+        console_1.logger.error("ORDERBOOK", "Failed to update order book state", error);
+    }
+}
+function applyUpdatesToOrderBook(currentOrderBook, updates) {
+    const updatedOrderBook = {
+        bids: { ...currentOrderBook.bids },
+        asks: { ...currentOrderBook.asks },
+    };
+    ["bids", "asks"].forEach((side) => {
+        if (!updates[side]) {
+            console_1.logger.warn("ORDERBOOK", `No updates for ${side}`);
+            return;
+        }
+        for (const [price, updatedAmountStr] of Object.entries(updates[side])) {
+            if (updatedAmountStr === undefined || updatedAmountStr === null) {
+                continue;
+            }
+            try {
+                const updatedAmount = BigInt(updatedAmountStr);
+                if (updatedAmount > BigInt(0)) {
+                    updatedOrderBook[side][price] = updatedAmount;
+                }
+                else {
+                    delete updatedOrderBook[side][price];
+                }
+            }
+            catch (e) {
+                console_1.logger.error("ORDERBOOK", `Error converting ${updatedAmountStr} to BigInt`, e);
+            }
+        }
+    });
+    return updatedOrderBook;
+}

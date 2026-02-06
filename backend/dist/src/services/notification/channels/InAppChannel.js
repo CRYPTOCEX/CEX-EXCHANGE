@@ -1,1 +1,99 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.InAppChannel=void 0;const db_1=require("@b/db"),BaseChannel_1=require("./BaseChannel"),Websocket_1=require("@b/handler/Websocket");class InAppChannel extends BaseChannel_1.BaseChannel{constructor(){super("IN_APP")}async send(e,t){try{this.validate(e);const{userId:i,type:a,data:n}=e,s=(null==n?void 0:n.title)||"Notification",r=(null==n?void 0:n.message)||"",o=(null==n?void 0:n.link)||null,d=(null==n?void 0:n.relatedId)||null,l=(null==n?void 0:n.actions)||null,c=await db_1.models.notification.create({userId:i,type:a,title:s,message:r,link:o,relatedId:d,actions:l?JSON.stringify(l):null,read:!1,idempotencyKey:e.idempotencyKey,channels:JSON.stringify(["IN_APP"]),priority:e.priority||"NORMAL",details:e.metadata?JSON.stringify(e.metadata):null},t?{transaction:t}:void 0);this.log("Notification created in database",{id:c.id,userId:i,type:a});try{await this.sendViaWebSocket(i,{id:c.id,type:c.type,title:s,message:r,link:o,actions:l,createdAt:c.createdAt});this.log("Notification sent via WebSocket",{id:c.id,userId:i})}catch(e){this.logError("WebSocket delivery failed",e)}await this.trackDelivery(c.id,{status:"DELIVERED",messageId:`in-app-${c.id}`});return{success:!0,externalId:c.id,messageId:`in-app-${c.id}`}}catch(e){this.logError("Failed to send in-app notification",e);return{success:!1,error:e.message}}}async sendViaWebSocket(e,t){try{Websocket_1.messageBroker.sendToClientOnRoute(e,"notification",{...t,timestamp:(new Date).toISOString()})}catch(e){throw e}}validate(e){var t,i;super.validate(e);if(!(null===(t=e.data)||void 0===t?void 0:t.message)&&!(null===(i=e.data)||void 0===i?void 0:i.title))throw new Error("In-app notification requires at least title or message")}}exports.InAppChannel=InAppChannel;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InAppChannel = void 0;
+const db_1 = require("@b/db");
+const BaseChannel_1 = require("./BaseChannel");
+const Websocket_1 = require("@b/handler/Websocket");
+class InAppChannel extends BaseChannel_1.BaseChannel {
+    constructor() {
+        super("IN_APP");
+    }
+    async send(operation, transaction) {
+        try {
+            this.validate(operation);
+            const { userId, type, data } = operation;
+            const title = (data === null || data === void 0 ? void 0 : data.title) || "Notification";
+            const message = (data === null || data === void 0 ? void 0 : data.message) || "";
+            const link = (data === null || data === void 0 ? void 0 : data.link) || null;
+            const relatedId = (data === null || data === void 0 ? void 0 : data.relatedId) || null;
+            const actions = (data === null || data === void 0 ? void 0 : data.actions) || null;
+            const notification = await db_1.models.notification.create({
+                userId,
+                type,
+                title,
+                message,
+                link,
+                relatedId,
+                actions: actions ? JSON.stringify(actions) : null,
+                read: false,
+                idempotencyKey: operation.idempotencyKey,
+                channels: JSON.stringify(["IN_APP"]),
+                priority: operation.priority || "NORMAL",
+                details: operation.metadata
+                    ? JSON.stringify(operation.metadata)
+                    : null,
+            }, transaction ? { transaction } : undefined);
+            this.log(`Notification created in database`, {
+                id: notification.id,
+                userId,
+                type,
+            });
+            try {
+                await this.sendViaWebSocket(userId, {
+                    id: notification.id,
+                    type: notification.type,
+                    title,
+                    message,
+                    link,
+                    actions,
+                    createdAt: notification.createdAt,
+                });
+                this.log(`Notification sent via WebSocket`, {
+                    id: notification.id,
+                    userId,
+                });
+            }
+            catch (wsError) {
+                this.logError(`WebSocket delivery failed`, wsError);
+            }
+            await this.trackDelivery(notification.id, {
+                status: "DELIVERED",
+                messageId: `in-app-${notification.id}`,
+            });
+            return {
+                success: true,
+                externalId: notification.id,
+                messageId: `in-app-${notification.id}`,
+            };
+        }
+        catch (error) {
+            this.logError(`Failed to send in-app notification`, error);
+            return {
+                success: false,
+                error: error.message,
+            };
+        }
+    }
+    async sendViaWebSocket(userId, data) {
+        try {
+            Websocket_1.messageBroker.sendToClient(userId, {
+                stream: "notification",
+                data: {
+                    ...data,
+                    timestamp: new Date().toISOString(),
+                },
+            });
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    validate(operation) {
+        var _a, _b;
+        super.validate(operation);
+        if (!((_a = operation.data) === null || _a === void 0 ? void 0 : _a.message) && !((_b = operation.data) === null || _b === void 0 ? void 0 : _b.title)) {
+            throw new Error("In-app notification requires at least title or message");
+        }
+    }
+}
+exports.InAppChannel = InAppChannel;

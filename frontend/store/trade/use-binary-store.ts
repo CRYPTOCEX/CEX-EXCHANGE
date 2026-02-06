@@ -71,6 +71,8 @@ export interface CompletedOrder {
   barrier?: number;
   strikePrice?: number;
   payoutPerPoint?: number;
+  // Trading mode indicator
+  isDemo?: boolean;
 }
 
 export interface BinaryMarket {
@@ -429,7 +431,7 @@ interface BinaryState {
     amount: number,
     expiryMinutes: number
   ) => Promise<boolean>;
-  fetchWalletData: (currency?: string) => Promise<void>;
+  fetchWalletData: (currency?: string, forceRefresh?: boolean) => Promise<void>;
   fetchBinarySettings: () => Promise<void>;
   forceRefreshSettings: () => Promise<void>;
   fetchBinaryDurations: () => Promise<void>;
@@ -456,6 +458,7 @@ interface BinaryState {
     // user property removed - use useUserStore instead
     updateMarketData: (symbol: Symbol, price: number, change: number) => void;
     updateActiveMarketsFromTicker: (tickerData: Record<string, any>) => void;
+    resetDemoBalance: () => void;
 }
 
 export const useBinaryStore = create<BinaryState>()(
@@ -707,6 +710,16 @@ export const useBinaryStore = create<BinaryState>()(
           set({ activeMarkets: updatedMarkets });
         },
 
+        // Reset demo balance to default value (10000)
+        resetDemoBalance: () => {
+          const { tradingMode } = get();
+          set({
+            demoBalance: 10000,
+            // Also update displayed balance if in demo mode
+            ...(tradingMode === "demo" ? { balance: 10000 } : {}),
+          });
+        },
+
         removeMarket: (symbol) => {
           const { activeMarkets, currentSymbol } = get();
           if (activeMarkets.length > 1) {
@@ -911,13 +924,31 @@ export const useBinaryStore = create<BinaryState>()(
               };
 
               // Update state only if API call was successful
-              set((state) => ({
-                orders: [...state.orders, newOrder],
-              }));
-
-              // Refresh wallet balance from backend after successful order placement
-              // This ensures balance is accurate and prevents desync
-              await get().fetchWalletData(pair);
+              // For demo mode, also deduct from demo balance immediately
+              if (tradingMode === "demo") {
+                set((state) => {
+                  // Compute new balance once and guard against negative values
+                  const newDemoBalance = Math.max(0, state.demoBalance - amount);
+                  return {
+                    orders: [...state.orders, newOrder],
+                    demoBalance: newDemoBalance,
+                    balance: newDemoBalance,
+                  };
+                });
+              } else {
+                // For real mode, optimistically deduct balance immediately for better UX
+                // Then refresh from backend to get accurate balance
+                set((state) => ({
+                  orders: [...state.orders, newOrder],
+                  // Optimistic update - deduct amount from displayed balance immediately
+                  balance: Math.max(0, state.balance - amount),
+                  realBalance: state.realBalance !== null ? Math.max(0, state.realBalance - amount) : null,
+                }));
+                // Refresh wallet balance from backend after successful order placement
+                // This ensures balance is accurate and prevents desync
+                // Use forceRefresh=true to bypass the 30-second cache
+                await get().fetchWalletData(pair, true);
+              }
 
               return true;
             } else {
@@ -930,7 +961,7 @@ export const useBinaryStore = create<BinaryState>()(
           }
         },
 
-        fetchWalletData: async (currency) => {
+        fetchWalletData: async (currency, forceRefresh = false) => {
           try {
             // Check if user is authenticated
             const { user } = useUserStore.getState();
@@ -964,9 +995,14 @@ export const useBinaryStore = create<BinaryState>()(
             // Create cache key for this currency
             const cacheKey = `wallet_${currencyToFetch}`;
             const now = Date.now();
-            
+
+            // Clear cache if force refresh is requested (e.g., after placing an order)
+            if (forceRefresh && typeof window !== 'undefined') {
+              sessionStorage.removeItem(cacheKey);
+            }
+
             // Check if we have recent cached data (within 30 seconds)
-            if (typeof window !== 'undefined') {
+            if (!forceRefresh && typeof window !== 'undefined') {
               const cached = sessionStorage.getItem(cacheKey);
               if (cached) {
                 try {
@@ -1437,6 +1473,8 @@ export const useBinaryStore = create<BinaryState>()(
                 barrier: order.barrier,
                 strikePrice: order.strikePrice,
                 payoutPerPoint: order.payoutPerPoint,
+                // Include trading mode for filtering
+                isDemo: order.isDemo,
               }));
 
               // If loading more, append to existing orders; otherwise replace
@@ -1679,6 +1717,7 @@ export const useBinaryStore = create<BinaryState>()(
                   expiryTime: new Date(order.expiryTime),
                   status: "CANCELLED" as any, // Cast to any since type expects WIN/LOSS
                   profit: -cancellationFee, // Fee as negative profit
+                  isDemo: tradingMode === "demo", // Include trading mode for filtering
                 },
                 ...state.completedOrders,
               ],
@@ -1786,6 +1825,7 @@ export const useBinaryStore = create<BinaryState>()(
                   expiryTime: new Date(order.expiryTime),
                   status: "CLOSED_EARLY" as any, // Cast to any since type expects WIN/LOSS
                   profit: actualProfit,
+                  isDemo: tradingMode === "demo", // Include trading mode for filtering
                 },
                 ...state.completedOrders,
               ],
@@ -1892,17 +1932,50 @@ export const useBinaryStore = create<BinaryState>()(
                     barrier: order.barrier,
                     strikePrice: order.strikePrice,
                     payoutPerPoint: order.payoutPerPoint,
+                    // Include trading mode for filtering
+                    isDemo: order.isDemo,
                   };
 
-                  set((state) => ({
-                    completedOrders: [completedOrder, ...state.completedOrders],
-                  }));
+                  // Update state based on demo/real mode
+                  if (order.isDemo) {
+                    // For demo mode, update demo balance:
+                    // - WIN: Add back investment + profit
+                    // - LOSS: Investment was already deducted when order was placed
+                    const balanceChange = order.status === 'WIN'
+                      ? order.amount + (order.profit || 0)  // Return investment + profit
+                      : 0;  // Loss - investment already deducted
 
-                  // Refresh wallet balance if real mode
-                  if (!order.isDemo) {
+                    set((state) => {
+                      // Compute new balance once to avoid race conditions
+                      const newDemoBalance = state.demoBalance + balanceChange;
+                      // Calculate profit for netPL tracking
+                      const profitForPL = order.status === 'WIN'
+                        ? (order.profit || 0)  // Profit amount
+                        : -order.amount;  // Loss = negative investment amount
+                      return {
+                        completedOrders: [completedOrder, ...state.completedOrders],
+                        demoBalance: newDemoBalance,
+                        // Also update displayed balance if in demo mode
+                        ...(state.tradingMode === 'demo' ? { balance: newDemoBalance } : {}),
+                        // Update net P/L
+                        netPL: state.netPL + profitForPL,
+                      };
+                    });
+                  } else {
+                    // For real mode, add to completed orders and update netPL
+                    // Balance will be refreshed from backend
+                    const profitForPL = order.status === 'WIN'
+                      ? (order.profit || 0)  // Profit amount
+                      : -order.amount;  // Loss = negative investment amount
+                    set((state) => ({
+                      completedOrders: [completedOrder, ...state.completedOrders],
+                      netPL: state.netPL + profitForPL,
+                    }));
+
+                    // Refresh wallet balance from backend
                     const { binaryMarkets, currentSymbol } = get();
                     const quoteCurrency = extractQuoteCurrency(currentSymbol, binaryMarkets);
-                    get().fetchWalletData(quoteCurrency);
+                    get().fetchWalletData(quoteCurrency, true);  // Force refresh to get updated balance
                   }
                 }
               },

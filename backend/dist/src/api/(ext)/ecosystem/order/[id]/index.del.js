@@ -1,1 +1,171 @@
-"use strict";var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,r,n){void 0===n&&(n=r);var a=Object.getOwnPropertyDescriptor(t,r);a&&!("get"in a?!t.__esModule:a.writable||a.configurable)||(a={enumerable:!0,get:function(){return t[r]}});Object.defineProperty(e,n,a)}:function(e,t,r,n){void 0===n&&(n=r);e[n]=t[r]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&(t[t.length]=r);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var r={};if(null!=t)for(var n=e(t),a=0;a<n.length;a++)"default"!==n[a]&&__createBinding(r,t,n[a]);__setModuleDefault(r,t);return r}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const utils_1=require("@b/api/finance/wallet/utils"),blockchain_1=require("@b/api/(ext)/ecosystem/utils/blockchain"),matchingEngine_1=require("@b/api/(ext)/ecosystem/utils/matchingEngine"),queries_1=require("@b/api/(ext)/ecosystem/utils/scylla/queries"),wallet_1=require("@b/api/(ext)/ecosystem/utils/wallet"),error_1=require("@b/utils/error"),query_1=require("@b/utils/query");exports.metadata={summary:"Cancels an existing trading order",description:"Cancels an open trading order and refunds the unfulfilled amount, including fee adjustments for partial fills.",operationId:"cancelOrder",tags:["Trading","Orders"],logModule:"ECOSYSTEM",logTitle:"Cancel trading order",parameters:[{index:0,name:"id",in:"path",required:!0,schema:{type:"string",description:"UUID of the order"}},{name:"timestamp",in:"query",required:!0,schema:{type:"string",description:"Timestamp of the order"}}],responses:{200:{description:"Order cancelled successfully",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Success message"}}}}}},401:query_1.unauthorizedResponse,404:(0,query_1.notFoundMetadataResponse)("Order"),500:query_1.serverErrorResponse},requiresAuth:!0};exports.default=async e=>{const{params:t,query:r,user:n,ctx:a}=e;if(!(null==n?void 0:n.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});const{id:i}=t,{timestamp:s}=r;null==a||a.step("Validating request parameters");if(!i||!s){null==a||a.fail("Missing order ID or timestamp");throw(0,error_1.createError)({statusCode:400,message:"Invalid request parameters"})}try{null==a||a.step("Retrieving order details");const e=isNaN(Number(s))?s:new Date(Number(s)).toISOString(),t=await(0,queries_1.getOrderByUuid)(n.id,i,e);if(!t){null==a||a.fail(`Order ${i} not found`);throw(0,error_1.createError)({statusCode:404,message:"Order not found"})}if("OPEN"!==t.status){null==a||a.fail(`Order ${i} is not open (status: ${t.status})`);throw(0,error_1.createError)({statusCode:400,message:"Order is not open"})}const r=BigInt(t.amount),o=BigInt(t.remaining),l=(BigInt(t.cost),BigInt(t.fee)),u=BigInt(t.price),c=t.side,d=t.symbol;if(o===BigInt(0))throw(0,error_1.createError)({statusCode:400,message:"Order is fully filled; nothing to cancel."});const[g,p]=d.split("/");null==a||a.step("Calculating refund amount");let f=0;if("BUY"===c){const e=Number(o)/Number(r),t=o*u/BigInt(1e18),n=l*BigInt(Math.floor(1e18*e))/BigInt(1e18);f=(0,blockchain_1.fromBigInt)(t+n)}else f=(0,blockchain_1.fromBigInt)(o);const m="BUY"===c?p:g;null==a||a.step(`Retrieving ${m} wallet`);const _=await(0,utils_1.getWallet)(n.id,"ECO",m,!1,a);if(!_){null==a||a.fail(`${m} wallet not found`);throw(0,error_1.createError)({statusCode:404,message:`${m} wallet not found`})}null==a||a.step("Cancelling order in database");await(0,queries_1.cancelOrderByUuid)(n.id,i,e,d,BigInt(t.price),c,r);null==a||a.step(`Refunding ${f} ${m} to wallet`);const h=`eco_order_cancel_${i}_${_.id}`;await(0,wallet_1.updateWalletBalance)(_,f,"add",h);null==a||a.step("Removing order from matching engine");const y=await matchingEngine_1.MatchingEngine.getInstance();await y.handleOrderCancellation(i,d);null==a||a.step("Checking for copy trading cancellation");try{const{triggerCopyTradingCancellation:e}=await Promise.resolve().then(()=>__importStar(require("@b/utils/safe-imports")));e(i,n.id,d).catch(()=>{})}catch(e){}null==a||a.success(`Order ${i} cancelled, refunded ${f} ${m}`);return{message:"Order cancelled and leftover balance refunded successfully"}}catch(e){null==a||a.fail(`Order cancellation failed: ${e.message}`);throw(0,error_1.createError)({statusCode:500,message:`Failed to cancel order: ${e.message}`})}};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const utils_1 = require("@b/api/finance/wallet/utils");
+const blockchain_1 = require("@b/api/(ext)/ecosystem/utils/blockchain");
+const matchingEngine_1 = require("@b/api/(ext)/ecosystem/utils/matchingEngine");
+const queries_1 = require("@b/api/(ext)/ecosystem/utils/scylla/queries");
+const wallet_1 = require("@b/api/(ext)/ecosystem/utils/wallet");
+const error_1 = require("@b/utils/error");
+const query_1 = require("@b/utils/query");
+exports.metadata = {
+    summary: "Cancels an existing trading order",
+    description: "Cancels an open trading order and refunds the unfulfilled amount, including fee adjustments for partial fills.",
+    operationId: "cancelOrder",
+    tags: ["Trading", "Orders"],
+    logModule: "ECOSYSTEM",
+    logTitle: "Cancel trading order",
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", description: "UUID of the order" },
+        },
+        {
+            name: "timestamp",
+            in: "query",
+            required: true,
+            schema: { type: "string", description: "Timestamp of the order" },
+        },
+    ],
+    responses: {
+        200: {
+            description: "Order cancelled successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: { type: "string", description: "Success message" },
+                        },
+                    },
+                },
+            },
+        },
+        401: query_1.unauthorizedResponse,
+        404: (0, query_1.notFoundMetadataResponse)("Order"),
+        500: query_1.serverErrorResponse,
+    },
+    requiresAuth: true,
+};
+exports.default = async (data) => {
+    const { params, query, user, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    const { id } = params;
+    const { timestamp } = query;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating request parameters");
+    if (!id || !timestamp) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Missing order ID or timestamp");
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Invalid request parameters",
+        });
+    }
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Retrieving order details");
+        const timestampValue = !isNaN(Number(timestamp))
+            ? new Date(Number(timestamp)).toISOString()
+            : timestamp;
+        const order = await (0, queries_1.getOrderByUuid)(user.id, id, timestampValue);
+        if (!order) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Order ${id} not found`);
+            throw (0, error_1.createError)({ statusCode: 404, message: "Order not found" });
+        }
+        if (order.status !== "OPEN") {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Order ${id} is not open (status: ${order.status})`);
+            throw (0, error_1.createError)({ statusCode: 400, message: "Order is not open" });
+        }
+        const totalAmount = BigInt(order.amount);
+        const remaining = BigInt(order.remaining);
+        const totalCost = BigInt(order.cost);
+        const totalFee = BigInt(order.fee);
+        const price = BigInt(order.price);
+        const side = order.side;
+        const symbol = order.symbol;
+        if (remaining === BigInt(0)) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "Order is fully filled; nothing to cancel." });
+        }
+        const [currency, pair] = symbol.split("/");
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating refund amount");
+        let refundAmount = 0;
+        if (side === "BUY") {
+            const fillRatio = Number(remaining) / Number(totalAmount);
+            const remainingCost = (remaining * price) / BigInt(1e18);
+            const remainingFee = (totalFee * BigInt(Math.floor(fillRatio * 1e18))) / BigInt(1e18);
+            refundAmount = (0, blockchain_1.fromBigInt)(remainingCost + remainingFee);
+        }
+        else {
+            refundAmount = (0, blockchain_1.fromBigInt)(remaining);
+        }
+        const refundCurrency = side === "BUY" ? pair : currency;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step(`Retrieving ${refundCurrency} wallet`);
+        const wallet = await (0, utils_1.getWallet)(user.id, "ECO", refundCurrency, false, ctx);
+        if (!wallet) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail(`${refundCurrency} wallet not found`);
+            throw (0, error_1.createError)({ statusCode: 404, message: `${refundCurrency} wallet not found` });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Cancelling order in database");
+        await (0, queries_1.cancelOrderByUuid)(user.id, id, timestampValue, symbol, BigInt(order.price), side, totalAmount);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step(`Refunding ${refundAmount} ${refundCurrency} to wallet`);
+        const idempotencyKey = `eco_order_cancel_${id}_${wallet.id}`;
+        await (0, wallet_1.updateWalletBalance)(wallet, refundAmount, "add", idempotencyKey);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Removing order from matching engine");
+        const matchingEngine = await matchingEngine_1.MatchingEngine.getInstance();
+        await matchingEngine.handleOrderCancellation(id, symbol);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking for copy trading cancellation");
+        try {
+            const { triggerCopyTradingCancellation } = await Promise.resolve().then(() => __importStar(require("@b/utils/safe-imports")));
+            triggerCopyTradingCancellation(id, user.id, symbol).catch(() => { });
+        }
+        catch (importError) {
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Order ${id} cancelled, refunded ${refundAmount} ${refundCurrency}`);
+        return {
+            message: "Order cancelled and leftover balance refunded successfully",
+        };
+    }
+    catch (error) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Order cancellation failed: ${error.message}`);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Failed to cancel order: ${error.message}`,
+        });
+    }
+};

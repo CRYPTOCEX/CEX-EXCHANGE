@@ -60,7 +60,7 @@ export default function UnsubscribePage() {
       });
 
       if (fetchError) {
-        setError(fetchError.message || t("invalid_or_expired_token"));
+        setError(fetchError || t("invalid_or_expired_token"));
         setToken(null);
       } else if (data) {
         setPreferences({
@@ -91,7 +91,7 @@ export default function UnsubscribePage() {
       });
 
       if (saveError) {
-        setError(saveError.message || t("failed_to_save_preferences"));
+        setError(saveError || t("failed_to_save_preferences"));
       } else {
         setSuccess(true);
       }
@@ -119,7 +119,7 @@ export default function UnsubscribePage() {
       });
 
       if (saveError) {
-        setError(saveError.message || t("failed_to_save_preferences"));
+        setError(saveError || t("failed_to_save_preferences"));
       } else {
         setSuccess(true);
       }

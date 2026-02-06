@@ -528,34 +528,36 @@ export default function ApplicationDetailClient({
           <ProgressBar status={application.status} />
         </motion.div>
 
-        {/* Review Section - Full Width Card */}
-        <motion.div variants={itemVariants} className="mb-6">
-          <Card className="shadow-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700">
-            <CardContent className="p-6">
-              <AnimatePresence>
-                {showConfirmation && (
-                  <div className="mb-4">
-                    <StatusConfirmation
-                      status={showConfirmation}
-                      onConfirm={() =>
-                        updateApplicationStatus(showConfirmation)
-                      }
-                      onCancel={() => setShowConfirmation(null)}
-                    />
-                  </div>
-                )}
-              </AnimatePresence>
+        {/* Review Section - Only show when status is PENDING or ADDITIONAL_INFO_REQUIRED */}
+        {(application.status === "PENDING" || application.status === "ADDITIONAL_INFO_REQUIRED") && (
+          <motion.div variants={itemVariants} className="mb-6">
+            <Card className="shadow-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700">
+              <CardContent className="p-6">
+                <AnimatePresence>
+                  {showConfirmation && (
+                    <div className="mb-4">
+                      <StatusConfirmation
+                        status={showConfirmation}
+                        onConfirm={() =>
+                          updateApplicationStatus(showConfirmation)
+                        }
+                        onCancel={() => setShowConfirmation(null)}
+                      />
+                    </div>
+                  )}
+                </AnimatePresence>
 
-              <ReviewSidebar
-                adminNotes={adminNotes}
-                onAdminNotesChange={setAdminNotes}
-                onStatusChange={setShowConfirmation}
-                updatingStatus={updatingStatus}
-                currentStatus={application.status}
-              />
-            </CardContent>
-          </Card>
-        </motion.div>
+                <ReviewSidebar
+                  adminNotes={adminNotes}
+                  onAdminNotesChange={setAdminNotes}
+                  onStatusChange={setShowConfirmation}
+                  updatingStatus={updatingStatus}
+                  currentStatus={application.status}
+                />
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Main Content Area - Full Width */}
         <motion.div variants={itemVariants}>

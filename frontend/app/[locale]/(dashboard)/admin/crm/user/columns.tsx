@@ -459,7 +459,7 @@ export function useColumns() {
 
     // Two-factor field (edit form only)
     {
-      key: "twoFactor",
+      key: "disableTwoFactor",
       title: "Disable 2FA",
       type: "boolean",
       icon: Shield,
@@ -769,7 +769,7 @@ export function useFormConfig(): FormConfig {
             },
             { key: "emailVerified" },
             {
-              key: "twoFactor",
+              key: "disableTwoFactor",
               type: "boolean",
               title: "Disable 2FA",
               description: "Check to disable two-factor authentication",

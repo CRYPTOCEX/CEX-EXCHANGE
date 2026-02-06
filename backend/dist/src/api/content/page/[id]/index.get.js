@@ -1,1 +1,70 @@
-"use strict";async function getPage(e){const r=await db_1.models.page.findOne({where:{id:e}});if(!r)throw(0,error_1.createError)({statusCode:404,message:"Page not found"});return r.get({plain:!0})}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;exports.getPage=getPage;const error_1=require("@b/utils/error"),db_1=require("@b/db"),redis_1=require("@b/utils/redis"),redis=redis_1.RedisSingleton.getInstance(),query_1=require("@b/utils/query"),utils_1=require("../utils");exports.metadata={summary:"Retrieves a single page by ID",description:"Fetches detailed information about a specific page based on its unique identifier.",operationId:"getPage",tags:["Page"],requiresAuth:!1,parameters:[{index:0,name:"id",in:"path",required:!0,description:"The ID of the page to retrieve",schema:{type:"number"}}],responses:{200:{description:"Page retrieved successfully",content:{"application/json":{schema:{type:"object",properties:utils_1.basePageSchema}}}},401:query_1.unauthorizedResponse,404:(0,query_1.notFoundMetadataResponse)("Page"),500:query_1.serverErrorResponse}};exports.default=async e=>{try{const r=await redis.get("pages");if(r){const t=JSON.parse(r).find(r=>r.id===e.params.id);if(t)return t}}catch(e){console.error("Redis error:",e)}return getPage(e.params.id)};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+exports.getPage = getPage;
+const error_1 = require("@b/utils/error");
+const db_1 = require("@b/db");
+const redis_1 = require("@b/utils/redis");
+const redis = redis_1.RedisSingleton.getInstance();
+const query_1 = require("@b/utils/query");
+const utils_1 = require("../utils");
+exports.metadata = {
+    summary: "Retrieves a single page by ID",
+    description: "Fetches detailed information about a specific page based on its unique identifier.",
+    operationId: "getPage",
+    tags: ["Page"],
+    requiresAuth: false,
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            required: true,
+            description: "The ID of the page to retrieve",
+            schema: { type: "number" },
+        },
+    ],
+    responses: {
+        200: {
+            description: "Page retrieved successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: utils_1.basePageSchema,
+                    },
+                },
+            },
+        },
+        401: query_1.unauthorizedResponse,
+        404: (0, query_1.notFoundMetadataResponse)("Page"),
+        500: query_1.serverErrorResponse,
+    },
+};
+exports.default = async (data) => {
+    try {
+        const cachedPages = await redis.get("pages");
+        if (cachedPages) {
+            const pages = JSON.parse(cachedPages);
+            const page = pages.find((p) => p.id === data.params.id);
+            if (page)
+                return page;
+        }
+    }
+    catch (err) {
+        console.error("Redis error:", err);
+    }
+    return getPage(data.params.id);
+};
+async function getPage(id) {
+    const response = await db_1.models.page.findOne({
+        where: { id },
+    });
+    if (!response) {
+        throw (0, error_1.createError)({
+            statusCode: 404,
+            message: "Page not found",
+        });
+    }
+    return response.get({ plain: true });
+}

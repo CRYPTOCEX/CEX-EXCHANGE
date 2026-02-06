@@ -1,1 +1,92 @@
-"use strict";async function handler(e){const{user:r,params:t,ctx:a}=e;if(!r)throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});const d=t.id;if(!d)throw(0,error_1.createError)({statusCode:400,message:"Referral ID is required"});null==a||a.step(`Fetching referral details for ID: ${d}`);const i=await db_1.models.mlmReferral.findOne({where:{id:d,referrerId:r.id},include:[{model:db_1.models.user,as:"referred",attributes:["id","firstName","lastName","email","avatar"]}]});if(!i)throw(0,error_1.createError)({statusCode:404,message:"Referral not found"});null==a||a.step("Computing earnings summary");const s=await db_1.models.mlmReferralReward.sum("reward",{where:{referrerId:r.id}}),l=await db_1.models.mlmReferralReward.sum("reward",{where:{referrerId:r.id,isClaimed:!1}}),o=await db_1.models.mlmReferralReward.findOne({where:{referrerId:r.id},order:[["createdAt","DESC"]]}),n={total:s||0,pending:l||0,lastReward:o?{amount:o.reward,date:o.createdAt}:null};null==a||a.step("Building activity timeline");const f=[];f.push({type:"invite",title:"Invitation sent",date:i.createdAt});const u=await db_1.models.mlmReferralReward.findAll({where:{referrerId:r.id},order:[["createdAt","ASC"]]});for(const e of u)f.push({type:"reward",title:`Reward: $${e.reward.toFixed(2)}`,date:e.createdAt});null==a||a.success(`Retrieved details for referral ${d} with ${f.length} timeline events`);return{referral:i,earnings:n,timeline:f}}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;exports.default=handler;const db_1=require("@b/db"),error_1=require("@b/utils/error");exports.metadata={summary:"Get details for a single referral",operationId:"getAffiliateReferral",tags:["Affiliate","Referral"],requiresAuth:!0,logModule:"AFFILIATE",logTitle:"Get affiliate referral details",parameters:[{name:"id",in:"path",required:!0,schema:{type:"string"}}],responses:{200:{description:"Referral details retrieved successfully."},401:{description:"Unauthorized"},404:{description:"Not Found"},500:{description:"Internal Server Error"}}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+exports.default = handler;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+exports.metadata = {
+    summary: "Get details for a single referral",
+    operationId: "getAffiliateReferral",
+    tags: ["Affiliate", "Referral"],
+    requiresAuth: true,
+    logModule: "AFFILIATE",
+    logTitle: "Get affiliate referral details",
+    parameters: [
+        { name: "id", in: "path", required: true, schema: { type: "string" } },
+    ],
+    responses: {
+        200: { description: "Referral details retrieved successfully." },
+        401: { description: "Unauthorized" },
+        404: { description: "Not Found" },
+        500: { description: "Internal Server Error" },
+    },
+};
+async function handler(data) {
+    const { user, params, ctx } = data;
+    if (!user) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    const referralId = params.id;
+    if (!referralId) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "Referral ID is required" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Fetching referral details for ID: ${referralId}`);
+    const referral = await db_1.models.mlmReferral.findOne({
+        where: { id: referralId, referrerId: user.id },
+        include: [
+            {
+                model: db_1.models.user,
+                as: "referred",
+                attributes: ["id", "firstName", "lastName", "email", "avatar"],
+            },
+        ],
+    });
+    if (!referral) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Referral not found" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Computing earnings summary");
+    const totalEarnings = (await db_1.models.mlmReferralReward.sum("reward", {
+        where: { referrerId: user.id },
+    }));
+    const pendingRewards = (await db_1.models.mlmReferralReward.sum("reward", {
+        where: { referrerId: user.id, isClaimed: false },
+    }));
+    const lastRewardRecord = await db_1.models.mlmReferralReward.findOne({
+        where: { referrerId: user.id },
+        order: [["createdAt", "DESC"]],
+    });
+    const earnings = {
+        total: totalEarnings || 0,
+        pending: pendingRewards || 0,
+        lastReward: lastRewardRecord
+            ? {
+                amount: lastRewardRecord.reward,
+                date: lastRewardRecord.createdAt,
+            }
+            : null,
+    };
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Building activity timeline");
+    const timeline = [];
+    timeline.push({
+        type: "invite",
+        title: "Invitation sent",
+        date: referral.createdAt || new Date(),
+    });
+    const rewardEvents = await db_1.models.mlmReferralReward.findAll({
+        where: { referrerId: user.id },
+        order: [["createdAt", "ASC"]],
+    });
+    for (const r of rewardEvents) {
+        timeline.push({
+            type: "reward",
+            title: `Reward: $${r.reward.toFixed(2)}`,
+            date: r.createdAt || new Date(),
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Retrieved details for referral ${referralId} with ${timeline.length} timeline events`);
+    return {
+        referral,
+        earnings,
+        timeline,
+    };
+}

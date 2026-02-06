@@ -49,7 +49,7 @@ export default function ForgotPasswordForm({
 
     try {
       // Solve PoW captcha if enabled
-      let powSolution = null;
+      let powSolution: any = null;
       try {
         powSolution = await solveAndGetSolution("reset");
       } catch (powError) {

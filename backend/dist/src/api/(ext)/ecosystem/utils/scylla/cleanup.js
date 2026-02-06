@@ -1,1 +1,188 @@
-"use strict";async function cleanupCorruptedOrders(e=!1,r=1e4){const t={totalScanned:0,corruptedFound:0,deleted:0,errors:0};try{console_1.logger.info("CLEANUP",`Starting corrupted orders cleanup (dryRun: ${e}, limit: ${r})`);const o=`\n      SELECT "userId", "createdAt", id, symbol, amount, price, cost, side, status\n      FROM ${client_1.scyllaKeyspace}.orders\n      LIMIT ?\n      ALLOW FILTERING;\n    `,n=await client_1.default.execute(o,[r],{prepare:!0});t.totalScanned=n.rows.length;console_1.logger.info("CLEANUP",`Scanned ${t.totalScanned} orders`);const l=[];for(const e of n.rows){if(null===e.symbol||null===e.amount||null===e.price||null===e.cost||null===e.side){t.corruptedFound++;l.push({userId:e.userId,createdAt:e.createdAt,id:e.id});l.length%100==0&&console_1.logger.info("CLEANUP",`Found ${l.length} corrupted orders so far...`)}}console_1.logger.info("CLEANUP",`Found ${t.corruptedFound} corrupted orders out of ${t.totalScanned} scanned`);if(e){console_1.logger.info("CLEANUP","Dry run mode - no records will be deleted");return t}if(l.length>0){console_1.logger.info("CLEANUP",`Deleting ${l.length} corrupted orders...`);for(const e of l)try{const r=`\n            DELETE FROM ${client_1.scyllaKeyspace}.orders\n            WHERE "userId" = ? AND "createdAt" = ? AND id = ?;\n          `;await client_1.default.execute(r,[e.userId,e.createdAt,e.id],{prepare:!0});t.deleted++;t.deleted%100==0&&console_1.logger.info("CLEANUP",`Deleted ${t.deleted} / ${l.length} corrupted orders`)}catch(e){t.errors++;console_1.logger.error("CLEANUP",`Failed to delete order: ${e instanceof Error?e.message:String(e)}`)}}console_1.logger.info("CLEANUP",`Cleanup complete: scanned=${t.totalScanned}, found=${t.corruptedFound}, deleted=${t.deleted}, errors=${t.errors}`);return t}catch(e){console_1.logger.error("CLEANUP",`Cleanup failed: ${e instanceof Error?e.message:String(e)}`,e);throw e}}async function findProblematicOrders(e,r=100){var t;try{if("null-fields"===e){const e=`\n        SELECT "userId", "createdAt", id, symbol, amount, price, cost, side, status\n        FROM ${client_1.scyllaKeyspace}.orders\n        LIMIT ?\n        ALLOW FILTERING;\n      `;return(await client_1.default.execute(e,[10*r],{prepare:!0})).rows.filter(e=>null===e.symbol||null===e.amount||null===e.price||null===e.cost||null===e.side).slice(0,r)}{const e=`\n        SELECT id\n        FROM ${client_1.scyllaKeyspace}.orders\n        LIMIT ?\n        ALLOW FILTERING;\n      `,o=await client_1.default.execute(e,[10*r],{prepare:!0}),n=new Map;for(const e of o.rows){const r=null===(t=e.id)||void 0===t?void 0:t.toString();r&&n.set(r,(n.get(r)||0)+1)}const l=Array.from(n.entries()).filter(([,e])=>e>1).map(([e])=>e).slice(0,r),a=[];for(const e of l){const r=`\n          SELECT *\n          FROM ${client_1.scyllaKeyspace}.orders\n          WHERE id = ?\n          ALLOW FILTERING;\n        `,t=await client_1.default.execute(r,[e],{prepare:!0});a.push(...t.rows)}return a}}catch(e){console_1.logger.error("CLEANUP",`Failed to find problematic orders: ${e instanceof Error?e.message:String(e)}`,e);throw e}}async function getOrderDataQualityStats(){var e;try{const r=`SELECT COUNT(*) as total FROM ${client_1.scyllaKeyspace}.orders;`,t=await client_1.default.execute(r),o=Number((null===(e=t.rows[0])||void 0===e?void 0:e.total)||0),n=Math.min(1e4,o),l=await cleanupCorruptedOrders(!0,n),a=o>0?l.corruptedFound/l.totalScanned*100:0;return{totalOrders:o,corruptedOrders:Math.round(a/100*o),corruptionRate:Number(a.toFixed(2))}}catch(e){console_1.logger.error("CLEANUP",`Failed to get data quality stats: ${e instanceof Error?e.message:String(e)}`,e);throw e}}var __createBinding=this&&this.__createBinding||(Object.create?function(e,r,t,o){void 0===o&&(o=t);var n=Object.getOwnPropertyDescriptor(r,t);n&&!("get"in n?!r.__esModule:n.writable||n.configurable)||(n={enumerable:!0,get:function(){return r[t]}});Object.defineProperty(e,o,n)}:function(e,r,t,o){void 0===o&&(o=t);e[o]=r[t]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,r){Object.defineProperty(e,"default",{enumerable:!0,value:r})}:function(e,r){e.default=r}),__importStar=this&&this.__importStar||function(){var e=function(r){e=Object.getOwnPropertyNames||function(e){var r=[];for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[r.length]=t);return r};return e(r)};return function(r){if(r&&r.__esModule)return r;var t={};if(null!=r)for(var o=e(r),n=0;n<o.length;n++)"default"!==o[n]&&__createBinding(t,r,o[n]);__setModuleDefault(t,r);return t}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.cleanupCorruptedOrders=cleanupCorruptedOrders;exports.findProblematicOrders=findProblematicOrders;exports.getOrderDataQualityStats=getOrderDataQualityStats;const client_1=__importStar(require("./client")),console_1=require("@b/utils/console");
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.cleanupCorruptedOrders = cleanupCorruptedOrders;
+exports.findProblematicOrders = findProblematicOrders;
+exports.getOrderDataQualityStats = getOrderDataQualityStats;
+const client_1 = __importStar(require("./client"));
+const console_1 = require("@b/utils/console");
+async function cleanupCorruptedOrders(dryRun = false, limit = 10000) {
+    const stats = {
+        totalScanned: 0,
+        corruptedFound: 0,
+        deleted: 0,
+        errors: 0,
+    };
+    try {
+        console_1.logger.info("CLEANUP", `Starting corrupted orders cleanup (dryRun: ${dryRun}, limit: ${limit})`);
+        const query = `
+      SELECT "userId", "createdAt", id, symbol, amount, price, cost, side, status
+      FROM ${client_1.scyllaKeyspace}.orders
+      LIMIT ?
+      ALLOW FILTERING;
+    `;
+        const result = await client_1.default.execute(query, [limit], { prepare: true });
+        stats.totalScanned = result.rows.length;
+        console_1.logger.info("CLEANUP", `Scanned ${stats.totalScanned} orders`);
+        const corruptedOrders = [];
+        for (const row of result.rows) {
+            const isCorrupted = row.symbol === null ||
+                row.amount === null ||
+                row.price === null ||
+                row.cost === null ||
+                row.side === null;
+            if (isCorrupted) {
+                stats.corruptedFound++;
+                corruptedOrders.push({
+                    userId: row.userId,
+                    createdAt: row.createdAt,
+                    id: row.id,
+                });
+                if (corruptedOrders.length % 100 === 0) {
+                    console_1.logger.info("CLEANUP", `Found ${corruptedOrders.length} corrupted orders so far...`);
+                }
+            }
+        }
+        console_1.logger.info("CLEANUP", `Found ${stats.corruptedFound} corrupted orders out of ${stats.totalScanned} scanned`);
+        if (dryRun) {
+            console_1.logger.info("CLEANUP", "Dry run mode - no records will be deleted");
+            return stats;
+        }
+        if (corruptedOrders.length > 0) {
+            console_1.logger.info("CLEANUP", `Deleting ${corruptedOrders.length} corrupted orders...`);
+            for (const order of corruptedOrders) {
+                try {
+                    const deleteQuery = `
+            DELETE FROM ${client_1.scyllaKeyspace}.orders
+            WHERE "userId" = ? AND "createdAt" = ? AND id = ?;
+          `;
+                    await client_1.default.execute(deleteQuery, [order.userId, order.createdAt, order.id], { prepare: true });
+                    stats.deleted++;
+                    if (stats.deleted % 100 === 0) {
+                        console_1.logger.info("CLEANUP", `Deleted ${stats.deleted} / ${corruptedOrders.length} corrupted orders`);
+                    }
+                }
+                catch (error) {
+                    stats.errors++;
+                    console_1.logger.error("CLEANUP", `Failed to delete order: ${error instanceof Error ? error.message : String(error)}`);
+                }
+            }
+        }
+        console_1.logger.info("CLEANUP", `Cleanup complete: scanned=${stats.totalScanned}, found=${stats.corruptedFound}, deleted=${stats.deleted}, errors=${stats.errors}`);
+        return stats;
+    }
+    catch (error) {
+        console_1.logger.error("CLEANUP", `Cleanup failed: ${error instanceof Error ? error.message : String(error)}`, error);
+        throw error;
+    }
+}
+async function findProblematicOrders(issueType, limit = 100) {
+    var _a;
+    try {
+        if (issueType === 'null-fields') {
+            const query = `
+        SELECT "userId", "createdAt", id, symbol, amount, price, cost, side, status
+        FROM ${client_1.scyllaKeyspace}.orders
+        LIMIT ?
+        ALLOW FILTERING;
+      `;
+            const result = await client_1.default.execute(query, [limit * 10], { prepare: true });
+            return result.rows
+                .filter(row => row.symbol === null ||
+                row.amount === null ||
+                row.price === null ||
+                row.cost === null ||
+                row.side === null)
+                .slice(0, limit);
+        }
+        else {
+            const query = `
+        SELECT id
+        FROM ${client_1.scyllaKeyspace}.orders
+        LIMIT ?
+        ALLOW FILTERING;
+      `;
+            const result = await client_1.default.execute(query, [limit * 10], { prepare: true });
+            const idCounts = new Map();
+            for (const row of result.rows) {
+                const idStr = (_a = row.id) === null || _a === void 0 ? void 0 : _a.toString();
+                if (idStr) {
+                    idCounts.set(idStr, (idCounts.get(idStr) || 0) + 1);
+                }
+            }
+            const duplicateIds = Array.from(idCounts.entries())
+                .filter(([, count]) => count > 1)
+                .map(([id]) => id)
+                .slice(0, limit);
+            const duplicateOrders = [];
+            for (const id of duplicateIds) {
+                const detailQuery = `
+          SELECT *
+          FROM ${client_1.scyllaKeyspace}.orders
+          WHERE id = ?
+          ALLOW FILTERING;
+        `;
+                const detailResult = await client_1.default.execute(detailQuery, [id], { prepare: true });
+                duplicateOrders.push(...detailResult.rows);
+            }
+            return duplicateOrders;
+        }
+    }
+    catch (error) {
+        console_1.logger.error("CLEANUP", `Failed to find problematic orders: ${error instanceof Error ? error.message : String(error)}`, error);
+        throw error;
+    }
+}
+async function getOrderDataQualityStats() {
+    var _a;
+    try {
+        const countQuery = `SELECT COUNT(*) as total FROM ${client_1.scyllaKeyspace}.orders;`;
+        const countResult = await client_1.default.execute(countQuery);
+        const totalOrders = Number(((_a = countResult.rows[0]) === null || _a === void 0 ? void 0 : _a.total) || 0);
+        const sampleSize = Math.min(10000, totalOrders);
+        const stats = await cleanupCorruptedOrders(true, sampleSize);
+        const corruptionRate = totalOrders > 0 ? (stats.corruptedFound / stats.totalScanned) * 100 : 0;
+        const estimatedCorrupted = Math.round((corruptionRate / 100) * totalOrders);
+        return {
+            totalOrders,
+            corruptedOrders: estimatedCorrupted,
+            corruptionRate: Number(corruptionRate.toFixed(2)),
+        };
+    }
+    catch (error) {
+        console_1.logger.error("CLEANUP", `Failed to get data quality stats: ${error instanceof Error ? error.message : String(error)}`, error);
+        throw error;
+    }
+}

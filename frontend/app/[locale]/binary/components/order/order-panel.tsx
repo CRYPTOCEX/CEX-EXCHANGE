@@ -120,6 +120,12 @@ export function OrderPanel({
   const setStoreSelectedAmount = useBinaryStore((state) => state.setSelectedAmount);
   const setStoreSelectedExpiryMinutes = useBinaryStore((state) => state.setSelectedExpiryMinutes);
   const completedOrders = useBinaryStore((state) => state.completedOrders);
+  const tradingModeFromStore = useBinaryStore((state) => state.tradingMode);
+
+  // Filter completed orders by current trading mode
+  const filteredCompletedOrders = useMemo(() => {
+    return completedOrders.filter(order => order.isDemo === (tradingModeFromStore === "demo"));
+  }, [completedOrders, tradingModeFromStore]);
 
   // Get selected barrier/strike level for profit calculation
   const selectedBarrierLevel = useBinaryStore((state) => state.selectedBarrierLevel);
@@ -195,14 +201,14 @@ export function OrderPanel({
 
   // Calculate trading statistics for smart suggestions
   const tradingStats = useMemo(() => {
-    // Get recent trade amounts (last 10 trades)
-    const recentAmounts = completedOrders.slice(0, 10).map((order) => order.amount);
+    // Get recent trade amounts (last 10 trades) - filtered by mode
+    const recentAmounts = filteredCompletedOrders.slice(0, 10).map((order) => order.amount);
 
-    // Calculate win/loss streak
+    // Calculate win/loss streak - filtered by mode
     let winStreak = 0;
     let lossStreak = 0;
 
-    for (const order of completedOrders) {
+    for (const order of filteredCompletedOrders) {
       if (order.status === "WIN") {
         if (lossStreak === 0) winStreak++;
         else break;
@@ -212,15 +218,15 @@ export function OrderPanel({
       }
     }
 
-    // Calculate win rate, avg profit, avg loss for position sizing
-    const wins = completedOrders.filter(o => o.status === "WIN");
-    const losses = completedOrders.filter(o => o.status === "LOSS");
-    const winRate = completedOrders.length > 0 ? (wins.length / completedOrders.length) * 100 : 55;
+    // Calculate win rate, avg profit, avg loss for position sizing - filtered by mode
+    const wins = filteredCompletedOrders.filter(o => o.status === "WIN");
+    const losses = filteredCompletedOrders.filter(o => o.status === "LOSS");
+    const winRate = filteredCompletedOrders.length > 0 ? (wins.length / filteredCompletedOrders.length) * 100 : 55;
     const avgProfit = wins.length > 0 ? wins.reduce((sum, o) => sum + (o.profit || 0), 0) / wins.length : 0;
     const avgLoss = losses.length > 0 ? losses.reduce((sum, o) => sum + Math.abs(o.profit || 0), 0) / losses.length : 0;
 
     return { recentAmounts, winStreak, lossStreak, winRate, avgProfit, avgLoss };
-  }, [completedOrders]);
+  }, [filteredCompletedOrders]);
 
   // Get current market for amount validation
   const currentMarket = useMemo(() => {
@@ -232,11 +238,11 @@ export function OrderPanel({
 
   // Extract market min/max amounts from metadata
   const marketMinAmount = useMemo(() => {
-    if (!currentMarket?.metadata) return 100;
+    if (!currentMarket?.metadata) return 1;
     const metadata = typeof currentMarket.metadata === 'string'
       ? JSON.parse(currentMarket.metadata)
       : currentMarket.metadata;
-    return Number(metadata?.limits?.amount?.min || 100);
+    return Number(metadata?.limits?.amount?.min || 1);
   }, [currentMarket]);
 
   const marketMaxAmount = useMemo(() => {
@@ -405,16 +411,16 @@ export function OrderPanel({
     }
   }, [candleData, symbol]);
 
-  // Track completed orders to update martingale state
-  const prevCompletedOrdersLengthRef = useRef(completedOrders.length);
+  // Track completed orders to update martingale state - use filtered orders by mode
+  const prevCompletedOrdersLengthRef = useRef(filteredCompletedOrders.length);
   useEffect(() => {
     if (!martingale.state.enabled) return;
 
-    // Check if new orders were completed
-    if (completedOrders.length > prevCompletedOrdersLengthRef.current) {
+    // Check if new orders were completed (in current trading mode)
+    if (filteredCompletedOrders.length > prevCompletedOrdersLengthRef.current) {
       // Get the newly completed orders
-      const newOrdersCount = completedOrders.length - prevCompletedOrdersLengthRef.current;
-      const newOrders = completedOrders.slice(0, newOrdersCount);
+      const newOrdersCount = filteredCompletedOrders.length - prevCompletedOrdersLengthRef.current;
+      const newOrders = filteredCompletedOrders.slice(0, newOrdersCount);
 
       // Process each new order
       for (const order of newOrders) {
@@ -423,8 +429,8 @@ export function OrderPanel({
       }
     }
 
-    prevCompletedOrdersLengthRef.current = completedOrders.length;
-  }, [completedOrders, martingale]);
+    prevCompletedOrdersLengthRef.current = filteredCompletedOrders.length;
+  }, [filteredCompletedOrders, martingale]);
 
   // Sync loading state from store
   const [isLoadingDurationsLocal, setIsLoadingDurationsLocal] = useState(true);

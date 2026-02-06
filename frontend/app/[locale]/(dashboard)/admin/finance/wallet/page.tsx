@@ -24,7 +24,7 @@ export default function WalletPage() {
       canEdit={false}
       canDelete={false}
       canView={true}
-      isParanoid={false}
+      isParanoid={true}
       title={t("wallet_management")}
       description={t("manage_user_wallets_and_balances")}
       itemTitle="Wallet"

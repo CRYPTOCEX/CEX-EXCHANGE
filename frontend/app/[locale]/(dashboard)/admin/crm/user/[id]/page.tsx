@@ -54,12 +54,10 @@ import {
   BarChart3,
   ChevronDown,
   RefreshCw,
-  Download,
   Filter,
   Search,
   Copy,
   ExternalLink,
-  Edit,
   Ban,
   UserCheck,
   Zap,
@@ -2176,27 +2174,6 @@ export default function UserDetailPage() {
                     </div>
                   </div>
                   
-                  <div className="flex justify-between items-center p-4 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium">{t("data_export")}</h4>
-                      <p className="text-sm text-muted-foreground">{t("export_user_data_and_transaction_history")}</p>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4 mr-2" />
-                      Export
-                    </Button>
-                  </div>
-                  
-                  <div className="flex justify-between items-center p-4 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium">{t("account_notes")}</h4>
-                      <p className="text-sm text-muted-foreground">{t("add_administrative_notes")}</p>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-4 w-4 mr-2" />
-                      {tCommon("add_note")}
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
             </div>

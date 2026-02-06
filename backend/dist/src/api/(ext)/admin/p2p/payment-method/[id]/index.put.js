@@ -1,1 +1,172 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),sequelize_1=require("sequelize"),console_1=require("@b/utils/console");exports.metadata={summary:"Update P2P Payment Method (Admin)",description:"Updates a payment method. Admin can update any payment method and toggle global status.",operationId:"updateP2PPaymentMethod",tags:["Admin","P2P","Payment Method"],requiresAuth:!0,permission:"edit.p2p.payment_method",logModule:"ADMIN_P2P",logTitle:"Update payment method",parameters:[{name:"id",in:"path",description:"Payment method ID",required:!0,schema:{type:"string"}}],requestBody:{description:"Payment method update data",required:!0,content:{"application/json":{schema:{type:"object",properties:{name:{type:"string"},icon:{type:"string"},description:{type:"string"},instructions:{type:"string"},metadata:{type:"object",description:"Flexible key-value pairs for payment details"},processingTime:{type:"string"},fees:{type:"string"},available:{type:"boolean"},isGlobal:{type:"boolean"},popularityRank:{type:"number"}}}}}},responses:{200:{description:"Payment method updated successfully."},401:{description:"Unauthorized."},403:{description:"Forbidden - Admin access required."},404:{description:"Payment method not found."},500:{description:"Internal Server Error."}}};exports.default=async e=>{const{params:t,body:a,user:i,ctx:o}=e;if(!(null==i?void 0:i.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});try{null==o||o.step("Fetching payment method");const e=await db_1.models.p2pPaymentMethod.findByPk(t.id);if(!e){null==o||o.fail("Payment method not found");throw(0,error_1.createError)({statusCode:404,message:"Payment method not found"})}null==o||o.step("Checking for duplicate names");if(a.name&&a.name!==e.name){if(await db_1.models.p2pPaymentMethod.findOne({where:{name:a.name,isGlobal:void 0!==a.isGlobal?a.isGlobal:e.isGlobal,id:{[sequelize_1.Op.ne]:t.id},deletedAt:null}})){null==o||o.fail("Duplicate payment method name");throw(0,error_1.createError)({statusCode:400,message:"A payment method with this name already exists"})}}null==o||o.step("Preparing update data");const n={};void 0!==a.name&&(n.name=a.name);void 0!==a.icon&&(n.icon=a.icon);void 0!==a.description&&(n.description=a.description);void 0!==a.instructions&&(n.instructions=a.instructions);void 0!==a.processingTime&&(n.processingTime=a.processingTime);void 0!==a.fees&&(n.fees=a.fees);void 0!==a.available&&(n.available=a.available);void 0!==a.isGlobal&&(n.isGlobal=a.isGlobal);void 0!==a.popularityRank&&(n.popularityRank=a.popularityRank);if(void 0!==a.metadata)if(null===a.metadata)n.metadata=null;else if("object"==typeof a.metadata){const e={};for(const[t,i]of Object.entries(a.metadata))"string"==typeof t&&t.trim()&&(e[t.trim()]=String(i));n.metadata=Object.keys(e).length>0?e:null}null==o||o.step("Updating payment method");await e.update(n);console_1.logger.info("P2P",`Updated payment method: ${e.id} by admin ${i.id}`);null==o||o.step("Logging admin activity");await db_1.models.p2pActivityLog.create({userId:i.id,type:"ADMIN_PAYMENT_METHOD",action:"UPDATED",relatedEntity:"PAYMENT_METHOD",relatedEntityId:e.id,details:JSON.stringify({changes:n,adminAction:!0,updatedBy:`${i.firstName} ${i.lastName}`,action:"updated",name:e.name})});null==o||o.success("Payment method updated successfully");return{message:"Payment method updated successfully.",paymentMethod:{id:e.id,userId:e.userId,name:e.name,icon:e.icon,description:e.description,instructions:e.instructions,metadata:e.metadata,processingTime:e.processingTime,fees:e.fees,available:e.available,isGlobal:e.isGlobal,popularityRank:e.popularityRank,updatedAt:e.updatedAt}}}catch(e){if(e.statusCode)throw e;null==o||o.fail("Failed to update payment method");throw(0,error_1.createError)({statusCode:500,message:"Failed to update payment method: "+e.message})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const sequelize_1 = require("sequelize");
+const console_1 = require("@b/utils/console");
+exports.metadata = {
+    summary: "Update P2P Payment Method (Admin)",
+    description: "Updates a payment method. Admin can update any payment method and toggle global status.",
+    operationId: "updateP2PPaymentMethod",
+    tags: ["Admin", "P2P", "Payment Method"],
+    requiresAuth: true,
+    permission: "edit.p2p.payment_method",
+    logModule: "ADMIN_P2P",
+    logTitle: "Update payment method",
+    parameters: [
+        {
+            name: "id",
+            in: "path",
+            description: "Payment method ID",
+            required: true,
+            schema: { type: "string" },
+        },
+    ],
+    requestBody: {
+        description: "Payment method update data",
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        name: { type: "string" },
+                        icon: { type: "string" },
+                        description: { type: "string" },
+                        instructions: { type: "string" },
+                        metadata: { type: ["object", "null"], description: "Flexible key-value pairs for payment details" },
+                        processingTime: { type: "string" },
+                        fees: { type: "string" },
+                        available: { type: "boolean" },
+                        isGlobal: { type: "boolean" },
+                        popularityRank: { type: "number" },
+                    },
+                },
+            },
+        },
+    },
+    responses: {
+        200: { description: "Payment method updated successfully." },
+        401: { description: "Unauthorized." },
+        403: { description: "Forbidden - Admin access required." },
+        404: { description: "Payment method not found." },
+        500: { description: "Internal Server Error." },
+    },
+};
+exports.default = async (data) => {
+    const { params, body, user, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching payment method");
+        const paymentMethod = await db_1.models.p2pPaymentMethod.findByPk(params.id);
+        if (!paymentMethod) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Payment method not found");
+            throw (0, error_1.createError)({
+                statusCode: 404,
+                message: "Payment method not found",
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking for duplicate names");
+        if (body.name && body.name !== paymentMethod.name) {
+            const duplicate = await db_1.models.p2pPaymentMethod.findOne({
+                where: {
+                    name: body.name,
+                    isGlobal: body.isGlobal !== undefined ? body.isGlobal : paymentMethod.isGlobal,
+                    id: { [sequelize_1.Op.ne]: params.id },
+                    deletedAt: null,
+                },
+            });
+            if (duplicate) {
+                ctx === null || ctx === void 0 ? void 0 : ctx.fail("Duplicate payment method name");
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "A payment method with this name already exists",
+                });
+            }
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Preparing update data");
+        const updateData = {};
+        if (body.name !== undefined)
+            updateData.name = body.name;
+        if (body.icon !== undefined)
+            updateData.icon = body.icon;
+        if (body.description !== undefined)
+            updateData.description = body.description;
+        if (body.instructions !== undefined)
+            updateData.instructions = body.instructions;
+        if (body.processingTime !== undefined)
+            updateData.processingTime = body.processingTime;
+        if (body.fees !== undefined)
+            updateData.fees = body.fees;
+        if (body.available !== undefined)
+            updateData.available = body.available;
+        if (body.isGlobal !== undefined)
+            updateData.isGlobal = body.isGlobal;
+        if (body.popularityRank !== undefined)
+            updateData.popularityRank = body.popularityRank;
+        if (body.metadata !== undefined) {
+            if (body.metadata === null) {
+                updateData.metadata = null;
+            }
+            else if (typeof body.metadata === "object") {
+                const sanitizedMetadata = {};
+                for (const [key, value] of Object.entries(body.metadata)) {
+                    if (typeof key === "string" && key.trim()) {
+                        sanitizedMetadata[key.trim()] = String(value);
+                    }
+                }
+                updateData.metadata = Object.keys(sanitizedMetadata).length > 0 ? sanitizedMetadata : null;
+            }
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating payment method");
+        await paymentMethod.update(updateData);
+        console_1.logger.info("P2P", `Updated payment method: ${paymentMethod.id} by admin ${user.id}`);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Logging admin activity");
+        await db_1.models.p2pActivityLog.create({
+            userId: user.id,
+            type: "ADMIN_PAYMENT_METHOD",
+            action: "UPDATED",
+            relatedEntity: "PAYMENT_METHOD",
+            relatedEntityId: paymentMethod.id,
+            details: JSON.stringify({
+                changes: updateData,
+                adminAction: true,
+                updatedBy: `${user.firstName} ${user.lastName}`,
+                action: "updated",
+                name: paymentMethod.name,
+            }),
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Payment method updated successfully");
+        return {
+            message: "Payment method updated successfully.",
+            paymentMethod: {
+                id: paymentMethod.id,
+                userId: paymentMethod.userId,
+                name: paymentMethod.name,
+                icon: paymentMethod.icon,
+                description: paymentMethod.description,
+                instructions: paymentMethod.instructions,
+                metadata: paymentMethod.metadata,
+                processingTime: paymentMethod.processingTime,
+                fees: paymentMethod.fees,
+                available: paymentMethod.available,
+                isGlobal: paymentMethod.isGlobal,
+                popularityRank: paymentMethod.popularityRank,
+                updatedAt: paymentMethod.updatedAt,
+            },
+        };
+    }
+    catch (err) {
+        if (err.statusCode) {
+            throw err;
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to update payment method");
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: "Failed to update payment method: " + err.message,
+        });
+    }
+};

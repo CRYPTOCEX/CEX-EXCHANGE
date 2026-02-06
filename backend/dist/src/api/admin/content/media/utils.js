@@ -1,1 +1,85 @@
-"use strict";function filterMediaCache(e){exports.mediaCache=exports.mediaCache.filter(t=>t.id!==e)}async function updateMediaCache(e){const t=[];await async function e(i){const r=await fs_1.promises.readdir(i,{withFileTypes:!0});for(const a of r){const r=(0,path_1.join)(i,a.name);if(a.isDirectory())await e(r);else if(/\.(jpg|jpeg|png|gif|webp)$/i.test(a.name))try{const{mtime:e}=await fs_1.promises.stat(r);let i=r.substring(exports.mediaDirectory.length).replace(/\\/g,"/");i.startsWith("/")||(i="/"+i);const o=(0,sharp_1.default)(r),s=await o.metadata();t.push({id:"/uploads"+i.replace(/\//g,"_"),name:a.name,path:"/uploads"+i,width:s.width,height:s.height,dateModified:e})}catch(e){console_1.logger.error("MEDIA",`Error accessing file: ${r}`,e)}}}(e);exports.mediaCache=t;exports.cacheInitialized=!0}async function initMediaWatcher(){await updateMediaCache(exports.mediaDirectory);(0,fs_1.watch)(exports.mediaDirectory,{recursive:!0},async()=>{await updateMediaCache(exports.mediaDirectory)})}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.publicDirectory=exports.mediaDirectory=exports.cacheInitialized=exports.mediaCache=exports.operatorMap=void 0;exports.filterMediaCache=filterMediaCache;exports.initMediaWatcher=initMediaWatcher;const fs_1=require("fs"),path_1=require("path"),sharp_1=__importDefault(require("sharp")),console_1=require("@b/utils/console");exports.operatorMap={equal:(e,t,i)=>e[t]===i,notEqual:(e,t,i)=>e[t]!==i,greaterThan:(e,t,i)=>e[t]>i,greaterThanOrEqual:(e,t,i)=>e[t]>=i,lessThan:(e,t,i)=>e[t]<i,lessThanOrEqual:(e,t,i)=>e[t]<=i,between:(e,t,i)=>e[t]>=i[0]&&e[t]<=i[1],notBetween:(e,t,i)=>e[t]<i[0]||e[t]>i[1],like:(e,t,i)=>new RegExp(i,"i").test(e[t]),notLike:(e,t,i)=>!new RegExp(i,"i").test(e[t]),startsWith:(e,t,i)=>{var r;return null===(r=e[t])||void 0===r?void 0:r.startsWith(i)},endsWith:(e,t,i)=>{var r;return null===(r=e[t])||void 0===r?void 0:r.endsWith(i)},substring:(e,t,i)=>{var r;return null===(r=e[t])||void 0===r?void 0:r.includes(i)},regexp:(e,t,i)=>new RegExp(i).test(e[t]),notRegexp:(e,t,i)=>!new RegExp(i).test(e[t])};exports.mediaCache=[];exports.cacheInitialized=!1;const isProduction="production"===process.env.NODE_ENV;exports.mediaDirectory=isProduction?(0,path_1.join)(process.cwd(),"frontend","public","uploads"):(0,path_1.join)(process.cwd(),"..","frontend","public","uploads");exports.publicDirectory=isProduction?(0,path_1.join)(process.cwd(),"frontend","public"):(0,path_1.join)(process.cwd(),"..","frontend","public");
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.publicDirectory = exports.mediaDirectory = exports.cacheInitialized = exports.mediaCache = exports.operatorMap = void 0;
+exports.filterMediaCache = filterMediaCache;
+exports.initMediaWatcher = initMediaWatcher;
+const fs_1 = require("fs");
+const path_1 = require("path");
+const sharp_1 = __importDefault(require("sharp"));
+const console_1 = require("@b/utils/console");
+exports.operatorMap = {
+    equal: (item, key, value) => item[key] === value,
+    notEqual: (item, key, value) => item[key] !== value,
+    greaterThan: (item, key, value) => item[key] > value,
+    greaterThanOrEqual: (item, key, value) => item[key] >= value,
+    lessThan: (item, key, value) => item[key] < value,
+    lessThanOrEqual: (item, key, value) => item[key] <= value,
+    between: (item, key, value) => item[key] >= value[0] && item[key] <= value[1],
+    notBetween: (item, key, value) => item[key] < value[0] || item[key] > value[1],
+    like: (item, key, value) => new RegExp(value, "i").test(item[key]),
+    notLike: (item, key, value) => !new RegExp(value, "i").test(item[key]),
+    startsWith: (item, key, value) => { var _a; return (_a = item[key]) === null || _a === void 0 ? void 0 : _a.startsWith(value); },
+    endsWith: (item, key, value) => { var _a; return (_a = item[key]) === null || _a === void 0 ? void 0 : _a.endsWith(value); },
+    substring: (item, key, value) => { var _a; return (_a = item[key]) === null || _a === void 0 ? void 0 : _a.includes(value); },
+    regexp: (item, key, value) => new RegExp(value).test(item[key]),
+    notRegexp: (item, key, value) => !new RegExp(value).test(item[key]),
+};
+exports.mediaCache = [];
+exports.cacheInitialized = false;
+const isProduction = process.env.NODE_ENV === 'production';
+exports.mediaDirectory = isProduction
+    ? (0, path_1.join)(process.cwd(), "frontend", "public", "uploads")
+    : (0, path_1.join)(process.cwd(), "..", "frontend", "public", "uploads");
+exports.publicDirectory = isProduction
+    ? (0, path_1.join)(process.cwd(), "frontend", "public")
+    : (0, path_1.join)(process.cwd(), "..", "frontend", "public");
+function filterMediaCache(imagePath) {
+    exports.mediaCache = exports.mediaCache.filter((file) => file.id !== imagePath);
+}
+async function updateMediaCache(directory) {
+    const fileList = [];
+    async function readMediaFiles(dir) {
+        const files = await fs_1.promises.readdir(dir, { withFileTypes: true });
+        for (const file of files) {
+            const filePath = (0, path_1.join)(dir, file.name);
+            if (file.isDirectory()) {
+                await readMediaFiles(filePath);
+            }
+            else if (/\.(jpg|jpeg|png|gif|webp)$/i.test(file.name)) {
+                try {
+                    const { mtime } = await fs_1.promises.stat(filePath);
+                    let webPath = filePath
+                        .substring(exports.mediaDirectory.length)
+                        .replace(/\\/g, "/");
+                    if (!webPath.startsWith("/"))
+                        webPath = "/" + webPath;
+                    const image = (0, sharp_1.default)(filePath);
+                    const metadata = await image.metadata();
+                    fileList.push({
+                        id: "/uploads" + webPath.replace(/\//g, "_"),
+                        name: file.name,
+                        path: "/uploads" + webPath,
+                        width: metadata.width,
+                        height: metadata.height,
+                        dateModified: mtime,
+                    });
+                }
+                catch (error) {
+                    console_1.logger.error("MEDIA", `Error accessing file: ${filePath}`, error);
+                }
+            }
+        }
+    }
+    await readMediaFiles(directory);
+    exports.mediaCache = fileList;
+    exports.cacheInitialized = true;
+}
+async function initMediaWatcher() {
+    await updateMediaCache(exports.mediaDirectory);
+    (0, fs_1.watch)(exports.mediaDirectory, { recursive: true }, async (eventType, filename) => {
+        await updateMediaCache(exports.mediaDirectory);
+    });
+}

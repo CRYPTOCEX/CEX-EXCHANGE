@@ -4,8 +4,8 @@ import React, { useCallback, useMemo, useEffect, useRef } from "react";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CompoundField } from "../drawers/compound-field";
-import { RegularField } from "../drawers/regular-field";
+import { CompoundField } from "../form-fields/compound-field";
+import { RegularField } from "../form-fields/regular-field";
 import { useTranslations } from "next-intl";
 import {
   Loader2,
@@ -88,15 +88,18 @@ function extractFieldFromCompound(
     } as ColumnDefinition;
   }
 
-  // Check primary field
+  // Check primary field - handle array of keys (e.g., ["firstName", "lastName"])
   if (config.primary) {
-    const primaryKey = Array.isArray(config.primary.key) ? config.primary.key[0] : config.primary.key;
-    if (primaryKey === fieldKey) {
+    const primaryKeys = Array.isArray(config.primary.key) ? config.primary.key : [config.primary.key];
+    const primaryTitles = Array.isArray(config.primary.title) ? config.primary.title : [config.primary.title];
+    const primaryDescriptions = Array.isArray(config.primary.description) ? config.primary.description : [config.primary.description];
+    const keyIndex = primaryKeys.indexOf(fieldKey);
+    if (keyIndex !== -1) {
       return {
         key: fieldKey,
-        title: Array.isArray(config.primary.title) ? config.primary.title[0] : config.primary.title,
+        title: primaryTitles[keyIndex] || primaryTitles[0] || fieldKey,
         type: "text",
-        description: Array.isArray(config.primary.description) ? config.primary.description[0] : config.primary.description,
+        description: primaryDescriptions[keyIndex] || primaryDescriptions[0],
         required: true,
       } as ColumnDefinition;
     }

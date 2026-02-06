@@ -18,7 +18,7 @@ export default class forexAccountSignal
   getForexAccount!: Sequelize.BelongsToGetAssociationMixin<forexAccount>;
   setForexAccount!: Sequelize.BelongsToSetAssociationMixin<
     forexAccount,
-    forexAccountId
+    string
   >;
   createForexAccount!: Sequelize.BelongsToCreateAssociationMixin<forexAccount>;
   // forexAccountSignal belongsTo forexSignal via forexSignalId
@@ -26,7 +26,7 @@ export default class forexAccountSignal
   getForexSignal!: Sequelize.BelongsToGetAssociationMixin<forexSignal>;
   setForexSignal!: Sequelize.BelongsToSetAssociationMixin<
     forexSignal,
-    forexSignalId
+    string
   >;
   createForexSignal!: Sequelize.BelongsToCreateAssociationMixin<forexSignal>;
 

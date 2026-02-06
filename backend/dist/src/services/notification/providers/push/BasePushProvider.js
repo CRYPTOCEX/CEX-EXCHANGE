@@ -1,1 +1,64 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.BasePushProvider=void 0;const console_1=require("@b/utils/console");class BasePushProvider{constructor(e,o){this.name=e;this.config=o||this.loadConfigFromEnv()}filterValidTokens(e){return e.filter(e=>this.validateToken(e))}truncateText(e,o){return e.length<=o?e:e.substring(0,o-3)+"..."}buildPayload(e,o){return{notification:{title:this.truncateText(e.title,65),body:this.truncateText(e.body,240),image:e.imageUrl,icon:e.icon},data:e.data||{},android:(null==o?void 0:o.android)||{},apns:(null==o?void 0:o.ios)?{payload:{aps:{badge:o.ios.badge,sound:o.ios.sound||"default",contentAvailable:o.ios.contentAvailable,mutableContent:o.ios.mutableContent}}}:void 0,webpush:(null==o?void 0:o.web)?{notification:{icon:o.web.icon,badge:o.web.badge,vibrate:o.web.vibrate}}:void 0}}log(e,o){void 0!==o?console_1.logger.info(`Push:${this.name}`,e,o):console_1.logger.info(`Push:${this.name}`,e)}logError(e,o){console_1.logger.error(`Push:${this.name}`,e,o instanceof Error?o:new Error(JSON.stringify(o)))}}exports.BasePushProvider=BasePushProvider;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BasePushProvider = void 0;
+const console_1 = require("@b/utils/console");
+class BasePushProvider {
+    constructor(name, config) {
+        this.name = name;
+        this.config = config || this.loadConfigFromEnv();
+    }
+    filterValidTokens(tokens) {
+        return tokens.filter((token) => this.validateToken(token));
+    }
+    truncateText(text, maxLength) {
+        if (text.length <= maxLength) {
+            return text;
+        }
+        return text.substring(0, maxLength - 3) + "...";
+    }
+    buildPayload(data, platformOptions) {
+        return {
+            notification: {
+                title: this.truncateText(data.title, 65),
+                body: this.truncateText(data.body, 240),
+                image: data.imageUrl,
+                icon: data.icon,
+            },
+            data: data.data || {},
+            android: (platformOptions === null || platformOptions === void 0 ? void 0 : platformOptions.android) || {},
+            apns: (platformOptions === null || platformOptions === void 0 ? void 0 : platformOptions.ios)
+                ? {
+                    payload: {
+                        aps: {
+                            badge: platformOptions.ios.badge,
+                            sound: platformOptions.ios.sound || "default",
+                            contentAvailable: platformOptions.ios.contentAvailable,
+                            mutableContent: platformOptions.ios.mutableContent,
+                        },
+                    },
+                }
+                : undefined,
+            webpush: (platformOptions === null || platformOptions === void 0 ? void 0 : platformOptions.web)
+                ? {
+                    notification: {
+                        icon: platformOptions.web.icon,
+                        badge: platformOptions.web.badge,
+                        vibrate: platformOptions.web.vibrate,
+                    },
+                }
+                : undefined,
+        };
+    }
+    log(message, data) {
+        if (data !== undefined) {
+            console_1.logger.info(`Push:${this.name}`, message, data);
+        }
+        else {
+            console_1.logger.info(`Push:${this.name}`, message);
+        }
+    }
+    logError(message, error) {
+        console_1.logger.error(`Push:${this.name}`, message, error instanceof Error ? error : new Error(JSON.stringify(error)));
+    }
+}
+exports.BasePushProvider = BasePushProvider;

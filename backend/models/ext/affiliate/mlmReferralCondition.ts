@@ -43,32 +43,32 @@ export default class mlmReferralCondition
   getMlmReferralRewards!: Sequelize.HasManyGetAssociationsMixin<mlmReferralReward>;
   setMlmReferralRewards!: Sequelize.HasManySetAssociationsMixin<
     mlmReferralReward,
-    mlmReferralRewardId
+    string
   >;
   addMlmReferralReward!: Sequelize.HasManyAddAssociationMixin<
     mlmReferralReward,
-    mlmReferralRewardId
+    string
   >;
   addMlmReferralRewards!: Sequelize.HasManyAddAssociationsMixin<
     mlmReferralReward,
-    mlmReferralRewardId
+    string
   >;
   createMlmReferralReward!: Sequelize.HasManyCreateAssociationMixin<mlmReferralReward>;
   removeMlmReferralReward!: Sequelize.HasManyRemoveAssociationMixin<
     mlmReferralReward,
-    mlmReferralRewardId
+    string
   >;
   removeMlmReferralRewards!: Sequelize.HasManyRemoveAssociationsMixin<
     mlmReferralReward,
-    mlmReferralRewardId
+    string
   >;
   hasMlmReferralReward!: Sequelize.HasManyHasAssociationMixin<
     mlmReferralReward,
-    mlmReferralRewardId
+    string
   >;
   hasMlmReferralRewards!: Sequelize.HasManyHasAssociationsMixin<
     mlmReferralReward,
-    mlmReferralRewardId
+    string
   >;
   countMlmReferralRewards!: Sequelize.HasManyCountAssociationsMixin;
 

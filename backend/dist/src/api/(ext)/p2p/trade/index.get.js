@@ -1,1 +1,259 @@
-"use strict";function mapEventToActivityType(e){const t=(e||"").toUpperCase().replace(/\s+/g,"_");return t.includes("INITIATED")||t.includes("CREATED")||t.includes("STARTED")?"TRADE_CREATED":t.includes("PAYMENT")&&t.includes("SENT")?"PAYMENT_CONFIRMED":t.includes("COMPLETED")||t.includes("RELEASED")?"TRADE_COMPLETED":t.includes("DISPUTED")?"TRADE_DISPUTED":t.includes("CANCELLED")?"TRADE_CANCELLED":"TRADE_UPDATE"}function formatActivityMessage(e,t,r){const i=(e||"").toUpperCase().replace(/\s+/g,"_"),d=`${r||0} ${t||"N/A"}`;if(i.includes("INITIATED")||i.includes("CREATED")||i.includes("STARTED"))return`Trade initiated for ${d}`;if(i.includes("PAYMENT")&&i.includes("SENT"))return`Payment confirmed for ${d}`;if(i.includes("COMPLETED"))return`Trade completed for ${d}`;if(i.includes("RELEASED"))return`Funds released for ${d}`;if(i.includes("DISPUTED"))return`Trade disputed for ${d}`;if(i.includes("CANCELLED"))return`Trade cancelled for ${d}`;return`${e.replace(/_/g," ").replace(/\b\w/g,e=>e.toUpperCase())} - ${d}`}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),query_1=require("@b/utils/query"),sequelize_1=require("sequelize"),error_1=require("@b/utils/error");exports.metadata={summary:"Get Trade Dashboard Data",description:"Retrieves aggregated trade data for the authenticated user.",operationId:"getP2PTradeDashboardData",tags:["P2P","Trade"],logModule:"P2P",logTitle:"Get trade dashboard",responses:{200:{description:"Trade dashboard data retrieved successfully."},401:query_1.unauthorizedResponse,500:query_1.serverErrorResponse},requiresAuth:!0};exports.default=async e=>{const{user:t,ctx:r}=e;if(!(null==t?void 0:t.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});null==r||r.step("Fetching trade statistics and activity");try{const[i,d,a,s,o,n]=await Promise.all([db_1.models.p2pTrade.count({where:{[sequelize_1.Op.or]:[{buyerId:t.id},{sellerId:t.id}]}}),db_1.models.p2pTrade.count({where:{status:"COMPLETED",[sequelize_1.Op.or]:[{buyerId:t.id},{sellerId:t.id}]}}),db_1.models.p2pTrade.findAll({where:{status:"DISPUTED",[sequelize_1.Op.or]:[{buyerId:t.id},{sellerId:t.id}]},include:[{association:"paymentMethodDetails",attributes:["id","name","icon"],required:!1},{association:"offer",attributes:["id","priceCurrency"],required:!1}],limit:7,order:[["updatedAt","DESC"]]}),db_1.models.p2pTrade.findAll({where:{status:{[sequelize_1.Op.in]:["IN_PROGRESS","PENDING","PAYMENT_SENT","ESCROW_RELEASED"]},[sequelize_1.Op.or]:[{buyerId:t.id},{sellerId:t.id}]},include:[{association:"paymentMethodDetails",attributes:["id","name","icon"],required:!1},{association:"offer",attributes:["id","priceCurrency"],required:!1}],order:[["updatedAt","DESC"]]}),db_1.models.p2pTrade.findAll({where:{status:"PENDING",[sequelize_1.Op.or]:[{buyerId:t.id},{sellerId:t.id}]},include:[{association:"paymentMethodDetails",attributes:["id","name","icon"],required:!1},{association:"offer",attributes:["id","priceCurrency"],required:!1}],order:[["createdAt","DESC"]]}),db_1.models.p2pTrade.findAll({where:{[sequelize_1.Op.or]:[{buyerId:t.id},{sellerId:t.id}]},include:[{association:"offer",attributes:["id","priceCurrency"],required:!1}],order:[["updatedAt","DESC"]]})]),u=[],c=n.slice(0,10);for(const f of c){const y=f.toJSON?f.toJSON():f;let b=y.timeline||[];if("string"==typeof b)try{b=JSON.parse(b)}catch(h){b=[]}Array.isArray(b)||(b=[]);for(const C of b){if("MESSAGE"===C.event)continue;const I=C.timestamp||C.createdAt||C.time;I&&u.push({id:`${y.id}-${I}`,tradeId:y.id,type:mapEventToActivityType(C.event),message:formatActivityMessage(C.event,y.currency,y.amount),time:I,createdAt:new Date(I)})}}u.sort((e,t)=>new Date(t.createdAt).getTime()-new Date(e.createdAt).getTime());const l=u.slice(0,5),p=n.reduce((e,t)=>e+(t.total||t.fiatAmount||0),0),E=(()=>{const e=n.filter(e=>"COMPLETED"===e.status&&e.completedAt&&e.createdAt);if(!e.length)return null;const t=e.reduce((e,t)=>e+(new Date(t.completedAt).getTime()-new Date(t.createdAt).getTime()),0)/e.length,r=Math.floor(t/36e5),i=Math.floor(t%36e5/6e4);return r?`${r}h ${i}m`:`${i}m`})(),m=i?Math.round(d/i*100):0,T=e=>e.buyerId===t.id?e.sellerName||`User #${e.sellerId}`:e.buyerName||`User #${e.buyerId}`;function D(e){var r,i;const d=e.toJSON?e.toJSON():e;let a=d.status;if("PENDING"===a&&d.expiresAt){const e=new Date;new Date(d.expiresAt)<e&&(a="EXPIRED")}return{id:d.id,type:d.buyerId===t.id?"BUY":"SELL",coin:d.currency||d.coin||d.crypto||"N/A",amount:d.amount,fiatAmount:d.total||d.fiatAmount||0,price:d.price,counterparty:T(d),status:a,date:d.updatedAt||d.createdAt,paymentMethod:(null===(r=d.paymentMethodDetails)||void 0===r?void 0:r.name)||d.paymentMethod||null,priceCurrency:(null===(i=d.offer)||void 0===i?void 0:i.priceCurrency)||"USD"}}const A=[...new Set(n.map(e=>e.currency).filter(e=>e))].sort();null==r||r.success(`Trade dashboard retrieved (${i} total trades, ${d} completed)`);return{tradeStats:{activeCount:s.length,completedCount:d,totalVolume:p,avgCompletionTime:E,successRate:m},recentActivity:l,activeTrades:s.map(D),pendingTrades:o.map(D),completedTrades:n.filter(e=>"COMPLETED"===e.status).sort((e,t)=>new Date(t.updatedAt).getTime()-new Date(e.updatedAt).getTime()).slice(0,7).map(D),disputedTrades:a.map(D),availableCurrencies:A}}catch(_){null==r||r.fail(_.message||"Failed to retrieve trade dashboard");throw(0,error_1.createError)({statusCode:500,message:"Internal Server Error: "+_.message})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const query_1 = require("@b/utils/query");
+const sequelize_1 = require("sequelize");
+const error_1 = require("@b/utils/error");
+function mapEventToActivityType(event) {
+    const eventUpper = (event || '').toUpperCase().replace(/\s+/g, '_');
+    if (eventUpper.includes('INITIATED') || eventUpper.includes('CREATED') || eventUpper.includes('STARTED')) {
+        return 'TRADE_CREATED';
+    }
+    if (eventUpper.includes('PAYMENT') && eventUpper.includes('SENT')) {
+        return 'PAYMENT_CONFIRMED';
+    }
+    if (eventUpper.includes('COMPLETED') || eventUpper.includes('RELEASED')) {
+        return 'TRADE_COMPLETED';
+    }
+    if (eventUpper.includes('DISPUTED')) {
+        return 'TRADE_DISPUTED';
+    }
+    if (eventUpper.includes('CANCELLED')) {
+        return 'TRADE_CANCELLED';
+    }
+    return 'TRADE_UPDATE';
+}
+function formatActivityMessage(event, currency, amount) {
+    const eventUpper = (event || '').toUpperCase().replace(/\s+/g, '_');
+    const amountStr = `${amount || 0} ${currency || 'N/A'}`;
+    if (eventUpper.includes('INITIATED') || eventUpper.includes('CREATED') || eventUpper.includes('STARTED')) {
+        return `Trade initiated for ${amountStr}`;
+    }
+    if (eventUpper.includes('PAYMENT') && eventUpper.includes('SENT')) {
+        return `Payment confirmed for ${amountStr}`;
+    }
+    if (eventUpper.includes('COMPLETED')) {
+        return `Trade completed for ${amountStr}`;
+    }
+    if (eventUpper.includes('RELEASED')) {
+        return `Funds released for ${amountStr}`;
+    }
+    if (eventUpper.includes('DISPUTED')) {
+        return `Trade disputed for ${amountStr}`;
+    }
+    if (eventUpper.includes('CANCELLED')) {
+        return `Trade cancelled for ${amountStr}`;
+    }
+    const formattedEvent = event.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+    return `${formattedEvent} - ${amountStr}`;
+}
+exports.metadata = {
+    summary: "Get Trade Dashboard Data",
+    description: "Retrieves aggregated trade data for the authenticated user.",
+    operationId: "getP2PTradeDashboardData",
+    tags: ["P2P", "Trade"],
+    logModule: "P2P",
+    logTitle: "Get trade dashboard",
+    responses: {
+        200: { description: "Trade dashboard data retrieved successfully." },
+        401: query_1.unauthorizedResponse,
+        500: query_1.serverErrorResponse,
+    },
+    requiresAuth: true,
+};
+exports.default = async (data) => {
+    const { user, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id))
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching trade statistics and activity");
+    try {
+        const [totalTrades, completedTrades, disputedTrades, activeTrades, pendingTrades, trades,] = await Promise.all([
+            db_1.models.p2pTrade.count({
+                where: { [sequelize_1.Op.or]: [{ buyerId: user.id }, { sellerId: user.id }] },
+            }),
+            db_1.models.p2pTrade.count({
+                where: {
+                    status: "COMPLETED",
+                    [sequelize_1.Op.or]: [{ buyerId: user.id }, { sellerId: user.id }],
+                },
+            }),
+            db_1.models.p2pTrade.findAll({
+                where: {
+                    status: "DISPUTED",
+                    [sequelize_1.Op.or]: [{ buyerId: user.id }, { sellerId: user.id }],
+                },
+                include: [
+                    {
+                        association: "paymentMethodDetails",
+                        attributes: ["id", "name", "icon"],
+                        required: false
+                    },
+                    {
+                        association: "offer",
+                        attributes: ["id", "priceCurrency"],
+                        required: false
+                    }
+                ],
+                limit: 7,
+                order: [["updatedAt", "DESC"]],
+            }),
+            db_1.models.p2pTrade.findAll({
+                where: {
+                    status: {
+                        [sequelize_1.Op.in]: ["IN_PROGRESS", "PENDING", "PAYMENT_SENT", "ESCROW_RELEASED"],
+                    },
+                    [sequelize_1.Op.or]: [{ buyerId: user.id }, { sellerId: user.id }],
+                },
+                include: [
+                    {
+                        association: "paymentMethodDetails",
+                        attributes: ["id", "name", "icon"],
+                        required: false
+                    },
+                    {
+                        association: "offer",
+                        attributes: ["id", "priceCurrency"],
+                        required: false
+                    }
+                ],
+                order: [["updatedAt", "DESC"]],
+            }),
+            db_1.models.p2pTrade.findAll({
+                where: {
+                    status: "PENDING",
+                    [sequelize_1.Op.or]: [{ buyerId: user.id }, { sellerId: user.id }],
+                },
+                include: [
+                    {
+                        association: "paymentMethodDetails",
+                        attributes: ["id", "name", "icon"],
+                        required: false
+                    },
+                    {
+                        association: "offer",
+                        attributes: ["id", "priceCurrency"],
+                        required: false
+                    }
+                ],
+                order: [["createdAt", "DESC"]],
+            }),
+            db_1.models.p2pTrade.findAll({
+                where: { [sequelize_1.Op.or]: [{ buyerId: user.id }, { sellerId: user.id }] },
+                include: [
+                    {
+                        association: "offer",
+                        attributes: ["id", "priceCurrency"],
+                        required: false
+                    }
+                ],
+                order: [["updatedAt", "DESC"]],
+            }),
+        ]);
+        const recentActivity = [];
+        const recentTrades = trades.slice(0, 10);
+        for (const trade of recentTrades) {
+            const tradeData = trade.toJSON ? trade.toJSON() : trade;
+            let timeline = tradeData.timeline || [];
+            if (typeof timeline === 'string') {
+                try {
+                    timeline = JSON.parse(timeline);
+                }
+                catch (e) {
+                    timeline = [];
+                }
+            }
+            if (!Array.isArray(timeline))
+                timeline = [];
+            for (const event of timeline) {
+                if (event.event === 'MESSAGE')
+                    continue;
+                const eventTime = event.timestamp || event.createdAt || event.time;
+                if (!eventTime)
+                    continue;
+                recentActivity.push({
+                    id: `${tradeData.id}-${eventTime}`,
+                    tradeId: tradeData.id,
+                    type: mapEventToActivityType(event.event),
+                    message: formatActivityMessage(event.event, tradeData.currency, tradeData.amount),
+                    time: eventTime,
+                    createdAt: new Date(eventTime),
+                });
+            }
+        }
+        recentActivity.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const limitedActivity = recentActivity.slice(0, 5);
+        const totalVolume = trades.reduce((sum, t) => sum + (t.total || t.fiatAmount || 0), 0);
+        const avgCompletionTime = (() => {
+            const completed = trades.filter((t) => t.status === "COMPLETED" && t.completedAt && t.createdAt);
+            if (!completed.length)
+                return null;
+            const totalMs = completed.reduce((sum, t) => sum +
+                (new Date(t.completedAt).getTime() - new Date(String(t.createdAt)).getTime()), 0);
+            const avgMs = totalMs / completed.length;
+            const hours = Math.floor(avgMs / 3600000);
+            const minutes = Math.floor((avgMs % 3600000) / 60000);
+            return hours ? `${hours}h ${minutes}m` : `${minutes}m`;
+        })();
+        const successRate = totalTrades
+            ? Math.round((completedTrades / totalTrades) * 100)
+            : 0;
+        const getCounterparty = (trade) => {
+            return trade.buyerId === user.id
+                ? trade.sellerName || `User #${trade.sellerId}`
+                : trade.buyerName || `User #${trade.buyerId}`;
+        };
+        function formatTrade(trade) {
+            var _a, _b;
+            const tradeData = trade.toJSON ? trade.toJSON() : trade;
+            let status = tradeData.status;
+            if (status === 'PENDING' && tradeData.expiresAt) {
+                const now = new Date();
+                const expiresAt = new Date(tradeData.expiresAt);
+                if (expiresAt < now) {
+                    status = 'EXPIRED';
+                }
+            }
+            return {
+                id: tradeData.id,
+                type: tradeData.buyerId === user.id ? "BUY" : "SELL",
+                coin: tradeData.currency || tradeData.coin || tradeData.crypto || "N/A",
+                amount: tradeData.amount,
+                fiatAmount: tradeData.total || tradeData.fiatAmount || 0,
+                price: tradeData.price,
+                counterparty: getCounterparty(tradeData),
+                status: status,
+                date: tradeData.updatedAt || tradeData.createdAt,
+                paymentMethod: ((_a = tradeData.paymentMethodDetails) === null || _a === void 0 ? void 0 : _a.name) || tradeData.paymentMethod || null,
+                priceCurrency: ((_b = tradeData.offer) === null || _b === void 0 ? void 0 : _b.priceCurrency) || "USD",
+            };
+        }
+        const availableCurrencies = [...new Set(trades
+                .map((t) => t.currency)
+                .filter((c) => c))].sort();
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Trade dashboard retrieved (${totalTrades} total trades, ${completedTrades} completed)`);
+        return {
+            tradeStats: {
+                activeCount: activeTrades.length,
+                completedCount: completedTrades,
+                totalVolume,
+                avgCompletionTime,
+                successRate,
+            },
+            recentActivity: limitedActivity,
+            activeTrades: activeTrades.map(formatTrade),
+            pendingTrades: pendingTrades.map(formatTrade),
+            completedTrades: trades
+                .filter((t) => t.status === "COMPLETED")
+                .sort((a, b) => new Date(String(b.updatedAt)).getTime() - new Date(String(a.updatedAt)).getTime())
+                .slice(0, 7)
+                .map(formatTrade),
+            disputedTrades: disputedTrades.map(formatTrade),
+            availableCurrencies,
+        };
+    }
+    catch (err) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(err.message || "Failed to retrieve trade dashboard");
+        throw (0, error_1.createError)({ statusCode: 500, message: "Internal Server Error: " + err.message });
+    }
+};

@@ -8,7 +8,7 @@ import { DataTypes, Model, Optional } from "sequelize";
 /**
  * A/B Test status
  */
-export type ABTestStatus = "DRAFT" | "RUNNING" | "COMPLETED" | "CANCELLED";
+export type ABTestStatus = "DRAFT" | "RUNNING" | "COMPLETED" | "CANCELLED" | "STOPPED" | "PAUSED";
 
 /**
  * A/B Test winning variant
@@ -22,7 +22,8 @@ export type ABTestWinner = "CONTROL" | "VARIANT" | "TIE" | "INCONCLUSIVE";
 export interface binaryAiEngineABTestAttributes {
   id: string;
   engineId: string;
-  testName: string;
+  name: string;
+  description?: string;
   status: ABTestStatus;
   startedAt: Date | null;
   endedAt: Date | null;
@@ -37,6 +38,11 @@ export interface binaryAiEngineABTestAttributes {
   variantProfit: number;
   winningVariant: ABTestWinner | null;
   confidenceLevel: number | null;
+  results?: Record<string, any>;
+  variants?: Record<string, any>[];
+  primaryMetric?: string;
+  targetSampleSize?: number;
+  durationDays?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -45,6 +51,7 @@ export interface binaryAiEngineABTestCreationAttributes
   extends Optional<
     binaryAiEngineABTestAttributes,
     | "id"
+    | "description"
     | "status"
     | "startedAt"
     | "endedAt"
@@ -57,6 +64,8 @@ export interface binaryAiEngineABTestCreationAttributes
     | "variantProfit"
     | "winningVariant"
     | "confidenceLevel"
+    | "targetSampleSize"
+    | "durationDays"
     | "createdAt"
     | "updatedAt"
   > {}
@@ -88,7 +97,9 @@ export default class binaryAiEngineABTest
   /** Reference to the parent engine */
   engineId!: string;
   /** Name of the A/B test */
-  testName!: string;
+  name!: string;
+  /** Description of the A/B test */
+  description?: string;
   /** Current status */
   status!: ABTestStatus;
   /** When the test started */
@@ -117,6 +128,11 @@ export default class binaryAiEngineABTest
   winningVariant!: ABTestWinner | null;
   /** Statistical confidence level */
   confidenceLevel!: number | null;
+  results?: Record<string, any>;
+  variants?: Record<string, any>[];
+  primaryMetric?: string;
+  targetSampleSize?: number;
+  durationDays?: number;
 
   createdAt?: Date;
   updatedAt?: Date;
@@ -143,15 +159,19 @@ export default class binaryAiEngineABTest
             isUUID: { args: 4, msg: "engineId: Must be a valid UUID" },
           },
         },
-        testName: {
+        name: {
           type: DataTypes.STRING(100),
           allowNull: false,
           validate: {
-            notEmpty: { msg: "testName: Test name must not be empty" },
+            notEmpty: { msg: "name: Name must not be empty" },
           },
         },
+        description: {
+          type: DataTypes.TEXT,
+          allowNull: true,
+        },
         status: {
-          type: DataTypes.ENUM("DRAFT", "RUNNING", "COMPLETED", "CANCELLED"),
+          type: DataTypes.ENUM("DRAFT", "RUNNING", "COMPLETED", "CANCELLED", "STOPPED", "PAUSED"),
           allowNull: false,
           defaultValue: "DRAFT",
         },
@@ -233,6 +253,26 @@ export default class binaryAiEngineABTest
             const value = this.getDataValue("confidenceLevel");
             return value !== null ? parseFloat(value as any) : null;
           },
+        },
+        results: {
+          type: DataTypes.JSON,
+          allowNull: true,
+        },
+        variants: {
+          type: DataTypes.JSON,
+          allowNull: true,
+        },
+        primaryMetric: {
+          type: DataTypes.STRING(100),
+          allowNull: true,
+        },
+        targetSampleSize: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+        },
+        durationDays: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
         },
       },
       {

@@ -1,1 +1,80 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error");exports.metadata={summary:"Get FAQ by ID",description:"Retrieves a single FAQ entry by its ID, including its related FAQs, computed helpfulCount from feedback, and increments the view count.",operationId:"getFAQById",tags:["FAQ"],logModule:"FAQ",logTitle:"Get FAQ by ID",parameters:[{index:0,name:"id",in:"path",required:!0,schema:{type:"string"},description:"FAQ ID"}],responses:{200:{description:"FAQ retrieved successfully with related FAQs, helpfulCount and updated view count embedded",content:{"application/json":{schema:{type:"object"}}}},404:{description:"FAQ not found"},500:{description:"Internal Server Error"}}};exports.default=async e=>{const{params:t,ctx:r}=e;null==r||r.step(`Fetching FAQ by ID: ${t.id}`);const s=await db_1.models.faq.findByPk(t.id);if(!s){null==r||r.fail("FAQ not found");throw(0,error_1.createError)({statusCode:404,message:"FAQ not found"})}null==r||r.step("Incrementing view count");await s.increment("views",{by:1});await s.reload();null==r||r.step("Parsing related FAQ IDs");let a=[];if(s.relatedFaqIds)if("string"==typeof s.relatedFaqIds)try{a=JSON.parse(s.relatedFaqIds)}catch(e){a=[]}else Array.isArray(s.relatedFaqIds)&&(a=s.relatedFaqIds);let n=[];if(a.length>0){null==r||r.step(`Fetching ${a.length} related FAQs`);n=await db_1.models.faq.findAll({where:{id:a}})}null==r||r.step("Calculating helpful count from feedback");const l=await db_1.models.faqFeedback.count({where:{faqId:s.id,isHelpful:!0}});null==r||r.step("Building response data");const d=s.toJSON();d.relatedFaqs=n;d.helpfulCount=l;null==r||r.success(`FAQ retrieved successfully (views: ${s.views}, helpful: ${l})`);return d};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+exports.metadata = {
+    summary: "Get FAQ by ID",
+    description: "Retrieves a single FAQ entry by its ID, including its related FAQs, computed helpfulCount from feedback, and increments the view count.",
+    operationId: "getFAQById",
+    tags: ["FAQ"],
+    logModule: "FAQ",
+    logTitle: "Get FAQ by ID",
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+            description: "FAQ ID",
+        },
+    ],
+    responses: {
+        200: {
+            description: "FAQ retrieved successfully with related FAQs, helpfulCount and updated view count embedded",
+            content: { "application/json": { schema: { type: "object" } } },
+        },
+        404: { description: "FAQ not found" },
+        500: { description: "Internal Server Error" },
+    },
+};
+exports.default = async (data) => {
+    const { params, ctx } = data;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Fetching FAQ by ID: ${params.id}`);
+    const faq = await db_1.models.faq.findByPk(params.id);
+    if (!faq) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("FAQ not found");
+        throw (0, error_1.createError)({ statusCode: 404, message: "FAQ not found" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Incrementing view count");
+    await faq.increment("views", { by: 1 });
+    await faq.reload();
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Parsing related FAQ IDs");
+    let relatedFaqIds = [];
+    if (faq.relatedFaqIds) {
+        if (typeof faq.relatedFaqIds === "string") {
+            try {
+                relatedFaqIds = JSON.parse(faq.relatedFaqIds);
+            }
+            catch (e) {
+                relatedFaqIds = [];
+            }
+        }
+        else if (Array.isArray(faq.relatedFaqIds)) {
+            relatedFaqIds = faq.relatedFaqIds;
+        }
+    }
+    let relatedFaqs = [];
+    if (relatedFaqIds.length > 0) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step(`Fetching ${relatedFaqIds.length} related FAQs`);
+        relatedFaqs = await db_1.models.faq.findAll({
+            where: {
+                id: relatedFaqIds,
+            },
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating helpful count from feedback");
+    const helpfulCount = await db_1.models.faqFeedback.count({
+        where: {
+            faqId: faq.id,
+            isHelpful: true,
+        },
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Building response data");
+    const faqData = faq.toJSON();
+    faqData.relatedFaqs = relatedFaqs;
+    faqData.helpfulCount = helpfulCount;
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`FAQ retrieved successfully (views: ${faq.views}, helpful: ${helpfulCount})`);
+    return faqData;
+};

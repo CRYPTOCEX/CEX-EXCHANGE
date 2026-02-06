@@ -1,1 +1,64 @@
-"use strict";async function getSmartContract(r,e){const t=process.cwd(),o=t.endsWith("backend"),s=path_1.default.resolve(t,o?`ecosystem/smart-contracts/${r}/${e}.json`:`backend/ecosystem/smart-contracts/${r}/${e}.json`);try{const r=fs_1.default.readFileSync(s,"utf8"),t=JSON.parse(r),{abi:o,bytecode:a}=t;if(!a||!o)throw(0,error_1.createError)({statusCode:404,message:`Failed to extract bytecode or ABI for ${e}`});return{abi:o,bytecode:a}}catch(r){console_1.logger.error("SMART_CONTRACT",`Failed to read contract JSON for ${e}`,r);throw r}}var __importDefault=this&&this.__importDefault||function(r){return r&&r.__esModule?r:{default:r}};Object.defineProperty(exports,"__esModule",{value:!0});exports.getContractAbi=void 0;exports.getSmartContract=getSmartContract;const fs_1=__importDefault(require("fs")),path_1=__importDefault(require("path")),chains_1=require("./chains"),console_1=require("@b/utils/console"),error_1=require("@b/utils/error"),getContractAbi=async(r,e,t)=>{const o=chains_1.chainConfigs[r];if(!o)throw(0,error_1.createError)({statusCode:400,message:`Unsupported chain: ${r}`});const s=process.env[`${r}_EXPLORER_API_KEY`];if(!s)throw(0,error_1.createError)({statusCode:500,message:`API Key for ${r} is not set`});const a=o.networks[e];if(!a||!a.explorer)throw(0,error_1.createError)({statusCode:400,message:`Unsupported network: ${e} for chain: ${r}`});const c=a.chainId?`&chainid=${a.chainId}`:"",n=`https://${a.explorer}/v2/api?module=contract&action=getabi&address=${t}${c}&apikey=${s}`;try{const r=await fetch(n),e=await r.json();if("0"===e.status&&"NOTOK"===e.message){console_1.logger.warn("CONTRACT_ABI",`Etherscan API error for contract ABI ${t}: ${e.result}`);throw(0,error_1.createError)({statusCode:404,message:`Contract ABI not available: ${e.result}`})}if("1"!==e.status)throw(0,error_1.createError)({statusCode:500,message:`API Error: ${e.message}`});return e.result}catch(r){console_1.logger.error("CONTRACT_ABI","Failed to fetch contract ABI",r);throw(0,error_1.createError)({statusCode:500,message:`Failed to fetch contract ABI: ${r.message}`})}};exports.getContractAbi=getContractAbi;
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getContractAbi = void 0;
+exports.getSmartContract = getSmartContract;
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
+const chains_1 = require("./chains");
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+async function getSmartContract(contractPath, name) {
+    const cwd = process.cwd();
+    const isInBackend = cwd.endsWith('backend');
+    const filePath = path_1.default.resolve(cwd, isInBackend
+        ? `ecosystem/smart-contracts/${contractPath}/${name}.json`
+        : `backend/ecosystem/smart-contracts/${contractPath}/${name}.json`);
+    try {
+        const fileContent = fs_1.default.readFileSync(filePath, "utf8");
+        const contractJson = JSON.parse(fileContent);
+        const { abi, bytecode } = contractJson;
+        if (!bytecode || !abi)
+            throw (0, error_1.createError)({ statusCode: 404, message: `Failed to extract bytecode or ABI for ${name}` });
+        return { abi, bytecode };
+    }
+    catch (error) {
+        console_1.logger.error("SMART_CONTRACT", `Failed to read contract JSON for ${name}`, error);
+        throw error;
+    }
+}
+const getContractAbi = async (chain, network, contractAddress) => {
+    const chainConfig = chains_1.chainConfigs[chain];
+    if (!chainConfig) {
+        throw (0, error_1.createError)({ statusCode: 400, message: `Unsupported chain: ${chain}` });
+    }
+    const apiKey = process.env[`${chain}_EXPLORER_API_KEY`];
+    if (!apiKey) {
+        throw (0, error_1.createError)({ statusCode: 500, message: `API Key for ${chain} is not set` });
+    }
+    const networkConfig = chainConfig.networks[network];
+    if (!networkConfig || !networkConfig.explorer) {
+        throw (0, error_1.createError)({ statusCode: 400, message: `Unsupported network: ${network} for chain: ${chain}` });
+    }
+    const chainIdParam = networkConfig.chainId ? `&chainid=${networkConfig.chainId}` : "";
+    const apiUrl = `https://${networkConfig.explorer}/v2/api?module=contract&action=getabi&address=${contractAddress}${chainIdParam}&apikey=${apiKey}`;
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        if (data.status === "0" && data.message === "NOTOK") {
+            console_1.logger.warn("CONTRACT_ABI", `Etherscan API error for contract ABI ${contractAddress}: ${data.result}`);
+            throw (0, error_1.createError)({ statusCode: 404, message: `Contract ABI not available: ${data.result}` });
+        }
+        if (data.status !== "1") {
+            throw (0, error_1.createError)({ statusCode: 500, message: `API Error: ${data.message}` });
+        }
+        return data.result;
+    }
+    catch (error) {
+        console_1.logger.error("CONTRACT_ABI", "Failed to fetch contract ABI", error);
+        throw (0, error_1.createError)({ statusCode: 500, message: `Failed to fetch contract ABI: ${error.message}` });
+    }
+};
+exports.getContractAbi = getContractAbi;

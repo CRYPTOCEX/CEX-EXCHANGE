@@ -150,120 +150,125 @@ function ChartEnginePromo({ extensionId }: { extensionId: string | null }) {
       </div>
 
       {/* Inner content */}
-      <div className="relative m-[2px] bg-gradient-to-br from-zinc-900/98 via-zinc-900/95 to-zinc-950/98 rounded-[14px] p-6 md:p-8">
+      <div className="relative m-[2px] bg-gradient-to-br from-zinc-900/98 via-zinc-900/95 to-zinc-950/98 rounded-[14px] p-4 sm:p-6 md:p-8">
         {/* Header Section */}
-        <div className="flex flex-col lg:flex-row lg:items-start gap-6 mb-8">
-          <div className="flex-1">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-purple-500 rounded-2xl blur-xl opacity-60 animate-pulse" />
-                <div className="relative p-4 bg-gradient-to-br from-violet-500 via-purple-500 to-indigo-500 rounded-2xl shadow-lg shadow-purple-500/30">
-                  <Sparkles className="w-7 h-7 text-white" />
+        <div className="flex flex-col gap-4 sm:gap-6 mb-6 sm:mb-8">
+          {/* Top row: Icon, Title, Badge, and Action Buttons */}
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            {/* Left: Icon and Title */}
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-purple-500 rounded-xl sm:rounded-2xl blur-xl opacity-60 animate-pulse" />
+                <div className="relative p-3 sm:p-4 bg-gradient-to-br from-violet-500 via-purple-500 to-indigo-500 rounded-xl sm:rounded-2xl shadow-lg shadow-purple-500/30">
+                  <Sparkles className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                 </div>
               </div>
-              <div>
-                <div className="flex items-center gap-3 mb-1">
-                  <h2 className="text-2xl md:text-3xl font-bold text-white">{t("chart_engine")}</h2>
-                  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 text-xs font-semibold shadow-lg shadow-orange-500/20">
-                    <Star className="w-3 h-3 mr-1 fill-current" /> {t("pro_addon")}
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">{t("chart_engine")}</h2>
+                  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 text-[10px] sm:text-xs font-semibold shadow-lg shadow-orange-500/20 whitespace-nowrap">
+                    <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1 fill-current" /> {t("pro_addon")}
                   </Badge>
                 </div>
-                <p className="text-zinc-400">{t("professional_trading_charts_advanced_technical_ana")}</p>
+                <p className="text-zinc-400 text-sm sm:text-base">{t("professional_trading_charts_advanced_technical_ana")}</p>
               </div>
             </div>
-            <p className="text-zinc-300 text-base leading-relaxed max-w-2xl">
-              {t("transform_your_binary_trading_platform_with")} <span className="text-violet-400 font-semibold">{`173+ ${tCommon('technical_indicators')}`}</span>,
-              <span className="text-purple-400 font-semibold"> {`45+ ${tCommon('drawing_tools')}`}</span>, automated pattern recognition,
-              and real-time binary order visualization - all powered by WebGL for blazing fast 60 FPS performance.
-            </p>
-          </div>
 
-          <div className="flex flex-col gap-3 lg:min-w-[200px]">
-            <Link href={extensionId ? `/admin/system/extension/${extensionId}` : "/admin/system/extension"}>
-              <Button
-                size="lg"
-                className="w-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 hover:from-violet-600 hover:via-purple-600 hover:to-indigo-600 text-white border-0 shadow-xl shadow-purple-500/30 gap-2 h-12"
-              >
-                <Gift className="w-5 h-5" />
-                {tCommon("activate_license")}
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </Link>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 border-white/20 text-white hover:bg-white/10"
-                onClick={() => window.open("https://demo.mashdiv.com/en/binary", "_blank")}
-              >
-                <Play className="w-3 h-3 mr-1" /> {t("live_demo")}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 border-white/20 text-white hover:bg-white/10"
-                onClick={() => window.open("https://docs.mashdiv.com/#chart-engine-installation", "_blank")}
-              >
-                <ExternalLink className="w-3 h-3 mr-1" /> Docs
-              </Button>
+            {/* Right: Action Buttons */}
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-2 sm:gap-3 sm:shrink-0 lg:min-w-[200px]">
+              <Link href={extensionId ? `/admin/system/extension/${extensionId}` : "/admin/system/extension"} className="w-full sm:w-auto lg:w-full">
+                <Button
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 hover:from-violet-600 hover:via-purple-600 hover:to-indigo-600 text-white border-0 shadow-xl shadow-purple-500/30 gap-2 h-10 sm:h-12 text-sm sm:text-base"
+                >
+                  <Gift className="w-4 h-4 sm:w-5 sm:h-5" />
+                  {tCommon("activate_license")}
+                  <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                </Button>
+              </Link>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 border-white/20 text-white hover:bg-white/10 text-xs sm:text-sm h-8 sm:h-9"
+                  onClick={() => window.open("https://demo.mashdiv.com/en/binary", "_blank")}
+                >
+                  <Play className="w-3 h-3 mr-1" /> {t("live_demo")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 border-white/20 text-white hover:bg-white/10 text-xs sm:text-sm h-8 sm:h-9"
+                  onClick={() => window.open("https://docs.mashdiv.com/#chart-engine-installation", "_blank")}
+                >
+                  <ExternalLink className="w-3 h-3 mr-1" /> Docs
+                </Button>
+              </div>
             </div>
           </div>
+
+          {/* Description text */}
+          <p className="text-zinc-300 text-sm sm:text-base leading-relaxed max-w-2xl">
+            {t("transform_your_binary_trading_platform_with")} <span className="text-violet-400 font-semibold">{`173+ ${tCommon('technical_indicators')}`}</span>,
+            <span className="text-purple-400 font-semibold"> {`45+ ${tCommon('drawing_tools')}`}</span>, automated pattern recognition,
+            and real-time binary order visualization - all powered by WebGL for blazing fast 60 FPS performance.
+          </p>
         </div>
 
         {/* Key Stats */}
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-4 sm:mb-6">
           {highlightFeatures.map((feature, i) => (
             <motion.div
               key={feature.label}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="group relative p-4 rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] hover:from-white/10 hover:to-white/5 border border-white/10 hover:border-purple-500/40 transition-all duration-300"
+              className="group relative p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] hover:from-white/10 hover:to-white/5 border border-white/10 hover:border-purple-500/40 transition-all duration-300"
             >
-              <div className="flex items-center gap-2 mb-2">
-                <feature.icon className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors" />
-                <span className="text-sm font-semibold text-white">{feature.label}</span>
+              <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+                <feature.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 group-hover:text-purple-300 transition-colors shrink-0" />
+                <span className="text-xs sm:text-sm font-semibold text-white truncate">{feature.label}</span>
               </div>
-              <p className="text-xs text-zinc-400 group-hover:text-zinc-300 transition-colors">{feature.value}</p>
+              <p className="text-[10px] sm:text-xs text-zinc-400 group-hover:text-zinc-300 transition-colors line-clamp-2">{feature.value}</p>
             </motion.div>
           ))}
         </div>
 
         {/* Capabilities List */}
-        <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 mb-6">
-          <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-purple-400" />
+        <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-white/[0.03] border border-white/10 mb-4 sm:mb-6">
+          <h4 className="text-xs sm:text-sm font-semibold text-white mb-2 sm:mb-3 flex items-center gap-2">
+            <Cpu className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />
             {t("full_feature_set")}
           </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2">
             {capabilities.map((cap, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm text-zinc-400">
-                <Check className="w-3 h-3 text-emerald-500 flex-shrink-0" />
-                <span>{cap}</span>
+              <div key={i} className="flex items-start gap-1.5 sm:gap-2 text-xs sm:text-sm text-zinc-400">
+                <Check className="w-3 h-3 text-emerald-500 shrink-0 mt-0.5" />
+                <span className="leading-tight">{cap}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Bottom comparison bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-indigo-500/10 border border-purple-500/20">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-zinc-400">
-              <div className="w-2.5 h-2.5 rounded-full bg-zinc-500" />
-              <span className="text-sm">{t("basic_tradingview")}</span>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-indigo-500/10 border border-purple-500/20">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-400">
+              <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-zinc-500" />
+              <span className="text-xs sm:text-sm">{t("basic_tradingview")}</span>
             </div>
-            <ArrowRight className="w-4 h-4 text-purple-400" />
-            <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 shadow-lg shadow-purple-500/50" />
-              <span className="text-sm font-semibold text-white">{tCommon("chart_engine_pro")}</span>
+            <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-purple-400" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 shadow-lg shadow-purple-500/50" />
+              <span className="text-xs sm:text-sm font-semibold text-white">{tCommon("chart_engine_pro")}</span>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Badge variant="outline" className="border-emerald-500/50 text-emerald-400 bg-emerald-500/10">
-              <Check className="w-3 h-3 mr-1" /> {t("binary_optimized")}
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            <Badge variant="outline" className="border-emerald-500/50 text-emerald-400 bg-emerald-500/10 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5">
+              <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" /> {t("binary_optimized")}
             </Badge>
-            <Badge variant="outline" className="border-violet-500/50 text-violet-400 bg-violet-500/10">
-              <Zap className="w-3 h-3 mr-1" /> {t("n_48_811_lines")}
+            <Badge variant="outline" className="border-violet-500/50 text-violet-400 bg-violet-500/10 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5">
+              <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" /> {t("n_48_811_lines")}
             </Badge>
           </div>
         </div>

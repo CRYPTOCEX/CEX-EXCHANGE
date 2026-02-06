@@ -31,7 +31,7 @@ export default class mailwizardCampaign
   getTemplate!: Sequelize.BelongsToGetAssociationMixin<mailwizardTemplate>;
   setTemplate!: Sequelize.BelongsToSetAssociationMixin<
     mailwizardTemplate,
-    mailwizardTemplateId
+    string
   >;
   createTemplate!: Sequelize.BelongsToCreateAssociationMixin<mailwizardTemplate>;
 

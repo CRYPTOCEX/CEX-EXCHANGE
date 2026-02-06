@@ -1,1 +1,68 @@
-"use strict";async function getActiveKycLevels(){const e=await db_1.models.kycLevel.findAll({where:{status:"ACTIVE"}});if(!e||0===e.length)throw(0,error_1.createError)({statusCode:404,message:"No active KYC levels found"});return e.map(e=>e.get({plain:!0}))}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;exports.getActiveKycLevels=getActiveKycLevels;const error_1=require("@b/utils/error"),db_1=require("@b/db"),query_1=require("@b/utils/query");exports.metadata={summary:"Lists the active KYC levels",description:"Fetches all currently active KYC (Know Your Customer) levels that are used for KYC processes. This endpoint is accessible without authentication and returns an array of levels that are marked as active in the system.",operationId:"getActiveKycLevels",tags:["KYC"],logModule:"USER",logTitle:"List KYC levels",responses:{200:{description:"Active KYC levels retrieved successfully",content:{"application/json":{schema:{type:"array",items:{type:"object",properties:{id:{type:"number",description:"Level ID"},title:{type:"string",description:"Level title"},options:{type:"object",description:"Level options as JSON object",nullable:!0},status:{type:"boolean",description:"Active status of the level"}}}}}}},401:query_1.unauthorizedResponse,404:(0,query_1.notFoundMetadataResponse)("Kyc Level"),500:query_1.serverErrorResponse},requiresAuth:!1};exports.default=async e=>{const t=null==e?void 0:e.ctx;null==t||t.step("Retrieving active KYC levels");const s=await getActiveKycLevels();null==t||t.success(`Retrieved ${s.length} active KYC levels`);return s};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+exports.getActiveKycLevels = getActiveKycLevels;
+const error_1 = require("@b/utils/error");
+const db_1 = require("@b/db");
+const query_1 = require("@b/utils/query");
+exports.metadata = {
+    summary: "Lists the active KYC levels",
+    description: "Fetches all currently active KYC (Know Your Customer) levels that are used for KYC processes. This endpoint is accessible without authentication and returns an array of levels that are marked as active in the system.",
+    operationId: "getActiveKycLevels",
+    tags: ["KYC"],
+    logModule: "USER",
+    logTitle: "List KYC levels",
+    responses: {
+        200: {
+            description: "Active KYC levels retrieved successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                id: { type: "number", description: "Level ID" },
+                                title: { type: "string", description: "Level title" },
+                                options: {
+                                    type: "object",
+                                    description: "Level options as JSON object",
+                                    nullable: true,
+                                },
+                                status: {
+                                    type: "boolean",
+                                    description: "Active status of the level",
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        401: query_1.unauthorizedResponse,
+        404: (0, query_1.notFoundMetadataResponse)("Kyc Level"),
+        500: query_1.serverErrorResponse,
+    },
+    requiresAuth: false,
+};
+exports.default = async (data) => {
+    const ctx = data === null || data === void 0 ? void 0 : data.ctx;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Retrieving active KYC levels");
+    const result = await getActiveKycLevels();
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Retrieved ${result.length} active KYC levels`);
+    return result;
+};
+async function getActiveKycLevels() {
+    const response = await db_1.models.kycLevel.findAll({
+        where: {
+            status: "ACTIVE",
+        },
+    });
+    if (!response || response.length === 0) {
+        throw (0, error_1.createError)({
+            statusCode: 404,
+            message: "No active KYC levels found",
+        });
+    }
+    return response.map((level) => level.get({ plain: true }));
+}

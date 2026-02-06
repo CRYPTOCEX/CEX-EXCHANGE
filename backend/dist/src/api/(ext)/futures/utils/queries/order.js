@@ -1,1 +1,450 @@
-"use strict";function uuidToString(e){return(0,uuid_1.stringify)(e.buffer)}async function query(e,r=[]){if(!client)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});return client.execute(e,r,{prepare:!0})}async function getOrdersByUserId(e){if(!client||!scyllaFuturesKeyspace)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});const r=`\n    SELECT * FROM ${scyllaFuturesKeyspace}.orders\n    WHERE "userId" = ?\n    ORDER BY "createdAt" DESC;\n  `,t=[e];try{return(await client.execute(r,t,{prepare:!0})).rows.map(mapRowToOrder)}catch(e){console_1.logger.error("FUTURES",`Failed to fetch futures orders by userId: ${e.message}`);throw(0,error_1.createError)({statusCode:500,message:`Failed to fetch futures orders by userId: ${e.message}`})}}function mapRowToOrder(e){return{id:e.id,userId:e.userId,symbol:e.symbol,type:e.type,side:e.side,price:e.price,amount:e.amount,filled:e.filled,remaining:e.remaining,timeInForce:e.timeInForce,cost:e.cost,fee:e.fee,feeCurrency:e.feeCurrency,average:e.average,trades:e.trades,status:e.status,createdAt:e.createdAt,updatedAt:e.updatedAt,leverage:e.leverage,stopLossPrice:e.stopLossPrice,takeProfitPrice:e.takeProfitPrice}}function getOrderByUuid(e,r,t){if(!client||!scyllaFuturesKeyspace)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});const s=`\n    SELECT * FROM ${scyllaFuturesKeyspace}.orders\n    WHERE "userId" = ? AND id = ? AND "createdAt" = ?;\n  `,a=[e,r,t];return client.execute(s,a,{prepare:!0}).then(e=>e.rows[0]).then(mapRowToOrder)}async function cancelOrderByUuid(e,r,t,s,a,o,n){if(!client||!scyllaFuturesKeyspace||!fromBigInt)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});const c=fromBigInt(a),i="BUY"===o?"BIDS":"ASKS",l=await(0,orderbook_1.getOrderbookEntry)(s,c,i);let u="",d=[];if(l){const e=l-n;if(e<=BigInt(0)){u=`DELETE FROM ${scyllaFuturesKeyspace}.orderbook WHERE symbol = ? AND price = ? AND side = ?`;d=[s,c.toString(),i]}else{u=`UPDATE ${scyllaFuturesKeyspace}.orderbook SET amount = ? WHERE symbol = ? AND price = ? AND side = ?`;d=[fromBigInt(e).toString(),s,c.toString(),i]}}else console_1.logger.warn("FUTURES",`No orderbook entry found for symbol: ${s}, price: ${c}, side: ${i}`);const g=`DELETE FROM ${scyllaFuturesKeyspace}.orders WHERE "userId" = ? AND id = ? AND "createdAt" = ?`,y=[e,r,t],p=u?[{query:u,params:d},{query:g,params:y}]:[{query:g,params:y}];try{await client.batch(p,{prepare:!0})}catch(e){console_1.logger.error("FUTURES",`Failed to cancel futures order and update orderbook: ${e.message}`);throw(0,error_1.createError)({statusCode:500,message:`Failed to cancel futures order and update orderbook: ${e.message}`})}}function applyLeverage(e,r){return e*BigInt(Math.max(1,Math.floor(r)))}async function createOrder({userId:e,symbol:r,amount:t,price:s,cost:a,type:o,side:n,fee:c,feeCurrency:i,leverage:l,stopLossPrice:u,takeProfitPrice:d}){if(!client||!scyllaFuturesKeyspace||!removeTolerance)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});const g=new Date,y=applyLeverage(t,l),p=`\n    INSERT INTO ${scyllaFuturesKeyspace}.orders (\n      id, "userId", symbol, type, "timeInForce", side, price, average,\n      amount, filled, remaining, cost, leverage, fee, "feeCurrency", status,\n      "stopLossPrice", "takeProfitPrice", "createdAt", "updatedAt"\n    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);\n  `,m=removeTolerance(s),f=removeTolerance(y),E=removeTolerance(a),I=removeTolerance(c),F=u?removeTolerance(u):void 0,B=d?removeTolerance(d):void 0,A=(0,passwords_1.makeUuid)(),O=[A,e,r,o,"GTC",n,m.toString(),"0",f.toString(),"0",f.toString(),E.toString(),l.toString(),I.toString(),i,"OPEN",F?F.toString():null,B?B.toString():null,g,g];try{await client.execute(p,O,{prepare:!0});const t={id:A,userId:e,symbol:r,type:o,timeInForce:"GTC",side:n,price:m,amount:f,filled:BigInt(0),remaining:f,cost:E,fee:I,feeCurrency:i,average:BigInt(0),trades:"",status:"OPEN",createdAt:g,updatedAt:g,leverage:l,stopLossPrice:F,takeProfitPrice:B};(await matchingEngine_1.FuturesMatchingEngine.getInstance()).addToQueue(t);return t}catch(e){console_1.logger.error("FUTURES",`Failed to create futures order: ${e.message}`);throw(0,error_1.createError)({statusCode:500,message:`Failed to create futures order: ${e.message}`})}}async function getAllOpenOrders(){if(!client||!scyllaFuturesKeyspace)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});const e=`\n    SELECT * FROM ${scyllaFuturesKeyspace}.open_order\n    WHERE status = 'OPEN' ALLOW FILTERING;\n  `;try{return(await client.execute(e,[],{prepare:!0})).rows}catch(e){console_1.logger.error("FUTURES",`Failed to fetch all open futures orders: ${e.message}`);throw(0,error_1.createError)({statusCode:500,message:`Failed to fetch all open futures orders: ${e.message}`})}}function generateOrderUpdateQueries(e){if(!scyllaFuturesKeyspace||!removeTolerance)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});return e.map(e=>({query:`\n        UPDATE ${scyllaFuturesKeyspace}.orders\n        SET filled = ?, remaining = ?, status = ?, "updatedAt" = ?, trades = ?\n        WHERE "userId" = ? AND "createdAt" = ? AND id = ?;\n      `,params:[removeTolerance(e.filled).toString(),removeTolerance(e.remaining).toString(),e.status,new Date,JSON.stringify(e.trades),e.userId,e.createdAt,e.id]}))}async function deleteAllMarketData(e){if(!client||!scyllaFuturesKeyspace)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});const r=await client.execute(`\n      SELECT "userId", "createdAt", id\n      FROM ${scyllaFuturesKeyspace}.orders_by_symbol\n      WHERE symbol = ?\n      ALLOW FILTERING;\n    `,[e],{prepare:!0});for(const e of r.rows)await cancelAndRefundOrder(e.userId,e.id,e.createdAt);const t=r.rows.map(e=>({query:`\n      DELETE FROM ${scyllaFuturesKeyspace}.orders\n      WHERE "userId" = ? AND "createdAt" = ? AND id = ?;\n    `,params:[e.userId,e.createdAt,e.id]})),s=(await client.execute(`\n      SELECT interval, "createdAt"\n      FROM ${scyllaFuturesKeyspace}.candles\n      WHERE symbol = ?;\n    `,[e],{prepare:!0})).rows.map(r=>({query:`\n      DELETE FROM ${scyllaFuturesKeyspace}.candles\n      WHERE symbol = ? AND interval = ? AND "createdAt" = ?;\n    `,params:[e,r.interval,r.createdAt]})),a=["ASKS","BIDS"],o=[];for(const r of a){const t=(await client.execute(`\n        SELECT price\n        FROM ${scyllaFuturesKeyspace}.orderbook\n        WHERE symbol = ? AND side = ?;\n      `,[e,r],{prepare:!0})).rows.map(t=>({query:`\n        DELETE FROM ${scyllaFuturesKeyspace}.orderbook\n        WHERE symbol = ? AND side = ? AND price = ?;\n      `,params:[e,r,t.price]}));o.push(...t)}const n=[...t,...s,...o];if(0!==n.length)try{await client.batch(n,{prepare:!0})}catch(e){console_1.logger.error("FUTURES",`Failed to delete all futures market data: ${e.message}`)}}async function cancelAndRefundOrder(e,r,t){const s=await getOrderByUuid(e,r,t);if(!s){console_1.logger.warn("FUTURES",`Order not found for UUID: ${r}`);return}if("OPEN"!==s.status||BigInt(s.remaining)===BigInt(0))return;if(!(fromBigIntMultiply&&fromBigInt&&getWalletByUserIdAndCurrency&&updateWalletBalance)){console_1.logger.warn("FUTURES","Ecosystem extension not available for wallet operations");return}const a="BUY"===s.side?fromBigIntMultiply(BigInt(s.remaining)+BigInt(s.fee),BigInt(s.price)):fromBigInt(BigInt(s.remaining)+BigInt(s.fee)),o="BUY"===s.side?s.symbol.split("/")[1]:s.symbol.split("/")[0],n=await getWalletByUserIdAndCurrency(e,o);n?await updateWalletBalance(n,a,"add"):console_1.logger.warn("FUTURES",`${o} wallet not found for user ID: ${e}`)}async function getOrders(e,r,t){if(!client||!scyllaFuturesKeyspace||!fromBigInt)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});let s=`\n    SELECT * FROM ${scyllaFuturesKeyspace}.orders\n    WHERE "userId" = ?\n  `;const a=[e];if(r){s+=" AND symbol = ?";a.push(r)}t&&(s+=" AND status = 'OPEN'");s+=' ORDER BY "createdAt" DESC ALLOW FILTERING';try{return(await client.execute(s,a,{prepare:!0})).rows.map(mapRowToOrder).map(e=>({...e,amount:fromBigInt(e.amount),price:fromBigInt(e.price),cost:fromBigInt(e.cost),fee:fromBigInt(e.fee),filled:fromBigInt(e.filled),remaining:fromBigInt(e.remaining),average:e.average?fromBigInt(e.average):0,stopLossPrice:e.stopLossPrice?fromBigInt(e.stopLossPrice):void 0,takeProfitPrice:e.takeProfitPrice?fromBigInt(e.takeProfitPrice):void 0}))}catch(e){console_1.logger.error("FUTURES",`Failed to fetch futures orders: ${e.message}`);throw(0,error_1.createError)({statusCode:500,message:`Failed to fetch futures orders: ${e.message}`})}}async function cancelAllOrdersByUserId(e){try{const r=await getOrders(e,void 0,!0);if(0===r.length)return{cancelledCount:0};let t=0;for(const e of r)try{await cancelOrderByUuid(e.userId,e.id,e.createdAt.toISOString(),e.symbol,BigInt(Math.floor(1e8*e.price)),e.side,BigInt(Math.floor(1e8*e.remaining)));t++}catch(r){console_1.logger.error("FUTURES",`Failed to cancel order ${e.id}: ${r}`)}return{cancelledCount:t}}catch(r){console_1.logger.error("FUTURES",`Failed to cancel all orders for user ${e}: ${r}`);throw(0,error_1.createError)({statusCode:500,message:`Failed to cancel all orders: ${r.message}`})}}Object.defineProperty(exports,"__esModule",{value:!0});exports.uuidToString=uuidToString;exports.query=query;exports.getOrdersByUserId=getOrdersByUserId;exports.getOrderByUuid=getOrderByUuid;exports.cancelOrderByUuid=cancelOrderByUuid;exports.createOrder=createOrder;exports.getAllOpenOrders=getAllOpenOrders;exports.generateOrderUpdateQueries=generateOrderUpdateQueries;exports.deleteAllMarketData=deleteAllMarketData;exports.getOrders=getOrders;exports.cancelAllOrdersByUserId=cancelAllOrdersByUserId;const error_1=require("@b/utils/error");let fromBigInt,fromBigIntMultiply,removeTolerance,client,scyllaFuturesKeyspace,getWalletByUserIdAndCurrency,updateWalletBalance;try{const e=require("@b/api/(ext)/ecosystem/utils/blockchain");fromBigInt=e.fromBigInt;fromBigIntMultiply=e.fromBigIntMultiply;removeTolerance=e.removeTolerance;const r=require("@b/api/(ext)/ecosystem/utils/scylla/client");client=r.default;scyllaFuturesKeyspace=r.scyllaFuturesKeyspace;const t=require("@b/api/(ext)/ecosystem/utils/wallet");getWalletByUserIdAndCurrency=t.getWalletByUserIdAndCurrency;updateWalletBalance=t.updateWalletBalance}catch(e){}const passwords_1=require("@b/utils/passwords"),console_1=require("@b/utils/console"),matchingEngine_1=require("../matchingEngine"),orderbook_1=require("./orderbook"),uuid_1=require("uuid");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.uuidToString = uuidToString;
+exports.query = query;
+exports.getOrdersByUserId = getOrdersByUserId;
+exports.getOrderByUuid = getOrderByUuid;
+exports.cancelOrderByUuid = cancelOrderByUuid;
+exports.createOrder = createOrder;
+exports.getAllOpenOrders = getAllOpenOrders;
+exports.generateOrderUpdateQueries = generateOrderUpdateQueries;
+exports.deleteAllMarketData = deleteAllMarketData;
+exports.getOrders = getOrders;
+exports.cancelAllOrdersByUserId = cancelAllOrdersByUserId;
+const error_1 = require("@b/utils/error");
+let fromBigInt;
+let fromBigIntMultiply;
+let removeTolerance;
+let client;
+let scyllaFuturesKeyspace;
+let getWalletByUserIdAndCurrency;
+let updateWalletBalance;
+try {
+    const blockchainModule = require("@b/api/(ext)/ecosystem/utils/blockchain");
+    fromBigInt = blockchainModule.fromBigInt;
+    fromBigIntMultiply = blockchainModule.fromBigIntMultiply;
+    removeTolerance = blockchainModule.removeTolerance;
+    const clientModule = require("@b/api/(ext)/ecosystem/utils/scylla/client");
+    client = clientModule.default;
+    scyllaFuturesKeyspace = clientModule.scyllaFuturesKeyspace;
+    const walletModule = require("@b/api/(ext)/ecosystem/utils/wallet");
+    getWalletByUserIdAndCurrency = walletModule.getWalletByUserIdAndCurrency;
+    updateWalletBalance = walletModule.updateWalletBalance;
+}
+catch (e) {
+}
+const passwords_1 = require("@b/utils/passwords");
+const console_1 = require("@b/utils/console");
+const matchingEngine_1 = require("../matchingEngine");
+const orderbook_1 = require("./orderbook");
+const uuid_1 = require("uuid");
+function uuidToString(uuid) {
+    return (0, uuid_1.stringify)(uuid.buffer);
+}
+async function query(q, params = []) {
+    if (!client) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    return client.execute(q, params, { prepare: true });
+}
+async function getOrdersByUserId(userId) {
+    if (!client || !scyllaFuturesKeyspace) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    const query = `
+    SELECT * FROM ${scyllaFuturesKeyspace}.orders
+    WHERE "userId" = ?
+    ORDER BY "createdAt" DESC;
+  `;
+    const params = [userId];
+    try {
+        const result = await client.execute(query, params, { prepare: true });
+        return result.rows.map(mapRowToOrder);
+    }
+    catch (error) {
+        console_1.logger.error("FUTURES", `Failed to fetch futures orders by userId: ${error.message}`);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Failed to fetch futures orders by userId: ${error.message}`,
+        });
+    }
+}
+function mapRowToOrder(row) {
+    return {
+        id: row.id,
+        userId: row.userId,
+        symbol: row.symbol,
+        type: row.type,
+        side: row.side,
+        price: row.price,
+        amount: row.amount,
+        filled: row.filled,
+        remaining: row.remaining,
+        timeInForce: row.timeInForce,
+        cost: row.cost,
+        fee: row.fee,
+        feeCurrency: row.feeCurrency,
+        average: row.average,
+        trades: row.trades,
+        status: row.status,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        leverage: row.leverage,
+        stopLossPrice: row.stopLossPrice,
+        takeProfitPrice: row.takeProfitPrice,
+    };
+}
+function getOrderByUuid(userId, id, createdAt) {
+    if (!client || !scyllaFuturesKeyspace) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    const query = `
+    SELECT * FROM ${scyllaFuturesKeyspace}.orders
+    WHERE "userId" = ? AND id = ? AND "createdAt" = ?;
+  `;
+    const params = [userId, id, createdAt];
+    return client
+        .execute(query, params, { prepare: true })
+        .then((result) => result.rows[0])
+        .then(mapRowToOrder);
+}
+async function cancelOrderByUuid(userId, id, createdAt, symbol, price, side, amount) {
+    if (!client || !scyllaFuturesKeyspace || !fromBigInt) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    const priceFormatted = fromBigInt(price);
+    const orderbookSide = side === "BUY" ? "BIDS" : "ASKS";
+    const orderbookAmount = await (0, orderbook_1.getOrderbookEntry)(symbol, priceFormatted, orderbookSide);
+    let orderbookQuery = "";
+    let orderbookParams = [];
+    if (orderbookAmount) {
+        const newAmount = orderbookAmount - amount;
+        if (newAmount <= BigInt(0)) {
+            orderbookQuery = `DELETE FROM ${scyllaFuturesKeyspace}.orderbook WHERE symbol = ? AND price = ? AND side = ?`;
+            orderbookParams = [symbol, priceFormatted.toString(), orderbookSide];
+        }
+        else {
+            orderbookQuery = `UPDATE ${scyllaFuturesKeyspace}.orderbook SET amount = ? WHERE symbol = ? AND price = ? AND side = ?`;
+            orderbookParams = [
+                fromBigInt(newAmount).toString(),
+                symbol,
+                priceFormatted.toString(),
+                orderbookSide,
+            ];
+        }
+    }
+    else {
+        console_1.logger.warn("FUTURES", `No orderbook entry found for symbol: ${symbol}, price: ${priceFormatted}, side: ${orderbookSide}`);
+    }
+    const deleteOrderQuery = `DELETE FROM ${scyllaFuturesKeyspace}.orders WHERE "userId" = ? AND id = ? AND "createdAt" = ?`;
+    const deleteOrderParams = [userId, id, createdAt];
+    const batchQueries = orderbookQuery
+        ? [
+            { query: orderbookQuery, params: orderbookParams },
+            { query: deleteOrderQuery, params: deleteOrderParams },
+        ]
+        : [{ query: deleteOrderQuery, params: deleteOrderParams }];
+    try {
+        await client.batch(batchQueries, { prepare: true });
+    }
+    catch (error) {
+        console_1.logger.error("FUTURES", `Failed to cancel futures order and update orderbook: ${error.message}`);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Failed to cancel futures order and update orderbook: ${error.message}`,
+        });
+    }
+}
+function applyLeverage(amount, leverage) {
+    return amount * BigInt(Math.max(1, Math.floor(leverage)));
+}
+async function createOrder({ userId, symbol, amount, price, cost, type, side, fee, feeCurrency, leverage, stopLossPrice, takeProfitPrice, }) {
+    if (!client || !scyllaFuturesKeyspace || !removeTolerance) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    const currentTimestamp = new Date();
+    const leveragedAmount = applyLeverage(amount, leverage);
+    const query = `
+    INSERT INTO ${scyllaFuturesKeyspace}.orders (
+      id, "userId", symbol, type, "timeInForce", side, price, average,
+      amount, filled, remaining, cost, leverage, fee, "feeCurrency", status,
+      "stopLossPrice", "takeProfitPrice", "createdAt", "updatedAt"
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+  `;
+    const priceTolerance = removeTolerance(price);
+    const amountTolerance = removeTolerance(leveragedAmount);
+    const costTolerance = removeTolerance(cost);
+    const feeTolerance = removeTolerance(fee);
+    const stopLossTolerance = stopLossPrice
+        ? removeTolerance(stopLossPrice)
+        : undefined;
+    const takeProfitTolerance = takeProfitPrice
+        ? removeTolerance(takeProfitPrice)
+        : undefined;
+    const id = (0, passwords_1.makeUuid)();
+    const params = [
+        id,
+        userId,
+        symbol,
+        type,
+        "GTC",
+        side,
+        priceTolerance.toString(),
+        "0",
+        amountTolerance.toString(),
+        "0",
+        amountTolerance.toString(),
+        costTolerance.toString(),
+        leverage.toString(),
+        feeTolerance.toString(),
+        feeCurrency,
+        "OPEN",
+        stopLossTolerance ? stopLossTolerance.toString() : null,
+        takeProfitTolerance ? takeProfitTolerance.toString() : null,
+        currentTimestamp,
+        currentTimestamp,
+    ];
+    try {
+        await client.execute(query, params, {
+            prepare: true,
+        });
+        const newOrder = {
+            id,
+            userId,
+            symbol,
+            type,
+            timeInForce: "GTC",
+            side,
+            price: priceTolerance,
+            amount: amountTolerance,
+            filled: BigInt(0),
+            remaining: amountTolerance,
+            cost: costTolerance,
+            fee: feeTolerance,
+            feeCurrency,
+            average: BigInt(0),
+            trades: "",
+            status: "OPEN",
+            createdAt: currentTimestamp,
+            updatedAt: currentTimestamp,
+            leverage,
+            stopLossPrice: stopLossTolerance,
+            takeProfitPrice: takeProfitTolerance,
+        };
+        const matchingEngine = await matchingEngine_1.FuturesMatchingEngine.getInstance();
+        matchingEngine.addToQueue(newOrder);
+        return newOrder;
+    }
+    catch (error) {
+        console_1.logger.error("FUTURES", `Failed to create futures order: ${error.message}`);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Failed to create futures order: ${error.message}`,
+        });
+    }
+}
+async function getAllOpenOrders() {
+    if (!client || !scyllaFuturesKeyspace) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    const query = `
+    SELECT * FROM ${scyllaFuturesKeyspace}.open_order
+    WHERE status = 'OPEN' ALLOW FILTERING;
+  `;
+    try {
+        const result = await client.execute(query, [], { prepare: true });
+        return result.rows;
+    }
+    catch (error) {
+        console_1.logger.error("FUTURES", `Failed to fetch all open futures orders: ${error.message}`);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Failed to fetch all open futures orders: ${error.message}`,
+        });
+    }
+}
+function generateOrderUpdateQueries(ordersToUpdate) {
+    if (!scyllaFuturesKeyspace || !removeTolerance) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    const queries = ordersToUpdate.map((order) => {
+        return {
+            query: `
+        UPDATE ${scyllaFuturesKeyspace}.orders
+        SET filled = ?, remaining = ?, status = ?, "updatedAt" = ?, trades = ?
+        WHERE "userId" = ? AND "createdAt" = ? AND id = ?;
+      `,
+            params: [
+                removeTolerance(order.filled).toString(),
+                removeTolerance(order.remaining).toString(),
+                order.status,
+                new Date(),
+                JSON.stringify(order.trades),
+                order.userId,
+                order.createdAt,
+                order.id,
+            ],
+        };
+    });
+    return queries;
+}
+async function deleteAllMarketData(symbol) {
+    if (!client || !scyllaFuturesKeyspace) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    const ordersResult = await client.execute(`
+      SELECT "userId", "createdAt", id
+      FROM ${scyllaFuturesKeyspace}.orders_by_symbol
+      WHERE symbol = ?
+      ALLOW FILTERING;
+    `, [symbol], { prepare: true });
+    for (const row of ordersResult.rows) {
+        await cancelAndRefundOrder(row.userId, row.id, row.createdAt);
+    }
+    const deleteOrdersQueries = ordersResult.rows.map((row) => ({
+        query: `
+      DELETE FROM ${scyllaFuturesKeyspace}.orders
+      WHERE "userId" = ? AND "createdAt" = ? AND id = ?;
+    `,
+        params: [row.userId, row.createdAt, row.id],
+    }));
+    const candlesResult = await client.execute(`
+      SELECT interval, "createdAt"
+      FROM ${scyllaFuturesKeyspace}.candles
+      WHERE symbol = ?;
+    `, [symbol], { prepare: true });
+    const deleteCandlesQueries = candlesResult.rows.map((row) => ({
+        query: `
+      DELETE FROM ${scyllaFuturesKeyspace}.candles
+      WHERE symbol = ? AND interval = ? AND "createdAt" = ?;
+    `,
+        params: [symbol, row.interval, row.createdAt],
+    }));
+    const sides = ["ASKS", "BIDS"];
+    const deleteOrderbookQueries = [];
+    for (const side of sides) {
+        const orderbookResult = await client.execute(`
+        SELECT price
+        FROM ${scyllaFuturesKeyspace}.orderbook
+        WHERE symbol = ? AND side = ?;
+      `, [symbol, side], { prepare: true });
+        const queries = orderbookResult.rows.map((row) => ({
+            query: `
+        DELETE FROM ${scyllaFuturesKeyspace}.orderbook
+        WHERE symbol = ? AND side = ? AND price = ?;
+      `,
+            params: [symbol, side, row.price],
+        }));
+        deleteOrderbookQueries.push(...queries);
+    }
+    const batchQueries = [
+        ...deleteOrdersQueries,
+        ...deleteCandlesQueries,
+        ...deleteOrderbookQueries,
+    ];
+    if (batchQueries.length === 0) {
+        return;
+    }
+    try {
+        await client.batch(batchQueries, { prepare: true });
+    }
+    catch (err) {
+        console_1.logger.error("FUTURES", `Failed to delete all futures market data: ${err.message}`);
+    }
+}
+async function cancelAndRefundOrder(userId, id, createdAt) {
+    const order = await getOrderByUuid(userId, id, createdAt);
+    if (!order) {
+        console_1.logger.warn("FUTURES", `Order not found for UUID: ${id}`);
+        return;
+    }
+    if (order.status !== "OPEN" || BigInt(order.remaining) === BigInt(0)) {
+        return;
+    }
+    if (!fromBigIntMultiply || !fromBigInt || !getWalletByUserIdAndCurrency || !updateWalletBalance) {
+        console_1.logger.warn("FUTURES", "Ecosystem extension not available for wallet operations");
+        return;
+    }
+    const refundAmount = order.side === "BUY"
+        ? fromBigIntMultiply(BigInt(order.remaining) + BigInt(order.fee), BigInt(order.price))
+        : fromBigInt(BigInt(order.remaining) + BigInt(order.fee));
+    const walletCurrency = order.side === "BUY"
+        ? order.symbol.split("/")[1]
+        : order.symbol.split("/")[0];
+    const wallet = await getWalletByUserIdAndCurrency(userId, walletCurrency);
+    if (!wallet) {
+        console_1.logger.warn("FUTURES", `${walletCurrency} wallet not found for user ID: ${userId}`);
+        return;
+    }
+    await updateWalletBalance(wallet, refundAmount, "add");
+}
+async function getOrders(userId, symbol, isOpen) {
+    if (!client || !scyllaFuturesKeyspace || !fromBigInt) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    let query = `
+    SELECT * FROM ${scyllaFuturesKeyspace}.orders
+    WHERE "userId" = ?
+  `;
+    const params = [userId];
+    if (symbol) {
+        query += ` AND symbol = ?`;
+        params.push(symbol);
+    }
+    if (isOpen) {
+        query += ` AND status = 'OPEN'`;
+    }
+    query += ` ORDER BY "createdAt" DESC ALLOW FILTERING`;
+    try {
+        const result = await client.execute(query, params, { prepare: true });
+        return result.rows.map(mapRowToOrder).map((order) => ({
+            ...order,
+            amount: fromBigInt(order.amount),
+            price: fromBigInt(order.price),
+            cost: fromBigInt(order.cost),
+            fee: fromBigInt(order.fee),
+            filled: fromBigInt(order.filled),
+            remaining: fromBigInt(order.remaining),
+            average: order.average ? fromBigInt(order.average) : 0,
+            stopLossPrice: order.stopLossPrice
+                ? fromBigInt(order.stopLossPrice)
+                : undefined,
+            takeProfitPrice: order.takeProfitPrice
+                ? fromBigInt(order.takeProfitPrice)
+                : undefined,
+        }));
+    }
+    catch (error) {
+        console_1.logger.error("FUTURES", `Failed to fetch futures orders: ${error.message}`);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Failed to fetch futures orders: ${error.message}`,
+        });
+    }
+}
+async function cancelAllOrdersByUserId(userId) {
+    try {
+        const openOrders = await getOrders(userId, undefined, true);
+        if (openOrders.length === 0) {
+            return { cancelledCount: 0 };
+        }
+        let cancelledCount = 0;
+        for (const order of openOrders) {
+            try {
+                await cancelOrderByUuid(order.userId, order.id, order.createdAt.toISOString(), order.symbol, BigInt(Math.floor(order.price * 1e8)), order.side, BigInt(Math.floor(order.remaining * 1e8)));
+                cancelledCount++;
+            }
+            catch (error) {
+                console_1.logger.error("FUTURES", `Failed to cancel order ${order.id}: ${error}`);
+            }
+        }
+        return { cancelledCount };
+    }
+    catch (error) {
+        console_1.logger.error("FUTURES", `Failed to cancel all orders for user ${userId}: ${error}`);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Failed to cancel all orders: ${error.message}`,
+        });
+    }
+}

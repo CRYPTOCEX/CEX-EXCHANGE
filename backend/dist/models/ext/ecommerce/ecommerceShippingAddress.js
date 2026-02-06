@@ -1,1 +1,163 @@
-"use strict";var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,a,l){void 0===l&&(l=a);var s=Object.getOwnPropertyDescriptor(t,a);s&&!("get"in s?!t.__esModule:s.writable||s.configurable)||(s={enumerable:!0,get:function(){return t[a]}});Object.defineProperty(e,l,s)}:function(e,t,a,l){void 0===l&&(l=a);e[l]=t[a]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var a in e)Object.prototype.hasOwnProperty.call(e,a)&&(t[t.length]=a);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var a={};if(null!=t)for(var l=e(t),s=0;s<l.length;s++)"default"!==l[s]&&__createBinding(a,t,l[s]);__setModuleDefault(a,t);return a}}();Object.defineProperty(exports,"__esModule",{value:!0});const Sequelize=__importStar(require("sequelize")),sequelize_1=require("sequelize");class ecommerceShippingAddress extends sequelize_1.Model{static initModel(e){return ecommerceShippingAddress.init({id:{type:sequelize_1.DataTypes.UUID,defaultValue:sequelize_1.DataTypes.UUIDV4,primaryKey:!0,allowNull:!1},userId:{type:sequelize_1.DataTypes.UUID,allowNull:!1,validate:{notNull:{msg:"userId: User ID cannot be null"},isUUID:{args:4,msg:"userId: User ID must be a valid UUID"}}},orderId:{type:sequelize_1.DataTypes.UUID,allowNull:!1,validate:{notNull:{msg:"orderId: Order ID cannot be null"},isUUID:{args:4,msg:"orderId: Order ID must be a valid UUID"}}},name:{type:sequelize_1.DataTypes.STRING,allowNull:!1,validate:{notEmpty:{msg:"name: Name must not be empty"}}},email:{type:sequelize_1.DataTypes.STRING,allowNull:!1,defaultValue:"",validate:{notEmpty:{msg:"email: Email must not be empty"},isEmail:{msg:"email: Must be a valid email address"}}},phone:{type:sequelize_1.DataTypes.STRING,allowNull:!1,validate:{notEmpty:{msg:"phone: Phone number must not be empty"},isNumeric:{msg:"phone: Must be a numeric value"}}},street:{type:sequelize_1.DataTypes.STRING,allowNull:!1,validate:{notEmpty:{msg:"street: Street address must not be empty"}}},city:{type:sequelize_1.DataTypes.STRING,allowNull:!1,validate:{notEmpty:{msg:"city: City must not be empty"}}},state:{type:sequelize_1.DataTypes.STRING,allowNull:!1,validate:{notEmpty:{msg:"state: State must not be empty"}}},postalCode:{type:sequelize_1.DataTypes.STRING,allowNull:!1,validate:{notEmpty:{msg:"postalCode: Postal code must not be empty"}}},country:{type:sequelize_1.DataTypes.STRING,allowNull:!1,validate:{notEmpty:{msg:"country: Country must not be empty"}}},createdAt:{type:sequelize_1.DataTypes.DATE,allowNull:!0,defaultValue:Sequelize.NOW},updatedAt:{type:sequelize_1.DataTypes.DATE,allowNull:!0,defaultValue:Sequelize.NOW}},{sequelize:e,modelName:"ecommerceShippingAddress",tableName:"ecommerce_shipping_address",timestamps:!0,paranoid:!0,indexes:[{name:"PRIMARY",unique:!0,using:"BTREE",fields:[{name:"id"}]}]})}static associate(e){ecommerceShippingAddress.belongsTo(e.ecommerceOrder,{as:"order",foreignKey:"orderId",onDelete:"CASCADE",onUpdate:"CASCADE"});ecommerceShippingAddress.belongsTo(e.user,{as:"user",foreignKey:"userId",onDelete:"CASCADE",onUpdate:"CASCADE"})}}exports.default=ecommerceShippingAddress;
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+const Sequelize = __importStar(require("sequelize"));
+const sequelize_1 = require("sequelize");
+class ecommerceShippingAddress extends sequelize_1.Model {
+    static initModel(sequelize) {
+        return ecommerceShippingAddress.init({
+            id: {
+                type: sequelize_1.DataTypes.UUID,
+                defaultValue: sequelize_1.DataTypes.UUIDV4,
+                primaryKey: true,
+                allowNull: false,
+            },
+            userId: {
+                type: sequelize_1.DataTypes.UUID,
+                allowNull: false,
+                validate: {
+                    notNull: { msg: "userId: User ID cannot be null" },
+                    isUUID: { args: 4, msg: "userId: User ID must be a valid UUID" },
+                },
+            },
+            orderId: {
+                type: sequelize_1.DataTypes.UUID,
+                allowNull: false,
+                validate: {
+                    notNull: { msg: "orderId: Order ID cannot be null" },
+                    isUUID: { args: 4, msg: "orderId: Order ID must be a valid UUID" },
+                },
+            },
+            name: {
+                type: sequelize_1.DataTypes.STRING,
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "name: Name must not be empty" },
+                },
+            },
+            email: {
+                type: sequelize_1.DataTypes.STRING,
+                allowNull: false,
+                defaultValue: "",
+                validate: {
+                    notEmpty: { msg: "email: Email must not be empty" },
+                    isEmail: { msg: "email: Must be a valid email address" },
+                },
+            },
+            phone: {
+                type: sequelize_1.DataTypes.STRING,
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "phone: Phone number must not be empty" },
+                    isNumeric: { msg: "phone: Must be a numeric value" },
+                },
+            },
+            street: {
+                type: sequelize_1.DataTypes.STRING,
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "street: Street address must not be empty" },
+                },
+            },
+            city: {
+                type: sequelize_1.DataTypes.STRING,
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "city: City must not be empty" },
+                },
+            },
+            state: {
+                type: sequelize_1.DataTypes.STRING,
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "state: State must not be empty" },
+                },
+            },
+            postalCode: {
+                type: sequelize_1.DataTypes.STRING,
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "postalCode: Postal code must not be empty" },
+                },
+            },
+            country: {
+                type: sequelize_1.DataTypes.STRING,
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "country: Country must not be empty" },
+                },
+            },
+            createdAt: {
+                type: sequelize_1.DataTypes.DATE,
+                allowNull: true,
+                defaultValue: Sequelize.NOW,
+            },
+            updatedAt: {
+                type: sequelize_1.DataTypes.DATE,
+                allowNull: true,
+                defaultValue: Sequelize.NOW,
+            },
+        }, {
+            sequelize,
+            modelName: "ecommerceShippingAddress",
+            tableName: "ecommerce_shipping_address",
+            timestamps: true,
+            paranoid: true,
+            indexes: [
+                {
+                    name: "PRIMARY",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "id" }],
+                },
+            ],
+        });
+    }
+    static associate(models) {
+        ecommerceShippingAddress.belongsTo(models.ecommerceOrder, {
+            as: "order",
+            foreignKey: "orderId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+        ecommerceShippingAddress.belongsTo(models.user, {
+            as: "user",
+            foreignKey: "userId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+    }
+}
+exports.default = ecommerceShippingAddress;

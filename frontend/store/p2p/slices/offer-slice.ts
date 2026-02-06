@@ -230,8 +230,17 @@ function transformFormDataToApiPayload(formData: P2POfferFormData): any {
     userRequirements: formData.userRequirements,
 
     // Transform paymentMethods to paymentMethodIds (API expects array of IDs)
-    paymentMethodIds: formData.paymentMethods?.map((method) => method.id) || [],
+    paymentMethodIds: formData.paymentMethods?.map((method) => {
+      console.log("🔍 Mapping Payment Method:", method, "ID:", method.id);
+      return method.id;
+    }) || [],
   };
+
+  console.log("🔍 Final API Payload:");
+  console.log("  paymentMethodIds:", apiPayload.paymentMethodIds);
+  console.log("  Full Payload:", apiPayload);
+
+  return apiPayload;
 }
 
 export const createOfferSlice = (

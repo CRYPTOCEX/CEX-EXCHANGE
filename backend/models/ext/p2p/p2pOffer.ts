@@ -56,6 +56,14 @@ export default class p2pOffer
   public views!: number;
   public systemTags?: string[];
   public adminNotes?: string;
+  public activityLog?: Array<{
+    type: string;
+    adminId?: string;
+    adminName?: string;
+    previousStatus?: string;
+    reason?: string;
+    createdAt: string;
+  }>;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
   public readonly deletedAt!: Date;
@@ -278,6 +286,11 @@ export default class p2pOffer
         adminNotes: {
           type: DataTypes.TEXT,
           allowNull: true,
+        },
+        activityLog: {
+          type: DataTypes.JSON,
+          allowNull: true,
+          defaultValue: [],
         },
       },
       {

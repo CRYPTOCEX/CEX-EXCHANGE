@@ -18,6 +18,8 @@ class WebSocketManager {
   private static instance: WebSocketManager;
   private connections: Map<string, WebSocket> = new Map();
   private connectionStatus: Map<string, ConnectionStatus> = new Map();
+  private connectionUrls: Map<string, string> = new Map(); // Store URLs for reconnection
+  private intentionallyClosed: Set<string> = new Set(); // Track intentional closes
   private subscriptions: Map<string, Map<string, Set<MessageCallback>>> =
     new Map();
   private statusListeners: Map<string, Set<StatusCallback>> = new Map();
@@ -58,6 +60,21 @@ class WebSocketManager {
       return;
     }
 
+    // If there's an existing connection that's closing, clean it up first
+    const existingConnection = this.connections.get(connectionId);
+    if (existingConnection) {
+      if (existingConnection.readyState === WebSocket.OPEN || existingConnection.readyState === WebSocket.CONNECTING) {
+        existingConnection.close();
+      }
+      this.connections.delete(connectionId);
+    }
+
+    // Clear intentionally closed flag since we're making a new connection
+    this.intentionallyClosed.delete(connectionId);
+
+    // Store the URL for potential reconnection
+    this.connectionUrls.set(connectionId, url);
+
     // Initialize message queue for this connection if it doesn't exist
     if (!this.messageQueues.has(connectionId)) {
       this.messageQueues.set(connectionId, []);
@@ -81,11 +98,24 @@ class WebSocketManager {
 
       const accessToken = getCookie('accessToken');
 
+      // Convert relative path to full WebSocket URL
+      let resolvedUrl = url;
+      if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const isDev = process.env.NODE_ENV === "development";
+        const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || "4000";
+        // In development, connect directly to backend (Next.js rewrites don't support WebSocket upgrades)
+        const host = isDev ? `${window.location.hostname}:${backendPort}` : window.location.host;
+        // Ensure the path has a leading slash
+        const path = url.startsWith('/') ? url : `/${url}`;
+        resolvedUrl = `${protocol}//${host}${path}`;
+      }
+
       // Add token to URL if available (for authentication)
-      let authUrl = url;
+      let authUrl = resolvedUrl;
       if (accessToken) {
-        const separator = url.includes('?') ? '&' : '?';
-        authUrl = `${url}${separator}token=${accessToken}`;
+        const separator = resolvedUrl.includes('?') ? '&' : '?';
+        authUrl = `${resolvedUrl}${separator}token=${accessToken}`;
       }
 
       const ws = new WebSocket(authUrl);
@@ -171,12 +201,19 @@ class WebSocketManager {
 
   // Handle WebSocket close event
   private handleClose(connectionId: string, url: string): void {
-    this.connections.delete(connectionId);
-    this.connectionStatus.set(connectionId, ConnectionStatus.DISCONNECTED);
-    this.notifyStatusListeners(connectionId);
+    // Check if this was an intentional close
+    const wasIntentionallyClosed = this.intentionallyClosed.has(connectionId);
 
-    // Attempt to reconnect
-    this.reconnect(connectionId, url);
+    this.connections.delete(connectionId);
+
+    // Only update status and reconnect if this wasn't an intentional close
+    if (!wasIntentionallyClosed) {
+      this.connectionStatus.set(connectionId, ConnectionStatus.DISCONNECTED);
+      this.notifyStatusListeners(connectionId);
+
+      // Attempt to reconnect only for unintentional disconnections
+      this.reconnect(connectionId, url);
+    }
   }
 
   // Handle WebSocket error event
@@ -345,25 +382,35 @@ class WebSocketManager {
 
   // Close a WebSocket connection
   public close(connectionId = "default"): void {
+    // Mark as intentionally closed FIRST to prevent reconnection attempts
+    this.intentionallyClosed.add(connectionId);
+
     // Clear any reconnect timeouts for this connection
     const timeout = this.reconnectTimeouts.get(connectionId);
     if (timeout) {
       clearTimeout(timeout);
       this.reconnectTimeouts.delete(connectionId);
     }
-    
+
     const connection = this.connections.get(connectionId);
     if (connection) {
-      connection.close();
+      // Only close if the connection is open or connecting
+      // Avoid errors when closing already closed connections
+      if (connection.readyState === WebSocket.OPEN || connection.readyState === WebSocket.CONNECTING) {
+        connection.close();
+      }
       this.connections.delete(connectionId);
-      this.connectionStatus.set(connectionId, ConnectionStatus.DISCONNECTED);
-      this.notifyStatusListeners(connectionId);
-      
-      // Clear associated data
-      this.subscriptions.delete(connectionId);
-      this.messageQueues.delete(connectionId);
-      this.reconnectAttempts.delete(connectionId);
     }
+
+    // Always update status and clean up data regardless of connection state
+    this.connectionStatus.set(connectionId, ConnectionStatus.DISCONNECTED);
+    this.notifyStatusListeners(connectionId);
+
+    // Clear associated data
+    this.subscriptions.delete(connectionId);
+    this.messageQueues.delete(connectionId);
+    this.reconnectAttempts.delete(connectionId);
+    this.connectionUrls.delete(connectionId);
   }
 
   // Close all WebSocket connections

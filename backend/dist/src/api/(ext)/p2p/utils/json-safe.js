@@ -1,1 +1,58 @@
-"use strict";function safeStringify(r,e="field"){if("string"==typeof r)try{JSON.parse(r);return r}catch(r){throw(0,error_1.createError)({statusCode:400,message:`${e} contains invalid JSON string: ${r}`})}if("object"==typeof r&&null!==r)try{const e=JSON.stringify(r);JSON.parse(e);return e}catch(r){throw(0,error_1.createError)({statusCode:400,message:`Failed to stringify ${e}: ${r}`})}throw(0,error_1.createError)({statusCode:400,message:`${e} must be an object or valid JSON string`})}function safeParse(r,e){if("object"==typeof r&&null!==r)return r;if("string"==typeof r)try{return JSON.parse(r)}catch(r){console_1.logger.error("P2P_JSON","JSON parse error",r);return e}return e}function prepareJsonFields(r,e){const t={...r};for(const r of e)if(void 0!==t[r]&&null!==t[r])try{t[r]=safeStringify(t[r],String(r))}catch(e){throw(0,error_1.createError)({statusCode:400,message:`Failed to prepare ${String(r)}: ${e}`})}return t}Object.defineProperty(exports,"__esModule",{value:!0});exports.safeStringify=safeStringify;exports.safeParse=safeParse;exports.prepareJsonFields=prepareJsonFields;const console_1=require("@b/utils/console"),error_1=require("@b/utils/error");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.safeStringify = safeStringify;
+exports.safeParse = safeParse;
+exports.prepareJsonFields = prepareJsonFields;
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+function safeStringify(value, fieldName = 'field') {
+    if (typeof value === 'string') {
+        try {
+            JSON.parse(value);
+            return value;
+        }
+        catch (err) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `${fieldName} contains invalid JSON string: ${err}` });
+        }
+    }
+    if (typeof value === 'object' && value !== null) {
+        try {
+            const stringified = JSON.stringify(value);
+            JSON.parse(stringified);
+            return stringified;
+        }
+        catch (err) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Failed to stringify ${fieldName}: ${err}` });
+        }
+    }
+    throw (0, error_1.createError)({ statusCode: 400, message: `${fieldName} must be an object or valid JSON string` });
+}
+function safeParse(value, defaultValue) {
+    if (typeof value === 'object' && value !== null) {
+        return value;
+    }
+    if (typeof value === 'string') {
+        try {
+            return JSON.parse(value);
+        }
+        catch (err) {
+            console_1.logger.error("P2P_JSON", "JSON parse error", err);
+            return defaultValue;
+        }
+    }
+    return defaultValue;
+}
+function prepareJsonFields(data, jsonFields) {
+    const prepared = { ...data };
+    for (const field of jsonFields) {
+        if (prepared[field] !== undefined && prepared[field] !== null) {
+            try {
+                prepared[field] = safeStringify(prepared[field], String(field));
+            }
+            catch (err) {
+                throw (0, error_1.createError)({ statusCode: 400, message: `Failed to prepare ${String(field)}: ${err}` });
+            }
+        }
+    }
+    return prepared;
+}

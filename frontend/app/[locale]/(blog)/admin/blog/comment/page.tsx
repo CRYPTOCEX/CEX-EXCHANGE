@@ -26,6 +26,7 @@ export default function CommentPage() {
       canEdit
       canDelete
       canView
+      isParanoid={false}
       title={t("comment_management")}
       description={t("moderate_and_manage_reader_comments_on_blog_posts")}
       itemTitle="Comment"

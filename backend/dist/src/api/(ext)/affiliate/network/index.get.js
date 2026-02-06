@@ -1,1 +1,200 @@
-"use strict";async function handler(e){const{user:t,ctx:r}=e;if(!(null==t?void 0:t.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});null==r||r.step("Loading MLM system settings from cache");const{mlmSystem:a,mlmSettings:i}=await(0,utils_1.getMlmSystemAndSettings)();null==r||r.step("Fetching user profile data");const s=await db_1.models.user.findByPk(t.id,{attributes:["id","firstName","lastName","avatar","status","createdAt"],raw:!0});if(!s)throw(0,error_1.createError)({statusCode:404,message:"User not found"});null==r||r.step("Building user profile");const l={id:s.id,firstName:s.firstName,lastName:s.lastName,avatar:s.avatar,status:s.status,joinDate:s.createdAt.toISOString()};null==r||r.step("Calculating total rewards");const n=await db_1.models.mlmReferralReward.findOne({attributes:[[(0,sequelize_1.fn)("SUM",(0,sequelize_1.col)("reward")),"totalRewards"]],where:{referrerId:t.id},raw:!0}),o=parseFloat(null==n?void 0:n.totalRewards)||0;null==r||r.step("Looking up upline referrer");let d=null;const u=await db_1.models.mlmReferral.findOne({where:{referredId:t.id},include:[{model:db_1.models.user,as:"referrer",attributes:["id","firstName","lastName","avatar","status","createdAt"]}],raw:!0,nest:!0});if(null==u?void 0:u.referrer){const v=u.referrer,N=parseFloat((await db_1.models.mlmReferralReward.count({where:{referrerId:v.id}})).toString()),h=await db_1.models.mlmReferral.count({where:{referrerId:v.id}});d={id:v.id,firstName:v.firstName,lastName:v.lastName,avatar:v.avatar,status:v.status,joinDate:v.createdAt.toISOString(),earnings:N,teamSize:h,performance:h>0?Math.round(N/h*100):0}}null==r||r.step(`Fetching ${a||"DIRECT"} network tree data`);let f;switch(a){case"BINARY":f=await(0,utils_1.listBinaryReferrals)(s,i,r);break;case"UNILEVEL":f=await(0,utils_1.listUnilevelReferrals)(s,i,r);break;default:f=await(0,utils_1.listDirectReferrals)(s,r)}null==r||r.step("Normalizing network tree structure");const m=function e(t,r=0,a=new Set){var i,s,l,n,o;if(r>50||a.has(t.id))return null;a.add(t.id);const d=t.joinDate||(t.createdAt?new Date(t.createdAt).toISOString():void 0),u=null!==(s=null!==(i=t.earnings)&&void 0!==i?i:t.rewardsCount)&&void 0!==s?s:0,f=null!==(n=null!==(l=t.teamSize)&&void 0!==l?l:t.referredCount)&&void 0!==n?n:(null===(o=t.downlines)||void 0===o?void 0:o.length)||0,m=f?Math.round(u/f*100):0,c=(t.downlines||[]).slice(0,1e3).map(t=>e(t,r+1,new Set(a))).filter(Boolean);return{id:t.id,firstName:t.firstName,lastName:t.lastName,avatar:t.avatar,status:t.status,joinDate:d,earnings:u,teamSize:f,performance:m,role:t.role||(0===r?"You":""),level:r,downlines:c}}(f,0);let c,w,p;"DIRECT"===a&&(c=m.downlines.map(e=>({id:e.id,referred:e,referrerId:t.id,status:e.status,createdAt:e.joinDate,earnings:e.earnings,teamSize:e.teamSize,performance:e.performance,downlines:e.downlines})));if("BINARY"===a){const[S,b]=m.downlines;w={left:S||null,right:b||null}}if("UNILEVEL"===a){const _={};function I(e,t=0){_[t]||(_[t]=[]);t>0&&_[t].push(e);e.downlines.forEach(e=>I(e,t+1))}I(m,0);p=Object.keys(_).map(e=>Number(e)).sort((e,t)=>e-t).filter(e=>e>0).map(e=>_[e])}const g={...l,earnings:o,teamSize:m.teamSize,performance:m.performance,role:"You"};null==r||r.success(`Retrieved ${a||"DIRECT"} network tree with ${m.teamSize||0} team members`);return{user:g,totalRewards:o,upline:d,referrals:c,binaryStructure:w,levels:p,treeData:m}}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;exports.default=handler;const db_1=require("@b/db"),error_1=require("@b/utils/error"),sequelize_1=require("sequelize"),utils_1=require("@b/api/(ext)/affiliate/utils");exports.metadata={summary:"Get Affiliate Network Node",description:"Retrieves the current user's affiliate network data for client visualization.",operationId:"getAffiliateNetworkNode",tags:["Affiliate","Network"],requiresAuth:!0,logModule:"AFFILIATE",logTitle:"Get affiliate network tree",responses:{200:{description:"Network data retrieved successfully."},401:{description:"Unauthorized – login required."},404:{description:"User not found."},500:{description:"Internal Server Error"}}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+exports.default = handler;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const sequelize_1 = require("sequelize");
+const utils_1 = require("@b/api/(ext)/affiliate/utils");
+exports.metadata = {
+    summary: "Get Affiliate Network Node",
+    description: "Retrieves the current user's affiliate network data for client visualization.",
+    operationId: "getAffiliateNetworkNode",
+    tags: ["Affiliate", "Network"],
+    requiresAuth: true,
+    logModule: "AFFILIATE",
+    logTitle: "Get affiliate network tree",
+    responses: {
+        200: { description: "Network data retrieved successfully." },
+        401: { description: "Unauthorized – login required." },
+        404: { description: "User not found." },
+        500: { description: "Internal Server Error" },
+    },
+};
+async function handler(data) {
+    var _a;
+    const { user, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Loading MLM system settings from cache");
+    const { mlmSystem, mlmSettings } = await (0, utils_1.getMlmSystemAndSettings)();
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching user profile data");
+    const userRecord = await db_1.models.user.findByPk(user.id, {
+        attributes: [
+            "id",
+            "firstName",
+            "lastName",
+            "avatar",
+            "status",
+            "createdAt",
+        ],
+        raw: true,
+    });
+    if (!userRecord) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "User not found" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Building user profile");
+    const userProfile = {
+        id: userRecord.id,
+        firstName: userRecord.firstName,
+        lastName: userRecord.lastName,
+        avatar: userRecord.avatar,
+        status: userRecord.status,
+        joinDate: (userRecord.createdAt || new Date()).toISOString(),
+    };
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating total rewards");
+    const rewardsRow = await db_1.models.mlmReferralReward.findOne({
+        attributes: [[(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("reward")), "totalRewards"]],
+        where: { referrerId: user.id },
+        raw: true,
+    });
+    const totalRewards = parseFloat((_a = rewardsRow === null || rewardsRow === void 0 ? void 0 : rewardsRow.totalRewards) !== null && _a !== void 0 ? _a : "0") || 0;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Looking up upline referrer");
+    let upline = null;
+    const upr = await db_1.models.mlmReferral.findOne({
+        where: { referredId: user.id },
+        include: [
+            {
+                model: db_1.models.user,
+                as: "referrer",
+                attributes: [
+                    "id",
+                    "firstName",
+                    "lastName",
+                    "avatar",
+                    "status",
+                    "createdAt",
+                ],
+            },
+        ],
+        raw: true,
+        nest: true,
+    });
+    if (upr === null || upr === void 0 ? void 0 : upr.referrer) {
+        const r = upr.referrer;
+        const rRewards = parseFloat((await db_1.models.mlmReferralReward.count({ where: { referrerId: r.id } })).toString());
+        const rTeam = await db_1.models.mlmReferral.count({
+            where: { referrerId: r.id },
+        });
+        upline = {
+            id: r.id,
+            firstName: r.firstName,
+            lastName: r.lastName,
+            avatar: r.avatar,
+            status: r.status,
+            joinDate: (r.createdAt || new Date()).toISOString(),
+            earnings: rRewards,
+            teamSize: rTeam,
+            performance: rTeam > 0 ? Math.round((rRewards / rTeam) * 100) : 0,
+        };
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Fetching ${mlmSystem || 'DIRECT'} network tree data`);
+    let treeDataRaw;
+    switch (mlmSystem) {
+        case "BINARY":
+            treeDataRaw = await (0, utils_1.listBinaryReferrals)(userRecord, mlmSettings, ctx);
+            break;
+        case "UNILEVEL":
+            treeDataRaw = await (0, utils_1.listUnilevelReferrals)(userRecord, mlmSettings, ctx);
+            break;
+        default:
+            treeDataRaw = await (0, utils_1.listDirectReferrals)(userRecord, ctx);
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Normalizing network tree structure");
+    function normalizeNode(n, level = 0, visited = new Set()) {
+        var _a, _b, _c, _d, _e;
+        if (level > 50 || visited.has(n.id)) {
+            return null;
+        }
+        visited.add(n.id);
+        const joinDate = n.joinDate ||
+            (n.createdAt ? new Date(n.createdAt).toISOString() : undefined);
+        const earnings = (_b = (_a = n.earnings) !== null && _a !== void 0 ? _a : n.rewardsCount) !== null && _b !== void 0 ? _b : 0;
+        const teamSize = (_d = (_c = n.teamSize) !== null && _c !== void 0 ? _c : n.referredCount) !== null && _d !== void 0 ? _d : (((_e = n.downlines) === null || _e === void 0 ? void 0 : _e.length) || 0);
+        const performance = teamSize ? Math.round((earnings / teamSize) * 100) : 0;
+        const downlines = (n.downlines || [])
+            .slice(0, 1000)
+            .map((c) => normalizeNode(c, level + 1, new Set(visited)))
+            .filter(Boolean);
+        return {
+            id: n.id,
+            firstName: n.firstName,
+            lastName: n.lastName,
+            avatar: n.avatar,
+            status: n.status,
+            joinDate,
+            earnings,
+            teamSize,
+            performance,
+            role: n.role || (level === 0 ? "You" : ""),
+            level,
+            downlines,
+        };
+    }
+    const treeData = normalizeNode(treeDataRaw, 0);
+    let referrals;
+    let binaryStructure;
+    let levels;
+    if (mlmSystem === "DIRECT") {
+        referrals = treeData.downlines.map((node) => ({
+            id: node.id,
+            referred: node,
+            referrerId: user.id,
+            status: node.status,
+            createdAt: node.joinDate,
+            earnings: node.earnings,
+            teamSize: node.teamSize,
+            performance: node.performance,
+            downlines: node.downlines,
+        }));
+    }
+    if (mlmSystem === "BINARY") {
+        const [left, right] = treeData.downlines;
+        binaryStructure = { left: left || null, right: right || null };
+    }
+    if (mlmSystem === "UNILEVEL") {
+        const lvlMap = {};
+        function gather(n, depth = 0) {
+            if (!lvlMap[depth])
+                lvlMap[depth] = [];
+            if (depth > 0)
+                lvlMap[depth].push(n);
+            n.downlines.forEach((c) => gather(c, depth + 1));
+        }
+        gather(treeData, 0);
+        levels = Object.keys(lvlMap)
+            .map((k) => Number(k))
+            .sort((a, b) => a - b)
+            .filter((d) => d > 0)
+            .map((d) => lvlMap[d]);
+    }
+    const enrichedUser = {
+        ...userProfile,
+        earnings: totalRewards,
+        teamSize: treeData.teamSize,
+        performance: treeData.performance,
+        role: "You",
+    };
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Retrieved ${mlmSystem || 'DIRECT'} network tree with ${treeData.teamSize || 0} team members`);
+    return {
+        user: enrichedUser,
+        totalRewards,
+        upline,
+        referrals,
+        binaryStructure,
+        levels,
+        treeData,
+        mlmSystem: mlmSystem || "DIRECT",
+    };
+}

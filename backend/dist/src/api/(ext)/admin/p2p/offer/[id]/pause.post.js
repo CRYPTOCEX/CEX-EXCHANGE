@@ -1,1 +1,159 @@
-"use strict";var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,r,s){void 0===s&&(s=r);var a=Object.getOwnPropertyDescriptor(t,r);a&&!("get"in a?!t.__esModule:a.writable||a.configurable)||(a={enumerable:!0,get:function(){return t[r]}});Object.defineProperty(e,s,a)}:function(e,t,r,s){void 0===s&&(s=r);e[s]=t[r]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&(t[t.length]=r);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var r={};if(null!=t)for(var s=e(t),a=0;a<s.length;a++)"default"!==s[a]&&__createBinding(r,t,s[a]);__setModuleDefault(r,t);return r}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),Middleware_1=require("@b/handler/Middleware"),ownership_1=require("../../../../p2p/utils/ownership"),console_1=require("@b/utils/console"),errors_1=require("@b/utils/schema/errors");exports.metadata={summary:"Pause P2P offer",description:"Temporarily pauses an ACTIVE P2P offer. Sets the offer status to PAUSED and notifies the offer owner. Funds remain locked for SELL offers.",operationId:"pauseAdminP2POffer",tags:["Admin","P2P","Offer"],requiresAuth:!0,middleware:[Middleware_1.p2pAdminOfferRateLimit],logModule:"ADMIN_P2P",logTitle:"Pause P2P offer",parameters:[{index:0,name:"id",in:"path",description:"Offer ID",required:!0,schema:{type:"string"}}],responses:{200:{description:"Offer paused successfully."},400:errors_1.badRequestResponse,401:errors_1.unauthorizedResponse,404:(0,errors_1.notFoundResponse)("Resource"),500:errors_1.serverErrorResponse},permission:"edit.p2p.offer"};exports.default=async e=>{const{params:t,user:r,ctx:s}=e,{id:a}=t,{notifyOfferEvent:i}=await Promise.resolve().then(()=>__importStar(require("../../../../p2p/utils/notifications"))),o=await db_1.sequelize.transaction();try{null==s||s.step("Fetching offer");const e=await db_1.models.p2pOffer.findByPk(a,{include:[{model:db_1.models.user,as:"user",attributes:["id","firstName","lastName","email"]}],lock:!0,transaction:o});if(!e){await o.rollback();null==s||s.fail("Offer not found");throw(0,error_1.createError)({statusCode:404,message:"Offer not found"})}null==s||s.step("Validating offer status");if("ACTIVE"!==e.status){await o.rollback();null==s||s.fail(`Cannot pause offer with status ${e.status}`);throw(0,error_1.createError)({statusCode:400,message:`Cannot pause offer with status ${e.status}. Only ACTIVE offers can be paused.`})}null==s||s.step("Getting admin information");const t=await db_1.models.user.findByPk(r.id,{attributes:["id","firstName","lastName","email"],transaction:o}),n=t&&`${t.firstName||""} ${t.lastName||""}`.trim()||"Admin",u=e.status;null==s||s.step("Pausing offer");await e.update({status:"PAUSED",activityLog:[...e.activityLog||[],{type:"PAUSED",adminId:r.id,adminName:n,previousStatus:u,createdAt:(new Date).toISOString()}]},{transaction:o});null==s||s.step("Logging admin activity");await(0,ownership_1.logP2PAdminAction)(r.id,"OFFER_PAUSED","OFFER",e.id,{offerUserId:e.userId,offerType:e.type,currency:e.currency,previousStatus:u,pausedBy:n});await o.commit();null==s||s.step("Sending notification");i(e.id,"OFFER_PAUSED",{pausedBy:n}).catch(e=>console_1.logger.error("P2P","Failed to send offer paused notification",e));null==s||s.success("Offer paused successfully");return{message:"Offer paused successfully.",offer:{id:e.id,status:"PAUSED"}}}catch(e){await o.rollback();if(e.statusCode)throw e;null==s||s.fail("Failed to pause offer");throw(0,error_1.createError)({statusCode:500,message:"Internal Server Error: "+e.message})}};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const Middleware_1 = require("@b/handler/Middleware");
+const ownership_1 = require("../../../../p2p/utils/ownership");
+const console_1 = require("@b/utils/console");
+const errors_1 = require("@b/utils/schema/errors");
+exports.metadata = {
+    summary: "Pause P2P offer",
+    description: "Temporarily pauses an ACTIVE P2P offer. Sets the offer status to PAUSED and notifies the offer owner. Funds remain locked for SELL offers.",
+    operationId: "pauseAdminP2POffer",
+    tags: ["Admin", "P2P", "Offer"],
+    requiresAuth: true,
+    middleware: [Middleware_1.p2pAdminOfferRateLimit],
+    logModule: "ADMIN_P2P",
+    logTitle: "Pause P2P offer",
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            description: "Offer ID",
+            required: true,
+            schema: { type: "string" },
+        },
+    ],
+    responses: {
+        200: { description: "Offer paused successfully." },
+        400: errors_1.badRequestResponse,
+        401: errors_1.unauthorizedResponse,
+        404: (0, errors_1.notFoundResponse)("Resource"),
+        500: errors_1.serverErrorResponse,
+    },
+    permission: "edit.p2p.offer",
+};
+exports.default = async (data) => {
+    const { params, user, ctx } = data;
+    const { id } = params;
+    const { notifyOfferEvent } = await Promise.resolve().then(() => __importStar(require("../../../../p2p/utils/notifications")));
+    const transaction = await db_1.sequelize.transaction();
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching offer");
+        const offer = await db_1.models.p2pOffer.findByPk(id, {
+            include: [
+                {
+                    model: db_1.models.user,
+                    as: "user",
+                    attributes: ["id", "firstName", "lastName", "email"],
+                },
+            ],
+            lock: true,
+            transaction,
+        });
+        if (!offer) {
+            await transaction.rollback();
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Offer not found");
+            throw (0, error_1.createError)({ statusCode: 404, message: "Offer not found" });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating offer status");
+        if (offer.status !== "ACTIVE") {
+            await transaction.rollback();
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Cannot pause offer with status ${offer.status}`);
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Cannot pause offer with status ${offer.status}. Only ACTIVE offers can be paused.`,
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Getting admin information");
+        const adminUser = await db_1.models.user.findByPk(user.id, {
+            attributes: ["id", "firstName", "lastName", "email"],
+            transaction,
+        });
+        const adminName = adminUser
+            ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'Admin'
+            : 'Admin';
+        const previousStatus = offer.status;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Pausing offer");
+        await offer.update({
+            status: "PAUSED",
+            activityLog: [
+                ...(offer.activityLog || []),
+                {
+                    type: "PAUSED",
+                    adminId: user.id,
+                    adminName: adminName,
+                    previousStatus,
+                    createdAt: new Date().toISOString(),
+                },
+            ],
+        }, { transaction });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Logging admin activity");
+        await (0, ownership_1.logP2PAdminAction)(user.id, "OFFER_PAUSED", "OFFER", offer.id, {
+            offerUserId: offer.userId,
+            offerType: offer.type,
+            currency: offer.currency,
+            previousStatus,
+            pausedBy: adminName,
+        });
+        await transaction.commit();
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending notification");
+        notifyOfferEvent(offer.id, "OFFER_PAUSED", {
+            pausedBy: adminName,
+        }).catch((error) => console_1.logger.error("P2P", "Failed to send offer paused notification", error));
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Offer paused successfully");
+        return {
+            message: "Offer paused successfully.",
+            offer: {
+                id: offer.id,
+                status: "PAUSED",
+            }
+        };
+    }
+    catch (err) {
+        await transaction.rollback();
+        if (err.statusCode) {
+            throw err;
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to pause offer");
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: "Internal Server Error: " + err.message,
+        });
+    }
+};

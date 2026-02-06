@@ -9,14 +9,31 @@ interface CenterContentProps {
   activeSegment: string | null;
   data: ChartData[];
   total: number;
+  isEmpty?: boolean;
 }
 
 function CenterContentImpl({
   activeSegment,
   data,
   total,
+  isEmpty = false,
 }: CenterContentProps) {
   const t = useTranslations("common");
+
+  // When empty, show "0" in center regardless of hover
+  if (isEmpty) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-xl sm:text-2xl font-bold mb-1 text-muted-foreground">
+            0
+          </div>
+          <div className="text-xs text-muted-foreground">{t("total")}</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="absolute inset-0 flex items-center justify-center">
       <AnimatePresence mode="wait">

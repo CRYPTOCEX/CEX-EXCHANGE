@@ -1,1 +1,114 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),Websocket_1=require("@b/handler/Websocket"),query_1=require("@b/utils/query"),console_1=require("@b/utils/console");exports.metadata={summary:"Send a message in live chat session",description:"Sends a message to the live chat session",operationId:"sendLiveChatMessage",tags:["Support"],requiresAuth:!0,logModule:"USER",logTitle:"Send live chat message",requestBody:{description:"The message to send",required:!0,content:{"application/json":{schema:{type:"object",properties:{sessionId:{type:"string"},content:{type:"string"},sender:{type:"string",enum:["user","agent"]}},required:["sessionId","content","sender"]}}}},responses:(0,query_1.updateRecordResponses)("Live Chat Message")};exports.default=async e=>{const{user:s,body:t,ctx:r}=e;if(!(null==s?void 0:s.id)){null==r||r.fail("User not authenticated");throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"})}const{sessionId:a,content:o,sender:i}=t;null==r||r.step("Finding live chat session");const n=await db_1.models.supportTicket.findOne({where:{id:a,userId:s.id,type:"LIVE"}});if(!n){null==r||r.fail("Live chat session not found");throw(0,error_1.createError)({statusCode:404,message:"Live chat session not found"})}if("CLOSED"===n.status){null==r||r.fail("Session is closed");throw(0,error_1.createError)({statusCode:403,message:"Cannot send message to closed session"})}const d={type:"user"===i?"client":"agent",text:o,time:(new Date).toISOString(),userId:s.id};await n.reload();let u=[];if(n.messages)if(Array.isArray(n.messages))u=[...n.messages];else if("string"==typeof n.messages)try{const e=JSON.parse(n.messages);u=Array.isArray(e)?e:[]}catch(e){console_1.logger.error("SUPPORT","Live Chat - Failed to parse messages JSON",e);u=[]}u.push(d);null==r||r.step("Updating ticket with new message");await db_1.sequelize.query("UPDATE support_ticket SET messages = :messages, updatedAt = :updatedAt WHERE id = :id",{replacements:{messages:JSON.stringify(u),updatedAt:new Date,id:a}});"PENDING"===n.status&&await n.update({status:"OPEN"});null==r||r.step("Broadcasting message via WebSocket");try{await n.reload();n.get({plain:!0}).messages=u;Websocket_1.messageBroker.broadcastToSubscribedClients("/api/user/support/ticket",{id:a},{method:"reply",payload:{id:a,message:d,status:n.status,updatedAt:new Date}})}catch(e){console_1.logger.error("SUPPORT","Failed to broadcast message",e)}null==r||r.success("Message sent successfully");return{success:!0,message:"Message sent successfully"}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const Websocket_1 = require("@b/handler/Websocket");
+const query_1 = require("@b/utils/query");
+const console_1 = require("@b/utils/console");
+exports.metadata = {
+    summary: "Send a message in live chat session",
+    description: "Sends a message to the live chat session",
+    operationId: "sendLiveChatMessage",
+    tags: ["Support"],
+    requiresAuth: true,
+    logModule: "USER",
+    logTitle: "Send live chat message",
+    requestBody: {
+        description: "The message to send",
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        sessionId: { type: "string" },
+                        content: { type: "string" },
+                        sender: { type: "string", enum: ["user", "agent"] },
+                    },
+                    required: ["sessionId", "content", "sender"],
+                },
+            },
+        },
+    },
+    responses: (0, query_1.updateRecordResponses)("Live Chat Message"),
+};
+exports.default = async (data) => {
+    const { user, body, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("User not authenticated");
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    const { sessionId, content, sender } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding live chat session");
+    const ticket = await db_1.models.supportTicket.findOne({
+        where: {
+            id: sessionId,
+            userId: user.id,
+            type: "LIVE",
+        },
+    });
+    if (!ticket) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Live chat session not found");
+        throw (0, error_1.createError)({ statusCode: 404, message: "Live chat session not found" });
+    }
+    if (ticket.status === "CLOSED") {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Session is closed");
+        throw (0, error_1.createError)({ statusCode: 403, message: "Cannot send message to closed session" });
+    }
+    const newMessage = {
+        type: sender === "user" ? "client" : "agent",
+        text: content,
+        time: new Date().toISOString(),
+        userId: user.id,
+    };
+    await ticket.reload();
+    let currentMessages = [];
+    if (ticket.messages) {
+        if (Array.isArray(ticket.messages)) {
+            currentMessages = [...ticket.messages];
+        }
+        else if (typeof ticket.messages === 'string') {
+            try {
+                const parsed = JSON.parse(ticket.messages);
+                currentMessages = Array.isArray(parsed) ? parsed : [];
+            }
+            catch (e) {
+                console_1.logger.error("SUPPORT", "Live Chat - Failed to parse messages JSON", e);
+                currentMessages = [];
+            }
+        }
+    }
+    currentMessages.push(newMessage);
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating ticket with new message");
+    await db_1.sequelize.query('UPDATE support_ticket SET messages = :messages, updatedAt = :updatedAt WHERE id = :id', {
+        replacements: {
+            messages: JSON.stringify(currentMessages),
+            updatedAt: new Date(),
+            id: sessionId
+        }
+    });
+    if (ticket.status === "PENDING") {
+        await ticket.update({ status: "OPEN" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Broadcasting message via WebSocket");
+    try {
+        await ticket.reload();
+        const ticketData = ticket.get({ plain: true });
+        ticketData.messages = currentMessages;
+        Websocket_1.messageBroker.broadcastToSubscribedClients("/api/user/support/ticket", { id: sessionId }, {
+            method: "reply",
+            payload: {
+                id: sessionId,
+                message: newMessage,
+                status: ticket.status,
+                updatedAt: new Date(),
+            }
+        });
+    }
+    catch (error) {
+        console_1.logger.error("SUPPORT", "Failed to broadcast message", error);
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Message sent successfully");
+    return { success: true, message: "Message sent successfully" };
+};

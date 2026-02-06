@@ -1,1 +1,132 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.CacheManager=void 0;const db_1=require("@b/db"),redis_1=require("./redis"),console_1=require("./console"),redis=redis_1.RedisSingleton.getInstance();class CacheManager{constructor(){this.settingsKey="settings";this.extensionsKey="extensions";this.settings=new Map;this.extensions=new Map}static getInstance(){CacheManager.instance||(CacheManager.instance=new CacheManager);return CacheManager.instance}async getSettings(){if(0===this.settings.size)try{const e=await this.getCache(this.settingsKey);Object.keys(e).length>0?this.settings=new Map(Object.entries(e)):await this.loadSettingsFromDB()}catch(e){console_1.logger.error("CACHE",`Failed to load settings: ${e.message}`,e);throw e}return this.settings}async getExtensions(){if(0===this.extensions.size)try{const e=await this.getCache(this.extensionsKey);Object.keys(e).length>0?this.extensions=new Map(Object.entries(e)):await this.loadExtensionsFromDB()}catch(e){console_1.logger.error("CACHE",`Failed to load extensions: ${e.message}`,e);throw e}return this.extensions}async getSetting(e){return(await this.getSettings()).get(e)}async updateSetting(e,t,s=!1){0===this.settings.size&&await this.getSettings();this.settings.set(e,t);await redis.hset(this.settingsKey,e,JSON.stringify(t));s&&await db_1.models.settings.upsert({key:e,value:t})}async updateExtension(e,t,s=!1){0===this.extensions.size&&await this.getExtensions();this.extensions.set(e,t);await redis.hset(this.extensionsKey,e,JSON.stringify(t));s&&await db_1.models.extension.upsert({name:e,...t})}async loadSettingsFromDB(){const e=await db_1.models.settings.findAll(),t=redis.pipeline();e.forEach(e=>{this.settings.set(e.key,e.value);t.hset(this.settingsKey,e.key,JSON.stringify(e.value))});await t.exec()}async loadExtensionsFromDB(){const e=await db_1.models.extension.findAll({where:{status:!0}}),t=redis.pipeline();e.forEach(e=>{this.extensions.set(e.name,e);t.hset(this.extensionsKey,e.name,JSON.stringify(e))});await t.exec()}async getCache(e){const t=await redis.hgetall(e);return Object.keys(t).reduce((e,s)=>{e[s]=JSON.parse(t[s]);return e},{})}async clearCache(){try{this.settings.clear();this.extensions.clear();await redis.del(this.settingsKey,this.extensionsKey);await this.loadSettingsFromDB();await this.loadExtensionsFromDB()}catch(e){console_1.logger.error("CACHE",`Cache clear and reload failed: ${e.message}`,e);throw e}}}exports.CacheManager=CacheManager;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CacheManager = void 0;
+const db_1 = require("@b/db");
+const redis_1 = require("./redis");
+const console_1 = require("./console");
+const redis = redis_1.RedisSingleton.getInstance();
+class CacheManager {
+    constructor() {
+        this.settingsKey = "settings";
+        this.extensionsKey = "extensions";
+        this.settings = new Map();
+        this.extensions = new Map();
+    }
+    static getInstance() {
+        if (!CacheManager.instance) {
+            CacheManager.instance = new CacheManager();
+        }
+        return CacheManager.instance;
+    }
+    async getSettings() {
+        if (this.settings.size === 0) {
+            try {
+                const cachedSettings = await this.getCache(this.settingsKey);
+                if (Object.keys(cachedSettings).length > 0) {
+                    this.settings = new Map(Object.entries(cachedSettings));
+                }
+                else {
+                    await this.loadSettingsFromDB();
+                }
+            }
+            catch (error) {
+                console_1.logger.error("CACHE", `Failed to load settings: ${error.message}`, error);
+                throw error;
+            }
+        }
+        return this.settings;
+    }
+    async getExtensions() {
+        if (this.extensions.size === 0) {
+            try {
+                const cachedExtensions = await this.getCache(this.extensionsKey);
+                if (Object.keys(cachedExtensions).length > 0) {
+                    this.extensions = new Map(Object.entries(cachedExtensions));
+                }
+                else {
+                    await this.loadExtensionsFromDB();
+                }
+            }
+            catch (error) {
+                console_1.logger.error("CACHE", `Failed to load extensions: ${error.message}`, error);
+                throw error;
+            }
+        }
+        return this.extensions;
+    }
+    async getSetting(key) {
+        const settings = await this.getSettings();
+        return settings.get(key);
+    }
+    async updateSetting(key, value, syncToDB = false) {
+        if (this.settings.size === 0) {
+            await this.getSettings();
+        }
+        this.settings.set(key, value);
+        await redis.hset(this.settingsKey, key, JSON.stringify(value));
+        if (syncToDB) {
+            await db_1.models.settings.upsert({ key, value });
+        }
+    }
+    async updateExtension(name, data, syncToDB = false) {
+        if (this.extensions.size === 0) {
+            await this.getExtensions();
+        }
+        this.extensions.set(name, data);
+        await redis.hset(this.extensionsKey, name, JSON.stringify(data));
+        if (syncToDB) {
+            await db_1.models.extension.upsert({ name, ...data });
+        }
+    }
+    async loadSettingsFromDB() {
+        var _a;
+        if (!((_a = db_1.models === null || db_1.models === void 0 ? void 0 : db_1.models.settings) === null || _a === void 0 ? void 0 : _a.findAll)) {
+            console_1.logger.warn("CACHE", "Settings model not available, skipping settings cache load");
+            return;
+        }
+        const settingsData = await db_1.models.settings.findAll();
+        const pipeline = redis.pipeline();
+        settingsData.forEach((setting) => {
+            this.settings.set(setting.key, setting.value);
+            pipeline.hset(this.settingsKey, setting.key, JSON.stringify(setting.value));
+        });
+        await pipeline.exec();
+    }
+    async loadExtensionsFromDB() {
+        var _a;
+        if (!((_a = db_1.models === null || db_1.models === void 0 ? void 0 : db_1.models.extension) === null || _a === void 0 ? void 0 : _a.findAll)) {
+            console_1.logger.warn("CACHE", "Extension model not available, skipping extension cache load");
+            return;
+        }
+        const extensionsData = await db_1.models.extension.findAll({
+            where: { status: true },
+        });
+        const pipeline = redis.pipeline();
+        extensionsData.forEach((extension) => {
+            this.extensions.set(extension.name, extension);
+            pipeline.hset(this.extensionsKey, extension.name, JSON.stringify(extension));
+        });
+        await pipeline.exec();
+    }
+    async getCache(key) {
+        const cachedData = await redis.hgetall(key);
+        return Object.keys(cachedData).reduce((acc, field) => {
+            acc[field] = JSON.parse(cachedData[field]);
+            return acc;
+        }, {});
+    }
+    async clearCache() {
+        try {
+            this.settings.clear();
+            this.extensions.clear();
+            await redis.del(this.settingsKey, this.extensionsKey);
+            await this.loadSettingsFromDB();
+            await this.loadExtensionsFromDB();
+        }
+        catch (error) {
+            console_1.logger.error("CACHE", `Cache clear and reload failed: ${error.message}`, error);
+            throw error;
+        }
+    }
+}
+exports.CacheManager = CacheManager;

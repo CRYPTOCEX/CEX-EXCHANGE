@@ -284,7 +284,7 @@ export function PostEditor({ postId }: PostEditorProps) {
       } else {
         // Create new post
         const { error } = await $fetch({
-          url: "/api/admin/blog/author/manage",
+          url: "/api/blog/author/manage",
           method: "POST",
           body: updatedFormData,
         });

@@ -1,1 +1,226 @@
-"use strict";function generateFileUrl(e){return`/uploads/${e}`}async function ensureDirExists(e){try{await promises_1.default.access(e)}catch(r){if("ENOENT"!==r.code)throw r;await promises_1.default.mkdir(e,{recursive:!0})}}async function removeOldImageSecurely(e,r){const t=e.replace(/^(\.\.[/\\])+/,"").replace(/^[/\\]+/,""),i=path_1.default.join(BASE_UPLOAD_DIR,r),o=path_1.default.resolve(BASE_UPLOAD_DIR,t);if(!o.startsWith(i+path_1.default.sep))throw(0,error_1.createError)({statusCode:403,message:"Forbidden: Attempt to delete file outside upload directory"});try{await promises_1.default.access(o);await promises_1.default.unlink(o)}catch(e){"ENOENT"!==e.code&&console_1.logger.error("UPLOAD","Error removing old image",e)}}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const error_1=require("@b/utils/error"),promises_1=__importDefault(require("fs/promises")),path_1=__importDefault(require("path")),sharp_1=__importDefault(require("sharp")),query_1=require("@b/utils/query"),validation_1=require("@b/utils/validation"),console_1=require("@b/utils/console"),isProduction="production"===process.env.NODE_ENV,BASE_UPLOAD_DIR=isProduction?path_1.default.join(process.cwd(),"frontend","public","uploads"):path_1.default.join(process.cwd(),"..","frontend","public","uploads");exports.metadata={summary:"Uploads a file to a specified directory",description:"Uploads a file to a specified directory",operationId:"uploadFile",tags:["Upload"],logModule:"UPLOAD",logTitle:"Upload file",requiresAuth:!0,requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{dir:{type:"string",description:"Directory to upload file to"},file:{type:"string",description:"Base64 encoded file data"},height:{type:"number",description:"Height of the image"},width:{type:"number",description:"Width of the image"},oldPath:{type:"string",description:"Path of the old image to remove"}},required:["dir","file"]}}}},responses:{200:{description:"File uploaded successfully",content:{"application/json":{schema:{type:"object",properties:{url:{type:"string",description:"URL of the uploaded file"}}}}}},401:query_1.unauthorizedResponse,404:(0,query_1.notFoundMetadataResponse)("Upload"),500:query_1.serverErrorResponse}};exports.default=async e=>{var r;const{body:t,user:i,ctx:o}=e;if(!i)throw(0,error_1.createError)({statusCode:401,message:"User not found"});const{dir:a,file:s,width:l,height:d,oldPath:u}=t;null==o||o.step("Validating upload request");if(!a||!s)throw(0,error_1.createError)({statusCode:400,message:"No directory specified or no file provided"});if("string"!=typeof a||a.length>100)throw(0,error_1.createError)({statusCode:400,message:"Invalid directory path"});if(a.includes("\0")||a.includes("%00")||a.includes(".."))throw(0,error_1.createError)({statusCode:400,message:"Invalid directory path"});if("string"!=typeof s||!s.startsWith("data:"))throw(0,error_1.createError)({statusCode:400,message:"Invalid file format"});const n=s.split(",")[1];if(!n)throw(0,error_1.createError)({statusCode:400,message:"Invalid file data"});if(3*n.length/4>10485760)throw(0,error_1.createError)({statusCode:400,message:"File size exceeds maximum limit of 10MB"});null==o||o.step("Preparing upload directory");const p=(0,validation_1.sanitizeUserPath)(a.replace(/-/g,"/")),c=path_1.default.join(BASE_UPLOAD_DIR,p),f=path_1.default.resolve(c),h=path_1.default.resolve(BASE_UPLOAD_DIR);if(!f.startsWith(h+path_1.default.sep)&&f!==h)throw(0,error_1.createError)({statusCode:400,message:"Invalid upload directory"});await ensureDirExists(c);const m=(null===(r=s.match(/^data:(.*);base64,/))||void 0===r?void 0:r[1])||"";if(!["image/jpeg","image/jpg","image/png","image/webp","image/gif","video/mp4","video/webm","video/quicktime"].includes(m))throw(0,error_1.createError)({statusCode:400,message:"File type not allowed"});const _=Buffer.from(n,"base64");let g=`${Date.now()}-${Math.round(1e9*Math.random())}`,y=_;null==o||o.step("Processing file upload");if(m.startsWith("image/")&&!m.includes("image/gif")){y=await(0,sharp_1.default)(_).resize({width:l,height:d,fit:"inside"}).webp({quality:80}).toBuffer();g+=".webp"}else if(m.startsWith("video/"))g+="."+(m.split("/")[1]||"mp4");else{if(!m.includes("image/gif"))throw(0,error_1.createError)({statusCode:400,message:"Unsupported file format."});g+=".gif"}const w=path_1.default.join(c,g);await promises_1.default.writeFile(w,y);if(u){null==o||o.step("Removing old file");try{await removeOldImageSecurely(u,p)}catch(e){console_1.logger.error("UPLOAD","Error removing old image",e)}}null==o||o.success(`File uploaded successfully: ${p.replace(/\\/g,"/")}/${g}`);return{url:generateFileUrl(`${p.replace(/\\/g,"/")}/${g}`)}};
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const error_1 = require("@b/utils/error");
+const promises_1 = __importDefault(require("fs/promises"));
+const path_1 = __importDefault(require("path"));
+const sharp_1 = __importDefault(require("sharp"));
+const query_1 = require("@b/utils/query");
+const validation_1 = require("@b/utils/validation");
+const console_1 = require("@b/utils/console");
+function generateFileUrl(filePath) {
+    return `/uploads/${filePath}`;
+}
+const isProduction = process.env.NODE_ENV === 'production';
+const BASE_UPLOAD_DIR = isProduction
+    ? path_1.default.join(process.cwd(), "frontend", "public", "uploads")
+    : path_1.default.join(process.cwd(), "..", "frontend", "public", "uploads");
+exports.metadata = {
+    summary: "Uploads a file to a specified directory",
+    description: "Uploads a file to a specified directory",
+    operationId: "uploadFile",
+    tags: ["Upload"],
+    logModule: "UPLOAD",
+    logTitle: "Upload file",
+    requiresAuth: true,
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        dir: {
+                            type: "string",
+                            description: "Directory to upload file to",
+                        },
+                        file: {
+                            type: "string",
+                            description: "Base64 encoded file data",
+                        },
+                        height: {
+                            type: "number",
+                            description: "Height of the image",
+                        },
+                        width: {
+                            type: "number",
+                            description: "Width of the image",
+                        },
+                        oldPath: {
+                            type: "string",
+                            description: "Path of the old image to remove",
+                        },
+                    },
+                    required: ["dir", "file"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "File uploaded successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            url: {
+                                type: "string",
+                                description: "URL of the uploaded file",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        401: query_1.unauthorizedResponse,
+        404: (0, query_1.notFoundMetadataResponse)("Upload"),
+        500: query_1.serverErrorResponse,
+    },
+};
+exports.default = async (data) => {
+    var _a;
+    const { body, user, ctx } = data;
+    if (!user)
+        throw (0, error_1.createError)({ statusCode: 401, message: "User not found" });
+    const { dir, file: base64File, width, height, oldPath } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating upload request");
+    if (!dir || !base64File) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "No directory specified or no file provided",
+        });
+    }
+    if (typeof dir !== 'string' || dir.length > 100) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Invalid directory path",
+        });
+    }
+    if (dir.includes('\0') || dir.includes('%00') || dir.includes('..')) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Invalid directory path",
+        });
+    }
+    if (typeof base64File !== 'string' || !base64File.startsWith('data:')) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Invalid file format",
+        });
+    }
+    const base64Data = base64File.split(",")[1];
+    if (!base64Data) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Invalid file data",
+        });
+    }
+    const fileSizeBytes = (base64Data.length * 3) / 4;
+    const maxSizeBytes = 10 * 1024 * 1024;
+    if (fileSizeBytes > maxSizeBytes) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "File size exceeds maximum limit of 10MB",
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Preparing upload directory");
+    const sanitizedDir = (0, validation_1.sanitizeUserPath)(dir.replace(/-/g, "/"));
+    const mediaDir = path_1.default.join(BASE_UPLOAD_DIR, sanitizedDir);
+    const resolvedMediaDir = path_1.default.resolve(mediaDir);
+    const resolvedBaseDir = path_1.default.resolve(BASE_UPLOAD_DIR);
+    if (!resolvedMediaDir.startsWith(resolvedBaseDir + path_1.default.sep) && resolvedMediaDir !== resolvedBaseDir) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Invalid upload directory",
+        });
+    }
+    await ensureDirExists(mediaDir);
+    const mimeType = ((_a = base64File.match(/^data:(.*);base64,/)) === null || _a === void 0 ? void 0 : _a[1]) || "";
+    const allowedMimeTypes = [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
+        'video/mp4', 'video/webm', 'video/quicktime'
+    ];
+    if (!allowedMimeTypes.includes(mimeType)) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "File type not allowed",
+        });
+    }
+    const buffer = Buffer.from(base64Data, "base64");
+    let filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    let processedImage = buffer;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing file upload");
+    if (mimeType.startsWith("image/") && !mimeType.includes("image/gif")) {
+        processedImage = await (0, sharp_1.default)(buffer)
+            .resize({ width, height, fit: "inside" })
+            .webp({ quality: 80 })
+            .toBuffer();
+        filename += ".webp";
+    }
+    else if (mimeType.startsWith("video/")) {
+        filename += "." + (mimeType.split("/")[1] || "mp4");
+    }
+    else if (mimeType.includes("image/gif")) {
+        filename += ".gif";
+    }
+    else {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Unsupported file format.",
+        });
+    }
+    const filePath = path_1.default.join(mediaDir, filename);
+    await promises_1.default.writeFile(filePath, processedImage);
+    if (oldPath) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Removing old file");
+        try {
+            await removeOldImageSecurely(oldPath, sanitizedDir);
+        }
+        catch (error) {
+            console_1.logger.error("UPLOAD", "Error removing old image", error);
+        }
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`File uploaded successfully: ${sanitizedDir.replace(/\\/g, "/")}/${filename}`);
+    return {
+        url: generateFileUrl(`${sanitizedDir.replace(/\\/g, "/")}/${filename}`),
+    };
+};
+async function ensureDirExists(dir) {
+    try {
+        await promises_1.default.access(dir);
+    }
+    catch (error) {
+        if (error.code === "ENOENT") {
+            await promises_1.default.mkdir(dir, { recursive: true });
+        }
+        else {
+            throw error;
+        }
+    }
+}
+async function removeOldImageSecurely(oldPath, expectedDir) {
+    const safeOldPath = oldPath
+        .replace(/^(\.\.[/\\])+/, "")
+        .replace(/^[/\\]+/, "");
+    const expectedBaseDir = path_1.default.join(BASE_UPLOAD_DIR, expectedDir);
+    const oldImageFullPath = path_1.default.resolve(BASE_UPLOAD_DIR, safeOldPath);
+    if (!oldImageFullPath.startsWith(expectedBaseDir + path_1.default.sep)) {
+        throw (0, error_1.createError)({
+            statusCode: 403,
+            message: "Forbidden: Attempt to delete file outside upload directory",
+        });
+    }
+    try {
+        await promises_1.default.access(oldImageFullPath);
+        await promises_1.default.unlink(oldImageFullPath);
+    }
+    catch (error) {
+        if (error.code !== "ENOENT") {
+            console_1.logger.error("UPLOAD", "Error removing old image", error);
+        }
+    }
+}

@@ -1,1 +1,95 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});const sequelize_1=require("sequelize");class futuresMarket extends sequelize_1.Model{static initModel(e){return futuresMarket.init({id:{type:sequelize_1.DataTypes.UUID,defaultValue:sequelize_1.DataTypes.UUIDV4,primaryKey:!0,allowNull:!1},currency:{type:sequelize_1.DataTypes.STRING(191),allowNull:!1,validate:{notEmpty:{msg:"currency: Currency must not be empty"}}},pair:{type:sequelize_1.DataTypes.STRING(191),allowNull:!1,validate:{notEmpty:{msg:"pair: Pair must not be empty"}}},isTrending:{type:sequelize_1.DataTypes.BOOLEAN,allowNull:!0,defaultValue:!1},isHot:{type:sequelize_1.DataTypes.BOOLEAN,allowNull:!0,defaultValue:!1},metadata:{type:sequelize_1.DataTypes.TEXT,allowNull:!0,validate:{isJSON(e){try{const t=JSON.parse(e);if("object"!=typeof t||null===t)throw new Error("Metadata must be a valid JSON object.");if("object"!=typeof t.precision)throw new Error("Invalid precision.")}catch(e){throw new Error("Metadata must be a valid JSON object: "+e.message)}}},set(e){this.setDataValue("metadata",JSON.stringify(e))},get(){const e=this.getDataValue("metadata");return e?JSON.parse(e):null}},status:{type:sequelize_1.DataTypes.BOOLEAN,allowNull:!1,defaultValue:!0,validate:{isBoolean:{msg:"status: Status must be a boolean value"}}}},{sequelize:e,modelName:"futuresMarket",tableName:"futures_market",timestamps:!0,paranoid:!0,indexes:[{name:"PRIMARY",unique:!0,using:"BTREE",fields:[{name:"id"}]},{name:"futuresMarketCurrencyPairKey",unique:!0,using:"BTREE",fields:[{name:"currency"},{name:"pair"}]}]})}static associate(e){}}exports.default=futuresMarket;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const sequelize_1 = require("sequelize");
+class futuresMarket extends sequelize_1.Model {
+    static initModel(sequelize) {
+        return futuresMarket.init({
+            id: {
+                type: sequelize_1.DataTypes.UUID,
+                defaultValue: sequelize_1.DataTypes.UUIDV4,
+                primaryKey: true,
+                allowNull: false,
+            },
+            currency: {
+                type: sequelize_1.DataTypes.STRING(191),
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "currency: Currency must not be empty" },
+                },
+            },
+            pair: {
+                type: sequelize_1.DataTypes.STRING(191),
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "pair: Pair must not be empty" },
+                },
+            },
+            isTrending: {
+                type: sequelize_1.DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false,
+            },
+            isHot: {
+                type: sequelize_1.DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false,
+            },
+            metadata: {
+                type: sequelize_1.DataTypes.TEXT,
+                allowNull: true,
+                validate: {
+                    isJSON(value) {
+                        try {
+                            const json = JSON.parse(value);
+                            if (typeof json !== "object" || json === null) {
+                                throw new Error("Metadata must be a valid JSON object.");
+                            }
+                            if (typeof json.precision !== "object")
+                                throw new Error("Invalid precision.");
+                        }
+                        catch (err) {
+                            throw new Error("Metadata must be a valid JSON object: " + err.message);
+                        }
+                    },
+                },
+                set(value) {
+                    this.setDataValue("metadata", JSON.stringify(value));
+                },
+                get() {
+                    const value = this.getDataValue("metadata");
+                    return value ? JSON.parse(value) : null;
+                },
+            },
+            status: {
+                type: sequelize_1.DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: true,
+                validate: {
+                    isBoolean: { msg: "status: Status must be a boolean value" },
+                },
+            },
+        }, {
+            sequelize,
+            modelName: "futuresMarket",
+            tableName: "futures_market",
+            timestamps: true,
+            paranoid: true,
+            indexes: [
+                {
+                    name: "PRIMARY",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "id" }],
+                },
+                {
+                    name: "futuresMarketCurrencyPairKey",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "currency" }, { name: "pair" }],
+                },
+            ],
+        });
+    }
+    static associate(models) { }
+}
+exports.default = futuresMarket;

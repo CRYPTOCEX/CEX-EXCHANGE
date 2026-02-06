@@ -8,7 +8,9 @@ export default class nftBid
   id!: string;
   listingId!: string;
   tokenId?: string;
-  userId!: string; // Changed from bidderId
+  userId!: string;
+  /** @deprecated Use userId instead */
+  get bidderId(): string { return this.userId; }
   amount!: number;
   currency!: string;
   transactionHash?: string;

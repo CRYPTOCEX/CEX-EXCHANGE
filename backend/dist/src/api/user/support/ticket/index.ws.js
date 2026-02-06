@@ -1,1 +1,128 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const console_1=require("@b/utils/console"),db_1=require("@b/db");exports.metadata={requiresAuth:!0,summary:"WebSocket endpoint for support ticket real-time updates",description:"Allows users and admins to subscribe to ticket updates and receive real-time messages"};exports.default=async(e,s)=>{try{let r;if("string"==typeof s)try{r=JSON.parse(s)}catch(e){console_1.logger.error("TICKET_WS","Invalid JSON message",e);return}else r=s;if(!r||!r.payload){console_1.logger.error("TICKET_WS","Invalid message structure: payload is missing",new Error("Missing payload"));return}const{action:t,payload:o}=r;if(!t){console_1.logger.error("TICKET_WS","Invalid message structure: action is missing",new Error("Missing action field"));return}const i=e.user,n=null==i?void 0:i.id;console_1.logger.debug("TICKET_WS",`Received action: ${t} from user: ${n}`);switch(t){case"SUBSCRIBE":if(o.id){console_1.logger.debug("TICKET_WS",`User ${n} subscribing to ticket: ${o.id}`);if(!n){console_1.logger.warn("TICKET_WS","No user ID provided for ticket subscription");return{type:"subscription",status:"error",message:"Authentication required"}}const e=await db_1.models.supportTicket.findOne({where:{id:o.id}});if(!e){console_1.logger.error("TICKET_WS",`Ticket ${o.id} not found in database`);return{type:"subscription",status:"error",message:"Ticket not found"}}console_1.logger.debug("TICKET_WS",`Found ticket: ${e.id}, userId: ${e.userId}, type: ${e.type}`);let s=!1;try{if(e.userId===n){s=!0;console_1.logger.debug("TICKET_WS",`User ${n} is the ticket owner`)}else{const e=await db_1.models.user.findByPk(n);if(e&&(0===e.roleId||1===e.roleId||2===e.roleId)){s=!0;console_1.logger.debug("TICKET_WS",`User ${n} is admin (roleId: ${e.roleId})`)}else console_1.logger.debug("TICKET_WS",`User ${n} is not admin and not ticket owner`)}}catch(r){console_1.logger.error("TICKET_WS",`Error checking user access: ${r.message}`);s=e.userId===n}if(s){const s=`ticket-${o.id}`;console_1.logger.debug("TICKET_WS",`Successfully granting access for ${n} to ${s}`);return{type:"subscription",status:"success",message:`Subscribed to ticket ${o.id}`,data:{ticketId:e.id,type:e.type,status:e.status}}}console_1.logger.warn("TICKET_WS",`User ${n} denied access to ticket ${o.id} (owner: ${e.userId})`);return{type:"subscription",status:"error",message:"Unauthorized access to ticket"}}break;case"UNSUBSCRIBE":if(o.id){console_1.logger.debug("TICKET_WS",`User ${n} unsubscribing from ticket: ${o.id}`);o.id;return{type:"subscription",status:"success",message:`Unsubscribed from ticket ${o.id}`}}break;default:console_1.logger.warn("TICKET_WS",`Unknown action: ${t}`)}}catch(e){console_1.logger.error("TICKET_WS","Error handling support ticket websocket message",e)}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const console_1 = require("@b/utils/console");
+const db_1 = require("@b/db");
+exports.metadata = {
+    requiresAuth: true,
+    summary: "WebSocket endpoint for support ticket real-time updates",
+    description: "Allows users and admins to subscribe to ticket updates and receive real-time messages"
+};
+exports.default = async (data, message) => {
+    try {
+        let parsedMessage;
+        if (typeof message === "string") {
+            try {
+                parsedMessage = JSON.parse(message);
+            }
+            catch (error) {
+                console_1.logger.error("TICKET_WS", "Invalid JSON message", error);
+                return;
+            }
+        }
+        else {
+            parsedMessage = message;
+        }
+        if (!parsedMessage || !parsedMessage.payload) {
+            console_1.logger.error("TICKET_WS", "Invalid message structure: payload is missing", new Error("Missing payload"));
+            return;
+        }
+        const { action, payload } = parsedMessage;
+        if (!action) {
+            console_1.logger.error("TICKET_WS", "Invalid message structure: action is missing", new Error("Missing action field"));
+            return;
+        }
+        const user = data.user;
+        const userId = user === null || user === void 0 ? void 0 : user.id;
+        console_1.logger.debug("TICKET_WS", `Received action: ${action} from user: ${userId}`);
+        switch (action) {
+            case "SUBSCRIBE":
+                if (payload.id) {
+                    console_1.logger.debug("TICKET_WS", `User ${userId} subscribing to ticket: ${payload.id}`);
+                    if (!userId) {
+                        console_1.logger.warn("TICKET_WS", "No user ID provided for ticket subscription");
+                        return {
+                            type: "subscription",
+                            status: "error",
+                            message: "Authentication required"
+                        };
+                    }
+                    const ticket = await db_1.models.supportTicket.findOne({
+                        where: { id: payload.id }
+                    });
+                    if (!ticket) {
+                        console_1.logger.error("TICKET_WS", `Ticket ${payload.id} not found in database`);
+                        return {
+                            type: "subscription",
+                            status: "error",
+                            message: "Ticket not found"
+                        };
+                    }
+                    console_1.logger.debug("TICKET_WS", `Found ticket: ${ticket.id}, userId: ${ticket.userId}, type: ${ticket.type}`);
+                    let hasAccess = false;
+                    try {
+                        if (ticket.userId === userId) {
+                            hasAccess = true;
+                            console_1.logger.debug("TICKET_WS", `User ${userId} is the ticket owner`);
+                        }
+                        else {
+                            const dbUser = await db_1.models.user.findByPk(userId);
+                            const isAdmin = dbUser && (dbUser.roleId === 0 || dbUser.roleId === 1 || dbUser.roleId === 2);
+                            if (isAdmin) {
+                                hasAccess = true;
+                                console_1.logger.debug("TICKET_WS", `User ${userId} is admin (roleId: ${dbUser.roleId})`);
+                            }
+                            else {
+                                console_1.logger.debug("TICKET_WS", `User ${userId} is not admin and not ticket owner`);
+                            }
+                        }
+                    }
+                    catch (error) {
+                        console_1.logger.error("TICKET_WS", `Error checking user access: ${error.message}`);
+                        hasAccess = (ticket.userId === userId);
+                    }
+                    if (hasAccess) {
+                        const subscriptionKey = `ticket-${payload.id}`;
+                        console_1.logger.debug("TICKET_WS", `Successfully granting access for ${userId} to ${subscriptionKey}`);
+                        const response = {
+                            type: "subscription",
+                            status: "success",
+                            message: `Subscribed to ticket ${payload.id}`,
+                            data: {
+                                ticketId: ticket.id,
+                                type: ticket.type,
+                                status: ticket.status
+                            }
+                        };
+                        return response;
+                    }
+                    else {
+                        console_1.logger.warn("TICKET_WS", `User ${userId} denied access to ticket ${payload.id} (owner: ${ticket.userId})`);
+                        const errorResponse = {
+                            type: "subscription",
+                            status: "error",
+                            message: "Unauthorized access to ticket"
+                        };
+                        return errorResponse;
+                    }
+                }
+                break;
+            case "UNSUBSCRIBE":
+                if (payload.id) {
+                    console_1.logger.debug("TICKET_WS", `User ${userId} unsubscribing from ticket: ${payload.id}`);
+                    const subscriptionKey = `ticket-${payload.id}`;
+                    return {
+                        type: "subscription",
+                        status: "success",
+                        message: `Unsubscribed from ticket ${payload.id}`
+                    };
+                }
+                break;
+            default:
+                console_1.logger.warn("TICKET_WS", `Unknown action: ${action}`);
+        }
+    }
+    catch (error) {
+        console_1.logger.error("TICKET_WS", "Error handling support ticket websocket message", error);
+    }
+};

@@ -1,1 +1,247 @@
-"use strict";async function query(e,r=[]){if(!client)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});return client.execute(e,r,{prepare:!0})}async function getOrderbookEntry(e,r,o){if(!client||!scyllaFuturesKeyspace||!toBigIntFloat)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});const t=`\n    SELECT * FROM ${scyllaFuturesKeyspace}.orderbook\n    WHERE symbol = ? AND price = ? AND side = ?;\n  `,s=[e,r,o];try{const e=await client.execute(t,s,{prepare:!0});if(e.rows.length>0){const r=e.rows[0];return toBigIntFloat(r.amount)}console_1.logger.warn("ORDERBOOK",`Orderbook entry not found for params: ${JSON.stringify(s)}`);return null}catch(e){console_1.logger.error("ORDERBOOK","Failed to fetch futures orderbook entry",e);throw(0,error_1.createError)({statusCode:500,message:`Failed to fetch futures orderbook entry: ${e.message}`})}}async function getOrderBook(e){if(!client||!scyllaFuturesKeyspace)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});const r=`\n    SELECT * FROM ${scyllaFuturesKeyspace}.orderbook\n    WHERE symbol = ? AND side = 'ASKS'\n    LIMIT 50;\n  `,o=`\n    SELECT * FROM ${scyllaFuturesKeyspace}.orderbook\n    WHERE symbol = ? AND side = 'BIDS'\n    ORDER BY price DESC\n    LIMIT 50;\n  `,[t,s]=await Promise.all([client.execute(r,[e],{prepare:!0}),client.execute(o,[e],{prepare:!0})]);return{asks:t.rows.map(e=>[e.price,e.amount]),bids:s.rows.map(e=>[e.price,e.amount])}}async function fetchOrderBooks(){if(!client||!scyllaFuturesKeyspace)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});const e=`\n    SELECT * FROM ${scyllaFuturesKeyspace}.orderbook;\n  `;try{return(await client.execute(e)).rows.map(e=>({symbol:e.symbol,price:e.price,amount:e.amount,side:e.side}))}catch(e){console_1.logger.error("ORDERBOOK","Failed to fetch futures order books",e);return null}}async function updateOrderBookInDB(e,r,o,t){if(!client||!scyllaFuturesKeyspace)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});let s,a;if(o>0){s=`\n      INSERT INTO ${scyllaFuturesKeyspace}.orderbook (symbol, price, amount, side)\n      VALUES (?, ?, ?, ?);\n    `;a=[e,r,o,t.toUpperCase()]}else{s=`\n      DELETE FROM ${scyllaFuturesKeyspace}.orderbook\n      WHERE symbol = ? AND price = ? AND side = ?;\n    `;a=[e,r,t.toUpperCase()]}try{await client.execute(s,a,{prepare:!0})}catch(e){console_1.logger.error("ORDERBOOK","Failed to update futures order book",e)}}async function fetchExistingAmounts(e){if(!(client&&scyllaFuturesKeyspace&&removeTolerance&&toBigIntFloat))throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});try{const r=await client.execute(`SELECT price, side, amount FROM ${scyllaFuturesKeyspace}.orderbook_by_symbol WHERE symbol = ?;`,[e]),o={bids:{},asks:{}};r.rows.forEach(e=>{const r="BIDS"===e.side?"bids":"asks",t=removeTolerance(toBigIntFloat(e.price)).toString();o[r][t]=removeTolerance(toBigIntFloat(e.amount))});return o}catch(r){console_1.logger.error("FUTURES",`Failed to fetch existing amounts for ${e}`,r);throw(0,error_1.createError)({statusCode:500,message:`Failed to fetch existing amounts for ${e}`})}}async function updateSingleOrderBook(e,r){if(!(client&&scyllaFuturesKeyspace&&removeTolerance&&toBigIntFloat&&fromBigInt))throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});try{const o=await client.execute(`SELECT price, side, amount FROM ${scyllaFuturesKeyspace}.orderbook_by_symbol WHERE symbol = ?;`,[e.symbol]),t={bids:{},asks:{}};o.rows.forEach(e=>{const r="BIDS"===e.side?"bids":"asks";t[r][removeTolerance(toBigIntFloat(e.price)).toString()]=removeTolerance(toBigIntFloat(e.amount))});const s="BUY"===e.side?"bids":"asks",a=removeTolerance(BigInt(e.price)),n=t[s][a.toString()]||BigInt(0);let c=BigInt(0);"add"===r?c=n+removeTolerance(BigInt(e.amount)):"subtract"===r&&(c=n-removeTolerance(BigInt(e.amount)));if(c>BigInt(0)){await client.execute(`INSERT INTO ${scyllaFuturesKeyspace}.orderbook (symbol, price, side, amount) VALUES (?, ?, ?, ?)`,[e.symbol,fromBigInt(a),"BUY"===e.side?"BIDS":"ASKS",fromBigInt(c)]);t[s][a.toString()]=c}else{await client.execute(`DELETE FROM ${scyllaFuturesKeyspace}.orderbook WHERE symbol = ? AND price = ? AND side = ?`,[e.symbol,fromBigInt(a),"BUY"===e.side?"BIDS":"ASKS"]);delete t[s][a.toString()]}return t}catch(e){console_1.logger.error("FUTURES","Failed to update order book in database",e);throw(0,error_1.createError)({statusCode:500,message:"Failed to update order book in database"})}}function generateOrderBookUpdateQueries(e){if(!scyllaFuturesKeyspace||!fromBigInt||!removeTolerance)throw(0,error_1.createError)({statusCode:503,message:"Ecosystem extension not available"});const r=[];for(const[o,t]of Object.entries(e))for(const[e,s]of Object.entries(t))if(0!==Object.keys(s).length)for(const[t,a]of Object.entries(s))a>BigInt(0)?r.push({query:`UPDATE ${scyllaFuturesKeyspace}.orderbook SET amount = ? WHERE symbol = ? AND price = ? AND side = ?`,params:[fromBigInt(removeTolerance(BigInt(a))),o,fromBigInt(removeTolerance(BigInt(t))),e.toUpperCase()]}):r.push({query:`DELETE FROM ${scyllaFuturesKeyspace}.orderbook WHERE symbol = ? AND price = ? AND side = ?`,params:[o,fromBigInt(removeTolerance(BigInt(t))),e.toUpperCase()]});else r.push({query:`DELETE FROM ${scyllaFuturesKeyspace}.orderbook WHERE symbol = ? AND side = ?`,params:[o,e.toUpperCase()]});return r}Object.defineProperty(exports,"__esModule",{value:!0});exports.query=query;exports.getOrderbookEntry=getOrderbookEntry;exports.getOrderBook=getOrderBook;exports.fetchOrderBooks=fetchOrderBooks;exports.updateOrderBookInDB=updateOrderBookInDB;exports.fetchExistingAmounts=fetchExistingAmounts;exports.updateSingleOrderBook=updateSingleOrderBook;exports.generateOrderBookUpdateQueries=generateOrderBookUpdateQueries;const error_1=require("@b/utils/error");let fromBigInt,removeTolerance,toBigIntFloat,client,scyllaFuturesKeyspace,OrderBookDatas;try{const e=require("@b/api/(ext)/ecosystem/utils/blockchain");fromBigInt=e.fromBigInt;removeTolerance=e.removeTolerance;toBigIntFloat=e.toBigIntFloat;const r=require("@b/api/(ext)/ecosystem/utils/scylla/client");client=r.default;scyllaFuturesKeyspace=r.scyllaFuturesKeyspace;OrderBookDatas=require("@b/api/(ext)/ecosystem/utils/scylla/queries").OrderBookDatas}catch(e){}const console_1=require("@b/utils/console");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.query = query;
+exports.getOrderbookEntry = getOrderbookEntry;
+exports.getOrderBook = getOrderBook;
+exports.fetchOrderBooks = fetchOrderBooks;
+exports.updateOrderBookInDB = updateOrderBookInDB;
+exports.fetchExistingAmounts = fetchExistingAmounts;
+exports.updateSingleOrderBook = updateSingleOrderBook;
+exports.generateOrderBookUpdateQueries = generateOrderBookUpdateQueries;
+const error_1 = require("@b/utils/error");
+let fromBigInt;
+let removeTolerance;
+let toBigIntFloat;
+let client;
+let scyllaFuturesKeyspace;
+let OrderBookDatas;
+try {
+    const blockchainModule = require("@b/api/(ext)/ecosystem/utils/blockchain");
+    fromBigInt = blockchainModule.fromBigInt;
+    removeTolerance = blockchainModule.removeTolerance;
+    toBigIntFloat = blockchainModule.toBigIntFloat;
+    const clientModule = require("@b/api/(ext)/ecosystem/utils/scylla/client");
+    client = clientModule.default;
+    scyllaFuturesKeyspace = clientModule.scyllaFuturesKeyspace;
+    const queriesModule = require("@b/api/(ext)/ecosystem/utils/scylla/queries");
+    OrderBookDatas = queriesModule.OrderBookDatas;
+}
+catch (e) {
+}
+const console_1 = require("@b/utils/console");
+async function query(q, params = []) {
+    if (!client) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    return client.execute(q, params, { prepare: true });
+}
+async function getOrderbookEntry(symbol, price, side) {
+    if (!client || !scyllaFuturesKeyspace || !toBigIntFloat) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    const query = `
+    SELECT * FROM ${scyllaFuturesKeyspace}.orderbook
+    WHERE symbol = ? AND price = ? AND side = ?;
+  `;
+    const params = [symbol, price, side];
+    try {
+        const result = await client.execute(query, params, { prepare: true });
+        if (result.rows.length > 0) {
+            const row = result.rows[0];
+            return toBigIntFloat(row["amount"]);
+        }
+        else {
+            console_1.logger.warn("ORDERBOOK", `Orderbook entry not found for params: ${JSON.stringify(params)}`);
+            return null;
+        }
+    }
+    catch (error) {
+        console_1.logger.error("ORDERBOOK", "Failed to fetch futures orderbook entry", error);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Failed to fetch futures orderbook entry: ${error.message}`,
+        });
+    }
+}
+async function getOrderBook(symbol) {
+    if (!client || !scyllaFuturesKeyspace) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    const askQuery = `
+    SELECT * FROM ${scyllaFuturesKeyspace}.orderbook
+    WHERE symbol = ? AND side = 'ASKS'
+    LIMIT 50;
+  `;
+    const bidQuery = `
+    SELECT * FROM ${scyllaFuturesKeyspace}.orderbook
+    WHERE symbol = ? AND side = 'BIDS'
+    ORDER BY price DESC
+    LIMIT 50;
+  `;
+    const [askRows, bidRows] = await Promise.all([
+        client.execute(askQuery, [symbol], { prepare: true }),
+        client.execute(bidQuery, [symbol], { prepare: true }),
+    ]);
+    const asks = askRows.rows.map((row) => [row.price, row.amount]);
+    const bids = bidRows.rows.map((row) => [row.price, row.amount]);
+    return { asks, bids };
+}
+async function fetchOrderBooks() {
+    if (!client || !scyllaFuturesKeyspace) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    const query = `
+    SELECT * FROM ${scyllaFuturesKeyspace}.orderbook;
+  `;
+    try {
+        const result = await client.execute(query);
+        return result.rows.map((row) => ({
+            symbol: row.symbol,
+            price: row.price,
+            amount: row.amount,
+            side: row.side,
+        }));
+    }
+    catch (error) {
+        console_1.logger.error("ORDERBOOK", "Failed to fetch futures order books", error);
+        return null;
+    }
+}
+async function updateOrderBookInDB(symbol, price, amount, side) {
+    if (!client || !scyllaFuturesKeyspace) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    let query;
+    let params;
+    if (amount > 0) {
+        query = `
+      INSERT INTO ${scyllaFuturesKeyspace}.orderbook (symbol, price, amount, side)
+      VALUES (?, ?, ?, ?);
+    `;
+        params = [symbol, price, amount, side.toUpperCase()];
+    }
+    else {
+        query = `
+      DELETE FROM ${scyllaFuturesKeyspace}.orderbook
+      WHERE symbol = ? AND price = ? AND side = ?;
+    `;
+        params = [symbol, price, side.toUpperCase()];
+    }
+    try {
+        await client.execute(query, params, { prepare: true });
+    }
+    catch (error) {
+        console_1.logger.error("ORDERBOOK", "Failed to update futures order book", error);
+    }
+}
+async function fetchExistingAmounts(symbol) {
+    if (!client || !scyllaFuturesKeyspace || !removeTolerance || !toBigIntFloat) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    try {
+        const result = await client.execute(`SELECT price, side, amount FROM ${scyllaFuturesKeyspace}.orderbook_by_symbol WHERE symbol = ?;`, [symbol]);
+        const symbolOrderBook = { bids: {}, asks: {} };
+        result.rows.forEach((row) => {
+            const side = row.side === "BIDS" ? "bids" : "asks";
+            const priceStr = removeTolerance(toBigIntFloat(row.price)).toString();
+            symbolOrderBook[side][priceStr] = removeTolerance(toBigIntFloat(row.amount));
+        });
+        return symbolOrderBook;
+    }
+    catch (error) {
+        console_1.logger.error("FUTURES", `Failed to fetch existing amounts for ${symbol}`, error);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Failed to fetch existing amounts for ${symbol}`,
+        });
+    }
+}
+async function updateSingleOrderBook(order, operation) {
+    if (!client || !scyllaFuturesKeyspace || !removeTolerance || !toBigIntFloat || !fromBigInt) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    try {
+        const result = await client.execute(`SELECT price, side, amount FROM ${scyllaFuturesKeyspace}.orderbook_by_symbol WHERE symbol = ?;`, [order.symbol]);
+        const symbolOrderBook = { bids: {}, asks: {} };
+        result.rows.forEach((row) => {
+            const side = row.side === "BIDS" ? "bids" : "asks";
+            symbolOrderBook[side][removeTolerance(toBigIntFloat(row.price)).toString()] = removeTolerance(toBigIntFloat(row.amount));
+        });
+        const side = order.side === "BUY" ? "bids" : "asks";
+        const price = removeTolerance(BigInt(order.price));
+        const existingAmount = symbolOrderBook[side][price.toString()] || BigInt(0);
+        let newAmount = BigInt(0);
+        if (operation === "add") {
+            newAmount = existingAmount + removeTolerance(BigInt(order.amount));
+        }
+        else if (operation === "subtract") {
+            newAmount = existingAmount - removeTolerance(BigInt(order.amount));
+        }
+        if (newAmount > BigInt(0)) {
+            await client.execute(`INSERT INTO ${scyllaFuturesKeyspace}.orderbook (symbol, price, side, amount) VALUES (?, ?, ?, ?)`, [
+                order.symbol,
+                fromBigInt(price),
+                order.side === "BUY" ? "BIDS" : "ASKS",
+                fromBigInt(newAmount),
+            ]);
+            symbolOrderBook[side][price.toString()] = newAmount;
+        }
+        else {
+            await client.execute(`DELETE FROM ${scyllaFuturesKeyspace}.orderbook WHERE symbol = ? AND price = ? AND side = ?`, [
+                order.symbol,
+                fromBigInt(price),
+                order.side === "BUY" ? "BIDS" : "ASKS",
+            ]);
+            delete symbolOrderBook[side][price.toString()];
+        }
+        return symbolOrderBook;
+    }
+    catch (err) {
+        console_1.logger.error("FUTURES", "Failed to update order book in database", err);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: "Failed to update order book in database",
+        });
+    }
+}
+function generateOrderBookUpdateQueries(mappedOrderBook) {
+    if (!scyllaFuturesKeyspace || !fromBigInt || !removeTolerance) {
+        throw (0, error_1.createError)({ statusCode: 503, message: "Ecosystem extension not available" });
+    }
+    const queries = [];
+    for (const [symbol, sides] of Object.entries(mappedOrderBook)) {
+        for (const [side, priceAmountMap] of Object.entries(sides)) {
+            if (Object.keys(priceAmountMap).length === 0) {
+                queries.push({
+                    query: `DELETE FROM ${scyllaFuturesKeyspace}.orderbook WHERE symbol = ? AND side = ?`,
+                    params: [symbol, side.toUpperCase()],
+                });
+                continue;
+            }
+            for (const [price, amount] of Object.entries(priceAmountMap)) {
+                if (amount > BigInt(0)) {
+                    queries.push({
+                        query: `UPDATE ${scyllaFuturesKeyspace}.orderbook SET amount = ? WHERE symbol = ? AND price = ? AND side = ?`,
+                        params: [
+                            fromBigInt(removeTolerance(BigInt(amount))),
+                            symbol,
+                            fromBigInt(removeTolerance(BigInt(price))),
+                            side.toUpperCase(),
+                        ],
+                    });
+                }
+                else {
+                    queries.push({
+                        query: `DELETE FROM ${scyllaFuturesKeyspace}.orderbook WHERE symbol = ? AND price = ? AND side = ?`,
+                        params: [
+                            symbol,
+                            fromBigInt(removeTolerance(BigInt(price))),
+                            side.toUpperCase(),
+                        ],
+                    });
+                }
+            }
+        }
+    }
+    return queries;
+}

@@ -1,1 +1,227 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.updateUserQuery=exports.metadata=void 0;const error_1=require("@b/utils/error"),query_1=require("@b/utils/query"),db_1=require("@b/db"),promises_1=require("fs/promises"),console_1=require("@b/utils/console");exports.metadata={summary:"Updates the profile of the current user",description:"Updates the profile of the currently authenticated user",operationId:"updateProfile",tags:["Auth"],requiresAuth:!0,logModule:"USER",logTitle:"Update profile",requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{firstName:{type:"string",description:"First name of the user"},lastName:{type:"string",description:"Last name of the user"},metadata:{type:"object",description:"Metadata of the user"},avatar:{type:"string",description:"Avatar of the user",nullable:!0},phone:{type:"string",description:"Phone number of the user"},twoFactor:{type:"boolean",description:"Two-factor authentication status"},profile:{type:"object",nullable:!0,properties:{bio:{type:"string",description:"User bio",nullable:!0},location:{type:"object",nullable:!0,properties:{address:{type:"string",description:"User address",nullable:!0},city:{type:"string",description:"User city",nullable:!0},country:{type:"string",description:"User country",nullable:!0},zip:{type:"string",description:"User zip code",nullable:!0}}},social:{type:"object",nullable:!0,properties:{twitter:{type:"string",description:"Twitter profile",nullable:!0},dribbble:{type:"string",description:"Dribbble profile",nullable:!0},instagram:{type:"string",description:"Instagram profile",nullable:!0},github:{type:"string",description:"GitHub profile",nullable:!0},gitlab:{type:"string",description:"GitLab profile",nullable:!0},telegram:{type:"string",description:"Telegram username",nullable:!0}}}}},settings:{type:"object",description:"Notification settings for the user",properties:{email:{type:"boolean",description:"Email notifications enabled or disabled"},sms:{type:"boolean",description:"SMS notifications enabled or disabled"},push:{type:"boolean",description:"Push notifications enabled or disabled"}}}}}}}},responses:{200:{description:"User profile updated successfully",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Success message"}}}}}},401:query_1.unauthorizedResponse,404:(0,query_1.notFoundMetadataResponse)("User"),500:query_1.serverErrorResponse}};exports.default=async e=>{var t;const{user:r,body:s,ctx:i}=e;if(!r){null==i||i.fail("User not authenticated");throw(0,error_1.createError)({statusCode:401,message:"Authentication required to update profile"})}const{firstName:o,lastName:a,metadata:n,avatar:l,phone:p,twoFactor:u,profile:d,settings:c}=s;null==i||i.step("Updating user profile");const b=await(0,exports.updateUserQuery)(r.id,o,a,n,l,p,u,d,c,null!==(t=r.avatar)&&void 0!==t?t:void 0);null==i||i.success("Profile updated successfully");return b};const updateUserQuery=async(e,t,r,s,i,o,a,n,l,p)=>{const u={};void 0!==t&&(u.firstName=t);void 0!==r&&(u.lastName=r);void 0!==s&&(u.metadata=s);void 0!==i&&(u.avatar=i);void 0!==o&&(u.phone=o);void 0!==a&&(u.twoFactor=a);void 0!==n&&(u.profile=n);if(void 0!==l){const t="string"==typeof l?JSON.parse(l):l,r=await db_1.models.user.findByPk(e,{attributes:["settings"]}),s=(null==r?void 0:r.settings)||{};u.settings={...s,...t}}if(null===i&&p)try{await(0,promises_1.unlink)(p)}catch(e){console_1.logger.error("USER","Failed to unlink avatar",e);throw(0,error_1.createError)({statusCode:500,message:"Failed to unlink avatar from server"})}await db_1.models.user.update(u,{where:{id:e}});return{message:"Profile updated successfully"}};exports.updateUserQuery=updateUserQuery;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateUserQuery = exports.metadata = void 0;
+const error_1 = require("@b/utils/error");
+const query_1 = require("@b/utils/query");
+const db_1 = require("@b/db");
+const promises_1 = require("fs/promises");
+const console_1 = require("@b/utils/console");
+exports.metadata = {
+    summary: "Updates the profile of the current user",
+    description: "Updates the profile of the currently authenticated user",
+    operationId: "updateProfile",
+    tags: ["Auth"],
+    requiresAuth: true,
+    logModule: "USER",
+    logTitle: "Update profile",
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        firstName: {
+                            type: "string",
+                            description: "First name of the user",
+                        },
+                        lastName: {
+                            type: "string",
+                            description: "Last name of the user",
+                        },
+                        metadata: {
+                            type: "object",
+                            description: "Metadata of the user",
+                        },
+                        avatar: {
+                            type: "string",
+                            description: "Avatar of the user",
+                            nullable: true,
+                        },
+                        phone: {
+                            type: "string",
+                            description: "Phone number of the user",
+                        },
+                        twoFactor: {
+                            type: "boolean",
+                            description: "Two-factor authentication status",
+                        },
+                        profile: {
+                            type: "object",
+                            nullable: true,
+                            properties: {
+                                bio: {
+                                    type: "string",
+                                    description: "User bio",
+                                    nullable: true,
+                                },
+                                location: {
+                                    type: "object",
+                                    nullable: true,
+                                    properties: {
+                                        address: {
+                                            type: "string",
+                                            description: "User address",
+                                            nullable: true,
+                                        },
+                                        city: {
+                                            type: "string",
+                                            description: "User city",
+                                            nullable: true,
+                                        },
+                                        country: {
+                                            type: "string",
+                                            description: "User country",
+                                            nullable: true,
+                                        },
+                                        zip: {
+                                            type: "string",
+                                            description: "User zip code",
+                                            nullable: true,
+                                        },
+                                    },
+                                },
+                                social: {
+                                    type: "object",
+                                    nullable: true,
+                                    properties: {
+                                        twitter: {
+                                            type: "string",
+                                            description: "Twitter profile",
+                                            nullable: true,
+                                        },
+                                        dribbble: {
+                                            type: "string",
+                                            description: "Dribbble profile",
+                                            nullable: true,
+                                        },
+                                        instagram: {
+                                            type: "string",
+                                            description: "Instagram profile",
+                                            nullable: true,
+                                        },
+                                        github: {
+                                            type: "string",
+                                            description: "GitHub profile",
+                                            nullable: true,
+                                        },
+                                        gitlab: {
+                                            type: "string",
+                                            description: "GitLab profile",
+                                            nullable: true,
+                                        },
+                                        telegram: {
+                                            type: "string",
+                                            description: "Telegram username",
+                                            nullable: true,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        settings: {
+                            type: "object",
+                            description: "Notification settings for the user",
+                            properties: {
+                                email: {
+                                    type: "boolean",
+                                    description: "Email notifications enabled or disabled",
+                                },
+                                sms: {
+                                    type: "boolean",
+                                    description: "SMS notifications enabled or disabled",
+                                },
+                                push: {
+                                    type: "boolean",
+                                    description: "Push notifications enabled or disabled",
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "User profile updated successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: {
+                                type: "string",
+                                description: "Success message",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        401: query_1.unauthorizedResponse,
+        404: (0, query_1.notFoundMetadataResponse)("User"),
+        500: query_1.serverErrorResponse,
+    },
+};
+exports.default = async (data) => {
+    var _a;
+    const { user, body, ctx } = data;
+    if (!user) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("User not authenticated");
+        throw (0, error_1.createError)({
+            statusCode: 401,
+            message: "Authentication required to update profile",
+        });
+    }
+    const { firstName, lastName, metadata, avatar, phone, twoFactor, profile, settings, } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating user profile");
+    const result = await (0, exports.updateUserQuery)(user.id, firstName, lastName, metadata, avatar, phone, twoFactor, profile, settings, (_a = user.avatar) !== null && _a !== void 0 ? _a : undefined);
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Profile updated successfully");
+    return result;
+};
+const updateUserQuery = async (id, firstName, lastName, metadata, avatar, phone, twoFactor, profile, settings, originalAvatar) => {
+    const updateData = {};
+    if (firstName !== undefined)
+        updateData.firstName = firstName;
+    if (lastName !== undefined)
+        updateData.lastName = lastName;
+    if (metadata !== undefined)
+        updateData.metadata = metadata;
+    if (avatar !== undefined)
+        updateData.avatar = avatar;
+    if (phone !== undefined)
+        updateData.phone = phone;
+    if (twoFactor !== undefined)
+        updateData.twoFactor = twoFactor;
+    if (profile !== undefined)
+        updateData.profile = profile;
+    if (settings !== undefined) {
+        const incomingSettings = typeof settings === "string" ? JSON.parse(settings) : settings;
+        const currentUser = await db_1.models.user.findByPk(id, {
+            attributes: ["settings"],
+        });
+        const existingSettings = (currentUser === null || currentUser === void 0 ? void 0 : currentUser.settings) || {};
+        updateData.settings = {
+            ...existingSettings,
+            ...incomingSettings,
+        };
+    }
+    if (avatar === null && originalAvatar) {
+        try {
+            await (0, promises_1.unlink)(originalAvatar);
+        }
+        catch (error) {
+            console_1.logger.error("USER", "Failed to unlink avatar", error);
+            throw (0, error_1.createError)({
+                statusCode: 500,
+                message: "Failed to unlink avatar from server",
+            });
+        }
+    }
+    await db_1.models.user.update(updateData, {
+        where: { id },
+    });
+    return { message: "Profile updated successfully" };
+};
+exports.updateUserQuery = updateUserQuery;

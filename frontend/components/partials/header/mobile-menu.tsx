@@ -328,18 +328,6 @@ function MobileMenuItem({
       {/* Title */}
       <span className="flex-1 font-medium truncate">{getTitle(item)}</span>
 
-      {/* Extension badge */}
-      {item.extension && (
-        <span
-          className={cn(
-            "px-1.5 py-0.5 text-[10px] font-medium rounded-md flex-shrink-0",
-            isDark ? "bg-primary/20 text-primary" : "bg-primary/10 text-primary"
-          )}
-        >
-          EXT
-        </span>
-      )}
-
       {/* Expand/Collapse Icon */}
       {hasChildren && (
         <motion.div

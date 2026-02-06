@@ -1,1 +1,335 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),sequelize_1=require("sequelize");exports.metadata={summary:"Get ICO Landing Page Data",description:"Retrieves comprehensive data for the ICO landing page including stats, featured offerings, upcoming projects, success stories, and platform diversity.",operationId:"getIcoLandingData",tags:["ICO","Landing"],requiresAuth:!1,responses:{200:{description:"ICO landing data retrieved successfully",content:{"application/json":{schema:{type:"object",properties:{stats:{type:"object"},featured:{type:"array"},upcoming:{type:"array"},successStories:{type:"array"},diversity:{type:"object"},launchPlans:{type:"array"}}}}}}}};exports.default=async()=>{const e=new Date,t=new Date(e.getFullYear(),e.getMonth(),1),a=new Date(e.getFullYear(),e.getMonth()-1,1),n=new Date(e.getFullYear(),e.getMonth(),0),[i,o,r,s,l,d,u,c]=await Promise.all([db_1.models.icoTokenOffering.findAll({attributes:["status",[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.col)("id")),"count"]],group:["status"],raw:!0}),db_1.models.icoTransaction.findOne({attributes:[[(0,sequelize_1.fn)("SUM",(0,sequelize_1.literal)("CASE WHEN status NOT IN ('REJECTED') THEN price * amount ELSE 0 END")),"totalRaised"],[(0,sequelize_1.fn)("SUM",(0,sequelize_1.literal)(`CASE WHEN createdAt >= '${t.toISOString()}' AND status NOT IN ('REJECTED') THEN price * amount ELSE 0 END`)),"currentRaised"],[(0,sequelize_1.fn)("SUM",(0,sequelize_1.literal)(`CASE WHEN createdAt BETWEEN '${a.toISOString()}' AND '${n.toISOString()}' AND status NOT IN ('REJECTED') THEN price * amount ELSE 0 END`)),"previousRaised"],[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.literal)("DISTINCT userId")),"totalInvestors"],[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.literal)(`DISTINCT CASE WHEN createdAt >= '${t.toISOString()}' THEN userId ELSE NULL END`)),"currentInvestors"],[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.literal)(`DISTINCT CASE WHEN createdAt BETWEEN '${a.toISOString()}' AND '${n.toISOString()}' THEN userId ELSE NULL END`)),"previousInvestors"]],raw:!0}),db_1.models.icoTokenOffering.findAll({where:{status:"ACTIVE",featured:!0},include:[{model:db_1.models.icoTokenOfferingPhase,as:"phases"},{model:db_1.models.icoTokenDetail,as:"tokenDetail",attributes:["description","blockchain","tokenType"]},{model:db_1.models.icoTeamMember,as:"teamMembers",attributes:["name","role","avatar"],limit:3}],limit:6,order:[["createdAt","DESC"]]}),db_1.models.icoTokenOffering.findAll({where:{status:"UPCOMING"},include:[{model:db_1.models.icoTokenDetail,as:"tokenDetail",attributes:["description","blockchain","tokenType"]}],limit:4,order:[["startDate","ASC"]]}),db_1.models.icoTokenOffering.findAll({where:{status:"SUCCESS"},include:[{model:db_1.models.icoTokenDetail,as:"tokenDetail",attributes:["blockchain"]}],limit:4,order:[["updatedAt","DESC"]]}),db_1.models.icoTokenDetail.findAll({attributes:["blockchain",[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.col)("offeringId")),"count"]],group:["blockchain"],raw:!0}),db_1.models.icoTokenDetail.findAll({attributes:["tokenType",[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.col)("offeringId")),"count"]],group:["tokenType"],raw:!0}),db_1.models.icoLaunchPlan.findAll({where:{status:!0},attributes:["id","name","price","features","recommended"],order:[["price","ASC"]],limit:4})]),m={};i.forEach(e=>{m[e.status]=parseInt(e.count)||0});const p=parseFloat(null==o?void 0:o.totalRaised)||0,f=parseFloat(null==o?void 0:o.currentRaised)||0,g=parseFloat(null==o?void 0:o.previousRaised)||0,T=parseInt(null==o?void 0:o.totalInvestors)||0,E=parseInt(null==o?void 0:o.currentInvestors)||0,b=parseInt(null==o?void 0:o.previousInvestors)||0,h=Object.values(m).reduce((e,t)=>e+t,0),D=m.SUCCESS||0,k=D+(m.FAILED||0),v=k>0?Math.round(D/k*100):0,I=g>0?Math.round((f-g)/g*100):0,A=b>0?Math.round((E-b)/b*100):0,_=r.map(e=>e.id),S=_.length>0?await db_1.models.icoTransaction.findAll({attributes:["offeringId",[(0,sequelize_1.fn)("SUM",(0,sequelize_1.literal)("price * amount")),"raised"]],where:{offeringId:{[sequelize_1.Op.in]:_},status:{[sequelize_1.Op.ne]:"REJECTED"}},group:["offeringId"],raw:!0}):[],y={};S.forEach(e=>{y[e.offeringId]=parseFloat(e.raised)||0});const N=l.map(e=>e.id),C=N.length>0?await db_1.models.icoTransaction.findAll({attributes:["offeringId",[(0,sequelize_1.fn)("SUM",(0,sequelize_1.literal)("price * amount")),"raised"]],where:{offeringId:{[sequelize_1.Op.in]:N},status:{[sequelize_1.Op.ne]:"REJECTED"}},group:["offeringId"],raw:!0}):[],O={};C.forEach(e=>{O[e.offeringId]=parseFloat(e.raised)||0});const w=r.map(t=>{var a,n,i;const o=t.phases||[],r=new Date(t.startDate),s=new Date(t.endDate),l=Math.max(0,Math.ceil((s.getTime()-e.getTime())/864e5));let d=null,u=null,c=0;const m=Math.floor((e.getTime()-r.getTime())/864e5);for(let e=0;e<o.length;e++){c+=o[e].duration;if(m<c){d={name:o[e].name,tokenPrice:o[e].tokenPrice,remaining:o[e].remaining,endsIn:c-m};e+1<o.length&&(u={name:o[e+1].name,tokenPrice:o[e+1].tokenPrice,startsIn:c-m});break}}const p=y[t.id]||0,f=t.targetAmount>0?Math.min(Math.round(p/t.targetAmount*100),100):0;return{id:t.id,name:t.name,symbol:t.symbol,icon:t.icon,description:(null===(a=t.tokenDetail)||void 0===a?void 0:a.description)||"",status:t.status,targetAmount:t.targetAmount,currentRaised:p,progress:f,participants:t.participants,currency:t.purchaseWalletCurrency,startDate:t.startDate,endDate:t.endDate,daysRemaining:l,currentPhase:d,nextPhase:u,teamPreview:(t.teamMembers||[]).map(e=>({name:e.name,role:e.role,avatar:e.avatar})),blockchain:(null===(n=t.tokenDetail)||void 0===n?void 0:n.blockchain)||"Unknown",tokenType:(null===(i=t.tokenDetail)||void 0===i?void 0:i.tokenType)||"Unknown"}}),q=s.map(t=>{var a,n,i;const o=new Date(t.startDate),r=Math.max(0,Math.ceil((o.getTime()-e.getTime())/864e5));return{id:t.id,name:t.name,symbol:t.symbol,icon:t.icon,description:(null===(a=t.tokenDetail)||void 0===a?void 0:a.description)||"",targetAmount:t.targetAmount,startDate:t.startDate,daysUntilStart:r,blockchain:(null===(n=t.tokenDetail)||void 0===n?void 0:n.blockchain)||"Unknown",tokenType:(null===(i=t.tokenDetail)||void 0===i?void 0:i.tokenType)||"Unknown"}}),z=l.map(e=>{var t;const a=O[e.id]||0,n=e.targetAmount>0?Math.round(a/e.targetAmount*100):0,i=new Date(e.startDate),o=new Date(e.updatedAt),r=Math.ceil((o.getTime()-i.getTime())/864e5);return{id:e.id,name:e.name,symbol:e.symbol,icon:e.icon,targetAmount:e.targetAmount,totalRaised:a,fundedPercentage:n,participants:e.participants,completedAt:e.updatedAt,daysToComplete:r,blockchain:(null===(t=e.tokenDetail)||void 0===t?void 0:t.blockchain)||"Unknown"}}),M=d.map(e=>({name:e.blockchain,value:e.blockchain,offeringCount:parseInt(e.count)||0})).filter(e=>e.name),U=u.map(e=>({name:e.tokenType,value:e.tokenType,offeringCount:parseInt(e.count)||0})).filter(e=>e.name),P=c.map(e=>({id:e.id,name:e.name,price:e.price,features:Array.isArray(e.features)?e.features.slice(0,5):[],popular:e.recommended||!1}));return{stats:{totalOfferings:h,activeOfferings:m.ACTIVE||0,successfulOfferings:D,successRate:v,totalRaised:p,totalInvestors:T,uniqueProjects:h,raisedGrowth:I,investorsGrowth:A,offeringsGrowth:0,averageFundingPercentage:0,averageTimeToTarget:0},featured:w,upcoming:q,successStories:z,diversity:{blockchains:M,tokenTypes:U},launchPlans:P}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
+exports.metadata = {
+    summary: "Get ICO Landing Page Data",
+    description: "Retrieves comprehensive data for the ICO landing page including stats, featured offerings, upcoming projects, success stories, and platform diversity.",
+    operationId: "getIcoLandingData",
+    tags: ["ICO", "Landing"],
+    requiresAuth: false,
+    responses: {
+        200: {
+            description: "ICO landing data retrieved successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            stats: { type: "object" },
+                            featured: { type: "array" },
+                            upcoming: { type: "array" },
+                            successStories: { type: "array" },
+                            diversity: { type: "object" },
+                            launchPlans: { type: "array" },
+                        },
+                    },
+                },
+            },
+        },
+    },
+};
+exports.default = async (data) => {
+    const now = new Date();
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const [statusCounts, transactionStats, featuredOfferings, upcomingOfferings, successfulOfferings, blockchainCounts, tokenTypeCounts, launchPlans,] = await Promise.all([
+        db_1.models.icoTokenOffering.findAll({
+            attributes: ["status", [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.col)("id")), "count"]],
+            group: ["status"],
+            raw: true,
+        }),
+        db_1.models.icoTransaction.findOne({
+            attributes: [
+                [
+                    (0, sequelize_1.fn)("SUM", (0, sequelize_1.literal)("CASE WHEN status NOT IN ('REJECTED') THEN price * amount ELSE 0 END")),
+                    "totalRaised",
+                ],
+                [
+                    (0, sequelize_1.fn)("SUM", (0, sequelize_1.literal)(`CASE WHEN createdAt >= '${currentMonthStart.toISOString()}' AND status NOT IN ('REJECTED') THEN price * amount ELSE 0 END`)),
+                    "currentRaised",
+                ],
+                [
+                    (0, sequelize_1.fn)("SUM", (0, sequelize_1.literal)(`CASE WHEN createdAt BETWEEN '${previousMonthStart.toISOString()}' AND '${previousMonthEnd.toISOString()}' AND status NOT IN ('REJECTED') THEN price * amount ELSE 0 END`)),
+                    "previousRaised",
+                ],
+                [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.literal)("DISTINCT userId")), "totalInvestors"],
+                [
+                    (0, sequelize_1.fn)("COUNT", (0, sequelize_1.literal)(`DISTINCT CASE WHEN createdAt >= '${currentMonthStart.toISOString()}' THEN userId ELSE NULL END`)),
+                    "currentInvestors",
+                ],
+                [
+                    (0, sequelize_1.fn)("COUNT", (0, sequelize_1.literal)(`DISTINCT CASE WHEN createdAt BETWEEN '${previousMonthStart.toISOString()}' AND '${previousMonthEnd.toISOString()}' THEN userId ELSE NULL END`)),
+                    "previousInvestors",
+                ],
+            ],
+            raw: true,
+        }),
+        db_1.models.icoTokenOffering.findAll({
+            where: { status: "ACTIVE", featured: true },
+            include: [
+                { model: db_1.models.icoTokenOfferingPhase, as: "phases" },
+                {
+                    model: db_1.models.icoTokenDetail,
+                    as: "tokenDetail",
+                    attributes: ["description", "blockchain", "tokenType"],
+                },
+                {
+                    model: db_1.models.icoTeamMember,
+                    as: "teamMembers",
+                    attributes: ["name", "role", "avatar"],
+                    limit: 3,
+                },
+            ],
+            limit: 6,
+            order: [["createdAt", "DESC"]],
+        }),
+        db_1.models.icoTokenOffering.findAll({
+            where: { status: "UPCOMING" },
+            include: [
+                {
+                    model: db_1.models.icoTokenDetail,
+                    as: "tokenDetail",
+                    attributes: ["description", "blockchain", "tokenType"],
+                },
+            ],
+            limit: 4,
+            order: [["startDate", "ASC"]],
+        }),
+        db_1.models.icoTokenOffering.findAll({
+            where: { status: "SUCCESS" },
+            include: [
+                {
+                    model: db_1.models.icoTokenDetail,
+                    as: "tokenDetail",
+                    attributes: ["blockchain"],
+                },
+            ],
+            limit: 4,
+            order: [["updatedAt", "DESC"]],
+        }),
+        db_1.models.icoTokenDetail.findAll({
+            attributes: ["blockchain", [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.col)("offeringId")), "count"]],
+            group: ["blockchain"],
+            raw: true,
+        }),
+        db_1.models.icoTokenDetail.findAll({
+            attributes: ["tokenType", [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.col)("offeringId")), "count"]],
+            group: ["tokenType"],
+            raw: true,
+        }),
+        db_1.models.icoLaunchPlan.findAll({
+            where: { status: true },
+            attributes: ["id", "name", "price", "features", "recommended"],
+            order: [["price", "ASC"]],
+            limit: 4,
+        }),
+    ]);
+    const statusMap = {};
+    statusCounts.forEach((s) => {
+        statusMap[s.status] = parseInt(s.count) || 0;
+    });
+    const totalRaised = parseFloat(transactionStats === null || transactionStats === void 0 ? void 0 : transactionStats.totalRaised) || 0;
+    const currentRaised = parseFloat(transactionStats === null || transactionStats === void 0 ? void 0 : transactionStats.currentRaised) || 0;
+    const previousRaised = parseFloat(transactionStats === null || transactionStats === void 0 ? void 0 : transactionStats.previousRaised) || 0;
+    const totalInvestors = parseInt(transactionStats === null || transactionStats === void 0 ? void 0 : transactionStats.totalInvestors) || 0;
+    const currentInvestors = parseInt(transactionStats === null || transactionStats === void 0 ? void 0 : transactionStats.currentInvestors) || 0;
+    const previousInvestors = parseInt(transactionStats === null || transactionStats === void 0 ? void 0 : transactionStats.previousInvestors) || 0;
+    const totalOfferings = Object.values(statusMap).reduce((a, b) => a + b, 0);
+    const successfulCount = statusMap["SUCCESS"] || 0;
+    const failedCount = statusMap["FAILED"] || 0;
+    const completedCount = successfulCount + failedCount;
+    const successRate = completedCount > 0
+        ? Math.round((successfulCount / completedCount) * 100)
+        : 0;
+    const raisedGrowth = previousRaised > 0
+        ? Math.round(((currentRaised - previousRaised) / previousRaised) * 100)
+        : 0;
+    const investorsGrowth = previousInvestors > 0
+        ? Math.round(((currentInvestors - previousInvestors) / previousInvestors) * 100)
+        : 0;
+    const featuredIds = featuredOfferings.map((o) => o.id);
+    const featuredRaised = featuredIds.length > 0
+        ? await db_1.models.icoTransaction.findAll({
+            attributes: [
+                "offeringId",
+                [(0, sequelize_1.fn)("SUM", (0, sequelize_1.literal)("price * amount")), "raised"],
+            ],
+            where: {
+                offeringId: { [sequelize_1.Op.in]: featuredIds },
+                status: { [sequelize_1.Op.ne]: "REJECTED" },
+            },
+            group: ["offeringId"],
+            raw: true,
+        })
+        : [];
+    const featuredRaisedMap = {};
+    featuredRaised.forEach((r) => {
+        featuredRaisedMap[r.offeringId] = parseFloat(r.raised) || 0;
+    });
+    const successIds = successfulOfferings.map((o) => o.id);
+    const successRaised = successIds.length > 0
+        ? await db_1.models.icoTransaction.findAll({
+            attributes: [
+                "offeringId",
+                [(0, sequelize_1.fn)("SUM", (0, sequelize_1.literal)("price * amount")), "raised"],
+            ],
+            where: {
+                offeringId: { [sequelize_1.Op.in]: successIds },
+                status: { [sequelize_1.Op.ne]: "REJECTED" },
+            },
+            group: ["offeringId"],
+            raw: true,
+        })
+        : [];
+    const successRaisedMap = {};
+    successRaised.forEach((r) => {
+        successRaisedMap[r.offeringId] = parseFloat(r.raised) || 0;
+    });
+    const transformedFeatured = featuredOfferings.map((offering) => {
+        var _a, _b, _c;
+        const phases = offering.phases || [];
+        const startDate = new Date(offering.startDate);
+        const endDate = new Date(offering.endDate);
+        const daysRemaining = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+        let currentPhase = null;
+        let nextPhase = null;
+        let cumulativeDays = 0;
+        const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        for (let i = 0; i < phases.length; i++) {
+            cumulativeDays += phases[i].duration;
+            if (daysSinceStart < cumulativeDays) {
+                currentPhase = {
+                    name: phases[i].name,
+                    tokenPrice: phases[i].tokenPrice,
+                    remaining: phases[i].remaining,
+                    endsIn: cumulativeDays - daysSinceStart,
+                };
+                if (i + 1 < phases.length) {
+                    nextPhase = {
+                        name: phases[i + 1].name,
+                        tokenPrice: phases[i + 1].tokenPrice,
+                        startsIn: cumulativeDays - daysSinceStart,
+                    };
+                }
+                break;
+            }
+        }
+        const raised = featuredRaisedMap[offering.id] || 0;
+        const progress = offering.targetAmount > 0
+            ? Math.min(Math.round((raised / offering.targetAmount) * 100), 100)
+            : 0;
+        return {
+            id: offering.id,
+            name: offering.name,
+            symbol: offering.symbol,
+            icon: offering.icon,
+            description: ((_a = offering.tokenDetail) === null || _a === void 0 ? void 0 : _a.description) || "",
+            status: offering.status,
+            targetAmount: offering.targetAmount,
+            currentRaised: raised,
+            progress,
+            participants: offering.participants,
+            currency: offering.purchaseWalletCurrency,
+            startDate: offering.startDate,
+            endDate: offering.endDate,
+            daysRemaining,
+            currentPhase,
+            nextPhase,
+            teamPreview: (offering.teamMembers || []).map((tm) => ({
+                name: tm.name,
+                role: tm.role,
+                avatar: tm.avatar,
+            })),
+            blockchain: ((_b = offering.tokenDetail) === null || _b === void 0 ? void 0 : _b.blockchain) || "Unknown",
+            tokenType: ((_c = offering.tokenDetail) === null || _c === void 0 ? void 0 : _c.tokenType) || "Unknown",
+        };
+    });
+    const transformedUpcoming = upcomingOfferings.map((offering) => {
+        var _a, _b, _c;
+        const startDate = new Date(offering.startDate);
+        const daysUntilStart = Math.max(0, Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+        return {
+            id: offering.id,
+            name: offering.name,
+            symbol: offering.symbol,
+            icon: offering.icon,
+            description: ((_a = offering.tokenDetail) === null || _a === void 0 ? void 0 : _a.description) || "",
+            targetAmount: offering.targetAmount,
+            startDate: offering.startDate,
+            daysUntilStart,
+            blockchain: ((_b = offering.tokenDetail) === null || _b === void 0 ? void 0 : _b.blockchain) || "Unknown",
+            tokenType: ((_c = offering.tokenDetail) === null || _c === void 0 ? void 0 : _c.tokenType) || "Unknown",
+        };
+    });
+    const transformedSuccess = successfulOfferings.map((offering) => {
+        var _a;
+        const raised = successRaisedMap[offering.id] || 0;
+        const fundedPercentage = offering.targetAmount > 0
+            ? Math.round((raised / offering.targetAmount) * 100)
+            : 0;
+        const startDate = new Date(offering.startDate);
+        const completedAt = new Date(offering.updatedAt);
+        const daysToComplete = Math.ceil((completedAt.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        return {
+            id: offering.id,
+            name: offering.name,
+            symbol: offering.symbol,
+            icon: offering.icon,
+            targetAmount: offering.targetAmount,
+            totalRaised: raised,
+            fundedPercentage,
+            participants: offering.participants,
+            completedAt: offering.updatedAt,
+            daysToComplete,
+            blockchain: ((_a = offering.tokenDetail) === null || _a === void 0 ? void 0 : _a.blockchain) || "Unknown",
+        };
+    });
+    const blockchains = blockchainCounts
+        .map((b) => ({
+        name: b.blockchain,
+        value: b.blockchain,
+        offeringCount: parseInt(b.count) || 0,
+    }))
+        .filter((b) => b.name);
+    const tokenTypes = tokenTypeCounts
+        .map((t) => ({
+        name: t.tokenType,
+        value: t.tokenType,
+        offeringCount: parseInt(t.count) || 0,
+    }))
+        .filter((t) => t.name);
+    const transformedPlans = launchPlans.map((plan) => ({
+        id: plan.id,
+        name: plan.name,
+        price: plan.price,
+        features: Array.isArray(plan.features) ? plan.features.slice(0, 5) : [],
+        popular: plan.recommended || false,
+    }));
+    return {
+        stats: {
+            totalOfferings,
+            activeOfferings: statusMap["ACTIVE"] || 0,
+            successfulOfferings: successfulCount,
+            successRate,
+            totalRaised,
+            totalInvestors,
+            uniqueProjects: totalOfferings,
+            raisedGrowth,
+            investorsGrowth,
+            offeringsGrowth: 0,
+            averageFundingPercentage: 0,
+            averageTimeToTarget: 0,
+        },
+        featured: transformedFeatured,
+        upcoming: transformedUpcoming,
+        successStories: transformedSuccess,
+        diversity: {
+            blockchains,
+            tokenTypes,
+        },
+        launchPlans: transformedPlans,
+    };
+};

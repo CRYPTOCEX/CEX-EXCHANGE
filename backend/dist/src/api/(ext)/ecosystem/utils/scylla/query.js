@@ -1,1 +1,216 @@
-"use strict";function quoteColumn(e){return/[A-Z]/.test(e)?`"${e}"`:e}function formatUuid(e){return e.substr(0,8)+"-"+e.substr(8,4)+"-"+e.substr(12,4)+"-"+e.substr(16,4)+"-"+e.substr(20,12)}function buildWhereClause(e,r=[]){if("string"==typeof e)try{e=JSON.parse(decodeURIComponent(e))}catch(r){e={}}if(!e||"object"!=typeof e)return{whereClause:"",values:[]};const t=[],o=[];for(const s in e)if(Object.prototype.hasOwnProperty.call(e,s)){const a=quoteColumn(s),n=e[s];if("object"==typeof n&&n.operator&&void 0!==n.value){if("startsWith"===n.operator||"like"===n.operator){if(r.includes(s)){const e=n.value.toString();if(e.length<36){const r=e.replace(/-/g,""),s=r.padEnd(32,"0"),n=r.padEnd(32,"f"),u=formatUuid(s),i=formatUuid(n);try{const e=cassandra_driver_1.types.Uuid.fromString(u),r=cassandra_driver_1.types.Uuid.fromString(i);t.push(`${a} >= ?`);o.push(e);t.push(`${a} <= ?`);o.push(r)}catch(e){t.push(`${a} = ?`);o.push(cassandra_driver_1.types.Uuid.fromString("00000000-0000-0000-0000-000000000000"))}}else try{const e=cassandra_driver_1.types.Uuid.fromString(n.value);t.push(`${a} = ?`);o.push(e)}catch(e){t.push(`${a} = ?`);o.push(cassandra_driver_1.types.Uuid.fromString("00000000-0000-0000-0000-000000000000"))}continue}t.push(`${a} LIKE ?`);o.push(`${n.value}%`);continue}if(r.includes(s)){if(["notEqual","endsWith","substring","regexp","notRegexp"].includes(n.operator))throw(0,error_1.createError)({statusCode:400,message:`Operator "${n.operator}" is not supported for column "${s}" of non-string type`})}const e=operatorMap[n.operator];if(!e)continue;t.push(`${a} ${e} ?`);o.push(n.value)}else{t.push(`${a} = ?`);o.push(n)}}return{whereClause:t.join(" AND "),values:o}}async function getFiltered({table:e,query:r,filter:t,sortField:o="createdAt",sortOrder:s="DESC",perPage:a=10,allowFiltering:n=!0,keyspace:u,partitionKeys:i,transformColumns:c,nonStringLikeColumns:l=[]}){const p=u?`${u}.${e}`:e,{whereClause:d,values:g}=buildWhereClause(t,l),h=[...g];let f=`SELECT count(*) FROM ${p}`;d&&(f+=` WHERE ${d}`);n&&(f+=" ALLOW FILTERING");let _=0;try{const e=await client_1.default.execute(f,h,{prepare:!0});_=Number(e.rows[0].count)||0}catch(e){console_1.logger.error("SCYLLA","Error executing count query",e);throw(0,error_1.createError)({statusCode:500,message:"Error executing count query: "+e.message})}const m=r.page?Number(r.page):1,E=(m-1)*a;let y=`SELECT * FROM ${p}`;d&&(y+=` WHERE ${d}`);let b=!1;o&&i&&i.length>0&&(b=i.every(e=>{const r=t&&t[e];return r&&("equal"===r.operator||"in"===r.operator)}));b&&(y+=` ORDER BY ${quoteColumn(o)} ${s.toUpperCase()}`);n&&(y+=" ALLOW FILTERING");let C=[];try{C=(await client_1.default.execute(y,h,{prepare:!0})).rows}catch(e){console_1.logger.error("SCYLLA","Error executing data query",e);throw(0,error_1.createError)({statusCode:500,message:"Error executing data query: "+e.message})}if(!b&&o){C.sort((e,r)=>{const t=e[o],s=r[o],a=Number(t),n=Number(s);return isNaN(a)||isNaN(n)?String(t).localeCompare(String(s)):a-n});"DESC"===s.toUpperCase()&&C.reverse()}let v=C.slice(E,E+a);const $=Math.ceil(_/a);c&&c.length>0&&(v=v.map(e=>{c.forEach(r=>{if(void 0!==e[r]&&null!==e[r])try{e[r]="bigint"==typeof e[r]?(0,blockchain_1.fromBigInt)(e[r]):(0,blockchain_1.fromBigInt)(BigInt(e[r]))}catch(e){}});return e}));return{items:v,pagination:{totalItems:_,currentPage:m,perPage:a,totalPages:$}}}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.getFiltered=getFiltered;const client_1=__importDefault(require("./client")),console_1=require("@b/utils/console"),blockchain_1=require("../blockchain"),cassandra_driver_1=require("cassandra-driver"),error_1=require("@b/utils/error"),operatorMap={equal:"=",greaterThan:">",greaterThanOrEqual:">=",lessThan:"<",lessThanOrEqual:"<=",like:"LIKE",notLike:"NOT LIKE"};
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getFiltered = getFiltered;
+const client_1 = __importDefault(require("./client"));
+const console_1 = require("@b/utils/console");
+const blockchain_1 = require("../blockchain");
+const cassandra_driver_1 = require("cassandra-driver");
+const error_1 = require("@b/utils/error");
+const operatorMap = {
+    equal: "=",
+    greaterThan: ">",
+    greaterThanOrEqual: ">=",
+    lessThan: "<",
+    lessThanOrEqual: "<=",
+    like: "LIKE",
+    notLike: "NOT LIKE",
+};
+function quoteColumn(key) {
+    return /[A-Z]/.test(key) ? `"${key}"` : key;
+}
+function formatUuid(hexStr) {
+    return (hexStr.substr(0, 8) +
+        "-" +
+        hexStr.substr(8, 4) +
+        "-" +
+        hexStr.substr(12, 4) +
+        "-" +
+        hexStr.substr(16, 4) +
+        "-" +
+        hexStr.substr(20, 12));
+}
+function buildWhereClause(filter, nonStringLikeColumns = []) {
+    if (typeof filter === "string") {
+        try {
+            filter = JSON.parse(decodeURIComponent(filter));
+        }
+        catch (e) {
+            filter = {};
+        }
+    }
+    if (!filter || typeof filter !== "object") {
+        return { whereClause: "", values: [] };
+    }
+    const clauses = [];
+    const values = [];
+    for (const key in filter) {
+        if (Object.prototype.hasOwnProperty.call(filter, key)) {
+            const columnName = quoteColumn(key);
+            const condition = filter[key];
+            if (typeof condition === "object" &&
+                condition.operator &&
+                condition.value !== undefined) {
+                if (condition.operator === "startsWith" ||
+                    condition.operator === "like") {
+                    if (nonStringLikeColumns.includes(key)) {
+                        const prefix = condition.value.toString();
+                        if (prefix.length < 36) {
+                            const clean = prefix.replace(/-/g, "");
+                            const lowerClean = clean.padEnd(32, "0");
+                            const upperClean = clean.padEnd(32, "f");
+                            const lowerStr = formatUuid(lowerClean);
+                            const upperStr = formatUuid(upperClean);
+                            try {
+                                const lowerBound = cassandra_driver_1.types.Uuid.fromString(lowerStr);
+                                const upperBound = cassandra_driver_1.types.Uuid.fromString(upperStr);
+                                clauses.push(`${columnName} >= ?`);
+                                values.push(lowerBound);
+                                clauses.push(`${columnName} <= ?`);
+                                values.push(upperBound);
+                            }
+                            catch (e) {
+                                clauses.push(`${columnName} = ?`);
+                                values.push(cassandra_driver_1.types.Uuid.fromString("00000000-0000-0000-0000-000000000000"));
+                            }
+                        }
+                        else {
+                            try {
+                                const uuidVal = cassandra_driver_1.types.Uuid.fromString(condition.value);
+                                clauses.push(`${columnName} = ?`);
+                                values.push(uuidVal);
+                            }
+                            catch (e) {
+                                clauses.push(`${columnName} = ?`);
+                                values.push(cassandra_driver_1.types.Uuid.fromString("00000000-0000-0000-0000-000000000000"));
+                            }
+                        }
+                        continue;
+                    }
+                    else {
+                        clauses.push(`${columnName} LIKE ?`);
+                        values.push(`${condition.value}%`);
+                        continue;
+                    }
+                }
+                if (nonStringLikeColumns.includes(key)) {
+                    const unsupported = [
+                        "notEqual",
+                        "endsWith",
+                        "substring",
+                        "regexp",
+                        "notRegexp",
+                    ];
+                    if (unsupported.includes(condition.operator)) {
+                        throw (0, error_1.createError)({
+                            statusCode: 400,
+                            message: `Operator "${condition.operator}" is not supported for column "${key}" of non-string type`
+                        });
+                    }
+                }
+                const op = operatorMap[condition.operator];
+                if (!op)
+                    continue;
+                clauses.push(`${columnName} ${op} ?`);
+                values.push(condition.value);
+            }
+            else {
+                clauses.push(`${columnName} = ?`);
+                values.push(condition);
+            }
+        }
+    }
+    return { whereClause: clauses.join(" AND "), values };
+}
+async function getFiltered({ table, query, filter, sortField = "createdAt", sortOrder = "DESC", perPage = 10, allowFiltering = true, keyspace, partitionKeys, transformColumns, nonStringLikeColumns = [], }) {
+    const fullTableName = keyspace ? `${keyspace}.${table}` : table;
+    const { whereClause, values } = buildWhereClause(filter, nonStringLikeColumns);
+    const params = [...values];
+    let countCql = `SELECT count(*) FROM ${fullTableName}`;
+    if (whereClause) {
+        countCql += ` WHERE ${whereClause}`;
+    }
+    if (allowFiltering) {
+        countCql += ` ALLOW FILTERING`;
+    }
+    let totalItems = 0;
+    try {
+        const countResult = await client_1.default.execute(countCql, params, {
+            prepare: true,
+        });
+        totalItems = Number(countResult.rows[0]["count"]) || 0;
+    }
+    catch (error) {
+        console_1.logger.error("SCYLLA", "Error executing count query", error);
+        throw (0, error_1.createError)({ statusCode: 500, message: "Error executing count query: " + error.message });
+    }
+    const currentPage = query.page ? Number(query.page) : 1;
+    const offset = (currentPage - 1) * perPage;
+    let dataCql = `SELECT * FROM ${fullTableName}`;
+    if (whereClause) {
+        dataCql += ` WHERE ${whereClause}`;
+    }
+    let addOrderBy = false;
+    if (sortField && partitionKeys && partitionKeys.length > 0) {
+        addOrderBy = partitionKeys.every((pk) => {
+            const filterValue = filter && filter[pk];
+            return (filterValue &&
+                (filterValue.operator === "equal" || filterValue.operator === "in"));
+        });
+    }
+    if (addOrderBy) {
+        dataCql += ` ORDER BY ${quoteColumn(sortField)} ${sortOrder.toUpperCase()}`;
+    }
+    if (allowFiltering) {
+        dataCql += ` ALLOW FILTERING`;
+    }
+    let allRows = [];
+    try {
+        const dataResult = await client_1.default.execute(dataCql, params, { prepare: true });
+        allRows = dataResult.rows;
+    }
+    catch (error) {
+        console_1.logger.error("SCYLLA", "Error executing data query", error);
+        throw (0, error_1.createError)({ statusCode: 500, message: "Error executing data query: " + error.message });
+    }
+    if (!addOrderBy && sortField) {
+        allRows.sort((a, b) => {
+            const aRaw = a[sortField];
+            const bRaw = b[sortField];
+            const aNum = Number(aRaw);
+            const bNum = Number(bRaw);
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+                return aNum - bNum;
+            }
+            return String(aRaw).localeCompare(String(bRaw));
+        });
+        if (sortOrder.toUpperCase() === "DESC") {
+            allRows.reverse();
+        }
+    }
+    let items = allRows.slice(offset, offset + perPage);
+    const totalPages = Math.ceil(totalItems / perPage);
+    if (transformColumns && transformColumns.length > 0) {
+        items = items.map((row) => {
+            transformColumns.forEach((col) => {
+                if (row[col] !== undefined && row[col] !== null) {
+                    try {
+                        row[col] =
+                            typeof row[col] === "bigint"
+                                ? (0, blockchain_1.fromBigInt)(row[col])
+                                : (0, blockchain_1.fromBigInt)(BigInt(row[col]));
+                    }
+                    catch (error) {
+                    }
+                }
+            });
+            return row;
+        });
+    }
+    return {
+        items,
+        pagination: { totalItems, currentPage, perPage, totalPages },
+    };
+}

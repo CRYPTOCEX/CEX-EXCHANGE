@@ -145,15 +145,18 @@ export const useNetworkStore = create<NetworkStore>((set, get) => ({
         if (typeof data !== 'object' || data === null) {
           throw new Error("Invalid data format received from API");
         }
-        
-        // Determine which MLM system is being used
-        let mlmSystem: "DIRECT" | "BINARY" | "UNILEVEL" | null = null;
-        if (data.binaryStructure && typeof data.binaryStructure === 'object') {
-          mlmSystem = "BINARY";
-        } else if (Array.isArray(data.levels)) {
-          mlmSystem = "UNILEVEL";
-        } else if (Array.isArray(data.referrals)) {
-          mlmSystem = "DIRECT";
+
+        // Use mlmSystem from API response if available, otherwise infer from data structure
+        let mlmSystem: "DIRECT" | "BINARY" | "UNILEVEL" | null = data.mlmSystem || null;
+        if (!mlmSystem) {
+          // Fallback: infer from data structure for backwards compatibility
+          if (data.binaryStructure && typeof data.binaryStructure === 'object') {
+            mlmSystem = "BINARY";
+          } else if (Array.isArray(data.levels)) {
+            mlmSystem = "UNILEVEL";
+          } else if (Array.isArray(data.referrals)) {
+            mlmSystem = "DIRECT";
+          }
         }
 
         // Only update state if component is still mounted and no newer request is in progress

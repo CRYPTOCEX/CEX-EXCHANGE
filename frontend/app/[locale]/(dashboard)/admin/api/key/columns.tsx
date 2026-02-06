@@ -94,7 +94,6 @@ export function useColumns() {
         { value: "deposit", label: tCommon("deposit") },
         { value: "withdraw", label: tCommon("withdraw") },
         { value: "transfer", label: tCommon("transfer") },
-        { value: "payment", label: t("payment_intent") },
       ],
       render: {
         type: "custom",
@@ -184,7 +183,6 @@ export function useFormConfig(): FormConfig {
                 { value: "deposit", label: tCommon("deposit") },
                 { value: "withdraw", label: tCommon("withdraw") },
                 { value: "transfer", label: tCommon("transfer") },
-                { value: "payment", label: t("payment_intent") },
               ],
             },
           ],
@@ -230,7 +228,6 @@ export function useFormConfig(): FormConfig {
                 { value: "deposit", label: tCommon("deposit") },
                 { value: "withdraw", label: tCommon("withdraw") },
                 { value: "transfer", label: tCommon("transfer") },
-                { value: "payment", label: t("payment_intent") },
               ],
             },
           ],

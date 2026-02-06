@@ -1,1 +1,472 @@
-"use strict";function validateDepositAddressResponse(e,r){if(!e)return!1;if("object"==typeof e&&0===Object.keys(e).length)return!1;if(r&&e[r]){const t=e[r];if("object"==typeof t&&0===Object.keys(t).length)return!1;if(t&&"object"==typeof t&&!t.address)return!1}else if(!(r||"object"!=typeof e||e.address||e.tag||e.memo))return!1;return!0}function handleNetworkMapping(e){switch(e){case"TRON":return"TRX";case"ETH":return"ERC20";case"BSC":return"BEP20";case"POLYGON":return"MATIC";default:return e}}function handleNetworkMappingReverse(e){switch(e){case"TRX":return"TRON";case"ERC20":return"ETH";case"BEP20":return"BSC";case"MATIC":return"POLYGON";default:return e}}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;exports.validateDepositAddressResponse=validateDepositAddressResponse;exports.handleNetworkMapping=handleNetworkMapping;exports.handleNetworkMappingReverse=handleNetworkMappingReverse;const error_1=require("@b/utils/error"),exchange_1=__importDefault(require("@b/utils/exchange")),query_1=require("@b/utils/query"),utils_1=require("@b/api/exchange/utils"),utils_2=require("../../../utils"),console_1=require("@b/utils/console");exports.metadata={summary:"Retrieves a single currency by its ID",description:"This endpoint retrieves a single currency by its ID.",operationId:"getCurrencyById",tags:["Finance","Currency"],requiresAuth:!0,parameters:[{index:0,name:"type",in:"path",required:!0,schema:{type:"string",enum:["SPOT"]}},{index:1,name:"code",in:"path",required:!0,schema:{type:"string"}},{index:2,name:"method",in:"path",required:!1,schema:{type:"string"}}],responses:{200:{description:"Currency retrieved successfully",content:{"application/json":{schema:{type:"object",properties:{...utils_2.baseResponseSchema,data:{type:"object",properties:utils_2.baseCurrencySchema}}}}}},401:query_1.unauthorizedResponse,404:(0,query_1.notFoundMetadataResponse)("Currency"),500:query_1.serverErrorResponse}};exports.default=async e=>{const{user:r,params:t,ctx:s}=e;if(!(null==r?void 0:r.id))throw(0,error_1.createError)(401,"Unauthorized");const{type:o,code:n,method:a}=t;if(!o||!n)throw(0,error_1.createError)(400,"Invalid type or code");if("SPOT"!==o)throw(0,error_1.createError)(400,"Invalid type");null==s||s.step(`Fetching deposit address for ${n}/${a}`);const i=await exchange_1.default.startExchange(s),d=await exchange_1.default.getProvider();if(!i)throw(0,error_1.createError)(500,"Exchange not found");if(!d)throw(0,error_1.createError)(500,"Exchange provider not found");try{let e,r=a;if(a&&["kucoin","binance","xt"].includes(d)){r="kucoin"===d?await(async(e,r)=>{try{const t=await i.fetchCurrencies(),s=Object.values(t).find(r=>r.id===e||r.code===e);if(s&&s.networks){const e=Object.keys(s.networks);if(e.includes(r)){console_1.logger.debug("EXCHANGE",`[KuCoin] Network mapping: ${r} -> ${r}`);return r}const t={ETH:"ERC20",ETHEREUM:"ERC20",BSC:"BEP20",BINANCE:"BEP20",TRX:"TRC20",TRON:"TRC20",POLYGON:"POLYGON",MATIC:"POLYGON",ARBITRUM:"ARBITRUM",OPTIMISM:"OPTIMISM",BASE:"BASE",AVALANCHE:"AVAX",AVAX:"AVAX"}[r.toUpperCase()];if(t&&e.includes(t)){console_1.logger.debug("EXCHANGE",`[KuCoin] Network mapping: ${r} -> ${t}`);return t}const o=e.find(e=>e.toLowerCase()===r.toLowerCase());if(o){console_1.logger.debug("EXCHANGE",`[KuCoin] Network mapping: ${r} -> ${o}`);return o}for(const[e,t]of Object.entries(s.networks)){const s=t;if(s.name===r||s.network===r||s.name&&s.name.toUpperCase()===r.toUpperCase()||s.network&&s.network.toUpperCase()===r.toUpperCase()){console_1.logger.debug("EXCHANGE",`[KuCoin] Network mapping: ${r} -> ${e}`);return e}}}console_1.logger.debug("EXCHANGE",`[KuCoin] No mapping found for ${r}, using as-is`);return r}catch(e){console_1.logger.error("EXCHANGE","[KuCoin] Error in network mapping",e);return r}})(n,a):await(async(e,r,t)=>{try{const s=await i.fetchCurrencies();let o;o="xt"===t?Object.values(s).find(r=>r.code===e):Object.values(s).find(r=>r.id===e||r.code===e);if(o&&o.networks){const s=Object.keys(o.networks);console_1.logger.debug("EXCHANGE",`[${t}] Available networks for ${e}: ${s.join(", ")}`);if(s.includes(r)){console_1.logger.debug("EXCHANGE",`[${t}] Network mapping: ${r} -> ${r}`);return r}let n={};"kucoin"===t?n={ETH:"ERC20",ETHEREUM:"ERC20",BSC:"BEP20",BINANCE:"BEP20",TRX:"TRC20",TRON:"TRC20",POLYGON:"POLYGON",MATIC:"POLYGON",ARBITRUM:"ARBITRUM",OPTIMISM:"OPTIMISM",BASE:"BASE",AVALANCHE:"AVAX",AVAX:"AVAX"}:"binance"===t?n={ETH:"ETH",ETHEREUM:"ETH",BSC:"BSC",BINANCE:"BSC",BNB:"BSC",TRX:"TRX",TRON:"TRX",POLYGON:"MATIC",MATIC:"MATIC",ARBITRUM:"ARBITRUM",OPTIMISM:"OPTIMISM",BASE:"BASE",AVALANCHE:"AVAXC",AVAX:"AVAXC"}:"xt"===t&&(n={ETH:"ERC20",ETHEREUM:"ERC20",BSC:"BEP20",BINANCE:"BEP20",BNB:"BEP20",TRX:"TRC20",TRON:"TRC20",POLYGON:"POLYGON",MATIC:"POLYGON",ARBITRUM:"ARBITRUM",OPTIMISM:"OPTIMISM",BASE:"BASE",AVALANCHE:"AVAX",AVAX:"AVAX"});const a=n[r.toUpperCase()];if(a&&s.includes(a)){console_1.logger.debug("EXCHANGE",`[${t}] Network mapping: ${r} -> ${a}`);return a}const i=s.find(e=>e.toLowerCase()===r.toLowerCase());if(i){console_1.logger.debug("EXCHANGE",`[${t}] Network mapping: ${r} -> ${i}`);return i}const d=s.find(e=>{const t=e.toUpperCase(),s=r.toUpperCase();return t.includes(s)||s.includes(t)});if(d){console_1.logger.debug("EXCHANGE",`[${t}] Network mapping (partial): ${r} -> ${d}`);return d}for(const[e,s]of Object.entries(o.networks)){const o=s;if(o.name===r||o.network===r||o.name&&o.name.toUpperCase()===r.toUpperCase()||o.network&&o.network.toUpperCase()===r.toUpperCase()){console_1.logger.debug("EXCHANGE",`[${t}] Network mapping (by properties): ${r} -> ${e}`);return e}}console_1.logger.debug("EXCHANGE",`[${t}] No mapping found for ${r} in available networks: ${s.join(", ")}`)}else console_1.logger.debug("EXCHANGE",`[${t}] No currency data or networks found for ${e}`);console_1.logger.debug("EXCHANGE",`[${t}] No mapping found for ${r}, using as-is`);return r}catch(e){console_1.logger.error("EXCHANGE",`[${t}] Error in network mapping`,e);return r}})(n,a,d);try{const e=await i.fetchCurrencies();let t;if("xt"===d)t=Object.values(e).find(e=>e.code===n);else t=Object.values(e).find(e=>e.id===n||e.code===n);t&&t.networks&&Object.entries(t.networks).forEach(([e,t])=>{e===r&&console_1.logger.debug("EXCHANGE",`[${d}] Using network ${e} for ${n}: deposit=${t.deposit}, active=${t.active}`)})}catch(e){}}if("kucoin"===d)try{if(!e&&i.has.fetchDepositAddressesByNetwork)try{const t=await i.fetchDepositAddressesByNetwork(n,r);if(t&&"object"==typeof t&&Object.keys(t).length>0){const s=t[r]||t;if(s&&(s.address||s.Address)){e=s;console_1.logger.debug("EXCHANGE",`[${d}] Method 1 Success: fetchDepositAddressesByNetwork for ${n}/${r}`)}}}catch(e){console_1.logger.debug("EXCHANGE",`[${d}] Method 1 Failed: fetchDepositAddressesByNetwork - ${e.message}`)}if(!e&&i.has.fetchDepositAddresses)try{const t=await i.fetchDepositAddresses(n);if(t&&"object"==typeof t){const s=t[r];if(s&&(s.address||s.Address)){e=s;console_1.logger.debug("EXCHANGE",`[${d}] Method 2 Success: fetchDepositAddresses for ${n}/${r}`)}}}catch(e){console_1.logger.debug("EXCHANGE",`[${d}] Method 2 Failed: fetchDepositAddresses - ${e.message}`)}if(!e&&i.has.createDepositAddress)try{const t=await i.createDepositAddress(n,{network:r});if(t&&(t.address||t.Address)){e=t;console_1.logger.debug("EXCHANGE",`[${d}] Method 3 Success: createDepositAddress for ${n}/${r}`)}}catch(e){console_1.logger.debug("EXCHANGE",`[${d}] Method 3 Failed: createDepositAddress - ${e.message}`)}if(!e&&i.has.fetchDepositAddress)try{const t=await i.fetchDepositAddress(n,{network:r});if(t&&(t.address||t.Address)){e=t;console_1.logger.debug("EXCHANGE",`[${d}] Method 4 Success: fetchDepositAddress with network for ${n}/${r}`)}}catch(e){console_1.logger.debug("EXCHANGE",`[${d}] Method 4 Failed: fetchDepositAddress with network - ${e.message}`)}if(!e&&i.has.fetchDepositAddress)try{const r=await i.fetchDepositAddress(n);if(r&&(r.address||r.Address)){e=r;console_1.logger.debug("EXCHANGE",`[${d}] Method 5 Success: fetchDepositAddress simple for ${n}`)}}catch(e){console_1.logger.debug("EXCHANGE",`[${d}] Method 5 Failed: fetchDepositAddress simple - ${e.message}`)}if(!e){console_1.logger.warn("EXCHANGE",`[${d}] All methods failed to generate deposit address for ${n}/${r}`);throw(0,error_1.createError)({statusCode:500,message:`${d} exchange does not support deposit address generation for ${n}/${r}. Available methods: ${Object.keys(i.has).filter(e=>e.includes("Deposit")).join(", ")}`})}}catch(e){console_1.logger.error("EXCHANGE",`[${d}] Error during deposit address fetching`,e);throw e}else try{if(i.has.fetchDepositAddressesByNetwork){e=await i.fetchDepositAddressesByNetwork(n,r);if(!e||!validateDepositAddressResponse(e,r))throw(0,error_1.createError)({statusCode:500,message:"fetchDepositAddressesByNetwork returned invalid data"});const t=e[r]||e;t&&(t.address||t.Address)&&(e=t)}else if(i.has.fetchDepositAddresses){const t=await i.fetchDepositAddresses(n);if(!t)throw(0,error_1.createError)({statusCode:500,message:"fetchDepositAddresses returned no data"});e=t[r];if(!e)throw(0,error_1.createError)({statusCode:404,message:`No address found for network ${r}`})}else{if(!i.has.fetchDepositAddress)throw(0,error_1.createError)({statusCode:500,message:`Exchange ${d} does not support any deposit address methods`});{let t=r;"xt"===d&&(t=handleNetworkMapping(t));e=await i.fetchDepositAddress(n,{network:t});if(!e)throw(0,error_1.createError)({statusCode:500,message:"fetchDepositAddress returned no data"})}}}catch(e){console_1.logger.error("EXCHANGE",`[${d}] Error during deposit address fetching`,e);throw e}if(!validateDepositAddressResponse(e,r))throw(0,error_1.createError)(500,(0,utils_1.sanitizeErrorMessage)("Deposit address generation failed. The exchange returned invalid or empty address data. Please try again later or contact support."));null==s||s.success(`Deposit address retrieved for ${n}/${a}`);return{...e,trx:!0}}catch(e){if(e.statusCode)throw e;console_1.logger.error("EXCHANGE",`[${d}] Error for ${n}/${a}`,e);const r=(0,utils_1.sanitizeErrorMessage)(e.message);throw(0,error_1.createError)(404,r)}};
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+exports.validateDepositAddressResponse = validateDepositAddressResponse;
+exports.handleNetworkMapping = handleNetworkMapping;
+exports.handleNetworkMappingReverse = handleNetworkMappingReverse;
+const error_1 = require("@b/utils/error");
+const exchange_1 = __importDefault(require("@b/utils/exchange"));
+const query_1 = require("@b/utils/query");
+const utils_1 = require("@b/api/exchange/utils");
+const utils_2 = require("../../../utils");
+const console_1 = require("@b/utils/console");
+function validateDepositAddressResponse(response, methodKey) {
+    if (!response)
+        return false;
+    if (typeof response === 'object' && Object.keys(response).length === 0) {
+        return false;
+    }
+    if (methodKey && response[methodKey]) {
+        const methodResponse = response[methodKey];
+        if (typeof methodResponse === 'object' && Object.keys(methodResponse).length === 0) {
+            return false;
+        }
+        if (methodResponse && typeof methodResponse === 'object' && !methodResponse.address) {
+            return false;
+        }
+    }
+    else if (!methodKey) {
+        if (typeof response === 'object' && !response.address && !response.tag && !response.memo) {
+            return false;
+        }
+    }
+    return true;
+}
+exports.metadata = {
+    summary: "Retrieves a single currency by its ID",
+    description: "This endpoint retrieves a single currency by its ID.",
+    operationId: "getCurrencyById",
+    tags: ["Finance", "Currency"],
+    requiresAuth: true,
+    parameters: [
+        {
+            index: 0,
+            name: "type",
+            in: "path",
+            required: true,
+            schema: {
+                type: "string",
+                enum: ["SPOT"],
+            },
+        },
+        {
+            index: 1,
+            name: "code",
+            in: "path",
+            required: true,
+            schema: {
+                type: "string",
+            },
+        },
+        {
+            index: 2,
+            name: "method",
+            in: "path",
+            required: false,
+            schema: {
+                type: "string",
+            },
+        },
+    ],
+    responses: {
+        200: {
+            description: "Currency retrieved successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            ...utils_2.baseResponseSchema,
+                            data: {
+                                type: "object",
+                                properties: utils_2.baseCurrencySchema,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        401: query_1.unauthorizedResponse,
+        404: (0, query_1.notFoundMetadataResponse)("Currency"),
+        500: query_1.serverErrorResponse,
+    },
+};
+exports.default = async (data) => {
+    const { user, params, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id))
+        throw (0, error_1.createError)(401, "Unauthorized");
+    const { type, code, method } = params;
+    if (!type || !code)
+        throw (0, error_1.createError)(400, "Invalid type or code");
+    if (type !== "SPOT")
+        throw (0, error_1.createError)(400, "Invalid type");
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Fetching deposit address for ${code}/${method}`);
+    const exchange = await exchange_1.default.startExchange(ctx);
+    const provider = await exchange_1.default.getProvider();
+    if (!exchange)
+        throw (0, error_1.createError)(500, "Exchange not found");
+    if (!provider)
+        throw (0, error_1.createError)(500, "Exchange provider not found");
+    const getKuCoinNetworkId = async (currency, chainName) => {
+        try {
+            const currencies = await exchange.fetchCurrencies();
+            const currencyData = Object.values(currencies).find((c) => c.id === currency || c.code === currency);
+            if (currencyData && currencyData.networks) {
+                const availableNetworks = Object.keys(currencyData.networks);
+                if (availableNetworks.includes(chainName)) {
+                    console_1.logger.debug("EXCHANGE", `[KuCoin] Network mapping: ${chainName} -> ${chainName}`);
+                    return chainName;
+                }
+                const chainMappings = {
+                    'ETH': 'ERC20',
+                    'ETHEREUM': 'ERC20',
+                    'BSC': 'BEP20',
+                    'BINANCE': 'BEP20',
+                    'TRX': 'TRC20',
+                    'TRON': 'TRC20',
+                    'POLYGON': 'POLYGON',
+                    'MATIC': 'POLYGON',
+                    'ARBITRUM': 'ARBITRUM',
+                    'OPTIMISM': 'OPTIMISM',
+                    'BASE': 'BASE',
+                    'AVALANCHE': 'AVAX',
+                    'AVAX': 'AVAX'
+                };
+                const mappedName = chainMappings[chainName.toUpperCase()];
+                if (mappedName && availableNetworks.includes(mappedName)) {
+                    console_1.logger.debug("EXCHANGE", `[KuCoin] Network mapping: ${chainName} -> ${mappedName}`);
+                    return mappedName;
+                }
+                const caseInsensitiveMatch = availableNetworks.find(net => net.toLowerCase() === chainName.toLowerCase());
+                if (caseInsensitiveMatch) {
+                    console_1.logger.debug("EXCHANGE", `[KuCoin] Network mapping: ${chainName} -> ${caseInsensitiveMatch}`);
+                    return caseInsensitiveMatch;
+                }
+                for (const [networkId, networkInfo] of Object.entries(currencyData.networks)) {
+                    const network = networkInfo;
+                    if (network.name === chainName ||
+                        network.network === chainName ||
+                        (network.name && network.name.toUpperCase() === chainName.toUpperCase()) ||
+                        (network.network && network.network.toUpperCase() === chainName.toUpperCase())) {
+                        console_1.logger.debug("EXCHANGE", `[KuCoin] Network mapping: ${chainName} -> ${networkId}`);
+                        return networkId;
+                    }
+                }
+            }
+            console_1.logger.debug("EXCHANGE", `[KuCoin] No mapping found for ${chainName}, using as-is`);
+            return chainName;
+        }
+        catch (error) {
+            console_1.logger.error("EXCHANGE", `[KuCoin] Error in network mapping`, error);
+            return chainName;
+        }
+    };
+    const getExchangeNetworkId = async (currency, chainName, provider) => {
+        try {
+            const currencies = await exchange.fetchCurrencies();
+            let currencyData;
+            switch (provider) {
+                case "xt":
+                    currencyData = Object.values(currencies).find((c) => c.code === currency);
+                    break;
+                default:
+                    currencyData = Object.values(currencies).find((c) => c.id === currency || c.code === currency);
+                    break;
+            }
+            if (currencyData && currencyData.networks) {
+                const availableNetworks = Object.keys(currencyData.networks);
+                console_1.logger.debug("EXCHANGE", `[${provider}] Available networks for ${currency}: ${availableNetworks.join(", ")}`);
+                if (availableNetworks.includes(chainName)) {
+                    console_1.logger.debug("EXCHANGE", `[${provider}] Network mapping: ${chainName} -> ${chainName}`);
+                    return chainName;
+                }
+                let chainMappings = {};
+                if (provider === 'kucoin') {
+                    chainMappings = {
+                        'ETH': 'ERC20',
+                        'ETHEREUM': 'ERC20',
+                        'BSC': 'BEP20',
+                        'BINANCE': 'BEP20',
+                        'TRX': 'TRC20',
+                        'TRON': 'TRC20',
+                        'POLYGON': 'POLYGON',
+                        'MATIC': 'POLYGON',
+                        'ARBITRUM': 'ARBITRUM',
+                        'OPTIMISM': 'OPTIMISM',
+                        'BASE': 'BASE',
+                        'AVALANCHE': 'AVAX',
+                        'AVAX': 'AVAX'
+                    };
+                }
+                else if (provider === 'binance') {
+                    chainMappings = {
+                        'ETH': 'ETH',
+                        'ETHEREUM': 'ETH',
+                        'BSC': 'BSC',
+                        'BINANCE': 'BSC',
+                        'BNB': 'BSC',
+                        'TRX': 'TRX',
+                        'TRON': 'TRX',
+                        'POLYGON': 'MATIC',
+                        'MATIC': 'MATIC',
+                        'ARBITRUM': 'ARBITRUM',
+                        'OPTIMISM': 'OPTIMISM',
+                        'BASE': 'BASE',
+                        'AVALANCHE': 'AVAXC',
+                        'AVAX': 'AVAXC'
+                    };
+                }
+                else if (provider === 'xt') {
+                    chainMappings = {
+                        'ETH': 'ERC20',
+                        'ETHEREUM': 'ERC20',
+                        'BSC': 'BEP20',
+                        'BINANCE': 'BEP20',
+                        'BNB': 'BEP20',
+                        'TRX': 'TRC20',
+                        'TRON': 'TRC20',
+                        'POLYGON': 'POLYGON',
+                        'MATIC': 'POLYGON',
+                        'ARBITRUM': 'ARBITRUM',
+                        'OPTIMISM': 'OPTIMISM',
+                        'BASE': 'BASE',
+                        'AVALANCHE': 'AVAX',
+                        'AVAX': 'AVAX'
+                    };
+                }
+                const mappedName = chainMappings[chainName.toUpperCase()];
+                if (mappedName && availableNetworks.includes(mappedName)) {
+                    console_1.logger.debug("EXCHANGE", `[${provider}] Network mapping: ${chainName} -> ${mappedName}`);
+                    return mappedName;
+                }
+                const caseInsensitiveMatch = availableNetworks.find(net => net.toLowerCase() === chainName.toLowerCase());
+                if (caseInsensitiveMatch) {
+                    console_1.logger.debug("EXCHANGE", `[${provider}] Network mapping: ${chainName} -> ${caseInsensitiveMatch}`);
+                    return caseInsensitiveMatch;
+                }
+                const partialMatch = availableNetworks.find(net => {
+                    const netUpper = net.toUpperCase();
+                    const chainUpper = chainName.toUpperCase();
+                    return netUpper.includes(chainUpper) || chainUpper.includes(netUpper);
+                });
+                if (partialMatch) {
+                    console_1.logger.debug("EXCHANGE", `[${provider}] Network mapping (partial): ${chainName} -> ${partialMatch}`);
+                    return partialMatch;
+                }
+                for (const [networkId, networkInfo] of Object.entries(currencyData.networks)) {
+                    const network = networkInfo;
+                    if (network.name === chainName ||
+                        network.network === chainName ||
+                        (network.name && network.name.toUpperCase() === chainName.toUpperCase()) ||
+                        (network.network && network.network.toUpperCase() === chainName.toUpperCase())) {
+                        console_1.logger.debug("EXCHANGE", `[${provider}] Network mapping (by properties): ${chainName} -> ${networkId}`);
+                        return networkId;
+                    }
+                }
+                console_1.logger.debug("EXCHANGE", `[${provider}] No mapping found for ${chainName} in available networks: ${availableNetworks.join(", ")}`);
+            }
+            else {
+                console_1.logger.debug("EXCHANGE", `[${provider}] No currency data or networks found for ${currency}`);
+            }
+            console_1.logger.debug("EXCHANGE", `[${provider}] No mapping found for ${chainName}, using as-is`);
+            return chainName;
+        }
+        catch (error) {
+            console_1.logger.error("EXCHANGE", `[${provider}] Error in network mapping`, error);
+            return chainName;
+        }
+    };
+    try {
+        let networkToUse = method;
+        if (method && ['kucoin', 'binance', 'xt'].includes(provider)) {
+            if (provider === 'kucoin') {
+                networkToUse = await getKuCoinNetworkId(code, method);
+            }
+            else {
+                networkToUse = await getExchangeNetworkId(code, method, provider);
+            }
+            try {
+                const currencies = await exchange.fetchCurrencies();
+                let currencyData;
+                switch (provider) {
+                    case "xt":
+                        currencyData = Object.values(currencies).find((c) => c.code === code);
+                        break;
+                    default:
+                        currencyData = Object.values(currencies).find((c) => c.id === code || c.code === code);
+                        break;
+                }
+                if (currencyData && currencyData.networks) {
+                    Object.entries(currencyData.networks).forEach(([networkId, networkInfo]) => {
+                        if (networkId === networkToUse) {
+                            console_1.logger.debug("EXCHANGE", `[${provider}] Using network ${networkId} for ${code}: deposit=${networkInfo.deposit}, active=${networkInfo.active}`);
+                        }
+                    });
+                }
+            }
+            catch (debugError) {
+            }
+        }
+        let depositAddress;
+        if (provider === 'kucoin') {
+            try {
+                if (!depositAddress && exchange.has['fetchDepositAddressesByNetwork']) {
+                    try {
+                        const result = await exchange.fetchDepositAddressesByNetwork(code, networkToUse);
+                        if (result && typeof result === 'object' && Object.keys(result).length > 0) {
+                            const networkResponse = result[networkToUse] || result;
+                            if (networkResponse && (networkResponse.address || networkResponse.Address)) {
+                                depositAddress = networkResponse;
+                                console_1.logger.debug("EXCHANGE", `[${provider}] Method 1 Success: fetchDepositAddressesByNetwork for ${code}/${networkToUse}`);
+                            }
+                        }
+                    }
+                    catch (method1Error) {
+                        console_1.logger.debug("EXCHANGE", `[${provider}] Method 1 Failed: fetchDepositAddressesByNetwork - ${method1Error.message}`);
+                    }
+                }
+                if (!depositAddress && exchange.has['fetchDepositAddresses']) {
+                    try {
+                        const allAddresses = await exchange.fetchDepositAddresses(code);
+                        if (allAddresses && typeof allAddresses === 'object') {
+                            const networkAddress = allAddresses[networkToUse];
+                            if (networkAddress && (networkAddress.address || networkAddress.Address)) {
+                                depositAddress = networkAddress;
+                                console_1.logger.debug("EXCHANGE", `[${provider}] Method 2 Success: fetchDepositAddresses for ${code}/${networkToUse}`);
+                            }
+                        }
+                    }
+                    catch (method2Error) {
+                        console_1.logger.debug("EXCHANGE", `[${provider}] Method 2 Failed: fetchDepositAddresses - ${method2Error.message}`);
+                    }
+                }
+                if (!depositAddress && exchange.has['createDepositAddress']) {
+                    try {
+                        const result = await exchange.createDepositAddress(code, { network: networkToUse });
+                        if (result && (result.address || result.Address)) {
+                            depositAddress = result;
+                            console_1.logger.debug("EXCHANGE", `[${provider}] Method 3 Success: createDepositAddress for ${code}/${networkToUse}`);
+                        }
+                    }
+                    catch (createError) {
+                        console_1.logger.debug("EXCHANGE", `[${provider}] Method 3 Failed: createDepositAddress - ${createError.message}`);
+                    }
+                }
+                if (!depositAddress && exchange.has['fetchDepositAddress']) {
+                    try {
+                        const result = await exchange.fetchDepositAddress(code, { network: networkToUse });
+                        if (result && (result.address || result.Address)) {
+                            depositAddress = result;
+                            console_1.logger.debug("EXCHANGE", `[${provider}] Method 4 Success: fetchDepositAddress with network for ${code}/${networkToUse}`);
+                        }
+                    }
+                    catch (method3Error) {
+                        console_1.logger.debug("EXCHANGE", `[${provider}] Method 4 Failed: fetchDepositAddress with network - ${method3Error.message}`);
+                    }
+                }
+                if (!depositAddress && exchange.has['fetchDepositAddress']) {
+                    try {
+                        const simpleAddress = await exchange.fetchDepositAddress(code);
+                        if (simpleAddress && (simpleAddress.address || simpleAddress.Address)) {
+                            depositAddress = simpleAddress;
+                            console_1.logger.debug("EXCHANGE", `[${provider}] Method 5 Success: fetchDepositAddress simple for ${code}`);
+                        }
+                    }
+                    catch (method4Error) {
+                        console_1.logger.debug("EXCHANGE", `[${provider}] Method 5 Failed: fetchDepositAddress simple - ${method4Error.message}`);
+                    }
+                }
+                if (!depositAddress) {
+                    console_1.logger.warn("EXCHANGE", `[${provider}] All methods failed to generate deposit address for ${code}/${networkToUse}`);
+                    throw (0, error_1.createError)({ statusCode: 500, message: `${provider} exchange does not support deposit address generation for ${code}/${networkToUse}. Available methods: ${Object.keys(exchange.has).filter(method => method.includes('Deposit')).join(', ')}` });
+                }
+            }
+            catch (kucoinError) {
+                console_1.logger.error("EXCHANGE", `[${provider}] Error during deposit address fetching`, kucoinError);
+                throw kucoinError;
+            }
+        }
+        else {
+            try {
+                if (exchange.has["fetchDepositAddressesByNetwork"]) {
+                    depositAddress = await exchange.fetchDepositAddressesByNetwork(code, networkToUse);
+                    if (!depositAddress || !validateDepositAddressResponse(depositAddress, networkToUse)) {
+                        throw (0, error_1.createError)({ statusCode: 500, message: "fetchDepositAddressesByNetwork returned invalid data" });
+                    }
+                    const networkResponse = depositAddress[networkToUse] || depositAddress;
+                    if (networkResponse && (networkResponse.address || networkResponse.Address)) {
+                        depositAddress = networkResponse;
+                    }
+                }
+                else if (exchange.has["fetchDepositAddresses"]) {
+                    const depositAddresses = await exchange.fetchDepositAddresses(code);
+                    if (!depositAddresses)
+                        throw (0, error_1.createError)({ statusCode: 500, message: "fetchDepositAddresses returned no data" });
+                    depositAddress = depositAddresses[networkToUse];
+                    if (!depositAddress)
+                        throw (0, error_1.createError)({ statusCode: 404, message: `No address found for network ${networkToUse}` });
+                }
+                else if (exchange.has["fetchDepositAddress"]) {
+                    let network = networkToUse;
+                    if (provider === "xt") {
+                        network = handleNetworkMapping(network);
+                    }
+                    depositAddress = await exchange.fetchDepositAddress(code, { network });
+                    if (!depositAddress)
+                        throw (0, error_1.createError)({ statusCode: 500, message: "fetchDepositAddress returned no data" });
+                }
+                else {
+                    throw (0, error_1.createError)({ statusCode: 500, message: `Exchange ${provider} does not support any deposit address methods` });
+                }
+            }
+            catch (error) {
+                console_1.logger.error("EXCHANGE", `[${provider}] Error during deposit address fetching`, error);
+                throw error;
+            }
+        }
+        if (!validateDepositAddressResponse(depositAddress, networkToUse)) {
+            throw (0, error_1.createError)(500, (0, utils_1.sanitizeErrorMessage)("Deposit address generation failed. The exchange returned invalid or empty address data. Please try again later or contact support."));
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Deposit address retrieved for ${code}/${method}`);
+        return { ...depositAddress, trx: true };
+    }
+    catch (error) {
+        if (error.statusCode) {
+            throw error;
+        }
+        console_1.logger.error("EXCHANGE", `[${provider}] Error for ${code}/${method}`, error);
+        const message = (0, utils_1.sanitizeErrorMessage)(error.message);
+        throw (0, error_1.createError)(404, message);
+    }
+};
+function handleNetworkMapping(network) {
+    switch (network) {
+        case "TRON":
+            return "TRX";
+        case "ETH":
+            return "ERC20";
+        case "BSC":
+            return "BEP20";
+        case "POLYGON":
+            return "MATIC";
+        default:
+            return network;
+    }
+}
+function handleNetworkMappingReverse(network) {
+    switch (network) {
+        case "TRX":
+            return "TRON";
+        case "ERC20":
+            return "ETH";
+        case "BEP20":
+            return "BSC";
+        case "MATIC":
+            return "POLYGON";
+        default:
+            return network;
+    }
+}

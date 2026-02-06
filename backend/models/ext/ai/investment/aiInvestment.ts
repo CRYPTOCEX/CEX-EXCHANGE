@@ -26,7 +26,7 @@ export default class aiInvestment
   getDuration!: Sequelize.BelongsToGetAssociationMixin<aiInvestmentDuration>;
   setDuration!: Sequelize.BelongsToSetAssociationMixin<
     aiInvestmentDuration,
-    aiInvestmentDurationId
+    string
   >;
   createDuration!: Sequelize.BelongsToCreateAssociationMixin<aiInvestmentDuration>;
   // aiInvestment belongsTo aiInvestmentPlan via planId
@@ -34,7 +34,7 @@ export default class aiInvestment
   getPlan!: Sequelize.BelongsToGetAssociationMixin<aiInvestmentPlan>;
   setPlan!: Sequelize.BelongsToSetAssociationMixin<
     aiInvestmentPlan,
-    aiInvestmentPlanId
+    string
   >;
   createPlan!: Sequelize.BelongsToCreateAssociationMixin<aiInvestmentPlan>;
 

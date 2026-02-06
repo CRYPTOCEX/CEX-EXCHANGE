@@ -25,6 +25,7 @@ export default class gatewayPayout
   paymentCount!: number;
   refundCount!: number;
   metadata?: Record<string, any>;
+  processedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 
@@ -133,6 +134,10 @@ export default class gatewayPayout
             const value = this.getDataValue("metadata");
             return typeof value === "string" ? JSON.parse(value) : value;
           },
+        },
+        processedAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
         },
       },
       {

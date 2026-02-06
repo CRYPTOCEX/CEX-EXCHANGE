@@ -24,7 +24,7 @@ export default class ecosystemCustodialWallet
   getMasterWallet!: Sequelize.BelongsToGetAssociationMixin<ecosystemMasterWallet>;
   setMasterWallet!: Sequelize.BelongsToSetAssociationMixin<
     ecosystemMasterWallet,
-    ecosystemMasterWalletId
+    string
   >;
   createMasterWallet!: Sequelize.BelongsToCreateAssociationMixin<ecosystemMasterWallet>;
 

@@ -8,6 +8,8 @@ export default class binaryMarket
   id!: string;
   currency!: string;
   pair!: string;
+  minAmount?: number;
+  maxAmount?: number;
   isTrending?: boolean;
   isHot?: boolean;
   status!: boolean;
@@ -36,6 +38,24 @@ export default class binaryMarket
             notEmpty: { msg: "pair: Pair must not be empty" },
           },
           comment: "Trading pair symbol (e.g., USDT, USD)",
+        },
+        minAmount: {
+          type: DataTypes.DECIMAL(16, 8),
+          allowNull: true,
+          defaultValue: 1,
+          validate: {
+            min: { args: [0], msg: "minAmount: Minimum amount must be non-negative" },
+          },
+          comment: "Minimum order amount for this market",
+        },
+        maxAmount: {
+          type: DataTypes.DECIMAL(16, 8),
+          allowNull: true,
+          defaultValue: 10000,
+          validate: {
+            min: { args: [0], msg: "maxAmount: Maximum amount must be non-negative" },
+          },
+          comment: "Maximum order amount for this market",
         },
         isTrending: {
           type: DataTypes.BOOLEAN,

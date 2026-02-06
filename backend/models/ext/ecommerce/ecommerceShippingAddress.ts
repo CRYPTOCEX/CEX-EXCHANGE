@@ -28,7 +28,7 @@ export default class ecommerceShippingAddress
   getOrder!: Sequelize.BelongsToGetAssociationMixin<ecommerceOrder>;
   setOrder!: Sequelize.BelongsToSetAssociationMixin<
     ecommerceOrder,
-    ecommerceOrderId
+    string
   >;
   createOrder!: Sequelize.BelongsToCreateAssociationMixin<ecommerceOrder>;
 

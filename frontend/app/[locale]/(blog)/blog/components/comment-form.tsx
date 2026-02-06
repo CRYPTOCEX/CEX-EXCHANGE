@@ -41,7 +41,7 @@ export function CommentForm({ postId, userId }: CommentFormProps) {
     if (!content.trim()) return;
 
     await addComment(content, userId, postId);
-    setContent("untitled");
+    setContent("");
   };
 
   return (
@@ -49,7 +49,7 @@ export function CommentForm({ postId, userId }: CommentFormProps) {
       {moderateComments && (
         <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
           <p className="text-sm text-amber-700 dark:text-amber-300">
-            <strong>{tCommon("note")}</strong>
+            <strong>{tCommon("note")}</strong>{" "}
             {t("comments_are_moderated_being_published")}
           </p>
         </div>

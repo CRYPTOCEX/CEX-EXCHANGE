@@ -7,7 +7,7 @@ export default class wallet
 {
   id!: string;
   userId!: string;
-  type!: "FIAT" | "SPOT" | "ECO" | "FUTURES";
+  type!: "FIAT" | "SPOT" | "ECO" | "FUTURES" | "COPY_TRADING";
   currency!: string;
   balance!: number;
   inOrder?: number;
@@ -78,7 +78,19 @@ export default class wallet
           get() {
             const rawData = this.getDataValue("address");
             // Parse the JSON string back into an object
-            return rawData ? JSON.parse(rawData as any) : null;
+            if (!rawData) return null;
+            if (typeof rawData === "string") return JSON.parse(rawData);
+            return rawData;
+          },
+          set(value: any) {
+            // Ensure consistent storage format
+            if (value === null || value === undefined) {
+              this.setDataValue("address", undefined);
+            } else if (typeof value === "string") {
+              this.setDataValue("address", value as any);
+            } else {
+              this.setDataValue("address", JSON.stringify(value) as any);
+            }
           },
           comment: "Blockchain addresses associated with this wallet",
         },

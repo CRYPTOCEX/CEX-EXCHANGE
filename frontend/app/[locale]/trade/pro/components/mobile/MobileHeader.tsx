@@ -49,7 +49,13 @@ export const MobileHeader = memo(function MobileHeader({
   };
 
   const handleBack = () => {
-    router.push("/trade");
+    // Check if there's history to go back to
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      // Fallback to home page
+      router.push("/");
+    }
   };
 
   return (

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useBinaryStore, type Symbol } from "@/store/trade/use-binary-store";
+import { RefreshCw } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import MarketSelectorModal from "./market-selector";
 import { useTranslations } from "next-intl";
@@ -67,6 +68,7 @@ export function MobileHeader({
 
   // Use the binary store for values not provided via props
   const storeValues = useBinaryStore();
+  const { resetDemoBalance } = storeValues;
   const effectiveTradingMode = tradingMode || storeValues.tradingMode;
   const effectiveSymbol = symbol || storeValues.currentSymbol;
   const effectiveCurrentPrice = currentPrice || storeValues.currentPrice;
@@ -335,6 +337,27 @@ export function MobileHeader({
                     </div>
                   )}
                 </DropdownMenuItem>
+
+                {/* Top Up Demo Balance Button - only show when in demo mode */}
+                {effectiveTradingMode === "demo" && (
+                  <div className={`px-3 py-2 border-t ${isDarkMode ? "border-zinc-800" : "border-zinc-200"}`}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        resetDemoBalance();
+                        setShowAccountSelector(false);
+                      }}
+                      className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium transition-colors ${
+                        isDarkMode
+                          ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"
+                          : "bg-amber-50 text-amber-600 hover:bg-amber-100"
+                      }`}
+                    >
+                      <RefreshCw size={12} />
+                      {t("top_up")}
+                    </button>
+                  </div>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (

@@ -31,6 +31,7 @@ export default function TransferLogPage() {
       editCondition={(item) => ["PENDING", "PROCESSING"].includes(item.status)}
       canDelete={true}
       canView={true}
+      isParanoid={true}
       title={t("transfer_log_management")}
       itemTitle="Transfer Log"
       columns={columns}

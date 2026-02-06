@@ -1,1 +1,842 @@
-"use strict";async function processMailwizardCampaigns(){const e=await(0,safe_imports_1.getMailwizardCronUtils)();if(null==e?void 0:e.processMailwizardCampaigns)return e.processMailwizardCampaigns()}async function processGeneralInvestments(){const e=await(0,safe_imports_1.getGeneralInvestmentCronUtils)();if(null==e?void 0:e.processGeneralInvestments)return e.processGeneralInvestments()}async function processForexInvestments(){const e=await(0,safe_imports_1.getForexCronUtils)();if(null==e?void 0:e.processForexInvestments)return e.processForexInvestments()}async function processIcoOfferings(){const e=await(0,safe_imports_1.getIcoCronUtils)();if(null==e?void 0:e.processIcoOfferings)return e.processIcoOfferings()}async function processStakingPositions(){const e=await(0,safe_imports_1.getStakingCronUtils)();if(null==e?void 0:e.processStakingPositions)return e.processStakingPositions()}async function processAiInvestments(){const e=await(0,safe_imports_1.getAiInvestmentCronUtils)();if(null==e?void 0:e.processAiInvestments)return e.processAiInvestments()}async function processAiMarketMakerEngine(){const e=await(0,safe_imports_1.getAiMarketMakerCronUtils)();if(null==e?void 0:e.processAiMarketMakerEngine)return e.processAiMarketMakerEngine()}async function processAiRiskMonitor(){const e=await(0,safe_imports_1.getAiMarketMakerCronUtils)();if(null==e?void 0:e.processAiRiskMonitor)return e.processAiRiskMonitor()}async function processAiPoolRebalancer(){const e=await(0,safe_imports_1.getAiMarketMakerCronUtils)();if(null==e?void 0:e.processAiPoolRebalancer)return e.processAiPoolRebalancer()}async function processAiDailyReset(){const e=await(0,safe_imports_1.getAiMarketMakerCronUtils)();if(null==e?void 0:e.processAiDailyReset)return e.processAiDailyReset()}async function processAiAnalyticsAggregator(){const e=await(0,safe_imports_1.getAiMarketMakerCronUtils)();if(null==e?void 0:e.processAiAnalyticsAggregator)return e.processAiAnalyticsAggregator()}async function processAiPriceSync(){const e=await(0,safe_imports_1.getAiMarketMakerCronUtils)();if(null==e?void 0:e.processAiPriceSync)return e.processAiPriceSync()}async function processPendingEcoWithdrawals(){const e=await(0,safe_imports_1.getEcosystemCronUtils)();if(null==e?void 0:e.processPendingEcoWithdrawals)return e.processPendingEcoWithdrawals()}async function p2pTradeTimeout(){const e=await(0,safe_imports_1.getP2pCronUtils)();if(null==e?void 0:e.p2pTradeTimeout)return e.p2pTradeTimeout()}async function expireOffers(){const e=await(0,safe_imports_1.getNftCronUtils)();if(null==e?void 0:e.expireOffers)return e.expireOffers()}async function settleAuctions(){const e=await(0,safe_imports_1.getNftCronUtils)();if(null==e?void 0:e.settleAuctions)return e.settleAuctions()}async function processGatewayPayouts(){const e=await(0,safe_imports_1.getGatewayCronUtils)();if(null==e?void 0:e.processGatewayPayouts)return e.processGatewayPayouts()}async function processPendingCopyTrades(){const e=await(0,safe_imports_1.getCopyTradingCronUtils)();if(null==e?void 0:e.processPendingCopyTrades)return e.processPendingCopyTrades()}async function initCopyTradingQueue(){const e=await(0,safe_imports_1.getCopyTradingQueueUtils)();if(null==e?void 0:e.startCopyQueue){e.startCopyQueue();console_1.logger.info("CRON","Copy trading queue initialized")}}async function processClosedCopyTrades(){const e=await(0,safe_imports_1.getCopyTradingCronUtils)();if(null==e?void 0:e.processClosedCopyTrades)return e.processClosedCopyTrades()}async function updateCopyTradingLeaderDailyStats(){const e=await(0,safe_imports_1.getCopyTradingCronUtils)();if(null==e?void 0:e.updateLeaderDailyStats)return e.updateLeaderDailyStats()}async function resetCopyTradingDailyLimits(){const e=await(0,safe_imports_1.getCopyTradingCronUtils)();if(null==e?void 0:e.resetDailyLimits)return e.resetDailyLimits()}async function checkCopyTradingDailyLossLimits(){const e=await(0,safe_imports_1.getCopyTradingCronUtils)();if(null==e?void 0:e.checkDailyLossLimits)return e.checkDailyLossLimits()}async function monitorCopyTradingStopLevels(){const e=await(0,safe_imports_1.getCopyTradingCronUtils)();if(null==e?void 0:e.monitorStopLevels)return e.monitorStopLevels()}async function aggregateCopyTradingWeeklyAnalytics(){const e=await(0,safe_imports_1.getCopyTradingCronUtils)();if(null==e?void 0:e.aggregateWeeklyAnalytics)return e.aggregateWeeklyAnalytics()}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.updateCurrencyPricesBulk=exports.cacheExchangeCurrencies=exports.processCurrenciesPrices=exports.fetchFiatCurrencyPrices=exports.createWorker=void 0;const bullmq_1=require("bullmq"),cache_1=require("@b/utils/cache"),broadcast_1=require("./broadcast"),console_1=require("@b/utils/console"),safe_imports_1=require("@b/utils/safe-imports"),wallet_1=require("./jobs/wallet"),order_1=require("./jobs/order"),userBlock_1=require("./jobs/userBlock"),currency_1=require("./jobs/currency");Object.defineProperty(exports,"fetchFiatCurrencyPrices",{enumerable:!0,get:function(){return currency_1.fetchFiatCurrencyPrices}});Object.defineProperty(exports,"processCurrenciesPrices",{enumerable:!0,get:function(){return currency_1.processCurrenciesPrices}});Object.defineProperty(exports,"cacheExchangeCurrencies",{enumerable:!0,get:function(){return currency_1.cacheExchangeCurrencies}});Object.defineProperty(exports,"updateCurrencyPricesBulk",{enumerable:!0,get:function(){return currency_1.updateCurrencyPricesBulk}});const btcDepositScanner_1=__importDefault(require("./jobs/btcDepositScanner")),heartbeat_1=require("./jobs/heartbeat");class CronJobManager{constructor(){this.cronJobs=[];this.loadNormalCronJobs()}static async getInstance(){if(!CronJobManager.instance){CronJobManager.instance=new CronJobManager;await CronJobManager.instance.loadAddonCronJobs();await initCopyTradingQueue()}return CronJobManager.instance}loadNormalCronJobs(){this.cronJobs.push({name:"processGeneralInvestments",title:"Process General Investments",period:36e5,description:"Processes active General investments.",function:"processGeneralInvestments",handler:processGeneralInvestments,lastRun:null,lastRunError:null,category:"normal",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"processPendingOrders",title:"Process Pending Orders",period:36e5,description:"Processes pending binary orders.",function:"processPendingOrders",handler:order_1.processPendingOrders,lastRun:null,lastRunError:null,category:"normal",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"fetchFiatCurrencyPrices",title:"Fetch Fiat Currency Prices",period:18e5,description:"Fetches the latest fiat currency prices.",function:"fetchFiatCurrencyPrices",handler:currency_1.fetchFiatCurrencyPrices,lastRun:null,lastRunError:null,category:"normal",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"processCurrenciesPrices",title:"Process Currencies Prices",period:12e4,description:"Updates the prices of all exchange currencies in the database.",function:"processCurrenciesPrices",handler:currency_1.processCurrenciesPrices,lastRun:null,lastRunError:null,category:"normal",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"processSpotPendingDeposits",title:"Process Pending Spot Deposits",period:9e5,description:"Processes pending spot wallet deposits.",function:"processSpotPendingDeposits",handler:wallet_1.processSpotPendingDeposits,lastRun:null,lastRunError:null,category:"normal",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"processPendingWithdrawals",title:"Process Pending Withdrawals",period:18e5,description:"Processes pending spot wallet withdrawals.",function:"processPendingWithdrawals",handler:wallet_1.processPendingWithdrawals,lastRun:null,lastRunError:null,category:"normal",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"processWalletPnl",title:"Process Wallet PnL",period:864e5,description:"Processes wallet PnL for all users.",function:"processWalletPnl",handler:wallet_1.processWalletPnl,lastRun:null,lastRunError:null,category:"normal",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"cleanupOldPnlRecords",title:"Cleanup Old PnL Records",period:864e5,description:"Removes old PnL records and zero balance records.",function:"cleanupOldPnlRecords",handler:wallet_1.cleanupOldPnlRecords,lastRun:null,lastRunError:null,category:"normal",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"processExpiredUserBlocks",title:"Process Expired User Blocks",period:9e5,description:"Automatically unblocks users whose temporary blocks have expired.",function:"processExpiredUserBlocks",handler:userBlock_1.processExpiredUserBlocks,lastRun:null,lastRunError:null,category:"normal",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"btcDepositScanner",title:"Bitcoin Deposit Scanner",period:6e4,description:"Scans all BTC wallets for deposits using Bitcoin Core node (only when BTC_NODE=node).",function:"btcDepositScanner",handler:async()=>{const e=btcDepositScanner_1.default.getInstance();await e.start()},lastRun:null,lastRunError:null,category:"normal",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"licenseHeartbeat",title:"License Heartbeat",period:216e5,description:"Sends periodic heartbeat to license server to validate license status.",function:"processLicenseHeartbeat",handler:heartbeat_1.processLicenseHeartbeat,lastRun:null,lastRunError:null,category:"normal",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null})}async loadAddonCronJobs(){const e={ecosystem:[{name:"processPendingEcoWithdrawals",title:"Process Pending Ecosystem Withdrawals",period:18e5,description:"Processes pending funding wallet withdrawals.",function:"processPendingEcoWithdrawals",handler:processPendingEcoWithdrawals,lastRun:null,lastRunError:null,category:"ecosystem",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null}],ai_investment:[{name:"processAiInvestments",title:"Process AI Investments",period:36e5,description:"Processes active AI investments.",function:"processAiInvestments",handler:processAiInvestments,lastRun:null,lastRunError:null,category:"ai_investment",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null}],forex:[{name:"processForexInvestments",title:"Process Forex Investments",period:36e5,description:"Processes active Forex investments.",function:"processForexInvestments",handler:processForexInvestments,lastRun:null,lastRunError:null,category:"forex",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null}],ico:[{name:"processIcoOfferings",title:"Process ICO Phases",period:36e5,description:"Processes ICO offerings and updates their status.",function:"processIcoOfferings",handler:processIcoOfferings,lastRun:null,lastRunError:null,category:"ico",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null}],staking:[{name:"processStakingPositions",title:"Process Staking Logs",period:36e5,description:"Processes staking positions and rewards users accordingly.",function:"processStakingPositions",handler:processStakingPositions,lastRun:null,lastRunError:null,category:"staking",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null}],mailwizard:[{name:"processMailwizardCampaigns",title:"Process Mailwizard Campaigns",period:36e5,description:"Processes Mailwizard campaigns and sends emails.",function:"processMailwizardCampaigns",handler:processMailwizardCampaigns,lastRun:null,lastRunError:null,category:"mailwizard",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null}],p2p:[{name:"p2pTradeTimeout",title:"P2P Trade Timeout Handler",period:3e5,description:"Automatically expires P2P trades that have passed their expiration date and releases escrowed funds.",function:"p2pTradeTimeout",handler:p2pTradeTimeout,lastRun:null,lastRunError:null,category:"p2p",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null}],nft:[{name:"expireOffers",title:"Expire NFT Offers",period:3e5,description:"Automatically expires NFT offers that have passed their expiration date.",function:"expireOffers",handler:expireOffers,lastRun:null,lastRunError:null,category:"nft",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"settleAuctions",title:"Settle NFT Auctions",period:6e5,description:"Automatically settles NFT auctions that have ended.",function:"settleAuctions",handler:settleAuctions,lastRun:null,lastRunError:null,category:"nft",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null}],gateway:[{name:"processGatewayPayouts",title:"Process Gateway Payouts",period:36e5,description:"Automatically creates payout records for merchants based on their payout schedule (Daily, Weekly, Monthly).",function:"processGatewayPayouts",handler:processGatewayPayouts,lastRun:null,lastRunError:null,category:"gateway",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null}],copy_trading:[{name:"processPendingCopyTrades",title:"Process Pending Copy Trades",period:1e4,description:"Replicates leader trades to all active followers.",function:"processPendingCopyTrades",handler:processPendingCopyTrades,lastRun:null,lastRunError:null,category:"copy_trading",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"processClosedCopyTrades",title:"Process Closed Copy Trades",period:3e4,description:"Processes closed trades and distributes profit shares.",function:"processClosedCopyTrades",handler:processClosedCopyTrades,lastRun:null,lastRunError:null,category:"copy_trading",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"updateCopyTradingLeaderDailyStats",title:"Update Leader Daily Stats",period:3e5,description:"Updates daily statistics for all active copy trading leaders.",function:"updateCopyTradingLeaderDailyStats",handler:updateCopyTradingLeaderDailyStats,lastRun:null,lastRunError:null,category:"copy_trading",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"checkCopyTradingDailyLossLimits",title:"Check Daily Loss Limits",period:6e4,description:"Checks and pauses followers exceeding their daily loss limits.",function:"checkCopyTradingDailyLossLimits",handler:checkCopyTradingDailyLossLimits,lastRun:null,lastRunError:null,category:"copy_trading",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"monitorCopyTradingStopLevels",title:"Monitor Stop Loss/Take Profit",period:3e4,description:"Monitors and triggers stop-loss/take-profit for open trades.",function:"monitorCopyTradingStopLevels",handler:monitorCopyTradingStopLevels,lastRun:null,lastRunError:null,category:"copy_trading",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"resetCopyTradingDailyLimits",title:"Reset Daily Limits",period:864e5,description:"Resets daily limits and reactivates paused followers at midnight.",function:"resetCopyTradingDailyLimits",handler:resetCopyTradingDailyLimits,lastRun:null,lastRunError:null,category:"copy_trading",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"aggregateCopyTradingWeeklyAnalytics",title:"Aggregate Weekly Analytics",period:6048e5,description:"Aggregates weekly performance analytics for leaders.",function:"aggregateCopyTradingWeeklyAnalytics",handler:aggregateCopyTradingWeeklyAnalytics,lastRun:null,lastRunError:null,category:"copy_trading",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null}],ai_market_maker:[{name:"processAiMarketMakerEngine",title:"AI Market Maker Engine",period:5e3,description:"Main AI market maker engine loop that processes active markets and coordinates bot trading activities.",function:"processAiMarketMakerEngine",handler:processAiMarketMakerEngine,lastRun:null,lastRunError:null,category:"ai_market_maker",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"processAiRiskMonitor",title:"AI Risk Monitor",period:1e4,description:"Monitors risk metrics for AI market makers including volatility, loss limits, and trading patterns.",function:"processAiRiskMonitor",handler:processAiRiskMonitor,lastRun:null,lastRunError:null,category:"ai_market_maker",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"processAiPoolRebalancer",title:"AI Pool Rebalancer",period:36e5,description:"Automatically rebalances AI market maker pools when asset ratios become too skewed.",function:"processAiPoolRebalancer",handler:processAiPoolRebalancer,lastRun:null,lastRunError:null,category:"ai_market_maker",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"processAiDailyReset",title:"AI Daily Reset",period:864e5,description:"Resets daily volume counters, trade counts, and generates daily summary reports for AI markets.",function:"processAiDailyReset",handler:processAiDailyReset,lastRun:null,lastRunError:null,category:"ai_market_maker",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"processAiAnalyticsAggregator",title:"AI Analytics Aggregator",period:9e5,description:"Aggregates trading statistics and performance metrics for AI market makers.",function:"processAiAnalyticsAggregator",handler:processAiAnalyticsAggregator,lastRun:null,lastRunError:null,category:"ai_market_maker",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null},{name:"processAiPriceSync",title:"AI Price Sync",period:3e4,description:"Syncs external price feeds for AI market makers and alerts on major deviations.",function:"processAiPriceSync",handler:processAiPriceSync,lastRun:null,lastRunError:null,category:"ai_market_maker",status:"idle",progress:0,lastExecutions:[],nextScheduledRun:null}]},s=cache_1.CacheManager.getInstance(),t=await s.getExtensions(),n=new Set(this.cronJobs.map(e=>e.name));for(const s of Object.keys(e))if(t.has(s))for(const t of e[s])if(!n.has(t.name)){this.cronJobs.push(t);n.add(t.name)}}getCronJobs(){return this.cronJobs}updateJobStatus(e,s,t,n,r){const a=this.cronJobs.find(s=>s.name===e);if(a){a.lastRun=s;a.lastRunError=t;a.status=t?"failed":"completed";void 0!==n&&(a.executionTime=n);r&&(a.nextScheduledRun=r);a.lastExecutions||(a.lastExecutions=[]);a.lastExecutions.unshift({timestamp:s,duration:n||0,status:t?"failed":"completed"});a.lastExecutions.length>10&&(a.lastExecutions=a.lastExecutions.slice(0,10));const e=a.lastExecutions.length,o=a.lastExecutions.filter(e=>"completed"===e.status).length;a.successRate=e>0?Math.round(o/e*100):0;setTimeout(()=>{if("completed"===a.status||"failed"===a.status){a.status="idle";a.progress=0}},5e3)}}updateJobRunningStatus(e,s,t){const n=this.cronJobs.find(s=>s.name===e);if(n){n.status=s;void 0!==t&&(n.progress=t);"completed"!==s&&"failed"!==s||(n.progress=0)}}async triggerJob(e){const s=this.cronJobs.find(s=>s.name===e);if(!s)return!1;if("running"===s.status)return!1;const t=Date.now();try{this.updateJobRunningStatus(e,"running",0);await s.handler();const n=Date.now()-t;this.updateJobStatus(e,new Date(t),null,n);return!0}catch(s){const n=Date.now()-t;this.updateJobStatus(e,new Date(t),s.message,n);console_1.logger.error("CRON","Manual trigger failed",s);return!1}}}const createWorker=async(e,s,t,n=1)=>{const r=await CronJobManager.getInstance();try{const a=new bullmq_1.Queue(e,{connection:{host:"127.0.0.1",port:6379}});await a.waitUntilReady();const o=new bullmq_1.Worker(e,async()=>{const n=Date.now();try{r.updateJobRunningStatus(e,"running",0);(0,broadcast_1.broadcastStatus)(e,"running");await s();const a=Date.now()-n,o=new Date(Date.now()+t);r.updateJobStatus(e,new Date(n),null,a,o);(0,broadcast_1.broadcastStatus)(e,"completed",{duration:a})}catch(s){const a=Date.now()-n,o=new Date(Date.now()+t);r.updateJobStatus(e,new Date(n),s.message,a,o);(0,broadcast_1.broadcastStatus)(e,"failed");console_1.logger.error("CRON",`Worker ${e} error`,s);throw s}},{connection:{host:"127.0.0.1",port:6379},concurrency:n});o.on("error",s=>{console_1.logger.error("CRON",`Worker ${e} error: ${s.message}`,s)});o.on("failed",(s,t)=>{console_1.logger.error("CRON",`Job ${e} failed: ${t.message}`,t)});const i=await a.getRepeatableJobs();for(const e of i)await a.removeRepeatableByKey(e.key);await a.add(e,{},{jobId:`repeatable-${e}`,repeat:{every:t},backoff:{type:"exponential",delay:Math.floor(t/2)}})}catch(s){console_1.logger.error("CRON",`Cron ${e} failed`,s);throw s}};exports.createWorker=createWorker;exports.default=CronJobManager;
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateCurrencyPricesBulk = exports.cacheExchangeCurrencies = exports.processCurrenciesPrices = exports.fetchFiatCurrencyPrices = exports.createWorker = void 0;
+const bullmq_1 = require("bullmq");
+const cache_1 = require("@b/utils/cache");
+const broadcast_1 = require("./broadcast");
+const console_1 = require("@b/utils/console");
+const safe_imports_1 = require("@b/utils/safe-imports");
+const wallet_1 = require("./jobs/wallet");
+const order_1 = require("./jobs/order");
+const userBlock_1 = require("./jobs/userBlock");
+const currency_1 = require("./jobs/currency");
+Object.defineProperty(exports, "fetchFiatCurrencyPrices", { enumerable: true, get: function () { return currency_1.fetchFiatCurrencyPrices; } });
+Object.defineProperty(exports, "processCurrenciesPrices", { enumerable: true, get: function () { return currency_1.processCurrenciesPrices; } });
+Object.defineProperty(exports, "cacheExchangeCurrencies", { enumerable: true, get: function () { return currency_1.cacheExchangeCurrencies; } });
+Object.defineProperty(exports, "updateCurrencyPricesBulk", { enumerable: true, get: function () { return currency_1.updateCurrencyPricesBulk; } });
+const btcDepositScanner_1 = __importDefault(require("./jobs/btcDepositScanner"));
+const heartbeat_1 = require("./jobs/heartbeat");
+async function processMailwizardCampaigns() {
+    const m = await (0, safe_imports_1.getMailwizardCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processMailwizardCampaigns)
+        return m.processMailwizardCampaigns();
+}
+async function processGeneralInvestments() {
+    const m = await (0, safe_imports_1.getGeneralInvestmentCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processGeneralInvestments)
+        return m.processGeneralInvestments();
+}
+async function processForexInvestments() {
+    const m = await (0, safe_imports_1.getForexCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processForexInvestments)
+        return m.processForexInvestments();
+}
+async function processIcoOfferings() {
+    const m = await (0, safe_imports_1.getIcoCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processIcoOfferings)
+        return m.processIcoOfferings();
+}
+async function processStakingPositions() {
+    const m = await (0, safe_imports_1.getStakingCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processStakingPositions)
+        return m.processStakingPositions();
+}
+async function processAiInvestments() {
+    const m = await (0, safe_imports_1.getAiInvestmentCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processAiInvestments)
+        return m.processAiInvestments();
+}
+async function processAiMarketMakerEngine() {
+    const m = await (0, safe_imports_1.getAiMarketMakerCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processAiMarketMakerEngine)
+        return m.processAiMarketMakerEngine();
+}
+async function processAiRiskMonitor() {
+    const m = await (0, safe_imports_1.getAiMarketMakerCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processAiRiskMonitor)
+        return m.processAiRiskMonitor();
+}
+async function processAiPoolRebalancer() {
+    const m = await (0, safe_imports_1.getAiMarketMakerCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processAiPoolRebalancer)
+        return m.processAiPoolRebalancer();
+}
+async function processAiDailyReset() {
+    const m = await (0, safe_imports_1.getAiMarketMakerCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processAiDailyReset)
+        return m.processAiDailyReset();
+}
+async function processAiAnalyticsAggregator() {
+    const m = await (0, safe_imports_1.getAiMarketMakerCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processAiAnalyticsAggregator)
+        return m.processAiAnalyticsAggregator();
+}
+async function processAiPriceSync() {
+    const m = await (0, safe_imports_1.getAiMarketMakerCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processAiPriceSync)
+        return m.processAiPriceSync();
+}
+async function processPendingEcoWithdrawals() {
+    const m = await (0, safe_imports_1.getEcosystemCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processPendingEcoWithdrawals)
+        return m.processPendingEcoWithdrawals();
+}
+async function p2pTradeTimeout() {
+    const m = await (0, safe_imports_1.getP2pCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.p2pTradeTimeout)
+        return m.p2pTradeTimeout();
+}
+async function expireOffers() {
+    const m = await (0, safe_imports_1.getNftCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.expireOffers)
+        return m.expireOffers();
+}
+async function settleAuctions() {
+    const m = await (0, safe_imports_1.getNftCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.settleAuctions)
+        return m.settleAuctions();
+}
+async function processGatewayPayouts() {
+    const m = await (0, safe_imports_1.getGatewayCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processGatewayPayouts)
+        return m.processGatewayPayouts();
+}
+async function processPendingCopyTrades() {
+    const m = await (0, safe_imports_1.getCopyTradingCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processPendingCopyTrades)
+        return m.processPendingCopyTrades();
+}
+async function initCopyTradingQueue() {
+    const m = await (0, safe_imports_1.getCopyTradingQueueUtils)();
+    if (m === null || m === void 0 ? void 0 : m.startCopyQueue) {
+        m.startCopyQueue();
+        console_1.logger.info("CRON", "Copy trading queue initialized");
+    }
+}
+async function processClosedCopyTrades() {
+    const m = await (0, safe_imports_1.getCopyTradingCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.processClosedCopyTrades)
+        return m.processClosedCopyTrades();
+}
+async function updateCopyTradingLeaderDailyStats() {
+    const m = await (0, safe_imports_1.getCopyTradingCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.updateLeaderDailyStats)
+        return m.updateLeaderDailyStats();
+}
+async function resetCopyTradingDailyLimits() {
+    const m = await (0, safe_imports_1.getCopyTradingCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.resetDailyLimits)
+        return m.resetDailyLimits();
+}
+async function checkCopyTradingDailyLossLimits() {
+    const m = await (0, safe_imports_1.getCopyTradingCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.checkDailyLossLimits)
+        return m.checkDailyLossLimits();
+}
+async function monitorCopyTradingStopLevels() {
+    const m = await (0, safe_imports_1.getCopyTradingCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.monitorStopLevels)
+        return m.monitorStopLevels();
+}
+async function aggregateCopyTradingWeeklyAnalytics() {
+    const m = await (0, safe_imports_1.getCopyTradingCronUtils)();
+    if (m === null || m === void 0 ? void 0 : m.aggregateWeeklyAnalytics)
+        return m.aggregateWeeklyAnalytics();
+}
+class CronJobManager {
+    constructor() {
+        this.cronJobs = [];
+        this.loadNormalCronJobs();
+    }
+    static async getInstance() {
+        if (!CronJobManager.instance) {
+            CronJobManager.instance = new CronJobManager();
+            await CronJobManager.instance.loadAddonCronJobs();
+            await initCopyTradingQueue();
+        }
+        return CronJobManager.instance;
+    }
+    loadNormalCronJobs() {
+        this.cronJobs.push({
+            name: "processGeneralInvestments",
+            title: "Process General Investments",
+            period: 60 * 60 * 1000,
+            description: "Processes active General investments.",
+            function: "processGeneralInvestments",
+            handler: processGeneralInvestments,
+            lastRun: null,
+            lastRunError: null,
+            category: "normal",
+            status: "idle",
+            progress: 0,
+            lastExecutions: [],
+            nextScheduledRun: null,
+        }, {
+            name: "processPendingOrders",
+            title: "Process Pending Orders",
+            period: 60 * 1000,
+            description: "Processes pending binary orders.",
+            function: "processPendingOrders",
+            handler: order_1.processPendingOrders,
+            lastRun: null,
+            lastRunError: null,
+            category: "normal",
+            status: "idle",
+            progress: 0,
+            lastExecutions: [],
+            nextScheduledRun: null,
+        }, {
+            name: "fetchFiatCurrencyPrices",
+            title: "Fetch Fiat Currency Prices",
+            period: 30 * 60 * 1000,
+            description: "Fetches the latest fiat currency prices.",
+            function: "fetchFiatCurrencyPrices",
+            handler: currency_1.fetchFiatCurrencyPrices,
+            lastRun: null,
+            lastRunError: null,
+            category: "normal",
+            status: "idle",
+            progress: 0,
+            lastExecutions: [],
+            nextScheduledRun: null,
+        }, {
+            name: "processCurrenciesPrices",
+            title: "Process Currencies Prices",
+            period: 2 * 60 * 1000,
+            description: "Updates the prices of all exchange currencies in the database.",
+            function: "processCurrenciesPrices",
+            handler: currency_1.processCurrenciesPrices,
+            lastRun: null,
+            lastRunError: null,
+            category: "normal",
+            status: "idle",
+            progress: 0,
+            lastExecutions: [],
+            nextScheduledRun: null,
+        }, {
+            name: "processSpotPendingDeposits",
+            title: "Process Pending Spot Deposits",
+            period: 15 * 60 * 1000,
+            description: "Processes pending spot wallet deposits.",
+            function: "processSpotPendingDeposits",
+            handler: wallet_1.processSpotPendingDeposits,
+            lastRun: null,
+            lastRunError: null,
+            category: "normal",
+            status: "idle",
+            progress: 0,
+            lastExecutions: [],
+            nextScheduledRun: null,
+        }, {
+            name: "processPendingWithdrawals",
+            title: "Process Pending Withdrawals",
+            period: 30 * 60 * 1000,
+            description: "Processes pending spot wallet withdrawals.",
+            function: "processPendingWithdrawals",
+            handler: wallet_1.processPendingWithdrawals,
+            lastRun: null,
+            lastRunError: null,
+            category: "normal",
+            status: "idle",
+            progress: 0,
+            lastExecutions: [],
+            nextScheduledRun: null,
+        }, {
+            name: "processWalletPnl",
+            title: "Process Wallet PnL",
+            period: 24 * 60 * 60 * 1000,
+            description: "Processes wallet PnL for all users.",
+            function: "processWalletPnl",
+            handler: wallet_1.processWalletPnl,
+            lastRun: null,
+            lastRunError: null,
+            category: "normal",
+            status: "idle",
+            progress: 0,
+            lastExecutions: [],
+            nextScheduledRun: null,
+        }, {
+            name: "cleanupOldPnlRecords",
+            title: "Cleanup Old PnL Records",
+            period: 24 * 60 * 60 * 1000,
+            description: "Removes old PnL records and zero balance records.",
+            function: "cleanupOldPnlRecords",
+            handler: wallet_1.cleanupOldPnlRecords,
+            lastRun: null,
+            lastRunError: null,
+            category: "normal",
+            status: "idle",
+            progress: 0,
+            lastExecutions: [],
+            nextScheduledRun: null,
+        }, {
+            name: "processExpiredUserBlocks",
+            title: "Process Expired User Blocks",
+            period: 15 * 60 * 1000,
+            description: "Automatically unblocks users whose temporary blocks have expired.",
+            function: "processExpiredUserBlocks",
+            handler: userBlock_1.processExpiredUserBlocks,
+            lastRun: null,
+            lastRunError: null,
+            category: "normal",
+            status: "idle",
+            progress: 0,
+            lastExecutions: [],
+            nextScheduledRun: null,
+        }, {
+            name: "btcDepositScanner",
+            title: "Bitcoin Deposit Scanner",
+            period: 60 * 1000,
+            description: "Scans all BTC wallets for deposits using Bitcoin Core node (only when BTC_NODE=node).",
+            function: "btcDepositScanner",
+            handler: async () => {
+                const scanner = btcDepositScanner_1.default.getInstance();
+                await scanner.start();
+            },
+            lastRun: null,
+            lastRunError: null,
+            category: "normal",
+            status: "idle",
+            progress: 0,
+            lastExecutions: [],
+            nextScheduledRun: null,
+        }, {
+            name: "licenseHeartbeat",
+            title: "License Heartbeat",
+            period: 6 * 60 * 60 * 1000,
+            description: "Sends periodic heartbeat to license server to validate license status.",
+            function: "processLicenseHeartbeat",
+            handler: heartbeat_1.processLicenseHeartbeat,
+            lastRun: null,
+            lastRunError: null,
+            category: "normal",
+            status: "idle",
+            progress: 0,
+            lastExecutions: [],
+            nextScheduledRun: null,
+        });
+    }
+    async loadAddonCronJobs() {
+        const addonCronJobs = {
+            ecosystem: [
+                {
+                    name: "processPendingEcoWithdrawals",
+                    title: "Process Pending Ecosystem Withdrawals",
+                    period: 30 * 60 * 1000,
+                    description: "Processes pending funding wallet withdrawals.",
+                    function: "processPendingEcoWithdrawals",
+                    handler: processPendingEcoWithdrawals,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "ecosystem",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+            ],
+            ai_investment: [
+                {
+                    name: "processAiInvestments",
+                    title: "Process AI Investments",
+                    period: 60 * 60 * 1000,
+                    description: "Processes active AI investments.",
+                    function: "processAiInvestments",
+                    handler: processAiInvestments,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "ai_investment",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+            ],
+            forex: [
+                {
+                    name: "processForexInvestments",
+                    title: "Process Forex Investments",
+                    period: 60 * 60 * 1000,
+                    description: "Processes active Forex investments.",
+                    function: "processForexInvestments",
+                    handler: processForexInvestments,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "forex",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+            ],
+            ico: [
+                {
+                    name: "processIcoOfferings",
+                    title: "Process ICO Phases",
+                    period: 60 * 60 * 1000,
+                    description: "Processes ICO offerings and updates their status.",
+                    function: "processIcoOfferings",
+                    handler: processIcoOfferings,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "ico",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+            ],
+            staking: [
+                {
+                    name: "processStakingPositions",
+                    title: "Process Staking Logs",
+                    period: 60 * 60 * 1000,
+                    description: "Processes staking positions and rewards users accordingly.",
+                    function: "processStakingPositions",
+                    handler: processStakingPositions,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "staking",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+            ],
+            mailwizard: [
+                {
+                    name: "processMailwizardCampaigns",
+                    title: "Process Mailwizard Campaigns",
+                    period: 60 * 60 * 1000,
+                    description: "Processes Mailwizard campaigns and sends emails.",
+                    function: "processMailwizardCampaigns",
+                    handler: processMailwizardCampaigns,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "mailwizard",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+            ],
+            p2p: [
+                {
+                    name: "p2pTradeTimeout",
+                    title: "P2P Trade Timeout Handler",
+                    period: 5 * 60 * 1000,
+                    description: "Automatically expires P2P trades that have passed their expiration date and releases escrowed funds.",
+                    function: "p2pTradeTimeout",
+                    handler: p2pTradeTimeout,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "p2p",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+            ],
+            nft: [
+                {
+                    name: "expireOffers",
+                    title: "Expire NFT Offers",
+                    period: 5 * 60 * 1000,
+                    description: "Automatically expires NFT offers that have passed their expiration date.",
+                    function: "expireOffers",
+                    handler: expireOffers,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "nft",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+                {
+                    name: "settleAuctions",
+                    title: "Settle NFT Auctions",
+                    period: 10 * 60 * 1000,
+                    description: "Automatically settles NFT auctions that have ended.",
+                    function: "settleAuctions",
+                    handler: settleAuctions,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "nft",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+            ],
+            gateway: [
+                {
+                    name: "processGatewayPayouts",
+                    title: "Process Gateway Payouts",
+                    period: 60 * 60 * 1000,
+                    description: "Automatically creates payout records for merchants based on their payout schedule (Daily, Weekly, Monthly).",
+                    function: "processGatewayPayouts",
+                    handler: processGatewayPayouts,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "gateway",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+            ],
+            copy_trading: [
+                {
+                    name: "processPendingCopyTrades",
+                    title: "Process Pending Copy Trades",
+                    period: 10 * 1000,
+                    description: "Replicates leader trades to all active followers.",
+                    function: "processPendingCopyTrades",
+                    handler: processPendingCopyTrades,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "copy_trading",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+                {
+                    name: "processClosedCopyTrades",
+                    title: "Process Closed Copy Trades",
+                    period: 30 * 1000,
+                    description: "Processes closed trades and distributes profit shares.",
+                    function: "processClosedCopyTrades",
+                    handler: processClosedCopyTrades,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "copy_trading",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+                {
+                    name: "updateCopyTradingLeaderDailyStats",
+                    title: "Update Leader Daily Stats",
+                    period: 5 * 60 * 1000,
+                    description: "Updates daily statistics for all active copy trading leaders.",
+                    function: "updateCopyTradingLeaderDailyStats",
+                    handler: updateCopyTradingLeaderDailyStats,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "copy_trading",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+                {
+                    name: "checkCopyTradingDailyLossLimits",
+                    title: "Check Daily Loss Limits",
+                    period: 60 * 1000,
+                    description: "Checks and pauses followers exceeding their daily loss limits.",
+                    function: "checkCopyTradingDailyLossLimits",
+                    handler: checkCopyTradingDailyLossLimits,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "copy_trading",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+                {
+                    name: "monitorCopyTradingStopLevels",
+                    title: "Monitor Stop Loss/Take Profit",
+                    period: 30 * 1000,
+                    description: "Monitors and triggers stop-loss/take-profit for open trades.",
+                    function: "monitorCopyTradingStopLevels",
+                    handler: monitorCopyTradingStopLevels,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "copy_trading",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+                {
+                    name: "resetCopyTradingDailyLimits",
+                    title: "Reset Daily Limits",
+                    period: 24 * 60 * 60 * 1000,
+                    description: "Resets daily limits and reactivates paused followers at midnight.",
+                    function: "resetCopyTradingDailyLimits",
+                    handler: resetCopyTradingDailyLimits,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "copy_trading",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+                {
+                    name: "aggregateCopyTradingWeeklyAnalytics",
+                    title: "Aggregate Weekly Analytics",
+                    period: 7 * 24 * 60 * 60 * 1000,
+                    description: "Aggregates weekly performance analytics for leaders.",
+                    function: "aggregateCopyTradingWeeklyAnalytics",
+                    handler: aggregateCopyTradingWeeklyAnalytics,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "copy_trading",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+            ],
+            ai_market_maker: [
+                {
+                    name: "processAiMarketMakerEngine",
+                    title: "AI Market Maker Engine",
+                    period: 5 * 1000,
+                    description: "Main AI market maker engine loop that processes active markets and coordinates bot trading activities.",
+                    function: "processAiMarketMakerEngine",
+                    handler: processAiMarketMakerEngine,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "ai_market_maker",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+                {
+                    name: "processAiRiskMonitor",
+                    title: "AI Risk Monitor",
+                    period: 10 * 1000,
+                    description: "Monitors risk metrics for AI market makers including volatility, loss limits, and trading patterns.",
+                    function: "processAiRiskMonitor",
+                    handler: processAiRiskMonitor,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "ai_market_maker",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+                {
+                    name: "processAiPoolRebalancer",
+                    title: "AI Pool Rebalancer",
+                    period: 60 * 60 * 1000,
+                    description: "Automatically rebalances AI market maker pools when asset ratios become too skewed.",
+                    function: "processAiPoolRebalancer",
+                    handler: processAiPoolRebalancer,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "ai_market_maker",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+                {
+                    name: "processAiDailyReset",
+                    title: "AI Daily Reset",
+                    period: 24 * 60 * 60 * 1000,
+                    description: "Resets daily volume counters, trade counts, and generates daily summary reports for AI markets.",
+                    function: "processAiDailyReset",
+                    handler: processAiDailyReset,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "ai_market_maker",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+                {
+                    name: "processAiAnalyticsAggregator",
+                    title: "AI Analytics Aggregator",
+                    period: 15 * 60 * 1000,
+                    description: "Aggregates trading statistics and performance metrics for AI market makers.",
+                    function: "processAiAnalyticsAggregator",
+                    handler: processAiAnalyticsAggregator,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "ai_market_maker",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+                {
+                    name: "processAiPriceSync",
+                    title: "AI Price Sync",
+                    period: 30 * 1000,
+                    description: "Syncs external price feeds for AI market makers and alerts on major deviations.",
+                    function: "processAiPriceSync",
+                    handler: processAiPriceSync,
+                    lastRun: null,
+                    lastRunError: null,
+                    category: "ai_market_maker",
+                    status: "idle",
+                    progress: 0,
+                    lastExecutions: [],
+                    nextScheduledRun: null,
+                },
+            ],
+        };
+        const cacheManager = cache_1.CacheManager.getInstance();
+        const extensions = await cacheManager.getExtensions();
+        const existingJobNames = new Set(this.cronJobs.map(job => job.name));
+        for (const addon of Object.keys(addonCronJobs)) {
+            if (extensions.has(addon)) {
+                for (const cronJob of addonCronJobs[addon]) {
+                    if (!existingJobNames.has(cronJob.name)) {
+                        this.cronJobs.push(cronJob);
+                        existingJobNames.add(cronJob.name);
+                    }
+                }
+            }
+        }
+    }
+    getCronJobs() {
+        return this.cronJobs;
+    }
+    updateJobStatus(name, lastRun, lastRunError, executionTime, nextScheduledRun) {
+        const job = this.cronJobs.find((job) => job.name === name);
+        if (job) {
+            job.lastRun = lastRun;
+            job.lastRunError = lastRunError;
+            if (lastRunError) {
+                job.status = "failed";
+            }
+            else {
+                job.status = "completed";
+            }
+            if (executionTime !== undefined) {
+                job.executionTime = executionTime;
+            }
+            if (nextScheduledRun) {
+                job.nextScheduledRun = nextScheduledRun;
+            }
+            if (!job.lastExecutions) {
+                job.lastExecutions = [];
+            }
+            job.lastExecutions.unshift({
+                timestamp: lastRun,
+                duration: executionTime || 0,
+                status: lastRunError ? "failed" : "completed"
+            });
+            if (job.lastExecutions.length > 10) {
+                job.lastExecutions = job.lastExecutions.slice(0, 10);
+            }
+            const totalExecutions = job.lastExecutions.length;
+            const successfulExecutions = job.lastExecutions.filter(exec => exec.status === "completed").length;
+            job.successRate = totalExecutions > 0 ? Math.round((successfulExecutions / totalExecutions) * 100) : 0;
+            setTimeout(() => {
+                if (job.status === "completed" || job.status === "failed") {
+                    job.status = "idle";
+                    job.progress = 0;
+                }
+            }, 5000);
+        }
+    }
+    updateJobRunningStatus(name, status, progress) {
+        const job = this.cronJobs.find((job) => job.name === name);
+        if (job) {
+            job.status = status;
+            if (progress !== undefined) {
+                job.progress = progress;
+            }
+            if (status === "completed" || status === "failed") {
+                job.progress = 0;
+            }
+        }
+    }
+    async triggerJob(name) {
+        const job = this.cronJobs.find((job) => job.name === name);
+        if (!job) {
+            return false;
+        }
+        if (job.status === "running") {
+            return false;
+        }
+        const startTime = Date.now();
+        try {
+            this.updateJobRunningStatus(name, "running", 0);
+            await job.handler();
+            const executionTime = Date.now() - startTime;
+            this.updateJobStatus(name, new Date(startTime), null, executionTime);
+            return true;
+        }
+        catch (error) {
+            const executionTime = Date.now() - startTime;
+            this.updateJobStatus(name, new Date(startTime), error.message, executionTime);
+            console_1.logger.error("CRON", "Manual trigger failed", error);
+            return false;
+        }
+    }
+}
+const createWorker = async (name, handler, period, concurrency = 1) => {
+    const cronJobManager = await CronJobManager.getInstance();
+    try {
+        const queue = new bullmq_1.Queue(name, {
+            connection: {
+                host: "127.0.0.1",
+                port: 6379,
+            },
+        });
+        await queue.waitUntilReady();
+        const worker = new bullmq_1.Worker(name, async (_job) => {
+            const startTime = Date.now();
+            try {
+                cronJobManager.updateJobRunningStatus(name, "running", 0);
+                (0, broadcast_1.broadcastStatus)(name, "running");
+                await handler();
+                const executionTime = Date.now() - startTime;
+                const nextScheduledRun = new Date(Date.now() + period);
+                cronJobManager.updateJobStatus(name, new Date(startTime), null, executionTime, nextScheduledRun);
+                (0, broadcast_1.broadcastStatus)(name, "completed", { duration: executionTime });
+            }
+            catch (error) {
+                const executionTime = Date.now() - startTime;
+                const nextScheduledRun = new Date(Date.now() + period);
+                cronJobManager.updateJobStatus(name, new Date(startTime), error.message, executionTime, nextScheduledRun);
+                (0, broadcast_1.broadcastStatus)(name, "failed");
+                console_1.logger.error("CRON", `Worker ${name} error`, error);
+                throw error;
+            }
+        }, {
+            connection: {
+                host: "127.0.0.1",
+                port: 6379,
+            },
+            concurrency,
+        });
+        worker.on('error', (error) => {
+            console_1.logger.error("CRON", `Worker ${name} error: ${error.message}`, error);
+        });
+        worker.on('failed', (_job, error) => {
+            console_1.logger.error("CRON", `Job ${name} failed: ${error.message}`, error);
+        });
+        const existingRepeatableJobs = await queue.getRepeatableJobs();
+        for (const job of existingRepeatableJobs) {
+            await queue.removeRepeatableByKey(job.key);
+        }
+        await queue.add(name, {}, {
+            jobId: `repeatable-${name}`,
+            repeat: { every: period },
+            backoff: { type: "exponential", delay: Math.floor(period / 2) },
+        });
+    }
+    catch (error) {
+        console_1.logger.error("CRON", `Cron ${name} failed`, error);
+        throw error;
+    }
+};
+exports.createWorker = createWorker;
+exports.default = CronJobManager;

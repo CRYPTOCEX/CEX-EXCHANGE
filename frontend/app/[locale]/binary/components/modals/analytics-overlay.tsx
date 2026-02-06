@@ -39,7 +39,12 @@ export const AnalyticsOverlay = memo(function AnalyticsOverlay({
   const t = useTranslations("binary_components");
   const tCommon = useTranslations("common");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { fetchCompletedOrders, completedOrders } = useBinaryStore();
+  const { fetchCompletedOrders, completedOrders, tradingMode } = useBinaryStore();
+
+  // Filter completed orders by current trading mode
+  const filteredCompletedOrders = useMemo(() => {
+    return completedOrders.filter(order => order.isDemo === (tradingMode === "demo"));
+  }, [completedOrders, tradingMode]);
 
   // Handle escape key
   useEffect(() => {
@@ -69,12 +74,12 @@ export const AnalyticsOverlay = memo(function AnalyticsOverlay({
 
   // Calculate quick stats
   const stats = useMemo(() => {
-    if (completedOrders.length === 0) return { wins: 0, losses: 0, winRate: 0 };
-    const wins = completedOrders.filter((o: any) => o.pnl > 0).length;
-    const losses = completedOrders.filter((o: any) => o.pnl < 0).length;
-    const winRate = completedOrders.length > 0 ? (wins / completedOrders.length) * 100 : 0;
+    if (filteredCompletedOrders.length === 0) return { wins: 0, losses: 0, winRate: 0 };
+    const wins = filteredCompletedOrders.filter((o: any) => o.pnl > 0).length;
+    const losses = filteredCompletedOrders.filter((o: any) => o.pnl < 0).length;
+    const winRate = filteredCompletedOrders.length > 0 ? (wins / filteredCompletedOrders.length) * 100 : 0;
     return { wins, losses, winRate };
-  }, [completedOrders]);
+  }, [filteredCompletedOrders]);
 
   // On mobile, skip animations for instant overlay switching
   if (!isOpen) return null;
@@ -173,7 +178,7 @@ export const AnalyticsOverlay = memo(function AnalyticsOverlay({
                 <div className="flex items-center gap-5 text-[11px]">
                   <div className="flex items-center gap-1.5">
                     <Activity size={12} className="text-blue-500" />
-                    <span className={subtitleClass}>{completedOrders.length} Trades</span>
+                    <span className={subtitleClass}>{filteredCompletedOrders.length} Trades</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <TrendingUp size={12} className="text-emerald-500" />

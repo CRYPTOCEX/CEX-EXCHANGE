@@ -166,7 +166,12 @@ export default function LiveChat() {
     if (!session?.id) return;
 
     const connectionId = "live-chat";
-    const wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/api/user/support/ticket`;
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const isDev = process.env.NODE_ENV === "development";
+    const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || "4000";
+    // In development, connect directly to backend (Next.js rewrites don't support WebSocket upgrades)
+    const host = isDev ? `${window.location.hostname}:${backendPort}` : window.location.host;
+    const wsUrl = `${protocol}//${host}/api/user/support/ticket?userId=${user?.id || ''}`;
 
 
     // Connect to WebSocket
@@ -548,9 +553,9 @@ export default function LiveChat() {
     } else if (data) {
       // Update session with latest data if provided
       if (data.success) {
-        // Remove the temporary message since it should come via WebSocket with real ID
-        setMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id));
-        
+        // Keep the optimistic message - it will be replaced when WebSocket message arrives
+        // The WebSocket handler will match and replace it based on content and timestamp
+
         // Update session status if needed
         setSession((prev) => prev ? { ...prev, updatedAt: new Date() } : null);
       }

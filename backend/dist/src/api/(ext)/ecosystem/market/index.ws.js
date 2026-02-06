@@ -1,1 +1,231 @@
-"use strict";function clearOrderbookCache(e){UnifiedEcosystemMarketDataHandler.getInstance().clearOrderbookCache(e)}async function forceOrderbookBroadcast(e){await UnifiedEcosystemMarketDataHandler.getInstance().forceOrderbookBroadcast(e)}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;exports.clearOrderbookCache=clearOrderbookCache;exports.forceOrderbookBroadcast=forceOrderbookBroadcast;const Websocket_1=require("@b/handler/Websocket"),matchingEngine_1=require("@b/api/(ext)/ecosystem/utils/matchingEngine"),queries_1=require("@b/api/(ext)/ecosystem/utils/scylla/queries"),db_1=require("@b/db"),console_1=require("@b/utils/console");exports.metadata={logModule:"ECOSYSTEM",logTitle:"Market WebSocket connection"};class UnifiedEcosystemMarketDataHandler{constructor(){this.activeSubscriptions=new Map;this.intervalMap=new Map;this.lastTickerData=new Map;this.lastOrderbookData=new Map;this.engine=null}getSubscriptionKey(e,t){return"ohlcv"===e&&t.interval?`ohlcv:${t.interval}`:e}static getInstance(){UnifiedEcosystemMarketDataHandler.instance||(UnifiedEcosystemMarketDataHandler.instance=new UnifiedEcosystemMarketDataHandler);return UnifiedEcosystemMarketDataHandler.instance}async initializeEngine(){this.engine||(this.engine=await matchingEngine_1.MatchingEngine.getInstance())}async fetchAndBroadcastData(e,t,s=!1){try{await this.initializeEngine();const r=Array.from(t.entries()).map(async([t,r])=>{const a=t.split(":")[0];try{switch(a){case"orderbook":const t=await(0,queries_1.getOrderBook)(e),a=JSON.stringify(t),o=this.lastOrderbookData.get(e);if(s||o!==a){this.lastOrderbookData.set(e,a);const s=r.limit?`orderbook:${r.limit}`:"orderbook";Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/market",r,{stream:s,data:t})}break;case"trades":try{const t=r.limit||50,s=await(0,queries_1.getRecentTrades)(e,t);s&&s.length>0&&Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/market",r,{stream:"trades",data:s})}catch(t){console_1.logger.error("ECO_WS",`Error fetching trades for ${e}`,t)}break;case"ticker":const i=await this.engine.getTicker(e),c=this.lastTickerData.get(e),n=!c||c.last!==i.last||c.baseVolume!==i.baseVolume||c.quoteVolume!==i.quoteVolume||c.change!==i.change;if(s||n){this.lastTickerData.set(e,i);Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/market",r,{stream:"ticker",data:i})}break;case"ohlcv":try{const t=r.interval||"1m",s=r.limit||100,a=await(0,queries_1.getOHLCV)(e,t,s),o=`ohlcv:${t}`;a&&a.length>0&&Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/market",r,{stream:o,data:a})}catch(t){console_1.logger.error("ECO_WS",`Error fetching OHLCV for ${e}`,t)}}}catch(t){console_1.logger.error("ECO_WS",`Error fetching ${a} data for ${e}`,t)}});await Promise.allSettled(r)}catch(t){console_1.logger.error("ECO_WS",`Error in fetchAndBroadcastData for ${e}`,t)}}startDataFetching(e){this.intervalMap.has(e)&&clearInterval(this.intervalMap.get(e));const t=setInterval(async()=>{const t=this.activeSubscriptions.get(e);t&&t.size>0&&await this.fetchAndBroadcastData(e,t)},2e3);this.intervalMap.set(e,t)}async addSubscription(e,t){if(!e){console_1.logger.warn("ECO_WS","No symbol provided in ecosystem subscription request");return}const[s,r]=e.split("/");if(!s||!r){console_1.logger.warn("ECO_WS",`Invalid symbol format: ${e}. Expected format: CURRENCY/PAIR`);return}if(!await db_1.models.ecosystemMarket.findOne({where:{currency:s,pair:r,status:!0}})){console_1.logger.warn("ECO_WS",`Ecosystem market ${e} not found in database or is disabled. Skipping subscription.`);return}const a=t.type,o=this.getSubscriptionKey(a,t);if(this.activeSubscriptions.has(e))this.activeSubscriptions.get(e).set(o,t);else{const s=new Map;s.set(o,t);this.activeSubscriptions.set(e,s);this.startDataFetching(e)}const i=new Map;i.set(o,t);await this.fetchAndBroadcastData(e,i,!0)}removeSubscription(e,t,s){if(this.activeSubscriptions.has(e)){const r=this.getSubscriptionKey(t,s||{});this.activeSubscriptions.get(e).delete(r);if(0===this.activeSubscriptions.get(e).size){this.activeSubscriptions.delete(e);if(this.intervalMap.has(e)){clearInterval(this.intervalMap.get(e));this.intervalMap.delete(e)}}}}stop(){this.intervalMap.forEach(e=>clearInterval(e));this.intervalMap.clear();this.activeSubscriptions.clear()}clearOrderbookCache(e){this.lastOrderbookData.delete(e);console_1.logger.debug("ECO_WS",`Cleared orderbook cache for ${e}`)}async forceOrderbookBroadcast(e){try{this.clearOrderbookCache(e);const t=this.activeSubscriptions.get(e);if(!t){console_1.logger.debug("ECO_WS",`No active subscriptions for ${e}, skipping forced broadcast`);return}const s=t.get("orderbook");if(s){const t=await(0,queries_1.getOrderBook)(e),r=JSON.stringify(t);this.lastOrderbookData.set(e,r);const a=s.limit?`orderbook:${s.limit}`:"orderbook";Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/market",s,{stream:a,data:t});console_1.logger.debug("ECO_WS",`Forced orderbook broadcast for ${e}`)}}catch(t){console_1.logger.error("ECO_WS",`Failed to force orderbook broadcast for ${e}`,t)}}}exports.default=async(e,t)=>{const{ctx:s}=e;null==s||s.step("Processing market WebSocket message");"string"==typeof t&&(t=JSON.parse(t));const{action:r,payload:a}=t,{type:o,symbol:i}=a||{};if(!o||!i){console_1.logger.error("ECO_WS","Invalid message structure: type or symbol is missing");null==s||s.fail("Invalid message structure: missing type or symbol");return}const c=UnifiedEcosystemMarketDataHandler.getInstance();if("SUBSCRIBE"===r){null==s||s.step(`Subscribing to ${o} for ${i}`);await c.addSubscription(i,a);null==s||s.success(`Subscribed to ${o} for ${i}`)}else if("UNSUBSCRIBE"===r){null==s||s.step(`Unsubscribing from ${o} for ${i}`);c.removeSubscription(i,o,a);null==s||s.success(`Unsubscribed from ${o} for ${i}`)}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+exports.clearOrderbookCache = clearOrderbookCache;
+exports.forceOrderbookBroadcast = forceOrderbookBroadcast;
+const Websocket_1 = require("@b/handler/Websocket");
+const matchingEngine_1 = require("@b/api/(ext)/ecosystem/utils/matchingEngine");
+const queries_1 = require("@b/api/(ext)/ecosystem/utils/scylla/queries");
+const db_1 = require("@b/db");
+const console_1 = require("@b/utils/console");
+exports.metadata = {
+    logModule: "ECOSYSTEM",
+    logTitle: "Market WebSocket connection"
+};
+class UnifiedEcosystemMarketDataHandler {
+    constructor() {
+        this.activeSubscriptions = new Map();
+        this.intervalMap = new Map();
+        this.lastTickerData = new Map();
+        this.lastOrderbookData = new Map();
+        this.engine = null;
+    }
+    getSubscriptionKey(type, payload) {
+        if (type === "ohlcv" && payload.interval) {
+            return `ohlcv:${payload.interval}`;
+        }
+        return type;
+    }
+    static getInstance() {
+        if (!UnifiedEcosystemMarketDataHandler.instance) {
+            UnifiedEcosystemMarketDataHandler.instance = new UnifiedEcosystemMarketDataHandler();
+        }
+        return UnifiedEcosystemMarketDataHandler.instance;
+    }
+    async initializeEngine() {
+        if (!this.engine) {
+            this.engine = await matchingEngine_1.MatchingEngine.getInstance();
+        }
+    }
+    async fetchAndBroadcastData(symbol, subscriptionMap, isInitialFetch = false) {
+        try {
+            await this.initializeEngine();
+            const fetchPromises = Array.from(subscriptionMap.entries()).map(async ([subscriptionKey, payload]) => {
+                const type = subscriptionKey.split(':')[0];
+                try {
+                    switch (type) {
+                        case "orderbook":
+                            const orderbook = await (0, queries_1.getOrderBook)(symbol);
+                            const orderbookHash = JSON.stringify(orderbook);
+                            const lastOrderbookHash = this.lastOrderbookData.get(symbol);
+                            if (isInitialFetch || lastOrderbookHash !== orderbookHash) {
+                                this.lastOrderbookData.set(symbol, orderbookHash);
+                                const streamKey = payload.limit ? `orderbook:${payload.limit}` : 'orderbook';
+                                Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/market`, payload, { stream: streamKey, data: orderbook });
+                            }
+                            break;
+                        case "trades":
+                            try {
+                                const limit = payload.limit || 50;
+                                const trades = await (0, queries_1.getRecentTrades)(symbol, limit);
+                                if (trades && trades.length > 0) {
+                                    Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/market`, payload, { stream: "trades", data: trades });
+                                }
+                            }
+                            catch (tradesError) {
+                                console_1.logger.error("ECO_WS", `Error fetching trades for ${symbol}`, tradesError);
+                            }
+                            break;
+                        case "ticker":
+                            const ticker = await this.engine.getTicker(symbol);
+                            const lastTicker = this.lastTickerData.get(symbol);
+                            const tickerChanged = !lastTicker ||
+                                lastTicker.last !== ticker.last ||
+                                lastTicker.baseVolume !== ticker.baseVolume ||
+                                lastTicker.quoteVolume !== ticker.quoteVolume ||
+                                lastTicker.change !== ticker.change;
+                            if (isInitialFetch || tickerChanged) {
+                                this.lastTickerData.set(symbol, ticker);
+                                Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/market`, payload, { stream: "ticker", data: ticker });
+                            }
+                            break;
+                        case "ohlcv":
+                            try {
+                                const interval = payload.interval || "1m";
+                                const limit = payload.limit || 100;
+                                const ohlcv = await (0, queries_1.getOHLCV)(symbol, interval, limit);
+                                const streamKey = `ohlcv:${interval}`;
+                                if (ohlcv && ohlcv.length > 0) {
+                                    Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/market`, payload, { stream: streamKey, data: ohlcv });
+                                }
+                            }
+                            catch (ohlcvError) {
+                                console_1.logger.error("ECO_WS", `Error fetching OHLCV for ${symbol}`, ohlcvError);
+                            }
+                            break;
+                    }
+                }
+                catch (error) {
+                    console_1.logger.error("ECO_WS", `Error fetching ${type} data for ${symbol}`, error);
+                }
+            });
+            await Promise.allSettled(fetchPromises);
+        }
+        catch (error) {
+            console_1.logger.error("ECO_WS", `Error in fetchAndBroadcastData for ${symbol}`, error);
+        }
+    }
+    startDataFetching(symbol) {
+        if (this.intervalMap.has(symbol)) {
+            clearInterval(this.intervalMap.get(symbol));
+        }
+        const interval = setInterval(async () => {
+            const subscriptionMap = this.activeSubscriptions.get(symbol);
+            if (subscriptionMap && subscriptionMap.size > 0) {
+                await this.fetchAndBroadcastData(symbol, subscriptionMap);
+            }
+        }, 2000);
+        this.intervalMap.set(symbol, interval);
+    }
+    async addSubscription(symbol, payload) {
+        if (!symbol) {
+            console_1.logger.warn("ECO_WS", "No symbol provided in ecosystem subscription request");
+            return;
+        }
+        const [currency, pair] = symbol.split("/");
+        if (!currency || !pair) {
+            console_1.logger.warn("ECO_WS", `Invalid symbol format: ${symbol}. Expected format: CURRENCY/PAIR`);
+            return;
+        }
+        const market = await db_1.models.ecosystemMarket.findOne({
+            where: {
+                currency,
+                pair,
+                status: true
+            }
+        });
+        if (!market) {
+            console_1.logger.warn("ECO_WS", `Ecosystem market ${symbol} not found in database or is disabled. Skipping subscription.`);
+            return;
+        }
+        const type = payload.type;
+        const subscriptionKey = this.getSubscriptionKey(type, payload);
+        if (!this.activeSubscriptions.has(symbol)) {
+            const newMap = new Map();
+            newMap.set(subscriptionKey, payload);
+            this.activeSubscriptions.set(symbol, newMap);
+            this.startDataFetching(symbol);
+        }
+        else {
+            this.activeSubscriptions.get(symbol).set(subscriptionKey, payload);
+        }
+        const singleSubscriptionMap = new Map();
+        singleSubscriptionMap.set(subscriptionKey, payload);
+        await this.fetchAndBroadcastData(symbol, singleSubscriptionMap, true);
+    }
+    removeSubscription(symbol, type, payload) {
+        if (this.activeSubscriptions.has(symbol)) {
+            const subscriptionKey = this.getSubscriptionKey(type, payload || {});
+            this.activeSubscriptions.get(symbol).delete(subscriptionKey);
+            if (this.activeSubscriptions.get(symbol).size === 0) {
+                this.activeSubscriptions.delete(symbol);
+                if (this.intervalMap.has(symbol)) {
+                    clearInterval(this.intervalMap.get(symbol));
+                    this.intervalMap.delete(symbol);
+                }
+            }
+        }
+    }
+    stop() {
+        this.intervalMap.forEach((interval) => clearInterval(interval));
+        this.intervalMap.clear();
+        this.activeSubscriptions.clear();
+    }
+    clearOrderbookCache(symbol) {
+        this.lastOrderbookData.delete(symbol);
+        console_1.logger.debug("ECO_WS", `Cleared orderbook cache for ${symbol}`);
+    }
+    async forceOrderbookBroadcast(symbol) {
+        try {
+            this.clearOrderbookCache(symbol);
+            const subscriptionMap = this.activeSubscriptions.get(symbol);
+            if (!subscriptionMap) {
+                console_1.logger.debug("ECO_WS", `No active subscriptions for ${symbol}, skipping forced broadcast`);
+                return;
+            }
+            const orderbookPayload = subscriptionMap.get("orderbook");
+            if (orderbookPayload) {
+                const orderbook = await (0, queries_1.getOrderBook)(symbol);
+                const orderbookHash = JSON.stringify(orderbook);
+                this.lastOrderbookData.set(symbol, orderbookHash);
+                const streamKey = orderbookPayload.limit ? `orderbook:${orderbookPayload.limit}` : 'orderbook';
+                Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/market`, orderbookPayload, { stream: streamKey, data: orderbook });
+                console_1.logger.debug("ECO_WS", `Forced orderbook broadcast for ${symbol}`);
+            }
+        }
+        catch (error) {
+            console_1.logger.error("ECO_WS", `Failed to force orderbook broadcast for ${symbol}`, error);
+        }
+    }
+}
+function clearOrderbookCache(symbol) {
+    UnifiedEcosystemMarketDataHandler.getInstance().clearOrderbookCache(symbol);
+}
+async function forceOrderbookBroadcast(symbol) {
+    await UnifiedEcosystemMarketDataHandler.getInstance().forceOrderbookBroadcast(symbol);
+}
+exports.default = async (data, message) => {
+    const { ctx } = data;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing market WebSocket message");
+    if (typeof message === "string") {
+        message = JSON.parse(message);
+    }
+    const { action, payload } = message;
+    const { type, symbol } = payload || {};
+    if (!type || !symbol) {
+        console_1.logger.error("ECO_WS", "Invalid message structure: type or symbol is missing");
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Invalid message structure: missing type or symbol");
+        return;
+    }
+    const handler = UnifiedEcosystemMarketDataHandler.getInstance();
+    if (action === "SUBSCRIBE") {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step(`Subscribing to ${type} for ${symbol}`);
+        await handler.addSubscription(symbol, payload);
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Subscribed to ${type} for ${symbol}`);
+    }
+    else if (action === "UNSUBSCRIBE") {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step(`Unsubscribing from ${type} for ${symbol}`);
+        handler.removeSubscription(symbol, type, payload);
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Unsubscribed from ${type} for ${symbol}`);
+    }
+};

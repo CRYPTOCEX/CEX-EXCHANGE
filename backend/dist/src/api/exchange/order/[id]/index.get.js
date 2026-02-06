@@ -1,1 +1,66 @@
-"use strict";async function getOrder(e){const r=await db_1.models.exchangeOrder.findOne({where:{id:e}});if(!r)throw(0,error_1.createError)({statusCode:404,message:"Order not found"});return r.get({plain:!0})}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;exports.getOrder=getOrder;const db_1=require("@b/db"),error_1=require("@b/utils/error"),query_1=require("@b/utils/query"),utils_1=require("../utils");exports.metadata={summary:"Show Order Details",operationId:"showOrder",tags:["Exchange","Orders"],description:"Retrieves details of a specific order by ID for the authenticated user.",logModule:"EXCHANGE",logTitle:"Get Order Details",parameters:[{name:"id",in:"path",required:!0,description:"ID of the order to retrieve.",schema:{type:"string"}}],responses:{200:{description:"Order details",content:{"application/json":{schema:{type:"object",properties:utils_1.baseOrderSchema}}}},401:query_1.unauthorizedResponse,404:(0,query_1.notFoundMetadataResponse)("Order"),500:query_1.serverErrorResponse},requiresAuth:!0};exports.default=async e=>{var r;if(!(null===(r=e.user)||void 0===r?void 0:r.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});const{ctx:t,params:s,user:o}=e;null==t||t.step(`Fetching order ${s.id}`);const d=await getOrder(s.id);if(!d||d.userId!==o.id)throw(0,error_1.createError)({statusCode:404,message:"Order not found or access denied"});null==t||t.success("Order retrieved successfully");return d};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+exports.getOrder = getOrder;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const query_1 = require("@b/utils/query");
+const utils_1 = require("../utils");
+exports.metadata = {
+    summary: "Show Order Details",
+    operationId: "showOrder",
+    tags: ["Exchange", "Orders"],
+    description: "Retrieves details of a specific order by ID for the authenticated user.",
+    logModule: "EXCHANGE",
+    logTitle: "Get Order Details",
+    parameters: [
+        {
+            name: "id",
+            in: "path",
+            required: true,
+            description: "ID of the order to retrieve.",
+            schema: { type: "string" },
+        },
+    ],
+    responses: {
+        200: {
+            description: "Order details",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: utils_1.baseOrderSchema,
+                    },
+                },
+            },
+        },
+        401: query_1.unauthorizedResponse,
+        404: (0, query_1.notFoundMetadataResponse)("Order"),
+        500: query_1.serverErrorResponse,
+    },
+    requiresAuth: true,
+};
+exports.default = async (data) => {
+    var _a;
+    if (!((_a = data.user) === null || _a === void 0 ? void 0 : _a.id))
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    const { ctx, params, user } = data;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Fetching order ${params.id}`);
+    const order = await getOrder(params.id);
+    if (!order || order.userId !== user.id) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Order not found or access denied" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Order retrieved successfully");
+    return order;
+};
+async function getOrder(id) {
+    const response = await db_1.models.exchangeOrder.findOne({
+        where: {
+            id,
+        },
+    });
+    if (!response) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Order not found" });
+    }
+    return response.get({ plain: true });
+}

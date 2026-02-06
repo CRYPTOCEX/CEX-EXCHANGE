@@ -1,1 +1,42 @@
-"use strict";async function sendWithdrawalStatusEmail(a,i,e,t,n,s){const m={TO:a.email,FIRSTNAME:a.first_name,STATUS:i,REASON:e,TRANSACTION_ID:t,AMOUNT:n,CURRENCY:s};await emails_1.emailQueue.add({emailData:m,emailType:"WithdrawalStatus"})}async function sendDepositConfirmationEmail(a,i,e,t){const n={TO:a.email,FIRSTNAME:a.first_name,TRANSACTION_ID:i,AMOUNT:e,CURRENCY:t};await emails_1.emailQueue.add({emailData:n,emailType:"DepositConfirmation"})}async function sendTransferConfirmationEmail(a,i,e,t,n){const s={TO:a.email,FIRSTNAME:a.first_name,TRANSACTION_ID:e,AMOUNT:t,CURRENCY:n,RECIPIENT_NAME:`${i.first_name} ${i.last_name}`};await emails_1.emailQueue.add({emailData:s,emailType:"TransferConfirmation"})}Object.defineProperty(exports,"__esModule",{value:!0});exports.sendWithdrawalStatusEmail=sendWithdrawalStatusEmail;exports.sendDepositConfirmationEmail=sendDepositConfirmationEmail;exports.sendTransferConfirmationEmail=sendTransferConfirmationEmail;const emails_1=require("../../../../utils/emails");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendWithdrawalStatusEmail = sendWithdrawalStatusEmail;
+exports.sendDepositConfirmationEmail = sendDepositConfirmationEmail;
+exports.sendTransferConfirmationEmail = sendTransferConfirmationEmail;
+const emails_1 = require("../../../../utils/emails");
+async function sendWithdrawalStatusEmail(user, status, reason, transactionId, amount, currency) {
+    const emailType = "WithdrawalStatus";
+    const emailData = {
+        TO: user.email,
+        FIRSTNAME: user.first_name,
+        STATUS: status,
+        REASON: reason,
+        TRANSACTION_ID: transactionId,
+        AMOUNT: amount,
+        CURRENCY: currency,
+    };
+    await emails_1.emailQueue.add({ emailData, emailType });
+}
+async function sendDepositConfirmationEmail(user, transactionId, amount, currency) {
+    const emailType = "DepositConfirmation";
+    const emailData = {
+        TO: user.email,
+        FIRSTNAME: user.first_name,
+        TRANSACTION_ID: transactionId,
+        AMOUNT: amount,
+        CURRENCY: currency,
+    };
+    await emails_1.emailQueue.add({ emailData, emailType });
+}
+async function sendTransferConfirmationEmail(user, recipient, transactionId, amount, currency) {
+    const emailType = "TransferConfirmation";
+    const emailData = {
+        TO: user.email,
+        FIRSTNAME: user.first_name,
+        TRANSACTION_ID: transactionId,
+        AMOUNT: amount,
+        CURRENCY: currency,
+        RECIPIENT_NAME: `${recipient.first_name} ${recipient.last_name}`,
+    };
+    await emails_1.emailQueue.add({ emailData, emailType });
+}

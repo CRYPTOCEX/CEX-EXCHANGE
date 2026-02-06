@@ -229,7 +229,12 @@ export default function SupportTicketDetailPage({
     }
 
     const connectionId = `admin-detail-${selectedTicket.id}`;
-    const wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/api/user/support/ticket`;
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const isDev = process.env.NODE_ENV === "development";
+    const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || "4000";
+    // In development, connect directly to backend (Next.js rewrites don't support WebSocket upgrades)
+    const wsHost = isDev ? `${window.location.hostname}:${backendPort}` : window.location.host;
+    const wsUrl = `${protocol}//${wsHost}/api/user/support/ticket`;
 
     wsManager.connect(wsUrl, connectionId);
 
@@ -561,7 +566,8 @@ export default function SupportTicketDetailPage({
           updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
         });
         setMessages(messagesData);
-        setSelectedStatus(data.status);
+        // Normalize status to uppercase to match SelectItem values
+        setSelectedStatus(data.status?.toUpperCase() || "PENDING");
       } catch (error: any) {
         setError(error.message || "An unexpected error occurred");
       } finally {

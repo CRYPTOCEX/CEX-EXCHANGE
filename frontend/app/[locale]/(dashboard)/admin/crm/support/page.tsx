@@ -490,7 +490,7 @@ export default function AdminSupportPage() {
           itemTitle="Support Ticket"
           columns={columns}
           analytics={analytics}
-          isParanoid={true}
+          isParanoid={false}
           viewLink="/admin/crm/support/[id]"
         />
       </motion.div>

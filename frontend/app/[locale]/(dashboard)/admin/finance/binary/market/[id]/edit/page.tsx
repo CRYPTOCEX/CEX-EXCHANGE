@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Icon } from "@iconify/react";
 import { useRouter } from "@/i18n/routing";
 import { useParams } from "next/navigation";
@@ -32,6 +33,8 @@ interface BinaryMarket {
   id: string;
   currency: string;
   pair: string;
+  minAmount?: number;
+  maxAmount?: number;
   isTrending: boolean;
   isHot: boolean;
   status: boolean;
@@ -51,6 +54,8 @@ export default function EditBinaryMarketPage() {
 
   // Form state
   const [formData, setFormData] = useState({
+    minAmount: 1,
+    maxAmount: 10000,
     isTrending: false,
     isHot: false,
     status: true,
@@ -79,6 +84,8 @@ export default function EditBinaryMarketPage() {
       setMarket(data);
       setOriginalMarket(data);
       setFormData({
+        minAmount: data?.minAmount || 1,
+        maxAmount: data?.maxAmount || 10000,
         isTrending: data?.isTrending || false,
         isHot: data?.isHot || false,
         status: data?.status ?? true,
@@ -95,6 +102,8 @@ export default function EditBinaryMarketPage() {
   const handleReset = () => {
     if (originalMarket) {
       setFormData({
+        minAmount: originalMarket.minAmount || 1,
+        maxAmount: originalMarket.maxAmount || 10000,
         isTrending: originalMarket.isTrending || false,
         isHot: originalMarket.isHot || false,
         status: originalMarket.status ?? true,
@@ -103,6 +112,8 @@ export default function EditBinaryMarketPage() {
   };
 
   const hasChanges =
+    formData.minAmount !== (originalMarket?.minAmount || 1) ||
+    formData.maxAmount !== (originalMarket?.maxAmount || 10000) ||
     formData.isTrending !== (originalMarket?.isTrending || false) ||
     formData.isHot !== (originalMarket?.isHot || false) ||
     formData.status !== (originalMarket?.status ?? true);
@@ -118,6 +129,8 @@ export default function EditBinaryMarketPage() {
         body: {
           currency: market.currency,
           pair: market.pair,
+          minAmount: formData.minAmount,
+          maxAmount: formData.maxAmount,
           isTrending: formData.isTrending,
           isHot: formData.isHot,
           status: formData.status,
@@ -232,6 +245,41 @@ export default function EditBinaryMarketPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Min/Max Amount Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Min Amount */}
+              <div className="p-4 bg-muted/50 rounded-xl">
+                <Label className="font-medium mb-2 block">Minimum Amount</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.minAmount}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, minAmount: parseFloat(e.target.value) || 0 }))}
+                  className="mt-2"
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Minimum order amount allowed for this market
+                </p>
+              </div>
+
+              {/* Max Amount */}
+              <div className="p-4 bg-muted/50 rounded-xl">
+                <Label className="font-medium mb-2 block">Maximum Amount</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.maxAmount}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, maxAmount: parseFloat(e.target.value) || 0 }))}
+                  className="mt-2"
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Maximum order amount allowed for this market
+                </p>
+              </div>
+            </div>
+
             {/* Status Toggle */}
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
               <div className="flex items-center gap-3">

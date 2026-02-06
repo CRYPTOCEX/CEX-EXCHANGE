@@ -25,7 +25,7 @@ export default function AnnouncementPage() {
       canEdit
       canDelete
       canView
-      isParanoid={false}
+      isParanoid={true}
       title="Announcements"
       description={t("manage_system_announcements_and_notifications")}
       itemTitle="Announcement"

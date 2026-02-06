@@ -233,9 +233,13 @@ export default function ChartManagementPage() {
       return;
     }
 
-    // Create WebSocket connection
+    // Create WebSocket connection - all backends now use /api/ prefix
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/api/admin/finance/exchange/chart/build`;
+    const isDev = process.env.NODE_ENV === "development";
+    const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || "4000";
+    // In development, connect directly to backend (Next.js rewrites don't support WebSocket upgrades)
+    const host = isDev ? `${window.location.hostname}:${backendPort}` : window.location.host;
+    const wsUrl = `${protocol}//${host}/api/admin/finance/exchange/chart/build`;
 
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;

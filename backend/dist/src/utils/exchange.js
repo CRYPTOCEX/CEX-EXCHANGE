@@ -1,1 +1,569 @@
-"use strict";function createProxyAgent(e){try{const t=new URL(e).protocol.toLowerCase();if("socks4:"===t||"socks5:"===t||"socks:"===t)return new socks_proxy_agent_1.SocksProxyAgent(e);if("http:"===t||"https:"===t)return new https_proxy_agent_1.HttpsProxyAgent(e);console_1.logger.warn("EXCHANGE",`Unknown proxy protocol: ${t}, using HTTPS proxy agent`);return new https_proxy_agent_1.HttpsProxyAgent(e)}catch(t){console_1.logger.error("EXCHANGE",`Invalid proxy URL: ${e}`,t);return null}}function mapChainNameToChainId(e){return{BEP20:"bsc",BEP2:"bnb",ERC20:"eth",TRC20:"trx","KAVA EVM CO-CHAIN":"kavaevm","LIGHTNING NETWORK":"lightning","BTC-SEGWIT":"btc","ASSET HUB(POLKADOT)":"polkadot"}[e]||e}var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,i,n){void 0===n&&(n=i);var a=Object.getOwnPropertyDescriptor(t,i);a&&!("get"in a?!t.__esModule:a.writable||a.configurable)||(a={enumerable:!0,get:function(){return t[i]}});Object.defineProperty(e,n,a)}:function(e,t,i,n){void 0===n&&(n=i);e[n]=t[i]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var i in e)Object.prototype.hasOwnProperty.call(e,i)&&(t[t.length]=i);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var i={};if(null!=t)for(var n=e(t),a=0;a<n.length;a++)"default"!==n[a]&&__createBinding(i,t,n[a]);__setModuleDefault(i,t);return i}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.mapChainNameToChainId=mapChainNameToChainId;const ccxt=__importStar(require("ccxt")),https_1=require("https"),https_proxy_agent_1=require("https-proxy-agent"),socks_proxy_agent_1=require("socks-proxy-agent"),system_1=require("./system"),db_1=require("@b/db"),console_1=require("@b/utils/console"),error_1=require("@b/utils/error"),utils_1=require("@b/api/exchange/utils"),httpsAgentIPv4=new https_1.Agent({family:4,keepAlive:!0,timeout:3e4});class ExchangeManager{constructor(){this.exchangeCache=new Map;this.initializationPromises=new Map;this.provider=null;this.exchange=null;this.exchangeProvider=null;this.lastAttemptTime=null;this.attemptCount=0;this.isInitializing=!1;this.initializationQueue=[]}async fetchActiveProvider(){try{const e=await db_1.models.exchange.findOne({where:{status:!0}});return e?{name:e.name,proxyUrl:e.proxyUrl||void 0}:null}catch(e){console_1.logger.error("EXCHANGE","Failed to fetch active provider",e);return null}}async fetchProviderProxyUrl(e){try{const t=await db_1.models.exchange.findOne({where:{name:e}});return(null==t?void 0:t.proxyUrl)||null}catch(e){console_1.logger.error("EXCHANGE","Failed to fetch provider proxy URL",e);return null}}async initializeExchange(e,t=3,i){var n,a,r,l,s,o,c,u,d,h,g,v,p,m,f,x;null===(n=null==i?void 0:i.step)||void 0===n||n.call(i,`Checking ban status for ${e}`);if(await(0,utils_1.handleBanStatus)(await(0,utils_1.loadBanStatus)()))return null;if(this.exchangeCache.has(e)){null===(a=null==i?void 0:i.step)||void 0===a||a.call(i,`Using cached exchange instance for ${e}`);return this.exchangeCache.get(e)}const y=Date.now();if(this.attemptCount>=3&&this.lastAttemptTime&&y-this.lastAttemptTime<18e5){null===(r=null==i?void 0:i.step)||void 0===r||r.call(i,`Rate limit reached for ${e}, waiting...`);return null}null===(l=null==i?void 0:i.step)||void 0===l||l.call(i,`Loading API credentials for ${e}`);const w=process.env[`APP_${e.toUpperCase()}_API_KEY`],_=process.env[`APP_${e.toUpperCase()}_API_SECRET`],E=process.env[`APP_${e.toUpperCase()}_API_PASSPHRASE`];if(!w||!_||""===w||""===_){console_1.logger.error("EXCHANGE",`API credentials for ${e} are missing.`,new Error(`API credentials for ${e} are missing.`));this.attemptCount+=1;this.lastAttemptTime=y;return null}const P=await this.fetchProviderProxyUrl(e),A=P?createProxyAgent(P):httpsAgentIPv4;if(P){null===(s=null==i?void 0:i.step)||void 0===s||s.call(i,`Using proxy for ${e}: ${P.replace(/\/\/.*@/,"//***@")}`);console_1.logger.info("EXCHANGE",`Using proxy for ${e}`)}try{null===(o=null==i?void 0:i.step)||void 0===o||o.call(i,`Creating exchange instance for ${e}`);let n=new ccxt.pro[e]({apiKey:w,secret:_,password:E,agent:A,timeout:3e4,enableRateLimit:!0,options:{adjustForTimeDifference:!0,recvWindow:6e4}});null===(c=null==i?void 0:i.step)||void 0===c||c.call(i,`Validating credentials for ${e}`);if(!await n.checkRequiredCredentials()){console_1.logger.error("EXCHANGE",`API credentials for ${e} are invalid.`,new Error(`API credentials for ${e} are invalid.`));await n.close();n=new ccxt.pro[e]({agent:A,timeout:3e4,enableRateLimit:!0})}await this.syncExchangeTime(n,i);try{null===(u=null==i?void 0:i.step)||void 0===u||u.call(i,`Loading markets for ${e}`);await n.loadMarkets()}catch(a){if(this.isRateLimitError(a)){null===(d=null==i?void 0:i.step)||void 0===d||d.call(i,`Rate limit error detected for ${e}, retrying...`);await this.handleRateLimitError(e,i);return this.initializeExchange(e,t,i)}if(this.isTimestampError(a)&&t>0){null===(h=null==i?void 0:i.step)||void 0===h||h.call(i,`Timestamp error detected for ${e}, creating fresh instance with time sync...`);console_1.logger.info("EXCHANGE",`Timestamp error for ${e}, recreating exchange with fresh time sync (this is expected and being handled)`);try{await n.close()}catch(e){}await(0,system_1.sleep)(1e3);const a=new ccxt.pro[e]({apiKey:w,secret:_,password:E,agent:A,timeout:3e4,enableRateLimit:!0,options:{adjustForTimeDifference:!0,recvWindow:6e4}});if(!await this.syncExchangeTime(a,i)){null===(g=null==i?void 0:i.step)||void 0===g||g.call(i,"Time sync failed, trying manual offset adjustment...");a.timeDifference=-1e3}try{null===(v=null==i?void 0:i.step)||void 0===v||v.call(i,"Retrying loadMarkets with fresh exchange instance...");await a.loadMarkets();this.exchangeCache.set(e,a);this.attemptCount=0;this.lastAttemptTime=null;null===(p=null==i?void 0:i.step)||void 0===p||p.call(i,`Exchange ${e} initialized successfully after time sync retry`);return a}catch(n){try{await a.close()}catch(e){}if(t>1){null===(m=null==i?void 0:i.step)||void 0===m||m.call(i,`Retry failed, attempting again (${t-1} retries left)...`);await(0,system_1.sleep)(2e3);return this.initializeExchange(e,t-1,i)}throw n}}else{console_1.logger.error("EXCHANGE",`Failed to load markets: ${a.message}`,new Error(`Failed to load markets: ${a.message}`));await n.close();n=new ccxt.pro[e]({agent:A,timeout:3e4,enableRateLimit:!0})}}this.exchangeCache.set(e,n);this.attemptCount=0;this.lastAttemptTime=null;null===(f=null==i?void 0:i.step)||void 0===f||f.call(i,`Exchange ${e} initialized successfully`);return n}catch(n){console_1.logger.error("EXCHANGE","Failed to initialize exchange",n);this.attemptCount+=1;this.lastAttemptTime=y;if(t>0&&(this.attemptCount<3||y-this.lastAttemptTime>=18e5)){null===(x=null==i?void 0:i.step)||void 0===x||x.call(i,`Retrying exchange initialization for ${e} (${t} retries left)`);await(0,system_1.sleep)(5e3);return this.initializeExchange(e,t-1,i)}return null}}isRateLimitError(e){return e instanceof ccxt.RateLimitExceeded||-1003===e.code}isTimestampError(e){var t;const i=e.code,n=(null===(t=e.message)||void 0===t?void 0:t.toLowerCase())||"";return-1021===i||"-1021"===i||e instanceof ccxt.InvalidNonce||"InvalidNonce"===e.name||n.includes("timestamp")||n.includes("recvwindow")||n.includes("ahead of the server")||n.includes("behind the server")}async syncExchangeTime(e,t){var i,n,a,r;try{null===(i=null==t?void 0:t.step)||void 0===i||i.call(t,"Synchronizing exchange server time...");const r=await e.fetchTime(),l=r-Date.now();e.options=e.options||{};e.options.adjustForTimeDifference=!0;e.options.recvWindow=6e4;e.options.timeDifference=l;e.timeDifference=l;if(Math.abs(l)>5e3){null===(n=null==t?void 0:t.step)||void 0===n||n.call(t,`Significant time offset detected: ${l}ms, adjusting...`);console_1.logger.warn("EXCHANGE",`Significant time offset with server: ${l}ms. Consider syncing your system clock.`)}null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,`Time synchronized. Offset: ${l}ms`);console_1.logger.debug("EXCHANGE",`Time synchronized with server. Offset: ${l}ms`);return!0}catch(e){null===(r=null==t?void 0:t.step)||void 0===r||r.call(t,"Failed to sync time, continuing anyway");console_1.logger.warn("EXCHANGE","Failed to sync exchange time",e);return!1}}async handleRateLimitError(e,t){var i;null===(i=null==t?void 0:t.step)||void 0===i||i.call(t,`Rate limit exceeded for ${e}, applying 1-minute ban`);const n=Date.now()+6e4;await(0,utils_1.saveBanStatus)(n);await(0,system_1.sleep)(6e4)}async startExchange(e){var t,i,n,a,r,l,s,o,c;null===(t=null==e?void 0:e.step)||void 0===t||t.call(e,"Starting exchange initialization");if(await(0,utils_1.handleBanStatus)(await(0,utils_1.loadBanStatus)())){null===(i=null==e?void 0:e.step)||void 0===i||i.call(e,"Exchange is currently banned");return null}if(this.exchange){null===(n=null==e?void 0:e.step)||void 0===n||n.call(e,"Using existing exchange instance");return this.exchange}if(this.isInitializing){null===(a=null==e?void 0:e.step)||void 0===a||a.call(e,"Exchange initialization already in progress, queuing request");return new Promise((e,t)=>{this.initializationQueue.push({resolve:e,reject:t})})}this.isInitializing=!0;try{null===(r=null==e?void 0:e.step)||void 0===r||r.call(e,"Fetching active exchange provider");if(!this.provider){const e=await this.fetchActiveProvider();this.provider=(null==e?void 0:e.name)||null}if(!this.provider){null===(l=null==e?void 0:e.step)||void 0===l||l.call(e,"No active exchange provider found");this.resolveQueue(null);return null}null===(s=null==e?void 0:e.step)||void 0===s||s.call(e,`Active provider: ${this.provider}`);if(this.exchangeCache.has(this.provider)){null===(o=null==e?void 0:e.step)||void 0===o||o.call(e,`Using cached exchange for ${this.provider}`);this.exchange=this.exchangeCache.get(this.provider);this.resolveQueue(this.exchange);return this.exchange}null===(c=null==e?void 0:e.step)||void 0===c||c.call(e,`Initializing exchange: ${this.provider}`);this.exchange=await this.initializeExchange(this.provider,3,e);this.resolveQueue(this.exchange);return this.exchange}catch(e){this.rejectQueue(e);throw e}finally{this.isInitializing=!1}}resolveQueue(e){for(;this.initializationQueue.length>0;){const{resolve:t}=this.initializationQueue.shift();t(e)}}rejectQueue(e){for(;this.initializationQueue.length>0;){const{reject:t}=this.initializationQueue.shift();t(e)}}async startExchangeProvider(e,t){var i,n,a,r;null===(i=null==t?void 0:t.step)||void 0===i||i.call(t,`Starting exchange provider: ${e}`);if(await(0,utils_1.handleBanStatus)(await(0,utils_1.loadBanStatus)())){null===(n=null==t?void 0:t.step)||void 0===n||n.call(t,"Exchange is currently banned");return null}if(!e)throw(0,error_1.createError)({statusCode:400,message:"Provider is required to start exchange provider."});this.exchangeCache.has(e)?null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,`Using cached exchange provider: ${e}`):null===(r=null==t?void 0:t.step)||void 0===r||r.call(t,`Initializing exchange provider: ${e}`);this.exchangeProvider=this.exchangeCache.get(e)||await this.initializeExchange(e,3,t);return this.exchangeProvider}removeExchange(e){if(!e)throw(0,error_1.createError)({statusCode:400,message:"Provider is required to remove exchange."});this.exchangeCache.delete(e);if(this.provider===e){this.exchange=null;this.provider=null}}async getProvider(){if(!this.provider){const e=await this.fetchActiveProvider();this.provider=(null==e?void 0:e.name)||null}return this.provider}async testExchangeCredentials(e,t,i=0){var n,a,r,l,s,o,c,u,d,h,g,v,p,m,f,x,y,w,_;null===(n=null==t?void 0:t.step)||void 0===n||n.call(t,`Testing exchange credentials for ${e}`);if(await(0,utils_1.handleBanStatus)(await(0,utils_1.loadBanStatus)())){null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,"Exchange is currently banned");return{status:!1,message:"Service temporarily unavailable. Please try again later."}}let E=null;try{null===(r=null==t?void 0:t.step)||void 0===r||r.call(t,`Loading API credentials for ${e}`);const i=process.env[`APP_${e.toUpperCase()}_API_KEY`],n=process.env[`APP_${e.toUpperCase()}_API_SECRET`],a=process.env[`APP_${e.toUpperCase()}_API_PASSPHRASE`];if(!i||!n||""===i||""===n){null===(l=null==t?void 0:t.step)||void 0===l||l.call(t,"API credentials are missing");return{status:!1,message:"API credentials are missing from environment variables"}}const v=await this.fetchProviderProxyUrl(e),p=v?createProxyAgent(v):httpsAgentIPv4;v&&(null===(s=null==t?void 0:t.step)||void 0===s||s.call(t,`Using proxy for ${e}: ${v.replace(/\/\/.*@/,"//***@")}`));null===(o=null==t?void 0:t.step)||void 0===o||o.call(t,`Creating test exchange instance for ${e}`);E=new ccxt.pro[e]({apiKey:i,secret:n,password:a,agent:p,timeout:3e4,enableRateLimit:!0,options:{adjustForTimeDifference:!0,recvWindow:6e4}});await this.syncExchangeTime(E,t);null===(c=null==t?void 0:t.step)||void 0===c||c.call(t,`Loading markets for ${e}`);await E.loadMarkets();null===(u=null==t?void 0:t.step)||void 0===u||u.call(t,`Fetching balance to verify credentials for ${e}`);const m=await E.fetchBalance();null===(d=null==t?void 0:t.step)||void 0===d||d.call(t,`Closing test connection for ${e}`);await E.close();if(m&&"object"==typeof m){null===(h=null==t?void 0:t.step)||void 0===h||h.call(t,`Credentials verified successfully for ${e}`);return{status:!0,message:"API credentials are valid and connection successful"}}null===(g=null==t?void 0:t.step)||void 0===g||g.call(t,`Failed to verify credentials for ${e}`);return{status:!1,message:"Failed to fetch balance with the provided credentials"}}catch(n){if(E)try{await E.close()}catch(e){}if(this.isTimestampError(n)&&i<2){null===(v=null==t?void 0:t.step)||void 0===v||v.call(t,`Timestamp error detected, retrying with time sync (attempt ${i+1}/2)...`);console_1.logger.info("EXCHANGE",`Timestamp error for ${e}, retrying with time sync (attempt ${i+1}/2)`);await(0,system_1.sleep)(1e3);return this.testExchangeCredentials(e,t,i+1)}console_1.logger.error("EXCHANGE","Failed to test exchange credentials",n);if("AuthenticationError"===n.name){null===(p=null==t?void 0:t.step)||void 0===p||p.call(t,`Authentication error for ${e}`);return{status:!1,message:"Invalid API credentials. Please check your API key and secret."}}if("NetworkError"===n.name||"ENOTFOUND"===n.code||"EAI_AGAIN"===n.code){null===(m=null==t?void 0:t.step)||void 0===m||m.call(t,`Network error for ${e}`);return{status:!1,message:"Network error. Please check your internet connection and try again."}}if("ExchangeNotAvailable"===n.name){null===(f=null==t?void 0:t.step)||void 0===f||f.call(t,`Exchange not available: ${e}`);const i=n.message||"";return i.includes("451")||i.includes("restricted location")||i.includes("Eligibility")?{status:!1,message:"Access denied: Your server's location is blocked by this exchange. Please configure a proxy in the Settings tab to connect through an allowed region."}:{status:!1,message:"Exchange service is temporarily unavailable. Please try again later."}}if("RateLimitExceeded"===n.name){null===(x=null==t?void 0:t.step)||void 0===x||x.call(t,`Rate limit exceeded for ${e}`);return{status:!1,message:"Rate limit exceeded. Please wait a moment and try again."}}if("PermissionDenied"===n.name){null===(y=null==t?void 0:t.step)||void 0===y||y.call(t,`Permission denied for ${e}`);return{status:!1,message:"Insufficient API permissions. Please check your API key permissions."}}if(this.isTimestampError(n)){null===(w=null==t?void 0:t.step)||void 0===w||w.call(t,`Timestamp synchronization failed for ${e}`);return{status:!1,message:"Server time synchronization failed. Please ensure your system clock is accurate and try again."}}null===(_=null==t?void 0:t.step)||void 0===_||_.call(t,`Connection failed for ${e}: ${n.message}`);return{status:!1,message:`Connection failed: ${n.message||"Unknown error occurred"}`}}}async stopExchange(){if(this.exchange){await this.exchange.close();this.exchange=null}}}ExchangeManager.instance=new ExchangeManager;exports.default=ExchangeManager.instance;
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.mapChainNameToChainId = mapChainNameToChainId;
+const ccxt = __importStar(require("ccxt"));
+const https_1 = require("https");
+const https_proxy_agent_1 = require("https-proxy-agent");
+const socks_proxy_agent_1 = require("socks-proxy-agent");
+const system_1 = require("./system");
+const db_1 = require("@b/db");
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+const utils_1 = require("@b/api/exchange/utils");
+const httpsAgentIPv4 = new https_1.Agent({
+    family: 4,
+    keepAlive: true,
+    timeout: 30000,
+});
+function createProxyAgent(proxyUrl) {
+    try {
+        const url = new URL(proxyUrl);
+        const protocol = url.protocol.toLowerCase();
+        if (protocol === "socks4:" || protocol === "socks5:" || protocol === "socks:") {
+            return new socks_proxy_agent_1.SocksProxyAgent(proxyUrl);
+        }
+        else if (protocol === "http:" || protocol === "https:") {
+            return new https_proxy_agent_1.HttpsProxyAgent(proxyUrl);
+        }
+        else {
+            console_1.logger.warn("EXCHANGE", `Unknown proxy protocol: ${protocol}, using HTTPS proxy agent`);
+            return new https_proxy_agent_1.HttpsProxyAgent(proxyUrl);
+        }
+    }
+    catch (error) {
+        console_1.logger.error("EXCHANGE", `Invalid proxy URL: ${proxyUrl}`, error);
+        return null;
+    }
+}
+class ExchangeManager {
+    constructor() {
+        this.exchangeCache = new Map();
+        this.initializationPromises = new Map();
+        this.provider = null;
+        this.exchange = null;
+        this.exchangeProvider = null;
+        this.lastAttemptTime = null;
+        this.attemptCount = 0;
+        this.isInitializing = false;
+        this.initializationQueue = [];
+    }
+    async fetchActiveProvider() {
+        try {
+            const provider = await db_1.models.exchange.findOne({
+                where: {
+                    status: true,
+                },
+            });
+            if (!provider) {
+                return null;
+            }
+            return {
+                name: provider.name,
+                proxyUrl: provider.proxyUrl || undefined,
+            };
+        }
+        catch (error) {
+            console_1.logger.error("EXCHANGE", "Failed to fetch active provider", error);
+            return null;
+        }
+    }
+    async fetchProviderProxyUrl(providerName) {
+        try {
+            const provider = await db_1.models.exchange.findOne({
+                where: {
+                    name: providerName,
+                },
+            });
+            return (provider === null || provider === void 0 ? void 0 : provider.proxyUrl) || null;
+        }
+        catch (error) {
+            console_1.logger.error("EXCHANGE", "Failed to fetch provider proxy URL", error);
+            return null;
+        }
+    }
+    async initializeExchange(provider, retries = 3, ctx) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Checking ban status for ${provider}`);
+        if (await (0, utils_1.handleBanStatus)(await (0, utils_1.loadBanStatus)())) {
+            return null;
+        }
+        if (this.exchangeCache.has(provider)) {
+            (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, `Using cached exchange instance for ${provider}`);
+            return this.exchangeCache.get(provider);
+        }
+        const now = Date.now();
+        if (this.attemptCount >= 3 &&
+            this.lastAttemptTime &&
+            now - this.lastAttemptTime < 30 * 60 * 1000) {
+            (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, `Rate limit reached for ${provider}, waiting...`);
+            return null;
+        }
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, `Loading API credentials for ${provider}`);
+        const apiKey = process.env[`APP_${provider.toUpperCase()}_API_KEY`];
+        const apiSecret = process.env[`APP_${provider.toUpperCase()}_API_SECRET`];
+        const apiPassphrase = process.env[`APP_${provider.toUpperCase()}_API_PASSPHRASE`];
+        if (!apiKey || !apiSecret || apiKey === "" || apiSecret === "") {
+            console_1.logger.error("EXCHANGE", `API credentials for ${provider} are missing.`, new Error(`API credentials for ${provider} are missing.`));
+            this.attemptCount += 1;
+            this.lastAttemptTime = now;
+            return null;
+        }
+        const proxyUrl = await this.fetchProviderProxyUrl(provider);
+        const agent = proxyUrl ? createProxyAgent(proxyUrl) : httpsAgentIPv4;
+        if (proxyUrl) {
+            (_e = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _e === void 0 ? void 0 : _e.call(ctx, `Using proxy for ${provider}: ${proxyUrl.replace(/\/\/.*@/, "//***@")}`);
+            console_1.logger.info("EXCHANGE", `Using proxy for ${provider}`);
+        }
+        try {
+            (_f = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _f === void 0 ? void 0 : _f.call(ctx, `Creating exchange instance for ${provider}`);
+            let exchange = new ccxt.pro[provider]({
+                apiKey,
+                secret: apiSecret,
+                password: apiPassphrase,
+                agent,
+                timeout: 30000,
+                enableRateLimit: true,
+                options: {
+                    adjustForTimeDifference: true,
+                    recvWindow: 60000,
+                },
+            });
+            (_g = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _g === void 0 ? void 0 : _g.call(ctx, `Validating credentials for ${provider}`);
+            const credentialsValid = await exchange.checkRequiredCredentials();
+            if (!credentialsValid) {
+                console_1.logger.error("EXCHANGE", `API credentials for ${provider} are invalid.`, new Error(`API credentials for ${provider} are invalid.`));
+                await exchange.close();
+                exchange = new ccxt.pro[provider]({
+                    agent,
+                    timeout: 30000,
+                    enableRateLimit: true,
+                });
+            }
+            await this.syncExchangeTime(exchange, ctx);
+            try {
+                (_h = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _h === void 0 ? void 0 : _h.call(ctx, `Loading markets for ${provider}`);
+                await exchange.loadMarkets();
+            }
+            catch (error) {
+                if (this.isRateLimitError(error)) {
+                    (_j = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _j === void 0 ? void 0 : _j.call(ctx, `Rate limit error detected for ${provider}, retrying...`);
+                    await this.handleRateLimitError(provider, ctx);
+                    return this.initializeExchange(provider, retries, ctx);
+                }
+                else if (this.isTimestampError(error) && retries > 0) {
+                    (_k = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _k === void 0 ? void 0 : _k.call(ctx, `Timestamp error detected for ${provider}, creating fresh instance with time sync...`);
+                    console_1.logger.info("EXCHANGE", `Timestamp error for ${provider}, recreating exchange with fresh time sync (this is expected and being handled)`);
+                    try {
+                        await exchange.close();
+                    }
+                    catch (closeError) {
+                    }
+                    await (0, system_1.sleep)(1000);
+                    const freshExchange = new ccxt.pro[provider]({
+                        apiKey,
+                        secret: apiSecret,
+                        password: apiPassphrase,
+                        agent,
+                        timeout: 30000,
+                        enableRateLimit: true,
+                        options: {
+                            adjustForTimeDifference: true,
+                            recvWindow: 60000,
+                        },
+                    });
+                    const syncSuccess = await this.syncExchangeTime(freshExchange, ctx);
+                    if (!syncSuccess) {
+                        (_l = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _l === void 0 ? void 0 : _l.call(ctx, `Time sync failed, trying manual offset adjustment...`);
+                        freshExchange.timeDifference = -1000;
+                    }
+                    try {
+                        (_m = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _m === void 0 ? void 0 : _m.call(ctx, `Retrying loadMarkets with fresh exchange instance...`);
+                        await freshExchange.loadMarkets();
+                        this.exchangeCache.set(provider, freshExchange);
+                        this.attemptCount = 0;
+                        this.lastAttemptTime = null;
+                        (_o = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _o === void 0 ? void 0 : _o.call(ctx, `Exchange ${provider} initialized successfully after time sync retry`);
+                        return freshExchange;
+                    }
+                    catch (retryError) {
+                        try {
+                            await freshExchange.close();
+                        }
+                        catch (closeErr) {
+                        }
+                        if (retries > 1) {
+                            (_p = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _p === void 0 ? void 0 : _p.call(ctx, `Retry failed, attempting again (${retries - 1} retries left)...`);
+                            await (0, system_1.sleep)(2000);
+                            return this.initializeExchange(provider, retries - 1, ctx);
+                        }
+                        throw retryError;
+                    }
+                }
+                else {
+                    console_1.logger.error("EXCHANGE", `Failed to load markets: ${error.message}`, new Error(`Failed to load markets: ${error.message}`));
+                    await exchange.close();
+                    exchange = new ccxt.pro[provider]({
+                        agent,
+                        timeout: 30000,
+                        enableRateLimit: true,
+                    });
+                }
+            }
+            this.exchangeCache.set(provider, exchange);
+            this.attemptCount = 0;
+            this.lastAttemptTime = null;
+            (_q = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _q === void 0 ? void 0 : _q.call(ctx, `Exchange ${provider} initialized successfully`);
+            return exchange;
+        }
+        catch (error) {
+            console_1.logger.error("EXCHANGE", "Failed to initialize exchange", error);
+            this.attemptCount += 1;
+            this.lastAttemptTime = now;
+            if (retries > 0 &&
+                (this.attemptCount < 3 || now - this.lastAttemptTime >= 30 * 60 * 1000)) {
+                (_r = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _r === void 0 ? void 0 : _r.call(ctx, `Retrying exchange initialization for ${provider} (${retries} retries left)`);
+                await (0, system_1.sleep)(5000);
+                return this.initializeExchange(provider, retries - 1, ctx);
+            }
+            return null;
+        }
+    }
+    isRateLimitError(error) {
+        return error instanceof ccxt.RateLimitExceeded || error.code === -1003;
+    }
+    isTimestampError(error) {
+        var _a;
+        const errorCode = error.code;
+        const errorMessage = ((_a = error.message) === null || _a === void 0 ? void 0 : _a.toLowerCase()) || "";
+        return (errorCode === -1021 ||
+            errorCode === "-1021" ||
+            error instanceof ccxt.InvalidNonce ||
+            error.name === "InvalidNonce" ||
+            errorMessage.includes("timestamp") ||
+            errorMessage.includes("recvwindow") ||
+            errorMessage.includes("ahead of the server") ||
+            errorMessage.includes("behind the server"));
+    }
+    async syncExchangeTime(exchange, ctx) {
+        var _a, _b, _c, _d;
+        try {
+            (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Synchronizing exchange server time...");
+            const serverTime = await exchange.fetchTime();
+            const localTime = Date.now();
+            const offset = serverTime - localTime;
+            exchange.options = exchange.options || {};
+            exchange.options.adjustForTimeDifference = true;
+            exchange.options.recvWindow = 60000;
+            exchange.options.timeDifference = offset;
+            exchange.timeDifference = offset;
+            if (Math.abs(offset) > 5000) {
+                (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, `Significant time offset detected: ${offset}ms, adjusting...`);
+                console_1.logger.warn("EXCHANGE", `Significant time offset with server: ${offset}ms. Consider syncing your system clock.`);
+            }
+            (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, `Time synchronized. Offset: ${offset}ms`);
+            console_1.logger.debug("EXCHANGE", `Time synchronized with server. Offset: ${offset}ms`);
+            return true;
+        }
+        catch (error) {
+            (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Failed to sync time, continuing anyway");
+            console_1.logger.warn("EXCHANGE", "Failed to sync exchange time", error);
+            return false;
+        }
+    }
+    async handleRateLimitError(provider, ctx) {
+        var _a;
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Rate limit exceeded for ${provider}, applying 1-minute ban`);
+        const banTime = Date.now() + 60000;
+        await (0, utils_1.saveBanStatus)(banTime);
+        await (0, system_1.sleep)(60000);
+    }
+    async startExchange(ctx) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Starting exchange initialization");
+        if (await (0, utils_1.handleBanStatus)(await (0, utils_1.loadBanStatus)())) {
+            (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Exchange is currently banned");
+            return null;
+        }
+        if (this.exchange) {
+            (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Using existing exchange instance");
+            return this.exchange;
+        }
+        if (this.isInitializing) {
+            (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Exchange initialization already in progress, queuing request");
+            return new Promise((resolve, reject) => {
+                this.initializationQueue.push({ resolve, reject });
+            });
+        }
+        this.isInitializing = true;
+        try {
+            (_e = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _e === void 0 ? void 0 : _e.call(ctx, "Fetching active exchange provider");
+            if (!this.provider) {
+                const providerData = await this.fetchActiveProvider();
+                this.provider = (providerData === null || providerData === void 0 ? void 0 : providerData.name) || null;
+            }
+            if (!this.provider) {
+                (_f = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _f === void 0 ? void 0 : _f.call(ctx, "No active exchange provider found");
+                this.resolveQueue(null);
+                return null;
+            }
+            (_g = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _g === void 0 ? void 0 : _g.call(ctx, `Active provider: ${this.provider}`);
+            if (this.exchangeCache.has(this.provider)) {
+                (_h = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _h === void 0 ? void 0 : _h.call(ctx, `Using cached exchange for ${this.provider}`);
+                this.exchange = this.exchangeCache.get(this.provider);
+                this.resolveQueue(this.exchange);
+                return this.exchange;
+            }
+            (_j = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _j === void 0 ? void 0 : _j.call(ctx, `Initializing exchange: ${this.provider}`);
+            this.exchange = await this.initializeExchange(this.provider, 3, ctx);
+            this.resolveQueue(this.exchange);
+            return this.exchange;
+        }
+        catch (error) {
+            this.rejectQueue(error);
+            throw error;
+        }
+        finally {
+            this.isInitializing = false;
+        }
+    }
+    resolveQueue(result) {
+        while (this.initializationQueue.length > 0) {
+            const { resolve } = this.initializationQueue.shift();
+            resolve(result);
+        }
+    }
+    rejectQueue(error) {
+        while (this.initializationQueue.length > 0) {
+            const { reject } = this.initializationQueue.shift();
+            reject(error);
+        }
+    }
+    async startExchangeProvider(provider, ctx) {
+        var _a, _b, _c, _d;
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Starting exchange provider: ${provider}`);
+        if (await (0, utils_1.handleBanStatus)(await (0, utils_1.loadBanStatus)())) {
+            (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Exchange is currently banned");
+            return null;
+        }
+        if (!provider) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "Provider is required to start exchange provider." });
+        }
+        if (this.exchangeCache.has(provider)) {
+            (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, `Using cached exchange provider: ${provider}`);
+        }
+        else {
+            (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, `Initializing exchange provider: ${provider}`);
+        }
+        this.exchangeProvider =
+            this.exchangeCache.get(provider) ||
+                (await this.initializeExchange(provider, 3, ctx));
+        return this.exchangeProvider;
+    }
+    removeExchange(provider) {
+        if (!provider) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "Provider is required to remove exchange." });
+        }
+        this.exchangeCache.delete(provider);
+        if (this.provider === provider) {
+            this.exchange = null;
+            this.provider = null;
+        }
+    }
+    async getProvider() {
+        if (!this.provider) {
+            const providerData = await this.fetchActiveProvider();
+            this.provider = (providerData === null || providerData === void 0 ? void 0 : providerData.name) || null;
+        }
+        return this.provider;
+    }
+    async testExchangeCredentials(provider, ctx, retryCount = 0) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Testing exchange credentials for ${provider}`);
+        if (await (0, utils_1.handleBanStatus)(await (0, utils_1.loadBanStatus)())) {
+            (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Exchange is currently banned");
+            return {
+                status: false,
+                message: "Service temporarily unavailable. Please try again later.",
+            };
+        }
+        let exchange = null;
+        try {
+            (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, `Loading API credentials for ${provider}`);
+            const apiKey = process.env[`APP_${provider.toUpperCase()}_API_KEY`];
+            const apiSecret = process.env[`APP_${provider.toUpperCase()}_API_SECRET`];
+            const apiPassphrase = process.env[`APP_${provider.toUpperCase()}_API_PASSPHRASE`];
+            if (!apiKey || !apiSecret || apiKey === "" || apiSecret === "") {
+                (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "API credentials are missing");
+                return {
+                    status: false,
+                    message: "API credentials are missing from environment variables",
+                };
+            }
+            const proxyUrl = await this.fetchProviderProxyUrl(provider);
+            const agent = proxyUrl ? createProxyAgent(proxyUrl) : httpsAgentIPv4;
+            if (proxyUrl) {
+                (_e = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _e === void 0 ? void 0 : _e.call(ctx, `Using proxy for ${provider}: ${proxyUrl.replace(/\/\/.*@/, "//***@")}`);
+            }
+            (_f = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _f === void 0 ? void 0 : _f.call(ctx, `Creating test exchange instance for ${provider}`);
+            exchange = new ccxt.pro[provider]({
+                apiKey,
+                secret: apiSecret,
+                password: apiPassphrase,
+                agent,
+                timeout: 30000,
+                enableRateLimit: true,
+                options: {
+                    adjustForTimeDifference: true,
+                    recvWindow: 60000,
+                },
+            });
+            await this.syncExchangeTime(exchange, ctx);
+            (_g = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _g === void 0 ? void 0 : _g.call(ctx, `Loading markets for ${provider}`);
+            await exchange.loadMarkets();
+            (_h = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _h === void 0 ? void 0 : _h.call(ctx, `Fetching balance to verify credentials for ${provider}`);
+            const balance = await exchange.fetchBalance();
+            (_j = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _j === void 0 ? void 0 : _j.call(ctx, `Closing test connection for ${provider}`);
+            await exchange.close();
+            if (balance && typeof balance === 'object') {
+                (_k = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _k === void 0 ? void 0 : _k.call(ctx, `Credentials verified successfully for ${provider}`);
+                return {
+                    status: true,
+                    message: "API credentials are valid and connection successful",
+                };
+            }
+            else {
+                (_l = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _l === void 0 ? void 0 : _l.call(ctx, `Failed to verify credentials for ${provider}`);
+                return {
+                    status: false,
+                    message: "Failed to fetch balance with the provided credentials",
+                };
+            }
+        }
+        catch (error) {
+            if (exchange) {
+                try {
+                    await exchange.close();
+                }
+                catch (closeError) {
+                }
+            }
+            if (this.isTimestampError(error) && retryCount < 2) {
+                (_m = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _m === void 0 ? void 0 : _m.call(ctx, `Timestamp error detected, retrying with time sync (attempt ${retryCount + 1}/2)...`);
+                console_1.logger.info("EXCHANGE", `Timestamp error for ${provider}, retrying with time sync (attempt ${retryCount + 1}/2)`);
+                await (0, system_1.sleep)(1000);
+                return this.testExchangeCredentials(provider, ctx, retryCount + 1);
+            }
+            console_1.logger.error("EXCHANGE", "Failed to test exchange credentials", error);
+            if (error.name === 'AuthenticationError') {
+                (_o = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _o === void 0 ? void 0 : _o.call(ctx, `Authentication error for ${provider}`);
+                return {
+                    status: false,
+                    message: "Invalid API credentials. Please check your API key and secret.",
+                };
+            }
+            else if (error.name === 'NetworkError' || error.code === 'ENOTFOUND' || error.code === 'EAI_AGAIN') {
+                (_p = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _p === void 0 ? void 0 : _p.call(ctx, `Network error for ${provider}`);
+                return {
+                    status: false,
+                    message: "Network error. Please check your internet connection and try again.",
+                };
+            }
+            else if (error.name === 'ExchangeNotAvailable') {
+                (_q = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _q === void 0 ? void 0 : _q.call(ctx, `Exchange not available: ${provider}`);
+                const errorMessage = error.message || '';
+                if (errorMessage.includes('451') || errorMessage.includes('restricted location') || errorMessage.includes('Eligibility')) {
+                    return {
+                        status: false,
+                        message: "Access denied: Your server's location is blocked by this exchange. Please configure a proxy in the Settings tab to connect through an allowed region.",
+                    };
+                }
+                return {
+                    status: false,
+                    message: "Exchange service is temporarily unavailable. Please try again later.",
+                };
+            }
+            else if (error.name === 'RateLimitExceeded') {
+                (_r = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _r === void 0 ? void 0 : _r.call(ctx, `Rate limit exceeded for ${provider}`);
+                return {
+                    status: false,
+                    message: "Rate limit exceeded. Please wait a moment and try again.",
+                };
+            }
+            else if (error.name === 'PermissionDenied') {
+                (_s = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _s === void 0 ? void 0 : _s.call(ctx, `Permission denied for ${provider}`);
+                return {
+                    status: false,
+                    message: "Insufficient API permissions. Please check your API key permissions.",
+                };
+            }
+            else if (this.isTimestampError(error)) {
+                (_t = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _t === void 0 ? void 0 : _t.call(ctx, `Timestamp synchronization failed for ${provider}`);
+                return {
+                    status: false,
+                    message: "Server time synchronization failed. Please ensure your system clock is accurate and try again.",
+                };
+            }
+            else {
+                (_u = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _u === void 0 ? void 0 : _u.call(ctx, `Connection failed for ${provider}: ${error.message}`);
+                return {
+                    status: false,
+                    message: `Connection failed: ${error.message || 'Unknown error occurred'}`,
+                };
+            }
+        }
+    }
+    async stopExchange() {
+        if (this.exchange) {
+            await this.exchange.close();
+            this.exchange = null;
+        }
+    }
+}
+ExchangeManager.instance = new ExchangeManager();
+exports.default = ExchangeManager.instance;
+function mapChainNameToChainId(chainName) {
+    const chainMap = {
+        BEP20: "bsc",
+        BEP2: "bnb",
+        ERC20: "eth",
+        TRC20: "trx",
+        "KAVA EVM CO-CHAIN": "kavaevm",
+        "LIGHTNING NETWORK": "lightning",
+        "BTC-SEGWIT": "btc",
+        "ASSET HUB(POLKADOT)": "polkadot",
+    };
+    return chainMap[chainName] || chainName;
+}

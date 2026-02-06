@@ -100,7 +100,7 @@ export default function LoginForm({
       }
 
       // Solve PoW captcha if enabled
-      let powSolution = null;
+      let powSolution: any = null;
       try {
         powSolution = await solveAndGetSolution("login");
       } catch (powError) {
@@ -201,14 +201,36 @@ export default function LoginForm({
       setGoogleLoading(true);
       googleButtonClicked.current = true;
 
-      // Open Google login popup and get the ID token
-      const idToken = await openGoogleLoginPopup(googleClientId);
+      // Open Google login popup and get the response (can be ID token or access token with user info)
+      const googleResponse = await openGoogleLoginPopup(googleClientId);
 
-      // Send the ID token to our backend
+      // Prepare the request body based on response type
+      let requestBody: any;
+
+      if (typeof googleResponse === 'string') {
+        // Standard ID token flow
+        requestBody = { token: googleResponse };
+      } else if (googleResponse && typeof googleResponse === 'object') {
+        // OAuth fallback flow with access token and user info
+        if (googleResponse.credential) {
+          requestBody = { token: googleResponse.credential };
+        } else if (googleResponse.access_token) {
+          requestBody = {
+            access_token: googleResponse.access_token,
+            user_info: googleResponse.user_info
+          };
+        } else {
+          throw new Error("Invalid Google response format");
+        }
+      } else {
+        throw new Error("No credential received from Google");
+      }
+
+      // Send to our backend
       const { data, error } = await $fetch({
         url: "/api/auth/login/google",
         method: "POST",
-        body: { token: idToken },
+        body: requestBody,
       });
 
       if (error) {

@@ -56,7 +56,7 @@ export function PostsClient() {
       try {
         setIsDeleting(true);
         const { error } = await $fetch({
-          url: `/api/admin/blog/author/manage/${id}`,
+          url: `/api/blog/author/manage/${id}`,
           method: "DELETE",
         });
         if (error) {

@@ -23,7 +23,7 @@ export default function BinaryOrderPage() {
       canEdit={false}
       canDelete={false}
       canView={true}
-      isParanoid={true}
+      isParanoid={false}
       title={t("binary_orders_management")}
       description={t("view_and_manage_binary_trading_orders")}
       itemTitle="Binary Order"

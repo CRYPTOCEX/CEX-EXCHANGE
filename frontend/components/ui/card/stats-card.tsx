@@ -110,6 +110,7 @@ export function StatsCard({
       "zinc": "bg-zinc-500",
       "green": "bg-green-500",
       "yellow": "bg-yellow-500",
+      "rose": "bg-rose-500",
     }
     return colorMap[baseColor] || "bg-primary"
   }
@@ -131,6 +132,7 @@ export function StatsCard({
       "zinc": "#71717a",
       "green": "#22c55e",
       "yellow": "#eab308",
+      "rose": "#f43f5e",
     }
     return colorMap[baseColor] || "#8b5cf6"
   }
@@ -387,4 +389,9 @@ export const statsCardColors = {
   cyan: { color: "text-cyan-600 dark:text-cyan-400", bgColor: "bg-cyan-500/15 dark:bg-cyan-500/10" },
   orange: { color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-500/15 dark:bg-orange-500/10" },
   zinc: { color: "text-zinc-600 dark:text-zinc-400", bgColor: "bg-zinc-500/15 dark:bg-zinc-500/10" },
+  rose: { color: "text-rose-600 dark:text-rose-400", bgColor: "bg-rose-500/15 dark:bg-rose-500/10" },
+  primary: { color: "text-purple-600 dark:text-purple-400", bgColor: "bg-purple-500/15 dark:bg-purple-500/10" },
+  success: { color: "text-emerald-600 dark:text-emerald-400", bgColor: "bg-emerald-500/15 dark:bg-emerald-500/10" },
+  info: { color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-500/15 dark:bg-blue-500/10" },
+  warning: { color: "text-amber-600 dark:text-amber-400", bgColor: "bg-amber-500/15 dark:bg-amber-500/10" },
 }

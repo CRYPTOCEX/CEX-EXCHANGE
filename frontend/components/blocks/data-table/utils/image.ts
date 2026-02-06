@@ -34,69 +34,60 @@ async function uploadImageIfNeeded(
 
 /**
  * Processes image uploads for both top-level image fields and compound columns.
+ * Uploads any File instances found in the values and replaces them with URLs.
  */
 export async function processImageUploads(
   values: Record<string, any>,
   columns: ColumnDefinition[]
 ): Promise<Record<string, any>> {
   const processedValues = { ...values };
+  const processedKeys = new Set<string>();
+
+  // Build a map of image field keys to their directory names from columns
+  const fieldDirMap: Record<string, string> = {};
+  const fieldConfigMap: Record<string, { maxWidth?: number; maxHeight?: number }> = {};
+
+  // Map specific compound columns to better directory names
+  const dirMapping: Record<string, string> = {
+    'depositCompound': 'depositMethods',
+    'withdrawCompound': 'withdrawMethods',
+    'planCompound': 'plans',
+    'methodCompound': 'methods',
+    'compoundTitle': 'titles',
+  };
 
   for (const column of columns) {
-    // Use a more appropriate directory name for different column types
-    let dir = column.key;
-    
-    // Map specific compound columns to better directory names
-    const dirMapping: Record<string, string> = {
-      'depositCompound': 'depositMethods',
-      'withdrawCompound': 'withdrawMethods',
-      'planCompound': 'plans',
-      'methodCompound': 'methods',
-      'compoundTitle': 'titles',
-    };
-    
-    // Use mapped directory if available, otherwise use column key
-    if (dirMapping[column.key]) {
-      dir = dirMapping[column.key];
-    }
+    const dir = dirMapping[column.key] || column.key;
 
-    // Process top-level image field.
+    // Map top-level image fields
     if (column.type === "image") {
-      const file = values[column.key];
-      if (file instanceof File) {
-        const url = await uploadImageIfNeeded(
-          file,
-          dir,
-          {
-            maxWidth: (column as any).maxWidth,
-            maxHeight: (column as any).maxHeight,
-          },
-          column.key
-        );
-        processedValues[column.key] = url;
-      }
+      fieldDirMap[column.key] = dir;
+      fieldConfigMap[column.key] = {
+        maxWidth: (column as any).maxWidth,
+        maxHeight: (column as any).maxHeight,
+      };
     }
-    // Process compound image field.
-    else if (
-      column.type === "compound" &&
-      column.render?.config?.image &&
-      (column.render.config.image.usedInCreate ||
-        column.render.config.image.editable)
-    ) {
+    // Map compound image fields
+    else if (column.type === "compound" && column.render?.config?.image) {
       const imageConfig = column.render.config.image;
-      const imageFieldKey = imageConfig.key;
-      const file = values[imageFieldKey];
-      if (file instanceof File) {
-        const url = await uploadImageIfNeeded(
-          file,
-          dir,
-          {
-            maxWidth: (imageConfig as any).maxWidth,
-            maxHeight: (imageConfig as any).maxHeight,
-          },
-          imageFieldKey
-        );
-        processedValues[imageFieldKey] = url;
-      }
+      fieldDirMap[imageConfig.key] = dir;
+      fieldConfigMap[imageConfig.key] = {
+        maxWidth: (imageConfig as any).maxWidth,
+        maxHeight: (imageConfig as any).maxHeight,
+      };
+    }
+  }
+
+  // Process all values that are File instances
+  for (const [key, value] of Object.entries(values)) {
+    if (value instanceof File && !processedKeys.has(key)) {
+      // Use mapped directory if available, otherwise use 'uploads' as default
+      const dir = fieldDirMap[key] || 'uploads';
+      const config = fieldConfigMap[key] || {};
+
+      const url = await uploadImageIfNeeded(value, dir, config, key);
+      processedValues[key] = url;
+      processedKeys.add(key);
     }
   }
 

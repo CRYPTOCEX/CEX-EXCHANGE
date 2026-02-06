@@ -19,12 +19,12 @@ export default class comment
   // comment belongsTo user via userId
   user!: user;
   getUser!: Sequelize.BelongsToGetAssociationMixin<user>;
-  setUser!: Sequelize.BelongsToSetAssociationMixin<user, userId>;
+  setUser!: Sequelize.BelongsToSetAssociationMixin<user, string>;
   createUser!: Sequelize.BelongsToCreateAssociationMixin<user>;
   // comment belongsTo post via postId
   post!: post;
   getPost!: Sequelize.BelongsToGetAssociationMixin<post>;
-  setPost!: Sequelize.BelongsToSetAssociationMixin<post, postId>;
+  setPost!: Sequelize.BelongsToSetAssociationMixin<post, string>;
   createPost!: Sequelize.BelongsToCreateAssociationMixin<post>;
 
   public static initModel(sequelize: Sequelize.Sequelize): typeof comment {

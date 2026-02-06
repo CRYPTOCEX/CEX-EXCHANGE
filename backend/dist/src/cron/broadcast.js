@@ -1,1 +1,88 @@
-"use strict";async function getCronJobManager(){if(!CronJobManager){const e=await Promise.resolve().then(()=>__importStar(require("./index")));CronJobManager=e.default}return CronJobManager}async function broadcastStatus(e,t,r={}){try{const r=await getCronJobManager();(await r.getInstance()).updateJobRunningStatus(e,t)}catch(t){console_1.logger.error("CRON",`Failed to update cron status for ${e}`,t)}Websocket_1.messageBroker.broadcastToRoute("/api/admin/system/cron",{type:"status",cronName:e,data:{status:t,...r},timestamp:new Date})}async function broadcastProgress(e,t){try{const r=await getCronJobManager();(await r.getInstance()).updateJobRunningStatus(e,"running",t)}catch(t){console_1.logger.error("CRON",`Failed to update cron progress for ${e}`,t)}Websocket_1.messageBroker.broadcastToRoute("/api/admin/system/cron",{type:"progress",cronName:e,data:{progress:t},timestamp:new Date})}function broadcastLog(e,t,r="info"){Websocket_1.messageBroker.broadcastToRoute("/api/admin/system/cron",{type:"log",cronName:e,data:{message:t,logType:r},timestamp:new Date})}var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,r,a){void 0===a&&(a=r);var o=Object.getOwnPropertyDescriptor(t,r);o&&!("get"in o?!t.__esModule:o.writable||o.configurable)||(o={enumerable:!0,get:function(){return t[r]}});Object.defineProperty(e,a,o)}:function(e,t,r,a){void 0===a&&(a=r);e[a]=t[r]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&(t[t.length]=r);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var r={};if(null!=t)for(var a=e(t),o=0;o<a.length;o++)"default"!==a[o]&&__createBinding(r,t,a[o]);__setModuleDefault(r,t);return r}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.broadcastStatus=broadcastStatus;exports.broadcastProgress=broadcastProgress;exports.broadcastLog=broadcastLog;const Websocket_1=require("@b/handler/Websocket"),console_1=require("@b/utils/console");let CronJobManager=null;
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.broadcastStatus = broadcastStatus;
+exports.broadcastProgress = broadcastProgress;
+exports.broadcastLog = broadcastLog;
+const Websocket_1 = require("@b/handler/Websocket");
+const console_1 = require("@b/utils/console");
+let CronJobManager = null;
+async function getCronJobManager() {
+    if (!CronJobManager) {
+        const module = await Promise.resolve().then(() => __importStar(require("./index")));
+        CronJobManager = module.default;
+    }
+    return CronJobManager;
+}
+async function broadcastStatus(cronName, status, extra = {}) {
+    try {
+        const Manager = await getCronJobManager();
+        const cronJobManager = await Manager.getInstance();
+        cronJobManager.updateJobRunningStatus(cronName, status);
+    }
+    catch (error) {
+        console_1.logger.error("CRON", `Failed to update cron status for ${cronName}`, error);
+    }
+    Websocket_1.messageBroker.broadcastToRoute("/api/admin/system/cron", {
+        type: "status",
+        cronName,
+        data: { status, ...extra },
+        timestamp: new Date(),
+    });
+}
+async function broadcastProgress(cronName, progress) {
+    try {
+        const Manager = await getCronJobManager();
+        const cronJobManager = await Manager.getInstance();
+        cronJobManager.updateJobRunningStatus(cronName, "running", progress);
+    }
+    catch (error) {
+        console_1.logger.error("CRON", `Failed to update cron progress for ${cronName}`, error);
+    }
+    Websocket_1.messageBroker.broadcastToRoute("/api/admin/system/cron", {
+        type: "progress",
+        cronName,
+        data: { progress },
+        timestamp: new Date(),
+    });
+}
+function broadcastLog(cronName, logMessage, logType = "info") {
+    Websocket_1.messageBroker.broadcastToRoute("/api/admin/system/cron", {
+        type: "log",
+        cronName,
+        data: { message: logMessage, logType },
+        timestamp: new Date(),
+    });
+}

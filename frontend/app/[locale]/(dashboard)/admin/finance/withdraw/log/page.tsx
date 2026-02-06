@@ -2,7 +2,7 @@
 
 import DataTable from "@/components/blocks/data-table";
 import { useColumns } from "../../deposit/log/columns";
-import { useAnalytics } from "../../transaction/analytics";
+import { useAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
 import { TrendingUp } from "lucide-react";
 
@@ -31,6 +31,7 @@ export default function WithdrawLogPage() {
       canDelete={true}
       canView={true}
       viewLink="/admin/finance/withdraw/log/[id]"
+      isParanoid={true}
       title={t("withdraw_log_management")}
       description={t("view_and_manage_user_withdrawal_requests")}
       itemTitle="Withdraw Log"

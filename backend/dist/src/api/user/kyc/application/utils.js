@@ -1,1 +1,126 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.validateKycField=void 0;const validateKycField=(e,a)=>{if(e.required&&(null==a||""===a))return`${e.label} is required`;if(null==a||""===a)return null;if(e.validation){if("string"==typeof a){if(void 0!==e.validation.minLength&&a.length<e.validation.minLength)return`${e.label} must be at least ${e.validation.minLength} characters`;if(void 0!==e.validation.maxLength&&a.length>e.validation.maxLength)return`${e.label} must be at most ${e.validation.maxLength} characters`;if(e.validation.pattern){if(!new RegExp(e.validation.pattern).test(a))return e.validation.message||`${e.label} has an invalid format`}}if("number"==typeof a){if(void 0!==e.validation.min&&a<e.validation.min)return`${e.label} must be at least ${e.validation.min}`;if(void 0!==e.validation.max&&a>e.validation.max)return`${e.label} must be at most ${e.validation.max}`}}switch(e.type){case"TEXT":case"TEXTAREA":if("string"!=typeof a)return`${e.label} must be a string`;break;case"EMAIL":if("string"!=typeof a||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a))return`Please enter a valid email address for ${e.label}`;break;case"PHONE":if("string"!=typeof a||!/^\+?[0-9\s\-().]{7,}$/.test(a))return`Please enter a valid phone number for ${e.label}`;break;case"NUMBER":const t="string"==typeof a?parseFloat(a):a;if("number"!=typeof t||isNaN(t))return`${e.label} must be a valid number`;a=t;break;case"DATE":if("string"!=typeof a||isNaN(Date.parse(a)))return`${e.label} must be a valid date`;break;case"SELECT":case"RADIO":if("string"!=typeof a)return`${e.label} must be a string selection`;if(e.options&&!e.options.find(e=>e.value===a))return`${e.label} has an invalid selection`;break;case"CHECKBOX":if("boolean"!=typeof a)return`${e.label} must be a boolean`;break;case"IMAGE":case"FILE":if("string"!=typeof a)return`${e.label} must be a valid file URL`;break;case"ADDRESS":if("object"!=typeof a||Array.isArray(a))return`${e.label} must be an object with address details`;break;case"IDENTITY":if("object"!=typeof a||Array.isArray(a))return`${e.label} must be an object containing identity verification details`;if(!a.type)return`${e.label} must include a document type`;if(e.identityTypes&&Array.isArray(e.identityTypes)){const t=e.identityTypes.find(e=>e.value===a.type);if(!t)return`${e.label} has an invalid document type "${a.type}"`;for(const i of t.fields){if(i.required&&(void 0===a[i.id]||null===a[i.id]||""===a[i.id]))return`${e.label}: ${i.label} is required`;if("FILE"===i.type&&"string"!=typeof a[i.id])return`${e.label}: ${i.label} must be a valid file URL`}}}return null};exports.validateKycField=validateKycField;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.validateKycField = void 0;
+const validateKycField = (field, value) => {
+    if (field.required &&
+        (value === undefined || value === null || value === "")) {
+        return `${field.label} is required`;
+    }
+    if (value === undefined || value === null || value === "") {
+        return null;
+    }
+    if (field.validation) {
+        if (typeof value === "string") {
+            if (field.validation.minLength !== undefined &&
+                value.length < field.validation.minLength) {
+                return `${field.label} must be at least ${field.validation.minLength} characters`;
+            }
+            if (field.validation.maxLength !== undefined &&
+                value.length > field.validation.maxLength) {
+                return `${field.label} must be at most ${field.validation.maxLength} characters`;
+            }
+            if (field.validation.pattern) {
+                const regex = new RegExp(field.validation.pattern);
+                if (!regex.test(value)) {
+                    return (field.validation.message || `${field.label} has an invalid format`);
+                }
+            }
+        }
+        if (typeof value === "number") {
+            if (field.validation.min !== undefined && value < field.validation.min) {
+                return `${field.label} must be at least ${field.validation.min}`;
+            }
+            if (field.validation.max !== undefined && value > field.validation.max) {
+                return `${field.label} must be at most ${field.validation.max}`;
+            }
+        }
+    }
+    switch (field.type) {
+        case "TEXT":
+        case "TEXTAREA":
+            if (typeof value !== "string") {
+                return `${field.label} must be a string`;
+            }
+            break;
+        case "EMAIL":
+            if (typeof value !== "string" ||
+                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                return `Please enter a valid email address for ${field.label}`;
+            }
+            break;
+        case "PHONE":
+            if (typeof value !== "string" || !/^\+?[0-9\s\-().]{7,}$/.test(value)) {
+                return `Please enter a valid phone number for ${field.label}`;
+            }
+            break;
+        case "NUMBER":
+            const numValue = typeof value === "string" ? parseFloat(value) : value;
+            if (typeof numValue !== "number" || isNaN(numValue)) {
+                return `${field.label} must be a valid number`;
+            }
+            value = numValue;
+            break;
+        case "DATE":
+            if (typeof value !== "string" || isNaN(Date.parse(value))) {
+                return `${field.label} must be a valid date`;
+            }
+            break;
+        case "SELECT":
+        case "RADIO":
+            if (typeof value !== "string") {
+                return `${field.label} must be a string selection`;
+            }
+            if (field.options && !field.options.find((opt) => opt.value === value)) {
+                return `${field.label} has an invalid selection`;
+            }
+            break;
+        case "CHECKBOX":
+            if (typeof value !== "boolean") {
+                return `${field.label} must be a boolean`;
+            }
+            break;
+        case "IMAGE":
+        case "FILE":
+            if (typeof value !== "string") {
+                return `${field.label} must be a valid file URL`;
+            }
+            break;
+        case "ADDRESS":
+            if (typeof value !== "object" || Array.isArray(value)) {
+                return `${field.label} must be an object with address details`;
+            }
+            break;
+        case "IDENTITY":
+            if (typeof value !== "object" || Array.isArray(value)) {
+                return `${field.label} must be an object containing identity verification details`;
+            }
+            if (!value.type) {
+                return `${field.label} must include a document type`;
+            }
+            if (field.identityTypes && Array.isArray(field.identityTypes)) {
+                const identityConfig = field.identityTypes.find((it) => it.value === value.type);
+                if (!identityConfig) {
+                    return `${field.label} has an invalid document type "${value.type}"`;
+                }
+                for (const docField of identityConfig.fields) {
+                    if (docField.required &&
+                        (value[docField.id] === undefined ||
+                            value[docField.id] === null ||
+                            value[docField.id] === "")) {
+                        return `${field.label}: ${docField.label} is required`;
+                    }
+                    if (docField.type === "FILE" &&
+                        typeof value[docField.id] !== "string") {
+                        return `${field.label}: ${docField.label} must be a valid file URL`;
+                    }
+                }
+            }
+            break;
+        case "SECTION":
+            break;
+        default:
+            break;
+    }
+    return null;
+};
+exports.validateKycField = validateKycField;

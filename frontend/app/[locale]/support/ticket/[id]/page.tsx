@@ -242,7 +242,12 @@ export default function TicketDetailPage() {
   useEffect(() => {
     if (!ticket?.id) return;
     const connectionId = `ticket-${ticket.id}`;
-    const wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/api/user/support/ticket`;
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const isDev = process.env.NODE_ENV === "development";
+    const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || "4000";
+    // In development, connect directly to backend (Next.js rewrites don't support WebSocket upgrades)
+    const host = isDev ? `${window.location.hostname}:${backendPort}` : window.location.host;
+    const wsUrl = `${protocol}//${host}/api/user/support/ticket?userId=${user?.id || ''}`;
 
     // Connect to WebSocket
     wsManager.connect(wsUrl, connectionId);
@@ -290,26 +295,35 @@ export default function TicketDetailPage() {
           case "reply": {
             const { data: replyData } = data;
             if (replyData.message) {
+              console.log('[Support Ticket WS] Received reply message:', replyData.message);
               const messageContent = replyData.message.text || replyData.message.content || "";
               const messageTime = new Date(replyData.message.timestamp || replyData.message.time || Date.now());
               const messageSender = replyData.message.sender || (replyData.message.type === "client" ? "user" : "agent");
-              
+
+              const attachments = replyData.message.attachments || (replyData.message.attachment ? [replyData.message.attachment] : []);
+              console.log('[Support Ticket WS] Parsed attachments:', attachments, 'from:', {
+                attachments: replyData.message.attachments,
+                attachment: replyData.message.attachment
+              });
+
               setMessages((prev) => {
                 // Check if there's an optimistic message with the same content and sender that was sent recently (within 10 seconds)
-                const optimisticIndex = prev.findIndex(msg => 
-                  msg.content === messageContent && 
+                const optimisticIndex = prev.findIndex(msg =>
+                  msg.content === messageContent &&
                   msg.sender === messageSender &&
                   Math.abs(msg.timestamp.getTime() - messageTime.getTime()) < 10000 // Within 10 seconds
                 );
-                
+
                 const newMessage: Message = {
                   id: replyData.message.id || `server-${replyData.message.time || Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                   content: messageContent,
                   sender: messageSender as "user" | "agent",
                   timestamp: messageTime,
                   senderName: replyData.message.senderName,
-                  attachments: replyData.message.attachments || (replyData.message.attachment ? [replyData.message.attachment] : []),
+                  attachments: attachments,
                 };
+
+                console.log('[Support Ticket WS] Created message object:', newMessage);
                 
                 if (optimisticIndex !== -1) {
                   // Replace the optimistic message with the confirmed one

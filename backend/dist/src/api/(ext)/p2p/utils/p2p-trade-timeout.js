@@ -1,1 +1,448 @@
-"use strict";async function handleP2PTradeTimeouts(e){var t,r,a,o,i,n,l,d,s,u;try{null===(t=null==e?void 0:e.step)||void 0===t||t.call(e,"Starting P2P trade timeout handler");const{CacheManager:u}=await Promise.resolve().then(()=>__importStar(require("@b/utils/cache"))),c=u.getInstance(),f=await c.getSetting("p2pDefaultPaymentWindow")||30,p=new Date;p.setMinutes(p.getMinutes()-10);const g=(await db_1.models.p2pTrade.findAll({where:{status:{[sequelize_1.Op.in]:["PENDING","PAYMENT_SENT"]},createdAt:{[sequelize_1.Op.lt]:p}},include:[{model:db_1.models.p2pOffer,as:"offer",attributes:["id","currency","walletType","userId","tradeSettings"]}]})).filter(e=>{var t,r;const a=(null===(r=null===(t=e.offer)||void 0===t?void 0:t.tradeSettings)||void 0===r?void 0:r.autoCancel)||f;return(new Date).getTime()-new Date(e.createdAt).getTime()>60*a*1e3});if(g.length>0){null===(r=null==e?void 0:e.step)||void 0===r||r.call(e,`Processing ${g.length} expired trades`);console_1.logger.info("P2P",`Processing ${g.length} expired trades`)}for(const t of g){null===(a=null==e?void 0:e.step)||void 0===a||a.call(e,`Processing expired trade ${t.id}`);if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(t.id)){console_1.logger.warn("P2P",`Invalid trade ID detected: ${t.id}, deleting invalid trade`);try{await db_1.models.p2pTrade.destroy({where:{id:t.id},force:!0});console_1.logger.info("P2P",`Deleted invalid trade ${t.id}`)}catch(e){console_1.logger.error("P2P",`Failed to delete invalid trade ${t.id}`,e)}continue}const r=await db_1.sequelize.transaction();try{const a=await db_1.models.p2pTrade.findByPk(t.id,{lock:!0,transaction:r}),s=(null===(i=null===(o=t.offer)||void 0===o?void 0:o.tradeSettings)||void 0===i?void 0:i.autoCancel)||f,u=(new Date).getTime()-new Date(a.createdAt).getTime()>60*s*1e3;if(!a||!["PENDING","PAYMENT_SENT"].includes(a.status)||!u){await r.rollback();continue}if(("PENDING"===a.status||"PAYMENT_SENT"===a.status)&&t.offer)try{const e=await(0,utils_1.getWalletSafe)(a.sellerId,t.offer.walletType,t.offer.currency||a.currency);if(e){const o=Math.min(t.amount,e.inOrder);if(o>0){const i=`p2p_timeout_release_${t.id}`;await wallet_1.walletService.release({idempotencyKey:i,userId:a.sellerId,walletId:e.id,walletType:t.offer.walletType,currency:t.offer.currency||a.currency,amount:o,operationType:"P2P_TRADE_EXPIRED",description:`Release ${o} ${t.offer.currency||a.currency} - P2P trade expired`,metadata:{tradeId:t.id,offerId:t.offerId,expiredAt:(new Date).toISOString(),reason:"timeout"},transaction:r});console_1.logger.info("P2P",`Released ${o} ${t.offer.currency||a.currency} (${t.offer.walletType}) for seller ${a.sellerId}`);console_1.logger.debug("P2P",`Trade unlock details: amount=${t.amount}, prevInOrder=${e.inOrder}`);o<t.amount&&console_1.logger.warn("P2P",`Partial unlock - inOrder was less than trade amount: tradeId=${t.id}, amount=${t.amount}, available=${e.inOrder}, unlocked=${o}`)}else console_1.logger.warn("P2P",`No funds to unlock - inOrder is already 0: tradeId=${t.id}, amount=${t.amount}, currentInOrder=${e.inOrder}`)}}catch(e){console_1.logger.error("P2P",`Failed to release wallet funds for trade ${t.id}`,e)}let c=a.timeline||[];if("string"==typeof c)try{c=JSON.parse(c)}catch(e){c=[]}Array.isArray(c)||(c=[]);c.push({event:"TRADE_EXPIRED",message:"Trade expired due to timeout",userId:null,createdAt:(new Date).toISOString()});await a.update({status:"EXPIRED",timeline:c,expiredAt:new Date},{transaction:r});if(t.offerId){const e=await db_1.models.p2pOffer.findByPk(t.offerId,{lock:!0,transaction:r});if(e&&"ACTIVE"===e.status){const a=(0,json_parser_1.parseAmountConfig)(e.amountConfig),o=null!==(n=a.originalTotal)&&void 0!==n?n:a.total+t.amount,i=a.total+t.amount,l=Math.min(i,o);if(l>a.total){await e.update({amountConfig:{...a,total:l,originalTotal:o}},{transaction:r});console_1.logger.debug("P2P",`Restored offer amount: offerId=${e.id}, tradeAmount=${t.amount}, prevTotal=${a.total}, newTotal=${l}`)}else console_1.logger.debug("P2P",`Skipped restoration - at or above limit: offerId=${e.id}, currentTotal=${a.total}, max=${o}`)}}try{await db_1.models.p2pActivityLog.create({userId:t.sellerId,type:"TRADE_EXPIRED",action:"EXPIRED",relatedEntity:"TRADE",relatedEntityId:t.id,details:JSON.stringify({previousStatus:a.status,amount:t.amount,currency:null===(l=t.offer)||void 0===l?void 0:l.currency,buyerId:t.buyerId,sellerId:t.sellerId,systemGenerated:!0})},{transaction:r})}catch(e){console_1.logger.warn("P2P",`Failed to create activity log for trade ${t.id}, continuing with expiration`,e)}await r.commit();(0,notifications_1.notifyTradeEvent)(t.id,"TRADE_EXPIRED",{buyerId:t.buyerId,sellerId:t.sellerId,amount:t.amount,currency:t.offer.currency},e).catch(e=>console_1.logger.error("P2P","Failed to notify trade event",e));null===(d=null==e?void 0:e.step)||void 0===d||d.call(e,`Successfully expired trade ${t.id}`);console_1.logger.info("P2P",`Successfully expired trade ${t.id}`)}catch(e){await r.rollback();console_1.logger.error("P2P",`Failed to expire trade ${t.id}`,e)}}await handleExpiredOffers(e);null===(s=null==e?void 0:e.success)||void 0===s||s.call(e,"P2P trade timeout handler completed successfully")}catch(t){null===(u=null==e?void 0:e.fail)||void 0===u||u.call(e,t.message||"Trade timeout handler error");console_1.logger.error("P2P","Trade timeout handler error",t)}}async function handleExpiredOffers(e){var t,r,a,o,i,n;try{null===(t=null==e?void 0:e.step)||void 0===t||t.call(e,"Checking for expired offers");const n=30,l=new Date;l.setDate(l.getDate()-n);const d=await db_1.models.p2pOffer.findAll({where:{status:"ACTIVE",updatedAt:{[sequelize_1.Op.lt]:l},[sequelize_1.Op.or]:[(0,sequelize_1.literal)("JSON_EXTRACT(`amountConfig`, '$.total') = 0"),(0,sequelize_1.literal)("JSON_EXTRACT(`amountConfig`, '$.total') IS NULL"),(0,sequelize_1.literal)("CAST(JSON_EXTRACT(`amountConfig`, '$.total') AS DECIMAL(36,18)) <= 0")]}});if(d.length>0){null===(r=null==e?void 0:e.step)||void 0===r||r.call(e,`Processing ${d.length} expired offers`);console_1.logger.info("P2P",`Processing ${d.length} expired offers`)}for(const t of d){null===(a=null==e?void 0:e.step)||void 0===a||a.call(e,`Processing expired offer ${t.id}`);try{await t.update({status:"EXPIRED",adminNotes:`Auto-expired due to inactivity and zero balance at ${(new Date).toISOString()}`});await db_1.models.p2pActivityLog.create({userId:t.userId,type:"OFFER_EXPIRED",action:"EXPIRED",relatedEntity:"OFFER",relatedEntityId:t.id,details:JSON.stringify({reason:"inactivity_and_zero_balance",lastUpdated:t.updatedAt,systemGenerated:!0})});const{notifyOfferEvent:r}=await Promise.resolve().then(()=>__importStar(require("@b/api/(ext)/p2p/utils/notifications")));r(t.id,"OFFER_EXPIRED",{reason:"Inactivity and zero balance"},e).catch(e=>console_1.logger.error("P2P","Failed to notify offer event",e));null===(o=null==e?void 0:e.step)||void 0===o||o.call(e,`Expired offer ${t.id}`);console_1.logger.info("P2P",`Expired offer ${t.id}`)}catch(e){console_1.logger.error("P2P",`Failed to expire offer ${t.id}`,e)}}null===(i=null==e?void 0:e.success)||void 0===i||i.call(e,"Expired offers handled successfully")}catch(t){null===(n=null==e?void 0:e.fail)||void 0===n||n.call(e,t.message||"Offer expiry handler error");console_1.logger.error("P2P","Offer expiry handler error",t)}}async function archiveOldP2PTrades(){try{const e=90,t=new Date;t.setDate(t.getDate()-e);const r=await db_1.models.p2pTrade.findAll({where:{status:{[sequelize_1.Op.in]:["COMPLETED","CANCELLED","EXPIRED"]},updatedAt:{[sequelize_1.Op.lt]:t},archived:{[sequelize_1.Op.or]:[!1,null]}},limit:100});r.length>0&&console_1.logger.info("P2P",`Archiving ${r.length} trades`);for(const e of r)try{await e.update({archived:!0,archivedAt:new Date})}catch(t){console_1.logger.error("P2P",`Failed to archive trade ${e.id}`,t)}}catch(e){console_1.logger.error("P2P","Trade archival error",e)}}async function updateP2PReputationScores(){try{const e=await db_1.models.p2pTrade.findAll({attributes:[[(0,sequelize_1.fn)("DISTINCT",(0,sequelize_1.col)("buyerId")),"userId"]],where:{createdAt:{[sequelize_1.Op.gte]:new Date(Date.now()-2592e6)}},raw:!0}),t=await db_1.models.p2pTrade.findAll({attributes:[[(0,sequelize_1.fn)("DISTINCT",(0,sequelize_1.col)("sellerId")),"userId"]],where:{createdAt:{[sequelize_1.Op.gte]:new Date(Date.now()-2592e6)}},raw:!0}),r=[...new Set([...e.map(e=>e.userId),...t.map(e=>e.userId)])];r.length>0&&console_1.logger.info("P2P",`Updating reputation for ${r.length} users`);for(const e of r)try{const t=await db_1.models.p2pTrade.count({where:{[sequelize_1.Op.or]:[{buyerId:e},{sellerId:e}],status:"COMPLETED"}}),r=await db_1.models.p2pTrade.count({where:{[sequelize_1.Op.or]:[{buyerId:e},{sellerId:e}],status:{[sequelize_1.Op.ne]:"PENDING"}}}),a=await db_1.models.p2pDispute.count({where:{[sequelize_1.Op.or]:[{reportedById:e},{againstId:e}],status:"RESOLVED"}}),o=await db_1.models.p2pReview.findOne({attributes:[[(0,sequelize_1.fn)("AVG",(0,sequelize_1.col)("rating")),"avgRating"]],where:{reviewedUserId:e},raw:!0});let i=50;if(r>0){i+=30*(t/r)}o&&o.avgRating&&(i+=o.avgRating/5*20);i-=Math.min(5*a,20);i=Math.max(0,Math.min(100,Math.round(i)));if(10===t||50===t||100===t){const{notifyReputationEvent:r}=await Promise.resolve().then(()=>__importStar(require("@b/api/(ext)/p2p/utils/notifications")));r(e,"REPUTATION_MILESTONE",{milestone:t,reputationScore:i}).catch(e=>console_1.logger.error("P2P","Failed to notify reputation event",e))}}catch(t){console_1.logger.error("P2P",`Failed to update reputation for user ${e}`,t)}}catch(e){console_1.logger.error("P2P","Reputation update error",e)}}var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,r,a){void 0===a&&(a=r);var o=Object.getOwnPropertyDescriptor(t,r);o&&!("get"in o?!t.__esModule:o.writable||o.configurable)||(o={enumerable:!0,get:function(){return t[r]}});Object.defineProperty(e,a,o)}:function(e,t,r,a){void 0===a&&(a=r);e[a]=t[r]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&(t[t.length]=r);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var r={};if(null!=t)for(var a=e(t),o=0;o<a.length;o++)"default"!==a[o]&&__createBinding(r,t,a[o]);__setModuleDefault(r,t);return r}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.p2pJobs=void 0;exports.handleP2PTradeTimeouts=handleP2PTradeTimeouts;exports.archiveOldP2PTrades=archiveOldP2PTrades;exports.updateP2PReputationScores=updateP2PReputationScores;const db_1=require("@b/db"),sequelize_1=require("sequelize"),utils_1=require("@b/api/finance/wallet/utils"),notifications_1=require("@b/api/(ext)/p2p/utils/notifications"),json_parser_1=require("@b/api/(ext)/p2p/utils/json-parser"),console_1=require("@b/utils/console"),wallet_1=require("@b/services/wallet");exports.p2pJobs={handleTradeTimeouts:{name:"p2p-trade-timeout",schedule:"*/5 * * * *",handler:handleP2PTradeTimeouts},archiveTrades:{name:"p2p-archive-trades",schedule:"0 2 * * *",handler:archiveOldP2PTrades},updateReputation:{name:"p2p-update-reputation",schedule:"0 * * * *",handler:updateP2PReputationScores}};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.p2pJobs = void 0;
+exports.handleP2PTradeTimeouts = handleP2PTradeTimeouts;
+exports.archiveOldP2PTrades = archiveOldP2PTrades;
+exports.updateP2PReputationScores = updateP2PReputationScores;
+const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
+const utils_1 = require("@b/api/finance/wallet/utils");
+const notifications_1 = require("@b/api/(ext)/p2p/utils/notifications");
+const json_parser_1 = require("@b/api/(ext)/p2p/utils/json-parser");
+const console_1 = require("@b/utils/console");
+const wallet_1 = require("@b/services/wallet");
+async function handleP2PTradeTimeouts(ctx) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Starting P2P trade timeout handler");
+        const { CacheManager } = await Promise.resolve().then(() => __importStar(require("@b/utils/cache")));
+        const cacheManager = CacheManager.getInstance();
+        const defaultPaymentWindowMinutes = await cacheManager.getSetting("p2pDefaultPaymentWindow") || 30;
+        const potentiallyExpiredCutoff = new Date();
+        potentiallyExpiredCutoff.setMinutes(potentiallyExpiredCutoff.getMinutes() - 10);
+        const potentiallyExpiredTrades = await db_1.models.p2pTrade.findAll({
+            where: {
+                status: {
+                    [sequelize_1.Op.in]: ["PENDING", "PAYMENT_SENT"],
+                },
+                createdAt: {
+                    [sequelize_1.Op.lt]: potentiallyExpiredCutoff,
+                },
+            },
+            include: [
+                {
+                    model: db_1.models.p2pOffer,
+                    as: "offer",
+                    attributes: ["id", "currency", "walletType", "userId", "tradeSettings"],
+                },
+            ],
+        });
+        const expiredTrades = potentiallyExpiredTrades.filter((trade) => {
+            var _a;
+            const tradeOffer = trade.offer;
+            const offerTimeout = ((_a = tradeOffer === null || tradeOffer === void 0 ? void 0 : tradeOffer.tradeSettings) === null || _a === void 0 ? void 0 : _a.autoCancel) || defaultPaymentWindowMinutes;
+            const tradeAge = new Date().getTime() - new Date(trade.createdAt).getTime();
+            const isExpired = tradeAge > (offerTimeout * 60 * 1000);
+            return isExpired;
+        });
+        if (expiredTrades.length > 0) {
+            (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, `Processing ${expiredTrades.length} expired trades`);
+            console_1.logger.info("P2P", `Processing ${expiredTrades.length} expired trades`);
+        }
+        for (const trade of expiredTrades) {
+            (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, `Processing expired trade ${trade.id}`);
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (!uuidRegex.test(trade.id)) {
+                console_1.logger.warn("P2P", `Invalid trade ID detected: ${trade.id}, deleting invalid trade`);
+                try {
+                    await db_1.models.p2pTrade.destroy({ where: { id: trade.id }, force: true });
+                    console_1.logger.info("P2P", `Deleted invalid trade ${trade.id}`);
+                }
+                catch (deleteError) {
+                    console_1.logger.error("P2P", `Failed to delete invalid trade ${trade.id}`, deleteError);
+                }
+                continue;
+            }
+            const transaction = await db_1.sequelize.transaction();
+            try {
+                const lockedTrade = await db_1.models.p2pTrade.findByPk(trade.id, {
+                    lock: true,
+                    transaction,
+                });
+                const tradeOffer = trade.offer;
+                const offerTimeout = ((_d = tradeOffer === null || tradeOffer === void 0 ? void 0 : tradeOffer.tradeSettings) === null || _d === void 0 ? void 0 : _d.autoCancel) || defaultPaymentWindowMinutes;
+                const tradeAge = new Date().getTime() - new Date(lockedTrade.createdAt).getTime();
+                const isStillExpired = tradeAge > (offerTimeout * 60 * 1000);
+                if (!lockedTrade ||
+                    !["PENDING", "PAYMENT_SENT"].includes(lockedTrade.status) ||
+                    !isStillExpired) {
+                    await transaction.rollback();
+                    continue;
+                }
+                if ((lockedTrade.status === "PENDING" || lockedTrade.status === "PAYMENT_SENT") && trade.offer) {
+                    try {
+                        const sellerWallet = await (0, utils_1.getWalletSafe)(lockedTrade.sellerId, trade.offer.walletType, trade.offer.currency || lockedTrade.currency);
+                        if (sellerWallet) {
+                            const safeUnlockAmount = Math.min(trade.amount, (_e = sellerWallet.inOrder) !== null && _e !== void 0 ? _e : 0);
+                            if (safeUnlockAmount > 0) {
+                                const idempotencyKey = `p2p_timeout_release_${trade.id}`;
+                                await wallet_1.walletService.release({
+                                    idempotencyKey,
+                                    userId: lockedTrade.sellerId,
+                                    walletId: sellerWallet.id,
+                                    walletType: trade.offer.walletType,
+                                    currency: trade.offer.currency || lockedTrade.currency,
+                                    amount: safeUnlockAmount,
+                                    operationType: "P2P_TRADE_EXPIRED",
+                                    description: `Release ${safeUnlockAmount} ${trade.offer.currency || lockedTrade.currency} - P2P trade expired`,
+                                    metadata: {
+                                        tradeId: trade.id,
+                                        offerId: trade.offerId,
+                                        expiredAt: new Date().toISOString(),
+                                        reason: 'timeout',
+                                    },
+                                    transaction,
+                                });
+                                console_1.logger.info("P2P", `Released ${safeUnlockAmount} ${trade.offer.currency || lockedTrade.currency} (${trade.offer.walletType}) for seller ${lockedTrade.sellerId}`);
+                                console_1.logger.debug("P2P", `Trade unlock details: amount=${trade.amount}, prevInOrder=${sellerWallet.inOrder}`);
+                                if (safeUnlockAmount < trade.amount) {
+                                    console_1.logger.warn("P2P", `Partial unlock - inOrder was less than trade amount: tradeId=${trade.id}, amount=${trade.amount}, available=${sellerWallet.inOrder}, unlocked=${safeUnlockAmount}`);
+                                }
+                            }
+                            else {
+                                console_1.logger.warn("P2P", `No funds to unlock - inOrder is already 0: tradeId=${trade.id}, amount=${trade.amount}, currentInOrder=${sellerWallet.inOrder}`);
+                            }
+                        }
+                    }
+                    catch (walletError) {
+                        console_1.logger.error("P2P", `Failed to release wallet funds for trade ${trade.id}`, walletError);
+                    }
+                }
+                let timeline = lockedTrade.timeline || [];
+                if (typeof timeline === "string") {
+                    try {
+                        timeline = JSON.parse(timeline);
+                    }
+                    catch (_l) {
+                        timeline = [];
+                    }
+                }
+                if (!Array.isArray(timeline)) {
+                    timeline = [];
+                }
+                timeline.push({
+                    event: "TRADE_EXPIRED",
+                    message: "Trade expired due to timeout",
+                    userId: null,
+                    createdAt: new Date().toISOString(),
+                });
+                await lockedTrade.update({
+                    status: "EXPIRED",
+                    timeline,
+                    expiredAt: new Date(),
+                }, { transaction });
+                if (trade.offerId) {
+                    const offer = await db_1.models.p2pOffer.findByPk(trade.offerId, {
+                        lock: true,
+                        transaction,
+                    });
+                    if (offer && offer.status === "ACTIVE") {
+                        const amountConfig = (0, json_parser_1.parseAmountConfig)(offer.amountConfig);
+                        const originalTotal = (_f = amountConfig.originalTotal) !== null && _f !== void 0 ? _f : (amountConfig.total + trade.amount);
+                        const proposedTotal = amountConfig.total + trade.amount;
+                        const safeTotal = Math.min(proposedTotal, originalTotal);
+                        if (safeTotal > amountConfig.total) {
+                            await offer.update({
+                                amountConfig: {
+                                    ...amountConfig,
+                                    total: safeTotal,
+                                    originalTotal,
+                                },
+                            }, { transaction });
+                            console_1.logger.debug("P2P", `Restored offer amount: offerId=${offer.id}, tradeAmount=${trade.amount}, prevTotal=${amountConfig.total}, newTotal=${safeTotal}`);
+                        }
+                        else {
+                            console_1.logger.debug("P2P", `Skipped restoration - at or above limit: offerId=${offer.id}, currentTotal=${amountConfig.total}, max=${originalTotal}`);
+                        }
+                    }
+                }
+                try {
+                    await db_1.models.p2pActivityLog.create({
+                        userId: trade.sellerId,
+                        type: "TRADE_EXPIRED",
+                        action: "EXPIRED",
+                        relatedEntity: "TRADE",
+                        relatedEntityId: trade.id,
+                        details: JSON.stringify({
+                            previousStatus: lockedTrade.status,
+                            amount: trade.amount,
+                            currency: (_g = trade.offer) === null || _g === void 0 ? void 0 : _g.currency,
+                            buyerId: trade.buyerId,
+                            sellerId: trade.sellerId,
+                            systemGenerated: true,
+                        }),
+                    }, { transaction });
+                }
+                catch (activityLogError) {
+                    console_1.logger.warn("P2P", `Failed to create activity log for trade ${trade.id}, continuing with expiration`, activityLogError);
+                }
+                await transaction.commit();
+                (0, notifications_1.notifyTradeEvent)(trade.id, "TRADE_EXPIRED", {
+                    buyerId: trade.buyerId,
+                    sellerId: trade.sellerId,
+                    amount: trade.amount,
+                    currency: tradeOffer === null || tradeOffer === void 0 ? void 0 : tradeOffer.currency,
+                }, ctx).catch((err) => console_1.logger.error("P2P", "Failed to notify trade event", err));
+                (_h = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _h === void 0 ? void 0 : _h.call(ctx, `Successfully expired trade ${trade.id}`);
+                console_1.logger.info("P2P", `Successfully expired trade ${trade.id}`);
+            }
+            catch (error) {
+                await transaction.rollback();
+                console_1.logger.error("P2P", `Failed to expire trade ${trade.id}`, error);
+            }
+        }
+        await handleExpiredOffers(ctx);
+        (_j = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _j === void 0 ? void 0 : _j.call(ctx, "P2P trade timeout handler completed successfully");
+    }
+    catch (error) {
+        (_k = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _k === void 0 ? void 0 : _k.call(ctx, error.message || "Trade timeout handler error");
+        console_1.logger.error("P2P", "Trade timeout handler error", error);
+    }
+}
+async function handleExpiredOffers(ctx) {
+    var _a, _b, _c, _d, _e, _f;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Checking for expired offers");
+        const OFFER_EXPIRY_DAYS = 30;
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() - OFFER_EXPIRY_DAYS);
+        const expiredOffers = await db_1.models.p2pOffer.findAll({
+            where: {
+                status: "ACTIVE",
+                updatedAt: {
+                    [sequelize_1.Op.lt]: expiryDate,
+                },
+                [sequelize_1.Op.or]: [
+                    (0, sequelize_1.literal)(`JSON_EXTRACT(\`amountConfig\`, '$.total') = 0`),
+                    (0, sequelize_1.literal)(`JSON_EXTRACT(\`amountConfig\`, '$.total') IS NULL`),
+                    (0, sequelize_1.literal)(`CAST(JSON_EXTRACT(\`amountConfig\`, '$.total') AS DECIMAL(36,18)) <= 0`),
+                ],
+            },
+        });
+        if (expiredOffers.length > 0) {
+            (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, `Processing ${expiredOffers.length} expired offers`);
+            console_1.logger.info("P2P", `Processing ${expiredOffers.length} expired offers`);
+        }
+        for (const offer of expiredOffers) {
+            (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, `Processing expired offer ${offer.id}`);
+            try {
+                await offer.update({
+                    status: "EXPIRED",
+                    adminNotes: `Auto-expired due to inactivity and zero balance at ${new Date().toISOString()}`,
+                });
+                await db_1.models.p2pActivityLog.create({
+                    userId: offer.userId,
+                    type: "OFFER_EXPIRED",
+                    action: "EXPIRED",
+                    relatedEntity: "OFFER",
+                    relatedEntityId: offer.id,
+                    details: JSON.stringify({
+                        reason: "inactivity_and_zero_balance",
+                        lastUpdated: offer.updatedAt,
+                        systemGenerated: true,
+                    }),
+                });
+                const { notifyOfferEvent } = await Promise.resolve().then(() => __importStar(require("@b/api/(ext)/p2p/utils/notifications")));
+                notifyOfferEvent(offer.id, "OFFER_EXPIRED", {
+                    reason: "Inactivity and zero balance",
+                }, ctx).catch((err) => console_1.logger.error("P2P", "Failed to notify offer event", err));
+                (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, `Expired offer ${offer.id}`);
+                console_1.logger.info("P2P", `Expired offer ${offer.id}`);
+            }
+            catch (error) {
+                console_1.logger.error("P2P", `Failed to expire offer ${offer.id}`, error);
+            }
+        }
+        (_e = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _e === void 0 ? void 0 : _e.call(ctx, "Expired offers handled successfully");
+    }
+    catch (error) {
+        (_f = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _f === void 0 ? void 0 : _f.call(ctx, error.message || "Offer expiry handler error");
+        console_1.logger.error("P2P", "Offer expiry handler error", error);
+    }
+}
+async function archiveOldP2PTrades() {
+    try {
+        const ARCHIVE_DAYS = 90;
+        const archiveDate = new Date();
+        archiveDate.setDate(archiveDate.getDate() - ARCHIVE_DAYS);
+        const tradesToArchive = await db_1.models.p2pTrade.findAll({
+            where: {
+                status: {
+                    [sequelize_1.Op.in]: ["COMPLETED", "CANCELLED", "EXPIRED"],
+                },
+                updatedAt: {
+                    [sequelize_1.Op.lt]: archiveDate,
+                },
+            },
+            limit: 100,
+        });
+        if (tradesToArchive.length > 0) {
+            console_1.logger.info("P2P", `Archiving ${tradesToArchive.length} trades`);
+        }
+        for (const trade of tradesToArchive) {
+            try {
+                await trade.update({
+                    archived: true,
+                    archivedAt: new Date(),
+                });
+            }
+            catch (error) {
+                console_1.logger.error("P2P", `Failed to archive trade ${trade.id}`, error);
+            }
+        }
+    }
+    catch (error) {
+        console_1.logger.error("P2P", "Trade archival error", error);
+    }
+}
+async function updateP2PReputationScores() {
+    try {
+        const activeUsers = await db_1.models.p2pTrade.findAll({
+            attributes: [
+                [(0, sequelize_1.fn)("DISTINCT", (0, sequelize_1.col)("buyerId")), "userId"],
+            ],
+            where: {
+                createdAt: {
+                    [sequelize_1.Op.gte]: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+                },
+            },
+            raw: true,
+        });
+        const sellerIds = await db_1.models.p2pTrade.findAll({
+            attributes: [
+                [(0, sequelize_1.fn)("DISTINCT", (0, sequelize_1.col)("sellerId")), "userId"],
+            ],
+            where: {
+                createdAt: {
+                    [sequelize_1.Op.gte]: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+                },
+            },
+            raw: true,
+        });
+        const allUserIds = [
+            ...new Set([
+                ...activeUsers.map((u) => u.userId),
+                ...sellerIds.map((s) => s.userId),
+            ]),
+        ];
+        if (allUserIds.length > 0) {
+            console_1.logger.info("P2P", `Updating reputation for ${allUserIds.length} users`);
+        }
+        for (const userId of allUserIds) {
+            try {
+                const completedTrades = await db_1.models.p2pTrade.count({
+                    where: {
+                        [sequelize_1.Op.or]: [{ buyerId: userId }, { sellerId: userId }],
+                        status: "COMPLETED",
+                    },
+                });
+                const totalTrades = await db_1.models.p2pTrade.count({
+                    where: {
+                        [sequelize_1.Op.or]: [{ buyerId: userId }, { sellerId: userId }],
+                        status: {
+                            [sequelize_1.Op.ne]: "PENDING",
+                        },
+                    },
+                });
+                const disputedTrades = await db_1.models.p2pDispute.count({
+                    where: {
+                        [sequelize_1.Op.or]: [{ reportedById: userId }, { againstId: userId }],
+                        status: "RESOLVED",
+                    },
+                });
+                const avgRatingResult = await db_1.models.p2pReview.findOne({
+                    attributes: [
+                        [(0, sequelize_1.fn)("AVG", (0, sequelize_1.col)("rating")), "avgRating"],
+                    ],
+                    where: {
+                        revieweeId: userId,
+                    },
+                    raw: true,
+                });
+                let reputationScore = 50;
+                if (totalTrades > 0) {
+                    const completionRate = completedTrades / totalTrades;
+                    reputationScore += completionRate * 30;
+                }
+                if (avgRatingResult && avgRatingResult.avgRating) {
+                    reputationScore += (avgRatingResult.avgRating / 5) * 20;
+                }
+                reputationScore -= Math.min(disputedTrades * 5, 20);
+                reputationScore = Math.max(0, Math.min(100, Math.round(reputationScore)));
+                if (completedTrades === 10 || completedTrades === 50 || completedTrades === 100) {
+                    const { notifyReputationEvent } = await Promise.resolve().then(() => __importStar(require("@b/api/(ext)/p2p/utils/notifications")));
+                    notifyReputationEvent(userId, "REPUTATION_MILESTONE", {
+                        milestone: completedTrades,
+                        reputationScore,
+                    }).catch((err) => console_1.logger.error("P2P", "Failed to notify reputation event", err));
+                }
+            }
+            catch (error) {
+                console_1.logger.error("P2P", `Failed to update reputation for user ${userId}`, error);
+            }
+        }
+    }
+    catch (error) {
+        console_1.logger.error("P2P", "Reputation update error", error);
+    }
+}
+exports.p2pJobs = {
+    handleTradeTimeouts: {
+        name: "p2p-trade-timeout",
+        schedule: "*/5 * * * *",
+        handler: handleP2PTradeTimeouts,
+    },
+    archiveTrades: {
+        name: "p2p-archive-trades",
+        schedule: "0 2 * * *",
+        handler: archiveOldP2PTrades,
+    },
+    updateReputation: {
+        name: "p2p-update-reputation",
+        schedule: "0 * * * *",
+        handler: updateP2PReputationScores,
+    },
+};

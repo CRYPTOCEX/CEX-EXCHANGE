@@ -1,1 +1,262 @@
-"use strict";function getConditionCategory(e){return{TRADE:"Trading",DEPOSIT:"Deposits",INVESTMENT:"Investments",AI_INVESTMENT:"Investments",FOREX_INVESTMENT:"Investments",STAKING:"Staking",STAKING_LOYALTY:"Staking",ICO_CONTRIBUTION:"ICO",ECOMMERCE_PURCHASE:"E-commerce",P2P_TRADE:"P2P Trading",BINARY_WIN:"Network"}[e]||"Other"}function getConditionIcon(e){return{TRADE:"LineChart",DEPOSIT:"DollarSign",INVESTMENT:"TrendingUp",AI_INVESTMENT:"Bot",FOREX_INVESTMENT:"Globe",STAKING:"Coins",STAKING_LOYALTY:"Coins",ICO_CONTRIBUTION:"Rocket",ECOMMERCE_PURCHASE:"ShoppingBag",P2P_TRADE:"Users",BINARY_WIN:"Network"}[e]||"Gift"}function getTimeAgo(e){const r=Math.floor((Date.now()-e.getTime())/1e3);if(r<60)return"just now";if(r<3600)return`${Math.floor(r/60)}m ago`;if(r<86400)return`${Math.floor(r/3600)}h ago`;const t=Math.floor(r/86400);if(1===t)return"1 day ago";if(t<30)return`${t} days ago`;const a=Math.floor(t/30);return 1===a?"1 month ago":`${a} months ago`}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),query_1=require("@b/utils/query"),sequelize_1=require("sequelize"),cache_1=require("@b/utils/cache"),utils_1=require("@b/api/(ext)/affiliate/utils");exports.metadata={summary:"Get affiliate landing page data",description:"Retrieves comprehensive data for the affiliate landing page including stats, conditions, top affiliates, and recent activity.",operationId:"getAffiliateLanding",tags:["Affiliate","Landing"],logModule:"AFFILIATE",logTitle:"Get Landing Data",responses:{200:{description:"Affiliate landing page data retrieved successfully",content:{"application/json":{schema:{type:"object",properties:{stats:{type:"object"},conditions:{type:"array"},topAffiliates:{type:"array"},recentActivity:{type:"array"}}}}}},500:query_1.serverErrorResponse}};exports.default=async e=>{var r;const{ctx:t}=e;null==t||t.step("Fetching Affiliate Landing Data");try{const e=new Date,a=new Date(e.getTime()-2592e6),[i,n,o,l,d,s,u,c,f]=await Promise.all([db_1.models.mlmReferral.count({distinct:!0,col:"referrerId"}),db_1.models.mlmReferralReward.findOne({attributes:[[(0,sequelize_1.fn)("SUM",(0,sequelize_1.col)("reward")),"total"]],raw:!0}),db_1.models.mlmReferral.count(),db_1.models.mlmReferral.count({where:{status:"ACTIVE"}}),db_1.models.mlmReferralReward.findOne({attributes:[[(0,sequelize_1.fn)("SUM",(0,sequelize_1.col)("reward")),"total"],[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.literal)("DISTINCT referrerId")),"uniqueAffiliates"]],where:{createdAt:{[sequelize_1.Op.gte]:a}},raw:!0}),db_1.models.mlmReferralCondition.findAll({where:{status:!0},order:[["type","ASC"],["reward","DESC"]]}),db_1.models.mlmReferralReward.findAll({attributes:["referrerId",[(0,sequelize_1.fn)("SUM",(0,sequelize_1.col)("reward")),"totalEarnings"],[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.col)("mlmReferralReward.id")),"rewardCount"]],group:["referrerId"],order:[[(0,sequelize_1.literal)("totalEarnings"),"DESC"]],limit:5,include:[{model:db_1.models.user,as:"referrer",attributes:["id","avatar","createdAt"]}],raw:!1}),db_1.models.mlmReferralReward.findAll({where:{createdAt:{[sequelize_1.Op.gte]:a}},order:[["createdAt","DESC"]],limit:10,include:[{model:db_1.models.mlmReferralCondition,as:"condition",attributes:["type","name","rewardCurrency"]}]}),db_1.models.mlmReferral.findOne({attributes:[[(0,sequelize_1.literal)("COUNT(*) / NULLIF(COUNT(DISTINCT referrerId), 0)"),"avgReferrals"]],raw:!0})]),m=parseFloat(null==n?void 0:n.total)||0,g=parseFloat(null==d?void 0:d.total)||0,p=parseInt(null==d?void 0:d.uniqueAffiliates)||1,T=p>0?g/p:0,_=o>0?Math.round(l/o*100):0,E=parseFloat(null==f?void 0:f.avgReferrals)||0,I=u.length>0&&parseFloat(null===(r=u[0].dataValues)||void 0===r?void 0:r.totalEarnings)||0;null==t||t.step("Filtering conditions based on available extensions");const A=cache_1.CacheManager.getInstance(),w=await A.getExtensions(),y={STAKING_LOYALTY:"staking",P2P_TRADE:"p2p",AI_INVESTMENT:"ai_investment",ICO_CONTRIBUTION:"ico",FOREX_INVESTMENT:"forex",ECOMMERCE_PURCHASE:"ecommerce"},C=s.filter(e=>{const r=y[e.name];return!r||w.has(r)}).map(e=>({id:e.id,name:e.name,title:e.title,description:e.description,type:e.type,reward:e.reward,rewardType:e.rewardType,rewardCurrency:e.rewardCurrency,rewardWalletType:e.rewardWalletType,displayReward:"PERCENTAGE"===e.rewardType?`${e.reward}%`:`${e.reward} ${e.rewardCurrency}`,category:getConditionCategory(e.type),icon:getConditionIcon(e.type)})),v=u.map((e,r)=>{var t,a,i,n;const o=e.referrer||(null===(t=e.dataValues)||void 0===t?void 0:t.referrer),l=e.referrerId||(null===(a=e.dataValues)||void 0===a?void 0:a.referrerId);return{rank:r+1,avatar:(null==o?void 0:o.avatar)||null,displayName:`Affiliate #${String(l).slice(-4).toUpperCase()}`,totalEarnings:parseFloat(null===(i=e.dataValues)||void 0===i?void 0:i.totalEarnings)||0,rewardCount:parseInt(null===(n=e.dataValues)||void 0===n?void 0:n.rewardCount)||0,joinedAgo:(null==o?void 0:o.createdAt)?getTimeAgo(new Date(o.createdAt)):"Unknown"}}),N=c.slice(0,8).map(e=>{var r,t,a;return{type:"reward_earned",amount:e.reward,conditionType:(null===(r=e.condition)||void 0===r?void 0:r.type)||"UNKNOWN",conditionName:(null===(t=e.condition)||void 0===t?void 0:t.name)||"Reward",currency:(null===(a=e.condition)||void 0===a?void 0:a.rewardCurrency)||"USD",timeAgo:getTimeAgo(new Date(e.createdAt))}}),{mlmSystem:R}=await(0,utils_1.getMlmSystemAndSettings)();null==t||t.success("Affiliate landing data retrieved successfully");return{stats:{totalAffiliates:i,totalPaidOut:Math.round(100*m)/100,avgMonthlyEarnings:Math.round(100*T)/100,successRate:_,topEarning:Math.round(100*I)/100,avgReferrals:Math.round(10*E)/10},conditions:C,topAffiliates:v,recentActivity:N,mlmSystem:R}}catch(e){throw(0,error_1.createError)({statusCode:500,message:`Error retrieving affiliate landing data: ${e.message}`})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const query_1 = require("@b/utils/query");
+const sequelize_1 = require("sequelize");
+const cache_1 = require("@b/utils/cache");
+const utils_1 = require("@b/api/(ext)/affiliate/utils");
+exports.metadata = {
+    summary: "Get affiliate landing page data",
+    description: "Retrieves comprehensive data for the affiliate landing page including stats, conditions, top affiliates, and recent activity.",
+    operationId: "getAffiliateLanding",
+    tags: ["Affiliate", "Landing"],
+    logModule: "AFFILIATE",
+    logTitle: "Get Landing Data",
+    responses: {
+        200: {
+            description: "Affiliate landing page data retrieved successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            stats: { type: "object" },
+                            conditions: { type: "array" },
+                            topAffiliates: { type: "array" },
+                            recentActivity: { type: "array" },
+                        },
+                    },
+                },
+            },
+        },
+        500: query_1.serverErrorResponse,
+    },
+};
+exports.default = async (data) => {
+    var _a, _b, _c, _d, _e, _f;
+    const { ctx } = data;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching Affiliate Landing Data");
+    try {
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const [totalAffiliatesCount, totalPaidOutResult, totalReferralsCount, activeReferralsCount, recentRewardsResult, conditions, topAffiliatesResult, recentRewards, avgReferralsResult,] = await Promise.all([
+            db_1.models.mlmReferral.count({
+                distinct: true,
+                col: "referrerId",
+            }),
+            db_1.models.mlmReferralReward.findOne({
+                attributes: [[(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("reward")), "total"]],
+                raw: true,
+            }),
+            db_1.models.mlmReferral.count(),
+            db_1.models.mlmReferral.count({
+                where: { status: "ACTIVE" },
+            }),
+            db_1.models.mlmReferralReward.findOne({
+                attributes: [
+                    [(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("reward")), "total"],
+                    [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.literal)("DISTINCT referrerId")), "uniqueAffiliates"],
+                ],
+                where: {
+                    createdAt: { [sequelize_1.Op.gte]: thirtyDaysAgo },
+                },
+                raw: true,
+            }),
+            db_1.models.mlmReferralCondition.findAll({
+                where: { status: true },
+                order: [
+                    ["type", "ASC"],
+                    ["reward", "DESC"],
+                ],
+            }),
+            db_1.models.mlmReferralReward.findAll({
+                attributes: [
+                    "referrerId",
+                    [(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("reward")), "totalEarnings"],
+                    [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.col)("mlmReferralReward.id")), "rewardCount"],
+                ],
+                group: ["referrerId"],
+                order: [[(0, sequelize_1.literal)("totalEarnings"), "DESC"]],
+                limit: 5,
+                include: [
+                    {
+                        model: db_1.models.user,
+                        as: "referrer",
+                        attributes: ["id", "avatar", "createdAt"],
+                    },
+                ],
+                raw: false,
+            }),
+            db_1.models.mlmReferralReward.findAll({
+                where: {
+                    createdAt: { [sequelize_1.Op.gte]: thirtyDaysAgo },
+                },
+                order: [["createdAt", "DESC"]],
+                limit: 10,
+                include: [
+                    {
+                        model: db_1.models.mlmReferralCondition,
+                        as: "condition",
+                        attributes: ["type", "name", "rewardCurrency"],
+                    },
+                ],
+            }),
+            db_1.models.mlmReferral.findOne({
+                attributes: [
+                    [
+                        (0, sequelize_1.literal)("COUNT(*) / NULLIF(COUNT(DISTINCT referrerId), 0)"),
+                        "avgReferrals",
+                    ],
+                ],
+                raw: true,
+            }),
+        ]);
+        const totalPaidOut = parseFloat((_a = totalPaidOutResult === null || totalPaidOutResult === void 0 ? void 0 : totalPaidOutResult.total) !== null && _a !== void 0 ? _a : "0") || 0;
+        const recentRewardsTotal = parseFloat((_b = recentRewardsResult === null || recentRewardsResult === void 0 ? void 0 : recentRewardsResult.total) !== null && _b !== void 0 ? _b : "0") || 0;
+        const uniqueRecentAffiliates = parseInt((_c = recentRewardsResult === null || recentRewardsResult === void 0 ? void 0 : recentRewardsResult.uniqueAffiliates) !== null && _c !== void 0 ? _c : "1") || 1;
+        const avgMonthlyEarnings = uniqueRecentAffiliates > 0
+            ? recentRewardsTotal / uniqueRecentAffiliates
+            : 0;
+        const successRate = totalReferralsCount > 0
+            ? Math.round((activeReferralsCount / totalReferralsCount) * 100)
+            : 0;
+        const avgReferrals = parseFloat((_d = avgReferralsResult === null || avgReferralsResult === void 0 ? void 0 : avgReferralsResult.avgReferrals) !== null && _d !== void 0 ? _d : "0") || 0;
+        const topEarning = topAffiliatesResult.length > 0
+            ? parseFloat((_f = (_e = topAffiliatesResult[0].dataValues) === null || _e === void 0 ? void 0 : _e.totalEarnings) !== null && _f !== void 0 ? _f : "0") || 0
+            : 0;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Filtering conditions based on available extensions");
+        const cacheManager = cache_1.CacheManager.getInstance();
+        const extensions = await cacheManager.getExtensions();
+        const conditionExtensionMap = {
+            STAKING_LOYALTY: "staking",
+            P2P_TRADE: "p2p",
+            AI_INVESTMENT: "ai_investment",
+            ICO_CONTRIBUTION: "ico",
+            FOREX_INVESTMENT: "forex",
+            ECOMMERCE_PURCHASE: "ecommerce",
+        };
+        const filteredConditions = conditions.filter((condition) => {
+            const requiredExtension = conditionExtensionMap[condition.name];
+            if (requiredExtension) {
+                return extensions.has(requiredExtension);
+            }
+            return true;
+        });
+        const conditionsFormatted = filteredConditions.map((c) => ({
+            id: c.id,
+            name: c.name,
+            title: c.title,
+            description: c.description,
+            type: c.type,
+            reward: c.reward,
+            rewardType: c.rewardType,
+            rewardCurrency: c.rewardCurrency,
+            rewardWalletType: c.rewardWalletType,
+            displayReward: c.rewardType === "PERCENTAGE"
+                ? `${c.reward}%`
+                : `${c.reward} ${c.rewardCurrency}`,
+            category: getConditionCategory(c.type),
+            icon: getConditionIcon(c.type),
+        }));
+        const topAffiliatesFormatted = topAffiliatesResult.map((a, index) => {
+            var _a, _b, _c, _d;
+            const referrer = a.referrer || ((_a = a.dataValues) === null || _a === void 0 ? void 0 : _a.referrer);
+            const referrerId = a.referrerId || ((_b = a.dataValues) === null || _b === void 0 ? void 0 : _b.referrerId);
+            return {
+                rank: index + 1,
+                avatar: (referrer === null || referrer === void 0 ? void 0 : referrer.avatar) || null,
+                displayName: `Affiliate #${String(referrerId).slice(-4).toUpperCase()}`,
+                totalEarnings: parseFloat((_c = a.dataValues) === null || _c === void 0 ? void 0 : _c.totalEarnings) || 0,
+                rewardCount: parseInt((_d = a.dataValues) === null || _d === void 0 ? void 0 : _d.rewardCount) || 0,
+                joinedAgo: (referrer === null || referrer === void 0 ? void 0 : referrer.createdAt)
+                    ? getTimeAgo(new Date(referrer.createdAt))
+                    : "Unknown",
+            };
+        });
+        const recentActivityFormatted = recentRewards.slice(0, 8).map((r) => {
+            var _a, _b, _c;
+            return ({
+                type: "reward_earned",
+                amount: r.reward,
+                conditionType: ((_a = r.condition) === null || _a === void 0 ? void 0 : _a.type) || "UNKNOWN",
+                conditionName: ((_b = r.condition) === null || _b === void 0 ? void 0 : _b.name) || "Reward",
+                currency: ((_c = r.condition) === null || _c === void 0 ? void 0 : _c.rewardCurrency) || "USD",
+                timeAgo: getTimeAgo(new Date(r.createdAt)),
+            });
+        });
+        const { mlmSystem } = await (0, utils_1.getMlmSystemAndSettings)();
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Affiliate landing data retrieved successfully");
+        return {
+            stats: {
+                totalAffiliates: totalAffiliatesCount,
+                totalPaidOut: Math.round(totalPaidOut * 100) / 100,
+                avgMonthlyEarnings: Math.round(avgMonthlyEarnings * 100) / 100,
+                successRate,
+                topEarning: Math.round(topEarning * 100) / 100,
+                avgReferrals: Math.round(avgReferrals * 10) / 10,
+            },
+            conditions: conditionsFormatted,
+            topAffiliates: topAffiliatesFormatted,
+            recentActivity: recentActivityFormatted,
+            mlmSystem,
+        };
+    }
+    catch (error) {
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Error retrieving affiliate landing data: ${error.message}`,
+        });
+    }
+};
+function getConditionCategory(type) {
+    const categories = {
+        TRADE: "Trading",
+        DEPOSIT: "Deposits",
+        INVESTMENT: "Investments",
+        AI_INVESTMENT: "Investments",
+        FOREX_INVESTMENT: "Investments",
+        STAKING: "Staking",
+        STAKING_LOYALTY: "Staking",
+        ICO_CONTRIBUTION: "ICO",
+        ECOMMERCE_PURCHASE: "E-commerce",
+        P2P_TRADE: "P2P Trading",
+        BINARY_WIN: "Network",
+    };
+    return categories[type] || "Other";
+}
+function getConditionIcon(type) {
+    const icons = {
+        TRADE: "LineChart",
+        DEPOSIT: "DollarSign",
+        INVESTMENT: "TrendingUp",
+        AI_INVESTMENT: "Bot",
+        FOREX_INVESTMENT: "Globe",
+        STAKING: "Coins",
+        STAKING_LOYALTY: "Coins",
+        ICO_CONTRIBUTION: "Rocket",
+        ECOMMERCE_PURCHASE: "ShoppingBag",
+        P2P_TRADE: "Users",
+        BINARY_WIN: "Network",
+    };
+    return icons[type] || "Gift";
+}
+function getTimeAgo(date) {
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (seconds < 60)
+        return "just now";
+    if (seconds < 3600)
+        return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400)
+        return `${Math.floor(seconds / 3600)}h ago`;
+    const days = Math.floor(seconds / 86400);
+    if (days === 1)
+        return "1 day ago";
+    if (days < 30)
+        return `${days} days ago`;
+    const months = Math.floor(days / 30);
+    if (months === 1)
+        return "1 month ago";
+    return `${months} months ago`;
+}

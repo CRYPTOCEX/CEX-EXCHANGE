@@ -1,1 +1,160 @@
-"use strict";function encrypt(e){const r=crypto.randomBytes(12),t=crypto.createCipheriv(ENC_ALGO,ENC_KEY,r),o=Buffer.concat([t.update(e,"utf8"),t.final()]),n=t.getAuthTag();return[r.toString("hex"),n.toString("hex"),o.toString("hex")].join(":")}function decrypt(e){const[r,t,o]=e.split(":"),n=Buffer.from(r,"hex"),s=Buffer.from(t,"hex"),i=Buffer.from(o,"hex"),a=crypto.createDecipheriv(ENC_ALGO,ENC_KEY,n);a.setAuthTag(s);return Buffer.concat([a.update(i),a.final()]).toString("utf8")}function isEncrypted(e){if("string"!=typeof e)return!1;const r=e.split(":");return 3===r.length&&r.every(e=>/^[0-9a-fA-F]{16,}$/.test(e))}async function getUserById(e){const r=await db_1.models.user.findByPk(e);if(!r)throw(0,error_1.createError)({statusCode:400,message:"User not found"});return r}async function getUserWith2FA(e){var r;const t=await db_1.models.user.findOne({where:{id:e},include:{model:db_1.models.twoFactor,as:"twoFactor"}});if(!t||!(null===(r=t.twoFactor)||void 0===r?void 0:r.secret))throw(0,error_1.createError)({statusCode:400,message:"User not found or 2FA not enabled"});return t}function validateOtpRequest(e,r){if(!e||!r)throw(0,error_1.createError)({statusCode:400,message:"Missing required parameters: 'id' and 'otp'"})}function verifyOtp(e,r){return otplib_1.authenticator.verify({token:r,secret:e})}function normalizeCode(e){return e.replace(/-/g,"").toUpperCase()}async function consumeRecoveryCode(e,r){if(!e.recoveryCodes)throw(0,error_1.createError)({statusCode:401,message:"Invalid OTP"});let t;try{t=JSON.parse(e.recoveryCodes)}catch(e){throw(0,error_1.createError)({statusCode:500,message:"Invalid recovery codes format"})}const o=normalizeCode(r),n=t.findIndex(e=>normalizeCode(e)===o);if(-1===n)throw(0,error_1.createError)({statusCode:401,message:"Invalid OTP or recovery code"});t.splice(n,1);await db_1.models.twoFactor.update({recoveryCodes:JSON.stringify(t)},{where:{id:e.id}})}var __createBinding=this&&this.__createBinding||(Object.create?function(e,r,t,o){void 0===o&&(o=t);var n=Object.getOwnPropertyDescriptor(r,t);n&&!("get"in n?!r.__esModule:n.writable||n.configurable)||(n={enumerable:!0,get:function(){return r[t]}});Object.defineProperty(e,o,n)}:function(e,r,t,o){void 0===o&&(o=t);e[o]=r[t]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,r){Object.defineProperty(e,"default",{enumerable:!0,value:r})}:function(e,r){e.default=r}),__importStar=this&&this.__importStar||function(){var e=function(r){e=Object.getOwnPropertyNames||function(e){var r=[];for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[r.length]=t);return r};return e(r)};return function(r){if(r&&r.__esModule)return r;var t={};if(null!=r)for(var o=e(r),n=0;n<o.length;n++)"default"!==o[n]&&__createBinding(t,r,o[n]);__setModuleDefault(t,r);return t}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.encrypt=encrypt;exports.decrypt=decrypt;exports.isEncrypted=isEncrypted;exports.getUserById=getUserById;exports.getUserWith2FA=getUserWith2FA;exports.validateOtpRequest=validateOtpRequest;exports.verifyOtp=verifyOtp;exports.normalizeCode=normalizeCode;exports.consumeRecoveryCode=consumeRecoveryCode;const db_1=require("@b/db"),error_1=require("@b/utils/error"),otplib_1=require("otplib"),console_1=require("@b/utils/console"),crypto=__importStar(require("crypto")),ENC_ALGO="aes-256-gcm",APP_VERIFY_TOKEN_SECRET=process.env.APP_VERIFY_TOKEN_SECRET||"";let ENC_KEY;try{if(64===APP_VERIFY_TOKEN_SECRET.length)ENC_KEY=Buffer.from(APP_VERIFY_TOKEN_SECRET,"hex");else if(32===APP_VERIFY_TOKEN_SECRET.length)ENC_KEY=Buffer.from(APP_VERIFY_TOKEN_SECRET,"utf8");else if(APP_VERIFY_TOKEN_SECRET.length>32)ENC_KEY=Buffer.from(APP_VERIFY_TOKEN_SECRET.slice(0,32),"utf8");else{const e=APP_VERIFY_TOKEN_SECRET.padEnd(32,"0");ENC_KEY=Buffer.from(e,"utf8")}32!==ENC_KEY.length&&(ENC_KEY=crypto.createHash("sha256").update(APP_VERIFY_TOKEN_SECRET||"fallback-secret").digest())}catch(e){console_1.logger.warn("AUTH","Failed to process APP_VERIFY_TOKEN_SECRET, using fallback key generation");ENC_KEY=crypto.createHash("sha256").update(APP_VERIFY_TOKEN_SECRET||"fallback-secret").digest()}
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.encrypt = encrypt;
+exports.decrypt = decrypt;
+exports.isEncrypted = isEncrypted;
+exports.getUserById = getUserById;
+exports.getUserWith2FA = getUserWith2FA;
+exports.validateOtpRequest = validateOtpRequest;
+exports.verifyOtp = verifyOtp;
+exports.normalizeCode = normalizeCode;
+exports.consumeRecoveryCode = consumeRecoveryCode;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const otplib_1 = require("otplib");
+const console_1 = require("@b/utils/console");
+const crypto = __importStar(require("crypto"));
+const ENC_ALGO = "aes-256-gcm";
+const APP_VERIFY_TOKEN_SECRET = process.env.APP_VERIFY_TOKEN_SECRET || "";
+let ENC_KEY;
+try {
+    if (APP_VERIFY_TOKEN_SECRET.length === 64) {
+        ENC_KEY = Buffer.from(APP_VERIFY_TOKEN_SECRET, "hex");
+    }
+    else if (APP_VERIFY_TOKEN_SECRET.length === 32) {
+        ENC_KEY = Buffer.from(APP_VERIFY_TOKEN_SECRET, "utf8");
+    }
+    else if (APP_VERIFY_TOKEN_SECRET.length > 32) {
+        ENC_KEY = Buffer.from(APP_VERIFY_TOKEN_SECRET.slice(0, 32), "utf8");
+    }
+    else {
+        const padded = APP_VERIFY_TOKEN_SECRET.padEnd(32, "0");
+        ENC_KEY = Buffer.from(padded, "utf8");
+    }
+    if (ENC_KEY.length !== 32) {
+        ENC_KEY = crypto.createHash("sha256").update(APP_VERIFY_TOKEN_SECRET || "fallback-secret").digest();
+    }
+}
+catch (error) {
+    console_1.logger.warn("AUTH", "Failed to process APP_VERIFY_TOKEN_SECRET, using fallback key generation");
+    ENC_KEY = crypto.createHash("sha256").update(APP_VERIFY_TOKEN_SECRET || "fallback-secret").digest();
+}
+function encrypt(text) {
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv(ENC_ALGO, ENC_KEY, iv);
+    const enc = Buffer.concat([cipher.update(text, "utf8"), cipher.final()]);
+    const tag = cipher.getAuthTag();
+    return [iv.toString("hex"), tag.toString("hex"), enc.toString("hex")].join(":");
+}
+function decrypt(data) {
+    const [ivHex, tagHex, encHex] = data.split(":");
+    const iv = Buffer.from(ivHex, "hex");
+    const tag = Buffer.from(tagHex, "hex");
+    const enc = Buffer.from(encHex, "hex");
+    const decipher = crypto.createDecipheriv(ENC_ALGO, ENC_KEY, iv);
+    decipher.setAuthTag(tag);
+    const dec = Buffer.concat([decipher.update(enc), decipher.final()]);
+    return dec.toString("utf8");
+}
+function isEncrypted(secret) {
+    if (typeof secret !== "string")
+        return false;
+    const parts = secret.split(":");
+    return (parts.length === 3 && parts.every((part) => /^[0-9a-fA-F]{16,}$/.test(part)));
+}
+async function getUserById(userId) {
+    const user = await db_1.models.user.findByPk(userId);
+    if (!user) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "User not found" });
+    }
+    return user;
+}
+async function getUserWith2FA(userId) {
+    var _a;
+    const user = await db_1.models.user.findOne({
+        where: { id: userId },
+        include: {
+            model: db_1.models.twoFactor,
+            as: "twoFactor",
+        },
+    });
+    if (!user || !((_a = user.twoFactor) === null || _a === void 0 ? void 0 : _a.secret)) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "User not found or 2FA not enabled",
+        });
+    }
+    return user;
+}
+function validateOtpRequest(id, otp) {
+    if (!id || !otp) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Missing required parameters: 'id' and 'otp'",
+        });
+    }
+}
+function verifyOtp(secret, token) {
+    return otplib_1.authenticator.verify({ token, secret });
+}
+function normalizeCode(code) {
+    return code.replace(/-/g, "").toUpperCase();
+}
+async function consumeRecoveryCode(twoFactor, providedCode) {
+    if (!twoFactor.recoveryCodes) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Invalid OTP" });
+    }
+    let recoveryCodes;
+    try {
+        recoveryCodes = JSON.parse(twoFactor.recoveryCodes);
+    }
+    catch (e) {
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: "Invalid recovery codes format",
+        });
+    }
+    const normalizedInput = normalizeCode(providedCode);
+    const codeIndex = recoveryCodes.findIndex((code) => normalizeCode(code) === normalizedInput);
+    if (codeIndex === -1) {
+        throw (0, error_1.createError)({
+            statusCode: 401,
+            message: "Invalid OTP or recovery code",
+        });
+    }
+    recoveryCodes.splice(codeIndex, 1);
+    await db_1.models.twoFactor.update({ recoveryCodes: JSON.stringify(recoveryCodes) }, { where: { id: twoFactor.id } });
+}

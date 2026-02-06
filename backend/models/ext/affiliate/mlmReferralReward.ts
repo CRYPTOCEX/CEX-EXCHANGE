@@ -23,7 +23,7 @@ export default class mlmReferralReward
   getCondition!: Sequelize.BelongsToGetAssociationMixin<mlmReferralCondition>;
   setCondition!: Sequelize.BelongsToSetAssociationMixin<
     mlmReferralCondition,
-    mlmReferralConditionId
+    string
   >;
   createCondition!: Sequelize.BelongsToCreateAssociationMixin<mlmReferralCondition>;
 

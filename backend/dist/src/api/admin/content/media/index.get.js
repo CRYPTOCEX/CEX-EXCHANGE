@@ -1,1 +1,200 @@
-"use strict";function parseFilterParam(e){const t={};if(!e)return t;let r={};if("string"==typeof e)try{r=JSON.parse(e)}catch(e){console_1.logger.error("MEDIA","Error parsing filter param",e);return t}Object.entries(r).forEach(([e,r])=>{const i=e.split(".");let a=t;i.slice(0,-1).forEach(e=>{a[e]=a[e]||{};a=a[e]});a[i[i.length-1]]=r});return t}function buildNestedFilters(e){const t={},r={};Object.entries(e).forEach(([e,i])=>{if("boolean"==typeof i||"object"==typeof i&&"operator"in i&&"value"in i)r[e]=i;else{const r=e.split(".");let a=t;for(let e=0;e<r.length-1;e++){const t=r[e];a[t]=a[t]||{};a=a[t]}a[r[r.length-1]]=i}});return{nestedFilters:applyOperatorMapping(t),directFilters:r}}function applyOperatorMapping(e){const t={},r=(e,t)=>{Object.entries(e).forEach(([e,i])=>{if(i&&"object"==typeof i&&i.operator&&utils_1.operatorMap[i.operator])t[e]={operator:i.operator,value:i.value};else if(i&&"object"==typeof i&&!i.operator){t[e]={};r(i,t[e])}else t[e]=i})};r(e,t);return t}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;exports.parseFilterParam=parseFilterParam;const constants_1=require("@b/utils/constants"),utils_1=require("./utils"),console_1=require("@b/utils/console");exports.metadata={summary:"Fetches media files based on category and date",operationId:"fetchMediaFiles",tags:["Admin","Content","Media"],parameters:constants_1.crudParameters,responses:{200:{description:"Media entries for the given category and date",content:{"application/json":{schema:{type:"object",properties:{items:{type:"array",items:{type:"object",additionalProperties:!0}},pagination:{type:"object",properties:{totalItems:{type:"number"},currentPage:{type:"number"},perPage:{type:"number"},totalPages:{type:"number"}}}}}}}},400:{description:"Bad request if the category or date are not specified or filter parsing fails"},404:{description:"Not found if the media file does not exist"},500:{description:"Internal server error"}},requiresAuth:!0,permission:"view.content.media",logModule:"ADMIN_CMS",logTitle:"List media files"};exports.default=async e=>{const{query:t,ctx:r}=e;null==r||r.step("Initializing media cache");utils_1.cacheInitialized||await(0,utils_1.initMediaWatcher)();null==r||r.step("Parsing query parameters");const i=t.page?parseInt(t.page):1,a=t.perPage?parseInt(t.perPage):10,s=t.sortField||"name",o=t.sortOrder||"asc",n=["width","height"];let l={};try{l=t.filter?JSON.parse(t.filter):{}}catch(e){console_1.logger.error("MEDIA","Error parsing filter",e);null==r||r.warn("Failed to parse filter parameters")}null==r||r.step("Building filter criteria");const p=parseFilterParam(t.filter,n),{directFilters:c}=buildNestedFilters(p);null==r||r.step("Filtering media files");const u=utils_1.mediaCache.filter(e=>!!/\.(jpg|jpeg|png|gif|webp)$/i.test(e.path)&&Object.entries(c).every(([t,r])=>{if(r&&"object"==typeof r&&"operator"in r){const{value:i,operator:a}=r,s=utils_1.operatorMap[a];if("function"!=typeof s)return!0;if(n.includes(t)){const r=Number(e[t]),a=parseFloat(i);return s({[t]:r},t,a)}return s(e,t,i)}return n.includes(t)?Number(e[t])===Number(r):e[t]==r}));null==r||r.step("Sorting results");u.sort((e,t)=>{const r=n.includes(s)?Number(e[s]):e[s],i=n.includes(s)?Number(t[s]):t[s];return r<i?"asc"===o?-1:1:r>i?"asc"===o?1:-1:0});null==r||r.step("Paginating results");const d=u.length,f=Math.ceil(d/a),g=(i-1)*a,m=u.slice(g,g+a);null==r||r.success(`Retrieved ${m.length} media file(s) (page ${i} of ${f})`);return{items:m,pagination:{totalItems:d,currentPage:i,perPage:a,totalPages:f}}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+exports.parseFilterParam = parseFilterParam;
+const constants_1 = require("@b/utils/constants");
+const utils_1 = require("./utils");
+const console_1 = require("@b/utils/console");
+exports.metadata = {
+    summary: "Fetches media files based on category and date",
+    operationId: "fetchMediaFiles",
+    tags: ["Admin", "Content", "Media"],
+    parameters: constants_1.crudParameters,
+    responses: {
+        200: {
+            description: "Media entries for the given category and date",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            items: {
+                                type: "array",
+                                items: { type: "object", additionalProperties: true },
+                            },
+                            pagination: {
+                                type: "object",
+                                properties: {
+                                    totalItems: { type: "number" },
+                                    currentPage: { type: "number" },
+                                    perPage: { type: "number" },
+                                    totalPages: { type: "number" },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        400: {
+            description: "Bad request if the category or date are not specified or filter parsing fails",
+        },
+        404: { description: "Not found if the media file does not exist" },
+        500: { description: "Internal server error" },
+    },
+    requiresAuth: true,
+    permission: "view.content.media",
+    logModule: "ADMIN_CMS",
+    logTitle: "List media files",
+};
+exports.default = async (data) => {
+    const { query, ctx } = data;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Initializing media cache");
+    if (!utils_1.cacheInitialized)
+        await (0, utils_1.initMediaWatcher)();
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Parsing query parameters");
+    const page = query.page ? parseInt(query.page) : 1;
+    const perPage = query.perPage ? parseInt(query.perPage) : 10;
+    const sortField = query.sortField || "name";
+    const sortOrder = query.sortOrder || "asc";
+    const numericFields = ["width", "height"];
+    let filters = {};
+    try {
+        filters = query.filter ? JSON.parse(query.filter) : {};
+    }
+    catch (error) {
+        console_1.logger.error("MEDIA", "Error parsing filter", error);
+        ctx === null || ctx === void 0 ? void 0 : ctx.warn("Failed to parse filter parameters");
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Building filter criteria");
+    const rawFilter = parseFilterParam(query.filter, numericFields);
+    const { directFilters } = buildNestedFilters(rawFilter);
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Filtering media files");
+    const filteredMedia = utils_1.mediaCache.filter((file) => {
+        if (!/\.(jpg|jpeg|png|gif|webp)$/i.test(file.path))
+            return false;
+        return Object.entries(directFilters).every(([key, filterValue]) => {
+            if (filterValue &&
+                typeof filterValue === "object" &&
+                "operator" in filterValue) {
+                const { value, operator } = filterValue;
+                const opFunc = utils_1.operatorMap[operator];
+                if (typeof opFunc !== "function")
+                    return true;
+                if (numericFields.includes(key)) {
+                    const recordVal = Number(file[key]);
+                    const filterVal = parseFloat(value);
+                    return opFunc({ [key]: recordVal }, key, filterVal);
+                }
+                else {
+                    return opFunc(file, key, value);
+                }
+            }
+            else {
+                if (numericFields.includes(key)) {
+                    return Number(file[key]) === Number(filterValue);
+                }
+                else {
+                    return file[key] == filterValue;
+                }
+            }
+        });
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Sorting results");
+    filteredMedia.sort((a, b) => {
+        const aVal = numericFields.includes(sortField)
+            ? Number(a[sortField])
+            : a[sortField];
+        const bVal = numericFields.includes(sortField)
+            ? Number(b[sortField])
+            : b[sortField];
+        if (aVal < bVal)
+            return sortOrder === "asc" ? -1 : 1;
+        if (aVal > bVal)
+            return sortOrder === "asc" ? 1 : -1;
+        return 0;
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Paginating results");
+    const totalItems = filteredMedia.length;
+    const totalPages = Math.ceil(totalItems / perPage);
+    const offset = (page - 1) * perPage;
+    const paginatedItems = filteredMedia.slice(offset, offset + perPage);
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Retrieved ${paginatedItems.length} media file(s) (page ${page} of ${totalPages})`);
+    return {
+        items: paginatedItems,
+        pagination: {
+            totalItems,
+            currentPage: page,
+            perPage,
+            totalPages,
+        },
+    };
+};
+function parseFilterParam(filterParam, numericFields) {
+    const parsedFilters = {};
+    if (!filterParam)
+        return parsedFilters;
+    let filtersObject = {};
+    if (typeof filterParam === "string") {
+        try {
+            filtersObject = JSON.parse(filterParam);
+        }
+        catch (error) {
+            console_1.logger.error("MEDIA", "Error parsing filter param", error);
+            return parsedFilters;
+        }
+    }
+    Object.entries(filtersObject).forEach(([key, value]) => {
+        const keyParts = key.split(".");
+        let current = parsedFilters;
+        keyParts.slice(0, -1).forEach((part) => {
+            current[part] = current[part] || {};
+            current = current[part];
+        });
+        current[keyParts[keyParts.length - 1]] = value;
+    });
+    return parsedFilters;
+}
+function buildNestedFilters(filters) {
+    const nestedFilters = {};
+    const directFilters = {};
+    Object.entries(filters).forEach(([fullKey, value]) => {
+        if (typeof value === "boolean" ||
+            (typeof value === "object" && "operator" in value && "value" in value)) {
+            directFilters[fullKey] = value;
+        }
+        else {
+            const keys = fullKey.split(".");
+            let current = nestedFilters;
+            for (let i = 0; i < keys.length - 1; i++) {
+                const k = keys[i];
+                current[k] = current[k] || {};
+                current = current[k];
+            }
+            current[keys[keys.length - 1]] = value;
+        }
+    });
+    return { nestedFilters: applyOperatorMapping(nestedFilters), directFilters };
+}
+function applyOperatorMapping(filters) {
+    const whereClause = {};
+    const processFilters = (currentFilters, parentObject) => {
+        Object.entries(currentFilters).forEach(([key, value]) => {
+            if (value &&
+                typeof value === "object" &&
+                value.operator &&
+                utils_1.operatorMap[value.operator]) {
+                parentObject[key] = { operator: value.operator, value: value.value };
+            }
+            else if (value && typeof value === "object" && !value.operator) {
+                parentObject[key] = {};
+                processFilters(value, parentObject[key]);
+            }
+            else {
+                parentObject[key] = value;
+            }
+        });
+    };
+    processFilters(filters, whereClause);
+    return whereClause;
+}

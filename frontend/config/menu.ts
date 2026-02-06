@@ -571,6 +571,24 @@ export const adminMenu: MenuItem[] = [
             ],
           },
           {
+            key: "admin-trading-bot-platform",
+            title: "Trading Bot",
+            icon: "ph:robot-duotone",
+            extension: "trading_bot",
+            permission: "access.trading.bot",
+            href: "/admin/trading-bot",
+            description:
+              "Automated trading bot system with multiple strategies, strategy marketplace, and comprehensive risk management.",
+            features: [
+              "Multi-Strategy Bot Types (DCA, Grid, Indicator, Trailing)",
+              "Visual Strategy Builder",
+              "Strategy Marketplace with Revenue Sharing",
+              "Live & Paper Trading Modes",
+              "Risk Management Controls",
+              "Real-Time Performance Analytics",
+            ],
+          },
+          {
             key: "admin-ai-market-maker-platform",
             title: "AI Market Maker",
             icon: "ph:robot-duotone",
@@ -816,7 +834,6 @@ export const adminMenu: MenuItem[] = [
       "access.notification.template",
       "access.settings",
       "access.system.update",
-      "access.admin.system.upgrade",
     ],
     child: [
       {
@@ -901,15 +918,6 @@ export const adminMenu: MenuItem[] = [
               "Automated task scheduler with job monitoring, failure handling, and performance optimization.",
           },
         ],
-      },
-      {
-        key: "admin-maintenance-tools",
-        title: "Maintenance Tools",
-        href: "/admin/system/upgrade-helper",
-        icon: "ph:wrench-duotone",
-        permission: "access.admin.system.upgrade",
-        description:
-          "System maintenance utilities including database optimization, cache management, and migration tools.",
       },
       {
         key: "admin-appearance",
@@ -997,6 +1005,15 @@ export const userMenu: MenuItem[] = [
         extension: "copy_trading",
         description:
           "Follow and automatically copy trades from successful traders with customizable risk settings and real-time performance tracking.",
+      },
+      {
+        key: "user-trading-bot",
+        title: "Trading Bot",
+        href: "/trading-bot",
+        icon: "ph:robot-duotone",
+        extension: "trading_bot",
+        description:
+          "Automated trading with multiple strategies including DCA, Grid, and Indicator-based bots with paper trading simulation.",
       },
     ],
   },

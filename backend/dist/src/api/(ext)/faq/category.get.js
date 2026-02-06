@@ -1,1 +1,51 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),sequelize_1=require("sequelize");exports.metadata={summary:"Get FAQ Categories",description:"Retrieves distinct FAQ categories.",operationId:"getFAQCategories",tags:["FAQ","User"],logModule:"FAQ",logTitle:"Get FAQ Categories",responses:{200:{description:"Categories retrieved successfully",content:{"application/json":{schema:{type:"array",items:{type:"string"}}}}},401:{description:"Unauthorized"},500:{description:"Internal Server Error"}}};exports.default=async e=>{const{ctx:t}=e;try{null==t||t.step("Fetching distinct FAQ categories");const e=await db_1.models.faq.findAll({where:{status:!0},attributes:[[(0,sequelize_1.fn)("DISTINCT",(0,sequelize_1.col)("category")),"category"]],raw:!0});null==t||t.step("Mapping categories to result array");const r=e.map(e=>e.category);null==t||t.success(`Retrieved ${r.length} categories`);return r}catch(e){console.error("Error fetching FAQ categories:",e);null==t||t.fail(e instanceof Error?e.message:"Failed to fetch FAQ categories");throw(0,error_1.createError)({statusCode:500,message:e instanceof Error?e.message:"Failed to fetch FAQ categories"})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const sequelize_1 = require("sequelize");
+exports.metadata = {
+    summary: "Get FAQ Categories",
+    description: "Retrieves distinct FAQ categories.",
+    operationId: "getFAQCategories",
+    tags: ["FAQ", "User"],
+    logModule: "FAQ",
+    logTitle: "Get FAQ Categories",
+    responses: {
+        200: {
+            description: "Categories retrieved successfully",
+            content: {
+                "application/json": {
+                    schema: { type: "array", items: { type: "string" } },
+                },
+            },
+        },
+        401: { description: "Unauthorized" },
+        500: { description: "Internal Server Error" },
+    },
+};
+exports.default = async (data) => {
+    const { ctx } = data;
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching distinct FAQ categories");
+        const categories = await db_1.models.faq.findAll({
+            where: { status: true },
+            attributes: [[(0, sequelize_1.fn)("DISTINCT", (0, sequelize_1.col)("category")), "category"]],
+            raw: true,
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Mapping categories to result array");
+        const result = categories.map((item) => item.category);
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Retrieved ${result.length} categories`);
+        return result;
+    }
+    catch (error) {
+        console.error("Error fetching FAQ categories:", error);
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(error instanceof Error ? error.message : "Failed to fetch FAQ categories");
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: error instanceof Error
+                ? error.message
+                : "Failed to fetch FAQ categories",
+        });
+    }
+};

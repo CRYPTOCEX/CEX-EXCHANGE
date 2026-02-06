@@ -23,6 +23,7 @@ export default function InvestmentDurationPage() {
       canEdit
       canDelete
       canView
+      isParanoid={false}
       title={t("investment_duration_management")}
       description={t("manage_investment_plan_durations_and_timeframes")}
       itemTitle="Investment Duration"

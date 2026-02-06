@@ -142,6 +142,11 @@ export default function DesktopLayout({
   // Get completed orders for trading stats - use selector to prevent re-renders from other store changes
   const completedOrders = useBinaryStore((state) => state.completedOrders);
 
+  // Filter completed orders by current trading mode
+  const filteredCompletedOrders = useMemo(() => {
+    return completedOrders.filter(order => order.isDemo === (tradingMode === "demo"));
+  }, [completedOrders, tradingMode]);
+
   // One-click trading hook
   const oneClickTrading = useOneClickTrading(balance * 0.5);
 
@@ -149,15 +154,15 @@ export default function DesktopLayout({
   const defaultAmount = 1000;
   const martingale = useMartingale(defaultAmount);
 
-  // Calculate trading stats for settings
+  // Calculate trading stats for settings - filtered by mode
   const tradingStats = useMemo(() => {
-    const wins = completedOrders.filter(o => o.status === "WIN");
-    const losses = completedOrders.filter(o => o.status === "LOSS");
-    const winRate = completedOrders.length > 0 ? (wins.length / completedOrders.length) * 100 : 55;
+    const wins = filteredCompletedOrders.filter(o => o.status === "WIN");
+    const losses = filteredCompletedOrders.filter(o => o.status === "LOSS");
+    const winRate = filteredCompletedOrders.length > 0 ? (wins.length / filteredCompletedOrders.length) * 100 : 55;
     const avgProfit = wins.length > 0 ? wins.reduce((sum, o) => sum + (o.profit || 0), 0) / wins.length : 0;
     const avgLoss = losses.length > 0 ? losses.reduce((sum, o) => sum + Math.abs(o.profit || 0), 0) / losses.length : 0;
     return { winRate, avgProfit, avgLoss };
-  }, [completedOrders]);
+  }, [filteredCompletedOrders]);
 
   // Get chart type setting from binary settings store
   // Use specific selector to only subscribe to chartType changes, not the entire settings object
@@ -307,7 +312,7 @@ export default function DesktopLayout({
         handleMarketSelect={handleMarketSelect}
         onSettingsClick={handleToggleSettings}
         onAnalyticsClick={handleToggleAnalytics}
-        completedTradesCount={completedOrders.length}
+        completedTradesCount={filteredCompletedOrders.length}
         onTutorialClick={onTutorialClick}
         onPatternLibraryClick={handlePatternLibraryClick}
         onLeaderboardClick={handleLeaderboardClick}
@@ -329,7 +334,7 @@ export default function DesktopLayout({
         {showPositionsSidebar && (
           <ActivePositions
             orders={(orders || []).filter(
-              (order) => order.status === "PENDING"
+              (order) => order.status === "PENDING" && order.mode === tradingMode
             )}
             currentPrice={currentPrice}
             onPositionsChange={handlePositionsChange}

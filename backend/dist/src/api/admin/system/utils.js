@@ -1,1 +1,828 @@
-"use strict";function adminError(e="System configuration error. Please contact administrator.",t){t?console_1.logger.error("ADMIN",e,t):console_1.logger.error("ADMIN",e);return new Error(e)}async function getProduct(e){if(e){const t=await db_1.models.extension.findOne({where:{productId:e}});if(!t)throw adminError();return t}try{const e=[`${rootPath}/package.json`,`${path_1.default.join(rootPath,"..")}/package.json`,`${process.cwd()}/package.json`,`${path_1.default.join(process.cwd(),"..")}/package.json`];let t=null,r="";for(const o of e)try{const e=await fs_1.promises.readFile(o,"utf8");t=JSON.parse(e);if(t&&(t.id||t.name)){r=o;break}}catch(e){continue}if(!t||!t.id)throw adminError("Could not find valid package.json with required fields");return{id:t.id||"35599184",productId:t.id||"35599184",name:t.name||"bicrypto",version:t.version||"5.0.0",description:t.description||"BiCrypto Trading Platform"}}catch(e){throw adminError("Could not read product information.",e)}}async function getBlockchain(e){const t=await db_1.models.ecosystemBlockchain.findOne({where:{productId:e}});if(!t)throw adminError();return t}async function fetchPublicIp(){try{return(await new Promise((e,t)=>{https_1.default.get("https://api.ipify.org?format=json",r=>{let o="";r.on("data",e=>{o+=e});r.on("end",()=>{e(JSON.parse(o))});r.on("error",e=>{t(e)})})})).ip}catch(e){console_1.logger.error("ADMIN",`Error fetching public IP: ${e.message}`);return null}}async function getPublicIp(){const e=Date.now();if(cachedIP&&lastFetched&&e-lastFetched<6e4)return cachedIP;cachedIP=await fetchPublicIp();lastFetched=e;return cachedIP}async function callApi(e,t,r=null,o){try{const n=(0,license_1.getLicenseConfig)(),a=r?JSON.stringify(r):null,s={"Content-Type":"application/json","X-License-Secret":n.licenseSecret,"X-Site-URL":process.env.NEXT_PUBLIC_SITE_URL||"http://localhost:3000","X-Client-IP":await getPublicIp()||"127.0.0.1"};a&&(s["Content-Length"]=Buffer.byteLength(a).toString());const i=new URL(t),c="https:"===i.protocol,l=c?https_1.default:http_1.default,d={hostname:i.hostname,port:i.port||(c?443:80),path:i.pathname+i.search,method:e,headers:s};console_1.logger.debug("LICENSE_API",`${e} ${t}`);const u=await new Promise((e,r)=>{const n=l.request(d,t=>{const n=[],a=t.headers["content-type"]||"",s=a.includes("application/zip")||a.includes("application/octet-stream");console_1.logger.debug("LICENSE_API",`Response status: ${t.statusCode}, Content-Type: ${a}, isZip: ${s}`);if(200===t.statusCode){if(s){if(!o){r(adminError("Filename required for zip download."));return}const n=`${rootPath}/updates`,a=`${n}/${o}.zip`;fs_1.promises.mkdir(n,{recursive:!0}).then(()=>{const o=(0,fs_2.createWriteStream)(a);t.pipe(o);o.on("finish",()=>{console_1.logger.info("LICENSE_API",`ZIP file downloaded successfully to: ${a}`);e({status:!0,message:"Update file downloaded successfully",path:a})});o.on("error",e=>{r(adminError("Download error.",e))})}).catch(e=>{r(adminError("Directory error.",e))})}else{t.on("data",e=>{n.push(e)});t.on("end",()=>{try{const t=Buffer.concat(n).toString();console_1.logger.debug("LICENSE_API",`JSON response received (${t.length} bytes)`);const r=JSON.parse(t);e(r)}catch(e){r(new Error(`Invalid JSON response from server: ${Buffer.concat(n).toString().slice(0,200)}`))}})}t.on("error",e=>{r(new Error(`Response error: ${e.message}`))})}else{t.on("data",e=>{n.push(e)});t.on("end",()=>{let e=`HTTP ${t.statusCode}`;try{const t=JSON.parse(Buffer.concat(n).toString());e=t.message||t.error||t.reason||JSON.stringify(t)}catch(t){e=Buffer.concat(n).toString().slice(0,200)||e}r(new Error(`API Error (${t.statusCode}): ${e}`))})}});n.on("error",e=>{r(new Error(`Connection error: ${e.message}. Is the license server running at ${t}?`))});a&&n.write(a);n.end()});return u}catch(e){console_1.logger.error("LICENSE_API",`API call failed: ${e.message}`);throw e}}async function verifyLicense(e,t,r,o){const n=`${licFolderPath}/${e}.lic`;if(o&&verificationPeriodDays>0){const e=new Date;if(nextVerificationDate&&e<nextVerificationDate)return{status:!0,message:"Verified from cache"}}let a=null;try{const e=await fs_1.promises.readFile(n,"utf8");try{const t=JSON.parse(Buffer.from(e,"base64").toString("utf8"));a=t.purchaseCode||t.licenseKey||t.license_key}catch(t){a=e.trim()}}catch(e){a=t||null}if(!a)throw(0,error_1.createError)({statusCode:400,message:"No purchase code found. Please activate your license first."});const s=process.env.NEXT_PUBLIC_SITE_URL||"http://localhost:3000";let i;try{i=new URL(s).host}catch(e){i=s.replace(/^https?:\/\//,"").split("/")[0]}const{getCachedFingerprint:c}=await Promise.resolve().then(()=>__importStar(require("@b/utils/security/fingerprint"))),l=c(),d={purchaseCode:a,domain:i,fingerprint:l},u=(0,license_1.getLicenseConfig)();console_1.logger.info("LICENSE_API",`Verifying license - Domain: ${i}, Fingerprint: ${l?l.substring(0,16)+"...":"MISSING"}`);console_1.logger.debug("LICENSE_API",`Verify payload: ${JSON.stringify(d)}`);const p=await callApi("POST",`${u.apiUrl}/api/client/licenses/verify`,d);if(o&&verificationPeriodDays>0&&p.status){const e=new Date;nextVerificationDate=new Date;nextVerificationDate.setDate(e.getDate()+verificationPeriodDays)}if(!p.status){const e=p.reason||"License verification failed";throw(0,error_1.createError)({statusCode:400,message:e})}return p}async function activateLicense(e,t,r,o){var n;const a=process.env.NEXT_PUBLIC_SITE_URL||"http://localhost:3000";let s;try{s=new URL(a).host}catch(e){s=a.replace(/^https?:\/\//,"").split("/")[0]}const i=await getPublicIp()||"127.0.0.1",{getCachedFingerprint:c}=await Promise.resolve().then(()=>__importStar(require("@b/utils/security/fingerprint"))),l={purchaseCode:t,domain:s,ipAddress:i,hardwareFingerprint:c(),metadata:{productId:e,clientName:r,activatedVia:"admin-panel"}};o&&(l.notificationEmail=o);const d=(0,license_1.getLicenseConfig)();console_1.logger.info("LICENSE_API",`Activating license - Domain: ${s}, ProductId: ${e}`);console_1.logger.debug("LICENSE_API",`Activation payload: ${JSON.stringify(l)}`);const u=await callApi("POST",`${d.apiUrl}/api/client/licenses/activate`,l);if(!u.status){const e=u.reason||u.message||"License activation failed";throw(0,error_1.createError)({statusCode:400,message:e})}const p=`${licFolderPath}/${e}.lic`,f=u,g={purchaseCode:t,productId:e,clientName:r,domain:s,activatedAt:(new Date).toISOString(),...(null===(n=f.data)||void 0===n?void 0:n.license)||f.license||f.data||{}},h=Buffer.from(JSON.stringify(g)).toString("base64");await fs_1.promises.mkdir(licFolderPath,{recursive:!0});await fs_1.promises.writeFile(p,h);return{status:!0,message:u.message||"License activated successfully",data:u.data}}async function checkLatestVersion(){return{status:!1,message:"Version check not available via this endpoint",version:null}}function compareVersions(e,t){const r=e.split(".").map(e=>parseInt(e,10)||0),o=t.split(".").map(e=>parseInt(e,10)||0),n=Math.max(r.length,o.length);for(let e=0;e<n;e++){const t=r[e]||0,n=o[e]||0;if(t<n)return-1;if(t>n)return 1}return 0}async function checkUpdate(e,t){var r,o,n;const a=(0,license_1.getLicenseConfig)(),s=`${licFolderPath}/${e}.lic`;let i=null;try{const e=await fs_1.promises.readFile(s,"utf8");try{const t=JSON.parse(Buffer.from(e,"base64").toString("utf8"));i=t.purchaseCode||t.licenseKey}catch(t){i=e.trim()}}catch(e){return{status:!1,message:"License required to check for updates",updateAvailable:!1,update_id:"",version:t,changelog:null,pendingUpdates:[],latestVersion:t,isSequential:!0}}if(!i)return{status:!1,message:"No purchase code found",updateAvailable:!1,update_id:"",version:t,changelog:null,pendingUpdates:[],latestVersion:t,isSequential:!0};const{getCachedFingerprint:c}=await Promise.resolve().then(()=>__importStar(require("@b/utils/security/fingerprint"))),l=c(),d={purchaseCode:i,productId:e,currentVersion:t,fingerprint:l};try{const e=await callApi("POST",`${a.apiUrl}/api/client/updates/check`,d);if(e.status){const a=e,s=a.pendingUpdates||[],i=a.latestVersion||(null===(r=e.data)||void 0===r?void 0:r.latestVersion)||t,c=a.nextUpdate||null;let l=[];if(s.length>0)l=s.map(e=>({version:e.version,updateId:e.updateId||e.update_id||e.version,changelog:e.changelog||null}));else if(e.data){const r=e.data.availableVersions||e.data.versions||[];r.length>0?l=r.filter(e=>compareVersions("string"==typeof e?e:e.version,t)>0).map(e=>({version:"string"==typeof e?e:e.version,updateId:"string"==typeof e?e:e.updateId||e.update_id||e.version,changelog:"string"==typeof e?null:e.changelog})).sort((e,t)=>compareVersions(e.version,t.version)):e.data.updateAvailable&&i!==t&&(l=[{version:i,updateId:e.data.updateId||i,changelog:e.data.changelog||null}])}const d=c||(l.length>0?l[0]:null);return{status:null!==d,message:d?l.length>1?`Update available: ${d.version} (${l.length} updates pending, must update sequentially)`:`Update available: ${d.version}`:"You have the latest version of the product.",updateAvailable:null!==d,update_id:(null==d?void 0:d.updateId)||"",version:(null==d?void 0:d.version)||t,changelog:(null==d?void 0:d.changelog)||null,pendingUpdates:l,latestVersion:i,isSequential:null===(o=a.isSequential)||void 0===o||o,totalPendingCount:null!==(n=a.totalPendingCount)&&void 0!==n?n:l.length}}return{status:!1,message:"You have the latest version of the product.",updateAvailable:!1,update_id:"",version:t,changelog:null,pendingUpdates:[],latestVersion:t,isSequential:!0}}catch(r){console_1.logger.warn("ADMIN",`Update check failed for product ${e}: ${r.message}`);return{status:!1,message:"You have the latest version of the product.",updateAvailable:!1,update_id:"",version:t,changelog:null,pendingUpdates:[],latestVersion:t,isSequential:!0}}}async function downloadUpdate(e,t,r,o,n){if(!(e&&t&&r&&o))throw adminError();const a=`${licFolderPath}/${e}.lic`;let s,i;try{s=await fs_1.promises.readFile(a,"utf8")}catch(e){throw adminError()}try{const e=JSON.parse(Buffer.from(s,"base64").toString("utf8"));i=e.purchaseCode||e.licenseKey}catch(e){i=s.trim()}const{getCachedFingerprint:c}=await Promise.resolve().then(()=>__importStar(require("@b/utils/security/fingerprint"))),l=c(),d=(0,license_1.getLicenseConfig)(),u={purchaseCode:i,productId:e,updateId:t||void 0,version:r||void 0,fingerprint:l};console_1.logger.info("LICENSE_API",`Downloading update: product=${o}, version=${r}, updateId=${t}`);const p=await callApi("POST",`${d.apiUrl}/api/client/updates/download`,u,`${o}-${r}`);console_1.logger.info("LICENSE_API",`Download response: status=${p.status}, path=${p.path}, message=${p.message}`);if(!p.status||!p.path){console_1.logger.error("LICENSE_API",`Download failed - response: ${JSON.stringify(p)}`);throw adminError("Update download failed.")}try{console_1.logger.info("UPDATE",`Extracting update to: ${rootPath}`);const t=unzip(p.path,rootPath);if(!t.success){console_1.logger.error("UPDATE",`Extraction failed: ${t.message}`);try{await fs_1.promises.unlink(p.path);console_1.logger.info("UPDATE","ZIP file cleaned up after failed extraction")}catch(e){}throw adminError(`Update extraction failed: ${t.message}`)}console_1.logger.info("UPDATE",`Extraction successful: ${t.extractedFiles.length} files updated`);if("extension"===n)try{await(0,system_1.updateExtensionQuery)(e,r);console_1.logger.info("UPDATE",`Extension ${e} version updated to ${r}`)}catch(e){throw adminError("Extension update failed.",e)}else if("blockchain"===n)try{await(0,system_1.updateBlockchainQuery)(e,r);console_1.logger.info("UPDATE",`Blockchain ${e} version updated to ${r}`)}catch(e){throw adminError("Blockchain update failed.",e)}else if("exchange"===n)try{await(0,system_1.updateExchangeQuery)(e,r);console_1.logger.info("UPDATE",`Exchange ${e} version updated to ${r}`)}catch(e){throw adminError("Exchange update failed.",e)}await fs_1.promises.unlink(p.path);console_1.logger.info("UPDATE","ZIP file cleaned up successfully");return{message:`Update downloaded and extracted successfully. ${t.extractedFiles.length} files updated.`,status:!0,data:{filesUpdated:t.extractedFiles.length,version:r}}}catch(e){console_1.logger.error("UPDATE",`Update extraction failed: ${e.message}`);if(e.message&&!e.message.includes("Update extraction failed"))throw adminError(`Update extraction failed: ${e.message}`,e);throw e}}async function fetchAllProductsUpdates(){const e=(0,license_1.getLicenseConfig)(),t=e.mainProductId,r=`${licFolderPath}/${t}.lic`;let o=null;try{const e=await fs_1.promises.readFile(r,"utf8");try{const t=JSON.parse(Buffer.from(e,"base64").toString("utf8"));o=t.purchaseCode||t.licenseKey}catch(t){o=e.trim()}}catch(e){console_1.logger.warn("ADMIN","No main product license found for batch update check");return{status:!0,message:"No license for batch check",products:[]}}if(!o)return{status:!0,message:"No purchase code found",products:[]};try{const[r,n,a]=await Promise.all([db_1.models.extension.findAll({attributes:["productId","version"]}),db_1.models.ecosystemBlockchain?db_1.models.ecosystemBlockchain.findAll({attributes:["productId","version"]}):Promise.resolve([]),db_1.models.exchange.findAll({attributes:["productId","version"]})]),s=[],i=await getProduct();s.push({productId:t,currentVersion:i.version||"5.0.0"});for(const e of r)e.productId&&s.push({productId:e.productId,currentVersion:e.version||"0.0.1"});for(const e of n)e.productId&&s.push({productId:e.productId,currentVersion:e.version||"0.0.1"});for(const e of a)e.productId&&s.push({productId:e.productId,currentVersion:e.version||"0.0.1"});const c={purchaseCode:o,products:s},l=await callApi("POST",`${e.apiUrl}/api/client/updates/batch`,c);if(l.status&&l.products){for(const e of l.products){const t=e.product_id||e.productId,o=e.current_version||e.currentVersion,s=e.latest_version||e.latestVersion,i=e.update_available||e.updateAvailable;if("0.0.1"===o&&s&&i){if(await fs_1.promises.access(`${licFolderPath}/${t}.lic`).then(()=>!0).catch(()=>!1)){if(n.find(e=>e.productId===t)){await db_1.models.ecosystemBlockchain.update({version:s},{where:{productId:t}});e.current_version=s;e.currentVersion=s;e.update_available=!1;e.updateAvailable=!1;e.summary="You have the latest version";console_1.logger.info("ADMIN",`Synced blockchain ${t} version to ${s}`)}if(r.find(e=>e.productId===t)){await db_1.models.extension.update({version:s},{where:{productId:t}});e.current_version=s;e.currentVersion=s;e.update_available=!1;e.updateAvailable=!1;e.summary="You have the latest version";console_1.logger.info("ADMIN",`Synced extension ${t} version to ${s}`)}if(a.find(e=>e.productId===t)){await db_1.models.exchange.update({version:s},{where:{productId:t}});e.current_version=s;e.currentVersion=s;e.update_available=!1;e.updateAvailable=!1;e.summary="You have the latest version";console_1.logger.info("ADMIN",`Synced exchange ${t} version to ${s}`)}}}}return{status:!0,message:"Batch update check completed",products:l.products}}return{status:!0,message:"No updates available",products:[]}}catch(e){console_1.logger.warn("ADMIN",`Batch update check failed: ${e.message}`);return{status:!0,message:"Batch check unavailable",products:[]}}}var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,r,o){void 0===o&&(o=r);var n=Object.getOwnPropertyDescriptor(t,r);n&&!("get"in n?!t.__esModule:n.writable||n.configurable)||(n={enumerable:!0,get:function(){return t[r]}});Object.defineProperty(e,o,n)}:function(e,t,r,o){void 0===o&&(o=r);e[o]=t[r]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&(t[t.length]=r);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var r={};if(null!=t)for(var o=e(t),n=0;n<o.length;n++)"default"!==o[n]&&__createBinding(r,t,o[n]);__setModuleDefault(r,t);return r}}(),__importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.getProduct=getProduct;exports.getBlockchain=getBlockchain;exports.fetchPublicIp=fetchPublicIp;exports.getPublicIp=getPublicIp;exports.callApi=callApi;exports.verifyLicense=verifyLicense;exports.activateLicense=activateLicense;exports.checkLatestVersion=checkLatestVersion;exports.checkUpdate=checkUpdate;exports.downloadUpdate=downloadUpdate;exports.fetchAllProductsUpdates=fetchAllProductsUpdates;const https_1=__importDefault(require("https")),http_1=__importDefault(require("http")),adm_zip_1=__importDefault(require("adm-zip")),fs_1=require("fs"),fs_2=require("fs"),system_1=require("../../../utils/system"),db_1=require("@b/db"),path_1=__importDefault(require("path")),license_1=require("@b/config/license"),console_1=require("@b/utils/console"),error_1=require("@b/utils/error");let cachedIP=null,lastFetched=null,nextVerificationDate=null;const verificationPeriodDays=3,rootPath=(()=>{const e=process.cwd();return e.endsWith("/backend")||e.endsWith("\\backend")?path_1.default.join(e,".."):e})(),licFolderPath=`${rootPath}/lic`,unzip=(e,t)=>{const r=new adm_zip_1.default(e),o=r.getEntries(),n=[],a=[];console_1.logger.info("UPDATE",`Starting extraction of ${o.length} entries from ${path_1.default.basename(e)} to ${t}`);const s=o.filter(e=>!e.isDirectory);if(0===s.length){console_1.logger.warn("UPDATE","ZIP file contains no extractable files");return{success:!1,extractedFiles:[],failedFiles:[],totalFiles:0,message:"ZIP file contains no extractable files"}}for(const e of o)try{const o=e.entryName;if(e.isDirectory)continue;const i=path_1.default.join(t,o),c=path_1.default.dirname(i);try{require("fs").existsSync(c)||require("fs").mkdirSync(c,{recursive:!0})}catch(e){console_1.logger.warn("UPDATE",`Failed to create directory ${c}: ${e.message}`);a.push(o);continue}try{r.extractEntryTo(e,t,!0,!0);n.push(o);n.length%50==0&&console_1.logger.info("UPDATE",`Extracted ${n.length}/${s.length} files...`)}catch(e){console_1.logger.warn("UPDATE",`Failed to extract ${o}: ${e.message}`);a.push(o)}}catch(t){console_1.logger.error("UPDATE",`Error processing entry: ${t.message}`);a.push(e.entryName)}const i=0===a.length&&n.length>0;console_1.logger.info("UPDATE",`Extraction complete: ${n.length} files extracted, ${a.length} failed`);a.length>0&&console_1.logger.warn("UPDATE",`Failed files: ${a.slice(0,10).join(", ")}${a.length>10?` ... and ${a.length-10} more`:""}`);if(n.length>0){const e=n.slice(0,5);console_1.logger.info("UPDATE",`Sample extracted files: ${e.join(", ")}`)}return{success:i,extractedFiles:n,failedFiles:a,totalFiles:s.length,message:i?`Successfully extracted ${n.length} files`:`Extraction completed with ${a.length} errors`}};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getProduct = getProduct;
+exports.getBlockchain = getBlockchain;
+exports.fetchPublicIp = fetchPublicIp;
+exports.getPublicIp = getPublicIp;
+exports.callApi = callApi;
+exports.verifyLicense = verifyLicense;
+exports.activateLicense = activateLicense;
+exports.checkLatestVersion = checkLatestVersion;
+exports.checkUpdate = checkUpdate;
+exports.downloadUpdate = downloadUpdate;
+exports.fetchAllProductsUpdates = fetchAllProductsUpdates;
+const https_1 = __importDefault(require("https"));
+const http_1 = __importDefault(require("http"));
+const adm_zip_1 = __importDefault(require("adm-zip"));
+const fs_1 = require("fs");
+const fs_2 = require("fs");
+const system_1 = require("../../../utils/system");
+const db_1 = require("@b/db");
+const path_1 = __importDefault(require("path"));
+const license_1 = require("@b/config/license");
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+function adminError(message = "System configuration error. Please contact administrator.", details) {
+    if (details) {
+        console_1.logger.error("ADMIN", message, details);
+    }
+    else {
+        console_1.logger.error("ADMIN", message);
+    }
+    return new Error(message);
+}
+let cachedIP = null;
+let lastFetched = null;
+let nextVerificationDate = null;
+const verificationPeriodDays = 3;
+const rootPath = (() => {
+    const cwd = process.cwd();
+    if (cwd.endsWith('/backend') || cwd.endsWith('\\backend')) {
+        return path_1.default.join(cwd, '..');
+    }
+    return cwd;
+})();
+const licFolderPath = `${rootPath}/lic`;
+async function getProduct(id) {
+    if (id) {
+        const extension = await db_1.models.extension.findOne({
+            where: { productId: id },
+        });
+        if (!extension)
+            throw adminError();
+        return extension;
+    }
+    else {
+        try {
+            const possiblePaths = [
+                `${rootPath}/package.json`,
+                `${path_1.default.join(rootPath, '..')}/package.json`,
+                `${process.cwd()}/package.json`,
+                `${path_1.default.join(process.cwd(), '..')}/package.json`,
+            ];
+            let content = null;
+            let usedPath = '';
+            for (const filePath of possiblePaths) {
+                try {
+                    const fileContent = await fs_1.promises.readFile(filePath, "utf8");
+                    content = JSON.parse(fileContent);
+                    if (content && (content.id || content.name)) {
+                        usedPath = filePath;
+                        break;
+                    }
+                }
+                catch (err) {
+                    continue;
+                }
+            }
+            if (!content || !content.id) {
+                throw adminError("Could not find valid package.json with required fields");
+            }
+            return {
+                id: content.id || "35599184",
+                productId: content.id || "35599184",
+                name: content.name || "bicrypto",
+                version: content.version || "5.0.0",
+                description: content.description || "BiCrypto Trading Platform",
+            };
+        }
+        catch (error) {
+            throw adminError("Could not read product information.", error);
+        }
+    }
+}
+async function getBlockchain(id) {
+    const blockchain = await db_1.models.ecosystemBlockchain.findOne({
+        where: { productId: id },
+    });
+    if (!blockchain)
+        throw adminError();
+    return blockchain;
+}
+async function fetchPublicIp() {
+    try {
+        const data = await new Promise((resolve, reject) => {
+            https_1.default.get("https://api.ipify.org?format=json", (resp) => {
+                let data = "";
+                resp.on("data", (chunk) => {
+                    data += chunk;
+                });
+                resp.on("end", () => {
+                    resolve(JSON.parse(data));
+                });
+                resp.on("error", (err) => {
+                    reject(err);
+                });
+            });
+        });
+        return data.ip;
+    }
+    catch (error) {
+        console_1.logger.error("ADMIN", `Error fetching public IP: ${error.message}`);
+        return null;
+    }
+}
+async function getPublicIp() {
+    const now = Date.now();
+    if (cachedIP && lastFetched && now - lastFetched < 60000) {
+        return cachedIP;
+    }
+    cachedIP = await fetchPublicIp();
+    lastFetched = now;
+    return cachedIP;
+}
+async function callApi(method, url, data = null, filename) {
+    try {
+        const licenseConfig = (0, license_1.getLicenseConfig)();
+        const requestData = data ? JSON.stringify(data) : null;
+        const headers = {
+            "Content-Type": "application/json",
+            "X-License-Secret": licenseConfig.licenseSecret,
+            "X-Site-URL": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+            "X-Client-IP": (await getPublicIp()) || "127.0.0.1",
+        };
+        if (requestData) {
+            headers["Content-Length"] = Buffer.byteLength(requestData).toString();
+        }
+        const parsedUrl = new URL(url);
+        const isHttps = parsedUrl.protocol === "https:";
+        const httpModule = isHttps ? https_1.default : http_1.default;
+        const requestOptions = {
+            hostname: parsedUrl.hostname,
+            port: parsedUrl.port || (isHttps ? 443 : 80),
+            path: parsedUrl.pathname + parsedUrl.search,
+            method: method,
+            headers: headers,
+        };
+        console_1.logger.debug("LICENSE_API", `${method} ${url}`);
+        const response = await new Promise((resolve, reject) => {
+            const req = httpModule.request(requestOptions, (res) => {
+                const data = [];
+                const contentType = res.headers["content-type"] || "";
+                const isZipResponse = contentType.includes("application/zip") || contentType.includes("application/octet-stream");
+                console_1.logger.debug("LICENSE_API", `Response status: ${res.statusCode}, Content-Type: ${contentType}, isZip: ${isZipResponse}`);
+                if (res.statusCode !== 200) {
+                    res.on("data", (chunk) => {
+                        data.push(chunk);
+                    });
+                    res.on("end", () => {
+                        let errorMessage = `HTTP ${res.statusCode}`;
+                        try {
+                            const result = JSON.parse(Buffer.concat(data).toString());
+                            errorMessage = result.message || result.error || result.reason || JSON.stringify(result);
+                        }
+                        catch (_a) {
+                            errorMessage = Buffer.concat(data).toString().slice(0, 200) || errorMessage;
+                        }
+                        reject(new Error(`API Error (${res.statusCode}): ${errorMessage}`));
+                    });
+                    return;
+                }
+                if (isZipResponse) {
+                    if (!filename) {
+                        reject(adminError("Filename required for zip download."));
+                        return;
+                    }
+                    const dirPath = `${rootPath}/updates`;
+                    const filePath = `${dirPath}/${filename}.zip`;
+                    fs_1.promises.mkdir(dirPath, { recursive: true })
+                        .then(() => {
+                        const fileStream = (0, fs_2.createWriteStream)(filePath);
+                        res.pipe(fileStream);
+                        fileStream.on("finish", () => {
+                            console_1.logger.info("LICENSE_API", `ZIP file downloaded successfully to: ${filePath}`);
+                            resolve({
+                                status: true,
+                                message: "Update file downloaded successfully",
+                                path: filePath,
+                            });
+                        });
+                        fileStream.on("error", (err) => {
+                            reject(adminError("Download error.", err));
+                        });
+                    })
+                        .catch((err) => {
+                        reject(adminError("Directory error.", err));
+                    });
+                }
+                else {
+                    res.on("data", (chunk) => {
+                        data.push(chunk);
+                    });
+                    res.on("end", () => {
+                        try {
+                            const responseText = Buffer.concat(data).toString();
+                            console_1.logger.debug("LICENSE_API", `JSON response received (${responseText.length} bytes)`);
+                            const result = JSON.parse(responseText);
+                            resolve(result);
+                        }
+                        catch (e) {
+                            reject(new Error(`Invalid JSON response from server: ${Buffer.concat(data).toString().slice(0, 200)}`));
+                        }
+                    });
+                }
+                res.on("error", (err) => {
+                    reject(new Error(`Response error: ${err.message}`));
+                });
+            });
+            req.on("error", (err) => {
+                reject(new Error(`Connection error: ${err.message}. Is the license server running at ${url}?`));
+            });
+            if (requestData) {
+                req.write(requestData);
+            }
+            req.end();
+        });
+        return response;
+    }
+    catch (error) {
+        console_1.logger.error("LICENSE_API", `API call failed: ${error.message}`);
+        throw error;
+    }
+}
+async function verifyLicense(productId, license, client, timeBasedCheck) {
+    const licenseFilePath = `${licFolderPath}/${productId}.lic`;
+    if (timeBasedCheck && verificationPeriodDays > 0) {
+        const today = new Date();
+        if (nextVerificationDate && today < nextVerificationDate) {
+            return { status: true, message: "Verified from cache" };
+        }
+    }
+    let purchaseCode = null;
+    try {
+        const licenseFileContent = await fs_1.promises.readFile(licenseFilePath, "utf8");
+        try {
+            const licenseData = JSON.parse(Buffer.from(licenseFileContent, "base64").toString("utf8"));
+            purchaseCode = licenseData.purchaseCode || licenseData.licenseKey || licenseData.license_key;
+        }
+        catch (_a) {
+            purchaseCode = licenseFileContent.trim();
+        }
+    }
+    catch (err) {
+        purchaseCode = license || null;
+    }
+    if (!purchaseCode) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "No purchase code found. Please activate your license first." });
+    }
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    let domain;
+    try {
+        const url = new URL(siteUrl);
+        domain = url.host;
+    }
+    catch (_b) {
+        domain = siteUrl.replace(/^https?:\/\//, "").split("/")[0];
+    }
+    const { getCachedFingerprint } = await Promise.resolve().then(() => __importStar(require("@b/utils/security")));
+    const fingerprint = getCachedFingerprint();
+    const data = {
+        purchaseCode: purchaseCode,
+        domain: domain,
+        fingerprint: fingerprint,
+    };
+    const licenseConfig = (0, license_1.getLicenseConfig)();
+    console_1.logger.info("LICENSE_API", `Verifying license - Domain: ${domain}, Fingerprint: ${fingerprint ? fingerprint.substring(0, 16) + '...' : 'MISSING'}`);
+    console_1.logger.debug("LICENSE_API", `Verify payload: ${JSON.stringify(data)}`);
+    const response = await callApi("POST", `${licenseConfig.apiUrl}/api/client/licenses/verify`, data);
+    if (timeBasedCheck && verificationPeriodDays > 0 && response.status) {
+        const today = new Date();
+        nextVerificationDate = new Date();
+        nextVerificationDate.setDate(today.getDate() + verificationPeriodDays);
+    }
+    if (!response.status) {
+        const reason = response.reason || "License verification failed";
+        throw (0, error_1.createError)({ statusCode: 400, message: reason });
+    }
+    return response;
+}
+async function activateLicense(productId, purchaseCode, client, notificationEmail) {
+    var _a;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    let domain;
+    try {
+        const url = new URL(siteUrl);
+        domain = url.host;
+    }
+    catch (_b) {
+        domain = siteUrl.replace(/^https?:\/\//, "").split("/")[0];
+    }
+    const ipAddress = await getPublicIp() || "127.0.0.1";
+    const { getCachedFingerprint } = await Promise.resolve().then(() => __importStar(require("@b/utils/security")));
+    const hardwareFingerprint = getCachedFingerprint();
+    const data = {
+        purchaseCode: purchaseCode,
+        domain: domain,
+        ipAddress: ipAddress,
+        hardwareFingerprint: hardwareFingerprint,
+        metadata: {
+            productId: productId,
+            clientName: client,
+            activatedVia: "admin-panel",
+        },
+    };
+    if (notificationEmail) {
+        data.notificationEmail = notificationEmail;
+    }
+    const licenseConfig = (0, license_1.getLicenseConfig)();
+    console_1.logger.info("LICENSE_API", `Activating license - Domain: ${domain}, ProductId: ${productId}`);
+    console_1.logger.debug("LICENSE_API", `Activation payload: ${JSON.stringify(data)}`);
+    const response = await callApi("POST", `${licenseConfig.apiUrl}/api/client/licenses/activate`, data);
+    if (!response.status) {
+        const reason = response.reason || response.message || "License activation failed";
+        throw (0, error_1.createError)({ statusCode: 400, message: reason });
+    }
+    const licenseFilePath = `${licFolderPath}/${productId}.lic`;
+    const responseData = response;
+    const licenseData = {
+        purchaseCode: purchaseCode,
+        productId: productId,
+        clientName: client,
+        domain: domain,
+        activatedAt: new Date().toISOString(),
+        ...(((_a = responseData.data) === null || _a === void 0 ? void 0 : _a.license) || responseData.license || responseData.data || {}),
+    };
+    const licFileContent = Buffer.from(JSON.stringify(licenseData)).toString("base64");
+    await fs_1.promises.mkdir(licFolderPath, { recursive: true });
+    await fs_1.promises.writeFile(licenseFilePath, licFileContent);
+    return {
+        status: true,
+        message: response.message || "License activated successfully",
+        data: response.data,
+    };
+}
+async function checkLatestVersion(productId) {
+    return {
+        status: false,
+        message: "Version check not available via this endpoint",
+        version: null,
+    };
+}
+function compareVersions(v1, v2) {
+    const parts1 = v1.split('.').map(p => parseInt(p, 10) || 0);
+    const parts2 = v2.split('.').map(p => parseInt(p, 10) || 0);
+    const maxLen = Math.max(parts1.length, parts2.length);
+    for (let i = 0; i < maxLen; i++) {
+        const p1 = parts1[i] || 0;
+        const p2 = parts2[i] || 0;
+        if (p1 < p2)
+            return -1;
+        if (p1 > p2)
+            return 1;
+    }
+    return 0;
+}
+async function checkUpdate(productId, currentVersion) {
+    var _a, _b, _c;
+    const licenseConfig = (0, license_1.getLicenseConfig)();
+    const licenseFilePath = `${licFolderPath}/${productId}.lic`;
+    let purchaseCode = null;
+    try {
+        const licenseFileContent = await fs_1.promises.readFile(licenseFilePath, "utf8");
+        try {
+            const licenseData = JSON.parse(Buffer.from(licenseFileContent, "base64").toString("utf8"));
+            purchaseCode = licenseData.purchaseCode || licenseData.licenseKey;
+        }
+        catch (_d) {
+            purchaseCode = licenseFileContent.trim();
+        }
+    }
+    catch (_e) {
+        return {
+            status: false,
+            message: "License required to check for updates",
+            updateAvailable: false,
+            update_id: "",
+            version: currentVersion,
+            changelog: null,
+            pendingUpdates: [],
+            latestVersion: currentVersion,
+            isSequential: true,
+        };
+    }
+    if (!purchaseCode) {
+        return {
+            status: false,
+            message: "No purchase code found",
+            updateAvailable: false,
+            update_id: "",
+            version: currentVersion,
+            changelog: null,
+            pendingUpdates: [],
+            latestVersion: currentVersion,
+            isSequential: true,
+        };
+    }
+    const { getCachedFingerprint } = await Promise.resolve().then(() => __importStar(require("@b/utils/security")));
+    const fingerprint = getCachedFingerprint();
+    const payload = {
+        purchaseCode: purchaseCode,
+        productId: productId,
+        currentVersion: currentVersion,
+        fingerprint: fingerprint,
+    };
+    try {
+        const response = await callApi("POST", `${licenseConfig.apiUrl}/api/client/updates/check`, payload);
+        if (response.status) {
+            const rawResponse = response;
+            const pendingUpdatesFromServer = rawResponse.pendingUpdates || [];
+            const latestVersion = rawResponse.latestVersion || ((_a = response.data) === null || _a === void 0 ? void 0 : _a.latestVersion) || currentVersion;
+            const nextUpdateFromServer = rawResponse.nextUpdate || null;
+            let pendingUpdates = [];
+            if (pendingUpdatesFromServer.length > 0) {
+                pendingUpdates = pendingUpdatesFromServer.map((u) => ({
+                    version: u.version,
+                    updateId: u.updateId || u.update_id || u.version,
+                    changelog: u.changelog || null,
+                }));
+            }
+            else if (response.data) {
+                const allVersions = response.data.availableVersions || response.data.versions || [];
+                if (allVersions.length > 0) {
+                    pendingUpdates = allVersions
+                        .filter((v) => {
+                        const ver = typeof v === 'string' ? v : v.version;
+                        return compareVersions(ver, currentVersion) > 0;
+                    })
+                        .map((v) => ({
+                        version: typeof v === 'string' ? v : v.version,
+                        updateId: typeof v === 'string' ? v : (v.updateId || v.update_id || v.version),
+                        changelog: typeof v === 'string' ? null : v.changelog,
+                    }))
+                        .sort((a, b) => compareVersions(a.version, b.version));
+                }
+                else if (response.data.updateAvailable && latestVersion !== currentVersion) {
+                    pendingUpdates = [{
+                            version: latestVersion,
+                            updateId: response.data.updateId || latestVersion,
+                            changelog: response.data.changelog || null,
+                        }];
+                }
+            }
+            const nextVersion = nextUpdateFromServer || (pendingUpdates.length > 0 ? pendingUpdates[0] : null);
+            return {
+                status: nextVersion !== null,
+                message: nextVersion
+                    ? pendingUpdates.length > 1
+                        ? `Update available: ${nextVersion.version} (${pendingUpdates.length} updates pending, must update sequentially)`
+                        : `Update available: ${nextVersion.version}`
+                    : `You have the latest version of the product.`,
+                updateAvailable: nextVersion !== null,
+                update_id: (nextVersion === null || nextVersion === void 0 ? void 0 : nextVersion.updateId) || "",
+                version: (nextVersion === null || nextVersion === void 0 ? void 0 : nextVersion.version) || currentVersion,
+                changelog: (nextVersion === null || nextVersion === void 0 ? void 0 : nextVersion.changelog) || null,
+                pendingUpdates: pendingUpdates,
+                latestVersion: latestVersion,
+                isSequential: (_b = rawResponse.isSequential) !== null && _b !== void 0 ? _b : true,
+                totalPendingCount: (_c = rawResponse.totalPendingCount) !== null && _c !== void 0 ? _c : pendingUpdates.length,
+            };
+        }
+        return {
+            status: false,
+            message: `You have the latest version of the product.`,
+            updateAvailable: false,
+            update_id: "",
+            version: currentVersion,
+            changelog: null,
+            pendingUpdates: [],
+            latestVersion: currentVersion,
+            isSequential: true,
+        };
+    }
+    catch (error) {
+        console_1.logger.warn("ADMIN", `Update check failed for product ${productId}: ${error.message}`);
+        return {
+            status: false,
+            message: `You have the latest version of the product.`,
+            updateAvailable: false,
+            update_id: "",
+            version: currentVersion,
+            changelog: null,
+            pendingUpdates: [],
+            latestVersion: currentVersion,
+            isSequential: true,
+        };
+    }
+}
+async function downloadUpdate(productId, updateId, version, product, type) {
+    if (!productId || !updateId || !version || !product) {
+        throw adminError();
+    }
+    const licenseFilePath = `${licFolderPath}/${productId}.lic`;
+    let licenseFile;
+    try {
+        licenseFile = await fs_1.promises.readFile(licenseFilePath, "utf8");
+    }
+    catch (e) {
+        throw adminError();
+    }
+    let purchaseCode;
+    try {
+        const licenseData = JSON.parse(Buffer.from(licenseFile, "base64").toString("utf8"));
+        purchaseCode = licenseData.purchaseCode || licenseData.licenseKey;
+    }
+    catch (_a) {
+        purchaseCode = licenseFile.trim();
+    }
+    const { getCachedFingerprint } = await Promise.resolve().then(() => __importStar(require("@b/utils/security")));
+    const fingerprint = getCachedFingerprint();
+    const licenseConfig = (0, license_1.getLicenseConfig)();
+    const downloadPayload = {
+        purchaseCode,
+        productId,
+        updateId: updateId || undefined,
+        version: version || undefined,
+        fingerprint: fingerprint,
+    };
+    console_1.logger.info("LICENSE_API", `Downloading update: product=${product}, version=${version}, updateId=${updateId}`);
+    const response = await callApi("POST", `${licenseConfig.apiUrl}/api/client/updates/download`, downloadPayload, `${product}-${version}`);
+    console_1.logger.info("LICENSE_API", `Download response: status=${response.status}, path=${response.path}, message=${response.message}`);
+    if (!response.status || !response.path) {
+        console_1.logger.error("LICENSE_API", `Download failed - response: ${JSON.stringify(response)}`);
+        throw adminError("Update download failed.");
+    }
+    try {
+        console_1.logger.info("UPDATE", `Extracting update to: ${rootPath}`);
+        const extractResult = unzip(response.path, rootPath);
+        if (!extractResult.success) {
+            console_1.logger.error("UPDATE", `Extraction failed: ${extractResult.message}`);
+            try {
+                await fs_1.promises.unlink(response.path);
+                console_1.logger.info("UPDATE", "ZIP file cleaned up after failed extraction");
+            }
+            catch (cleanupError) {
+            }
+            throw adminError(`Update extraction failed: ${extractResult.message}`);
+        }
+        console_1.logger.info("UPDATE", `Extraction successful: ${extractResult.extractedFiles.length} files updated`);
+        if (type === "extension") {
+            try {
+                await (0, system_1.updateExtensionQuery)(productId, version);
+                console_1.logger.info("UPDATE", `Extension ${productId} version updated to ${version}`);
+            }
+            catch (error) {
+                throw adminError("Extension update failed.", error);
+            }
+        }
+        else if (type === "blockchain") {
+            try {
+                await (0, system_1.updateBlockchainQuery)(productId, version);
+                console_1.logger.info("UPDATE", `Blockchain ${productId} version updated to ${version}`);
+            }
+            catch (error) {
+                throw adminError("Blockchain update failed.", error);
+            }
+        }
+        else if (type === "exchange") {
+            try {
+                await (0, system_1.updateExchangeQuery)(productId, version);
+                console_1.logger.info("UPDATE", `Exchange ${productId} version updated to ${version}`);
+            }
+            catch (error) {
+                throw adminError("Exchange update failed.", error);
+            }
+        }
+        await fs_1.promises.unlink(response.path);
+        console_1.logger.info("UPDATE", "ZIP file cleaned up successfully");
+        return {
+            message: `Update downloaded and extracted successfully. ${extractResult.extractedFiles.length} files updated.`,
+            status: true,
+            data: {
+                filesUpdated: extractResult.extractedFiles.length,
+                version: version,
+            },
+        };
+    }
+    catch (error) {
+        console_1.logger.error("UPDATE", `Update extraction failed: ${error.message}`);
+        if (error.message && !error.message.includes("Update extraction failed")) {
+            throw adminError(`Update extraction failed: ${error.message}`, error);
+        }
+        throw error;
+    }
+}
+async function fetchAllProductsUpdates() {
+    const licenseConfig = (0, license_1.getLicenseConfig)();
+    const mainProductId = licenseConfig.mainProductId;
+    const licenseFilePath = `${licFolderPath}/${mainProductId}.lic`;
+    let purchaseCode = null;
+    try {
+        const licenseFileContent = await fs_1.promises.readFile(licenseFilePath, "utf8");
+        try {
+            const licenseData = JSON.parse(Buffer.from(licenseFileContent, "base64").toString("utf8"));
+            purchaseCode = licenseData.purchaseCode || licenseData.licenseKey;
+        }
+        catch (_a) {
+            purchaseCode = licenseFileContent.trim();
+        }
+    }
+    catch (_b) {
+        console_1.logger.warn("ADMIN", "No main product license found for batch update check");
+        return { status: true, message: "No license for batch check", products: [] };
+    }
+    if (!purchaseCode) {
+        return { status: true, message: "No purchase code found", products: [] };
+    }
+    try {
+        const [extensions, blockchains, exchanges] = await Promise.all([
+            db_1.models.extension.findAll({ attributes: ["productId", "version"] }),
+            db_1.models.ecosystemBlockchain ? db_1.models.ecosystemBlockchain.findAll({ attributes: ["productId", "version"] }) : Promise.resolve([]),
+            db_1.models.exchange.findAll({ attributes: ["productId", "version"] }),
+        ]);
+        const products = [];
+        const mainProduct = await getProduct();
+        products.push({
+            productId: mainProductId,
+            currentVersion: mainProduct.version || "5.0.0",
+        });
+        for (const ext of extensions) {
+            if (ext.productId) {
+                products.push({
+                    productId: ext.productId,
+                    currentVersion: ext.version || "0.0.1",
+                });
+            }
+        }
+        for (const bc of blockchains) {
+            if (bc.productId) {
+                products.push({
+                    productId: bc.productId,
+                    currentVersion: bc.version || "0.0.1",
+                });
+            }
+        }
+        for (const ex of exchanges) {
+            if (ex.productId) {
+                products.push({
+                    productId: ex.productId,
+                    currentVersion: ex.version || "0.0.1",
+                });
+            }
+        }
+        const payload = {
+            purchaseCode,
+            products,
+        };
+        const response = await callApi("POST", `${licenseConfig.apiUrl}/api/client/updates/batch`, payload);
+        if (response.status && response.products) {
+            for (const product of response.products) {
+                const productId = product.product_id || product.productId;
+                const currentVersion = product.current_version || product.currentVersion;
+                const latestVersion = product.latest_version || product.latestVersion;
+                const updateAvailable = product.update_available || product.updateAvailable;
+                if (currentVersion === "0.0.1" && latestVersion && updateAvailable) {
+                    const licFileExists = await fs_1.promises.access(`${licFolderPath}/${productId}.lic`).then(() => true).catch(() => false);
+                    if (licFileExists) {
+                        const blockchain = blockchains.find((bc) => bc.productId === productId);
+                        if (blockchain) {
+                            await db_1.models.ecosystemBlockchain.update({ version: latestVersion }, { where: { productId } });
+                            product.current_version = latestVersion;
+                            product.currentVersion = latestVersion;
+                            product.update_available = false;
+                            product.updateAvailable = false;
+                            product.summary = "You have the latest version";
+                            console_1.logger.info("ADMIN", `Synced blockchain ${productId} version to ${latestVersion}`);
+                        }
+                        const extension = extensions.find((ext) => ext.productId === productId);
+                        if (extension) {
+                            await db_1.models.extension.update({ version: latestVersion }, { where: { productId } });
+                            product.current_version = latestVersion;
+                            product.currentVersion = latestVersion;
+                            product.update_available = false;
+                            product.updateAvailable = false;
+                            product.summary = "You have the latest version";
+                            console_1.logger.info("ADMIN", `Synced extension ${productId} version to ${latestVersion}`);
+                        }
+                        const exchange = exchanges.find((ex) => ex.productId === productId);
+                        if (exchange) {
+                            await db_1.models.exchange.update({ version: latestVersion }, { where: { productId } });
+                            product.current_version = latestVersion;
+                            product.currentVersion = latestVersion;
+                            product.update_available = false;
+                            product.updateAvailable = false;
+                            product.summary = "You have the latest version";
+                            console_1.logger.info("ADMIN", `Synced exchange ${productId} version to ${latestVersion}`);
+                        }
+                    }
+                }
+            }
+            return {
+                status: true,
+                message: "Batch update check completed",
+                products: response.products,
+            };
+        }
+        return { status: true, message: "No updates available", products: [] };
+    }
+    catch (error) {
+        console_1.logger.warn("ADMIN", `Batch update check failed: ${error.message}`);
+        return { status: true, message: "Batch check unavailable", products: [] };
+    }
+}
+const unzip = (filePath, outPath) => {
+    const zip = new adm_zip_1.default(filePath);
+    const zipEntries = zip.getEntries();
+    const extractedFiles = [];
+    const failedFiles = [];
+    console_1.logger.info("UPDATE", `Starting extraction of ${zipEntries.length} entries from ${path_1.default.basename(filePath)} to ${outPath}`);
+    const fileEntries = zipEntries.filter(entry => !entry.isDirectory);
+    if (fileEntries.length === 0) {
+        console_1.logger.warn("UPDATE", "ZIP file contains no extractable files");
+        return {
+            success: false,
+            extractedFiles: [],
+            failedFiles: [],
+            totalFiles: 0,
+            message: "ZIP file contains no extractable files",
+        };
+    }
+    for (const entry of zipEntries) {
+        try {
+            const entryName = entry.entryName;
+            if (entry.isDirectory) {
+                continue;
+            }
+            const targetPath = path_1.default.join(outPath, entryName);
+            const targetDir = path_1.default.dirname(targetPath);
+            try {
+                if (!require("fs").existsSync(targetDir)) {
+                    require("fs").mkdirSync(targetDir, { recursive: true });
+                }
+            }
+            catch (mkdirError) {
+                console_1.logger.warn("UPDATE", `Failed to create directory ${targetDir}: ${mkdirError.message}`);
+                failedFiles.push(entryName);
+                continue;
+            }
+            try {
+                zip.extractEntryTo(entry, outPath, true, true);
+                extractedFiles.push(entryName);
+                if (extractedFiles.length % 50 === 0) {
+                    console_1.logger.info("UPDATE", `Extracted ${extractedFiles.length}/${fileEntries.length} files...`);
+                }
+            }
+            catch (extractError) {
+                console_1.logger.warn("UPDATE", `Failed to extract ${entryName}: ${extractError.message}`);
+                failedFiles.push(entryName);
+            }
+        }
+        catch (entryError) {
+            console_1.logger.error("UPDATE", `Error processing entry: ${entryError.message}`);
+            failedFiles.push(entry.entryName);
+        }
+    }
+    const success = failedFiles.length === 0 && extractedFiles.length > 0;
+    console_1.logger.info("UPDATE", `Extraction complete: ${extractedFiles.length} files extracted, ${failedFiles.length} failed`);
+    if (failedFiles.length > 0) {
+        console_1.logger.warn("UPDATE", `Failed files: ${failedFiles.slice(0, 10).join(", ")}${failedFiles.length > 10 ? ` ... and ${failedFiles.length - 10} more` : ""}`);
+    }
+    if (extractedFiles.length > 0) {
+        const sampleFiles = extractedFiles.slice(0, 5);
+        console_1.logger.info("UPDATE", `Sample extracted files: ${sampleFiles.join(", ")}`);
+    }
+    return {
+        success,
+        extractedFiles,
+        failedFiles,
+        totalFiles: fileEntries.length,
+        message: success
+            ? `Successfully extracted ${extractedFiles.length} files`
+            : `Extraction completed with ${failedFiles.length} errors`,
+    };
+};

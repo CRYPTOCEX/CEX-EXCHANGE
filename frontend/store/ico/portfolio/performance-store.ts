@@ -55,17 +55,40 @@ export const usePortfolioPerformanceStore = create<PortfolioPerformanceState>(
     error: null,
     fetchPerformanceData: async (timeframe: string) => {
       set({ isLoading: true, error: null });
+      // API returns: { period, startValue, endValue, change, changePercentage, history: [{date, value}] }
       const { data, error } = await $fetch<{
-        performanceData: PerformanceDataPoint[];
-        metrics: PerformanceMetrics;
+        period: string;
+        startValue: string;
+        endValue: string;
+        change: string;
+        changePercentage: string;
+        history: { date: string; value: string }[];
       }>({
         url: `/api/ico/portfolio/performance?timeframe=${timeframe}`,
         silent: true,
       });
       if (data && !error) {
+        // Map API response to store format
+        const performanceData: PerformanceDataPoint[] = (data.history || []).map(
+          (point) => ({
+            date: point.date,
+            value: parseFloat(point.value) || 0,
+          })
+        );
+        const initialValue = parseFloat(data.startValue) || 0;
+        const currentValue = parseFloat(data.endValue) || 0;
+        const absoluteChange = parseFloat(data.change) || 0;
+        const percentageChange = parseFloat(data.changePercentage) || 0;
+
         set({
-          performanceData: data.performanceData,
-          metrics: data.metrics,
+          performanceData,
+          metrics: {
+            ...defaultMetrics,
+            initialValue,
+            currentValue,
+            absoluteChange,
+            percentageChange,
+          },
           isLoading: false,
           error: null,
         });

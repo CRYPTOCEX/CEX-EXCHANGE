@@ -418,8 +418,13 @@ export default function CompletedPositions({
   const resizeRef = useRef<HTMLDivElement>(null);
   const startYRef = useRef(0);
   const startHeightRef = useRef(0);
-  const { completedOrders, isLoadingOrders, fetchCompletedOrders } =
+  const { completedOrders, isLoadingOrders, fetchCompletedOrders, tradingMode } =
     useBinaryStore();
+
+  // Filter completed orders by current trading mode
+  const filteredCompletedOrders = useMemo(() => {
+    return completedOrders.filter(order => order.isDemo === (tradingMode === "demo"));
+  }, [completedOrders, tradingMode]);
 
   // Theme-based classes using zinc colors
   const bgClass = theme === "dark" ? "bg-zinc-900" : "bg-white";
@@ -548,8 +553,8 @@ export default function CompletedPositions({
 
   // Process orders and update stats when orders change - with memoization
   useEffect(() => {
-    // Ensure we have orders to process
-    if (!completedOrders || completedOrders.length === 0) {
+    // Ensure we have orders to process (use filtered orders by trading mode)
+    if (!filteredCompletedOrders || filteredCompletedOrders.length === 0) {
       setSortedOrders([]);
       setStats({
         totalProfit: 0,
@@ -558,13 +563,13 @@ export default function CompletedPositions({
       });
       return;
     }
-    
+
     // Debounce updates to prevent excessive re-renders
     const timeoutId = setTimeout(() => {
-      const completedOrdersCount = completedOrders.length;
+      const completedOrdersCount = filteredCompletedOrders.length;
 
     // Calculate total profit/loss
-    const totalProfit = completedOrders.reduce(
+    const totalProfit = filteredCompletedOrders.reduce(
       (sum, order) => {
         const profitAmount = order.profit || 0;
         return sum + (order.status === "WIN" ? profitAmount : -profitAmount);
@@ -572,10 +577,10 @@ export default function CompletedPositions({
       0
     );
     const winRate =
-      completedOrders.length > 0
+      filteredCompletedOrders.length > 0
         ? (
-            (completedOrders.filter((order) => order.status === "WIN").length /
-              completedOrders.length) *
+            (filteredCompletedOrders.filter((order) => order.status === "WIN").length /
+              filteredCompletedOrders.length) *
             100
           ).toFixed(1)
         : "0.0";
@@ -586,11 +591,11 @@ export default function CompletedPositions({
     });
 
       // Update sorted orders
-      updateSortedOrders(completedOrders);
+      updateSortedOrders(filteredCompletedOrders);
     }, 100); // Small debounce
-    
+
     return () => clearTimeout(timeoutId);
-  }, [completedOrders, filter, sortBy, sortDirection]);
+  }, [filteredCompletedOrders, filter, sortBy, sortDirection]);
 
   // Hide the component when there are no completed trades
   if (stats.completedOrdersCount === 0) {
@@ -695,7 +700,7 @@ export default function CompletedPositions({
                   className={`text-sm ${stats.totalProfit >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`}
                 >
                   {stats.totalProfit >= 0 ? "+" : ""}
-                  {stats.totalProfit.toFixed(2)} {completedOrders[0] && getCurrency(completedOrders[0].symbol)}
+                  {stats.totalProfit.toFixed(2)} {filteredCompletedOrders[0] && getCurrency(filteredCompletedOrders[0].symbol)}
                 </div>
                 <div className={`text-xs ${secondaryTextClass}`}>
                   {tCommon("win")}:{" "}
@@ -824,7 +829,7 @@ export default function CompletedPositions({
                   className={`ml-3 text-sm ${stats.totalProfit >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`}
                 >
                   {stats.totalProfit >= 0 ? "+" : ""}
-                  {stats.totalProfit.toFixed(2)} {completedOrders[0] && getCurrency(completedOrders[0].symbol)}
+                  {stats.totalProfit.toFixed(2)} {filteredCompletedOrders[0] && getCurrency(filteredCompletedOrders[0].symbol)}
                 </div>
                 <div
                   className={`ml-3 text-xs ${theme === "dark" ? "text-zinc-400" : "text-zinc-500"}`}

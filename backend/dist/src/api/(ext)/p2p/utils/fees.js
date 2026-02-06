@@ -1,1 +1,295 @@
-"use strict";async function getMinimumTradeAmounts(e){var l,t,a,o,n;try{null===(l=null==e?void 0:e.step)||void 0===l||l.call(e,"Loading minimum trade amounts");const o=await db_1.models.settings.findOne({where:{key:"p2p"}});if(null==o?void 0:o.value){const l=JSON.parse(o.value);if(l.MinimumTradeAmounts){null===(t=null==e?void 0:e.success)||void 0===t||t.call(e,"Loaded minimum trade amounts from extension settings");return l.MinimumTradeAmounts}}const n=await db_1.models.settings.findOne({where:{key:"p2pMinimumTradeAmounts"}});if(null==n?void 0:n.value){null===(a=null==e?void 0:e.success)||void 0===a||a.call(e,"Loaded minimum trade amounts from legacy settings");return JSON.parse(n.value)}}catch(l){null===(o=null==e?void 0:e.fail)||void 0===o||o.call(e,l.message||"Failed to load minimum trade amounts");console_1.logger.error("P2P_FEES","Failed to load P2P minimum trade amounts",l)}null===(n=null==e?void 0:e.step)||void 0===n||n.call(e,"Using default minimum trade amounts");return{BTC:5e-5,ETH:.001,LTC:.01,BCH:.001,DOGE:10,XRP:5,ADA:5,SOL:.01,MATIC:1}}async function validateMinimumTradeAmount(e,l,t){var a,o,n,i;try{null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,`Validating minimum trade amount for ${e} ${l}`);const i=(await getMinimumTradeAmounts(t))[l.toUpperCase()];if(i&&e<i){null===(o=null==t?void 0:t.fail)||void 0===o||o.call(t,`Amount ${e} ${l} is below minimum ${i}`);return{valid:!1,minimum:i,message:`Minimum trade amount for ${l} is ${i}`}}null===(n=null==t?void 0:t.success)||void 0===n||n.call(t,`Trade amount validation passed for ${e} ${l}`);return{valid:!0}}catch(e){null===(i=null==t?void 0:t.fail)||void 0===i||i.call(t,e.message||"Failed to validate minimum trade amount");throw e}}async function getP2PFeeConfiguration(e){var l,t,a,o;try{null===(l=null==e?void 0:e.step)||void 0===l||l.call(e,"Loading P2P fee configuration");const a=await db_1.models.settings.findOne({where:{key:"p2pFeeConfiguration"}});if(null==a?void 0:a.value){null===(t=null==e?void 0:e.success)||void 0===t||t.call(e,"Loaded fee configuration from settings");return JSON.parse(a.value)}}catch(l){null===(a=null==e?void 0:e.fail)||void 0===a||a.call(e,l.message||"Failed to load fee configuration");console_1.logger.error("P2P_FEES","Failed to load P2P fee configuration",l)}null===(o=null==e?void 0:e.step)||void 0===o||o.call(e,"Using default fee configuration");return{maker:.1,taker:.2,minimum:.01,maximum:100}}async function calculateTradeFees(e,l,t,a,o,n,i,s){var u,r,c,d;try{null===(u=null==s?void 0:s.step)||void 0===u||u.call(s,`Calculating trade fees for ${e} ${l}`);const a=i||await getP2PFeeConfiguration(s);null===(r=null==s?void 0:s.step)||void 0===r||r.call(s,` Using fee config: maker=${a.maker}%, taker=${a.taker}%`);const d=e*(a.maker/100),m=e*(a.taker/100),v=Math.min(Math.max(d,a.minimum),a.maximum),F=Math.min(Math.max(m,a.minimum),a.maximum),f=o===t?v:F,p=n===t?v:F,g=e-f,y=e-p,P={buyerFee:parseFloat(f.toFixed(8)),sellerFee:parseFloat(p.toFixed(8)),totalFee:parseFloat((f+p).toFixed(8)),netAmountBuyer:parseFloat(g.toFixed(8)),netAmountSeller:parseFloat(y.toFixed(8))};null===(c=null==s?void 0:s.success)||void 0===c||c.call(s,`Calculated fees: buyer=${P.buyerFee}, seller=${P.sellerFee}, total=${P.totalFee}`);return P}catch(e){null===(d=null==s?void 0:s.fail)||void 0===d||d.call(s,e.message||"Failed to calculate trade fees");throw e}}async function calculateEscrowFee(e,l,t){var a,o,n,i,s;try{null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,`Calculating escrow fee for ${e} ${l}`);let s=.2;const u=await db_1.models.settings.findOne({where:{key:"p2p"}});if(null==u?void 0:u.value)try{const e=JSON.parse(u.value);void 0!==e.EscrowFeeRate?s=parseFloat(e.EscrowFeeRate):void 0!==e.escrowFeeRate&&(s=parseFloat(e.escrowFeeRate))}catch(e){null===(o=null==t?void 0:t.fail)||void 0===o||o.call(t,"Failed to parse P2P extension settings");console_1.logger.error("P2P_FEES","Failed to parse P2P extension settings",e)}if(.2===s){const e=await db_1.models.settings.findOne({where:{key:"p2pEscrowFeeRate"}});(null==e?void 0:e.value)&&(s=parseFloat(e.value))}null===(n=null==t?void 0:t.step)||void 0===n||n.call(t,`Using escrow fee rate: ${s}%`);const r=e*(s/100),c=1e-4,d=parseFloat(Math.max(r,c).toFixed(8));null===(i=null==t?void 0:t.success)||void 0===i||i.call(t,`Calculated escrow fee: ${d}`);return d}catch(e){null===(s=null==t?void 0:t.fail)||void 0===s||s.call(t,e.message||"Failed to calculate escrow fee");console_1.logger.error("P2P_FEES","Failed to calculate escrow fee",e);return 0}}async function getUserFeeDiscount(e,l){var t,a,o,n;try{null===(t=null==l?void 0:l.step)||void 0===t||t.call(l,`Calculating fee discount for user ${e}`);const n=new Date;n.setDate(n.getDate()-30);const i=await db_1.models.p2pTrade.findOne({attributes:[[(0,sequelize_1.fn)("SUM",(0,sequelize_1.col)("totalAmount")),"volume"]],where:{[sequelize_1.Op.or]:[{buyerId:e},{sellerId:e}],status:"COMPLETED",completedAt:{[sequelize_1.Op.gte]:n}},raw:!0}),s=parseFloat((null==i?void 0:i.volume)||"0");null===(a=null==l?void 0:l.step)||void 0===a||a.call(l,`User 30-day trading volume: $${s}`);const u=[{minVolume:1e5,discount:50},{minVolume:5e4,discount:30},{minVolume:1e4,discount:20},{minVolume:5e3,discount:10},{minVolume:1e3,discount:5}].find(e=>s>=e.minVolume),r=(null==u?void 0:u.discount)||0;null===(o=null==l?void 0:l.success)||void 0===o||o.call(l,`User fee discount: ${r}%`);return r}catch(e){null===(n=null==l?void 0:l.fail)||void 0===n||n.call(l,e.message||"Failed to calculate user fee discount");console_1.logger.error("P2P_FEES","Failed to calculate user fee discount",e);return 0}}async function applyFeeDiscount(e,l,t){var a,o,n,i,s;try{null===(a=null==t?void 0:t.step)||void 0===a||a.call(t,`Applying fee discount for user ${l}`);const s=await getUserFeeDiscount(l,t);if(0===s){null===(o=null==t?void 0:t.step)||void 0===o||o.call(t,"No discount applicable");return e}null===(n=null==t?void 0:t.step)||void 0===n||n.call(t,`Applying ${s}% discount`);const u=1-s/100,r={buyerFee:parseFloat((e.buyerFee*u).toFixed(8)),sellerFee:parseFloat((e.sellerFee*u).toFixed(8)),totalFee:parseFloat((e.totalFee*u).toFixed(8)),netAmountBuyer:parseFloat((e.netAmountBuyer+e.buyerFee*(s/100)).toFixed(8)),netAmountSeller:parseFloat((e.netAmountSeller+e.sellerFee*(s/100)).toFixed(8))};null===(i=null==t?void 0:t.success)||void 0===i||i.call(t,`Fee discount applied: ${s}%`);return r}catch(l){null===(s=null==t?void 0:t.fail)||void 0===s||s.call(t,l.message||"Failed to apply fee discount");console_1.logger.error("P2P_FEES","Failed to apply fee discount",l);return e}}async function createFeeTransactions(e,l,t,a,o,n,i){var s,u,r,c,d;try{null===(s=null==i?void 0:i.step)||void 0===s||s.call(i,`Creating fee transactions for trade ${e}`);const d=[];a.buyerFee>0&&d.push({userId:l,type:"P2P_FEE",status:"COMPLETED",amount:-a.buyerFee,fee:0,currency:o,description:`P2P trading fee for trade #${e}`,referenceId:e});a.sellerFee>0&&d.push({userId:t,type:"P2P_FEE",status:"COMPLETED",amount:-a.sellerFee,fee:0,currency:o,description:`P2P trading fee for trade #${e}`,referenceId:e});if(d.length>0){null===(u=null==i?void 0:i.step)||void 0===u||u.call(i,`Creating ${d.length} fee transaction records`);await db_1.models.transaction.bulkCreate(d,{transaction:n});null===(r=null==i?void 0:i.success)||void 0===r||r.call(i,`Created ${d.length} fee transactions`)}else null===(c=null==i?void 0:i.step)||void 0===c||c.call(i,"No fee transactions to create")}catch(e){null===(d=null==i?void 0:i.fail)||void 0===d||d.call(i,e.message||"Failed to create fee transactions");throw e}}function calculateFeePreview(e,l){const t=e*(l/100),a=e-t;return{fee:parseFloat(t.toFixed(8)),netAmount:parseFloat(a.toFixed(8)),feePercentage:`${l}%`}}Object.defineProperty(exports,"__esModule",{value:!0});exports.getMinimumTradeAmounts=getMinimumTradeAmounts;exports.validateMinimumTradeAmount=validateMinimumTradeAmount;exports.getP2PFeeConfiguration=getP2PFeeConfiguration;exports.calculateTradeFees=calculateTradeFees;exports.calculateEscrowFee=calculateEscrowFee;exports.getUserFeeDiscount=getUserFeeDiscount;exports.applyFeeDiscount=applyFeeDiscount;exports.createFeeTransactions=createFeeTransactions;exports.calculateFeePreview=calculateFeePreview;const db_1=require("@b/db"),sequelize_1=require("sequelize"),console_1=require("@b/utils/console");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getMinimumTradeAmounts = getMinimumTradeAmounts;
+exports.validateMinimumTradeAmount = validateMinimumTradeAmount;
+exports.getP2PFeeConfiguration = getP2PFeeConfiguration;
+exports.calculateTradeFees = calculateTradeFees;
+exports.calculateEscrowFee = calculateEscrowFee;
+exports.getUserFeeDiscount = getUserFeeDiscount;
+exports.applyFeeDiscount = applyFeeDiscount;
+exports.createFeeTransactions = createFeeTransactions;
+exports.calculateFeePreview = calculateFeePreview;
+const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
+const console_1 = require("@b/utils/console");
+async function getMinimumTradeAmounts(ctx) {
+    var _a, _b, _c, _d, _e;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Loading minimum trade amounts");
+        const extensionSettings = await db_1.models.settings.findOne({
+            where: { key: "p2p" },
+        });
+        if (extensionSettings === null || extensionSettings === void 0 ? void 0 : extensionSettings.value) {
+            const p2pSettings = JSON.parse(extensionSettings.value);
+            if (p2pSettings.MinimumTradeAmounts) {
+                (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, "Loaded minimum trade amounts from extension settings");
+                return p2pSettings.MinimumTradeAmounts;
+            }
+        }
+        const legacySettings = await db_1.models.settings.findOne({
+            where: { key: "p2pMinimumTradeAmounts" },
+        });
+        if (legacySettings === null || legacySettings === void 0 ? void 0 : legacySettings.value) {
+            (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, "Loaded minimum trade amounts from legacy settings");
+            return JSON.parse(legacySettings.value);
+        }
+    }
+    catch (error) {
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _d === void 0 ? void 0 : _d.call(ctx, error.message || "Failed to load minimum trade amounts");
+        console_1.logger.error("P2P_FEES", "Failed to load P2P minimum trade amounts", error);
+    }
+    (_e = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _e === void 0 ? void 0 : _e.call(ctx, "Using default minimum trade amounts");
+    return {
+        BTC: 0.00005,
+        ETH: 0.001,
+        LTC: 0.01,
+        BCH: 0.001,
+        DOGE: 10,
+        XRP: 5,
+        ADA: 5,
+        SOL: 0.01,
+        MATIC: 1,
+    };
+}
+async function validateMinimumTradeAmount(amount, currency, ctx) {
+    var _a, _b, _c, _d;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Validating minimum trade amount for ${amount} ${currency}`);
+        const minimums = await getMinimumTradeAmounts(ctx);
+        const minimum = minimums[currency.toUpperCase()];
+        if (minimum && amount < minimum) {
+            (_b = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _b === void 0 ? void 0 : _b.call(ctx, `Amount ${amount} ${currency} is below minimum ${minimum}`);
+            return {
+                valid: false,
+                minimum,
+                message: `Minimum trade amount for ${currency} is ${minimum}`,
+            };
+        }
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, `Trade amount validation passed for ${amount} ${currency}`);
+        return { valid: true };
+    }
+    catch (error) {
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _d === void 0 ? void 0 : _d.call(ctx, error.message || "Failed to validate minimum trade amount");
+        throw error;
+    }
+}
+async function getP2PFeeConfiguration(ctx) {
+    var _a, _b, _c, _d;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Loading P2P fee configuration");
+        const settings = await db_1.models.settings.findOne({
+            where: { key: "p2pFeeConfiguration" },
+        });
+        if (settings === null || settings === void 0 ? void 0 : settings.value) {
+            (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, "Loaded fee configuration from settings");
+            return JSON.parse(settings.value);
+        }
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message || "Failed to load fee configuration");
+        console_1.logger.error("P2P_FEES", "Failed to load P2P fee configuration", error);
+    }
+    (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Using default fee configuration");
+    return {
+        maker: 0.1,
+        taker: 0.2,
+        minimum: 0.01,
+        maximum: 100,
+    };
+}
+async function calculateTradeFees(amount, currency, offerOwnerId, tradeInitiatorId, buyerId, sellerId, customConfig, ctx) {
+    var _a, _b, _c, _d;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Calculating trade fees for ${amount} ${currency}`);
+        const config = customConfig || await getP2PFeeConfiguration(ctx);
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, ` Using fee config: maker=${config.maker}%, taker=${config.taker}%`);
+        const makerFeeAmount = amount * (config.maker / 100);
+        const takerFeeAmount = amount * (config.taker / 100);
+        const appliedMakerFee = Math.min(Math.max(makerFeeAmount, config.minimum), config.maximum);
+        const appliedTakerFee = Math.min(Math.max(takerFeeAmount, config.minimum), config.maximum);
+        const buyerIsMaker = buyerId === offerOwnerId;
+        const sellerIsMaker = sellerId === offerOwnerId;
+        const buyerFee = buyerIsMaker ? appliedMakerFee : appliedTakerFee;
+        const sellerFee = sellerIsMaker ? appliedMakerFee : appliedTakerFee;
+        const netAmountBuyer = amount - buyerFee;
+        const netAmountSeller = amount - sellerFee;
+        const fees = {
+            buyerFee: parseFloat(buyerFee.toFixed(8)),
+            sellerFee: parseFloat(sellerFee.toFixed(8)),
+            totalFee: parseFloat((buyerFee + sellerFee).toFixed(8)),
+            netAmountBuyer: parseFloat(netAmountBuyer.toFixed(8)),
+            netAmountSeller: parseFloat(netAmountSeller.toFixed(8)),
+        };
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, `Calculated fees: buyer=${fees.buyerFee}, seller=${fees.sellerFee}, total=${fees.totalFee}`);
+        return fees;
+    }
+    catch (error) {
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _d === void 0 ? void 0 : _d.call(ctx, error.message || "Failed to calculate trade fees");
+        throw error;
+    }
+}
+async function calculateEscrowFee(amount, currency, ctx) {
+    var _a, _b, _c, _d, _e;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Calculating escrow fee for ${amount} ${currency}`);
+        let escrowFeeRate = 0.2;
+        const extensionSettings = await db_1.models.settings.findOne({
+            where: { key: "p2p" },
+        });
+        if (extensionSettings === null || extensionSettings === void 0 ? void 0 : extensionSettings.value) {
+            try {
+                const p2pSettings = JSON.parse(extensionSettings.value);
+                if (p2pSettings.EscrowFeeRate !== undefined) {
+                    escrowFeeRate = parseFloat(p2pSettings.EscrowFeeRate);
+                }
+                else if (p2pSettings.escrowFeeRate !== undefined) {
+                    escrowFeeRate = parseFloat(p2pSettings.escrowFeeRate);
+                }
+            }
+            catch (parseError) {
+                (_b = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _b === void 0 ? void 0 : _b.call(ctx, "Failed to parse P2P extension settings");
+                console_1.logger.error("P2P_FEES", "Failed to parse P2P extension settings", parseError);
+            }
+        }
+        if (escrowFeeRate === 0.2) {
+            const legacySettings = await db_1.models.settings.findOne({
+                where: { key: "p2pEscrowFeeRate" },
+            });
+            if (legacySettings === null || legacySettings === void 0 ? void 0 : legacySettings.value) {
+                escrowFeeRate = parseFloat(legacySettings.value);
+            }
+        }
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, `Using escrow fee rate: ${escrowFeeRate}%`);
+        const escrowFee = amount * (escrowFeeRate / 100);
+        const minEscrowFee = 0.0001;
+        const finalFee = parseFloat(Math.max(escrowFee, minEscrowFee).toFixed(8));
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _d === void 0 ? void 0 : _d.call(ctx, `Calculated escrow fee: ${finalFee}`);
+        return finalFee;
+    }
+    catch (error) {
+        (_e = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _e === void 0 ? void 0 : _e.call(ctx, error.message || "Failed to calculate escrow fee");
+        console_1.logger.error("P2P_FEES", "Failed to calculate escrow fee", error);
+        return 0;
+    }
+}
+async function getUserFeeDiscount(userId, ctx) {
+    var _a, _b, _c, _d;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Calculating fee discount for user ${userId}`);
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const volumeResult = await db_1.models.p2pTrade.findOne({
+            attributes: [
+                [(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("amount")), "volume"],
+            ],
+            where: {
+                [sequelize_1.Op.or]: [
+                    { buyerId: userId },
+                    { sellerId: userId },
+                ],
+                status: "COMPLETED",
+                createdAt: {
+                    [sequelize_1.Op.gte]: thirtyDaysAgo,
+                },
+            },
+            raw: true,
+        });
+        const volume = parseFloat((volumeResult === null || volumeResult === void 0 ? void 0 : volumeResult.volume) || "0");
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, `User 30-day trading volume: $${volume}`);
+        const tiers = [
+            { minVolume: 100000, discount: 50 },
+            { minVolume: 50000, discount: 30 },
+            { minVolume: 10000, discount: 20 },
+            { minVolume: 5000, discount: 10 },
+            { minVolume: 1000, discount: 5 },
+        ];
+        const applicableTier = tiers.find(tier => volume >= tier.minVolume);
+        const discount = (applicableTier === null || applicableTier === void 0 ? void 0 : applicableTier.discount) || 0;
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, `User fee discount: ${discount}%`);
+        return discount;
+    }
+    catch (error) {
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _d === void 0 ? void 0 : _d.call(ctx, error.message || "Failed to calculate user fee discount");
+        console_1.logger.error("P2P_FEES", "Failed to calculate user fee discount", error);
+        return 0;
+    }
+}
+async function applyFeeDiscount(fees, userId, ctx) {
+    var _a, _b, _c, _d, _e;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Applying fee discount for user ${userId}`);
+        const discount = await getUserFeeDiscount(userId, ctx);
+        if (discount === 0) {
+            (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "No discount applicable");
+            return fees;
+        }
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, `Applying ${discount}% discount`);
+        const discountMultiplier = 1 - (discount / 100);
+        const discountedFees = {
+            buyerFee: parseFloat((fees.buyerFee * discountMultiplier).toFixed(8)),
+            sellerFee: parseFloat((fees.sellerFee * discountMultiplier).toFixed(8)),
+            totalFee: parseFloat((fees.totalFee * discountMultiplier).toFixed(8)),
+            netAmountBuyer: parseFloat((fees.netAmountBuyer + fees.buyerFee * (discount / 100)).toFixed(8)),
+            netAmountSeller: parseFloat((fees.netAmountSeller + fees.sellerFee * (discount / 100)).toFixed(8)),
+        };
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _d === void 0 ? void 0 : _d.call(ctx, `Fee discount applied: ${discount}%`);
+        return discountedFees;
+    }
+    catch (error) {
+        (_e = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _e === void 0 ? void 0 : _e.call(ctx, error.message || "Failed to apply fee discount");
+        console_1.logger.error("P2P_FEES", "Failed to apply fee discount", error);
+        return fees;
+    }
+}
+async function createFeeTransactions(tradeId, buyerId, sellerId, fees, currency, transaction, ctx) {
+    var _a, _b, _c, _d, _e;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Creating fee transactions for trade ${tradeId}`);
+        const feeTransactions = [];
+        if (fees.buyerFee > 0) {
+            feeTransactions.push({
+                userId: buyerId,
+                type: "P2P_FEE",
+                status: "COMPLETED",
+                amount: -fees.buyerFee,
+                fee: 0,
+                currency,
+                description: `P2P trading fee for trade #${tradeId}`,
+                referenceId: tradeId,
+            });
+        }
+        if (fees.sellerFee > 0) {
+            feeTransactions.push({
+                userId: sellerId,
+                type: "P2P_FEE",
+                status: "COMPLETED",
+                amount: -fees.sellerFee,
+                fee: 0,
+                currency,
+                description: `P2P trading fee for trade #${tradeId}`,
+                referenceId: tradeId,
+            });
+        }
+        if (feeTransactions.length > 0) {
+            (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, `Creating ${feeTransactions.length} fee transaction records`);
+            await db_1.models.transaction.bulkCreate(feeTransactions, { transaction });
+            (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, `Created ${feeTransactions.length} fee transactions`);
+        }
+        else {
+            (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "No fee transactions to create");
+        }
+    }
+    catch (error) {
+        (_e = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _e === void 0 ? void 0 : _e.call(ctx, error.message || "Failed to create fee transactions");
+        throw error;
+    }
+}
+function calculateFeePreview(amount, feeRate, ismaker = false) {
+    const fee = amount * (feeRate / 100);
+    const netAmount = amount - fee;
+    return {
+        fee: parseFloat(fee.toFixed(8)),
+        netAmount: parseFloat(netAmount.toFixed(8)),
+        feePercentage: `${feeRate}%`,
+    };
+}

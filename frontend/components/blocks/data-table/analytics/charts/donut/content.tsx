@@ -9,13 +9,18 @@ interface ContentProps {
   activeSegment: string | null;
   setActiveSegment: React.Dispatch<React.SetStateAction<string | null>>;
   total: number;
+  isEmpty?: boolean;
 }
+
+// Gray color for empty segments
+const EMPTY_SEGMENT_COLOR = "hsl(var(--muted))";
 
 function ContentImpl({
   data,
   activeSegment,
   setActiveSegment,
   total,
+  isEmpty = false,
 }: ContentProps) {
   return (
     <div className="relative h-[200px] md:h-[240px]">
@@ -35,12 +40,12 @@ function ContentImpl({
               setActiveSegment(data[index].id)
             }
             onMouseLeave={() => setActiveSegment(null)}
-            style={{}}
+            style={{ opacity: isEmpty ? 0.4 : 1 }}
           >
             {data.map((entry) => (
               <Cell
                 key={entry.id}
-                fill={getColor(entry.color)}
+                fill={isEmpty ? EMPTY_SEGMENT_COLOR : getColor(entry.color)}
                 stroke="hsl(var(--background))"
                 strokeWidth={2}
                 style={{}}
@@ -54,6 +59,7 @@ function ContentImpl({
         activeSegment={activeSegment}
         data={data}
         total={total}
+        isEmpty={isEmpty}
       />
     </div>
   );

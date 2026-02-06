@@ -1,1 +1,166 @@
-"use strict";function getLatestOrdersForCandles(e){const t={};e.forEach(e=>{(!t[e.symbol]||t[e.symbol].updatedAt<e.updatedAt)&&(t[e.symbol]=e)});return Object.values(t)}function normalizeToIntervalBoundary(e,t){const s=new Date(e);switch(t){case"1w":const e=s.getUTCDay();s.setUTCDate(s.getUTCDate()-e);s.setUTCHours(0,0,0,0);break;case"3d":return 3*Math.floor(s.getTime()/2592e5)*24*60*60*1e3;case"1d":s.setUTCHours(0,0,0,0);break;case"12h":const t=12*Math.floor(s.getUTCHours()/12);s.setUTCHours(t,0,0,0);break;case"6h":const o=6*Math.floor(s.getUTCHours()/6);s.setUTCHours(o,0,0,0);break;case"4h":const r=4*Math.floor(s.getUTCHours()/4);s.setUTCHours(r,0,0,0);break;case"2h":const a=2*Math.floor(s.getUTCHours()/2);s.setUTCHours(a,0,0,0);break;case"1h":s.setUTCMinutes(0,0,0);break;case"30m":const n=30*Math.floor(s.getUTCMinutes()/30);s.setUTCMinutes(n,0,0);break;case"15m":const l=15*Math.floor(s.getUTCMinutes()/15);s.setUTCMinutes(l,0,0);break;case"5m":const u=5*Math.floor(s.getUTCMinutes()/5);s.setUTCMinutes(u,0,0);break;case"3m":const c=3*Math.floor(s.getUTCMinutes()/3);s.setUTCMinutes(c,0,0);break;case"1m":s.setUTCSeconds(0,0);break;default:s.setUTCMilliseconds(0)}return s.getTime()}function fillCandleGaps(e,t,s,o,r=500){const a=exports.intervalDurations[t]||6e4;if(0===e.length)return[];const n=new Map;for(const s of e){const e=normalizeToIntervalBoundary(s[0],t),o=n.get(e);if(o){o[2]=Math.max(o[2],s[2]);o[3]=Math.min(o[3],s[3]);o[4]=s[4];o[5]=o[5]+s[5]}else n.set(e,[e,s[1],s[2],s[3],s[4],s[5]])}const l=Array.from(n.values()).sort((e,t)=>e[0]-t[0]),u=[],c=normalizeToIntervalBoundary(o,t);for(let e=0;e<l.length;e++){const t=l[e];u.push(t);if(e<l.length-1){const s=l[e+1],o=t[0],n=s[0];if(n-o>1.5*a){const e=t[4];let s=o+a,l=0;for(;s<n&&l<r;){u.push([s,e,e,e,e,0]);s+=a;l++}}}}const i=l[l.length-1],h=i[0];if(h<c){let e=h+a,t=0;const s=i[4];for(;e<=c&&t<r;){u.push([e,s,s,s,s,0]);e+=a;t++}}return u}Object.defineProperty(exports,"__esModule",{value:!0});exports.intervalDurations=exports.intervals=void 0;exports.getLatestOrdersForCandles=getLatestOrdersForCandles;exports.normalizeToIntervalBoundary=normalizeToIntervalBoundary;exports.fillCandleGaps=fillCandleGaps;exports.intervals=["1m","3m","5m","15m","30m","1h","2h","4h","6h","12h","1d","3d","1w"];exports.intervalDurations={"1m":6e4,"3m":18e4,"5m":3e5,"15m":9e5,"30m":18e5,"1h":36e5,"2h":72e5,"4h":144e5,"6h":216e5,"12h":432e5,"1d":864e5,"3d":2592e5,"1w":6048e5};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.intervalDurations = exports.intervals = void 0;
+exports.getLatestOrdersForCandles = getLatestOrdersForCandles;
+exports.normalizeToIntervalBoundary = normalizeToIntervalBoundary;
+exports.fillCandleGaps = fillCandleGaps;
+exports.intervals = [
+    "1m",
+    "3m",
+    "5m",
+    "15m",
+    "30m",
+    "1h",
+    "2h",
+    "4h",
+    "6h",
+    "12h",
+    "1d",
+    "3d",
+    "1w",
+];
+exports.intervalDurations = {
+    "1m": 60 * 1000,
+    "3m": 3 * 60 * 1000,
+    "5m": 5 * 60 * 1000,
+    "15m": 15 * 60 * 1000,
+    "30m": 30 * 60 * 1000,
+    "1h": 60 * 60 * 1000,
+    "2h": 2 * 60 * 60 * 1000,
+    "4h": 4 * 60 * 60 * 1000,
+    "6h": 6 * 60 * 60 * 1000,
+    "12h": 12 * 60 * 60 * 1000,
+    "1d": 24 * 60 * 60 * 1000,
+    "3d": 3 * 24 * 60 * 60 * 1000,
+    "1w": 7 * 24 * 60 * 60 * 1000,
+};
+function getLatestOrdersForCandles(orders) {
+    const latestOrdersMap = {};
+    orders.forEach((order) => {
+        if (!latestOrdersMap[order.symbol] ||
+            latestOrdersMap[order.symbol].updatedAt < order.updatedAt) {
+            latestOrdersMap[order.symbol] = order;
+        }
+    });
+    return Object.values(latestOrdersMap);
+}
+function normalizeToIntervalBoundary(timestamp, interval) {
+    const date = new Date(timestamp);
+    switch (interval) {
+        case "1w":
+            const dayOfWeek = date.getUTCDay();
+            date.setUTCDate(date.getUTCDate() - dayOfWeek);
+            date.setUTCHours(0, 0, 0, 0);
+            break;
+        case "3d":
+            const epochDays3 = Math.floor(date.getTime() / (3 * 24 * 60 * 60 * 1000));
+            return epochDays3 * 3 * 24 * 60 * 60 * 1000;
+        case "1d":
+            date.setUTCHours(0, 0, 0, 0);
+            break;
+        case "12h":
+            const hour12 = Math.floor(date.getUTCHours() / 12) * 12;
+            date.setUTCHours(hour12, 0, 0, 0);
+            break;
+        case "6h":
+            const hour6 = Math.floor(date.getUTCHours() / 6) * 6;
+            date.setUTCHours(hour6, 0, 0, 0);
+            break;
+        case "4h":
+            const hour4 = Math.floor(date.getUTCHours() / 4) * 4;
+            date.setUTCHours(hour4, 0, 0, 0);
+            break;
+        case "2h":
+            const hour2 = Math.floor(date.getUTCHours() / 2) * 2;
+            date.setUTCHours(hour2, 0, 0, 0);
+            break;
+        case "1h":
+            date.setUTCMinutes(0, 0, 0);
+            break;
+        case "30m":
+            const min30 = Math.floor(date.getUTCMinutes() / 30) * 30;
+            date.setUTCMinutes(min30, 0, 0);
+            break;
+        case "15m":
+            const min15 = Math.floor(date.getUTCMinutes() / 15) * 15;
+            date.setUTCMinutes(min15, 0, 0);
+            break;
+        case "5m":
+            const min5 = Math.floor(date.getUTCMinutes() / 5) * 5;
+            date.setUTCMinutes(min5, 0, 0);
+            break;
+        case "3m":
+            const min3 = Math.floor(date.getUTCMinutes() / 3) * 3;
+            date.setUTCMinutes(min3, 0, 0);
+            break;
+        case "1m":
+            date.setUTCSeconds(0, 0);
+            break;
+        default:
+            date.setUTCMilliseconds(0);
+    }
+    return date.getTime();
+}
+function fillCandleGaps(candles, interval, fromTime, toTime, maxGapsToFill = 500) {
+    const duration = exports.intervalDurations[interval] || 60000;
+    if (candles.length === 0) {
+        return [];
+    }
+    const candlesByNormalizedTime = new Map();
+    for (const candle of candles) {
+        const normalizedTime = normalizeToIntervalBoundary(candle[0], interval);
+        const existing = candlesByNormalizedTime.get(normalizedTime);
+        if (!existing) {
+            candlesByNormalizedTime.set(normalizedTime, [
+                normalizedTime,
+                candle[1],
+                candle[2],
+                candle[3],
+                candle[4],
+                candle[5],
+            ]);
+        }
+        else {
+            existing[2] = Math.max(existing[2], candle[2]);
+            existing[3] = Math.min(existing[3], candle[3]);
+            existing[4] = candle[4];
+            existing[5] = existing[5] + candle[5];
+        }
+    }
+    const sortedCandles = Array.from(candlesByNormalizedTime.values()).sort((a, b) => a[0] - b[0]);
+    const result = [];
+    const normalizedTo = normalizeToIntervalBoundary(toTime, interval);
+    for (let i = 0; i < sortedCandles.length; i++) {
+        const currentCandle = sortedCandles[i];
+        result.push(currentCandle);
+        if (i < sortedCandles.length - 1) {
+            const nextCandle = sortedCandles[i + 1];
+            const currentTime = currentCandle[0];
+            const nextTime = nextCandle[0];
+            const timeDiff = nextTime - currentTime;
+            if (timeDiff > duration * 1.5) {
+                const fillPrice = currentCandle[4];
+                let fillTime = currentTime + duration;
+                let gapsFilled = 0;
+                while (fillTime < nextTime && gapsFilled < maxGapsToFill) {
+                    result.push([fillTime, fillPrice, fillPrice, fillPrice, fillPrice, 0]);
+                    fillTime += duration;
+                    gapsFilled++;
+                }
+            }
+        }
+    }
+    const lastCandle = sortedCandles[sortedCandles.length - 1];
+    const lastCandleTime = lastCandle[0];
+    if (lastCandleTime < normalizedTo) {
+        let fillTime = lastCandleTime + duration;
+        let gapsFilled = 0;
+        const fillPrice = lastCandle[4];
+        while (fillTime <= normalizedTo && gapsFilled < maxGapsToFill) {
+            result.push([fillTime, fillPrice, fillPrice, fillPrice, fillPrice, 0]);
+            fillTime += duration;
+            gapsFilled++;
+        }
+    }
+    return result;
+}

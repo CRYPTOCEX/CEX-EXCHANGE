@@ -1865,6 +1865,95 @@ export const productShowcaseData: Record<string, ProductShowcase> = {
     ],
   },
 
+  // Trading Bot
+  "61500000": {
+    tagline: "Automated Trading Strategies, Bot Builder & Strategy Marketplace",
+    features: [
+      {
+        icon: "Bot",
+        title: "Multi-Strategy Bot Types",
+        description:
+          "Support for DCA (Dollar Cost Averaging), Grid Trading, Technical Indicator-based, Trailing Stop, and Custom strategies with configurable parameters.",
+      },
+      {
+        icon: "Layers",
+        title: "Visual Strategy Builder",
+        description:
+          "Intuitive interface for creating custom trading strategies without coding. Configure entry/exit conditions, indicators, and risk parameters.",
+      },
+      {
+        icon: "Store",
+        title: "Strategy Marketplace",
+        description:
+          "Creators can publish and sell their strategies. Revenue sharing system with configurable creator payouts and platform fees.",
+      },
+      {
+        icon: "FlaskConical",
+        title: "Paper Trading Simulation",
+        description:
+          "Test strategies risk-free with paper trading simulation before deploying with real funds. Full performance tracking for both modes.",
+      },
+      {
+        icon: "Shield",
+        title: "Risk Management Controls",
+        description:
+          "Set maximum concurrent trades, position sizes, stop-loss percentages, take-profit targets, daily loss limits, and drawdown protection.",
+      },
+      {
+        icon: "LineChart",
+        title: "Real-Time Performance Analytics",
+        description:
+          "Live P&L tracking, win rate, average trade duration, ROI, and detailed trade history per bot with comprehensive audit logging.",
+      },
+    ],
+    benefits: [
+      {
+        title: "Passive Trading Income",
+        description:
+          "Users can set up automated trading strategies that work 24/7 without manual intervention.",
+      },
+      {
+        title: "Strategy Monetization",
+        description:
+          "Strategy creators can earn revenue by selling their profitable strategies in the marketplace.",
+      },
+      {
+        title: "Risk-Free Testing",
+        description:
+          "Paper trading mode allows users to test strategies without risking real funds.",
+      },
+    ],
+    highlights: [
+      "4 Bot Strategy Types (DCA, Grid, Indicator, Trailing Stop)",
+      "Visual Strategy Builder with no coding required",
+      "Strategy Marketplace with revenue sharing",
+      "Live & Paper Trading modes",
+      "Stop-Loss & Take-Profit Automation",
+      "Daily Loss & Drawdown Protection",
+      "Concurrent Trade Limits",
+      "Strategy Reviews & Ratings",
+      "Wallet Fund Allocation",
+      "Comprehensive Audit Logging",
+      "Admin Dashboard & Emergency Controls",
+      "Multi-Language Support (80+)",
+    ],
+    adminRoutes: [
+      { path: "/admin/trading-bot", label: "Dashboard" },
+      { path: "/admin/trading-bot/bot", label: "Bot Management" },
+      { path: "/admin/trading-bot/marketplace", label: "Marketplace" },
+      { path: "/admin/trading-bot/reviews", label: "Review Moderation" },
+      { path: "/admin/trading-bot/logs", label: "Audit Logs" },
+      { path: "/admin/trading-bot/settings", label: "Settings" },
+    ],
+    userRoutes: [
+      { path: "/trading-bot", label: "Home" },
+      { path: "/trading-bot/bot", label: "My Bots" },
+      { path: "/trading-bot/bot/create", label: "Create Bot" },
+      { path: "/trading-bot/marketplace", label: "Strategy Marketplace" },
+      { path: "/trading-bot/creator", label: "Creator Dashboard" },
+    ],
+  },
+
   // TON Blockchain
   "55715370": {
     tagline: "Telegram's High-Speed TON Blockchain Integration",

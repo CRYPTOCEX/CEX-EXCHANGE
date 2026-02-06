@@ -26,6 +26,7 @@ export default function DepositMethodPage() {
       canDelete={true}
       canView={true}
       viewLink="/admin/finance/deposit/method/[id]"
+      isParanoid={false}
       title={t("deposit_methods")}
       description={t("manage_deposit_methods_and_configurations")}
       itemTitle="Deposit Method"

@@ -1,1 +1,81 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});const sequelize_1=require("sequelize");class notificationTemplate extends sequelize_1.Model{static initModel(e){return notificationTemplate.init({id:{type:sequelize_1.DataTypes.INTEGER,autoIncrement:!0,primaryKey:!0,allowNull:!1},name:{type:sequelize_1.DataTypes.STRING(191),allowNull:!1,validate:{notEmpty:{msg:"name: Name cannot be empty"}}},subject:{type:sequelize_1.DataTypes.STRING(191),allowNull:!1,validate:{notEmpty:{msg:"subject: Subject cannot be empty"}}},emailBody:{type:sequelize_1.DataTypes.TEXT("long"),allowNull:!0},smsBody:{type:sequelize_1.DataTypes.TEXT("long"),allowNull:!0},pushBody:{type:sequelize_1.DataTypes.TEXT("long"),allowNull:!0},shortCodes:{type:sequelize_1.DataTypes.TEXT,allowNull:!0},email:{type:sequelize_1.DataTypes.BOOLEAN,allowNull:!0,defaultValue:!1},sms:{type:sequelize_1.DataTypes.BOOLEAN,allowNull:!0,defaultValue:!1},push:{type:sequelize_1.DataTypes.BOOLEAN,allowNull:!0,defaultValue:!1}},{sequelize:e,modelName:"notificationTemplate",tableName:"notification_template",timestamps:!1,indexes:[{name:"PRIMARY",unique:!0,using:"BTREE",fields:[{name:"id"}]},{name:"notificationTemplateNameKey",unique:!0,using:"BTREE",fields:[{name:"name"}]}]})}static associate(e){}}exports.default=notificationTemplate;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const sequelize_1 = require("sequelize");
+class notificationTemplate extends sequelize_1.Model {
+    static initModel(sequelize) {
+        return notificationTemplate.init({
+            id: {
+                type: sequelize_1.DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+                allowNull: false,
+            },
+            name: {
+                type: sequelize_1.DataTypes.STRING(191),
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "name: Name cannot be empty" },
+                },
+            },
+            subject: {
+                type: sequelize_1.DataTypes.STRING(191),
+                allowNull: false,
+                validate: {
+                    notEmpty: { msg: "subject: Subject cannot be empty" },
+                },
+            },
+            emailBody: {
+                type: sequelize_1.DataTypes.TEXT("long"),
+                allowNull: true,
+            },
+            smsBody: {
+                type: sequelize_1.DataTypes.TEXT("long"),
+                allowNull: true,
+            },
+            pushBody: {
+                type: sequelize_1.DataTypes.TEXT("long"),
+                allowNull: true,
+            },
+            shortCodes: {
+                type: sequelize_1.DataTypes.TEXT,
+                allowNull: true,
+            },
+            email: {
+                type: sequelize_1.DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false,
+            },
+            sms: {
+                type: sequelize_1.DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false,
+            },
+            push: {
+                type: sequelize_1.DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false,
+            },
+        }, {
+            sequelize,
+            modelName: "notificationTemplate",
+            tableName: "notification_template",
+            timestamps: false,
+            indexes: [
+                {
+                    name: "PRIMARY",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "id" }],
+                },
+                {
+                    name: "notificationTemplateNameKey",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "name" }],
+                },
+            ],
+        });
+    }
+    static associate(models) { }
+}
+exports.default = notificationTemplate;

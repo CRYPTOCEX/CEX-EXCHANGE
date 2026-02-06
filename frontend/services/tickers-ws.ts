@@ -73,7 +73,7 @@ export class TickersWebSocketManager {
   }
 
   private createWebSocketUrl(path: string): string {
-    // Use the environment variable if available, otherwise construct from window location
+    // All backends now use /api/ prefix
     if (
       typeof process !== "undefined" &&
       process.env.NEXT_PUBLIC_WEBSOCKET_URL
@@ -85,8 +85,13 @@ export class TickersWebSocketManager {
       typeof window !== "undefined" && window.location.protocol === "https:"
         ? "wss:"
         : "ws:";
+    const isDev = process.env.NODE_ENV === "development";
+    const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || "4000";
+    // In development, connect directly to backend (Next.js rewrites don't support WebSocket upgrades)
     const host =
-      typeof window !== "undefined" ? window.location.host : "localhost:3000";
+      typeof window !== "undefined"
+        ? (isDev ? `${window.location.hostname}:${backendPort}` : window.location.host)
+        : `localhost:${backendPort}`;
     return `${protocol}//${host}/${path}`;
   }
 

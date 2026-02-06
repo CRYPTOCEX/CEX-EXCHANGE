@@ -1,1 +1,153 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.taskQueue=exports.TaskQueue=void 0;const events_1=require("events");class TaskQueue extends events_1.EventEmitter{constructor(e=5,t){super();this.queue=[];this.activeCount=0;this.paused=!1;this.concurrency=e;this.maxQueueLength=t}add(e,t={}){return new Promise((s,i)=>{var r;if(this.maxQueueLength&&this.queue.length>=this.maxQueueLength)return i(new Error("Task queue is full"));const u={task:e,priority:null!==(r=t.priority)&&void 0!==r?r:0,addedAt:Date.now(),resolve:s,reject:i,timeoutMs:t.timeoutMs,retryOptions:t.retryOptions,currentRetryCount:0};this.insertTaskItem(u);this.emit("taskAdded");this.processQueue()})}insertTaskItem(e){const t=this.queue.findIndex(t=>t.priority<e.priority||t.priority===e.priority&&t.addedAt>e.addedAt);-1===t?this.queue.push(e):this.queue.splice(t,0,e)}processQueue(){if(!this.paused)for(;this.activeCount<this.concurrency&&this.queue.length>0;){const e=this.queue.shift();if(e){this.activeCount++;this.executeTask(e).finally(()=>{this.activeCount--;if(0===this.queue.length&&0===this.activeCount){this.emit("drain");if(this.drainPromise){this.drainPromise.resolve();this.drainPromise=void 0}}this.processQueue()})}}}async executeTask(e){this.emit("taskStarted");try{e.timeoutMs?await this.runWithTimeout(e.task,e.timeoutMs):await e.task();e.resolve();this.emit("taskCompleted")}catch(t){if(e.retryOptions&&e.currentRetryCount<e.retryOptions.maxRetries){e.currentRetryCount++;this.emit("taskRetried",{error:t,retryCount:e.currentRetryCount});const s=e.retryOptions.initialDelayMs*(e.retryOptions.factor||2)**(e.currentRetryCount-1);setTimeout(()=>{this.insertTaskItem(e);this.processQueue()},s)}else{e.reject(t);this.emit("taskError",t)}}}runWithTimeout(e,t){return new Promise((s,i)=>{const r=setTimeout(()=>{i(new Error("Task timeout exceeded"))},t);e().then(()=>{clearTimeout(r);s()}).catch(e=>{clearTimeout(r);i(e)})})}pause(){this.paused=!0}resume(){if(this.paused){this.paused=!1;this.processQueue()}}clearQueue(){this.queue=[]}setConcurrency(e){this.concurrency=e;this.processQueue()}awaitDrain(){if(0===this.queue.length&&0===this.activeCount)return Promise.resolve();if(!this.drainPromise){let e;const t=new Promise(t=>{e=t});this.drainPromise={resolve:e,promise:t}}return this.drainPromise.promise}getQueueLength(){return this.queue.length}getActiveCount(){return this.activeCount}}exports.TaskQueue=TaskQueue;exports.taskQueue=new TaskQueue;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.taskQueue = exports.TaskQueue = void 0;
+const events_1 = require("events");
+class TaskQueue extends events_1.EventEmitter {
+    constructor(concurrency = 5, maxQueueLength) {
+        super();
+        this.queue = [];
+        this.activeCount = 0;
+        this.paused = false;
+        this.concurrency = concurrency;
+        this.maxQueueLength = maxQueueLength;
+    }
+    add(task, options = {}) {
+        return new Promise((resolve, reject) => {
+            var _a;
+            if (this.maxQueueLength && this.queue.length >= this.maxQueueLength) {
+                return reject(new Error("Task queue is full"));
+            }
+            const taskItem = {
+                task,
+                priority: (_a = options.priority) !== null && _a !== void 0 ? _a : 0,
+                addedAt: Date.now(),
+                resolve,
+                reject,
+                timeoutMs: options.timeoutMs,
+                retryOptions: options.retryOptions,
+                currentRetryCount: 0,
+            };
+            this.insertTaskItem(taskItem);
+            this.emit("taskAdded");
+            this.processQueue();
+        });
+    }
+    insertTaskItem(taskItem) {
+        const index = this.queue.findIndex((item) => item.priority < taskItem.priority ||
+            (item.priority === taskItem.priority && item.addedAt > taskItem.addedAt));
+        if (index === -1) {
+            this.queue.push(taskItem);
+        }
+        else {
+            this.queue.splice(index, 0, taskItem);
+        }
+    }
+    processQueue() {
+        if (this.paused)
+            return;
+        while (this.activeCount < this.concurrency && this.queue.length > 0) {
+            const taskItem = this.queue.shift();
+            if (taskItem) {
+                this.activeCount++;
+                this.executeTask(taskItem).finally(() => {
+                    this.activeCount--;
+                    if (this.queue.length === 0 && this.activeCount === 0) {
+                        this.emit("drain");
+                        if (this.drainPromise) {
+                            this.drainPromise.resolve();
+                            this.drainPromise = undefined;
+                        }
+                    }
+                    this.processQueue();
+                });
+            }
+        }
+    }
+    async executeTask(taskItem) {
+        this.emit("taskStarted");
+        try {
+            if (taskItem.timeoutMs) {
+                await this.runWithTimeout(taskItem.task, taskItem.timeoutMs);
+            }
+            else {
+                await taskItem.task();
+            }
+            taskItem.resolve();
+            this.emit("taskCompleted");
+        }
+        catch (error) {
+            if (taskItem.retryOptions &&
+                taskItem.currentRetryCount < taskItem.retryOptions.maxRetries) {
+                taskItem.currentRetryCount++;
+                this.emit("taskRetried", {
+                    error,
+                    retryCount: taskItem.currentRetryCount,
+                });
+                const delay = taskItem.retryOptions.initialDelayMs *
+                    (taskItem.retryOptions.factor || 2) **
+                        (taskItem.currentRetryCount - 1);
+                setTimeout(() => {
+                    this.insertTaskItem(taskItem);
+                    this.processQueue();
+                }, delay);
+            }
+            else {
+                taskItem.reject(error);
+                this.emit("taskError", error);
+            }
+        }
+    }
+    runWithTimeout(task, timeoutMs) {
+        return new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+                reject(new Error("Task timeout exceeded"));
+            }, timeoutMs);
+            task()
+                .then(() => {
+                clearTimeout(timeoutId);
+                resolve();
+            })
+                .catch((err) => {
+                clearTimeout(timeoutId);
+                reject(err);
+            });
+        });
+    }
+    pause() {
+        this.paused = true;
+    }
+    resume() {
+        if (!this.paused)
+            return;
+        this.paused = false;
+        this.processQueue();
+    }
+    clearQueue() {
+        this.queue = [];
+    }
+    setConcurrency(newConcurrency) {
+        this.concurrency = newConcurrency;
+        this.processQueue();
+    }
+    awaitDrain() {
+        if (this.queue.length === 0 && this.activeCount === 0) {
+            return Promise.resolve();
+        }
+        if (!this.drainPromise) {
+            let resolveFn;
+            const promise = new Promise((resolve) => {
+                resolveFn = resolve;
+            });
+            this.drainPromise = { resolve: resolveFn, promise };
+        }
+        return this.drainPromise.promise;
+    }
+    getQueueLength() {
+        return this.queue.length;
+    }
+    getActiveCount() {
+        return this.activeCount;
+    }
+}
+exports.TaskQueue = TaskQueue;
+exports.taskQueue = new TaskQueue();

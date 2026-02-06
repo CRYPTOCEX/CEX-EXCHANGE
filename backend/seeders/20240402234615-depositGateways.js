@@ -1,7 +1,12 @@
 "use strict";
-const { v4: uuidv4 } = require("uuid");
 
-const DepositGateways = [
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    // Dynamic import for ES Module
+    const { v4: uuidv4 } = await import("uuid");
+
+    const DepositGateways = [
   {
     id: 'stripe',
     name: 'Stripe',
@@ -387,9 +392,6 @@ const DepositGateways = [
   },
 ];
 
-/** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryInterface, Sequelize) {
     // Check database schema to determine column types
     let columnTypes = {};
     try {

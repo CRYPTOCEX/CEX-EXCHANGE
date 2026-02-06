@@ -1,1 +1,53 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});const sequelize_1=require("sequelize");class forexAccountSignal extends sequelize_1.Model{static initModel(e){return forexAccountSignal.init({forexAccountId:{type:sequelize_1.DataTypes.UUID,defaultValue:sequelize_1.DataTypes.UUIDV4,allowNull:!1,primaryKey:!0},forexSignalId:{type:sequelize_1.DataTypes.UUID,allowNull:!1,primaryKey:!0}},{sequelize:e,modelName:"forexAccountSignal",tableName:"forex_account_signal",timestamps:!1,indexes:[{name:"PRIMARY",unique:!0,using:"BTREE",fields:[{name:"forexAccountId"},{name:"forexSignalId"}]},{name:"forexAccountSignalForexSignalIdFkey",using:"BTREE",fields:[{name:"forexSignalId"}]}]})}static associate(e){forexAccountSignal.belongsTo(e.forexAccount,{as:"forexAccount",foreignKey:"forexAccountId",onDelete:"CASCADE",onUpdate:"CASCADE"});forexAccountSignal.belongsTo(e.forexSignal,{as:"forexSignal",foreignKey:"forexSignalId",onDelete:"CASCADE",onUpdate:"CASCADE"})}}exports.default=forexAccountSignal;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const sequelize_1 = require("sequelize");
+class forexAccountSignal extends sequelize_1.Model {
+    static initModel(sequelize) {
+        return forexAccountSignal.init({
+            forexAccountId: {
+                type: sequelize_1.DataTypes.UUID,
+                defaultValue: sequelize_1.DataTypes.UUIDV4,
+                allowNull: false,
+                primaryKey: true,
+            },
+            forexSignalId: {
+                type: sequelize_1.DataTypes.UUID,
+                allowNull: false,
+                primaryKey: true,
+            },
+        }, {
+            sequelize,
+            modelName: "forexAccountSignal",
+            tableName: "forex_account_signal",
+            timestamps: false,
+            indexes: [
+                {
+                    name: "PRIMARY",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "forexAccountId" }, { name: "forexSignalId" }],
+                },
+                {
+                    name: "forexAccountSignalForexSignalIdFkey",
+                    using: "BTREE",
+                    fields: [{ name: "forexSignalId" }],
+                },
+            ],
+        });
+    }
+    static associate(models) {
+        forexAccountSignal.belongsTo(models.forexAccount, {
+            as: "forexAccount",
+            foreignKey: "forexAccountId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+        forexAccountSignal.belongsTo(models.forexSignal, {
+            as: "forexSignal",
+            foreignKey: "forexSignalId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+    }
+}
+exports.default = forexAccountSignal;

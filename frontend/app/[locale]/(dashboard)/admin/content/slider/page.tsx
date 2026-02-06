@@ -25,6 +25,7 @@ export default function SliderPage() {
       canEdit
       canDelete
       canView
+      isParanoid={false}
       title={t("slider_management")}
       description={t("manage_homepage_sliders_and_promotional_banners")}
       itemTitle="Slider"

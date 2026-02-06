@@ -1,1 +1,153 @@
-"use strict";var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const error_1=require("@b/utils/error"),fs_1=require("fs"),path_1=__importDefault(require("path")),promise_1=require("mysql2/promise"),validation_1=require("@b/utils/validation"),console_1=require("@b/utils/console");exports.metadata={summary:"Restores the database from a backup file",description:"Restores the database from a specified backup file",operationId:"restoreDatabase",tags:["Admin","Database"],requiresAuth:!0,requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{backupFile:{type:"string",description:"Path to the backup file"}},required:["backupFile"]}}}},responses:{200:{description:"Database restored successfully",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Success message"}}}}}},500:{description:"Internal server error"}},permission:"access.database",logModule:"ADMIN_SYS",logTitle:"Database restore"};const checkEnvVariables=()=>{["DB_HOST","DB_USER","DB_NAME"].forEach(e=>{if(!process.env[e])throw(0,error_1.createError)({statusCode:500,message:`Environment variable ${e} is not set`})})},getDbConnection=async()=>{const{DB_HOST:e,DB_USER:t,DB_PASSWORD:a,DB_NAME:s}=process.env;if(!e||!t||!s)throw(0,error_1.createError)({statusCode:500,message:"Database configuration is incomplete"});const r=await(0,promise_1.createConnection)({host:e,user:t,password:a||"",database:s,multipleStatements:!0,connectTimeout:1e4});await r.query("SET GLOBAL max_allowed_packet = 67108864");return r},executeSqlStatements=async(e,t)=>{for(const a of t)try{await e.query(a)}catch(t){if("ECONNRESET"!==t.code)throw t;console_1.logger.error("DATABASE","Connection was reset. Retrying...",t);await new Promise(e=>setTimeout(e,5e3));await executeSqlStatements(e,[a])}},splitSqlFile=e=>e.split(/;\s*$/m).map(e=>e.trim()).filter(e=>e.length>0),dropAndRecreateDatabase=async(e,t)=>{await e.query(`DROP DATABASE IF EXISTS \`${t}\``);await e.query(`CREATE DATABASE \`${t}\``);await e.query(`USE \`${t}\``)};exports.default=async e=>{const{ctx:t}=e;try{null==t||t.step("Validating database configuration");checkEnvVariables();const{backupFile:a}=e.body,{DB_NAME:s}=process.env;if(!a)throw(0,error_1.createError)({statusCode:400,message:"Backup file path is required"});null==t||t.step("Validating backup file");const r=(0,validation_1.sanitizePath)(a),o=path_1.default.resolve(process.cwd(),"backup",r);await fs_1.promises.access(o);null==t||t.step("Reading backup file");const i=await fs_1.promises.readFile(o,"utf8"),n=splitSqlFile(i);null==t||t.step("Connecting to database");const c=await getDbConnection();try{null==t||t.step("Dropping and recreating database");await dropAndRecreateDatabase(c,s);null==t||t.step(`Executing ${n.length} SQL statements`);await executeSqlStatements(c,n);null==t||t.success("Database restored successfully");return{message:"Database restored successfully"}}finally{await c.end()}}catch(e){null==t||t.fail(`Database restore failed: ${e.message}`);throw(0,error_1.createError)({statusCode:500,message:`Error restoring database: ${e.message}`})}};
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const error_1 = require("@b/utils/error");
+const fs_1 = require("fs");
+const path_1 = __importDefault(require("path"));
+const promise_1 = require("mysql2/promise");
+const validation_1 = require("@b/utils/validation");
+const console_1 = require("@b/utils/console");
+exports.metadata = {
+    summary: "Restores the database from a backup file",
+    description: "Restores the database from a specified backup file",
+    operationId: "restoreDatabase",
+    tags: ["Admin", "Database"],
+    requiresAuth: true,
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        backupFile: {
+                            type: "string",
+                            description: "Path to the backup file",
+                        },
+                    },
+                    required: ["backupFile"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Database restored successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: {
+                                type: "string",
+                                description: "Success message",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        500: {
+            description: "Internal server error",
+        },
+    },
+    permission: "access.database",
+    logModule: "ADMIN_SYS",
+    logTitle: "Database restore",
+};
+const checkEnvVariables = () => {
+    const requiredEnvVars = ["DB_HOST", "DB_USER", "DB_NAME"];
+    requiredEnvVars.forEach((varName) => {
+        if (!process.env[varName]) {
+            throw (0, error_1.createError)({ statusCode: 500, message: `Environment variable ${varName} is not set` });
+        }
+    });
+};
+const getDbConnection = async () => {
+    const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME } = process.env;
+    if (!DB_HOST || !DB_USER || !DB_NAME) {
+        throw (0, error_1.createError)({ statusCode: 500, message: "Database configuration is incomplete" });
+    }
+    const connection = await (0, promise_1.createConnection)({
+        host: DB_HOST,
+        user: DB_USER,
+        password: DB_PASSWORD || "",
+        database: DB_NAME,
+        multipleStatements: true,
+        connectTimeout: 10000,
+    });
+    await connection.query("SET GLOBAL max_allowed_packet = 67108864");
+    return connection;
+};
+const executeSqlStatements = async (connection, sqlStatements) => {
+    for (const statement of sqlStatements) {
+        try {
+            await connection.query(statement);
+        }
+        catch (error) {
+            if (error.code === "ECONNRESET") {
+                console_1.logger.error("DATABASE", "Connection was reset. Retrying...", error);
+                await new Promise((resolve) => setTimeout(resolve, 5000));
+                await executeSqlStatements(connection, [statement]);
+            }
+            else {
+                throw error;
+            }
+        }
+    }
+};
+const splitSqlFile = (sql) => {
+    const statements = sql.split(/;\s*$/m);
+    return statements
+        .map((statement) => statement.trim())
+        .filter((statement) => statement.length > 0);
+};
+const dropAndRecreateDatabase = async (connection, dbName) => {
+    await connection.query(`DROP DATABASE IF EXISTS \`${dbName}\``);
+    await connection.query(`CREATE DATABASE \`${dbName}\``);
+    await connection.query(`USE \`${dbName}\``);
+};
+exports.default = async (data) => {
+    const { ctx } = data;
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating database configuration");
+        checkEnvVariables();
+        const { backupFile } = data.body;
+        const { DB_NAME } = process.env;
+        if (!backupFile) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "Backup file path is required" });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating backup file");
+        const sanitizedBackupFile = (0, validation_1.sanitizePath)(backupFile);
+        const backupPath = path_1.default.resolve(process.cwd(), "backup", sanitizedBackupFile);
+        await fs_1.promises.access(backupPath);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Reading backup file");
+        const sql = await fs_1.promises.readFile(backupPath, "utf8");
+        const sqlStatements = splitSqlFile(sql);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Connecting to database");
+        const connection = await getDbConnection();
+        try {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Dropping and recreating database");
+            await dropAndRecreateDatabase(connection, DB_NAME);
+            ctx === null || ctx === void 0 ? void 0 : ctx.step(`Executing ${sqlStatements.length} SQL statements`);
+            await executeSqlStatements(connection, sqlStatements);
+            ctx === null || ctx === void 0 ? void 0 : ctx.success("Database restored successfully");
+            return {
+                message: "Database restored successfully",
+            };
+        }
+        finally {
+            await connection.end();
+        }
+    }
+    catch (error) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Database restore failed: ${error.message}`);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Error restoring database: ${error.message}`,
+        });
+    }
+};

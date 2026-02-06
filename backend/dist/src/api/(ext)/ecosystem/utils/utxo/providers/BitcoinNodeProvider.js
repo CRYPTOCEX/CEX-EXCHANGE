@@ -1,1 +1,209 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.BitcoinNodeProvider=void 0;const btc_node_1=require("../btc-node"),btc_zmq_1=require("../btc-zmq"),console_1=require("@b/utils/console"),error_1=require("@b/utils/error");class BitcoinNodeProvider{constructor(e){this.zmqService=null;if("BTC"!==e)throw(0,error_1.createError)({statusCode:400,message:"Bitcoin Node provider only supports BTC"});this.chain=e}async initialize(){this.nodeService=await btc_node_1.BitcoinNodeService.getInstance();if(process.env.BTC_ZMQ_RAWTX)try{this.zmqService=await btc_zmq_1.BitcoinZMQService.getInstance();console_1.logger.success("BTC_NODE_PROVIDER","ZMQ service initialized")}catch(e){console_1.logger.warn("BTC_NODE_PROVIDER",`ZMQ service failed to initialize, falling back to polling: ${e.message}`)}}async watchAddress(e,t){this.zmqService&&await this.zmqService.watchAddress(e,t)}getName(){return`Bitcoin Core Node (${this.chain})`}async fetchTransactions(e){try{this.nodeService||await this.initialize();return(await this.nodeService.getAddressTransactions(e)).map(e=>({hash:e.txid,blockHeight:e.blockheight||void 0,value:Math.abs(1e8*e.amount),confirmedTime:e.time?new Date(1e3*e.time).toISOString():void 0,spent:!1,confirmations:e.confirmations||0}))}catch(e){console_1.logger.error("BTC_NODE_PROVIDER","Failed to fetch transactions",e);return[]}}async fetchTransaction(e){try{this.nodeService||await this.initialize();const t=await this.nodeService.getRawTransaction(e,!0);if(!t)return null;const i=await Promise.all(t.vin.map(async e=>{var t,i;if(e.coinbase)return{prev_hash:"coinbase",prevHash:"coinbase",output_index:0,outputIndex:0,output_value:0,addresses:[]};const r=await this.nodeService.getRawTransaction(e.txid,!0),a=null==r?void 0:r.vout[e.vout];return{prev_hash:e.txid,prevHash:e.txid,output_index:e.vout,outputIndex:e.vout,output_value:a?1e8*a.value:0,addresses:(null===(t=null==a?void 0:a.scriptPubKey)||void 0===t?void 0:t.addresses)||[],script:null===(i=null==a?void 0:a.scriptPubKey)||void 0===i?void 0:i.hex}})),r=t.vout.map(e=>{var t,i;return{value:1e8*e.value,addresses:(null===(t=e.scriptPubKey)||void 0===t?void 0:t.addresses)||[],script:null===(i=e.scriptPubKey)||void 0===i?void 0:i.hex,spent:!1}}),a=i.reduce((e,t)=>e+t.output_value,0),o=a-r.reduce((e,t)=>e+t.value,0);return{hash:t.txid,block_height:t.blockheight,confirmations:t.confirmations,fee:o,inputs:i,outputs:r}}catch(e){console_1.logger.error("BTC_NODE_PROVIDER","Failed to fetch transaction",e);return null}}async fetchRawTransaction(e){try{this.nodeService||await this.initialize();return await this.nodeService.getRawTransaction(e,!1)}catch(e){console_1.logger.error("BTC_NODE_PROVIDER","Failed to fetch raw transaction",e);throw e}}async getBalance(e){try{this.nodeService||await this.initialize();return 1e8*await this.nodeService.getAddressBalance(e)}catch(e){console_1.logger.error("BTC_NODE_PROVIDER","Failed to get balance",e);return 0}}async getUTXOs(e){try{this.nodeService||await this.initialize();return(await this.nodeService.listUnspent(e)).map(e=>({txid:e.txid,vout:e.vout,value:1e8*e.amount,confirmations:e.confirmations,script:e.scriptPubKey}))}catch(e){console_1.logger.error("BTC_NODE_PROVIDER","Failed to get UTXOs",e);return[]}}async broadcastTransaction(e){try{this.nodeService||await this.initialize();return{success:!0,txid:await this.nodeService.sendRawTransaction(e)}}catch(e){console_1.logger.error("BTC_NODE_PROVIDER","Failed to broadcast transaction",e);return{success:!1,txid:null,error:e.message}}}async getFeeRate(){try{this.nodeService||await this.initialize();const e=await this.nodeService.estimateSmartFee(6);if(e.feerate){return 1e8*e.feerate/1024}return 1}catch(e){console_1.logger.error("BTC_NODE_PROVIDER","Failed to get fee rate",e);return 1}}async isAvailable(){try{this.nodeService||await this.initialize();return await this.nodeService.isSynced()}catch(e){return!1}}}exports.BitcoinNodeProvider=BitcoinNodeProvider;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BitcoinNodeProvider = void 0;
+const btc_node_1 = require("../btc-node");
+const btc_zmq_1 = require("../btc-zmq");
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+class BitcoinNodeProvider {
+    constructor(chain) {
+        this.zmqService = null;
+        if (chain !== 'BTC') {
+            throw (0, error_1.createError)({ statusCode: 400, message: 'Bitcoin Node provider only supports BTC' });
+        }
+        this.chain = chain;
+    }
+    async initialize() {
+        this.nodeService = await btc_node_1.BitcoinNodeService.getInstance();
+        if (process.env.BTC_ZMQ_RAWTX) {
+            try {
+                this.zmqService = await btc_zmq_1.BitcoinZMQService.getInstance();
+                console_1.logger.success("BTC_NODE_PROVIDER", "ZMQ service initialized");
+            }
+            catch (error) {
+                console_1.logger.warn("BTC_NODE_PROVIDER", `ZMQ service failed to initialize, falling back to polling: ${error.message}`);
+            }
+        }
+    }
+    async watchAddress(address, walletId) {
+        if (this.zmqService) {
+            await this.zmqService.watchAddress(address, walletId);
+        }
+    }
+    getName() {
+        return `Bitcoin Core Node (${this.chain})`;
+    }
+    async fetchTransactions(address) {
+        try {
+            if (!this.nodeService) {
+                await this.initialize();
+            }
+            const txs = await this.nodeService.getAddressTransactions(address);
+            return txs.map((tx) => ({
+                hash: tx.txid,
+                blockHeight: tx.blockheight || undefined,
+                value: Math.abs(tx.amount * 100000000),
+                confirmedTime: tx.time ? new Date(tx.time * 1000).toISOString() : undefined,
+                spent: false,
+                confirmations: tx.confirmations || 0,
+            }));
+        }
+        catch (error) {
+            console_1.logger.error("BTC_NODE_PROVIDER", "Failed to fetch transactions", error);
+            return [];
+        }
+    }
+    async fetchTransaction(txHash) {
+        try {
+            if (!this.nodeService) {
+                await this.initialize();
+            }
+            const tx = await this.nodeService.getRawTransaction(txHash, true);
+            if (!tx) {
+                return null;
+            }
+            const inputs = await Promise.all(tx.vin.map(async (input) => {
+                var _a, _b;
+                if (input.coinbase) {
+                    return {
+                        prev_hash: 'coinbase',
+                        prevHash: 'coinbase',
+                        output_index: 0,
+                        outputIndex: 0,
+                        output_value: 0,
+                        addresses: [],
+                    };
+                }
+                const prevTx = await this.nodeService.getRawTransaction(input.txid, true);
+                const prevOut = prevTx === null || prevTx === void 0 ? void 0 : prevTx.vout[input.vout];
+                return {
+                    prev_hash: input.txid,
+                    prevHash: input.txid,
+                    output_index: input.vout,
+                    outputIndex: input.vout,
+                    output_value: prevOut ? prevOut.value * 100000000 : 0,
+                    addresses: ((_a = prevOut === null || prevOut === void 0 ? void 0 : prevOut.scriptPubKey) === null || _a === void 0 ? void 0 : _a.addresses) || [],
+                    script: (_b = prevOut === null || prevOut === void 0 ? void 0 : prevOut.scriptPubKey) === null || _b === void 0 ? void 0 : _b.hex,
+                };
+            }));
+            const outputs = tx.vout.map((output) => {
+                var _a, _b;
+                return ({
+                    value: output.value * 100000000,
+                    addresses: ((_a = output.scriptPubKey) === null || _a === void 0 ? void 0 : _a.addresses) || [],
+                    script: (_b = output.scriptPubKey) === null || _b === void 0 ? void 0 : _b.hex,
+                    spent: false,
+                });
+            });
+            const totalInput = inputs.reduce((sum, input) => sum + input.output_value, 0);
+            const totalOutput = outputs.reduce((sum, output) => sum + output.value, 0);
+            const fee = totalInput - totalOutput;
+            return {
+                hash: tx.txid,
+                block_height: tx.blockheight,
+                confirmations: tx.confirmations,
+                fee: fee,
+                inputs: inputs,
+                outputs: outputs,
+            };
+        }
+        catch (error) {
+            console_1.logger.error("BTC_NODE_PROVIDER", "Failed to fetch transaction", error);
+            return null;
+        }
+    }
+    async fetchRawTransaction(txHash) {
+        try {
+            if (!this.nodeService) {
+                await this.initialize();
+            }
+            const tx = await this.nodeService.getRawTransaction(txHash, false);
+            return tx;
+        }
+        catch (error) {
+            console_1.logger.error("BTC_NODE_PROVIDER", "Failed to fetch raw transaction", error);
+            throw error;
+        }
+    }
+    async getBalance(address) {
+        try {
+            if (!this.nodeService) {
+                await this.initialize();
+            }
+            const balanceBTC = await this.nodeService.getAddressBalance(address);
+            return balanceBTC * 100000000;
+        }
+        catch (error) {
+            console_1.logger.error("BTC_NODE_PROVIDER", "Failed to get balance", error);
+            return 0;
+        }
+    }
+    async getUTXOs(address) {
+        try {
+            if (!this.nodeService) {
+                await this.initialize();
+            }
+            const utxos = await this.nodeService.listUnspent(address);
+            return utxos.map((utxo) => ({
+                txid: utxo.txid,
+                vout: utxo.vout,
+                value: utxo.amount * 100000000,
+                confirmations: utxo.confirmations,
+                script: utxo.scriptPubKey,
+            }));
+        }
+        catch (error) {
+            console_1.logger.error("BTC_NODE_PROVIDER", "Failed to get UTXOs", error);
+            return [];
+        }
+    }
+    async broadcastTransaction(rawTxHex) {
+        try {
+            if (!this.nodeService) {
+                await this.initialize();
+            }
+            const txid = await this.nodeService.sendRawTransaction(rawTxHex);
+            return {
+                success: true,
+                txid: txid,
+            };
+        }
+        catch (error) {
+            console_1.logger.error("BTC_NODE_PROVIDER", "Failed to broadcast transaction", error);
+            return {
+                success: false,
+                txid: null,
+                error: error.message,
+            };
+        }
+    }
+    async getFeeRate() {
+        try {
+            if (!this.nodeService) {
+                await this.initialize();
+            }
+            const result = await this.nodeService.estimateSmartFee(6);
+            if (result.feerate) {
+                const feePerKB = result.feerate * 100000000;
+                return feePerKB / 1024;
+            }
+            return 1;
+        }
+        catch (error) {
+            console_1.logger.error("BTC_NODE_PROVIDER", "Failed to get fee rate", error);
+            return 1;
+        }
+    }
+    async isAvailable() {
+        try {
+            if (!this.nodeService) {
+                await this.initialize();
+            }
+            return await this.nodeService.isSynced();
+        }
+        catch (error) {
+            return false;
+        }
+    }
+}
+exports.BitcoinNodeProvider = BitcoinNodeProvider;

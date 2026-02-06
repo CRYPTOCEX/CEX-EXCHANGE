@@ -1,1 +1,828 @@
-"use strict";async function getFiltered({model:e,query:r,where:t,customFilterHandler:s,customStatus:o,sortField:a="createdAt",timestamps:n=!0,paranoid:i=!0,numericFields:l=[],includeModels:d=[],excludeFields:c=[],excludeRecords:p=[],compute:u=[]}){const m=Number(r.page)||1,f=Number(r.perPage)||10,g=(m-1)*f;let h=r.sortOrder||"desc";"string"==typeof h&&(h=decodeURIComponent(h));"string"==typeof a&&(a=decodeURIComponent(a));let y=[];y="string"==typeof a?a.split(",").map(e=>e.trim()).filter(Boolean):Array.isArray(a)?a:[a];let R=[];R="string"==typeof h?h.split(",").map(e=>e.trim()).filter(Boolean):Array.isArray(h)?h:[h];const _=y.map((r,t)=>{const s=R[t]&&"asc"===R[t].toLowerCase()?"ASC":"DESC";if(r.includes(".")){const t=r.split("."),o=[];let a=e;for(let e=0;e<t.length-1;e++){const r=t[e];if(a.associations&&a.associations[r]){const e=a.associations[r];o.push({model:e.target,as:r});a=e.target}else o.push(r)}o.push(t[t.length-1]);o.push(s);return o}return[r,s]}),w=parseFilterParam(r.filter,l),{nestedFilters:b,directFilters:q}=buildNestedFilters(w),x={...t,...s?s(q):{}};p.forEach(e=>{e.model||(x[e.key]={[sequelize_1.Op.ne]:e.value})});null==o||o.forEach(({key:e,true:r,false:t})=>{if(Object.prototype.hasOwnProperty.call(q,e)){const s=q[e];"true"===s?x[e]=r:"false"===s&&(x[e]=t);delete q[e]}});Object.entries(q).forEach(([e,r])=>{if(l.includes(e)&&"object"!=typeof r)x[e]=parseFloat(r)||r;else if("object"==typeof r&&r.operator){const{value:t,operator:s}=r,o=operatorMap[s];x[e]={[o]:t}}else x[e]=r});let E=!r.showDeleted;n&&i?"true"===r.showDeleted?x[sequelize_1.Op.and]={deletedAt:{[sequelize_1.Op.ne]:null}}:x[sequelize_1.Op.and]={deletedAt:null}:E=void 0;const v=adjustIncludeModels(d,p,b),O=u&&u.length>0?{include:u,exclude:c}:{exclude:c},z={where:x,offset:g,limit:f,include:v,distinct:!0,col:"id",attributes:O,order:_,paranoid:E},{count:F,rows:M}=await e.findAndCountAll(z);return{items:M.map(e=>e.get({plain:!0})),pagination:{totalItems:Array.isArray(F)?F.length:F,currentPage:m,perPage:f,totalPages:Math.ceil((Array.isArray(F)?F.length:F)/f)}}}function adjustIncludeModels(e,r,t){return e.map(e=>{const s=r.filter(r=>r.model===e.model),o=t[e.as]||{},a={...e.where,...o,...s.length?{[sequelize_1.Op.and]:s.map(e=>({[e.key]:{[sequelize_1.Op.ne]:e.value}}))}:{}},n=!!(o&&Object.keys(o).length>0)||(e.required||!1),i=e.includeModels?adjustIncludeModels(e.includeModels,r,t):e.include||[];return{...e,where:a,include:i,required:n}})}function parseFilterParam(e,r){const t={};if(!e)return t;let s={};if("string"==typeof e)try{s=JSON.parse(e)}catch(e){console_1.logger.debug("QUERY","Error parsing filter param");return t}Object.entries(s).forEach(([e,s])=>{const o=e.split(".");let a=t;o.slice(0,-1).forEach(e=>{a[e]=a[e]||{};a=a[e]});let n=s;r.includes(o[o.length-1])&&"object"==typeof s&&"startsWith"===s.operator&&(n={operator:"greaterThan",value:parseFloat(s.value)});a[o[o.length-1]]=n});return t}function buildNestedFilters(e){const r={},t={};Object.entries(e).forEach(([e,s])=>{if("boolean"==typeof s||"object"==typeof s&&"operator"in s&&"value"in s)t[e]=s;else{const t=e.split(".");let o=r;for(let e=0;e<t.length-1;e++){const r=t[e];o[r]=o[r]||{};o=o[r]}o[t[t.length-1]]=s}});return{nestedFilters:applyOperatorMapping(r),directFilters:t}}function applyOperatorMapping(e){const r={},t=(e,r)=>{Object.entries(e).forEach(([e,s])=>{if(s&&"object"==typeof s&&s.operator&&operatorMap[s.operator])r[e]={[operatorMap[s.operator]]:s.value};else if(s&&"object"==typeof s&&!s.operator){r[e]={};t(s,r[e])}else r[e]=s})};t(e,r);return r}async function updateStatus(e,r,t,s="status",o="Record",a,n){if(!db_1.models[e])throw(0,error_1.createError)({statusCode:400,message:"Invalid model"});if(!r)throw(0,error_1.createError)({statusCode:400,message:"Missing ID"});if(void 0===t)throw(0,error_1.createError)({statusCode:400,message:"Missing field value"});if(!s)throw(0,error_1.createError)({statusCode:400,message:"Missing field name"});try{const i={};i[s]=t;await db_1.models[e].update(i,{where:{id:r,...n}});const l=e.charAt(0).toUpperCase()+e.slice(1),d=`${o||l+" "+s} updated successfully`;a&&await a(r);return{message:d}}catch(e){console_1.logger.error("QUERY","Error updating status",e);throw(0,error_1.createError)({statusCode:500,message:e.message})}}function resolveIncludes(e){if(e)return e.map(e=>{const{model:r,as:t,attributes:s,includeModels:o,through:a,required:n,paranoid:i}=e,l={model:r,as:t,attributes:null==s?void 0:s.map(e=>Array.isArray(e)?e:[e,e]),required:n};void 0!==i&&(l.paranoid=i);o&&(l.include=resolveIncludes(o));a&&(l.through=a);return l})}async function getRecord(e,r,t,s=[]){if(!r)throw(0,error_1.createError)({statusCode:400,message:"Missing ID"});const o=db_1.models[e];if(!o)throw(0,error_1.createError)({statusCode:404,message:`Model ${e} not found`});const a=resolveIncludes(t),n=await o.findOne({where:{id:r},attributes:{exclude:s},include:a});if(!n)throw(0,error_1.createError)({statusCode:404,message:`Record with ID ${r} not found`});return n.get({plain:!0})}async function getRecords(e,r,t,s=[]){const o=db_1.models[e];if(!o)throw(0,error_1.createError)({statusCode:404,message:`Model ${e} not found`});const a=resolveIncludes(t);try{return(await o.findAll({where:{id:r},attributes:{exclude:s},include:a})).map(e=>e.get({plain:!0}))}catch(r){console_1.logger.error("QUERY",`Error fetching ${e}`,r);throw(0,error_1.createError)({statusCode:500,message:"Server error"})}}async function deleteFile(e){const r=(0,validation_1.sanitizePath)(e),t=path_1.default.join(process.cwd(),"public",r);await promises_1.default.unlink(t)}async function updateRecord(e,r,t,s=!1,o=[],a){const n=db_1.models[e];if(!n)throw(0,error_1.createError)({statusCode:404,message:`Model ${e} not found`});const i=await db_1.sequelize.transaction();try{if(!await n.findByPk(r,{transaction:i}))throw(0,error_1.createError)({statusCode:404,message:`${e} with ID ${r} not found`});await n.update(t,{where:{id:r,...a},transaction:i});for(const e of o){const t=db_1.models[e.model];if(!t){console_1.logger.warn("QUERY",`Related model ${e.model} not found`);continue}const s=await t.findAll({where:{[e.fields.source]:r},transaction:i}),o=new Map(e.data.map(e=>[e,e])),a=s.filter(r=>!o.has(r[e.fields.target]));await Promise.all(a.map(e=>e.destroy({transaction:i})));for(const o of e.data){const a=s.find(r=>r[e.fields.target]===o);a?await a.update(o,{transaction:i}):await t.create({[e.fields.source]:r,[e.fields.target]:o},{transaction:i})}}await i.commit();return s?n.findByPk(r):{message:`${e} updated successfully`}}catch(e){console_1.logger.error("QUERY","Transaction rollback - update failed",e);await i.rollback();throw e}}async function storeRecord({model:e,data:r,relations:t,returnResponse:s=!1}){const o=db_1.models[e];if(!o)throw(0,error_1.createError)({statusCode:404,message:`Model ${e} not found`});const a=await db_1.sequelize.transaction();try{void 0!==r.customFields&&null!==r.customFields||(r.customFields=[]);if(!Array.isArray(r.customFields))throw(0,error_1.createError)({statusCode:400,message:"customFields must be an array"});const n=await o.create(r,{transaction:a});if(t&&Array.isArray(t))for(const e of t){const r=db_1.models[e.model];if(r)if(Array.isArray(e.data))for(const t of e.data)await r.create({[e.fields.source]:n.id,[e.fields.target]:t},{transaction:a});else console_1.logger.warn("QUERY",`Relation data for ${e.model} is not an array`);else console_1.logger.warn("QUERY",`Related model ${e.model} not found`)}await a.commit();return s?{record:n.get({plain:!0}),message:`${e} created successfully`}:{message:`${e} created successfully`}}catch(e){console_1.logger.error("QUERY","Transaction rollback - store failed",e);await a.rollback();throw e}}async function handleSingleDelete({model:e,query:r,where:t={},id:s,preDelete:o=async()=>Promise.resolve(),postDelete:a=async()=>Promise.resolve(),restoreRelated:n=async()=>Promise.resolve()}){if(!db_1.models[e])throw(0,error_1.createError)({statusCode:400,message:"Invalid model"});if(!s)throw(0,error_1.createError)({statusCode:400,message:"Missing ID"});try{const i={...t,id:s},l=e.charAt(0).toUpperCase()+e.slice(1);await o();if(r.restore){await db_1.models[e].restore({where:i});await n();await a();return{message:`${l} restored successfully.`}}if(r.force){await db_1.models[e].destroy({where:i,force:!0});await a();return{message:`${l} deleted permanently.`}}await db_1.models[e].destroy({where:i});await a();return{message:`${l} deleted successfully.`}}catch(e){console_1.logger.error("QUERY","Error in single delete",e);throw(0,error_1.createError)({statusCode:500,message:e.message})}}async function handleBulkDelete({model:e,ids:r,query:t,where:s={},preDelete:o=async()=>Promise.resolve(),postDelete:a=async()=>Promise.resolve(),restoreRelated:n=async()=>Promise.resolve()}){if(!db_1.models[e])throw(0,error_1.createError)({statusCode:400,message:`Invalid model: ${e}`});if(!r||!Array.isArray(r)||0===r.length)throw(0,error_1.createError)({statusCode:400,message:"Missing IDs"});try{const i={...s,id:r},l=e.charAt(0).toUpperCase()+e.slice(1);await o();if(t.restore){await db_1.models[e].restore({where:i});await n();await a();return{message:`${l} records restored successfully.`}}if(t.force){await db_1.models[e].destroy({where:i,force:!0});await a();return{message:`${l} records deleted permanently.`}}await db_1.models[e].destroy({where:i});await a();return{message:`${l} records deleted successfully.`}}catch(e){console_1.logger.error("QUERY","Error in bulk delete",e);throw(0,error_1.createError)({statusCode:500,message:e.message})}}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.deleteRecordParams=exports.commonBulkDeleteResponses=exports.commonBulkDeleteParams=exports.createRecordResponses=exports.storeRecordResponses=exports.updateRecordResponses=exports.deleteRecordResponses=exports.invalidRequestResponse=exports.serverErrorResponse=exports.notFoundMetadataResponse=exports.unauthorizedResponse=void 0;exports.getFiltered=getFiltered;exports.parseFilterParam=parseFilterParam;exports.updateStatus=updateStatus;exports.getRecord=getRecord;exports.getRecords=getRecords;exports.deleteFile=deleteFile;exports.updateRecord=updateRecord;exports.storeRecord=storeRecord;exports.handleSingleDelete=handleSingleDelete;exports.handleBulkDelete=handleBulkDelete;const promises_1=__importDefault(require("fs/promises")),sequelize_1=require("sequelize"),error_1=require("./error"),db_1=require("@b/db"),path_1=__importDefault(require("path")),validation_1=require("./validation"),console_1=require("@b/utils/console"),operatorMap={equal:sequelize_1.Op.eq,notEqual:sequelize_1.Op.ne,greaterThan:sequelize_1.Op.gt,greaterThanOrEqual:sequelize_1.Op.gte,lessThan:sequelize_1.Op.lt,lessThanOrEqual:sequelize_1.Op.lte,between:sequelize_1.Op.between,notBetween:sequelize_1.Op.notBetween,like:sequelize_1.Op.like,notLike:sequelize_1.Op.notLike,startsWith:sequelize_1.Op.startsWith,endsWith:sequelize_1.Op.endsWith,substring:sequelize_1.Op.substring,regexp:sequelize_1.Op.regexp,notRegexp:sequelize_1.Op.notRegexp,contains:sequelize_1.Op.like};exports.unauthorizedResponse={description:"Unauthorized, admin permission required",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Error message"}}}}}};const notFoundMetadataResponse=e=>({description:`${e} not found`,content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Error message"}}}}}});exports.notFoundMetadataResponse=notFoundMetadataResponse;exports.serverErrorResponse={description:"Internal server error",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Error message"}}}}}};exports.invalidRequestResponse={description:"Invalid request",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Error message"}}}}}};const deleteRecordResponses=e=>({200:{description:`${e} deleted successfully`,content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Confirmation message indicating successful deletion"}}}}}},401:exports.unauthorizedResponse,404:(0,exports.notFoundMetadataResponse)(e),500:exports.serverErrorResponse});exports.deleteRecordResponses=deleteRecordResponses;const updateRecordResponses=e=>({200:{description:`${e} updated successfully`,content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Confirmation message"}}}}}},400:exports.invalidRequestResponse,401:exports.unauthorizedResponse,404:(0,exports.notFoundMetadataResponse)(e),500:exports.serverErrorResponse});exports.updateRecordResponses=updateRecordResponses;const storeRecordResponses=(e,r)=>({200:e,400:exports.invalidRequestResponse,401:exports.unauthorizedResponse,404:(0,exports.notFoundMetadataResponse)(r),500:exports.serverErrorResponse});exports.storeRecordResponses=storeRecordResponses;const createRecordResponses=e=>({200:{description:`${e} created successfully`,content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Confirmation message"}}}}}},400:exports.invalidRequestResponse,401:exports.unauthorizedResponse,500:exports.serverErrorResponse});exports.createRecordResponses=createRecordResponses;const commonBulkDeleteParams=e=>[{name:"restore",in:"query",description:`Restore the ${e} instead of deleting`,required:!1,schema:{type:"boolean"}},{name:"force",in:"query",description:`Delete the ${e} permanently`,required:!1,schema:{type:"boolean"}}];exports.commonBulkDeleteParams=commonBulkDeleteParams;const commonBulkDeleteResponses=e=>({200:{description:`${e} deleted successfully`,content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Confirmation message"}}}}}},400:exports.invalidRequestResponse,401:exports.unauthorizedResponse,404:(0,exports.notFoundMetadataResponse)(e),500:exports.serverErrorResponse});exports.commonBulkDeleteResponses=commonBulkDeleteResponses;const deleteRecordParams=e=>[{index:0,name:"id",in:"path",description:`ID of the ${e} to delete`,required:!0,schema:{type:"string"}},{name:"restore",in:"query",description:`Restore the ${e} instead of deleting`,required:!1,schema:{type:"boolean"}},{name:"force",in:"query",description:`Delete the ${e} permanently`,required:!1,schema:{type:"boolean"}}];exports.deleteRecordParams=deleteRecordParams;
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deleteRecordParams = exports.commonBulkDeleteResponses = exports.commonBulkDeleteParams = exports.createRecordResponses = exports.storeRecordResponses = exports.updateRecordResponses = exports.deleteRecordResponses = exports.invalidRequestResponse = exports.serverErrorResponse = exports.notFoundMetadataResponse = exports.unauthorizedResponse = void 0;
+exports.getFiltered = getFiltered;
+exports.parseFilterParam = parseFilterParam;
+exports.updateStatus = updateStatus;
+exports.getRecord = getRecord;
+exports.getRecords = getRecords;
+exports.deleteFile = deleteFile;
+exports.updateRecord = updateRecord;
+exports.storeRecord = storeRecord;
+exports.handleSingleDelete = handleSingleDelete;
+exports.handleBulkDelete = handleBulkDelete;
+const promises_1 = __importDefault(require("fs/promises"));
+const sequelize_1 = require("sequelize");
+const error_1 = require("./error");
+const db_1 = require("@b/db");
+const path_1 = __importDefault(require("path"));
+const validation_1 = require("./validation");
+const console_1 = require("@b/utils/console");
+const operatorMap = {
+    equal: sequelize_1.Op.eq,
+    notEqual: sequelize_1.Op.ne,
+    greaterThan: sequelize_1.Op.gt,
+    greaterThanOrEqual: sequelize_1.Op.gte,
+    lessThan: sequelize_1.Op.lt,
+    lessThanOrEqual: sequelize_1.Op.lte,
+    between: sequelize_1.Op.between,
+    notBetween: sequelize_1.Op.notBetween,
+    like: sequelize_1.Op.like,
+    notLike: sequelize_1.Op.notLike,
+    startsWith: sequelize_1.Op.startsWith,
+    endsWith: sequelize_1.Op.endsWith,
+    substring: sequelize_1.Op.substring,
+    regexp: sequelize_1.Op.regexp,
+    notRegexp: sequelize_1.Op.notRegexp,
+    contains: sequelize_1.Op.like,
+};
+async function getFiltered({ model, query, where, customFilterHandler, customStatus, sortField = "createdAt", timestamps = true, paranoid = true, numericFields = [], includeModels = [], excludeFields = [], excludeRecords = [], compute = [], }) {
+    const page = Number(query.page) || 1;
+    const perPage = Number(query.perPage) || 10;
+    const offset = (page - 1) * perPage;
+    let sortOrderQuery = query.sortOrder || "desc";
+    if (typeof sortOrderQuery === "string") {
+        sortOrderQuery = decodeURIComponent(sortOrderQuery);
+    }
+    if (typeof sortField === "string") {
+        sortField = decodeURIComponent(sortField);
+    }
+    let sortFields = [];
+    if (typeof sortField === "string") {
+        sortFields = sortField
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+    }
+    else if (Array.isArray(sortField)) {
+        sortFields = sortField;
+    }
+    else {
+        sortFields = [sortField];
+    }
+    let sortOrders = [];
+    if (typeof sortOrderQuery === "string") {
+        sortOrders = sortOrderQuery
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+    }
+    else if (Array.isArray(sortOrderQuery)) {
+        sortOrders = sortOrderQuery;
+    }
+    else {
+        sortOrders = [sortOrderQuery];
+    }
+    const order = sortFields.map((field, index) => {
+        const currentSortOrder = sortOrders[index] && sortOrders[index].toLowerCase() === "asc"
+            ? "ASC"
+            : "DESC";
+        if (field.includes(".")) {
+            const parts = field.split(".");
+            const orderArr = [];
+            let currentModel = model;
+            for (let i = 0; i < parts.length - 1; i++) {
+                const part = parts[i];
+                if (currentModel.associations && currentModel.associations[part]) {
+                    const association = currentModel.associations[part];
+                    orderArr.push({ model: association.target, as: part });
+                    currentModel = association.target;
+                }
+                else {
+                    orderArr.push(part);
+                }
+            }
+            orderArr.push(parts[parts.length - 1]);
+            orderArr.push(currentSortOrder);
+            return orderArr;
+        }
+        else {
+            return [field, currentSortOrder];
+        }
+    });
+    const rawFilter = parseFilterParam(query.filter, numericFields);
+    const { nestedFilters, directFilters } = buildNestedFilters(rawFilter);
+    const whereClause = {
+        ...where,
+        ...(customFilterHandler ? customFilterHandler(directFilters) : {}),
+    };
+    excludeRecords.forEach((exclude) => {
+        if (!exclude.model) {
+            whereClause[exclude.key] = { [sequelize_1.Op.ne]: exclude.value };
+        }
+    });
+    customStatus === null || customStatus === void 0 ? void 0 : customStatus.forEach(({ key, true: trueValue, false: falseValue }) => {
+        if (Object.prototype.hasOwnProperty.call(directFilters, key)) {
+            const statusValue = directFilters[key];
+            if (statusValue === "true") {
+                whereClause[key] = trueValue;
+            }
+            else if (statusValue === "false") {
+                whereClause[key] = falseValue;
+            }
+            delete directFilters[key];
+        }
+    });
+    Object.entries(directFilters).forEach(([key, filterValue]) => {
+        if (numericFields.includes(key) && typeof filterValue !== "object") {
+            whereClause[key] = parseFloat(filterValue) || filterValue;
+        }
+        else if (typeof filterValue === "object" && filterValue.operator) {
+            const { value, operator } = filterValue;
+            const op = operatorMap[operator];
+            whereClause[key] = { [op]: value };
+        }
+        else {
+            whereClause[key] = filterValue;
+        }
+    });
+    let hasParanoid = !query.showDeleted;
+    if (timestamps && paranoid) {
+        if (query.showDeleted === "true") {
+            whereClause[sequelize_1.Op.and] = { deletedAt: { [sequelize_1.Op.ne]: null } };
+        }
+        else {
+            whereClause[sequelize_1.Op.and] = { deletedAt: null };
+        }
+    }
+    else {
+        hasParanoid = undefined;
+    }
+    const adjustedIncludeModels = adjustIncludeModels(includeModels, excludeRecords, nestedFilters);
+    const attributes = compute && compute.length > 0
+        ? { include: compute, exclude: excludeFields }
+        : { exclude: excludeFields };
+    const findOptions = {
+        where: whereClause,
+        offset,
+        limit: perPage,
+        include: adjustedIncludeModels,
+        distinct: true,
+        col: "id",
+        attributes,
+        order: order,
+        paranoid: hasParanoid,
+    };
+    const { count, rows } = await model.findAndCountAll(findOptions);
+    return {
+        items: rows.map((row) => row.get({ plain: true })),
+        pagination: {
+            totalItems: Array.isArray(count) ? count.length : count,
+            currentPage: page,
+            perPage,
+            totalPages: Math.ceil((Array.isArray(count) ? count.length : count) / perPage),
+        },
+    };
+}
+function adjustIncludeModels(includeModels, excludeRecords, filters) {
+    return includeModels.map((includeModel) => {
+        const exclusions = excludeRecords.filter((exclude) => exclude.model === includeModel.model);
+        const specificFilters = filters[includeModel.as] || {};
+        const where = {
+            ...includeModel.where,
+            ...specificFilters,
+            ...(exclusions.length
+                ? {
+                    [sequelize_1.Op.and]: exclusions.map((exclude) => ({
+                        [exclude.key]: { [sequelize_1.Op.ne]: exclude.value },
+                    })),
+                }
+                : {}),
+        };
+        const required = specificFilters && Object.keys(specificFilters).length > 0
+            ? true
+            : includeModel.required || false;
+        const nestedIncludes = includeModel.includeModels
+            ? adjustIncludeModels(includeModel.includeModels, excludeRecords, filters)
+            : includeModel.include || [];
+        return {
+            ...includeModel,
+            where,
+            include: nestedIncludes,
+            required,
+        };
+    });
+}
+function parseFilterParam(filterParam, numericFields) {
+    const parsedFilters = {};
+    if (!filterParam)
+        return parsedFilters;
+    let filtersObject = {};
+    if (typeof filterParam === "string") {
+        try {
+            filtersObject = JSON.parse(filterParam);
+        }
+        catch (error) {
+            console_1.logger.debug("QUERY", "Error parsing filter param");
+            return parsedFilters;
+        }
+    }
+    Object.entries(filtersObject).forEach(([key, value]) => {
+        const keyParts = key.split(".");
+        let current = parsedFilters;
+        keyParts.slice(0, -1).forEach((part) => {
+            current[part] = current[part] || {};
+            current = current[part];
+        });
+        const isNumericField = numericFields.includes(keyParts[keyParts.length - 1]);
+        let finalValue = value;
+        if (isNumericField &&
+            typeof value === "object" &&
+            value.operator === "startsWith") {
+            finalValue = {
+                operator: "greaterThan",
+                value: parseFloat(value.value),
+            };
+        }
+        current[keyParts[keyParts.length - 1]] = finalValue;
+    });
+    return parsedFilters;
+}
+function buildNestedFilters(filters) {
+    const nestedFilters = {};
+    const directFilters = {};
+    Object.entries(filters).forEach(([fullKey, value]) => {
+        if (typeof value === "boolean" ||
+            (typeof value === "object" && "operator" in value && "value" in value)) {
+            directFilters[fullKey] = value;
+        }
+        else {
+            const keys = fullKey.split(".");
+            let current = nestedFilters;
+            for (let i = 0; i < keys.length - 1; i++) {
+                const key = keys[i];
+                current[key] = current[key] || {};
+                current = current[key];
+            }
+            const lastKey = keys[keys.length - 1];
+            current[lastKey] = value;
+        }
+    });
+    return { nestedFilters: applyOperatorMapping(nestedFilters), directFilters };
+}
+function applyOperatorMapping(filters) {
+    const whereClause = {};
+    const processFilters = (currentFilters, parentObject) => {
+        Object.entries(currentFilters).forEach(([key, value]) => {
+            if (value &&
+                typeof value === "object" &&
+                value.operator &&
+                operatorMap[value.operator]) {
+                parentObject[key] = { [operatorMap[value.operator]]: value.value };
+            }
+            else if (value && typeof value === "object" && !value.operator) {
+                parentObject[key] = {};
+                processFilters(value, parentObject[key]);
+            }
+            else {
+                parentObject[key] = value;
+            }
+        });
+    };
+    processFilters(filters, whereClause);
+    return whereClause;
+}
+async function updateStatus(model, id, fieldValue, field = "status", modelTitle = "Record", postUpdate, where) {
+    if (!db_1.models[model]) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Invalid model",
+        });
+    }
+    if (!id) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Missing ID",
+        });
+    }
+    if (fieldValue === undefined) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Missing field value",
+        });
+    }
+    if (!field) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Missing field name",
+        });
+    }
+    try {
+        const updateFields = {};
+        updateFields[field] = fieldValue;
+        await db_1.models[model].update(updateFields, {
+            where: {
+                id,
+                ...where,
+            },
+        });
+        const capitalModel = model.charAt(0).toUpperCase() + model.slice(1);
+        const message = `${modelTitle ? modelTitle : capitalModel + " " + field} updated successfully`;
+        if (postUpdate) {
+            await postUpdate(id);
+        }
+        return { message };
+    }
+    catch (error) {
+        console_1.logger.error("QUERY", "Error updating status", error);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: error.message,
+        });
+    }
+}
+exports.unauthorizedResponse = {
+    description: "Unauthorized, admin permission required",
+    content: {
+        "application/json": {
+            schema: {
+                type: "object",
+                properties: {
+                    message: {
+                        type: "string",
+                        description: "Error message",
+                    },
+                },
+            },
+        },
+    },
+};
+const notFoundMetadataResponse = (model) => ({
+    description: `${model} not found`,
+    content: {
+        "application/json": {
+            schema: {
+                type: "object",
+                properties: {
+                    message: {
+                        type: "string",
+                        description: "Error message",
+                    },
+                },
+            },
+        },
+    },
+});
+exports.notFoundMetadataResponse = notFoundMetadataResponse;
+exports.serverErrorResponse = {
+    description: "Internal server error",
+    content: {
+        "application/json": {
+            schema: {
+                type: "object",
+                properties: {
+                    message: {
+                        type: "string",
+                        description: "Error message",
+                    },
+                },
+            },
+        },
+    },
+};
+exports.invalidRequestResponse = {
+    description: "Invalid request",
+    content: {
+        "application/json": {
+            schema: {
+                type: "object",
+                properties: {
+                    message: {
+                        type: "string",
+                        description: "Error message",
+                    },
+                },
+            },
+        },
+    },
+};
+const deleteRecordResponses = (model) => {
+    return {
+        200: {
+            description: `${model} deleted successfully`,
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: {
+                                type: "string",
+                                description: "Confirmation message indicating successful deletion",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        401: exports.unauthorizedResponse,
+        404: (0, exports.notFoundMetadataResponse)(model),
+        500: exports.serverErrorResponse,
+    };
+};
+exports.deleteRecordResponses = deleteRecordResponses;
+const updateRecordResponses = (model) => {
+    return {
+        200: {
+            description: `${model} updated successfully`,
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: {
+                                type: "string",
+                                description: "Confirmation message",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        400: exports.invalidRequestResponse,
+        401: exports.unauthorizedResponse,
+        404: (0, exports.notFoundMetadataResponse)(model),
+        500: exports.serverErrorResponse,
+    };
+};
+exports.updateRecordResponses = updateRecordResponses;
+const storeRecordResponses = (success, model) => {
+    return {
+        200: success,
+        400: exports.invalidRequestResponse,
+        401: exports.unauthorizedResponse,
+        404: (0, exports.notFoundMetadataResponse)(model),
+        500: exports.serverErrorResponse,
+    };
+};
+exports.storeRecordResponses = storeRecordResponses;
+const createRecordResponses = (model) => {
+    return {
+        200: {
+            description: `${model} created successfully`,
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: {
+                                type: "string",
+                                description: "Confirmation message",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        400: exports.invalidRequestResponse,
+        401: exports.unauthorizedResponse,
+        500: exports.serverErrorResponse,
+    };
+};
+exports.createRecordResponses = createRecordResponses;
+function resolveIncludes(includes) {
+    if (!includes) {
+        return undefined;
+    }
+    return includes.map((include) => {
+        const { model, as, attributes, includeModels, through, required, paranoid } = include;
+        const resolvedInclude = {
+            model,
+            as,
+            attributes: attributes === null || attributes === void 0 ? void 0 : attributes.map((attr) => Array.isArray(attr) ? attr : [attr, attr]),
+            required,
+        };
+        if (paranoid !== undefined) {
+            resolvedInclude.paranoid = paranoid;
+        }
+        if (includeModels) {
+            resolvedInclude.include = resolveIncludes(includeModels);
+        }
+        if (through) {
+            resolvedInclude.through = through;
+        }
+        return resolvedInclude;
+    });
+}
+async function getRecord(modelName, id, include, exclude = []) {
+    if (!id) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "Missing ID" });
+    }
+    const model = db_1.models[modelName];
+    if (!model) {
+        throw (0, error_1.createError)({ statusCode: 404, message: `Model ${modelName} not found` });
+    }
+    const resolvedIncludes = resolveIncludes(include);
+    const data = await model.findOne({
+        where: { id },
+        attributes: { exclude },
+        include: resolvedIncludes,
+    });
+    if (!data) {
+        throw (0, error_1.createError)({
+            statusCode: 404,
+            message: `Record with ID ${id} not found`,
+        });
+    }
+    return data.get({ plain: true });
+}
+async function getRecords(modelName, ids, include, exclude = []) {
+    const model = db_1.models[modelName];
+    if (!model) {
+        throw (0, error_1.createError)({ statusCode: 404, message: `Model ${modelName} not found` });
+    }
+    const resolvedIncludes = resolveIncludes(include);
+    try {
+        const data = await model.findAll({
+            where: { id: ids },
+            attributes: { exclude },
+            include: resolvedIncludes,
+        });
+        return data.map((item) => item.get({ plain: true }));
+    }
+    catch (error) {
+        console_1.logger.error("QUERY", `Error fetching ${modelName}`, error);
+        throw (0, error_1.createError)({ statusCode: 500, message: "Server error" });
+    }
+}
+async function deleteFile(filePath) {
+    const sanitizedFilePath = (0, validation_1.sanitizePath)(filePath);
+    const fullPath = path_1.default.join(process.cwd(), "public", sanitizedFilePath);
+    await promises_1.default.unlink(fullPath);
+}
+async function updateRecord(modelName, id, updateData, returnResponse = false, relations = [], where) {
+    const model = db_1.models[modelName];
+    if (!model) {
+        throw (0, error_1.createError)({ statusCode: 404, message: `Model ${modelName} not found` });
+    }
+    const transaction = await db_1.sequelize.transaction();
+    try {
+        const existingRecord = await model.findByPk(id, { transaction });
+        if (!existingRecord) {
+            throw (0, error_1.createError)({ statusCode: 404, message: `${modelName} with ID ${id} not found` });
+        }
+        await model.update(updateData, { where: { id, ...where }, transaction });
+        for (const relation of relations) {
+            const relatedModel = db_1.models[relation.model];
+            if (!relatedModel) {
+                console_1.logger.warn("QUERY", `Related model ${relation.model} not found`);
+                continue;
+            }
+            const existingRelations = await relatedModel.findAll({
+                where: { [relation.fields.source]: id },
+                transaction,
+            });
+            const newRelationsMap = new Map(relation.data.map((item) => [item, item]));
+            const toDelete = existingRelations.filter((item) => !newRelationsMap.has(item[relation.fields.target]));
+            await Promise.all(toDelete.map((item) => item.destroy({ transaction })));
+            for (const newItem of relation.data) {
+                const existingItem = existingRelations.find((item) => item[relation.fields.target] === newItem);
+                if (existingItem) {
+                    await existingItem.update(newItem, { transaction });
+                }
+                else {
+                    await relatedModel.create({
+                        [relation.fields.source]: id,
+                        [relation.fields.target]: newItem,
+                    }, { transaction });
+                }
+            }
+        }
+        await transaction.commit();
+        if (returnResponse) {
+            return model.findByPk(id);
+        }
+        else {
+            return { message: `${modelName} updated successfully` };
+        }
+    }
+    catch (error) {
+        console_1.logger.error("QUERY", "Transaction rollback - update failed", error);
+        await transaction.rollback();
+        throw error;
+    }
+}
+async function storeRecord({ model, data, relations, returnResponse = false, }) {
+    const Model = db_1.models[model];
+    if (!Model) {
+        throw (0, error_1.createError)({ statusCode: 404, message: `Model ${model} not found` });
+    }
+    const transaction = await db_1.sequelize.transaction();
+    try {
+        if (data.customFields === undefined || data.customFields === null) {
+            data.customFields = [];
+        }
+        if (!Array.isArray(data.customFields)) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "customFields must be an array" });
+        }
+        const newRecord = await Model.create(data, { transaction });
+        if (relations && Array.isArray(relations)) {
+            for (const relation of relations) {
+                const relatedModel = db_1.models[relation.model];
+                if (!relatedModel) {
+                    console_1.logger.warn("QUERY", `Related model ${relation.model} not found`);
+                    continue;
+                }
+                if (Array.isArray(relation.data)) {
+                    for (const newItem of relation.data) {
+                        await relatedModel.create({
+                            [relation.fields.source]: newRecord.id,
+                            [relation.fields.target]: newItem,
+                        }, { transaction });
+                    }
+                }
+                else {
+                    console_1.logger.warn("QUERY", `Relation data for ${relation.model} is not an array`);
+                }
+            }
+        }
+        await transaction.commit();
+        if (returnResponse) {
+            return {
+                record: newRecord.get({ plain: true }),
+                message: `${model} created successfully`,
+            };
+        }
+        else {
+            return { message: `${model} created successfully` };
+        }
+    }
+    catch (error) {
+        console_1.logger.error("QUERY", "Transaction rollback - store failed", error);
+        await transaction.rollback();
+        throw error;
+    }
+}
+const commonBulkDeleteParams = (model) => {
+    return [
+        {
+            name: "restore",
+            in: "query",
+            description: `Restore the ${model} instead of deleting`,
+            required: false,
+            schema: {
+                type: "boolean",
+            },
+        },
+        {
+            name: "force",
+            in: "query",
+            description: `Delete the ${model} permanently`,
+            required: false,
+            schema: {
+                type: "boolean",
+            },
+        },
+    ];
+};
+exports.commonBulkDeleteParams = commonBulkDeleteParams;
+const commonBulkDeleteResponses = (model) => {
+    return {
+        200: {
+            description: `${model} deleted successfully`,
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: {
+                                type: "string",
+                                description: "Confirmation message",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        400: exports.invalidRequestResponse,
+        401: exports.unauthorizedResponse,
+        404: (0, exports.notFoundMetadataResponse)(model),
+        500: exports.serverErrorResponse,
+    };
+};
+exports.commonBulkDeleteResponses = commonBulkDeleteResponses;
+const deleteRecordParams = (model) => {
+    return [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            description: `ID of the ${model} to delete`,
+            required: true,
+            schema: {
+                type: "string",
+            },
+        },
+        {
+            name: "restore",
+            in: "query",
+            description: `Restore the ${model} instead of deleting`,
+            required: false,
+            schema: {
+                type: "boolean",
+            },
+        },
+        {
+            name: "force",
+            in: "query",
+            description: `Delete the ${model} permanently`,
+            required: false,
+            schema: {
+                type: "boolean",
+            },
+        },
+    ];
+};
+exports.deleteRecordParams = deleteRecordParams;
+async function handleSingleDelete({ model, query, where = {}, id, preDelete = async () => Promise.resolve(), postDelete = async () => Promise.resolve(), restoreRelated = async () => Promise.resolve(), }) {
+    if (!db_1.models[model]) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Invalid model",
+        });
+    }
+    if (!id) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Missing ID",
+        });
+    }
+    try {
+        const whereClause = { ...where, id };
+        const capitalModel = model.charAt(0).toUpperCase() + model.slice(1);
+        await preDelete();
+        if (query.restore) {
+            await db_1.models[model].restore({ where: whereClause });
+            await restoreRelated();
+            await postDelete();
+            return { message: `${capitalModel} restored successfully.` };
+        }
+        else if (query.force) {
+            await db_1.models[model].destroy({
+                where: whereClause,
+                force: true,
+            });
+            await postDelete();
+            return { message: `${capitalModel} deleted permanently.` };
+        }
+        else {
+            await db_1.models[model].destroy({ where: whereClause });
+            await postDelete();
+            return { message: `${capitalModel} deleted successfully.` };
+        }
+    }
+    catch (error) {
+        console_1.logger.error("QUERY", "Error in single delete", error);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: error.message,
+        });
+    }
+}
+async function handleBulkDelete({ model, ids, query, where = {}, preDelete = async () => Promise.resolve(), postDelete = async () => Promise.resolve(), restoreRelated = async () => Promise.resolve(), }) {
+    if (!db_1.models[model]) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: `Invalid model: ${model}`,
+        });
+    }
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Missing IDs",
+        });
+    }
+    try {
+        const whereClause = { ...where, id: ids };
+        const capitalModel = model.charAt(0).toUpperCase() + model.slice(1);
+        await preDelete();
+        if (query.restore) {
+            await db_1.models[model].restore({ where: whereClause });
+            await restoreRelated();
+            await postDelete();
+            return { message: `${capitalModel} records restored successfully.` };
+        }
+        else if (query.force) {
+            await db_1.models[model].destroy({
+                where: whereClause,
+                force: true,
+            });
+            await postDelete();
+            return { message: `${capitalModel} records deleted permanently.` };
+        }
+        else {
+            await db_1.models[model].destroy({ where: whereClause });
+            await postDelete();
+            return { message: `${capitalModel} records deleted successfully.` };
+        }
+    }
+    catch (error) {
+        console_1.logger.error("QUERY", "Error in bulk delete", error);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: error.message,
+        });
+    }
+}

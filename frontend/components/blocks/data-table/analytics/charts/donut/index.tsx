@@ -38,6 +38,26 @@ function StatusDistributionImpl({
     [validData]
   );
 
+  // Check if all values are zero (empty state)
+  const isEmptyData = total === 0 && validData.length > 0;
+
+  // When total is 0, create placeholder data with equal segments for visualization
+  const displayData = useMemo(() => {
+    if (isEmptyData) {
+      // Give each segment equal value of 1 for display purposes (gray segments)
+      return validData.map((item) => ({
+        ...item,
+        value: 1,
+        _isEmpty: true,
+      }));
+    }
+    return validData;
+  }, [validData, isEmptyData]);
+
+  const displayTotal = useMemo(() => {
+    return isEmptyData ? validData.length : total;
+  }, [total, validData, isEmptyData]);
+
   if (loading) {
     return (
       <Card className={cn("bg-transparent overflow-hidden", className)}>
@@ -57,8 +77,8 @@ function StatusDistributionImpl({
     );
   }
 
-  // Show empty state when no data or all values are 0
-  if (validData.length === 0 || total === 0) {
+  // Show empty state only when there's truly no data (empty array)
+  if (validData.length === 0) {
     return (
       <Card className={cn("bg-transparent overflow-hidden", className)}>
         <CardHeader className="pb-0">
@@ -91,16 +111,18 @@ function StatusDistributionImpl({
       <CardContent>
         <div className="flex flex-col gap-4">
           <Content
-            data={validData}
+            data={displayData}
             activeSegment={activeSegment}
             setActiveSegment={setActiveSegment}
-            total={total}
+            total={displayTotal}
+            isEmpty={isEmptyData}
           />
           <Legend
             data={validData}
             total={total}
             activeSegment={activeSegment}
             setActiveSegment={setActiveSegment}
+            isEmpty={isEmptyData}
           />
         </div>
       </CardContent>

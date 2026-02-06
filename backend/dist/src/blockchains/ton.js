@@ -36,26 +36,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const tonweb_1 = __importDefault(require("tonweb")); // TON SDK
+const tonweb_1 = __importDefault(require("tonweb"));
 const encrypt_1 = require("@b/utils/encrypt");
 const console_1 = require("@b/utils/console");
 const db_1 = require("@b/db");
-// Extension module - using safe import
+const error_1 = require("@b/utils/error");
+const security_1 = require("@b/utils/security");
 let storeAndBroadcastTransaction;
 try {
     const depositModule = require("@b/api/(ext)/ecosystem/utils/redis/deposit");
     storeAndBroadcastTransaction = depositModule.storeAndBroadcastTransaction;
 }
 catch (e) {
-    // Extension not available
 }
 const tonMnemonic = __importStar(require("tonweb-mnemonic"));
 const redis_1 = require("@b/utils/redis");
-const path_1 = __importDefault(require("path"));
-const fs_1 = __importDefault(require("fs"));
 const redis = redis_1.RedisSingleton.getInstance();
 const BN = tonweb_1.default.utils.BN;
-const HIGHLOAD_WALLET_TIMEOUT = 60 * 60; // 1 hour
+const HIGHLOAD_WALLET_TIMEOUT = 60 * 60;
 class TonService {
     constructor(endpoint = TonService.getTonEndpoint(), apiKey = TonService.getTonApiKey()) {
         this.chainActive = false;
@@ -65,9 +63,6 @@ class TonService {
         const httpProvider = new tonweb_1.default.HttpProvider(endpoint, { apiKey });
         this.tonWeb = new tonweb_1.default(httpProvider);
     }
-    /**
-     * Dynamically determine the TON RPC endpoint based on the TON_NETWORK environment variable.
-     */
     static getTonEndpoint() {
         const network = process.env.TON_NETWORK || "mainnet";
         if (network === "testnet") {
@@ -76,9 +71,6 @@ class TonService {
         }
         return (process.env.TON_MAINNET_RPC || "https://toncenter.com/api/v2/jsonRPC");
     }
-    /**
-     * Dynamically get the API key based on the TON_NETWORK environment variable.
-     */
     static getTonApiKey() {
         const network = process.env.TON_NETWORK || "mainnet";
         if (network === "testnet") {
@@ -86,21 +78,14 @@ class TonService {
         }
         return process.env.TON_MAINNET_RPC_API_KEY;
     }
-    /**
-     * Singleton instance accessor.
-     */
     static async getInstance() {
         if (!TonService.instance) {
             TonService.instance = new TonService();
             await TonService.instance.checkChainStatus();
-            // Schedule periodic cleanup of processed transactions every minute
             setInterval(() => TonService.cleanupProcessedTransactions(), 60 * 1000);
         }
         return TonService.instance;
     }
-    /**
-     * Cleanup processedTransactions map by removing entries older than PROCESSING_EXPIRY_MS.
-     */
     static cleanupProcessedTransactions() {
         const now = Date.now();
         for (const [tx, timestamp] of TonService.processedTransactions.entries()) {
@@ -109,52 +94,21 @@ class TonService {
             }
         }
     }
-    /**
-     * Checks if the chain is active by the presence of a `ton.bin` file.
-     */
     async checkChainStatus() {
-        try {
-            // Try multiple paths for the bin file - similar to how index.ts handles .env files
-            const possiblePaths = [
-                path_1.default.resolve(__dirname, "ton.bin.ts"), // Development TypeScript
-                path_1.default.resolve(__dirname, "ton.bin.js"), // Production JavaScript
-                path_1.default.resolve(process.cwd(), "backend/src/blockchains/ton.bin.ts"), // Development from root
-                path_1.default.resolve(process.cwd(), "backend/src/blockchains/ton.bin.js"), // Production from root
-                path_1.default.resolve(process.cwd(), "dist/blockchains/ton.bin.js"), // Production dist
-                path_1.default.resolve(process.cwd(), "src/blockchains/ton.bin.js"), // Production src
-            ];
-            let tonBinFileExists = false;
-            let foundPath = "";
-            for (const filePath of possiblePaths) {
-                if (fs_1.default.existsSync(filePath)) {
-                    tonBinFileExists = true;
-                    foundPath = filePath;
-                    break;
-                }
-            }
-            if (tonBinFileExists) {
-                this.chainActive = true;
-            }
-            else {
-                this.chainActive = false;
-            }
-        }
-        catch (error) {
-            console_1.logger.error("TON", `Error checking chain status: ${error.message}`);
+        const result = await (0, security_1.isBlockchainActive)("TON");
+        if (!result.active) {
+            console_1.logger.warn("TON", result.reason || "Blockchain not active");
             this.chainActive = false;
+            return;
         }
+        this.chainActive = true;
+        console_1.logger.info("TON", "TON service initialized successfully");
     }
-    /**
-     * Ensures the chain is active.
-     */
     ensureChainActive() {
         if (!this.chainActive) {
-            throw new Error("Chain 'TON' is not active.");
+            throw (0, error_1.createError)({ statusCode: 500, message: "TON service not available. Please ensure your license is activated and the blockchain is enabled." });
         }
     }
-    /**
-     * Rate-limited RPC queue to ensure a maximum of 1 call per second.
-     */
     static async addToQueue(operation) {
         TonService.queue.push(operation);
         if (!TonService.processing) {
@@ -168,7 +122,7 @@ class TonService {
             if (operation) {
                 try {
                     await operation();
-                    await new Promise((resolve) => setTimeout(resolve, 1000)); // 1-second delay
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
                 }
                 catch (error) {
                     console_1.logger.error("TON", `Error processing wallet operation: ${error.message}`);
@@ -180,19 +134,12 @@ class TonService {
     formatAddress(address) {
         const addressObj = new this.tonWeb.utils.Address(address);
         const network = process.env.TON_NETWORK || "mainnet";
-        // Determine if the network is testnet
         const isTestnet = network === "testnet";
-        // Parameters for toString method
         const isUserFriendly = true;
         const isUrlSafe = true;
         const isBounceable = false;
         return addressObj.toString(isUserFriendly, isUrlSafe, isBounceable);
     }
-    /**
-     * Monitors TON deposits for a given wallet.
-     * Instead of stopping monitoring after one deposit, this function
-     * continues to check for new deposits every minute.
-     */
     async monitorTonDeposits(wallet, address) {
         const monitoringKey = `${wallet.id}_${address}`;
         if (TonService.monitoringAddresses.has(monitoringKey)) {
@@ -206,7 +153,6 @@ class TonService {
                 try {
                     const rawTransactions = await this.fetchTransactions(address);
                     for (const tx of rawTransactions) {
-                        // Check if transaction is already in DB or has been processed recently.
                         const existingTx = await db_1.models.transaction.findOne({
                             where: { trxId: tx.hash },
                         });
@@ -218,7 +164,6 @@ class TonService {
                         }
                         if (tx.status === "Success") {
                             await this.processTonTransaction(tx.hash, wallet, address);
-                            // Mark as processed with current timestamp
                             TonService.processedTransactions.set(tx.hash, Date.now());
                         }
                     }
@@ -226,7 +171,6 @@ class TonService {
                 catch (error) {
                     console_1.logger.error("TON", `Error checking deposits for ${address}: ${error.message}`);
                 }
-                // Schedule the next check after 1 minute
                 setTimeout(checkDeposits, 60 * 1000);
             };
             checkDeposits();
@@ -236,13 +180,9 @@ class TonService {
             TonService.monitoringAddresses.delete(monitoringKey);
         }
     }
-    /**
-     * Processes a TON transaction by storing and broadcasting it.
-     */
     async processTonTransaction(transactionHash, wallet, address) {
         try {
             console_1.logger.debug("TON", `Fetching transaction ${transactionHash} for address ${address}`);
-            // Fetch all transactions for the address and search for the specific transaction by hash
             const rawTransactions = (await this.fetchTransactions(address));
             const transactionInfo = rawTransactions.find((tx) => tx.hash === transactionHash);
             if (!transactionInfo) {
@@ -253,7 +193,7 @@ class TonService {
             const addresses = typeof wallet.address === "string"
                 ? JSON.parse(wallet.address)
                 : wallet.address;
-            const expectedTo = addresses["TON"].address; // Expected destination
+            const expectedTo = addresses["TON"].address;
             const toStr = new this.tonWeb.utils.Address(expectedTo).toString(false);
             const txToStr = new this.tonWeb.utils.Address(transactionInfo.to).toString(false);
             console_1.logger.debug("TON", `Expected address: ${toStr}`);
@@ -280,9 +220,6 @@ class TonService {
             console_1.logger.error("TON", `Error processing transaction ${transactionHash}: ${error.message}`);
         }
     }
-    /**
-     * Fetches and parses transactions for a given TON address.
-     */
     async fetchTransactions(address) {
         this.ensureChainActive();
         let rawTransactions = [];
@@ -292,13 +229,10 @@ class TonService {
         }
         catch (error) {
             console_1.logger.error("TON", "Failed to fetch TON transactions", error);
-            throw new Error(`Failed to fetch TON transactions: ${error.message || "Unknown error"}`);
+            throw (0, error_1.createError)({ statusCode: 500, message: `Failed to fetch TON transactions: ${error.message || "Unknown error"}` });
         }
         return this.parseTonTransactions(rawTransactions);
     }
-    /**
-     * Parses raw TON transactions into a standardized format.
-     */
     parseTonTransactions(rawTransactions) {
         return rawTransactions.map((tx) => {
             var _a;
@@ -322,15 +256,12 @@ class TonService {
             };
         });
     }
-    /**
-     * Creates a new TON wallet.
-     */
     async createWallet() {
         this.ensureChainActive();
         const mnemonic = await tonMnemonic.generateMnemonic();
         const isValidMnemonic = await tonMnemonic.validateMnemonic(mnemonic);
         if (!isValidMnemonic) {
-            throw new Error("Generated mnemonic is invalid.");
+            throw (0, error_1.createError)({ statusCode: 500, message: "Generated mnemonic is invalid." });
         }
         const keyPair = await tonMnemonic.mnemonicToKeyPair(mnemonic);
         const wallet = this.tonWeb.wallet.create({ publicKey: keyPair.publicKey });
@@ -344,9 +275,6 @@ class TonService {
             },
         };
     }
-    /**
-     * Retrieves the balance of a TON wallet.
-     */
     async getBalance(address) {
         this.ensureChainActive();
         try {
@@ -359,9 +287,6 @@ class TonService {
             throw error;
         }
     }
-    /**
-     * Handles TON withdrawal by transferring TON to the specified address.
-     */
     async handleTonWithdrawal(transactionId, walletId, amount, toAddress, ctx) {
         var _a, _b, _c, _d;
         let checkedTransactions = new Set();
@@ -370,7 +295,7 @@ class TonService {
             console_1.logger.info("TON", `Starting withdrawal for transaction ${transactionId}`);
             const walletDb = await db_1.models.wallet.findOne({ where: { id: walletId } });
             if (!walletDb) {
-                throw new Error("Wallet not found");
+                throw (0, error_1.createError)({ statusCode: 500, message: "Wallet not found" });
             }
             const addresses = typeof walletDb.address === "string"
                 ? JSON.parse(walletDb.address)
@@ -380,13 +305,13 @@ class TonService {
                 where: { walletId, currency: "TON", chain: "TON" },
             });
             if (!walletData || !walletData.data) {
-                throw new Error("Private key not found for the wallet");
+                throw (0, error_1.createError)({ statusCode: 500, message: "Private key not found for the wallet" });
             }
             const decryptedWalletData = JSON.parse((0, encrypt_1.decrypt)(walletData.data));
             const privateKey = tonweb_1.default.utils.hexToBytes(decryptedWalletData.privateKey);
             const publicKey = tonweb_1.default.utils.hexToBytes(decryptedWalletData.publicKey);
             if (!privateKey || !publicKey) {
-                throw new Error("WalletContract requires both publicKey and privateKey.");
+                throw (0, error_1.createError)({ statusCode: 500, message: "WalletContract requires both publicKey and privateKey." });
             }
             const fromAddress = this.formatAddress(fromAddressStr);
             const wallet = this.tonWeb.wallet.create({
@@ -456,7 +381,7 @@ class TonService {
                 }
             }
             if (!transactionHash) {
-                throw new Error(`Transaction hash could not be retrieved after ${maxRetries} retries.`);
+                throw (0, error_1.createError)({ statusCode: 500, message: `Transaction hash could not be retrieved after ${maxRetries} retries.` });
             }
             (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, `TON withdrawal completed: ${transactionHash}`);
             console_1.logger.success("TON", `Completed withdrawal for transaction ${transactionId}`);
@@ -481,10 +406,8 @@ class TonService {
     }
 }
 TonService.monitoringAddresses = new Map();
-// Change processedTransactions from a Set to a Map so we can store timestamps
 TonService.processedTransactions = new Map();
-TonService.queue = []; // Queue for RPC calls
-TonService.processing = false; // Whether the queue is processing
-// Expiry period for processed transactions (30 minutes)
+TonService.queue = [];
+TonService.processing = false;
 TonService.PROCESSING_EXPIRY_MS = 30 * 60 * 1000;
 exports.default = TonService;

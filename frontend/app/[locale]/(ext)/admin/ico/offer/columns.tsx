@@ -86,11 +86,6 @@ export function useColumns(): ColumnDefinition[] {
           label: tCommon("rejected"),
           color: "danger",
         },
-        {
-          value: "CANCELLED",
-          label: tCommon("cancelled"),
-          color: "danger",
-        },
       ],
       render: {
         type: "badge",
@@ -102,7 +97,6 @@ export function useColumns(): ColumnDefinition[] {
                 return "success";
               case "FAILED":
               case "REJECTED":
-              case "CANCELLED":
                 return "destructive";
               case "UPCOMING":
                 return "warning";
@@ -397,7 +391,6 @@ export function useFormConfig(): FormConfig {
                 { value: "PENDING", label: tCommon("pending") },
                 { value: "REJECTED", label: tCommon("rejected") },
                 { value: "DISABLED", label: tCommon("disabled") },
-                { value: "CANCELLED", label: tCommon("cancelled") },
               ],
             },
             {

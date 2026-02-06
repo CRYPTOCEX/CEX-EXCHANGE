@@ -284,21 +284,21 @@ export function OfferingTimeline() {
                             className={cn(
                               "text-xs",
                               event.type === "approval" &&
-                                "bg-green-500/10 text-green-500 border-green-500/20",
+                                "bg-green-50 text-green-700 border-green-200",
                               event.type === "rejection" &&
-                                "bg-red-500/10 text-red-500 border-red-500/20",
+                                "bg-red-50 text-red-700 border-red-200",
                               event.type === "pause" &&
-                                "bg-orange-500/10 text-orange-500 border-orange-500/20",
+                                "bg-orange-50 text-orange-700 border-orange-200",
                               event.type === "resume" &&
-                                "bg-green-500/10 text-green-500 border-green-500/20",
+                                "bg-green-50 text-green-700 border-green-200",
                               event.type === "flag" &&
-                                "bg-red-500/10 text-red-500 border-red-500/20",
+                                "bg-red-50 text-red-700 border-red-200",
                               event.type === "unflag" &&
-                                "bg-blue-500/10 text-blue-500 border-blue-500/20",
+                                "bg-blue-50 text-blue-700 border-blue-200",
                               event.type === "note" &&
-                                "bg-slate-500/10 text-slate-500 border-slate-500/20",
+                                "bg-slate-50 text-slate-700 border-slate-200",
                               event.type === "submission" &&
-                                "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                                "bg-blue-50 text-blue-700 border-blue-200"
                             )}
                           >
                             {event.type}
@@ -306,7 +306,7 @@ export function OfferingTimeline() {
                           {event.important && (
                             <Badge
                               variant="outline"
-                              className="bg-orange-500/10 text-orange-500 border-orange-500/20 text-xs"
+                              className="bg-orange-50 text-orange-700 border-orange-200 text-xs"
                             >
                               Important
                             </Badge>

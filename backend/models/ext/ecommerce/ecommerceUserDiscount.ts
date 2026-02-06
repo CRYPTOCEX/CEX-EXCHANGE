@@ -19,7 +19,7 @@ export default class ecommerceUserDiscount
   getDiscount!: Sequelize.BelongsToGetAssociationMixin<ecommerceDiscount>;
   setDiscount!: Sequelize.BelongsToSetAssociationMixin<
     ecommerceDiscount,
-    ecommerceDiscountId
+    string
   >;
   createDiscount!: Sequelize.BelongsToCreateAssociationMixin<ecommerceDiscount>;
   public static initModel(

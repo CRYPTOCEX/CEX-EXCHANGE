@@ -107,11 +107,15 @@ export const useTeamMemberStore = create<TeamMemberStore>((set, get) => ({
         successMessage: "Team member removed successfully",
       });
       if (error) throw new Error(error);
-      set({ lastTokenIdFetched: null });
+      // Immediately remove from local state for instant UI update
+      set((state) => ({
+        teamMembers: state.teamMembers.filter((m) => m.id !== memberId),
+        lastTokenIdFetched: null,
+        isSubmitting: false,
+      }));
       useCreatorStore.getState().fetchToken(tokenId);
       // Trigger notifications fetch
       useNotificationsStore.getState().fetchNotifications();
-      set({ isSubmitting: false });
     } catch (error: any) {
       console.error("Error removing team member:", error);
       set({

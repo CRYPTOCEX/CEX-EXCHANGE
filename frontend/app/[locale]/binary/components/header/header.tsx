@@ -102,7 +102,7 @@ export default function Header({
   isChallengesOpen = false,
 }: HeaderProps) {
   // Get binary markets from store for proper symbol parsing
-  const { binaryMarkets } = useBinaryStore();
+  const { binaryMarkets, resetDemoBalance } = useBinaryStore();
   const t = useTranslations("binary_components");
   const tCommon = useTranslations("common");
   const [showBalanceMenu, setShowBalanceMenu] = useState(false);
@@ -950,7 +950,16 @@ export default function Header({
                         </div>
                       </div>
                       <button
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (activeWallet === "practice") {
+                            // Reset demo balance to default (10000)
+                            resetDemoBalance();
+                          } else {
+                            // For real wallet, navigate to deposit page
+                            window.location.href = "/user/wallet/deposit";
+                          }
+                        }}
                         className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                           activeWallet === "real"
                             ? "bg-emerald-500 text-white hover:bg-emerald-600"

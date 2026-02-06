@@ -1,1 +1,40 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query"),utils_1=require("./utils");exports.metadata={summary:"Stores a new Tag",operationId:"storeTag",tags:["Admin","Content","Category"],requestBody:{required:!0,content:{"application/json":{schema:utils_1.tagUpdateSchema}}},responses:(0,query_1.storeRecordResponses)(utils_1.tagStoreSchema,"Tag"),requiresAuth:!0,permission:"create.blog.tag",logModule:"ADMIN_BLOG",logTitle:"Create tag"};exports.default=async e=>{const{body:t,ctx:a}=e,{name:s,slug:r,image:o,description:u}=t;null==a||a.step("Validating tag data");null==a||a.step("Creating tag");const i=await(0,query_1.storeRecord)({model:"tag",data:{name:s,slug:r,image:o,description:u}});null==a||a.success("Tag created successfully");return i};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+const utils_1 = require("./utils");
+exports.metadata = {
+    summary: "Stores a new Tag",
+    operationId: "storeTag",
+    tags: ["Admin", "Content", "Category"],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: utils_1.tagUpdateSchema,
+            },
+        },
+    },
+    responses: (0, query_1.storeRecordResponses)(utils_1.tagStoreSchema, "Tag"),
+    requiresAuth: true,
+    permission: "create.blog.tag",
+    logModule: "ADMIN_BLOG",
+    logTitle: "Create tag",
+};
+exports.default = async (data) => {
+    const { body, ctx } = data;
+    const { name, slug, image, description } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating tag data");
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating tag");
+    const result = await (0, query_1.storeRecord)({
+        model: "tag",
+        data: {
+            name,
+            slug,
+            image,
+            description,
+        },
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Tag created successfully");
+    return result;
+};

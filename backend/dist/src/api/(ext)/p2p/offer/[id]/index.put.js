@@ -1,1 +1,483 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),sequelize_1=require("sequelize"),cache_1=require("@b/utils/cache"),json_parser_1=require("@b/api/(ext)/p2p/utils/json-parser"),console_1=require("@b/utils/console");exports.metadata={summary:"Updates a P2P offer",description:"Updates specific fields of a P2P offer with security restrictions",tags:["P2P","Offers"],logModule:"P2P_OFFER",logTitle:"Update P2P offer",parameters:[{index:0,name:"id",in:"path",required:!0,description:"The ID of the P2P offer to update",schema:{type:"string"}}],requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{priceConfig:{type:"object",properties:{model:{type:"string",enum:["fixed","dynamic"]},fixedPrice:{type:"number",minimum:0},dynamicOffset:{type:"number",minimum:-50,maximum:50},currency:{type:"string"}}},amountConfig:{type:"object",properties:{min:{type:"number",minimum:0},max:{type:"number",minimum:0},total:{type:"number",minimum:0}}},tradeSettings:{type:"object",properties:{autoCancel:{type:"number",minimum:5,maximum:1440},kycRequired:{type:"boolean"},visibility:{type:"string",enum:["PUBLIC","PRIVATE"]},termsOfTrade:{type:"string",maxLength:1e3},additionalNotes:{type:"string",maxLength:500}}},locationSettings:{type:"object",properties:{country:{type:"string",maxLength:100},region:{type:"string",maxLength:100},city:{type:"string",maxLength:100},restrictions:{type:"array",items:{type:"string"}}}},userRequirements:{type:"object",properties:{minCompletedTrades:{type:"number",minimum:0,maximum:1e3},minSuccessRate:{type:"number",minimum:0,maximum:100},minAccountAge:{type:"number",minimum:0,maximum:365},trustedOnly:{type:"boolean"}}},paymentMethodIds:{type:"array",items:{type:"string",format:"uuid"},description:"Array of P2P payment method IDs to update",minItems:1},status:{type:"string",enum:["ACTIVE","PAUSED"],description:"Only ACTIVE and PAUSED statuses can be set by users"}}}}}},responses:{200:{description:"Offer updated successfully",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string"},data:{type:"object"}}}}}},400:{description:"Invalid input data"},401:{description:"Unauthorized"},403:{description:"Forbidden - Not the offer owner"},404:{description:"Offer not found"},422:{description:"Cannot edit offer in current state"}},requiresAuth:!0};exports.default=async e=>{var t;const{user:r,params:a,body:i,ctx:s}=e,{id:o}=a;if(!(null==r?void 0:r.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized: User not authenticated"});null==s||s.step("Finding and validating offer ownership");const{p2pOffer:n,p2pPaymentMethod:d,p2pTrade:m}=db_1.models,c=await n.findOne({where:{id:o,userId:r.id},include:[{model:m,as:"trades",where:{status:{[sequelize_1.Op.in]:["PENDING","ACTIVE","ESCROW"]}},required:!1}]});if(!c)throw(0,error_1.createError)({statusCode:404,message:"Offer not found or you don't have permission to edit it"});if(!["DRAFT","PENDING_APPROVAL","ACTIVE","PAUSED"].includes(c.status))throw(0,error_1.createError)({statusCode:422,message:`Cannot edit offer in ${c.status} status`});if((c.trades||[]).length>0)throw(0,error_1.createError)({statusCode:422,message:"Cannot edit offer while there are active trades. Please wait for trades to complete."});null==s||s.step("Validating and preparing update data");const u=["priceConfig","amountConfig","tradeSettings","locationSettings","userRequirements","paymentMethodIds","status"],f=["priceConfig","amountConfig","tradeSettings","locationSettings","userRequirements"],l={};for(const e of u)if(void 0!==i[e])if(f.includes(e)){const t=(0,json_parser_1.safeParseJSON)(i[e]);if(null===t)throw(0,error_1.createError)({statusCode:400,message:`Invalid JSON for field ${e}`});l[e]=t}else l[e]=i[e];if(l.status){if(!["ACTIVE","PAUSED"].includes(l.status))throw(0,error_1.createError)({statusCode:400,message:"Invalid status. Only ACTIVE and PAUSED are allowed."});if("ACTIVE"===l.status&&"DRAFT"===c.status)throw(0,error_1.createError)({statusCode:422,message:"Cannot activate a draft offer. Please complete all required fields first."})}if(l.tradeSettings){const e=l.tradeSettings;if(void 0!==e.autoCancel&&(e.autoCancel<5||e.autoCancel>1440))throw(0,error_1.createError)({statusCode:400,message:"Auto cancel time must be between 5 and 1440 minutes"});if(e.termsOfTrade&&e.termsOfTrade.length>1e3)throw(0,error_1.createError)({statusCode:400,message:"Terms of trade cannot exceed 1000 characters"});if(e.additionalNotes&&e.additionalNotes.length>500)throw(0,error_1.createError)({statusCode:400,message:"Additional notes cannot exceed 500 characters"});l.tradeSettings={...c.tradeSettings,...e}}if(l.priceConfig){const e=l.priceConfig,t="string"==typeof c.priceConfig?JSON.parse(c.priceConfig):c.priceConfig||{};if(e.model&&!["fixed","dynamic"].includes(e.model))throw(0,error_1.createError)({statusCode:400,message:"Invalid price model. Must be 'fixed' or 'dynamic'"});if("fixed"===e.model){const r=void 0!==e.fixedPrice?e.fixedPrice:t.fixedPrice||t.finalPrice||0;if(r<0)throw(0,error_1.createError)({statusCode:400,message:"Fixed price must be greater than or equal to 0"});e.fixedPrice=r}if("dynamic"===e.model){const r=void 0!==e.dynamicOffset?Number(e.dynamicOffset):Number(t.dynamicOffset)||0;if(r<-50||r>50)throw(0,error_1.createError)({statusCode:400,message:"Dynamic offset must be between -50% and +50%"});e.dynamicOffset=r}const r={model:e.model||t.model||"fixed",currency:e.currency||t.currency};if("fixed"===r.model)r.fixedPrice=void 0!==e.fixedPrice?e.fixedPrice:t.fixedPrice||t.finalPrice||0;else{r.dynamicOffset=void 0!==e.dynamicOffset?e.dynamicOffset:t.dynamicOffset||0;r.marketPrice=e.marketPrice||t.marketPrice}if("fixed"===r.model){r.finalPrice=r.fixedPrice;r.value=r.finalPrice}else"dynamic"===r.model&&(r.finalPrice||(r.finalPrice=r.marketPrice||t.finalPrice||0));l.priceConfig=r;e.currency&&(l.priceCurrency=e.currency)}if(l.amountConfig){const e=l.amountConfig,t="string"==typeof c.amountConfig?JSON.parse(c.amountConfig):c.amountConfig||{};if(void 0!==e.min&&e.min<0)throw(0,error_1.createError)({statusCode:400,message:"Minimum amount must be greater than or equal to 0"});if(void 0!==e.max&&e.max<0)throw(0,error_1.createError)({statusCode:400,message:"Maximum amount must be greater than or equal to 0"});if(void 0!==e.total&&e.total<0)throw(0,error_1.createError)({statusCode:400,message:"Total amount must be greater than or equal to 0"});if((void 0!==e.min?e.min:t.min)>(void 0!==e.max?e.max:t.max))throw(0,error_1.createError)({statusCode:400,message:"Minimum amount cannot be greater than maximum amount"});l.amountConfig={...t,...e};void 0!==e.min&&(l.minLimit=e.min);void 0!==e.max&&(l.maxLimit=e.max)}if(l.userRequirements){const e=l.userRequirements;if(void 0!==e.minCompletedTrades&&(e.minCompletedTrades<0||e.minCompletedTrades>1e3))throw(0,error_1.createError)({statusCode:400,message:"Minimum completed trades must be between 0 and 1000"});if(void 0!==e.minSuccessRate&&(e.minSuccessRate<0||e.minSuccessRate>100))throw(0,error_1.createError)({statusCode:400,message:"Minimum success rate must be between 0 and 100"});if(void 0!==e.minAccountAge&&(e.minAccountAge<0||e.minAccountAge>365))throw(0,error_1.createError)({statusCode:400,message:"Minimum account age must be between 0 and 365 days"});l.userRequirements={...c.userRequirements,...e}}if(l.locationSettings){const e=l.locationSettings;if(e.country&&e.country.length>100)throw(0,error_1.createError)({statusCode:400,message:"Country name cannot exceed 100 characters"});if(e.region&&e.region.length>100)throw(0,error_1.createError)({statusCode:400,message:"Region name cannot exceed 100 characters"});if(e.city&&e.city.length>100)throw(0,error_1.createError)({statusCode:400,message:"City name cannot exceed 100 characters"});l.locationSettings={...c.locationSettings,...e}}if(l.paymentMethodIds){if(!Array.isArray(l.paymentMethodIds)||0===l.paymentMethodIds.length)throw(0,error_1.createError)({statusCode:400,message:"At least one payment method is required"});if((await d.findAll({where:{id:l.paymentMethodIds}})).length!==l.paymentMethodIds.length)throw(0,error_1.createError)({statusCode:400,message:"One or more payment method IDs are invalid"})}if(0===Object.keys(l).length)throw(0,error_1.createError)({statusCode:400,message:"No valid fields provided for update"});const p=cache_1.CacheManager.getInstance(),g=await p.getSetting("p2pAutoApproveOffers"),y=!0===g||"true"===g,h=1===Object.keys(l).length&&l.status,C=void 0!==l.status;h||C||(l.status=y?"ACTIVE":"PENDING_APPROVAL");null==s||s.step("Updating offer with new configuration");let b;try{b=await db_1.sequelize.transaction();const{paymentMethodIds:e,...t}=l;await c.update(t,{transaction:b});if(e){null==s||s.step(`Updating payment methods (${e.length} methods)`);await c.setPaymentMethods(e,{transaction:b})}await b.commit();const r=await n.findByPk(c.id,{include:[{model:d,as:"paymentMethods",attributes:["id","name","icon"],through:{attributes:[]}}]}),a=y?"Offer updated successfully. Your offer is now active.":"Offer updated successfully. Your offer is now pending approval.";null==s||s.success(`Updated offer ${o} (status: ${null==r?void 0:r.status})`);return{message:a,data:r}}catch(e){if(b)try{b.finished||await b.rollback()}catch(e){const t=e.message||"";t.includes("already been finished")||t.includes("closed state")||t.includes("ECONNRESET")||console_1.logger.error("P2P_OFFER","Transaction rollback failed",e)}if("SequelizeValidationError"===e.name)throw(0,error_1.createError)({statusCode:400,message:`Validation error: ${e.message}`});if("SequelizeDatabaseError"===e.name)throw(0,error_1.createError)({statusCode:500,message:`Database error: ${e.message}`});if("ECONNRESET"===e.code||(null===(t=e.message)||void 0===t?void 0:t.includes("ECONNRESET")))throw(0,error_1.createError)({statusCode:500,message:"Database connection error. Please try again."});throw(0,error_1.createError)({statusCode:e.statusCode||500,message:e.message||"Failed to update offer"})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const sequelize_1 = require("sequelize");
+const cache_1 = require("@b/utils/cache");
+const json_parser_1 = require("@b/api/(ext)/p2p/utils/json-parser");
+const console_1 = require("@b/utils/console");
+exports.metadata = {
+    summary: "Updates a P2P offer",
+    description: "Updates specific fields of a P2P offer with security restrictions",
+    tags: ["P2P", "Offers"],
+    logModule: "P2P_OFFER",
+    logTitle: "Update P2P offer",
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            required: true,
+            description: "The ID of the P2P offer to update",
+            schema: { type: "string" },
+        },
+    ],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        priceConfig: {
+                            type: "object",
+                            properties: {
+                                model: { type: "string", enum: ["fixed", "dynamic"] },
+                                fixedPrice: { type: "number", minimum: 0 },
+                                dynamicOffset: { type: "number", minimum: -50, maximum: 50 },
+                                currency: { type: "string" },
+                            },
+                        },
+                        amountConfig: {
+                            type: "object",
+                            properties: {
+                                min: { type: "number", minimum: 0 },
+                                max: { type: "number", minimum: 0 },
+                                total: { type: "number", minimum: 0 },
+                            },
+                        },
+                        tradeSettings: {
+                            type: "object",
+                            properties: {
+                                autoCancel: { type: "number", minimum: 5, maximum: 1440 },
+                                kycRequired: { type: "boolean" },
+                                visibility: { type: "string", enum: ["PUBLIC", "PRIVATE"] },
+                                termsOfTrade: { type: "string", maxLength: 1000 },
+                                additionalNotes: { type: "string", maxLength: 500 },
+                            },
+                        },
+                        locationSettings: {
+                            type: "object",
+                            properties: {
+                                country: { type: "string", maxLength: 100 },
+                                region: { type: "string", maxLength: 100 },
+                                city: { type: "string", maxLength: 100 },
+                                restrictions: { type: "array", items: { type: "string" } },
+                            },
+                        },
+                        userRequirements: {
+                            type: "object",
+                            properties: {
+                                minCompletedTrades: { type: "number", minimum: 0, maximum: 1000 },
+                                minSuccessRate: { type: "number", minimum: 0, maximum: 100 },
+                                minAccountAge: { type: "number", minimum: 0, maximum: 365 },
+                                trustedOnly: { type: "boolean" },
+                            },
+                        },
+                        paymentMethodIds: {
+                            type: "array",
+                            items: { type: "string", format: "uuid" },
+                            description: "Array of P2P payment method IDs to update",
+                            minItems: 1,
+                        },
+                        status: {
+                            type: "string",
+                            enum: ["ACTIVE", "PAUSED"],
+                            description: "Only ACTIVE and PAUSED statuses can be set by users",
+                        },
+                    },
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Offer updated successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: { type: "string" },
+                            data: { type: "object" },
+                        },
+                    },
+                },
+            },
+        },
+        400: { description: "Invalid input data" },
+        401: { description: "Unauthorized" },
+        403: { description: "Forbidden - Not the offer owner" },
+        404: { description: "Offer not found" },
+        422: { description: "Cannot edit offer in current state" },
+    },
+    requiresAuth: true,
+};
+exports.default = async (data) => {
+    var _a;
+    const { user, params, body, ctx } = data;
+    const { id } = params;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({
+            statusCode: 401,
+            message: "Unauthorized: User not authenticated",
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding and validating offer ownership");
+    const { p2pOffer, p2pPaymentMethod, p2pTrade } = db_1.models;
+    const offer = await p2pOffer.findOne({
+        where: { id, userId: user.id },
+        include: [
+            {
+                model: p2pTrade,
+                as: "trades",
+                where: { status: { [sequelize_1.Op.in]: ["PENDING", "ACTIVE", "ESCROW"] } },
+                required: false,
+            },
+        ],
+    });
+    if (!offer) {
+        throw (0, error_1.createError)({
+            statusCode: 404,
+            message: "Offer not found or you don't have permission to edit it",
+        });
+    }
+    const canEdit = ["DRAFT", "PENDING_APPROVAL", "ACTIVE", "PAUSED"].includes(offer.status);
+    if (!canEdit) {
+        throw (0, error_1.createError)({
+            statusCode: 422,
+            message: `Cannot edit offer in ${offer.status} status`,
+        });
+    }
+    const activeTrades = offer.trades || [];
+    if (activeTrades.length > 0) {
+        throw (0, error_1.createError)({
+            statusCode: 422,
+            message: "Cannot edit offer while there are active trades. Please wait for trades to complete.",
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating and preparing update data");
+    const allowedFields = ["priceConfig", "amountConfig", "tradeSettings", "locationSettings", "userRequirements", "paymentMethodIds", "status"];
+    const jsonFields = ["priceConfig", "amountConfig", "tradeSettings", "locationSettings", "userRequirements"];
+    const updateData = {};
+    for (const field of allowedFields) {
+        if (body[field] !== undefined) {
+            if (jsonFields.includes(field)) {
+                const parsed = (0, json_parser_1.safeParseJSON)(body[field]);
+                if (parsed !== null) {
+                    updateData[field] = parsed;
+                }
+                else {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: `Invalid JSON for field ${field}`,
+                    });
+                }
+            }
+            else {
+                updateData[field] = body[field];
+            }
+        }
+    }
+    if (updateData.status) {
+        const allowedStatuses = ["ACTIVE", "PAUSED"];
+        if (!allowedStatuses.includes(updateData.status)) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Invalid status. Only ACTIVE and PAUSED are allowed.",
+            });
+        }
+        if (updateData.status === "ACTIVE" && offer.status === "DRAFT") {
+            throw (0, error_1.createError)({
+                statusCode: 422,
+                message: "Cannot activate a draft offer. Please complete all required fields first.",
+            });
+        }
+    }
+    if (updateData.tradeSettings) {
+        const settings = updateData.tradeSettings;
+        if (settings.autoCancel !== undefined) {
+            if (settings.autoCancel < 5 || settings.autoCancel > 1440) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "Auto cancel time must be between 5 and 1440 minutes",
+                });
+            }
+        }
+        if (settings.termsOfTrade && settings.termsOfTrade.length > 1000) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Terms of trade cannot exceed 1000 characters",
+            });
+        }
+        if (settings.additionalNotes && settings.additionalNotes.length > 500) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Additional notes cannot exceed 500 characters",
+            });
+        }
+        updateData.tradeSettings = {
+            ...offer.tradeSettings,
+            ...settings,
+        };
+    }
+    if (updateData.priceConfig) {
+        const priceConfig = updateData.priceConfig;
+        const existingPriceConfig = typeof offer.priceConfig === "string"
+            ? JSON.parse(offer.priceConfig)
+            : offer.priceConfig || {};
+        if (priceConfig.model && !["fixed", "dynamic"].includes(priceConfig.model)) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Invalid price model. Must be 'fixed' or 'dynamic'",
+            });
+        }
+        if (priceConfig.model === "fixed") {
+            const fixedPrice = priceConfig.fixedPrice !== undefined
+                ? priceConfig.fixedPrice
+                : existingPriceConfig.fixedPrice || existingPriceConfig.finalPrice || 0;
+            if (fixedPrice < 0) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "Fixed price must be greater than or equal to 0",
+                });
+            }
+            priceConfig.fixedPrice = fixedPrice;
+        }
+        if (priceConfig.model === "dynamic") {
+            const dynamicOffset = priceConfig.dynamicOffset !== undefined
+                ? Number(priceConfig.dynamicOffset)
+                : Number(existingPriceConfig.dynamicOffset) || 0;
+            if (dynamicOffset < -50 || dynamicOffset > 50) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "Dynamic offset must be between -50% and +50%",
+                });
+            }
+            priceConfig.dynamicOffset = dynamicOffset;
+        }
+        const targetModel = priceConfig.model || existingPriceConfig.model || "fixed";
+        const mergedPriceConfig = {
+            model: targetModel,
+            currency: priceConfig.currency || existingPriceConfig.currency,
+        };
+        if (mergedPriceConfig.model === "fixed") {
+            mergedPriceConfig.fixedPrice = priceConfig.fixedPrice !== undefined
+                ? priceConfig.fixedPrice
+                : (existingPriceConfig.fixedPrice || existingPriceConfig.finalPrice || 0);
+        }
+        else {
+            mergedPriceConfig.dynamicOffset = priceConfig.dynamicOffset !== undefined
+                ? priceConfig.dynamicOffset
+                : (existingPriceConfig.dynamicOffset || 0);
+            mergedPriceConfig.marketPrice = priceConfig.marketPrice || existingPriceConfig.marketPrice;
+        }
+        if (mergedPriceConfig.model === "fixed") {
+            mergedPriceConfig.finalPrice = mergedPriceConfig.fixedPrice;
+            mergedPriceConfig.value = mergedPriceConfig.finalPrice;
+        }
+        else if (mergedPriceConfig.model === "dynamic") {
+            if (!mergedPriceConfig.finalPrice) {
+                mergedPriceConfig.finalPrice = mergedPriceConfig.marketPrice || existingPriceConfig.finalPrice || 0;
+            }
+        }
+        updateData.priceConfig = mergedPriceConfig;
+        if (priceConfig.currency) {
+            updateData.priceCurrency = priceConfig.currency;
+        }
+    }
+    if (updateData.amountConfig) {
+        const amountConfig = updateData.amountConfig;
+        const existingAmountConfig = typeof offer.amountConfig === "string"
+            ? JSON.parse(offer.amountConfig)
+            : offer.amountConfig || {};
+        if (amountConfig.min !== undefined && amountConfig.min < 0) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Minimum amount must be greater than or equal to 0",
+            });
+        }
+        if (amountConfig.max !== undefined && amountConfig.max < 0) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Maximum amount must be greater than or equal to 0",
+            });
+        }
+        if (amountConfig.total !== undefined && amountConfig.total < 0) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Total amount must be greater than or equal to 0",
+            });
+        }
+        const finalMin = amountConfig.min !== undefined ? amountConfig.min : existingAmountConfig.min;
+        const finalMax = amountConfig.max !== undefined ? amountConfig.max : existingAmountConfig.max;
+        if (finalMin > finalMax) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Minimum amount cannot be greater than maximum amount",
+            });
+        }
+        updateData.amountConfig = {
+            ...existingAmountConfig,
+            ...amountConfig,
+        };
+        if (amountConfig.min !== undefined) {
+            updateData.minLimit = amountConfig.min;
+        }
+        if (amountConfig.max !== undefined) {
+            updateData.maxLimit = amountConfig.max;
+        }
+    }
+    if (updateData.userRequirements) {
+        const requirements = updateData.userRequirements;
+        if (requirements.minCompletedTrades !== undefined && (requirements.minCompletedTrades < 0 || requirements.minCompletedTrades > 1000)) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Minimum completed trades must be between 0 and 1000",
+            });
+        }
+        if (requirements.minSuccessRate !== undefined && (requirements.minSuccessRate < 0 || requirements.minSuccessRate > 100)) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Minimum success rate must be between 0 and 100",
+            });
+        }
+        if (requirements.minAccountAge !== undefined && (requirements.minAccountAge < 0 || requirements.minAccountAge > 365)) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Minimum account age must be between 0 and 365 days",
+            });
+        }
+        updateData.userRequirements = {
+            ...offer.userRequirements,
+            ...requirements,
+        };
+    }
+    if (updateData.locationSettings) {
+        const location = updateData.locationSettings;
+        if (location.country && location.country.length > 100) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Country name cannot exceed 100 characters",
+            });
+        }
+        if (location.region && location.region.length > 100) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Region name cannot exceed 100 characters",
+            });
+        }
+        if (location.city && location.city.length > 100) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "City name cannot exceed 100 characters",
+            });
+        }
+        updateData.locationSettings = {
+            ...offer.locationSettings,
+            ...location,
+        };
+    }
+    if (updateData.paymentMethodIds) {
+        if (!Array.isArray(updateData.paymentMethodIds) || updateData.paymentMethodIds.length === 0) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "At least one payment method is required",
+            });
+        }
+        const existingMethods = await p2pPaymentMethod.findAll({
+            where: { id: updateData.paymentMethodIds },
+        });
+        if (existingMethods.length !== updateData.paymentMethodIds.length) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "One or more payment method IDs are invalid",
+            });
+        }
+    }
+    if (Object.keys(updateData).length === 0) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "No valid fields provided for update",
+        });
+    }
+    const cacheManager = cache_1.CacheManager.getInstance();
+    const autoApprove = await cacheManager.getSetting("p2pAutoApproveOffers");
+    const shouldAutoApprove = autoApprove === true || autoApprove === "true";
+    const isStatusOnlyChange = Object.keys(updateData).length === 1 && updateData.status;
+    const userExplicitlySetStatus = updateData.status !== undefined;
+    if (!isStatusOnlyChange && !userExplicitlySetStatus) {
+        updateData.status = shouldAutoApprove ? "ACTIVE" : "PENDING_APPROVAL";
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating offer with new configuration");
+    let transaction;
+    try {
+        transaction = await db_1.sequelize.transaction();
+        const { paymentMethodIds, ...offerUpdateData } = updateData;
+        await offer.update(offerUpdateData, { transaction });
+        if (paymentMethodIds) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step(`Updating payment methods (${paymentMethodIds.length} methods)`);
+            await offer.setPaymentMethods(paymentMethodIds, { transaction });
+        }
+        await transaction.commit();
+        const updatedOffer = await p2pOffer.findByPk(offer.id, {
+            include: [
+                {
+                    model: p2pPaymentMethod,
+                    as: "paymentMethods",
+                    attributes: ["id", "name", "icon"],
+                    through: { attributes: [] },
+                },
+            ],
+        });
+        const message = shouldAutoApprove
+            ? "Offer updated successfully. Your offer is now active."
+            : "Offer updated successfully. Your offer is now pending approval.";
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Updated offer ${id} (status: ${updatedOffer === null || updatedOffer === void 0 ? void 0 : updatedOffer.status})`);
+        return {
+            message,
+            data: updatedOffer,
+        };
+    }
+    catch (error) {
+        if (transaction) {
+            try {
+                if (!transaction.finished) {
+                    await transaction.rollback();
+                }
+            }
+            catch (rollbackError) {
+                const errorMessage = rollbackError.message || "";
+                const isIgnorableError = errorMessage.includes("already been finished") ||
+                    errorMessage.includes("closed state") ||
+                    errorMessage.includes("ECONNRESET");
+                if (!isIgnorableError) {
+                    console_1.logger.error("P2P_OFFER", "Transaction rollback failed", rollbackError);
+                }
+            }
+        }
+        if (error.name === 'SequelizeValidationError') {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Validation error: ${error.message}`,
+            });
+        }
+        if (error.name === 'SequelizeDatabaseError') {
+            throw (0, error_1.createError)({
+                statusCode: 500,
+                message: `Database error: ${error.message}`,
+            });
+        }
+        if (error.code === 'ECONNRESET' || ((_a = error.message) === null || _a === void 0 ? void 0 : _a.includes('ECONNRESET'))) {
+            throw (0, error_1.createError)({
+                statusCode: 500,
+                message: "Database connection error. Please try again.",
+            });
+        }
+        throw (0, error_1.createError)({
+            statusCode: error.statusCode || 500,
+            message: error.message || "Failed to update offer",
+        });
+    }
+};

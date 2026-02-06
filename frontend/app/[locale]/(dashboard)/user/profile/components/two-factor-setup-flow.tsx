@@ -187,7 +187,7 @@ export function TwoFactorSetupFlow({
 
       // Save OTP configuration and get recovery codes in one call
       const saveResponse = await $fetch({
-        url: "/api/user/profile/otp/index",
+        url: "/api/user/profile/otp",
         method: "POST",
         body: {
           secret: otpSecret,
@@ -654,7 +654,7 @@ export function TwoFactorSetupFlow({
           <Label htmlFor="verificationCode">{t("verification_code")}</Label>
           <div className="flex justify-center gap-2 sm:gap-3">
             {codeInputs.map((value, index) => (
-              <Input
+              <input
                 key={index}
                 id={`code-input-${index}`}
                 type="text"
@@ -671,7 +671,7 @@ export function TwoFactorSetupFlow({
                 }}
                 onFocus={() => setActiveInput(index)}
                 autoFocus={index === activeInput}
-                className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg font-bold p-0 border-2 focus:ring-2 focus:ring-primary/50"
+                className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold border-2 rounded-lg bg-background text-foreground border-input focus:border-primary focus:ring-2 focus:ring-primary/50 focus:outline-none transition-all"
               />
             ))}
           </div>

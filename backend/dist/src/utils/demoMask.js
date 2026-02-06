@@ -1,1 +1,141 @@
-"use strict";function getMaskFunction(e){const t=e.toLowerCase();return t.includes("email")?MASK_PATTERNS.email:t.includes("phone")||t.includes("mobile")?MASK_PATTERNS.phone:t.includes("address")||t.includes("walletaddress")?MASK_PATTERNS.address:t.includes("txid")||t.includes("transactionid")||t.includes("txhash")?MASK_PATTERNS.txId:t.includes("password")||t.includes("secret")||t.includes("key")?MASK_PATTERNS.password:t.includes("accountid")||t.includes("account_id")?MASK_PATTERNS.accountId:t.includes("script")?MASK_PATTERNS.script:(t.includes("broker"),MASK_PATTERNS.default)}function maskAtPath(e,t,n){if(!e||"object"!=typeof e||0===t.length)return;const[s,...i]=t;if(Array.isArray(e))for(const s of e)maskAtPath(s,t,n);else if(s in e)if(0===i.length){const t=e[s];if("string"==typeof t){const i=getMaskFunction(n);e[s]=i(t)}}else{const t=e[s];if(Array.isArray(t))for(const e of t)maskAtPath(e,i,n);else t&&"object"==typeof t&&maskAtPath(t,i,n)}}function applyDemoMask(e,t){if(!isDemo||!e||!t||0===t.length)return e;for(const n of t){const t=n.split("."),s=t[t.length-1];if(Array.isArray(e))for(const n of e)maskAtPath(n,t,s);else maskAtPath(e,t,s)}return e}function isDemoMode(){return isDemo}Object.defineProperty(exports,"__esModule",{value:!0});exports.applyDemoMask=applyDemoMask;exports.isDemoMode=isDemoMode;const isDemo="true"===process.env.NEXT_PUBLIC_DEMO_STATUS,MASK_PATTERNS={email:e=>{if(!e||"string"!=typeof e)return e;const[t,n]=e.split("@");if(!n)return"***@***.***";const s=t.length>2?t[0]+"*".repeat(Math.min(t.length-2,5))+t[t.length-1]:"**",i=n.split(".");return`${s}@${i.map((e,t)=>t===i.length-1?e:"*".repeat(Math.min(e.length,4))).join(".")}`},phone:e=>{if(!e||"string"!=typeof e)return e;return e.replace(/\D/g,"").length<4?"***":e.slice(0,3)+"*".repeat(Math.max(e.length-6,3))+e.slice(-3)},mobile:e=>MASK_PATTERNS.phone(e),address:e=>e&&"string"==typeof e?e.length<=10?"*".repeat(e.length):e.slice(0,6)+"*".repeat(Math.min(e.length-10,12))+e.slice(-4):e,txId:e=>e&&"string"==typeof e?e.length<=12?"*".repeat(e.length):e.slice(0,8)+"*".repeat(Math.min(e.length-12,16))+e.slice(-4):e,password:e=>e&&"string"==typeof e?"*".repeat(Math.min(e.length,12)):e,accountId:e=>e&&"string"==typeof e?e.length<=4?"*".repeat(e.length):"*".repeat(e.length-4)+e.slice(-4):e,script:e=>e&&"string"==typeof e?e.length<=10?"*".repeat(e.length):e.slice(0,10)+"..."+"*".repeat(8):e,default:e=>e&&"string"==typeof e?e.length<=4?"*".repeat(e.length):e[0]+"*".repeat(Math.min(e.length-2,8))+e[e.length-1]:e};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.applyDemoMask = applyDemoMask;
+exports.isDemoMode = isDemoMode;
+const isDemo = process.env.NEXT_PUBLIC_DEMO_STATUS === "true";
+const MASK_PATTERNS = {
+    email: (value) => {
+        if (!value || typeof value !== "string")
+            return value;
+        const [local, domain] = value.split("@");
+        if (!domain)
+            return "***@***.***";
+        const maskedLocal = local.length > 2
+            ? local[0] + "*".repeat(Math.min(local.length - 2, 5)) + local[local.length - 1]
+            : "**";
+        const domainParts = domain.split(".");
+        const maskedDomain = domainParts.map((part, i) => i === domainParts.length - 1 ? part : "*".repeat(Math.min(part.length, 4))).join(".");
+        return `${maskedLocal}@${maskedDomain}`;
+    },
+    phone: (value) => {
+        if (!value || typeof value !== "string")
+            return value;
+        const digits = value.replace(/\D/g, "");
+        if (digits.length < 4)
+            return "***";
+        return value.slice(0, 3) + "*".repeat(Math.max(value.length - 6, 3)) + value.slice(-3);
+    },
+    mobile: (value) => MASK_PATTERNS.phone(value),
+    address: (value) => {
+        if (!value || typeof value !== "string")
+            return value;
+        if (value.length <= 10)
+            return "*".repeat(value.length);
+        return value.slice(0, 6) + "*".repeat(Math.min(value.length - 10, 12)) + value.slice(-4);
+    },
+    txId: (value) => {
+        if (!value || typeof value !== "string")
+            return value;
+        if (value.length <= 12)
+            return "*".repeat(value.length);
+        return value.slice(0, 8) + "*".repeat(Math.min(value.length - 12, 16)) + value.slice(-4);
+    },
+    password: (value) => {
+        if (!value || typeof value !== "string")
+            return value;
+        return "*".repeat(Math.min(value.length, 12));
+    },
+    accountId: (value) => {
+        if (!value || typeof value !== "string")
+            return value;
+        if (value.length <= 4)
+            return "*".repeat(value.length);
+        return "*".repeat(value.length - 4) + value.slice(-4);
+    },
+    script: (value) => {
+        if (!value || typeof value !== "string")
+            return value;
+        if (value.length <= 10)
+            return "*".repeat(value.length);
+        return value.slice(0, 10) + "..." + "*".repeat(8);
+    },
+    default: (value) => {
+        if (!value || typeof value !== "string")
+            return value;
+        if (value.length <= 4)
+            return "*".repeat(value.length);
+        return value[0] + "*".repeat(Math.min(value.length - 2, 8)) + value[value.length - 1];
+    },
+};
+function getMaskFunction(fieldName) {
+    const lowerField = fieldName.toLowerCase();
+    if (lowerField.includes("email"))
+        return MASK_PATTERNS.email;
+    if (lowerField.includes("phone") || lowerField.includes("mobile"))
+        return MASK_PATTERNS.phone;
+    if (lowerField.includes("address") || lowerField.includes("walletaddress"))
+        return MASK_PATTERNS.address;
+    if (lowerField.includes("txid") || lowerField.includes("transactionid") || lowerField.includes("txhash"))
+        return MASK_PATTERNS.txId;
+    if (lowerField.includes("password") || lowerField.includes("secret") || lowerField.includes("key"))
+        return MASK_PATTERNS.password;
+    if (lowerField.includes("accountid") || lowerField.includes("account_id"))
+        return MASK_PATTERNS.accountId;
+    if (lowerField.includes("script"))
+        return MASK_PATTERNS.script;
+    if (lowerField.includes("broker"))
+        return MASK_PATTERNS.default;
+    return MASK_PATTERNS.default;
+}
+function maskAtPath(obj, pathParts, fieldName) {
+    if (!obj || typeof obj !== "object" || pathParts.length === 0)
+        return;
+    const [current, ...rest] = pathParts;
+    if (Array.isArray(obj)) {
+        for (const item of obj) {
+            maskAtPath(item, pathParts, fieldName);
+        }
+        return;
+    }
+    if (!(current in obj))
+        return;
+    if (rest.length === 0) {
+        const value = obj[current];
+        if (typeof value === "string") {
+            const maskFn = getMaskFunction(fieldName);
+            obj[current] = maskFn(value);
+        }
+    }
+    else {
+        const next = obj[current];
+        if (Array.isArray(next)) {
+            for (const item of next) {
+                maskAtPath(item, rest, fieldName);
+            }
+        }
+        else if (next && typeof next === "object") {
+            maskAtPath(next, rest, fieldName);
+        }
+    }
+}
+function applyDemoMask(data, maskPaths) {
+    if (!isDemo || !data || !maskPaths || maskPaths.length === 0) {
+        return data;
+    }
+    for (const path of maskPaths) {
+        const parts = path.split(".");
+        const fieldName = parts[parts.length - 1];
+        if (Array.isArray(data)) {
+            for (const item of data) {
+                maskAtPath(item, parts, fieldName);
+            }
+        }
+        else {
+            maskAtPath(data, parts, fieldName);
+        }
+    }
+    return data;
+}
+function isDemoMode() {
+    return isDemo;
+}

@@ -22,7 +22,10 @@ class WebSocketManager {
 
   constructor(wsPath: string, config?: WebSocketManagerConfig) {
     const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsHost = window.location.host.replace("3000", "4000");
+    const isDev = process.env.NODE_ENV === "development";
+    const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || "4000";
+    // In development, connect directly to backend (Next.js rewrites don't support WebSocket upgrades)
+    const wsHost = isDev ? `${window.location.hostname}:${backendPort}` : window.location.host;
     this.url = `${wsProtocol}//${wsHost}${wsPath}`;
 
     // Set configurable parameters with defaults.

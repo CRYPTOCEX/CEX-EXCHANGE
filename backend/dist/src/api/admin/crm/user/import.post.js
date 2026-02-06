@@ -1,1 +1,414 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const error_1=require("@b/utils/error"),db_1=require("@b/db"),sync_1=require("csv-parse/sync"),passwords_1=require("@b/utils/passwords"),uuid_1=require("uuid"),console_1=require("@b/utils/console"),notification_1=require("@b/services/notification");exports.metadata={summary:"Import users from CSV file",operationId:"importUsersFromCSV",tags:["Admin","CRM","User"],logModule:"ADMIN_CRM",logTitle:"Import users",requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{file:{type:"string",description:"Base64 encoded CSV file containing user data"},defaultPassword:{type:"string",description:"Default password for imported users (optional)"},sendWelcomeEmail:{type:"boolean",description:"Send welcome email to imported users",default:!1}},required:["file"]}}}},responses:{200:{description:"Users imported successfully",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string"},imported:{type:"number"},failed:{type:"number"},errors:{type:"array",items:{type:"object",properties:{row:{type:"number"},email:{type:"string"},error:{type:"string"}}}}}}}}},400:{description:"Invalid CSV file or data"},401:{description:"Unauthorized access"}},requiresAuth:!0,permission:"import.user"};exports.default=async e=>{const{user:r,body:t,ctx:i}=e;null==i||i.step("Validating user authorization");if(!(null==r?void 0:r.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized access"});null==i||i.step("Validating CSV file upload");if(!(null==t?void 0:t.file))throw(0,error_1.createError)({statusCode:400,message:"No CSV file uploaded"});const s=t.file,a=(null==t?void 0:t.defaultPassword)||"Welcome123!",o="true"===(null==t?void 0:t.sendWelcomeEmail);try{null==i||i.step("Processing CSV file");let e;if(Buffer.isBuffer(s))e=s.toString("utf-8");else if("object"==typeof s&&s.data)e=Buffer.isBuffer(s.data)?s.data.toString("utf-8"):s.data;else if("string"==typeof s&&s.startsWith("data:")){const r=s.split(",")[1];if(!r)throw(0,error_1.createError)({statusCode:400,message:"Invalid file format"});e=Buffer.from(r,"base64").toString("utf-8")}else{if("string"!=typeof s)throw(0,error_1.createError)({statusCode:400,message:"Invalid file format. Received type: "+typeof s});e=s}65279===e.charCodeAt(0)&&(e=e.slice(1));e=e.replace(/\r\n/g,"\n").replace(/\r/g,"\n");let r=[];try{r=(0,sync_1.parse)(e,{columns:!0,skip_empty_lines:!0,trim:!0,relax_column_count:!0,relax_quotes:!0,skip_records_with_error:!0,cast:(e,r)=>{const t="string"==typeof r.column?r.column.toLowerCase():"";if("emailverified"===t||"twofactor"===t){if("string"==typeof e){const r=e.toLowerCase();return"true"===r||"1"===e||"yes"===r}return Boolean(e)}return""===e?null:e},on_record:e=>e&&0!==Object.keys(e).length?e:null})}catch(e){throw(0,error_1.createError)({statusCode:400,message:`Failed to parse CSV file: ${e.message}. Please ensure the file is a valid CSV format.`})}r=r.filter(e=>null!==e);if(0===r.length)return{message:"No valid records found in the CSV file. Please check the file format and ensure it contains valid user data.",imported:0,failed:0,errors:[{row:"N/A",email:"N/A",error:"CSV file contains no valid records. Ensure the file has proper headers (email, firstName, lastName) and data rows."}]};const t=r.map((e,r)=>{try{const r={};if(!e||"object"!=typeof e)return null;const t={};Object.keys(e).forEach(e=>{if(e&&"string"==typeof e){const r=e.toLowerCase().trim();t[r]=e}});const i={email:["email"],firstname:["firstname","first_name"],lastname:["lastname","last_name"],password:["password"],phone:["phone"],status:["status"],emailverified:["emailverified","email_verified"],twofactor:["twofactor","two_factor"],roleid:["roleid","role_id"],avatar:["avatar"],bio:["bio"],address:["address"],city:["city"],country:["country"],zip:["zip"],facebook:["facebook"],twitter:["twitter"],instagram:["instagram"],github:["github"],dribbble:["dribbble"],gitlab:["gitlab"]};Object.entries(i).forEach(([i,s])=>{for(const a of s){const s=t[a];if(s&&void 0!==e[s]){r[i]=e[s];break}}});return{email:r.email,firstName:r.firstname,lastName:r.lastname,password:r.password,phone:r.phone,status:r.status,emailVerified:r.emailverified,twoFactor:r.twofactor,roleId:r.roleid,avatar:r.avatar,bio:r.bio,address:r.address,city:r.city,country:r.country,zip:r.zip,facebook:r.facebook,twitter:r.twitter,instagram:r.instagram,github:r.github,dribbble:r.dribbble,gitlab:r.gitlab}}catch(e){console_1.logger.error("USER_IMPORT",`Error mapping record at index ${r}: ${e.message}`);return null}}).filter(e=>null!==e);null==i||i.step("Fetching default role");const l=await db_1.models.role.findOne({where:{name:"User"}});if(!l)throw(0,error_1.createError)({statusCode:500,message:"Default role not found"});null==i||i.step(`Importing ${t.length} users`);const n=[],d=[];let u=0,c=0;const m=r.length-t.length;m>0&&d.push({row:"N/A",email:"N/A",error:`${m} record(s) were skipped due to invalid CSV format or mapping errors`});for(let e=0;e<t.length;e++){const r=t[e],i=e+2;try{const e=[];r.email&&null!==r.email&&""!==r.email.trim()||e.push("email");r.firstName&&null!==r.firstName&&""!==r.firstName.trim()||e.push("firstName");r.lastName&&null!==r.lastName&&""!==r.lastName.trim()||e.push("lastName");if(e.length>0){d.push({row:i,email:r.email||"N/A",error:`Missing required fields: ${e.join(", ")}. Received: firstName="${r.firstName}", lastName="${r.lastName}", email="${r.email}"`});c++;continue}if(await db_1.models.user.findOne({where:{email:r.email}})){d.push({row:i,email:r.email,error:"User with this email already exists"});c++;continue}const t={id:(0,uuid_1.v4)(),email:r.email.toLowerCase().trim(),firstName:r.firstName.trim(),lastName:r.lastName.trim(),password:await(0,passwords_1.hashPassword)(r.password||a),emailVerified:!0===r.emailVerified,phone:r.phone||null,status:r.status||"ACTIVE",roleId:r.roleId||l.id,twoFactor:!0===r.twoFactor,avatar:r.avatar||null};(r.bio||r.address||r.city||r.country||r.zip)&&(t.profile={bio:r.bio||null,location:{address:r.address||null,city:r.city||null,country:r.country||null,zip:r.zip||null},social:{facebook:r.facebook||null,twitter:r.twitter||null,instagram:r.instagram||null,github:r.github||null,dribbble:r.dribbble||null,gitlab:r.gitlab||null}});const s=await db_1.models.user.create(t);n.push({email:s.email,name:`${s.firstName} ${s.lastName}`});u++;if(o&&s.email)try{await notification_1.notificationService.send({userId:s.id,type:"ALERT",channels:["IN_APP"],idempotencyKey:`user_import_welcome_${s.id}_${Date.now()}`,data:{title:"Welcome to the Platform",message:`Welcome ${s.firstName}! Your account has been created successfully. Please complete your profile and explore our features.`,link:"/user/profile"},priority:"NORMAL"});console_1.logger.debug("USER_IMPORT",`Welcome notification queued for imported user: ${s.email}`)}catch(e){console_1.logger.error("USER_IMPORT",`Failed to send welcome notification to ${s.email}`,e)}}catch(e){let t="Failed to create user";e.message&&(t=e.message.includes("duplicate")||e.message.includes("unique")?"Duplicate entry found in database":e.message.includes("validation")?`Validation error: ${e.message}`:e.message.includes("role")?"Invalid role specified":e.message);d.push({row:i,email:r.email||"N/A",error:t});c++}}let f="";f=u>0&&0===c?`Success! All ${u} user(s) imported successfully.`:0===u&&c>0?"Import failed. No users were imported due to errors.":`Import completed with partial success. ${u} user(s) imported, ${c} failed.`;null==i||i.success();return{message:f,imported:u,failed:c+m,errors:d.length>0?d:void 0,details:n,summary:{total_processed:t.length+m,successful:u,failed:c,skipped_invalid:m}}}catch(e){throw(0,error_1.createError)({statusCode:400,message:`Failed to parse CSV file: ${e.message}`})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const error_1 = require("@b/utils/error");
+const db_1 = require("@b/db");
+const sync_1 = require("csv-parse/sync");
+const passwords_1 = require("@b/utils/passwords");
+const uuid_1 = require("uuid");
+const console_1 = require("@b/utils/console");
+const notification_1 = require("@b/services/notification");
+exports.metadata = {
+    summary: "Import users from CSV file",
+    operationId: "importUsersFromCSV",
+    tags: ["Admin", "CRM", "User"],
+    logModule: "ADMIN_CRM",
+    logTitle: "Import users",
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        file: {
+                            type: "string",
+                            description: "Base64 encoded CSV file containing user data",
+                        },
+                        defaultPassword: {
+                            type: "string",
+                            description: "Default password for imported users (optional)",
+                        },
+                        sendWelcomeEmail: {
+                            type: "boolean",
+                            description: "Send welcome email to imported users",
+                            default: false,
+                        },
+                    },
+                    required: ["file"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Users imported successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: { type: "string" },
+                            imported: { type: "number" },
+                            failed: { type: "number" },
+                            errors: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        row: { type: "number" },
+                                        email: { type: "string" },
+                                        error: { type: "string" },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        400: {
+            description: "Invalid CSV file or data",
+        },
+        401: {
+            description: "Unauthorized access",
+        },
+    },
+    requiresAuth: true,
+    permission: "import.user",
+};
+exports.default = async (data) => {
+    const { user, body, ctx } = data;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating user authorization");
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized access" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating CSV file upload");
+    if (!(body === null || body === void 0 ? void 0 : body.file)) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "No CSV file uploaded" });
+    }
+    const fileData = body.file;
+    const defaultPassword = (body === null || body === void 0 ? void 0 : body.defaultPassword) || "Welcome123!";
+    const sendWelcomeEmail = (body === null || body === void 0 ? void 0 : body.sendWelcomeEmail) === "true";
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing CSV file");
+        let csvContent;
+        if (Buffer.isBuffer(fileData)) {
+            csvContent = fileData.toString('utf-8');
+        }
+        else if (typeof fileData === 'object' && fileData.data) {
+            csvContent = Buffer.isBuffer(fileData.data)
+                ? fileData.data.toString('utf-8')
+                : fileData.data;
+        }
+        else if (typeof fileData === 'string' && fileData.startsWith('data:')) {
+            const base64Data = fileData.split(',')[1];
+            if (!base64Data) {
+                throw (0, error_1.createError)({ statusCode: 400, message: "Invalid file format" });
+            }
+            csvContent = Buffer.from(base64Data, 'base64').toString('utf-8');
+        }
+        else if (typeof fileData === 'string') {
+            csvContent = fileData;
+        }
+        else {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Invalid file format. Received type: ${typeof fileData}`
+            });
+        }
+        if (csvContent.charCodeAt(0) === 0xFEFF) {
+            csvContent = csvContent.slice(1);
+        }
+        csvContent = csvContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        let rawRecords = [];
+        try {
+            rawRecords = (0, sync_1.parse)(csvContent, {
+                columns: true,
+                skip_empty_lines: true,
+                trim: true,
+                relax_column_count: true,
+                relax_quotes: true,
+                skip_records_with_error: true,
+                cast: (value, context) => {
+                    const normalizedColumn = typeof context.column === 'string' ? context.column.toLowerCase() : '';
+                    if (normalizedColumn === "emailverified" || normalizedColumn === "twofactor") {
+                        if (typeof value === 'string') {
+                            const lowerValue = value.toLowerCase();
+                            return lowerValue === "true" || value === "1" || lowerValue === "yes";
+                        }
+                        return Boolean(value);
+                    }
+                    return value === '' ? null : value;
+                },
+                on_record: (record, context) => {
+                    if (!record || Object.keys(record).length === 0) {
+                        return null;
+                    }
+                    return record;
+                },
+            });
+        }
+        catch (parseError) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Failed to parse CSV file: ${parseError.message}. Please ensure the file is a valid CSV format.`,
+            });
+        }
+        rawRecords = rawRecords.filter(record => record !== null);
+        if (rawRecords.length === 0) {
+            return {
+                message: "No valid records found in the CSV file. Please check the file format and ensure it contains valid user data.",
+                imported: 0,
+                failed: 0,
+                errors: [{
+                        row: "N/A",
+                        email: "N/A",
+                        error: "CSV file contains no valid records. Ensure the file has proper headers (email, firstName, lastName) and data rows.",
+                    }],
+            };
+        }
+        const records = rawRecords.map((record, index) => {
+            try {
+                const normalizedRecord = {};
+                if (!record || typeof record !== 'object') {
+                    return null;
+                }
+                const keyMapping = {};
+                Object.keys(record).forEach(key => {
+                    if (key && typeof key === 'string') {
+                        const normalizedKey = key.toLowerCase().trim();
+                        keyMapping[normalizedKey] = key;
+                    }
+                });
+                const columnMappings = {
+                    'email': ['email'],
+                    'firstname': ['firstname', 'first_name'],
+                    'lastname': ['lastname', 'last_name'],
+                    'password': ['password'],
+                    'phone': ['phone'],
+                    'status': ['status'],
+                    'emailverified': ['emailverified', 'email_verified'],
+                    'twofactor': ['twofactor', 'two_factor'],
+                    'roleid': ['roleid', 'role_id'],
+                    'avatar': ['avatar'],
+                    'bio': ['bio'],
+                    'address': ['address'],
+                    'city': ['city'],
+                    'country': ['country'],
+                    'zip': ['zip'],
+                    'facebook': ['facebook'],
+                    'twitter': ['twitter'],
+                    'instagram': ['instagram'],
+                    'github': ['github'],
+                    'dribbble': ['dribbble'],
+                    'gitlab': ['gitlab']
+                };
+                Object.entries(columnMappings).forEach(([targetKey, possibleKeys]) => {
+                    for (const possibleKey of possibleKeys) {
+                        const actualKey = keyMapping[possibleKey];
+                        if (actualKey && record[actualKey] !== undefined) {
+                            normalizedRecord[targetKey] = record[actualKey];
+                            break;
+                        }
+                    }
+                });
+                return {
+                    email: normalizedRecord.email,
+                    firstName: normalizedRecord.firstname,
+                    lastName: normalizedRecord.lastname,
+                    password: normalizedRecord.password,
+                    phone: normalizedRecord.phone,
+                    status: normalizedRecord.status,
+                    emailVerified: normalizedRecord.emailverified,
+                    twoFactor: normalizedRecord.twofactor,
+                    roleId: normalizedRecord.roleid,
+                    avatar: normalizedRecord.avatar,
+                    bio: normalizedRecord.bio,
+                    address: normalizedRecord.address,
+                    city: normalizedRecord.city,
+                    country: normalizedRecord.country,
+                    zip: normalizedRecord.zip,
+                    facebook: normalizedRecord.facebook,
+                    twitter: normalizedRecord.twitter,
+                    instagram: normalizedRecord.instagram,
+                    github: normalizedRecord.github,
+                    dribbble: normalizedRecord.dribbble,
+                    gitlab: normalizedRecord.gitlab
+                };
+            }
+            catch (mappingError) {
+                console_1.logger.error("USER_IMPORT", `Error mapping record at index ${index}: ${mappingError.message}`);
+                return null;
+            }
+        }).filter(record => record !== null);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching default role");
+        const defaultRole = await db_1.models.role.findOne({
+            where: { name: "User" },
+        });
+        if (!defaultRole) {
+            throw (0, error_1.createError)({ statusCode: 500, message: "Default role not found" });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step(`Importing ${records.length} users`);
+        const imported = [];
+        const errors = [];
+        let importedCount = 0;
+        let failedCount = 0;
+        const skippedDuringParsing = rawRecords.length - records.length;
+        if (skippedDuringParsing > 0) {
+            errors.push({
+                row: "N/A",
+                email: "N/A",
+                error: `${skippedDuringParsing} record(s) were skipped due to invalid CSV format or mapping errors`,
+            });
+        }
+        for (let i = 0; i < records.length; i++) {
+            const record = records[i];
+            const rowNumber = i + 2;
+            try {
+                const missingFields = [];
+                if (!record.email || record.email === null || record.email.trim() === '') {
+                    missingFields.push('email');
+                }
+                if (!record.firstName || record.firstName === null || record.firstName.trim() === '') {
+                    missingFields.push('firstName');
+                }
+                if (!record.lastName || record.lastName === null || record.lastName.trim() === '') {
+                    missingFields.push('lastName');
+                }
+                if (missingFields.length > 0) {
+                    errors.push({
+                        row: rowNumber,
+                        email: record.email || "N/A",
+                        error: `Missing required fields: ${missingFields.join(', ')}. Received: firstName="${record.firstName}", lastName="${record.lastName}", email="${record.email}"`,
+                    });
+                    failedCount++;
+                    continue;
+                }
+                const existingUser = await db_1.models.user.findOne({
+                    where: { email: record.email },
+                });
+                if (existingUser) {
+                    errors.push({
+                        row: rowNumber,
+                        email: record.email,
+                        error: "User with this email already exists",
+                    });
+                    failedCount++;
+                    continue;
+                }
+                const userData = {
+                    id: (0, uuid_1.v4)(),
+                    email: record.email.toLowerCase().trim(),
+                    firstName: record.firstName.trim(),
+                    lastName: record.lastName.trim(),
+                    password: await (0, passwords_1.hashPassword)(record.password || defaultPassword),
+                    emailVerified: record.emailVerified === true,
+                    phone: record.phone || null,
+                    status: record.status || "ACTIVE",
+                    roleId: record.roleId || defaultRole.id,
+                    twoFactor: record.twoFactor === true,
+                    avatar: record.avatar || null,
+                };
+                if (record.bio || record.address || record.city || record.country || record.zip) {
+                    userData.profile = {
+                        bio: record.bio || null,
+                        location: {
+                            address: record.address || null,
+                            city: record.city || null,
+                            country: record.country || null,
+                            zip: record.zip || null,
+                        },
+                        social: {
+                            facebook: record.facebook || null,
+                            twitter: record.twitter || null,
+                            instagram: record.instagram || null,
+                            github: record.github || null,
+                            dribbble: record.dribbble || null,
+                            gitlab: record.gitlab || null,
+                        },
+                    };
+                }
+                const newUser = await db_1.models.user.create(userData);
+                imported.push({
+                    email: newUser.email,
+                    name: `${newUser.firstName} ${newUser.lastName}`,
+                });
+                importedCount++;
+                if (sendWelcomeEmail && newUser.email) {
+                    try {
+                        await notification_1.notificationService.send({
+                            userId: newUser.id,
+                            type: "ALERT",
+                            channels: ["IN_APP"],
+                            idempotencyKey: `user_import_welcome_${newUser.id}_${Date.now()}`,
+                            data: {
+                                title: "Welcome to the Platform",
+                                message: `Welcome ${newUser.firstName}! Your account has been created successfully. Please complete your profile and explore our features.`,
+                                link: "/user/profile",
+                            },
+                            priority: "NORMAL"
+                        });
+                        console_1.logger.debug("USER_IMPORT", `Welcome notification queued for imported user: ${newUser.email}`);
+                    }
+                    catch (notifError) {
+                        console_1.logger.error("USER_IMPORT", `Failed to send welcome notification to ${newUser.email}`, notifError);
+                    }
+                }
+            }
+            catch (error) {
+                let errorMessage = "Failed to create user";
+                if (error.message) {
+                    if (error.message.includes("duplicate") || error.message.includes("unique")) {
+                        errorMessage = "Duplicate entry found in database";
+                    }
+                    else if (error.message.includes("validation")) {
+                        errorMessage = `Validation error: ${error.message}`;
+                    }
+                    else if (error.message.includes("role")) {
+                        errorMessage = "Invalid role specified";
+                    }
+                    else {
+                        errorMessage = error.message;
+                    }
+                }
+                errors.push({
+                    row: rowNumber,
+                    email: record.email || "N/A",
+                    error: errorMessage,
+                });
+                failedCount++;
+            }
+        }
+        let summaryMessage = "";
+        if (importedCount > 0 && failedCount === 0) {
+            summaryMessage = `Success! All ${importedCount} user(s) imported successfully.`;
+        }
+        else if (importedCount === 0 && failedCount > 0) {
+            summaryMessage = `Import failed. No users were imported due to errors.`;
+        }
+        else {
+            summaryMessage = `Import completed with partial success. ${importedCount} user(s) imported, ${failedCount} failed.`;
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.success();
+        return {
+            message: summaryMessage,
+            imported: importedCount,
+            failed: failedCount + skippedDuringParsing,
+            errors: errors.length > 0 ? errors : undefined,
+            details: imported,
+            summary: {
+                total_processed: records.length + skippedDuringParsing,
+                successful: importedCount,
+                failed: failedCount,
+                skipped_invalid: skippedDuringParsing,
+            },
+        };
+    }
+    catch (error) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: `Failed to parse CSV file: ${error.message}`,
+        });
+    }
+};

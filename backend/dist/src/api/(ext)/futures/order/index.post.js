@@ -1,1 +1,233 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const error_1=require("@b/utils/error"),utils_1=require("@b/api/finance/wallet/utils");let fromBigInt,toBigIntFloat,fromBigIntMultiply,updateWalletBalance;try{const e=require("@b/api/(ext)/ecosystem/utils/blockchain");fromBigInt=e.fromBigInt;toBigIntFloat=e.toBigIntFloat;fromBigIntMultiply=e.fromBigIntMultiply;const r=require("@b/api/(ext)/ecosystem/utils/wallet");updateWalletBalance=r.updateWalletBalance}catch(e){}const query_1=require("@b/utils/query"),db_1=require("@b/db"),order_1=require("@b/api/(ext)/futures/utils/queries/order"),affiliate_1=require("@b/utils/affiliate");exports.metadata={summary:"Creates a new futures trading order",description:"Submits a new futures trading order for the logged-in user.",operationId:"createFuturesOrder",tags:["Futures","Orders"],logModule:"FUTURES",logTitle:"Create futures order",requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{currency:{type:"string",description:"Currency symbol (e.g., BTC)"},pair:{type:"string",description:"Pair symbol (e.g., USDT)"},type:{type:"string",description:"Order type, e.g., limit, market"},side:{type:"string",description:"Order side, either buy or sell"},amount:{type:"number",description:"Amount of the order"},price:{type:"number",description:"Price of the order (not required for market orders)"},leverage:{type:"number",description:"Leverage for the futures order"},stopLossPrice:{type:"number",description:"Stop loss price for the order",nullable:!0},takeProfitPrice:{type:"number",description:"Take profit price for the order",nullable:!0}},required:["currency","pair","type","side","amount","leverage"]}}}},responses:(0,query_1.createRecordResponses)("Order"),requiresAuth:!0};exports.default=async e=>{var r,t,o,i,a,l,s,n,d,u,c,m,f,p,v,g,y,b,h,B,I,w,$,_,F,C,P,k,E,x,q,U,O,L,S,M,N,Y,R;const{body:T,user:W,ctx:A}=e;null===(r=null==A?void 0:A.step)||void 0===r||r.call(A,"Validating user authentication");if(!(null==W?void 0:W.id)){null===(t=null==A?void 0:A.fail)||void 0===t||t.call(A,"User not authenticated");throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"})}const{currency:D,pair:j,amount:V,price:z,type:G,side:H,leverage:J,stopLossPrice:K,takeProfitPrice:Q}=T;null===(o=null==A?void 0:A.step)||void 0===o||o.call(A,"Validating request parameters");if(!D||!j){null===(i=null==A?void 0:A.fail)||void 0===i||i.call(A,"Invalid symbol");throw(0,error_1.createError)({statusCode:400,message:"Invalid symbol"})}const X=`${D}/${j}`;try{null===(a=null==A?void 0:A.step)||void 0===a||a.call(A,`Fetching futures market for ${X}`);const e=await db_1.models.futuresMarket.findOne({where:{currency:D,pair:j}});if(!e){null===(l=null==A?void 0:A.fail)||void 0===l||l.call(A,"Futures market data not found");throw(0,error_1.createError)({statusCode:404,message:"Futures market data not found"})}if(!e.metadata){null===(s=null==A?void 0:A.fail)||void 0===s||s.call(A,"Futures market metadata not found");throw(0,error_1.createError)({statusCode:404,message:"Futures market metadata not found"})}null===(n=null==A?void 0:A.step)||void 0===n||n.call(A,"Validating order parameters against market limits");const r=Number((null===(c=null===(u=null===(d=e.metadata)||void 0===d?void 0:d.limits)||void 0===u?void 0:u.amount)||void 0===c?void 0:c.min)||0),t=Number((null===(p=null===(f=null===(m=e.metadata)||void 0===m?void 0:m.limits)||void 0===f?void 0:f.amount)||void 0===p?void 0:p.max)||0),o=Number((null===(y=null===(g=null===(v=e.metadata)||void 0===v?void 0:v.limits)||void 0===g?void 0:g.price)||void 0===y?void 0:y.min)||0),i=Number((null===(B=null===(h=null===(b=e.metadata)||void 0===b?void 0:b.limits)||void 0===h?void 0:h.price)||void 0===B?void 0:B.max)||0),R=Number((null===($=null===(w=null===(I=e.metadata)||void 0===I?void 0:I.limits)||void 0===w?void 0:w.cost)||void 0===$?void 0:$.min)||0),T=Number((null===(C=null===(F=null===(_=e.metadata)||void 0===_?void 0:_.limits)||void 0===F?void 0:F.cost)||void 0===C?void 0:C.max)||0);if("SELL"===H&&V<r)throw(0,error_1.createError)({statusCode:400,message:`Amount is too low. You need ${r} ${D}`});if("SELL"===H&&t>0&&V>t)throw(0,error_1.createError)({statusCode:400,message:`Amount is too high. Maximum is ${t} ${D}`});if(z&&z<o)throw(0,error_1.createError)({statusCode:400,message:`Price is too low. You need ${o} ${j}`});if(i>0&&z>i)throw(0,error_1.createError)({statusCode:400,message:`Price is too high. Maximum is ${i} ${j}`});const Z=Number("BUY"===H?e.metadata.precision.amount:e.metadata.precision.price)||8,ee=Number("BUY"===H?e.metadata.taker:e.metadata.maker),re=parseFloat((V*z*ee/100).toFixed(Z)),te=V*z;if("BUY"===H&&te<R)throw(0,error_1.createError)({statusCode:400,message:`Cost is too low. You need ${R} ${j}`});if("BUY"===H&&T>0&&te>T)throw(0,error_1.createError)({statusCode:400,message:`Cost is too high. Maximum is ${T} ${j}`});null===(P=null==A?void 0:A.step)||void 0===P||P.call(A,`Fetching ${j} wallet`);const oe=await(0,utils_1.getWalletSafe)(W.id,"FUTURES",j,!1,A);if(!oe){null===(k=null==A?void 0:A.fail)||void 0===k||k.call(A,`Wallet not found for ${j}`);throw(0,error_1.createError)({statusCode:400,message:`Insufficient balance. You need ${te+re} ${j}`})}null===(E=null==A?void 0:A.step)||void 0===E||E.call(A,"Checking wallet balance");if(oe.balance<te+re){null===(x=null==A?void 0:A.fail)||void 0===x||x.call(A,`Insufficient balance: ${oe.balance} < ${te+re}`);throw(0,error_1.createError)({statusCode:400,message:`Insufficient balance. You need ${te+re} ${j}`})}null===(q=null==A?void 0:A.step)||void 0===q||q.call(A,"Checking for existing counter orders");const ie=await(0,order_1.getOrdersByUserId)(W.id);for(const e of ie)if(e.symbol===X&&e.leverage===J&&fromBigInt(e.amount)===V&&fromBigInt(e.price)===z&&e.side!==H&&"OPEN"===e.status&&fromBigInt(e.remaining)===V){null===(U=null==A?void 0:A.step)||void 0===U||U.call(A,"Counter order detected, cancelling existing order");await(0,order_1.cancelOrderByUuid)(e.userId,e.id,e.createdAt.toISOString(),X,e.price,e.side,e.remaining);null===(O=null==A?void 0:A.step)||void 0===O||O.call(A,"Refunding balance to wallet");const r=fromBigIntMultiply(e.remaining+e.fee,e.price);await updateWalletBalance(oe,r,"add");null===(L=null==A?void 0:A.success)||void 0===L||L.call(A,"Counter order closed existing position");return{message:"Counter order detected and existing position closed successfully"}}null===(S=null==A?void 0:A.step)||void 0===S||S.call(A,`Creating new ${H} order for ${V} ${D} at ${z} ${j}`);const ae=await(0,order_1.createOrder)({userId:W.id,symbol:X,amount:toBigIntFloat(V),price:toBigIntFloat(z),cost:toBigIntFloat(te),type:G,side:H,fee:toBigIntFloat(re),feeCurrency:j,leverage:J,stopLossPrice:K?toBigIntFloat(K):void 0,takeProfitPrice:Q?toBigIntFloat(Q):void 0});null===(M=null==A?void 0:A.step)||void 0===M||M.call(A,"Formatting order response");const le={...ae,amount:fromBigInt(ae.amount),price:fromBigInt(ae.price),cost:fromBigInt(ae.cost),fee:fromBigInt(ae.fee),remaining:fromBigInt(ae.remaining),leverage:J,stopLossPrice:ae.stopLossPrice?fromBigInt(ae.stopLossPrice):void 0,takeProfitPrice:ae.takeProfitPrice?fromBigInt(ae.takeProfitPrice):void 0,filled:0,average:0};null===(N=null==A?void 0:A.step)||void 0===N||N.call(A,`Deducting ${te+re} ${j} from wallet`);await updateWalletBalance(oe,te+re,"subtract");try{await(0,affiliate_1.processRewards)(W.id,te,"FUTURES_TRADE",j)}catch(e){console.error("Failed to process affiliate rewards:",e)}null===(Y=null==A?void 0:A.success)||void 0===Y||Y.call(A,`Futures order created successfully (ID: ${ae.id})`);return{message:"Futures order created successfully",order:le}}catch(e){console.error("Error creating futures order:",e);null===(R=null==A?void 0:A.fail)||void 0===R||R.call(A,`Failed to create order: ${e.message}`);throw(0,error_1.createError)({statusCode:500,message:`Failed to create futures order: ${e.message}`})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const error_1 = require("@b/utils/error");
+const utils_1 = require("@b/api/finance/wallet/utils");
+let fromBigInt;
+let toBigIntFloat;
+let fromBigIntMultiply;
+let updateWalletBalance;
+try {
+    const blockchainModule = require("@b/api/(ext)/ecosystem/utils/blockchain");
+    fromBigInt = blockchainModule.fromBigInt;
+    toBigIntFloat = blockchainModule.toBigIntFloat;
+    fromBigIntMultiply = blockchainModule.fromBigIntMultiply;
+    const walletModule = require("@b/api/(ext)/ecosystem/utils/wallet");
+    updateWalletBalance = walletModule.updateWalletBalance;
+}
+catch (e) {
+}
+const query_1 = require("@b/utils/query");
+const db_1 = require("@b/db");
+const order_1 = require("@b/api/(ext)/futures/utils/queries/order");
+const affiliate_1 = require("@b/utils/affiliate");
+exports.metadata = {
+    summary: "Creates a new futures trading order",
+    description: "Submits a new futures trading order for the logged-in user.",
+    operationId: "createFuturesOrder",
+    tags: ["Futures", "Orders"],
+    logModule: "FUTURES",
+    logTitle: "Create futures order",
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        currency: {
+                            type: "string",
+                            description: "Currency symbol (e.g., BTC)",
+                        },
+                        pair: { type: "string", description: "Pair symbol (e.g., USDT)" },
+                        type: {
+                            type: "string",
+                            description: "Order type, e.g., limit, market",
+                        },
+                        side: {
+                            type: "string",
+                            description: "Order side, either buy or sell",
+                        },
+                        amount: { type: "number", description: "Amount of the order" },
+                        price: {
+                            type: "number",
+                            description: "Price of the order (not required for market orders)",
+                        },
+                        leverage: {
+                            type: "number",
+                            description: "Leverage for the futures order",
+                        },
+                        stopLossPrice: {
+                            type: "number",
+                            description: "Stop loss price for the order",
+                            nullable: true,
+                        },
+                        takeProfitPrice: {
+                            type: "number",
+                            description: "Take profit price for the order",
+                            nullable: true,
+                        },
+                    },
+                    required: ["currency", "pair", "type", "side", "amount", "leverage"],
+                },
+            },
+        },
+    },
+    responses: (0, query_1.createRecordResponses)("Order"),
+    requiresAuth: true,
+};
+exports.default = async (data) => {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14;
+    const { body, user, ctx } = data;
+    (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Validating user authentication");
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _b === void 0 ? void 0 : _b.call(ctx, "User not authenticated");
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    const { currency, pair, amount, price, type, side, leverage, stopLossPrice, takeProfitPrice, } = body;
+    (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Validating request parameters");
+    if (!currency || !pair) {
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _d === void 0 ? void 0 : _d.call(ctx, "Invalid symbol");
+        throw (0, error_1.createError)({ statusCode: 400, message: "Invalid symbol" });
+    }
+    const symbol = `${currency}/${pair}`;
+    try {
+        (_e = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _e === void 0 ? void 0 : _e.call(ctx, `Fetching futures market for ${symbol}`);
+        const market = (await db_1.models.futuresMarket.findOne({
+            where: { currency, pair },
+        }));
+        if (!market) {
+            (_f = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _f === void 0 ? void 0 : _f.call(ctx, "Futures market data not found");
+            throw (0, error_1.createError)({ statusCode: 404, message: "Futures market data not found" });
+        }
+        if (!market.metadata) {
+            (_g = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _g === void 0 ? void 0 : _g.call(ctx, "Futures market metadata not found");
+            throw (0, error_1.createError)({ statusCode: 404, message: "Futures market metadata not found" });
+        }
+        (_h = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _h === void 0 ? void 0 : _h.call(ctx, "Validating order parameters against market limits");
+        const minAmount = Number(((_l = (_k = (_j = market.metadata) === null || _j === void 0 ? void 0 : _j.limits) === null || _k === void 0 ? void 0 : _k.amount) === null || _l === void 0 ? void 0 : _l.min) || 0);
+        const maxAmount = Number(((_p = (_o = (_m = market.metadata) === null || _m === void 0 ? void 0 : _m.limits) === null || _o === void 0 ? void 0 : _o.amount) === null || _p === void 0 ? void 0 : _p.max) || 0);
+        const minPrice = Number(((_s = (_r = (_q = market.metadata) === null || _q === void 0 ? void 0 : _q.limits) === null || _r === void 0 ? void 0 : _r.price) === null || _s === void 0 ? void 0 : _s.min) || 0);
+        const maxPrice = Number(((_v = (_u = (_t = market.metadata) === null || _t === void 0 ? void 0 : _t.limits) === null || _u === void 0 ? void 0 : _u.price) === null || _v === void 0 ? void 0 : _v.max) || 0);
+        const minCost = Number(((_y = (_x = (_w = market.metadata) === null || _w === void 0 ? void 0 : _w.limits) === null || _x === void 0 ? void 0 : _x.cost) === null || _y === void 0 ? void 0 : _y.min) || 0);
+        const maxCost = Number(((_1 = (_0 = (_z = market.metadata) === null || _z === void 0 ? void 0 : _z.limits) === null || _0 === void 0 ? void 0 : _0.cost) === null || _1 === void 0 ? void 0 : _1.max) || 0);
+        if (side === "SELL" && amount < minAmount) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Amount is too low. You need ${minAmount} ${currency}` });
+        }
+        if (side === "SELL" && maxAmount > 0 && amount > maxAmount) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Amount is too high. Maximum is ${maxAmount} ${currency}`
+            });
+        }
+        if (price && price < minPrice) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Price is too low. You need ${minPrice} ${pair}` });
+        }
+        if (maxPrice > 0 && price > maxPrice) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Price is too high. Maximum is ${maxPrice} ${pair}` });
+        }
+        const precision = Number(side === "BUY"
+            ? market.metadata.precision.amount
+            : market.metadata.precision.price) || 8;
+        const feeRate = side === "BUY"
+            ? Number(market.metadata.taker)
+            : Number(market.metadata.maker);
+        const feeCalculated = (amount * price * feeRate) / 100;
+        const fee = parseFloat(feeCalculated.toFixed(precision));
+        const cost = amount * price;
+        if (side === "BUY" && cost < minCost) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Cost is too low. You need ${minCost} ${pair}` });
+        }
+        if (side === "BUY" && maxCost > 0 && cost > maxCost) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Cost is too high. Maximum is ${maxCost} ${pair}` });
+        }
+        (_2 = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _2 === void 0 ? void 0 : _2.call(ctx, `Fetching ${pair} wallet`);
+        const pairWallet = await (0, utils_1.getWalletSafe)(user.id, "FUTURES", pair, false, ctx);
+        if (!pairWallet) {
+            (_3 = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _3 === void 0 ? void 0 : _3.call(ctx, `Wallet not found for ${pair}`);
+            throw (0, error_1.createError)({ statusCode: 400, message: `Insufficient balance. You need ${cost + fee} ${pair}` });
+        }
+        (_4 = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _4 === void 0 ? void 0 : _4.call(ctx, "Checking wallet balance");
+        if (pairWallet.balance < cost + fee) {
+            (_5 = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _5 === void 0 ? void 0 : _5.call(ctx, `Insufficient balance: ${pairWallet.balance} < ${cost + fee}`);
+            throw (0, error_1.createError)({ statusCode: 400, message: `Insufficient balance. You need ${cost + fee} ${pair}` });
+        }
+        (_6 = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _6 === void 0 ? void 0 : _6.call(ctx, "Checking for existing counter orders");
+        const existingOrders = await (0, order_1.getOrdersByUserId)(user.id);
+        for (const existingOrder of existingOrders) {
+            if (existingOrder.symbol === symbol &&
+                existingOrder.leverage === leverage &&
+                fromBigInt(existingOrder.amount) === amount &&
+                fromBigInt(existingOrder.price) === price &&
+                existingOrder.side !== side &&
+                existingOrder.status === "OPEN" &&
+                fromBigInt(existingOrder.remaining) === amount) {
+                (_7 = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _7 === void 0 ? void 0 : _7.call(ctx, "Counter order detected, cancelling existing order");
+                await (0, order_1.cancelOrderByUuid)(existingOrder.userId, existingOrder.id, existingOrder.createdAt.toISOString(), symbol, existingOrder.price, existingOrder.side, existingOrder.remaining);
+                (_8 = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _8 === void 0 ? void 0 : _8.call(ctx, "Refunding balance to wallet");
+                const refundAmount = fromBigIntMultiply(existingOrder.remaining + existingOrder.fee, existingOrder.price);
+                await updateWalletBalance(pairWallet, refundAmount, "add");
+                (_9 = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _9 === void 0 ? void 0 : _9.call(ctx, "Counter order closed existing position");
+                return {
+                    message: "Counter order detected and existing position closed successfully",
+                };
+            }
+        }
+        (_10 = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _10 === void 0 ? void 0 : _10.call(ctx, `Creating new ${side} order for ${amount} ${currency} at ${price} ${pair}`);
+        const newOrder = await (0, order_1.createOrder)({
+            userId: user.id,
+            symbol,
+            amount: toBigIntFloat(amount),
+            price: toBigIntFloat(price),
+            cost: toBigIntFloat(cost),
+            type,
+            side,
+            fee: toBigIntFloat(fee),
+            feeCurrency: pair,
+            leverage,
+            stopLossPrice: stopLossPrice ? toBigIntFloat(stopLossPrice) : undefined,
+            takeProfitPrice: takeProfitPrice
+                ? toBigIntFloat(takeProfitPrice)
+                : undefined,
+        });
+        (_11 = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _11 === void 0 ? void 0 : _11.call(ctx, "Formatting order response");
+        const order = {
+            ...newOrder,
+            amount: fromBigInt(newOrder.amount),
+            price: fromBigInt(newOrder.price),
+            cost: fromBigInt(newOrder.cost),
+            fee: fromBigInt(newOrder.fee),
+            remaining: fromBigInt(newOrder.remaining),
+            leverage,
+            stopLossPrice: newOrder.stopLossPrice
+                ? fromBigInt(newOrder.stopLossPrice)
+                : undefined,
+            takeProfitPrice: newOrder.takeProfitPrice
+                ? fromBigInt(newOrder.takeProfitPrice)
+                : undefined,
+            filled: 0,
+            average: 0,
+        };
+        (_12 = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _12 === void 0 ? void 0 : _12.call(ctx, `Deducting ${cost + fee} ${pair} from wallet`);
+        await updateWalletBalance(pairWallet, cost + fee, "subtract");
+        try {
+            await (0, affiliate_1.processRewards)(user.id, cost, "FUTURES_TRADE", pair);
+        }
+        catch (affiliateError) {
+            console.error("Failed to process affiliate rewards:", affiliateError);
+        }
+        (_13 = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _13 === void 0 ? void 0 : _13.call(ctx, `Futures order created successfully (ID: ${newOrder.id})`);
+        return {
+            message: "Futures order created successfully",
+            order,
+        };
+    }
+    catch (error) {
+        console.error("Error creating futures order:", error);
+        (_14 = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _14 === void 0 ? void 0 : _14.call(ctx, `Failed to create order: ${error.message}`);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Failed to create futures order: ${error.message}`,
+        });
+    }
+};

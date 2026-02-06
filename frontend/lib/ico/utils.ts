@@ -4,14 +4,13 @@ import { twMerge } from "tailwind-merge";
 
 export function formatCurrency(amount: number, currency: string = "USD"): string {
   const numericAmount = Number(amount);
-  if (isNaN(numericAmount)) return `${currency} 0.00`;
+  const upperCurrency = currency?.toUpperCase() || "USD";
+
+  if (isNaN(numericAmount)) return `0.00 ${upperCurrency}`;
 
   // Determine appropriate decimal places based on the value
-  // For small numbers (< 0.01), show more decimals to display the actual value
   let maxDecimals = 2;
-  if (currency === "BTC") {
-    maxDecimals = 8;
-  } else if (numericAmount > 0 && numericAmount < 0.01) {
+  if (numericAmount > 0 && numericAmount < 0.01) {
     // For very small values, calculate how many decimals needed
     const decimalStr = numericAmount.toString();
     const decimalMatch = decimalStr.match(/\.0*[1-9]/);
@@ -22,16 +21,22 @@ export function formatCurrency(amount: number, currency: string = "USD"): string
     }
   }
 
+  // Try to use Intl.NumberFormat for standard ISO 4217 currencies (USD, EUR, GBP, etc.)
   try {
-    return new Intl.NumberFormat("en-US", {
+    const formatted = new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: currency.toUpperCase(),
+      currency: upperCurrency,
       minimumFractionDigits: 2,
       maximumFractionDigits: maxDecimals,
     }).format(numericAmount);
-  } catch (error) {
-    // Fallback for unsupported currencies
-    return `${currency} ${numericAmount.toFixed(maxDecimals)}`;
+    return formatted;
+  } catch {
+    // For non-standard currencies (crypto, etc.), show as "amount currency"
+    const formattedNumber = numericAmount.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: maxDecimals,
+    });
+    return `${formattedNumber} ${upperCurrency}`;
   }
 }
 

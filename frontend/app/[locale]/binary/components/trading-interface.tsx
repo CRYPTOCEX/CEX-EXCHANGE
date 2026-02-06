@@ -85,6 +85,11 @@ export default function TradingInterface({
     }))
   );
 
+  // Filter completed orders by current trading mode
+  const filteredCompletedOrders = useMemo(() => {
+    return completedOrders.filter(order => order.isDemo === (tradingMode === "demo"));
+  }, [completedOrders, tradingMode]);
+
   // Get stable action references from the store - these don't change between renders
   // Access actions via getState() to avoid creating subscriptions
   const setStoreCurrentSymbol = useCallback((symbol: string) => {
@@ -216,12 +221,12 @@ export default function TradingInterface({
     // If not initialized yet, mark all current orders as "already notified"
     // This prevents showing notifications for historical orders on page load or market switch
     if (!isInitializedRef.current) {
-      // Add all current completed order IDs to the notified set
-      for (const order of completedOrders) {
+      // Add all current completed order IDs to the notified set (filtered by mode)
+      for (const order of filteredCompletedOrders) {
         notifiedOrderIdsRef.current.add(order.id);
       }
       // Mark as initialized after a short delay to allow initial fetch to complete
-      // This handles the case where completedOrders updates multiple times during init
+      // This handles the case where filteredCompletedOrders updates multiple times during init
       const initTimeout = setTimeout(() => {
         // Only mark as initialized if we're still on the same symbol
         if (lastInitializedSymbolRef.current === currentSymbol) {
@@ -231,8 +236,8 @@ export default function TradingInterface({
       return () => clearTimeout(initTimeout);
     }
 
-    // After initialization, check for new orders we haven't notified about
-    for (const order of completedOrders) {
+    // After initialization, check for new orders we haven't notified about (filtered by mode)
+    for (const order of filteredCompletedOrders) {
       // Skip if we've already notified about this order
       if (notifiedOrderIdsRef.current.has(order.id)) {
         continue;
@@ -274,19 +279,19 @@ export default function TradingInterface({
     }
 
     // Clean up old order IDs from the set to prevent memory leak
-    // Keep only IDs that are still in completedOrders
-    const currentIds = new Set(completedOrders.map(o => o.id));
+    // Keep only IDs that are still in filteredCompletedOrders
+    const currentIds = new Set(filteredCompletedOrders.map(o => o.id));
     for (const id of notifiedOrderIdsRef.current) {
       if (!currentIds.has(id)) {
         notifiedOrderIdsRef.current.delete(id);
       }
     }
-  }, [completedOrders, currentSymbol]);
+  }, [filteredCompletedOrders, currentSymbol]);
 
   // Memoized computed values to prevent unnecessary recalculations
   const computedValues = useMemo(() => {
     const activePositionsCount = orders.filter(order => order.status === "PENDING").length;
-    const completedPositionsCount = completedOrders.length;
+    const completedPositionsCount = filteredCompletedOrders.length;
     const darkMode = currentTheme === "dark";
     const showExpiry = true;
     // Extract quote currency from symbol (e.g., "BTC/USDT" -> "USDT")
@@ -299,7 +304,7 @@ export default function TradingInterface({
       showExpiry,
       currency,
     };
-  }, [completedOrders.length, orders, currentTheme, currentSymbol, binaryMarkets]);
+  }, [filteredCompletedOrders.length, orders, currentTheme, currentSymbol, binaryMarkets]);
 
   // Chart order type for combined active and completed orders
   type ChartOrderStatus = "PENDING" | "WIN" | "LOSS";
@@ -347,8 +352,8 @@ export default function TradingInterface({
       payoutPerPoint: order.payoutPerPoint,
     }));
 
-    // Map completed orders to chart format
-    const completedChartOrders: ChartOrder[] = completedOrders.map(order => ({
+    // Map completed orders to chart format (use filtered orders for efficiency)
+    const completedChartOrders: ChartOrder[] = filteredCompletedOrders.map(order => ({
       id: order.id,
       symbol: order.symbol,
       side: order.side,
@@ -365,6 +370,8 @@ export default function TradingInterface({
       barrier: order.barrier,
       strikePrice: order.strikePrice,
       payoutPerPoint: order.payoutPerPoint,
+      // Include trading mode for filtering
+      isDemo: order.isDemo,
     }));
 
     // FIXED: Use Set for O(n) uniqueness instead of O(n²) filter with findIndex
@@ -386,13 +393,17 @@ export default function TradingInterface({
       }
     }
 
-    return uniqueOrders;
-  }, [orders, completedOrders]);
+    // Already filtered by mode since we used filteredCompletedOrders
+    // But still filter activeChartOrders by mode for consistency
+    return uniqueOrders.filter(order =>
+      order.isDemo === (tradingMode === "demo")
+    );
+  }, [orders, filteredCompletedOrders, tradingMode]);
 
   // Memoized position markers to prevent recreation
   const positionMarkers = useMemo(() => {
     return orders
-      .filter(order => order.status === "PENDING" && order.symbol === currentSymbol)
+      .filter(order => order.status === "PENDING" && order.symbol === currentSymbol && order.mode === tradingMode)
       .map(order => ({
         id: order.id,
         entryTime: Math.floor(new Date(order.createdAt).getTime() / 1000),
@@ -401,7 +412,7 @@ export default function TradingInterface({
         type: order.side,
         amount: order.amount,
       }));
-  }, [orders, currentSymbol]);
+  }, [orders, currentSymbol, tradingMode]);
 
   // Optimized cleanup function with proper error handling
   const cleanupSubscriptions = useCallback(() => {

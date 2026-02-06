@@ -17,13 +17,13 @@ export type CohortType = "SIGNUP_DATE" | "DEPOSIT_AMOUNT" | "TRADE_FREQUENCY" | 
 export interface binaryAiEngineCohortAttributes {
   id: string;
   engineId: string;
-  cohortName: string;
-  cohortType: CohortType;
+  name: string;
+  type: CohortType;
   startDate: Date | null;
   endDate: Date | null;
   minValue: number | null;
   maxValue: number | null;
-  customCriteria: Record<string, any> | null;
+  criteria: Record<string, any> | null;
   userCount: number;
   totalOrders: number;
   totalWins: number;
@@ -42,7 +42,7 @@ export interface binaryAiEngineCohortCreationAttributes
     | "endDate"
     | "minValue"
     | "maxValue"
-    | "customCriteria"
+    | "criteria"
     | "userCount"
     | "totalOrders"
     | "totalWins"
@@ -80,9 +80,9 @@ export default class binaryAiEngineCohort
   /** Reference to the parent engine */
   engineId!: string;
   /** Name of the cohort */
-  cohortName!: string;
+  name!: string;
   /** Type of cohort segmentation */
-  cohortType!: CohortType;
+  type!: CohortType;
   /** Start date for SIGNUP_DATE cohorts */
   startDate!: Date | null;
   /** End date for SIGNUP_DATE cohorts */
@@ -92,7 +92,7 @@ export default class binaryAiEngineCohort
   /** Maximum value for DEPOSIT_AMOUNT or TRADE_FREQUENCY */
   maxValue!: number | null;
   /** Custom criteria for CUSTOM cohorts */
-  customCriteria!: Record<string, any> | null;
+  criteria!: Record<string, any> | null;
   /** Number of users in cohort */
   userCount!: number;
   /** Total orders from cohort */
@@ -131,14 +131,14 @@ export default class binaryAiEngineCohort
             isUUID: { args: 4, msg: "engineId: Must be a valid UUID" },
           },
         },
-        cohortName: {
+        name: {
           type: DataTypes.STRING(100),
           allowNull: false,
           validate: {
-            notEmpty: { msg: "cohortName: Cohort name must not be empty" },
+            notEmpty: { msg: "name: Cohort name must not be empty" },
           },
         },
-        cohortType: {
+        type: {
           type: DataTypes.ENUM("SIGNUP_DATE", "DEPOSIT_AMOUNT", "TRADE_FREQUENCY", "CUSTOM"),
           allowNull: false,
         },
@@ -166,7 +166,7 @@ export default class binaryAiEngineCohort
             return value !== null ? parseFloat(value as any) : null;
           },
         },
-        customCriteria: {
+        criteria: {
           type: DataTypes.JSON,
           allowNull: true,
         },
@@ -215,8 +215,8 @@ export default class binaryAiEngineCohort
         timestamps: true,
         indexes: [
           { fields: ["engineId"] },
-          { fields: ["cohortType"] },
-          { fields: ["cohortName"] },
+          { fields: ["type"] },
+          { fields: ["name"] },
         ],
       }
     );

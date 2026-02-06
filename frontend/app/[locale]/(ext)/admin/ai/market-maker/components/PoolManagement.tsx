@@ -24,7 +24,6 @@ import {
   WalletCards,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 interface PoolManagementProps {
   marketId: string;
@@ -34,6 +33,51 @@ interface PoolManagementProps {
   baseCurrency?: string;
 }
 
+interface BalanceCardProps {
+  label: string;
+  value: string;
+  subValue?: string;
+  icon: React.ElementType;
+  gradient: string;
+  trend?: "up" | "down";
+  currency?: string;
+}
+
+function BalanceCard({ label, value, subValue, icon: IconComponent, gradient, trend, currency }: BalanceCardProps) {
+  // Cards with gradient backgrounds don't need borders as they are visually distinct
+  return (
+    <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-5 group-hover:opacity-10 transition-opacity`} />
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1 min-w-0 flex-1 mr-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {label}
+            </p>
+            <p className="text-2xl font-bold text-foreground truncate">
+              {value}
+            </p>
+            {currency && (
+              <p className="text-xs text-muted-foreground">{currency}</p>
+            )}
+            {subValue && (
+              <div className="flex items-center gap-1">
+                {trend === "up" && <ArrowUpRight className="w-3 h-3 text-green-500" />}
+                {trend === "down" && <ArrowDownRight className="w-3 h-3 text-red-500" />}
+                <span className={`text-sm ${trend === "up" ? "text-green-500" : trend === "down" ? "text-red-500" : "text-muted-foreground"}`}>
+                  {subValue}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} shadow-lg shrink-0`}>
+            <IconComponent className="w-5 h-5 text-white" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 interface ActionCardProps {
   title: string;
@@ -229,7 +273,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white/5 rounded-xl p-4">
-              <p className="text-xs text-white/60 mb-1">Base ({walletBalances?.base?.currency || baseCurrency || ""})</p>
+              <p className="text-xs text-white/60 mb-1">{t("base")}{walletBalances?.base?.currency || baseCurrency || ""})</p>
               <p className="text-xl font-bold">
                 {loadingWallet ? (
                   <span className="text-white/50">{tCommon('loading')}</span>
@@ -239,7 +283,7 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
               </p>
             </div>
             <div className="bg-white/5 rounded-xl p-4">
-              <p className="text-xs text-white/60 mb-1">Quote ({walletBalances?.quote?.currency || quoteCurrency || ""})</p>
+              <p className="text-xs text-white/60 mb-1">{t("quote")}{walletBalances?.quote?.currency || quoteCurrency || ""})</p>
               <p className="text-xl font-bold">
                 {loadingWallet ? (
                   <span className="text-white/50">{tCommon('loading')}</span>
@@ -254,35 +298,35 @@ export const PoolManagement: React.FC<PoolManagementProps> = ({
 
       {/* Pool Balances */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard
-          label={`${t("base_balance")} (${baseCurrency})`}
+        <BalanceCard
+          label={t("base_balance")}
           value={baseBalance.toFixed(6)}
+          currency={baseCurrency}
           icon={Coins}
-          {...statsCardColors.purple}
-          index={0}
+          gradient="from-purple-500 to-purple-600"
         />
-        <StatsCard
-          label={`${t("quote_balance")} (${quoteCurrency})`}
+        <BalanceCard
+          label={t("quote_balance")}
           value={quoteBalance.toLocaleString()}
+          currency={quoteCurrency}
           icon={DollarSign}
-          {...statsCardColors.green}
-          index={1}
+          gradient="from-green-500 to-green-600"
         />
-        <StatsCard
-          label={`${tCommon("total_value_locked")} (${quoteCurrency})`}
+        <BalanceCard
+          label={tCommon("total_value_locked")}
           value={tvl.toLocaleString()}
+          currency={quoteCurrency}
           icon={Wallet}
-          {...statsCardColors.purple}
-          index={2}
+          gradient="from-purple-500 to-purple-600"
         />
-        <StatsCard
-          label={`${tCommon("total_p_l")} (${quoteCurrency})`}
+        <BalanceCard
+          label={tCommon("total_p_l")}
           value={`${totalPnL >= 0 ? "+" : ""}${Math.abs(totalPnL).toFixed(2)}`}
-          change={tvl > 0 ? Number(((totalPnL / tvl) * 100).toFixed(2)) : 0}
-          isPercent={true}
+          currency={quoteCurrency}
+          subValue={`${totalPnL >= 0 ? "+" : ""}${tvl > 0 ? ((totalPnL / tvl) * 100).toFixed(2) : 0}%`}
           icon={totalPnL >= 0 ? TrendingUp : TrendingDown}
-          {...(totalPnL >= 0 ? statsCardColors.green : statsCardColors.red)}
-          index={3}
+          gradient={totalPnL >= 0 ? "from-green-500 to-green-600" : "from-red-500 to-red-600"}
+          trend={totalPnL >= 0 ? "up" : "down"}
         />
       </div>
 

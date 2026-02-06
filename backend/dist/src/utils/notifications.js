@@ -1,1 +1,79 @@
-"use strict";async function createNotification(i,t){var e,o,n;try{null===(e=null==t?void 0:t.step)||void 0===e||e.call(t,"Creating notification");const n=await notification_1.notificationService.send({userId:i.userId,type:mapNotificationType(i.type),channels:["IN_APP"],data:{title:i.title||"Notification",message:i.message,details:i.details,link:i.link,actions:i.actions,relatedId:i.relatedId},priority:getPriorityFromType(i.type),idempotencyKey:`notification-${i.userId}-${Date.now()}`});null===(o=null==t?void 0:t.success)||void 0===o||o.call(t,"Notification created successfully");return n.notificationId}catch(i){console_1.logger.error("Failed to create notification",i);null===(n=null==t?void 0:t.fail)||void 0===n||n.call(t,i.message);throw i}}async function createAdminNotification(i,t,e,o,n,a,c,s){var r,l,d;try{null===(r=null==s?void 0:s.step)||void 0===r||r.call(s,`Finding users with ${i} permission`);await notification_1.notificationService.sendToPermission({permissionName:i,type:mapNotificationType(o),channels:["IN_APP"],data:{title:t,message:e,details:a,link:n,actions:c},priority:getPriorityFromType(o)});null===(l=null==s?void 0:s.success)||void 0===l||l.call(s,"Admin notifications sent successfully")}catch(i){console_1.logger.error("Failed to create admin notification",i);null===(d=null==s?void 0:s.fail)||void 0===d||d.call(s,i.message);throw i}}function mapNotificationType(i){return{investment:"INVESTMENT",message:"MESSAGE",user:"USER",alert:"ALERT",system:"SYSTEM"}[i]||"SYSTEM"}function getPriorityFromType(i){switch(i){case"alert":case"investment":return"HIGH";default:return"NORMAL"}}Object.defineProperty(exports,"__esModule",{value:!0});exports.createNotification=createNotification;exports.createAdminNotification=createAdminNotification;const notification_1=require("@b/services/notification"),console_1=require("./console");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createNotification = createNotification;
+exports.createAdminNotification = createAdminNotification;
+const notification_1 = require("@b/services/notification");
+const console_1 = require("./console");
+async function createNotification(options, ctx) {
+    var _a, _b, _c;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Creating notification");
+        const result = await notification_1.notificationService.send({
+            userId: options.userId,
+            type: mapNotificationType(options.type),
+            channels: ["IN_APP"],
+            data: {
+                title: options.title || "Notification",
+                message: options.message,
+                details: options.details,
+                link: options.link,
+                actions: options.actions,
+                relatedId: options.relatedId,
+            },
+            priority: getPriorityFromType(options.type),
+            idempotencyKey: `notification-${options.userId}-${Date.now()}`,
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, "Notification created successfully");
+        return result.notificationId;
+    }
+    catch (err) {
+        console_1.logger.error("Failed to create notification", err);
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, err.message);
+        throw err;
+    }
+}
+async function createAdminNotification(permissionName, title, message, type, link, details, actions, ctx) {
+    var _a, _b, _c;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Finding users with ${permissionName} permission`);
+        await notification_1.notificationService.sendToPermission({
+            permissionName,
+            type: mapNotificationType(type),
+            channels: ["IN_APP"],
+            data: {
+                title,
+                message,
+                details,
+                link,
+                actions,
+            },
+            priority: getPriorityFromType(type),
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Admin notifications sent successfully`);
+    }
+    catch (error) {
+        console_1.logger.error("Failed to create admin notification", error);
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+function mapNotificationType(type) {
+    const typeMap = {
+        investment: "INVESTMENT",
+        message: "MESSAGE",
+        user: "USER",
+        alert: "ALERT",
+        system: "SYSTEM",
+    };
+    return typeMap[type] || "SYSTEM";
+}
+function getPriorityFromType(type) {
+    switch (type) {
+        case "alert":
+            return "HIGH";
+        case "investment":
+            return "HIGH";
+        default:
+            return "NORMAL";
+    }
+}

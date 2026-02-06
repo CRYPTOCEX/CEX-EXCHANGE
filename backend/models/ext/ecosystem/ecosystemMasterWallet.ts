@@ -24,32 +24,32 @@ export default class ecosystemMasterWallet
   getEcosystemCustodialWallets!: Sequelize.HasManyGetAssociationsMixin<ecosystemCustodialWallet>;
   setEcosystemCustodialWallets!: Sequelize.HasManySetAssociationsMixin<
     ecosystemCustodialWallet,
-    ecosystemCustodialWalletId
+    string
   >;
   addEcosystemCustodialWallet!: Sequelize.HasManyAddAssociationMixin<
     ecosystemCustodialWallet,
-    ecosystemCustodialWalletId
+    string
   >;
   addEcosystemCustodialWallets!: Sequelize.HasManyAddAssociationsMixin<
     ecosystemCustodialWallet,
-    ecosystemCustodialWalletId
+    string
   >;
   createEcosystemCustodialWallet!: Sequelize.HasManyCreateAssociationMixin<ecosystemCustodialWallet>;
   removeEcosystemCustodialWallet!: Sequelize.HasManyRemoveAssociationMixin<
     ecosystemCustodialWallet,
-    ecosystemCustodialWalletId
+    string
   >;
   removeEcosystemCustodialWallets!: Sequelize.HasManyRemoveAssociationsMixin<
     ecosystemCustodialWallet,
-    ecosystemCustodialWalletId
+    string
   >;
   hasEcosystemCustodialWallet!: Sequelize.HasManyHasAssociationMixin<
     ecosystemCustodialWallet,
-    ecosystemCustodialWalletId
+    string
   >;
   hasEcosystemCustodialWallets!: Sequelize.HasManyHasAssociationsMixin<
     ecosystemCustodialWallet,
-    ecosystemCustodialWalletId
+    string
   >;
   countEcosystemCustodialWallets!: Sequelize.HasManyCountAssociationsMixin;
 

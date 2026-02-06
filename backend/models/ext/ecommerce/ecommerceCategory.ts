@@ -24,32 +24,32 @@ export default class ecommerceCategory
   getEcommerceProducts!: Sequelize.HasManyGetAssociationsMixin<ecommerceProduct>;
   setEcommerceProducts!: Sequelize.HasManySetAssociationsMixin<
     ecommerceProduct,
-    ecommerceProductId
+    string
   >;
   addEcommerceProduct!: Sequelize.HasManyAddAssociationMixin<
     ecommerceProduct,
-    ecommerceProductId
+    string
   >;
   addEcommerceProducts!: Sequelize.HasManyAddAssociationsMixin<
     ecommerceProduct,
-    ecommerceProductId
+    string
   >;
   createEcommerceProduct!: Sequelize.HasManyCreateAssociationMixin<ecommerceProduct>;
   removeEcommerceProduct!: Sequelize.HasManyRemoveAssociationMixin<
     ecommerceProduct,
-    ecommerceProductId
+    string
   >;
   removeEcommerceProducts!: Sequelize.HasManyRemoveAssociationsMixin<
     ecommerceProduct,
-    ecommerceProductId
+    string
   >;
   hasEcommerceProduct!: Sequelize.HasManyHasAssociationMixin<
     ecommerceProduct,
-    ecommerceProductId
+    string
   >;
   hasEcommerceProducts!: Sequelize.HasManyHasAssociationsMixin<
     ecommerceProduct,
-    ecommerceProductId
+    string
   >;
   countEcommerceProducts!: Sequelize.HasManyCountAssociationsMixin;
 

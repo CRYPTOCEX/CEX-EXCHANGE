@@ -1,1 +1,458 @@
-"use strict";var _a,__importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.removeOrderFromTrackedOrders=exports.addOrderToTrackedOrders=exports.removeUserFromWatchlist=exports.addUserToWatchlist=exports.metadata=void 0;const exchange_1=__importDefault(require("@b/utils/exchange")),Websocket_1=require("@b/handler/Websocket"),db_1=require("@b/db"),utils_1=require("@b/api/finance/wallet/utils"),console_1=require("@b/utils/console"),utils_2=require("../utils"),utils_3=require("./utils"),wallet_1=require("@b/services/wallet"),error_1=require("@b/utils/error");exports.metadata={};class OrderHandler{constructor(){this.trackedOrders={};this.watchedUserIds=new Set;this.orderInterval=null;this.lastFetchTime=0;this.unblockTime=0;this.addUserToWatchlist=this.addUserToWatchlist.bind(this);this.removeUserFromWatchlist=this.removeUserFromWatchlist.bind(this);this.addOrderToTrackedOrders=this.addOrderToTrackedOrders.bind(this);this.removeOrderFromTrackedOrders=this.removeOrderFromTrackedOrders.bind(this);this.fetchOrdersForUser=this.fetchOrdersForUser.bind(this)}static getInstance(){OrderHandler.instance||(OrderHandler.instance=new OrderHandler);return OrderHandler.instance}startInterval(){this.orderInterval||(this.orderInterval=setInterval(this.flushOrders.bind(this),1e3))}stopInterval(){if(this.orderInterval){clearInterval(this.orderInterval);this.orderInterval=null}}async updateWalletBalance(e,t,r){try{const[a,s]=t.symbol.split("/"),i=await db_1.models.exchangeMarket.findOne({where:{currency:a,pair:s}});if(!i||!i.metadata)throw(0,error_1.createError)({statusCode:404,message:"Market data not found"});const d="string"==typeof i.metadata?JSON.parse(i.metadata):i.metadata,o="BUY"===t.side?Number(d.taker):Number(d.maker);t=(0,utils_3.adjustOrderData)(t,r,o);const n=Number(t.amount),c=Number(t.cost),l=Number(t.fee),h=await(0,utils_1.getWalletSafe)(e,"SPOT",a),u=await(0,utils_1.getWalletSafe)(e,"SPOT",s);if(!h||!u)throw(0,error_1.createError)({statusCode:404,message:"Wallet not found"});const m=`exchange_ws_fill_${t.id}`;if("BUY"===t.side){const r=n-l;await wallet_1.walletService.credit({idempotencyKey:m,userId:e,walletId:h.id,walletType:"SPOT",currency:a,amount:r,operationType:"EXCHANGE_ORDER_FILL",fee:l,description:`Order filled: Buy ${n} ${a}`,metadata:{orderId:t.id,symbol:t.symbol,side:t.side,cost:c}})}else{const r=c-l;await wallet_1.walletService.credit({idempotencyKey:m,userId:e,walletId:u.id,walletType:"SPOT",currency:s,amount:r,operationType:"EXCHANGE_ORDER_FILL",fee:l,description:`Order filled: Sell ${n} ${a}`,metadata:{orderId:t.id,symbol:t.symbol,side:t.side,amount:n}})}}catch(e){console_1.logger.error("EXCHANGE","Failed to update wallet balance",e)}}flushOrders(){if(Object.keys(this.trackedOrders).length>0){const e="/api/exchange/order",t="orders";Object.keys(this.trackedOrders).forEach(r=>{let a=this.trackedOrders[r];a=a.filter(e=>e.price&&e.amount&&void 0!==e.filled&&void 0!==e.remaining&&e.timestamp);const s=new Set;a=a.filter(e=>{const t=s.has(e.id);s.add(e.id);return!t});a.length>0&&Websocket_1.messageBroker.broadcastToSubscribedClients(e,{userId:r},{stream:t,data:a})});this.trackedOrders={}}else this.stopInterval()}async fetchOpenOrdersWithRetries(e,t,r){for(let a=1;a<=3;a++)try{if(Date.now()<this.unblockTime)throw(0,error_1.createError)({statusCode:503,message:`Blocked until ${new Date(this.unblockTime).toLocaleString()}`});const a=await e.fetchOpenOrders(t),[s,i]=t.split("/"),d=await db_1.models.exchangeMarket.findOne({where:{currency:s,pair:i}});if(!d||!d.metadata)throw(0,error_1.createError)({statusCode:404,message:"Market data not found"});const o="string"==typeof d.metadata?JSON.parse(d.metadata):d.metadata;return a.map(e=>{const t="BUY"===e.side?Number(o.taker):Number(o.maker);return(0,utils_3.adjustOrderData)(e,r,t)}).map(e=>({...e,status:e.status.toUpperCase()}))}catch(e){const t=await(0,utils_2.handleExchangeError)(e,exchange_1.default);if("number"==typeof t){this.unblockTime=t;await(0,utils_2.saveBanStatus)(this.unblockTime);throw e}if(!(a<3))throw e;await new Promise(e=>setTimeout(e,5e3))}}async fetchOrder(e,t,r,a){for(let s=1;s<=3;s++)try{if(Date.now()<this.unblockTime)throw(0,error_1.createError)({statusCode:503,message:`Blocked until ${new Date(this.unblockTime).toLocaleString()}`});const s=await e.fetchOrder(Number(t),r);s.status=s.status.toUpperCase();const[i,d]=r.split("/"),o=await db_1.models.exchangeMarket.findOne({where:{currency:i,pair:d}});if(!o||!o.metadata)throw(0,error_1.createError)({statusCode:404,message:"Market data not found"});const n="string"==typeof o.metadata?JSON.parse(o.metadata):o.metadata,c="BUY"===s.side?Number(n.taker):Number(n.maker);return(0,utils_3.adjustOrderData)(s,a,c)}catch(e){const r=await(0,utils_2.handleExchangeError)(e,exchange_1.default);if("number"==typeof r){this.unblockTime=r;await(0,utils_2.saveBanStatus)(this.unblockTime);throw e}if(e.message.includes("Order was canceled or expired with no executed qty over 90 days ago and has been archived")){await this.removeOrder(t);return null}if(!(s<3))throw e;await new Promise(e=>setTimeout(e,5e3))}}async updateOrder(e,t){try{await db_1.models.exchangeOrder.update({...t},{where:{referenceId:e}})}catch(e){console_1.logger.error("EXCHANGE","Failed to update order",e)}}async removeOrder(e){try{await db_1.models.exchangeOrder.destroy({where:{referenceId:e},force:!0})}catch(e){console_1.logger.error("EXCHANGE","Failed to remove order",e)}}addUserToWatchlist(e){if(!this.watchedUserIds.has(e)){this.watchedUserIds.add(e);this.trackedOrders[e]=this.trackedOrders[e]||[];this.orderInterval||this.startInterval()}}removeUserFromWatchlist(e){if(this.watchedUserIds.has(e)){this.watchedUserIds.delete(e);delete this.trackedOrders[e]}}removeOrderFromTrackedOrders(e,t){if(this.trackedOrders[e]){this.trackedOrders[e]=this.trackedOrders[e].filter(e=>e.id!==t);if(0===this.trackedOrders[e].length){delete this.trackedOrders[e];this.removeUserFromWatchlist(e)}}}addOrderToTrackedOrders(e,t){this.trackedOrders[e]=this.trackedOrders[e]||[];this.trackedOrders[e].push({id:t.id,status:t.status,price:t.price,amount:t.amount,filled:t.filled,remaining:t.remaining,timestamp:t.timestamp})}async fetchOrdersForUser(e,t,r,a){let s=t.map(e=>e.symbol);for(;(0,Websocket_1.hasClients)("/api/exchange/order")&&this.watchedUserIds.has(e);){const i=Date.now();i-this.lastFetchTime<5e3&&await new Promise(e=>setTimeout(e,5e3-(i-this.lastFetchTime)));this.lastFetchTime=Date.now();for(const i of s)try{if(Date.now()<this.unblockTime){const e=this.unblockTime-Date.now();console.log(`Waiting for ${(0,utils_2.formatWaitTime)(e)} until unblock time`);await new Promise(t=>setTimeout(t,Math.min(e,6e4)));this.unblockTime=await(0,utils_2.loadBanStatus)();continue}const s=await this.fetchOpenOrdersWithRetries(r,i,a);if(!s)throw(0,error_1.createError)({statusCode:500,message:"Failed to fetch open orders after retries"});for(const d of t){const o=s.find(e=>e.id===d.referenceId);if(o){if(o.status!==d.status){this.addOrderToTrackedOrders(e,{id:d.id,status:o.status,price:o.price,amount:o.amount,filled:o.filled,remaining:o.remaining,timestamp:o.timestamp});await this.updateOrder(o.id,{status:o.status.toUpperCase(),price:o.price,filled:o.filled,remaining:o.remaining});if("CLOSED"===o.status){t.splice(t.indexOf(d),1);await this.updateWalletBalance(e,o,a)}else d.status=o.status}}else{const s=await this.fetchOrder(r,d.referenceId,i,a);if(s){if(s.status!==d.status){this.addOrderToTrackedOrders(e,{id:d.id,status:s.status,price:s.price,amount:s.amount,filled:s.filled,remaining:s.remaining,timestamp:s.timestamp});await this.updateOrder(s.id,{status:s.status.toUpperCase(),price:s.price,filled:s.filled,remaining:s.remaining});if("CLOSED"===s.status){t.splice(t.indexOf(d),1);await this.updateWalletBalance(e,s,a)}}}else{await this.removeOrder(d.referenceId);t.splice(t.indexOf(d),1);this.removeOrderFromTrackedOrders(e,d.id);if(0===t.length){this.removeUserFromWatchlist(e);break}}}}if(s.length>0){this.trackedOrders[e]=this.trackedOrders[e]||[];s.forEach(t=>{this.trackedOrders[e].some(e=>e.id===t.id)||this.addOrderToTrackedOrders(e,{id:t.id,status:t.status,price:t.price,amount:t.amount,filled:t.filled,remaining:t.remaining,timestamp:t.timestamp})})}if(0===t.length){this.removeUserFromWatchlist(e);break}Object.keys(this.trackedOrders).length>0?this.startInterval():this.stopInterval()}catch(r){console_1.logger.error("EXCHANGE","Error fetching orders for user",r);s=s.filter(e=>e!==i);const a=t.filter(e=>e.symbol!==i);t.length=0;t.push(...a);if(0===t.length){this.removeUserFromWatchlist(e);break}}}}async handleMessage(e,t){"string"==typeof t&&(t=JSON.parse(t));const{user:r}=e;if(!(null==r?void 0:r.id))return;const{userId:a}=t.payload;if(!a)return;if(r.id!==a)return;if(this.watchedUserIds.has(a))return;this.addUserToWatchlist(a);const s=await db_1.models.exchangeOrder.findAll({where:{userId:r.id,status:"OPEN"},attributes:["id","referenceId","symbol","status","createdAt"],raw:!0});if(!s.length){this.removeUserFromWatchlist(a);return}const i=await exchange_1.default.startExchange();if(!i)return;const d=await exchange_1.default.getProvider();this.fetchOrdersForUser(a,s,i,d)}}exports.default=async(e,t)=>{const r=OrderHandler.getInstance();await r.handleMessage(e,t)};_a=OrderHandler.getInstance(),exports.addUserToWatchlist=_a.addUserToWatchlist,exports.removeUserFromWatchlist=_a.removeUserFromWatchlist,exports.addOrderToTrackedOrders=_a.addOrderToTrackedOrders,exports.removeOrderFromTrackedOrders=_a.removeOrderFromTrackedOrders;
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+var _a;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.removeOrderFromTrackedOrders = exports.addOrderToTrackedOrders = exports.removeUserFromWatchlist = exports.addUserToWatchlist = exports.metadata = void 0;
+const exchange_1 = __importDefault(require("@b/utils/exchange"));
+const Websocket_1 = require("@b/handler/Websocket");
+const db_1 = require("@b/db");
+const utils_1 = require("@b/api/finance/wallet/utils");
+const console_1 = require("@b/utils/console");
+const utils_2 = require("../utils");
+const utils_3 = require("./utils");
+const wallet_1 = require("@b/services/wallet");
+const error_1 = require("@b/utils/error");
+exports.metadata = {};
+class OrderHandler {
+    constructor() {
+        this.trackedOrders = {};
+        this.watchedUserIds = new Set();
+        this.orderInterval = null;
+        this.lastFetchTime = 0;
+        this.unblockTime = 0;
+        this.addUserToWatchlist = this.addUserToWatchlist.bind(this);
+        this.removeUserFromWatchlist = this.removeUserFromWatchlist.bind(this);
+        this.addOrderToTrackedOrders = this.addOrderToTrackedOrders.bind(this);
+        this.removeOrderFromTrackedOrders =
+            this.removeOrderFromTrackedOrders.bind(this);
+        this.fetchOrdersForUser = this.fetchOrdersForUser.bind(this);
+    }
+    static getInstance() {
+        if (!OrderHandler.instance) {
+            OrderHandler.instance = new OrderHandler();
+        }
+        return OrderHandler.instance;
+    }
+    startInterval() {
+        if (!this.orderInterval) {
+            this.orderInterval = setInterval(this.flushOrders.bind(this), 1000);
+        }
+    }
+    stopInterval() {
+        if (this.orderInterval) {
+            clearInterval(this.orderInterval);
+            this.orderInterval = null;
+        }
+    }
+    async updateWalletBalance(userId, order, provider) {
+        try {
+            const [currency, pair] = order.symbol.split("/");
+            const market = await db_1.models.exchangeMarket.findOne({
+                where: { currency, pair },
+            });
+            if (!market || !market.metadata) {
+                throw (0, error_1.createError)({ statusCode: 404, message: "Market data not found" });
+            }
+            const metadata = typeof market.metadata === "string"
+                ? JSON.parse(market.metadata)
+                : market.metadata;
+            const feeRate = order.side === "BUY" ? Number(metadata.taker) : Number(metadata.maker);
+            order = (0, utils_3.adjustOrderData)(order, provider, feeRate);
+            const amount = Number(order.amount);
+            const cost = Number(order.cost);
+            const fee = Number(order.fee);
+            const currencyWallet = await (0, utils_1.getWalletSafe)(userId, "SPOT", currency);
+            const pairWallet = await (0, utils_1.getWalletSafe)(userId, "SPOT", pair);
+            if (!currencyWallet || !pairWallet) {
+                throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+            }
+            const idempotencyKey = `exchange_ws_fill_${order.id}`;
+            if (order.side === "BUY") {
+                const netAmount = amount - fee;
+                await wallet_1.walletService.credit({
+                    idempotencyKey,
+                    userId,
+                    walletId: currencyWallet.id,
+                    walletType: "SPOT",
+                    currency,
+                    amount: netAmount,
+                    operationType: "EXCHANGE_ORDER_FILL",
+                    fee,
+                    description: `Order filled: Buy ${amount} ${currency}`,
+                    metadata: {
+                        orderId: order.id,
+                        symbol: order.symbol,
+                        side: order.side,
+                        cost,
+                    },
+                });
+            }
+            else {
+                const netProceeds = cost - fee;
+                await wallet_1.walletService.credit({
+                    idempotencyKey,
+                    userId,
+                    walletId: pairWallet.id,
+                    walletType: "SPOT",
+                    currency: pair,
+                    amount: netProceeds,
+                    operationType: "EXCHANGE_ORDER_FILL",
+                    fee,
+                    description: `Order filled: Sell ${amount} ${currency}`,
+                    metadata: {
+                        orderId: order.id,
+                        symbol: order.symbol,
+                        side: order.side,
+                        amount,
+                    },
+                });
+            }
+        }
+        catch (error) {
+            console_1.logger.error("EXCHANGE", "Failed to update wallet balance", error);
+        }
+    }
+    flushOrders() {
+        if (Object.keys(this.trackedOrders).length > 0) {
+            const route = "/api/exchange/order";
+            const streamKey = "orders";
+            Object.keys(this.trackedOrders).forEach((userId) => {
+                let orders = this.trackedOrders[userId];
+                orders = orders.filter((order) => order.price &&
+                    order.amount &&
+                    order.filled !== undefined &&
+                    order.remaining !== undefined &&
+                    order.timestamp);
+                const seenOrders = new Set();
+                orders = orders.filter((order) => {
+                    const isDuplicate = seenOrders.has(order.id);
+                    seenOrders.add(order.id);
+                    return !isDuplicate;
+                });
+                if (orders.length > 0) {
+                    Websocket_1.messageBroker.broadcastToSubscribedClients(route, { userId }, { stream: streamKey, data: orders });
+                }
+            });
+            this.trackedOrders = {};
+        }
+        else {
+            this.stopInterval();
+        }
+    }
+    async fetchOpenOrdersWithRetries(exchange, symbol, provider) {
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                if (Date.now() < this.unblockTime) {
+                    throw (0, error_1.createError)({
+                        statusCode: 503,
+                        message: `Blocked until ${new Date(this.unblockTime).toLocaleString()}`
+                    });
+                }
+                const orders = await exchange.fetchOpenOrders(symbol);
+                const [currency, pair] = symbol.split("/");
+                const market = await db_1.models.exchangeMarket.findOne({
+                    where: { currency, pair },
+                });
+                if (!market || !market.metadata) {
+                    throw (0, error_1.createError)({ statusCode: 404, message: "Market data not found" });
+                }
+                const metadata = typeof market.metadata === "string"
+                    ? JSON.parse(market.metadata)
+                    : market.metadata;
+                const adjustedOrders = orders.map((order) => {
+                    const feeRate = order.side === "BUY"
+                        ? Number(metadata.taker)
+                        : Number(metadata.maker);
+                    return (0, utils_3.adjustOrderData)(order, provider, feeRate);
+                });
+                return adjustedOrders.map((order) => ({
+                    ...order,
+                    status: order.status.toUpperCase(),
+                }));
+            }
+            catch (error) {
+                const result = await (0, utils_2.handleExchangeError)(error, exchange_1.default);
+                if (typeof result === "number") {
+                    this.unblockTime = result;
+                    await (0, utils_2.saveBanStatus)(this.unblockTime);
+                    throw error;
+                }
+                if (attempt < 3) {
+                    await new Promise((resolve) => setTimeout(resolve, 5000));
+                }
+                else {
+                    throw error;
+                }
+            }
+        }
+    }
+    async fetchOrder(exchange, orderId, symbol, provider) {
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                if (Date.now() < this.unblockTime) {
+                    throw (0, error_1.createError)({
+                        statusCode: 503,
+                        message: `Blocked until ${new Date(this.unblockTime).toLocaleString()}`
+                    });
+                }
+                const order = await exchange.fetchOrder(Number(orderId), symbol);
+                order.status = order.status.toUpperCase();
+                const [currency, pair] = symbol.split("/");
+                const market = await db_1.models.exchangeMarket.findOne({
+                    where: { currency, pair },
+                });
+                if (!market || !market.metadata) {
+                    throw (0, error_1.createError)({ statusCode: 404, message: "Market data not found" });
+                }
+                const metadata = typeof market.metadata === "string"
+                    ? JSON.parse(market.metadata)
+                    : market.metadata;
+                const feeRate = order.side === "BUY"
+                    ? Number(metadata.taker)
+                    : Number(metadata.maker);
+                return (0, utils_3.adjustOrderData)(order, provider, feeRate);
+            }
+            catch (error) {
+                const result = await (0, utils_2.handleExchangeError)(error, exchange_1.default);
+                if (typeof result === "number") {
+                    this.unblockTime = result;
+                    await (0, utils_2.saveBanStatus)(this.unblockTime);
+                    throw error;
+                }
+                if (error.message.includes("Order was canceled or expired with no executed qty over 90 days ago and has been archived")) {
+                    await this.removeOrder(orderId);
+                    return null;
+                }
+                if (attempt < 3) {
+                    await new Promise((resolve) => setTimeout(resolve, 5000));
+                }
+                else {
+                    throw error;
+                }
+            }
+        }
+    }
+    async updateOrder(orderId, data) {
+        try {
+            await db_1.models.exchangeOrder.update({ ...data }, { where: { referenceId: orderId } });
+        }
+        catch (error) {
+            console_1.logger.error("EXCHANGE", "Failed to update order", error);
+        }
+    }
+    async removeOrder(orderId) {
+        try {
+            await db_1.models.exchangeOrder.destroy({
+                where: { referenceId: orderId },
+                force: true,
+            });
+        }
+        catch (error) {
+            console_1.logger.error("EXCHANGE", "Failed to remove order", error);
+        }
+    }
+    addUserToWatchlist(userId) {
+        if (!this.watchedUserIds.has(userId)) {
+            this.watchedUserIds.add(userId);
+            this.trackedOrders[userId] = this.trackedOrders[userId] || [];
+            if (!this.orderInterval) {
+                this.startInterval();
+            }
+        }
+    }
+    removeUserFromWatchlist(userId) {
+        if (this.watchedUserIds.has(userId)) {
+            this.watchedUserIds.delete(userId);
+            delete this.trackedOrders[userId];
+        }
+    }
+    removeOrderFromTrackedOrders(userId, orderId) {
+        if (this.trackedOrders[userId]) {
+            this.trackedOrders[userId] = this.trackedOrders[userId].filter((order) => order.id !== orderId);
+            if (this.trackedOrders[userId].length === 0) {
+                delete this.trackedOrders[userId];
+                this.removeUserFromWatchlist(userId);
+            }
+        }
+    }
+    addOrderToTrackedOrders(userId, order) {
+        this.trackedOrders[userId] = this.trackedOrders[userId] || [];
+        this.trackedOrders[userId].push({
+            id: order.id,
+            status: order.status,
+            price: order.price,
+            amount: order.amount,
+            filled: order.filled,
+            remaining: order.remaining,
+            timestamp: order.timestamp,
+        });
+    }
+    async fetchOrdersForUser(userId, userOrders, exchange, provider) {
+        let symbols = userOrders.map((order) => order.symbol);
+        while ((0, Websocket_1.hasClients)("/api/exchange/order") &&
+            this.watchedUserIds.has(userId)) {
+            const currentTime = Date.now();
+            if (currentTime - this.lastFetchTime < 5000) {
+                await new Promise((resolve) => setTimeout(resolve, 5000 - (currentTime - this.lastFetchTime)));
+            }
+            this.lastFetchTime = Date.now();
+            for (const symbol of symbols) {
+                try {
+                    if (Date.now() < this.unblockTime) {
+                        const waitTime = this.unblockTime - Date.now();
+                        console.log(`Waiting for ${(0, utils_2.formatWaitTime)(waitTime)} until unblock time`);
+                        await new Promise((resolve) => setTimeout(resolve, Math.min(waitTime, 60000)));
+                        this.unblockTime = await (0, utils_2.loadBanStatus)();
+                        continue;
+                    }
+                    const openOrders = await this.fetchOpenOrdersWithRetries(exchange, symbol, provider);
+                    if (!openOrders) {
+                        throw (0, error_1.createError)({ statusCode: 500, message: "Failed to fetch open orders after retries" });
+                    }
+                    for (const order of userOrders) {
+                        const updatedOrder = openOrders.find((o) => o.id === order.referenceId);
+                        if (!updatedOrder) {
+                            const fetchedOrder = await this.fetchOrder(exchange, order.referenceId, symbol, provider);
+                            if (fetchedOrder) {
+                                if (fetchedOrder.status !== order.status) {
+                                    this.addOrderToTrackedOrders(userId, {
+                                        id: order.id,
+                                        status: fetchedOrder.status,
+                                        price: fetchedOrder.price,
+                                        amount: fetchedOrder.amount,
+                                        filled: fetchedOrder.filled,
+                                        remaining: fetchedOrder.remaining,
+                                        timestamp: fetchedOrder.timestamp,
+                                    });
+                                    await this.updateOrder(fetchedOrder.id, {
+                                        status: fetchedOrder.status.toUpperCase(),
+                                        price: fetchedOrder.price,
+                                        filled: fetchedOrder.filled,
+                                        remaining: fetchedOrder.remaining,
+                                    });
+                                    if (fetchedOrder.status === "CLOSED") {
+                                        userOrders.splice(userOrders.indexOf(order), 1);
+                                        await this.updateWalletBalance(userId, fetchedOrder, provider);
+                                    }
+                                }
+                            }
+                            else {
+                                await this.removeOrder(order.referenceId);
+                                userOrders.splice(userOrders.indexOf(order), 1);
+                                this.removeOrderFromTrackedOrders(userId, order.id);
+                                if (userOrders.length === 0) {
+                                    this.removeUserFromWatchlist(userId);
+                                    break;
+                                }
+                            }
+                        }
+                        else if (updatedOrder.status !== order.status) {
+                            this.addOrderToTrackedOrders(userId, {
+                                id: order.id,
+                                status: updatedOrder.status,
+                                price: updatedOrder.price,
+                                amount: updatedOrder.amount,
+                                filled: updatedOrder.filled,
+                                remaining: updatedOrder.remaining,
+                                timestamp: updatedOrder.timestamp,
+                            });
+                            await this.updateOrder(updatedOrder.id, {
+                                status: updatedOrder.status.toUpperCase(),
+                                price: updatedOrder.price,
+                                filled: updatedOrder.filled,
+                                remaining: updatedOrder.remaining,
+                            });
+                            if (updatedOrder.status === "CLOSED") {
+                                userOrders.splice(userOrders.indexOf(order), 1);
+                                await this.updateWalletBalance(userId, updatedOrder, provider);
+                            }
+                            else {
+                                order.status = updatedOrder.status;
+                            }
+                        }
+                    }
+                    if (openOrders.length > 0) {
+                        this.trackedOrders[userId] = this.trackedOrders[userId] || [];
+                        openOrders.forEach((order) => {
+                            if (!this.trackedOrders[userId].some((o) => o.id === order.id)) {
+                                this.addOrderToTrackedOrders(userId, {
+                                    id: order.id,
+                                    status: order.status,
+                                    price: order.price,
+                                    amount: order.amount,
+                                    filled: order.filled,
+                                    remaining: order.remaining,
+                                    timestamp: order.timestamp,
+                                });
+                            }
+                        });
+                    }
+                    if (userOrders.length === 0) {
+                        this.removeUserFromWatchlist(userId);
+                        break;
+                    }
+                    if (Object.keys(this.trackedOrders).length > 0) {
+                        this.startInterval();
+                    }
+                    else {
+                        this.stopInterval();
+                    }
+                }
+                catch (error) {
+                    console_1.logger.error("EXCHANGE", "Error fetching orders for user", error);
+                    symbols = symbols.filter((s) => s !== symbol);
+                    const filteredOrders = userOrders.filter((order) => order.symbol !== symbol);
+                    userOrders.length = 0;
+                    userOrders.push(...filteredOrders);
+                    if (userOrders.length === 0) {
+                        this.removeUserFromWatchlist(userId);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    async handleMessage(data, message) {
+        if (typeof message === "string") {
+            message = JSON.parse(message);
+        }
+        const { user } = data;
+        if (!(user === null || user === void 0 ? void 0 : user.id)) {
+            return;
+        }
+        const { userId } = message.payload;
+        if (!userId) {
+            return;
+        }
+        if (user.id !== userId) {
+            return;
+        }
+        if (!this.watchedUserIds.has(userId)) {
+            this.addUserToWatchlist(userId);
+        }
+        else {
+            return;
+        }
+        const userOrders = await db_1.models.exchangeOrder.findAll({
+            where: { userId: user.id, status: "OPEN" },
+            attributes: ["id", "referenceId", "symbol", "status", "createdAt"],
+            raw: true,
+        });
+        if (!userOrders.length) {
+            this.removeUserFromWatchlist(userId);
+            return;
+        }
+        const exchange = await exchange_1.default.startExchange();
+        if (!exchange)
+            return;
+        const provider = await exchange_1.default.getProvider();
+        this.fetchOrdersForUser(userId, userOrders, exchange, provider);
+    }
+}
+exports.default = async (data, message) => {
+    const handler = OrderHandler.getInstance();
+    await handler.handleMessage(data, message);
+};
+_a = OrderHandler.getInstance(), exports.addUserToWatchlist = _a.addUserToWatchlist, exports.removeUserFromWatchlist = _a.removeUserFromWatchlist, exports.addOrderToTrackedOrders = _a.addOrderToTrackedOrders, exports.removeOrderFromTrackedOrders = _a.removeOrderFromTrackedOrders;

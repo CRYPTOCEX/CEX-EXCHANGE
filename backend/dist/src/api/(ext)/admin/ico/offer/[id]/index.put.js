@@ -1,1 +1,181 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error");exports.metadata={summary:"Update ICO Offering (Admin)",description:"Updates an existing ICO offering's editable fields. Admins can update basic info, token details, and dates.",operationId:"updateIcoOfferingAdmin",tags:["ICO","Admin","Offerings"],requiresAuth:!0,logModule:"ADMIN_ICO",logTitle:"Update ICO Offering",parameters:[{name:"id",in:"path",required:!0,schema:{type:"string",description:"The ID of the ICO offering."}}],requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{name:{type:"string",description:"Offering name"},symbol:{type:"string",description:"Token symbol"},icon:{type:"string",description:"Token icon URL"},website:{type:"string",description:"Project website URL"},targetAmount:{type:"number",description:"Target funding amount"},tokenPrice:{type:"number",description:"Token price"},startDate:{type:"string",format:"date-time",description:"Start date"},endDate:{type:"string",format:"date-time",description:"End date"},description:{type:"string",description:"Token description"},blockchain:{type:"string",description:"Blockchain network"},totalSupply:{type:"number",description:"Total token supply"},featured:{type:"boolean",description:"Featured status"}}}}}},responses:{200:{description:"ICO offering updated successfully",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string"},offering:{type:"object"}}}}}},400:{description:"Invalid request data"},401:{description:"Unauthorized – Admin privileges required."},404:{description:"ICO offering not found."},500:{description:"Internal Server Error"}},permission:"edit.ico.offer"};exports.default=async e=>{const{user:t,params:i,body:o,ctx:n}=e;null==n||n.step("Validate user authentication");if(!(null==t?void 0:t.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized: Admin privileges required."});const{id:r}=i,{name:a,symbol:s,icon:d,website:c,targetAmount:p,tokenPrice:l,startDate:f,endDate:u,description:m,blockchain:g,totalSupply:y,featured:b}=o,k=await db_1.sequelize.transaction();try{null==n||n.step("Fetch ICO offering");const e=await db_1.models.icoTokenOffering.findByPk(r,{include:[{model:db_1.models.icoTokenDetail,as:"tokenDetail"}],transaction:k});if(!e)throw(0,error_1.createError)({statusCode:404,message:"ICO offering not found."});const i={};void 0!==a&&a.trim()&&(i.name=a.trim());if(void 0!==s&&s.trim()){const e=await db_1.models.icoTokenOffering.findOne({where:{symbol:s.toUpperCase()},transaction:k});if(e&&e.id!==r)throw(0,error_1.createError)({statusCode:400,message:`Token symbol "${s.toUpperCase()}" is already in use.`});i.symbol=s.toUpperCase()}void 0!==d&&(i.icon=d);void 0!==c&&(i.website=c);void 0!==p&&p>0&&(i.targetAmount=p);void 0!==l&&l>0&&(i.tokenPrice=l);void 0!==f&&(i.startDate=new Date(f));void 0!==u&&(i.endDate=new Date(u));void 0!==b&&(i.featured=b);if(Object.keys(i).length>0){null==n||n.step("Update offering fields");await e.update(i,{transaction:k})}if(e.tokenDetail&&(void 0!==m||void 0!==g||void 0!==y)){const t={};void 0!==m&&(t.description=m);void 0!==g&&(t.blockchain=g);void 0!==y&&y>0&&(t.totalSupply=y);if(Object.keys(t).length>0){null==n||n.step("Update token detail fields");await e.tokenDetail.update(t,{transaction:k})}}null==n||n.step("Log admin activity");await db_1.models.icoAdminActivity.create({type:"UPDATED",offeringId:r,offeringName:e.name,adminId:t.id,details:JSON.stringify({updatedFields:Object.keys(i)})},{transaction:k});await k.commit();null==n||n.step("Fetch updated offering");const o=await db_1.models.icoTokenOffering.findByPk(r,{include:[{model:db_1.models.icoTokenDetail,as:"tokenDetail",include:[{model:db_1.models.icoTokenType,as:"tokenTypeData"}]},{model:db_1.models.icoLaunchPlan,as:"plan"},{model:db_1.models.icoTokenOfferingPhase,as:"phases"},{model:db_1.models.icoRoadmapItem,as:"roadmapItems"}]});null==n||n.success("ICO offering updated successfully");return{message:"ICO offering updated successfully",offering:o}}catch(e){await k.rollback();throw e}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+exports.metadata = {
+    summary: "Update ICO Offering (Admin)",
+    description: "Updates an existing ICO offering's editable fields. Admins can update basic info, token details, and dates.",
+    operationId: "updateIcoOfferingAdmin",
+    tags: ["ICO", "Admin", "Offerings"],
+    requiresAuth: true,
+    logModule: "ADMIN_ICO",
+    logTitle: "Update ICO Offering",
+    parameters: [
+        {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", description: "The ID of the ICO offering." },
+        },
+    ],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        name: { type: "string", description: "Offering name" },
+                        symbol: { type: "string", description: "Token symbol" },
+                        icon: { type: "string", description: "Token icon URL" },
+                        website: { type: "string", description: "Project website URL" },
+                        targetAmount: { type: "number", description: "Target funding amount" },
+                        tokenPrice: { type: "number", description: "Token price" },
+                        startDate: { type: "string", format: "date-time", description: "Start date" },
+                        endDate: { type: "string", format: "date-time", description: "End date" },
+                        description: { type: "string", description: "Token description" },
+                        blockchain: { type: "string", description: "Blockchain network" },
+                        totalSupply: { type: "number", description: "Total token supply" },
+                        featured: { type: "boolean", description: "Featured status" },
+                    },
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "ICO offering updated successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: { type: "string" },
+                            offering: { type: "object" },
+                        },
+                    },
+                },
+            },
+        },
+        400: { description: "Invalid request data" },
+        401: { description: "Unauthorized – Admin privileges required." },
+        404: { description: "ICO offering not found." },
+        500: { description: "Internal Server Error" },
+    },
+    permission: "edit.ico.offer",
+};
+exports.default = async (data) => {
+    const { user, params, body, ctx } = data;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validate user authentication");
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({
+            statusCode: 401,
+            message: "Unauthorized: Admin privileges required.",
+        });
+    }
+    const { id } = params;
+    const { name, symbol, icon, website, targetAmount, tokenPrice, startDate, endDate, description, blockchain, totalSupply, featured, } = body;
+    const transaction = await db_1.sequelize.transaction();
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetch ICO offering");
+        const offering = await db_1.models.icoTokenOffering.findByPk(id, {
+            include: [{ model: db_1.models.icoTokenDetail, as: "tokenDetail" }],
+            transaction,
+        });
+        if (!offering) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "ICO offering not found." });
+        }
+        const offeringUpdates = {};
+        if (name !== undefined && name.trim()) {
+            offeringUpdates.name = name.trim();
+        }
+        if (symbol !== undefined && symbol.trim()) {
+            const existingSymbol = await db_1.models.icoTokenOffering.findOne({
+                where: { symbol: symbol.toUpperCase() },
+                transaction,
+            });
+            if (existingSymbol && existingSymbol.id !== id) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: `Token symbol "${symbol.toUpperCase()}" is already in use.`,
+                });
+            }
+            offeringUpdates.symbol = symbol.toUpperCase();
+        }
+        if (icon !== undefined) {
+            offeringUpdates.icon = icon;
+        }
+        if (website !== undefined) {
+            offeringUpdates.website = website;
+        }
+        if (targetAmount !== undefined && targetAmount > 0) {
+            offeringUpdates.targetAmount = targetAmount;
+        }
+        if (tokenPrice !== undefined && tokenPrice > 0) {
+            offeringUpdates.tokenPrice = tokenPrice;
+        }
+        if (startDate !== undefined) {
+            offeringUpdates.startDate = new Date(startDate);
+        }
+        if (endDate !== undefined) {
+            offeringUpdates.endDate = new Date(endDate);
+        }
+        if (featured !== undefined) {
+            offeringUpdates.featured = featured;
+        }
+        if (Object.keys(offeringUpdates).length > 0) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Update offering fields");
+            await offering.update(offeringUpdates, { transaction });
+        }
+        if (offering.tokenDetail && (description !== undefined || blockchain !== undefined || totalSupply !== undefined)) {
+            const detailUpdates = {};
+            if (description !== undefined) {
+                detailUpdates.description = description;
+            }
+            if (blockchain !== undefined) {
+                detailUpdates.blockchain = blockchain;
+            }
+            if (totalSupply !== undefined && totalSupply > 0) {
+                detailUpdates.totalSupply = totalSupply;
+            }
+            if (Object.keys(detailUpdates).length > 0) {
+                ctx === null || ctx === void 0 ? void 0 : ctx.step("Update token detail fields");
+                await offering.tokenDetail.update(detailUpdates, { transaction });
+            }
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Log admin activity");
+        await db_1.models.icoAdminActivity.create({
+            type: "UPDATED",
+            offeringId: id,
+            offeringName: offering.name,
+            adminId: user.id,
+            details: JSON.stringify({
+                updatedFields: Object.keys(offeringUpdates),
+            }),
+        }, { transaction });
+        await transaction.commit();
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetch updated offering");
+        const updatedOffering = await db_1.models.icoTokenOffering.findByPk(id, {
+            include: [
+                {
+                    model: db_1.models.icoTokenDetail,
+                    as: "tokenDetail",
+                    include: [{ model: db_1.models.icoTokenType, as: "tokenTypeData" }],
+                },
+                { model: db_1.models.icoLaunchPlan, as: "plan" },
+                { model: db_1.models.icoTokenOfferingPhase, as: "phases" },
+                { model: db_1.models.icoRoadmapItem, as: "roadmapItems" },
+            ],
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("ICO offering updated successfully");
+        return {
+            message: "ICO offering updated successfully",
+            offering: updatedOffering,
+        };
+    }
+    catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
+};

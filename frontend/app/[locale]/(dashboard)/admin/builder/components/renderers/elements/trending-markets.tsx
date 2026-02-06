@@ -124,7 +124,7 @@ export const TrendingMarketsElement = memo<TrendingMarketsProps>(
     const processedSettings = useMemo(
       () => ({
         apiEndpoint: settings.apiEndpoint || "/api/markets/ticker",
-        wsEndpoint: settings.wsEndpoint || "/api/markets/ticker/ws",
+        wsEndpoint: settings.wsEndpoint || "/api/exchange/ticker",
         maxItems: settings.maxItems || 10,
         autoScroll: settings.autoScroll !== false,
         scrollSpeed: settings.scrollSpeed || 50,

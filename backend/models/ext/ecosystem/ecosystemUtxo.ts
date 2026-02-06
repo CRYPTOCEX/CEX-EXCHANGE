@@ -65,9 +65,7 @@ export default class ecosystemUtxo
         script: {
           type: DataTypes.STRING(1000),
           allowNull: false,
-          validate: {
-            notEmpty: { msg: "script: Script must not be empty" },
-          },
+          defaultValue: 'N/A',
         },
         status: {
           type: DataTypes.BOOLEAN,

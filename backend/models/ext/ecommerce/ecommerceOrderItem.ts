@@ -23,7 +23,7 @@ export default class ecommerceOrderItem
   getOrder!: Sequelize.BelongsToGetAssociationMixin<ecommerceOrder>;
   setOrder!: Sequelize.BelongsToSetAssociationMixin<
     ecommerceOrder,
-    ecommerceOrderId
+    string
   >;
   createOrder!: Sequelize.BelongsToCreateAssociationMixin<ecommerceOrder>;
   // ecommerceOrderItem belongsTo ecommerceProduct via productId
@@ -31,7 +31,7 @@ export default class ecommerceOrderItem
   getProduct!: Sequelize.BelongsToGetAssociationMixin<ecommerceProduct>;
   setProduct!: Sequelize.BelongsToSetAssociationMixin<
     ecommerceProduct,
-    ecommerceProductId
+    string
   >;
   createProduct!: Sequelize.BelongsToCreateAssociationMixin<ecommerceProduct>;
 

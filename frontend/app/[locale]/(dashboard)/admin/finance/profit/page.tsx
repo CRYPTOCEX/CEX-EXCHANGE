@@ -24,7 +24,7 @@ export default function AdminProfitPage() {
       canEdit={false}
       canDelete
       canView
-      isParanoid={true}
+      isParanoid={false}
       title={t("admin_profit_management")}
       description={t("manage_user_profits_and_earnings")}
       itemTitle="Profit"

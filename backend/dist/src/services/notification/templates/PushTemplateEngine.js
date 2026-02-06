@@ -1,1 +1,188 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.pushTemplateEngine=exports.PushTemplateEngine=void 0;const console_1=require("@b/utils/console");class PushTemplateEngine{constructor(){this.MAX_TITLE_LENGTH=65;this.MAX_BODY_LENGTH=240}static getInstance(){PushTemplateEngine.instance||(PushTemplateEngine.instance=new PushTemplateEngine);return PushTemplateEngine.instance}render(t,e,i){try{let r=this.replaceVariables(t,i),a=this.replaceVariables(e,i);r=this.truncate(r,this.MAX_TITLE_LENGTH);a=this.truncate(a,this.MAX_BODY_LENGTH);return{title:r,body:a,data:this.extractStringData(i),imageUrl:i.imageUrl,icon:i.icon}}catch(i){console_1.logger.error("PushTemplateEngine",`Failed to render push template: title="${t}", body="${e}"`,i instanceof Error?i:new Error(String(i)));throw i}}createFromNotification(t){return{title:this.truncate(t.title,this.MAX_TITLE_LENGTH),body:this.truncate(t.message,this.MAX_BODY_LENGTH),imageUrl:t.imageUrl,icon:t.icon,data:this.extractStringData(t.customData||{})}}replaceVariables(t,e){return t.replace(/\{\{([^}]+)\}\}/g,(t,i)=>{const r=i.trim();return void 0!==e[r]?String(e[r]):t})}truncate(t,e){return t.length<=e?t:t.substring(0,e-1)+"…"}extractStringData(t){const e={};for(const[i,r]of Object.entries(t))null!=r&&(e[i]=String(r));return e}getCommonTemplates(){return{TRADE_COMPLETED:{title:"Trade Completed",body:"{{pair}} {{side}} order filled at {{price}}"},TRADE_FAILED:{title:"Trade Failed",body:"{{pair}} order failed: {{reason}}"},DEPOSIT_CONFIRMED:{title:"Deposit Confirmed",body:"{{amount}} {{currency}} deposited to your wallet"},WITHDRAWAL_COMPLETED:{title:"Withdrawal Completed",body:"{{amount}} {{currency}} sent successfully"},LOGIN_NEW_DEVICE:{title:"New Login Detected",body:"Login from {{device}} in {{location}}"},PASSWORD_CHANGED:{title:"Password Changed",body:"Your password was changed. Contact support if this wasn't you."},TWO_FACTOR_ENABLED:{title:"2FA Enabled",body:"Two-factor authentication has been enabled for your account"},MAINTENANCE_ALERT:{title:"Maintenance Alert",body:"{{message}} scheduled for {{time}}"},SYSTEM_UPDATE:{title:"System Update",body:"{{message}}"},PRICE_ALERT:{title:"Price Alert",body:"{{pair}} reached {{price}} ({{change}})"},ORDER_FILLED:{title:"Order Filled",body:"{{pair}} {{side}} order filled at {{price}}"},ORDER_CANCELLED:{title:"Order Cancelled",body:"{{pair}} order cancelled"}}}renderWithFallback(t,e,i,r){try{return this.render(t,e,i)}catch(t){if(r){console_1.logger.warn("PushTemplateEngine","Using fallback push template",t instanceof Error?t.message:String(t));return{title:this.truncate(r.title,this.MAX_TITLE_LENGTH),body:this.truncate(r.body,this.MAX_BODY_LENGTH)}}throw t}}validateTemplate(t,e,i){const r=[],a=t.match(/\{\{([^}]+)\}\}/g);if(a)for(const t of a){const e=t.replace(/\{\{|\}\}/g,"").trim();void 0===i[e]&&r.push(`Missing data for title variable: ${e}`)}const n=e.match(/\{\{([^}]+)\}\}/g);if(n)for(const t of n){const e=t.replace(/\{\{|\}\}/g,"").trim();void 0===i[e]&&r.push(`Missing data for body variable: ${e}`)}if(0===r.length){const a=this.render(t,e,i);a.title.length>this.MAX_TITLE_LENGTH&&r.push(`Title too long: ${a.title.length} chars (max ${this.MAX_TITLE_LENGTH})`);a.body.length>this.MAX_BODY_LENGTH&&r.push(`Body too long: ${a.body.length} chars (max ${this.MAX_BODY_LENGTH})`)}return{valid:0===r.length,errors:r}}createRichNotification(t){return{title:this.truncate(t.title,this.MAX_TITLE_LENGTH),body:this.truncate(t.body,this.MAX_BODY_LENGTH),imageUrl:t.imageUrl,icon:t.icon,data:this.extractStringData(t.customData||{})}}createActionNotification(t){const e={...this.extractStringData(t.customData||{}),actions:JSON.stringify(t.actions)};return{title:this.truncate(t.title,this.MAX_TITLE_LENGTH),body:this.truncate(t.body,this.MAX_BODY_LENGTH),data:e}}}exports.PushTemplateEngine=PushTemplateEngine;exports.pushTemplateEngine=PushTemplateEngine.getInstance();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.pushTemplateEngine = exports.PushTemplateEngine = void 0;
+const console_1 = require("@b/utils/console");
+class PushTemplateEngine {
+    constructor() {
+        this.MAX_TITLE_LENGTH = 65;
+        this.MAX_BODY_LENGTH = 240;
+    }
+    static getInstance() {
+        if (!PushTemplateEngine.instance) {
+            PushTemplateEngine.instance = new PushTemplateEngine();
+        }
+        return PushTemplateEngine.instance;
+    }
+    render(titleTemplate, bodyTemplate, data) {
+        try {
+            let title = this.replaceVariables(titleTemplate, data);
+            let body = this.replaceVariables(bodyTemplate, data);
+            title = this.truncate(title, this.MAX_TITLE_LENGTH);
+            body = this.truncate(body, this.MAX_BODY_LENGTH);
+            return {
+                title,
+                body,
+                data: this.extractStringData(data),
+                imageUrl: data.imageUrl,
+                icon: data.icon,
+            };
+        }
+        catch (error) {
+            console_1.logger.error("PushTemplateEngine", `Failed to render push template: title="${titleTemplate}", body="${bodyTemplate}"`, error instanceof Error ? error : new Error(String(error)));
+            throw error;
+        }
+    }
+    createFromNotification(data) {
+        return {
+            title: this.truncate(data.title, this.MAX_TITLE_LENGTH),
+            body: this.truncate(data.message, this.MAX_BODY_LENGTH),
+            imageUrl: data.imageUrl,
+            icon: data.icon,
+            data: this.extractStringData(data.customData || {}),
+        };
+    }
+    replaceVariables(template, data) {
+        return template.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
+            const trimmedKey = key.trim();
+            return data[trimmedKey] !== undefined ? String(data[trimmedKey]) : match;
+        });
+    }
+    truncate(text, maxLength) {
+        if (text.length <= maxLength) {
+            return text;
+        }
+        return text.substring(0, maxLength - 1) + "…";
+    }
+    extractStringData(data) {
+        const stringData = {};
+        for (const [key, value] of Object.entries(data)) {
+            if (value !== null && value !== undefined) {
+                stringData[key] = String(value);
+            }
+        }
+        return stringData;
+    }
+    getCommonTemplates() {
+        return {
+            TRADE_COMPLETED: {
+                title: "Trade Completed",
+                body: "{{pair}} {{side}} order filled at {{price}}",
+            },
+            TRADE_FAILED: {
+                title: "Trade Failed",
+                body: "{{pair}} order failed: {{reason}}",
+            },
+            DEPOSIT_CONFIRMED: {
+                title: "Deposit Confirmed",
+                body: "{{amount}} {{currency}} deposited to your wallet",
+            },
+            WITHDRAWAL_COMPLETED: {
+                title: "Withdrawal Completed",
+                body: "{{amount}} {{currency}} sent successfully",
+            },
+            LOGIN_NEW_DEVICE: {
+                title: "New Login Detected",
+                body: "Login from {{device}} in {{location}}",
+            },
+            PASSWORD_CHANGED: {
+                title: "Password Changed",
+                body: "Your password was changed. Contact support if this wasn't you.",
+            },
+            TWO_FACTOR_ENABLED: {
+                title: "2FA Enabled",
+                body: "Two-factor authentication has been enabled for your account",
+            },
+            MAINTENANCE_ALERT: {
+                title: "Maintenance Alert",
+                body: "{{message}} scheduled for {{time}}",
+            },
+            SYSTEM_UPDATE: {
+                title: "System Update",
+                body: "{{message}}",
+            },
+            PRICE_ALERT: {
+                title: "Price Alert",
+                body: "{{pair}} reached {{price}} ({{change}})",
+            },
+            ORDER_FILLED: {
+                title: "Order Filled",
+                body: "{{pair}} {{side}} order filled at {{price}}",
+            },
+            ORDER_CANCELLED: {
+                title: "Order Cancelled",
+                body: "{{pair}} order cancelled",
+            },
+        };
+    }
+    renderWithFallback(titleTemplate, bodyTemplate, data, fallback) {
+        try {
+            return this.render(titleTemplate, bodyTemplate, data);
+        }
+        catch (error) {
+            if (fallback) {
+                console_1.logger.warn("PushTemplateEngine", "Using fallback push template", error instanceof Error ? error.message : String(error));
+                return {
+                    title: this.truncate(fallback.title, this.MAX_TITLE_LENGTH),
+                    body: this.truncate(fallback.body, this.MAX_BODY_LENGTH),
+                };
+            }
+            throw error;
+        }
+    }
+    validateTemplate(titleTemplate, bodyTemplate, data) {
+        const errors = [];
+        const titleVariables = titleTemplate.match(/\{\{([^}]+)\}\}/g);
+        if (titleVariables) {
+            for (const variable of titleVariables) {
+                const key = variable.replace(/\{\{|\}\}/g, "").trim();
+                if (data[key] === undefined) {
+                    errors.push(`Missing data for title variable: ${key}`);
+                }
+            }
+        }
+        const bodyVariables = bodyTemplate.match(/\{\{([^}]+)\}\}/g);
+        if (bodyVariables) {
+            for (const variable of bodyVariables) {
+                const key = variable.replace(/\{\{|\}\}/g, "").trim();
+                if (data[key] === undefined) {
+                    errors.push(`Missing data for body variable: ${key}`);
+                }
+            }
+        }
+        if (errors.length === 0) {
+            const rendered = this.render(titleTemplate, bodyTemplate, data);
+            if (rendered.title.length > this.MAX_TITLE_LENGTH) {
+                errors.push(`Title too long: ${rendered.title.length} chars (max ${this.MAX_TITLE_LENGTH})`);
+            }
+            if (rendered.body.length > this.MAX_BODY_LENGTH) {
+                errors.push(`Body too long: ${rendered.body.length} chars (max ${this.MAX_BODY_LENGTH})`);
+            }
+        }
+        return {
+            valid: errors.length === 0,
+            errors,
+        };
+    }
+    createRichNotification(data) {
+        return {
+            title: this.truncate(data.title, this.MAX_TITLE_LENGTH),
+            body: this.truncate(data.body, this.MAX_BODY_LENGTH),
+            imageUrl: data.imageUrl,
+            icon: data.icon,
+            data: this.extractStringData(data.customData || {}),
+        };
+    }
+    createActionNotification(data) {
+        const actionData = {
+            ...this.extractStringData(data.customData || {}),
+            actions: JSON.stringify(data.actions),
+        };
+        return {
+            title: this.truncate(data.title, this.MAX_TITLE_LENGTH),
+            body: this.truncate(data.body, this.MAX_BODY_LENGTH),
+            data: actionData,
+        };
+    }
+}
+exports.PushTemplateEngine = PushTemplateEngine;
+exports.pushTemplateEngine = PushTemplateEngine.getInstance();

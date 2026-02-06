@@ -30,7 +30,7 @@ import CommandPalette from "./command-palette";
 import MobileMenu from "./mobile-menu";
 
 // Color schema utilities
-import { NAV_COLOR_SCHEMAS, getColorHex, getGradientStyle } from "@/lib/nav-color-schema";
+import { NAV_COLOR_SCHEMAS, getColorHex, getGradientStyle, type NavColorSchema } from "@/lib/nav-color-schema";
 
 export interface SiteHeaderProps {
   /**

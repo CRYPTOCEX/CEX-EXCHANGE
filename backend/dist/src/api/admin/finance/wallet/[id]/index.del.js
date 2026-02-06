@@ -1,1 +1,26 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query");exports.metadata={summary:"Deletes a wallet",operationId:"deleteWallet",tags:["Admin","Wallet"],parameters:(0,query_1.deleteRecordParams)("wallet"),responses:(0,query_1.deleteRecordResponses)("Wallet"),requiresAuth:!0,permission:"delete.wallet",logModule:"ADMIN_FIN",logTitle:"Delete Wallet"};exports.default=async e=>{const{params:l,query:t,ctx:s}=e;null==s||s.step("Deleting wallet");const a=await(0,query_1.handleSingleDelete)({model:"wallet",id:l.id,query:t});null==s||s.success("Wallet deleted successfully");return a};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+exports.metadata = {
+    summary: "Deletes a wallet",
+    operationId: "deleteWallet",
+    tags: ["Admin", "Wallet"],
+    parameters: (0, query_1.deleteRecordParams)("wallet"),
+    responses: (0, query_1.deleteRecordResponses)("Wallet"),
+    requiresAuth: true,
+    permission: "delete.wallet",
+    logModule: "ADMIN_FIN",
+    logTitle: "Delete Wallet",
+};
+exports.default = async (data) => {
+    const { params, query, ctx } = data;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Deleting wallet");
+    const result = await (0, query_1.handleSingleDelete)({
+        model: "wallet",
+        id: params.id,
+        query,
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Wallet deleted successfully");
+    return result;
+};

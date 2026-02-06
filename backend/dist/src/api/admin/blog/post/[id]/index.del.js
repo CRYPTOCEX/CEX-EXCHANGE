@@ -1,1 +1,27 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query");exports.metadata={summary:"Deletes a specific post",operationId:"deletePost",tags:["Admin","Content","Posts"],parameters:(0,query_1.deleteRecordParams)("Post"),responses:(0,query_1.deleteRecordResponses)("Post"),permission:"delete.blog.post",requiresAuth:!0,logModule:"ADMIN_BLOG",logTitle:"Delete blog post"};exports.default=async e=>{const{params:t,query:s,ctx:o}=e;null==o||o.step("Validating blog post ID");null==o||o.step("Deleting blog post");const l=await(0,query_1.handleSingleDelete)({model:"post",id:t.id,query:s});null==o||o.success("Blog post deleted successfully");return l};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+exports.metadata = {
+    summary: "Deletes a specific post",
+    operationId: "deletePost",
+    tags: ["Admin", "Content", "Posts"],
+    parameters: (0, query_1.deleteRecordParams)("Post"),
+    responses: (0, query_1.deleteRecordResponses)("Post"),
+    permission: "delete.blog.post",
+    requiresAuth: true,
+    logModule: "ADMIN_BLOG",
+    logTitle: "Delete blog post",
+};
+exports.default = async (data) => {
+    const { params, query, ctx } = data;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating blog post ID");
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Deleting blog post");
+    const result = await (0, query_1.handleSingleDelete)({
+        model: "post",
+        id: params.id,
+        query,
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Blog post deleted successfully");
+    return result;
+};

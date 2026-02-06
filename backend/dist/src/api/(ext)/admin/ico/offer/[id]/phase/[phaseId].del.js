@@ -1,1 +1,142 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error");exports.metadata={summary:"Delete ICO Phase (Admin)",description:"Deletes a phase from an existing ICO offering. This recalculates the offering end date.",operationId:"deleteIcoPhaseAdmin",tags:["ICO","Admin","Offerings"],requiresAuth:!0,logModule:"ADMIN_ICO",logTitle:"Delete ICO Phase",parameters:[{name:"id",in:"path",required:!0,schema:{type:"string",description:"The ID of the ICO offering."}},{name:"phaseId",in:"path",required:!0,schema:{type:"string",description:"The ID of the phase to delete."}}],responses:{200:{description:"Phase deleted successfully",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string"},newEndDate:{type:"string",format:"date-time"}}}}}},400:{description:"Invalid request or cannot delete phase"},401:{description:"Unauthorized – Admin privileges required."},404:{description:"ICO offering or phase not found."},500:{description:"Internal Server Error"}},permission:"edit.ico.offer"};exports.default=async e=>{const{user:t,params:a,ctx:r}=e;null==r||r.step("Validate user authentication");if(!(null==t?void 0:t.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized: Admin privileges required."});const{id:s,phaseId:n}=a;if(!s||!n)throw(0,error_1.createError)({statusCode:400,message:"Offering ID and Phase ID are required."});const i=await db_1.sequelize.transaction();try{null==r||r.step("Fetch ICO offering");const e=await db_1.models.icoTokenOffering.findByPk(s,{include:[{model:db_1.models.icoTokenOfferingPhase,as:"phases"}],transaction:i});if(!e)throw(0,error_1.createError)({statusCode:404,message:"ICO offering not found."});if(!["ACTIVE","PENDING","UPCOMING","SUCCESS"].includes(e.status))throw(0,error_1.createError)({statusCode:400,message:`Cannot delete phase from offering with status: ${e.status}`});null==r||r.step("Find phase to delete");const a=await db_1.models.icoTokenOfferingPhase.findOne({where:{id:n,offeringId:s},transaction:i});if(!a)throw(0,error_1.createError)({statusCode:404,message:"Phase not found."});const o=a.allocation-a.remaining;if(o>0)throw(0,error_1.createError)({statusCode:400,message:`Cannot delete phase with ${o} tokens already sold.`});const d=a.name,l=a.duration;null==r||r.step("Delete phase");await a.destroy({transaction:i});null==r||r.step("Recalculate end date");const c=await db_1.models.icoTokenOfferingPhase.findAll({where:{offeringId:s},transaction:i});let f;if(0===c.length)f=new Date(e.startDate);else{const t=c.reduce((e,t)=>e+(t.duration||0),0);f=new Date(e.startDate);f.setDate(f.getDate()+t)}null==r||r.step("Update offering end date");await e.update({endDate:f},{transaction:i});null==r||r.step("Log admin activity");await db_1.models.icoAdminActivity.create({type:"PHASE_DELETED",offeringId:s,offeringName:e.name,adminId:t.id,details:JSON.stringify({phaseName:d,phaseDuration:l,newEndDate:f.toISOString(),remainingPhases:c.length})},{transaction:i});await i.commit();null==r||r.success("Phase deleted successfully");return{message:"Phase deleted successfully",newEndDate:f.toISOString(),remainingPhases:c.length}}catch(e){await i.rollback();throw e}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+exports.metadata = {
+    summary: "Delete ICO Phase (Admin)",
+    description: "Deletes a phase from an existing ICO offering. This recalculates the offering end date.",
+    operationId: "deleteIcoPhaseAdmin",
+    tags: ["ICO", "Admin", "Offerings"],
+    requiresAuth: true,
+    logModule: "ADMIN_ICO",
+    logTitle: "Delete ICO Phase",
+    parameters: [
+        {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", description: "The ID of the ICO offering." },
+        },
+        {
+            name: "phaseId",
+            in: "path",
+            required: true,
+            schema: { type: "string", description: "The ID of the phase to delete." },
+        },
+    ],
+    responses: {
+        200: {
+            description: "Phase deleted successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: { type: "string" },
+                            newEndDate: { type: "string", format: "date-time" },
+                        },
+                    },
+                },
+            },
+        },
+        400: { description: "Invalid request or cannot delete phase" },
+        401: { description: "Unauthorized – Admin privileges required." },
+        404: { description: "ICO offering or phase not found." },
+        500: { description: "Internal Server Error" },
+    },
+    permission: "edit.ico.offer",
+};
+exports.default = async (data) => {
+    const { user, params, ctx } = data;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validate user authentication");
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({
+            statusCode: 401,
+            message: "Unauthorized: Admin privileges required.",
+        });
+    }
+    const { id, phaseId } = params;
+    if (!id || !phaseId) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Offering ID and Phase ID are required.",
+        });
+    }
+    const transaction = await db_1.sequelize.transaction();
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetch ICO offering");
+        const offering = await db_1.models.icoTokenOffering.findByPk(id, {
+            include: [{ model: db_1.models.icoTokenOfferingPhase, as: "phases" }],
+            transaction,
+        });
+        if (!offering) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "ICO offering not found." });
+        }
+        if (!["ACTIVE", "PENDING", "UPCOMING", "SUCCESS"].includes(offering.status)) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Cannot delete phase from offering with status: ${offering.status}`,
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Find phase to delete");
+        const phase = await db_1.models.icoTokenOfferingPhase.findOne({
+            where: { id: phaseId, offeringId: id },
+            transaction,
+        });
+        if (!phase) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Phase not found." });
+        }
+        const soldTokens = phase.allocation - phase.remaining;
+        if (soldTokens > 0) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Cannot delete phase with ${soldTokens} tokens already sold.`,
+            });
+        }
+        const phaseName = phase.name;
+        const phaseDuration = phase.duration;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Delete phase");
+        await phase.destroy({ transaction });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Recalculate end date");
+        const remainingPhases = await db_1.models.icoTokenOfferingPhase.findAll({
+            where: { offeringId: id },
+            transaction,
+        });
+        let newEndDate;
+        if (remainingPhases.length === 0) {
+            newEndDate = new Date(offering.startDate);
+        }
+        else {
+            const totalDuration = remainingPhases.reduce((total, p) => total + (p.duration || 0), 0);
+            newEndDate = new Date(offering.startDate);
+            newEndDate.setDate(newEndDate.getDate() + totalDuration);
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Update offering end date");
+        await offering.update({ endDate: newEndDate }, { transaction });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Log admin activity");
+        await db_1.models.icoAdminActivity.create({
+            type: "PHASE_DELETED",
+            offeringId: id,
+            offeringName: offering.name,
+            adminId: user.id,
+            details: JSON.stringify({
+                phaseName,
+                phaseDuration,
+                newEndDate: newEndDate.toISOString(),
+                remainingPhases: remainingPhases.length,
+            }),
+        }, { transaction });
+        await transaction.commit();
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Phase deleted successfully");
+        return {
+            message: "Phase deleted successfully",
+            newEndDate: newEndDate.toISOString(),
+            remainingPhases: remainingPhases.length,
+        };
+    }
+    catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
+};

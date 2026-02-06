@@ -1,1 +1,126 @@
-"use strict";async function processTransaction(r,o,e,a,t,s,n,i){if(!(o&&e&&a&&t&&i)){console_1.logger.error("DEPOSIT",`Invalid parameters for processTransaction: txHash=${o}, address=${a}, chain=${t}, walletId=${i}`);return!1}try{console_1.logger.info("DEPOSIT",`Processing ${r} transaction ${o} on ${t}`);const c=await e.getTransaction(o);if(!c){console_1.logger.error("DEPOSIT",`Transaction ${o} not found on ${t}`);return!1}if(!c.data){console_1.logger.error("DEPOSIT",`Transaction ${o} has no data field`);return!1}const l=(0,blockchain_1.decodeTransactionData)(c.data),g=l.to||c.to,u=l.amount||c.value;if(!g||!a){console_1.logger.error("DEPOSIT",`Invalid transaction data for ${o}: realTo=${g}, address=${a}`);return!1}if(g.toLowerCase()!==a.toLowerCase()){console_1.logger.warn("DEPOSIT",`Address mismatch for ${o}: expected=${a}, actual=${g}`);return!1}if(!u||"0"===u.toString()){console_1.logger.warn("DEPOSIT",`Zero or invalid amount for transaction ${o}`);return!1}const d=await createTransactionDetails(r,i,c,g,t,s,n,"DEPOSIT",u);await(0,deposit_1.storeAndBroadcastTransaction)(d,o);console_1.logger.success("DEPOSIT",`Transaction ${o} processed successfully on ${t}`);return!0}catch(r){console_1.logger.error("DEPOSIT",`Error processing transaction ${o} on ${t}: ${r.message}`);return!1}}async function createTransactionDetails(r,o,e,a,t,s,n,i,c=e.amount){var l;try{if(!(r&&o&&e&&a&&t&&i))throw(0,error_1.createError)({statusCode:400,message:"Missing required parameters for createTransactionDetails"});(s<0||s>18)&&console_1.logger.warn("DEPOSIT",`Unusual decimals value: ${s} for chain ${t}`);(n<0||n>18)&&console_1.logger.warn("DEPOSIT",`Unusual fee decimals value: ${n} for chain ${t}`);let g="0";try{if(c&&"0"!==c.toString()){g=ethers_1.ethers.formatUnits(c.toString(),s);if(isNaN(parseFloat(g))||parseFloat(g)<=0){console_1.logger.warn("DEPOSIT",`Invalid formatted amount ${g} for transaction ${e.hash}`);g="0"}}}catch(r){console_1.logger.error("DEPOSIT",`Error formatting amount for transaction ${e.hash}: ${r.message}`);g="0"}let u="N/A";try{e.gasLimit&&(u=e.gasLimit.toString())}catch(r){console_1.logger.warn("DEPOSIT",`Error formatting gas limit for transaction ${e.hash}: ${r.message}`)}let d="N/A";try{if(e.gasPrice){d=ethers_1.ethers.formatUnits(e.gasPrice.toString(),n);if(isNaN(parseFloat(d))||parseFloat(d)<0){console_1.logger.warn("DEPOSIT",`Invalid gas price ${d} for transaction ${e.hash}`);d="N/A"}}}catch(r){console_1.logger.warn("DEPOSIT",`Error formatting gas price for transaction ${e.hash}: ${r.message}`)}const f={contractType:r,id:o,chain:t,hash:e.hash,type:i,from:e.from||"unknown",to:a,amount:g,gasLimit:u,gasPrice:d,timestamp:Math.floor(Date.now()/1e3),blockNumber:(null===(l=e.blockNumber)||void 0===l?void 0:l.toString())||"0",status:"PENDING"};console_1.logger.debug("DEPOSIT",`Created transaction details for ${e.hash}: amount=${g}, chain=${t}`);return f}catch(r){console_1.logger.error("DEPOSIT",`Error creating transaction details: ${r.message}`);throw r}}Object.defineProperty(exports,"__esModule",{value:!0});exports.processTransaction=processTransaction;exports.createTransactionDetails=createTransactionDetails;const ethers_1=require("ethers"),deposit_1=require("@b/api/(ext)/ecosystem/utils/redis/deposit"),blockchain_1=require("@b/api/(ext)/ecosystem/utils/blockchain"),console_1=require("@b/utils/console"),error_1=require("@b/utils/error");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.processTransaction = processTransaction;
+exports.createTransactionDetails = createTransactionDetails;
+const ethers_1 = require("ethers");
+const deposit_1 = require("@b/api/(ext)/ecosystem/utils/redis/deposit");
+const blockchain_1 = require("@b/api/(ext)/ecosystem/utils/blockchain");
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+async function processTransaction(contractType, txHash, provider, address, chain, decimals, feeDecimals, walletId) {
+    if (!txHash || !provider || !address || !chain || !walletId) {
+        console_1.logger.error("DEPOSIT", `Invalid parameters for processTransaction: txHash=${txHash}, address=${address}, chain=${chain}, walletId=${walletId}`);
+        return false;
+    }
+    try {
+        console_1.logger.info("DEPOSIT", `Processing ${contractType} transaction ${txHash} on ${chain}`);
+        const tx = await provider.getTransaction(txHash);
+        if (!tx) {
+            console_1.logger.error("DEPOSIT", `Transaction ${txHash} not found on ${chain}`);
+            return false;
+        }
+        if (!tx.data) {
+            console_1.logger.error("DEPOSIT", `Transaction ${txHash} has no data field`);
+            return false;
+        }
+        const decodedData = (0, blockchain_1.decodeTransactionData)(tx.data);
+        const realTo = decodedData.to || tx.to;
+        const amount = decodedData.amount || tx.value;
+        if (!realTo || !address) {
+            console_1.logger.error("DEPOSIT", `Invalid transaction data for ${txHash}: realTo=${realTo}, address=${address}`);
+            return false;
+        }
+        if (realTo.toLowerCase() !== address.toLowerCase()) {
+            console_1.logger.warn("DEPOSIT", `Address mismatch for ${txHash}: expected=${address}, actual=${realTo}`);
+            return false;
+        }
+        if (!amount || amount.toString() === "0") {
+            console_1.logger.warn("DEPOSIT", `Zero or invalid amount for transaction ${txHash}`);
+            return false;
+        }
+        const txDetails = await createTransactionDetails(contractType, walletId, tx, realTo, chain, decimals, feeDecimals, "DEPOSIT", amount);
+        await (0, deposit_1.storeAndBroadcastTransaction)(txDetails, txHash);
+        console_1.logger.success("DEPOSIT", `Transaction ${txHash} processed successfully on ${chain}`);
+        return true;
+    }
+    catch (error) {
+        console_1.logger.error("DEPOSIT", `Error processing transaction ${txHash} on ${chain}: ${error.message}`);
+        return false;
+    }
+}
+async function createTransactionDetails(contractType, walletId, tx, toAddress, chain, decimals, feeDecimals, type, amount = tx.amount) {
+    var _a;
+    try {
+        if (!contractType || !walletId || !tx || !toAddress || !chain || !type) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Missing required parameters for createTransactionDetails"
+            });
+        }
+        if (decimals < 0 || decimals > 18) {
+            console_1.logger.warn("DEPOSIT", `Unusual decimals value: ${decimals} for chain ${chain}`);
+        }
+        if (feeDecimals < 0 || feeDecimals > 18) {
+            console_1.logger.warn("DEPOSIT", `Unusual fee decimals value: ${feeDecimals} for chain ${chain}`);
+        }
+        let formattedAmount = "0";
+        try {
+            if (amount && amount.toString() !== "0") {
+                formattedAmount = ethers_1.ethers.formatUnits(amount.toString(), decimals);
+                if (isNaN(parseFloat(formattedAmount)) ||
+                    parseFloat(formattedAmount) <= 0) {
+                    console_1.logger.warn("DEPOSIT", `Invalid formatted amount ${formattedAmount} for transaction ${tx.hash}`);
+                    formattedAmount = "0";
+                }
+            }
+        }
+        catch (error) {
+            console_1.logger.error("DEPOSIT", `Error formatting amount for transaction ${tx.hash}: ${error.message}`);
+            formattedAmount = "0";
+        }
+        let formattedGasLimit = "N/A";
+        try {
+            if (tx.gasLimit) {
+                formattedGasLimit = tx.gasLimit.toString();
+            }
+        }
+        catch (error) {
+            console_1.logger.warn("DEPOSIT", `Error formatting gas limit for transaction ${tx.hash}: ${error.message}`);
+        }
+        let formattedGasPrice = "N/A";
+        try {
+            if (tx.gasPrice) {
+                formattedGasPrice = ethers_1.ethers.formatUnits(tx.gasPrice.toString(), feeDecimals);
+                if (isNaN(parseFloat(formattedGasPrice)) ||
+                    parseFloat(formattedGasPrice) < 0) {
+                    console_1.logger.warn("DEPOSIT", `Invalid gas price ${formattedGasPrice} for transaction ${tx.hash}`);
+                    formattedGasPrice = "N/A";
+                }
+            }
+        }
+        catch (error) {
+            console_1.logger.warn("DEPOSIT", `Error formatting gas price for transaction ${tx.hash}: ${error.message}`);
+        }
+        const txDetails = {
+            contractType,
+            id: walletId,
+            chain,
+            hash: tx.hash,
+            type,
+            from: tx.from || "unknown",
+            to: toAddress,
+            amount: formattedAmount,
+            gasLimit: formattedGasLimit,
+            gasPrice: formattedGasPrice,
+            timestamp: Math.floor(Date.now() / 1000),
+            blockNumber: ((_a = tx.blockNumber) === null || _a === void 0 ? void 0 : _a.toString()) || "0",
+            status: "PENDING",
+        };
+        console_1.logger.debug("DEPOSIT", `Created transaction details for ${tx.hash}: amount=${formattedAmount}, chain=${chain}`);
+        return txDetails;
+    }
+    catch (error) {
+        console_1.logger.error("DEPOSIT", `Error creating transaction details: ${error.message}`);
+        throw error;
+    }
+}

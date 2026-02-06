@@ -20,7 +20,7 @@ export default class mlmReferral
   getMlmBinaryNode!: Sequelize.HasOneGetAssociationMixin<mlmBinaryNode>;
   setMlmBinaryNode!: Sequelize.HasOneSetAssociationMixin<
     mlmBinaryNode,
-    mlmBinaryNodeId
+    string
   >;
   createMlmBinaryNode!: Sequelize.HasOneCreateAssociationMixin<mlmBinaryNode>;
   // mlmReferral hasOne mlmUnilevelNode via referralId
@@ -28,7 +28,7 @@ export default class mlmReferral
   getMlmUnilevelNode!: Sequelize.HasOneGetAssociationMixin<mlmUnilevelNode>;
   setMlmUnilevelNode!: Sequelize.HasOneSetAssociationMixin<
     mlmUnilevelNode,
-    mlmUnilevelNodeId
+    string
   >;
   createMlmUnilevelNode!: Sequelize.HasOneCreateAssociationMixin<mlmUnilevelNode>;
 

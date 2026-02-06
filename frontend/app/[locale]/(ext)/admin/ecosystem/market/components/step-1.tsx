@@ -21,7 +21,7 @@ export interface BasicInfoStepProps {
     field: "currency" | "pair" | "isTrending" | "isHot",
     value: any
   ) => void;
-  tokenOptions: { label: string; value: string; symbol?: string }[];
+  tokenOptions: { label: string; value: string }[];
   isLoadingTokens: boolean;
 }
 
@@ -129,8 +129,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               {t("selected_trading_pair")}:
             </p>
             <p className="text-lg font-semibold text-primary">
-              {tokenOptions.find((t) => t.value === formData.currency)?.symbol || formData.currency}/
-              {tokenOptions.find((t) => t.value === formData.pair)?.symbol || formData.pair}
+              {formData.currency}/{formData.pair}
             </p>
           </div>
         )}

@@ -165,6 +165,15 @@ const predefinedExtensions = [
     link: null,
     image: "/img/extensions/binary-ai-engine.png",
   },
+  {
+    productId: "61500000",
+    name: "trading_bot",
+    title: "Trading Bot",
+    description:
+      "Automated trading bot system with multiple strategies (DCA, Grid, Indicator, Trailing Stop), strategy marketplace with revenue sharing, paper trading simulation, and comprehensive risk management controls.",
+    link: null,
+    image: "/img/extensions/trading-bot.png",
+  },
 ];
 
 /** @type {import('sequelize-cli').Migration} */

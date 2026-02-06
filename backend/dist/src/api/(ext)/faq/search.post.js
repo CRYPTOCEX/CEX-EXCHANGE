@@ -1,1 +1,101 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),sequelize_1=require("sequelize");exports.metadata={summary:"Search FAQs and Record Query",description:"Searches FAQs based on query and category, and records the search for analytics.",operationId:"searchAndRecordFAQ",tags:["FAQ"],logModule:"FAQ",logTitle:"Search FAQs",requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{userId:{type:"string"},query:{type:"string"},category:{type:"string"}},required:["query"]}}}},responses:{200:{description:"Search results returned",content:{"application/json":{schema:{type:"array",items:{type:"object"}}}}},400:{description:"Bad Request"},500:{description:"Internal Server Error"}},requiresAuth:!1};exports.default=async e=>{const{body:r,user:s,ctx:t}=e,{query:o,category:a}=r;null==t||t.step("Validating search query");if(!o||"string"!=typeof o){null==t||t.fail("Query is required");throw(0,error_1.createError)({statusCode:400,message:"Query is required"})}const i=o.trim().toLowerCase();if(i.length<2){null==t||t.fail("Query must be at least 2 characters");throw(0,error_1.createError)({statusCode:400,message:"Query must be at least 2 characters"})}try{null==t||t.step("Building search conditions");const e={status:!0,[sequelize_1.Op.or]:[{question:{[sequelize_1.Op.like]:`%${i}%`}},{answer:{[sequelize_1.Op.like]:`%${i}%`}}]};a&&"all"!==a&&(e.category=a);null==t||t.step(`Searching FAQs for query: "${i}"`);const o=await db_1.models.faq.findAll({where:e,order:[["order","ASC"]],limit:50});null==t||t.step("Recording search for analytics");const n=(null==s?void 0:s.id)||r.userId;(n||i.length>3)&&db_1.models.faqSearch.create({userId:n,query:i,resultCount:o.length,category:a}).catch(e=>{console.error("Error recording FAQ search:",e)});null==t||t.success(`Found ${o.length} FAQs matching query`);return o}catch(e){console.error("Error searching FAQs:",e);null==t||t.fail(e instanceof Error?e.message:"Failed to search FAQs");throw(0,error_1.createError)({statusCode:500,message:e instanceof Error?e.message:"Failed to search FAQs"})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const sequelize_1 = require("sequelize");
+exports.metadata = {
+    summary: "Search FAQs and Record Query",
+    description: "Searches FAQs based on query and category, and records the search for analytics.",
+    operationId: "searchAndRecordFAQ",
+    tags: ["FAQ"],
+    logModule: "FAQ",
+    logTitle: "Search FAQs",
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        userId: { type: "string" },
+                        query: { type: "string" },
+                        category: { type: "string" },
+                    },
+                    required: ["query"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Search results returned",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "array",
+                        items: { type: "object" }
+                    },
+                },
+            },
+        },
+        400: { description: "Bad Request" },
+        500: { description: "Internal Server Error" },
+    },
+    requiresAuth: false,
+};
+exports.default = async (data) => {
+    const { body, user, ctx } = data;
+    const { query, category } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating search query");
+    if (!query || typeof query !== 'string') {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Query is required");
+        throw (0, error_1.createError)({ statusCode: 400, message: "Query is required" });
+    }
+    const searchQuery = query.trim().toLowerCase();
+    if (searchQuery.length < 2) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Query must be at least 2 characters");
+        throw (0, error_1.createError)({ statusCode: 400, message: "Query must be at least 2 characters" });
+    }
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Building search conditions");
+        const where = {
+            status: true,
+            [sequelize_1.Op.or]: [
+                { question: { [sequelize_1.Op.like]: `%${searchQuery}%` } },
+                { answer: { [sequelize_1.Op.like]: `%${searchQuery}%` } },
+            ],
+        };
+        if (category && category !== "all") {
+            where.category = category;
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step(`Searching FAQs for query: "${searchQuery}"`);
+        const faqs = await db_1.models.faq.findAll({
+            where,
+            order: [["order", "ASC"]],
+            limit: 50,
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Recording search for analytics");
+        const userId = (user === null || user === void 0 ? void 0 : user.id) || body.userId;
+        if (userId || searchQuery.length > 3) {
+            db_1.models.faqSearch.create({
+                userId,
+                query: searchQuery,
+                resultCount: faqs.length,
+                category,
+            }).catch(error => {
+                console.error("Error recording FAQ search:", error);
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Found ${faqs.length} FAQs matching query`);
+        return faqs;
+    }
+    catch (error) {
+        console.error("Error searching FAQs:", error);
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(error instanceof Error ? error.message : "Failed to search FAQs");
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: error instanceof Error ? error.message : "Failed to search FAQs",
+        });
+    }
+};

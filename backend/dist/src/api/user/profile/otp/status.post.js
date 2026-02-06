@@ -1,1 +1,97 @@
-"use strict";async function toggleOTPQuery(e,t){await db_1.models.twoFactor.update({enabled:t},{where:{userId:e}});const r=await db_1.models.twoFactor.findOne({where:{userId:e}});if(!r)throw(0,error_1.createError)({statusCode:404,message:"TwoFactor record not found"});return r.get({plain:!0})}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;exports.toggleOTPQuery=toggleOTPQuery;const error_1=require("@b/utils/error"),db_1=require("@b/db"),query_1=require("@b/utils/query");exports.metadata={summary:"Toggles the OTP feature for the user account",operationId:"toggleOTP",description:"Toggles the OTP feature for the user account",tags:["Profile"],requiresAuth:!0,logModule:"USER",logTitle:"Toggle OTP status",requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{status:{type:"boolean",description:"Status of the OTP feature"}},required:["status"]}}}},responses:{200:{description:"OTP feature toggled successfully",content:{"application/json":{schema:{type:"object",properties:{status:{type:"boolean",description:"Indicates if the request was successful"},statusCode:{type:"number",description:"HTTP status code",example:200},data:{type:"object",properties:{message:{type:"string",description:"Message indicating the status of the OTP feature"}}}}}}}},401:query_1.unauthorizedResponse,404:(0,query_1.notFoundMetadataResponse)("User"),500:query_1.serverErrorResponse}};exports.default=async e=>{const{user:t,body:r,ctx:s}=e;if(!(null==t?void 0:t.id)){null==s||s.fail("User not authenticated");throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"})}const{status:o}=r;null==s||s.step((o?"Enabling":"Disabling")+" OTP feature");await toggleOTPQuery(t.id,o);null==s||s.success("OTP feature "+(o?"enabled":"disabled"));return{message:"OTP feature has been "+(o?"enabled":"disabled")}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+exports.toggleOTPQuery = toggleOTPQuery;
+const error_1 = require("@b/utils/error");
+const db_1 = require("@b/db");
+const query_1 = require("@b/utils/query");
+exports.metadata = {
+    summary: "Toggles the OTP feature for the user account",
+    operationId: "toggleOTP",
+    description: "Toggles the OTP feature for the user account",
+    tags: ["Profile"],
+    requiresAuth: true,
+    logModule: "USER",
+    logTitle: "Toggle OTP status",
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        status: {
+                            type: "boolean",
+                            description: "Status of the OTP feature",
+                        },
+                    },
+                    required: ["status"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "OTP feature toggled successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            status: {
+                                type: "boolean",
+                                description: "Indicates if the request was successful",
+                            },
+                            statusCode: {
+                                type: "number",
+                                description: "HTTP status code",
+                                example: 200,
+                            },
+                            data: {
+                                type: "object",
+                                properties: {
+                                    message: {
+                                        type: "string",
+                                        description: "Message indicating the status of the OTP feature",
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        401: query_1.unauthorizedResponse,
+        404: (0, query_1.notFoundMetadataResponse)("User"),
+        500: query_1.serverErrorResponse,
+    },
+};
+exports.default = async (data) => {
+    const { user, body, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("User not authenticated");
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    const { status } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`${status ? "Enabling" : "Disabling"} OTP feature`);
+    await toggleOTPQuery(user.id, status);
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`OTP feature ${status ? "enabled" : "disabled"}`);
+    return { message: `OTP feature has been ${status ? "enabled" : "disabled"}` };
+};
+async function toggleOTPQuery(userId, status) {
+    await db_1.models.twoFactor.update({
+        enabled: status,
+    }, {
+        where: { userId: userId },
+    });
+    const twoFactor = await db_1.models.twoFactor.findOne({
+        where: { userId: userId },
+    });
+    if (!twoFactor) {
+        throw (0, error_1.createError)({
+            statusCode: 404,
+            message: "TwoFactor record not found",
+        });
+    }
+    return twoFactor.get({ plain: true });
+}

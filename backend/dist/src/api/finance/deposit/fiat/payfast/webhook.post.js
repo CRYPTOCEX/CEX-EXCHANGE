@@ -1,1 +1,219 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),emails_1=require("@b/utils/emails"),console_1=require("@b/utils/console"),utils_1=require("./utils"),wallet_1=require("@b/services/wallet");exports.metadata={summary:"Handles PayFast ITN webhook",description:"Processes PayFast Instant Transaction Notification (ITN) callbacks",operationId:"handlePayFastWebhook",tags:["Finance","Deposit","PayFast","Webhook"],logModule:"WEBHOOK",logTitle:"PayFast webhook",requiresAuth:!1,requestBody:{required:!0,content:{"application/x-www-form-urlencoded":{schema:{type:"object",properties:{m_payment_id:{type:"string",description:"Merchant payment ID"},pf_payment_id:{type:"string",description:"PayFast payment ID"},payment_status:{type:"string",description:"Payment status from PayFast"},amount_gross:{type:"string",description:"Gross payment amount"},amount_fee:{type:"string",description:"PayFast processing fee"},amount_net:{type:"string",description:"Net amount after fees"},signature:{type:"string",description:"PayFast signature for verification"}},required:["m_payment_id","pf_payment_id","payment_status"]}}}},responses:{200:{description:"Webhook processed successfully",content:{"text/plain":{schema:{type:"string",example:"OK"}}}},400:{description:"Bad request - invalid webhook data"},500:{description:"Internal server error"}}};exports.default=async e=>{var t,a;const{body:s}=e;console_1.logger.info("PAYFAST",`ITN received: ${s.m_payment_id}, status: ${s.payment_status}, amount: ${s.amount_gross}`);if(!s.m_payment_id||!s.pf_payment_id||!s.payment_status)throw(0,error_1.createError)({statusCode:400,message:"Required webhook fields missing"});(0,utils_1.validatePayFastConfig)();try{if(utils_1.PAYFAST_CONFIG.PASSPHRASE){if(!(0,utils_1.validateSignature)(s,utils_1.PAYFAST_CONFIG.PASSPHRASE)){console_1.logger.error("PAYFAST","ITN signature validation failed");throw(0,error_1.createError)({statusCode:400,message:"Invalid webhook signature"})}}const e=await(0,utils_1.validateITN)(s);e.valid||console_1.logger.warn("PAYFAST",`ITN validation failed: ${e.error}`);const r=await db_1.models.transaction.findOne({where:{uuid:s.m_payment_id},include:[{model:db_1.models.user,as:"user",attributes:["id","email","firstName","lastName"]}]});if(!r){console_1.logger.error("PAYFAST",`Transaction not found for ITN: ${s.m_payment_id}`);throw(0,error_1.createError)({statusCode:404,message:"Transaction not found"})}const o=r.status,i=(0,utils_1.mapPayFastStatus)(s.payment_status);if(o===i){console_1.logger.debug("PAYFAST","ITN: Status unchanged, skipping processing");return"OK"}const n=(0,utils_1.parsePayFastAmount)(s.amount_gross),d=(0,utils_1.parsePayFastAmount)(s.amount_fee||"0"),l=(0,utils_1.parsePayFastAmount)(s.amount_net||s.amount_gross)-d,u=await db_1.sequelize.transaction();try{await r.update({status:i,fee:d,metadata:JSON.stringify({...r.metadata,payfast:{...null===(t=r.metadata)||void 0===t?void 0:t.payfast,pf_payment_id:s.pf_payment_id,payment_status:s.payment_status,amount_gross:n,amount_fee:d,amount_net:l,itn_received_at:(new Date).toISOString(),signature_valid:!0,itn_valid:e.valid,webhook_data:s}})},{transaction:u});if("COMPLETED"===i&&"COMPLETED"!==o){const e=(null===(a=r.metadata)||void 0===a?void 0:a.currency)||"ZAR";let t=await db_1.models.wallet.findOne({where:{userId:r.userId,currency:e,type:"FIAT"},transaction:u});t||(t=await wallet_1.walletCreationService.getOrCreateWallet(r.userId,"FIAT",e,u));const o=`payfast_webhook_${s.pf_payment_id}`;await wallet_1.walletService.credit({idempotencyKey:o,userId:r.userId,walletId:t.id,walletType:"FIAT",currency:e,amount:l,operationType:"DEPOSIT",referenceId:s.pf_payment_id,description:`PayFast deposit - ${l} ${e}`,metadata:{method:"PAYFAST",pfPaymentId:s.pf_payment_id,grossAmount:n,feeAmount:d},transaction:u});const i=parseFloat(t.balance)+l;if(d>0)try{await db_1.models.adminProfit.create({type:"DEPOSIT_FEE",amount:d,currency:e,description:`PayFast processing fee for transaction ${r.id}`,metadata:JSON.stringify({transactionId:r.id,userId:r.userId,gateway:"payfast",pf_payment_id:s.pf_payment_id})},{transaction:u})}catch(e){console_1.logger.error("PAYFAST","Failed to record admin profit",e)}try{await(0,emails_1.sendFiatTransactionEmail)(r.user,r,e,i)}catch(e){console_1.logger.error("PAYFAST","Failed to send confirmation email",e)}}await u.commit();console_1.logger.success("PAYFAST",`ITN processed: Transaction ${r.id}, ${o} → ${i}, amount: ${n}, fee: ${d}`);return"OK"}catch(e){await u.rollback();throw e}}catch(e){console_1.logger.error("PAYFAST","ITN processing error",e);throw(0,error_1.createError)({statusCode:e.statusCode||500,message:"Webhook processing failed"})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const emails_1 = require("@b/utils/emails");
+const console_1 = require("@b/utils/console");
+const utils_1 = require("./utils");
+const wallet_1 = require("@b/services/wallet");
+exports.metadata = {
+    summary: 'Handles PayFast ITN webhook',
+    description: 'Processes PayFast Instant Transaction Notification (ITN) callbacks',
+    operationId: 'handlePayFastWebhook',
+    tags: ['Finance', 'Deposit', 'PayFast', 'Webhook'],
+    logModule: "WEBHOOK",
+    logTitle: "PayFast webhook",
+    requiresAuth: false,
+    requestBody: {
+        required: true,
+        content: {
+            'application/x-www-form-urlencoded': {
+                schema: {
+                    type: 'object',
+                    properties: {
+                        m_payment_id: {
+                            type: 'string',
+                            description: 'Merchant payment ID',
+                        },
+                        pf_payment_id: {
+                            type: 'string',
+                            description: 'PayFast payment ID',
+                        },
+                        payment_status: {
+                            type: 'string',
+                            description: 'Payment status from PayFast',
+                        },
+                        amount_gross: {
+                            type: 'string',
+                            description: 'Gross payment amount',
+                        },
+                        amount_fee: {
+                            type: 'string',
+                            description: 'PayFast processing fee',
+                        },
+                        amount_net: {
+                            type: 'string',
+                            description: 'Net amount after fees',
+                        },
+                        signature: {
+                            type: 'string',
+                            description: 'PayFast signature for verification',
+                        },
+                    },
+                    required: ['m_payment_id', 'pf_payment_id', 'payment_status'],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: 'Webhook processed successfully',
+            content: {
+                'text/plain': {
+                    schema: {
+                        type: 'string',
+                        example: 'OK',
+                    },
+                },
+            },
+        },
+        400: { description: 'Bad request - invalid webhook data' },
+        500: { description: 'Internal server error' },
+    },
+};
+exports.default = async (data) => {
+    const { body } = data;
+    console_1.logger.info('PAYFAST', `ITN received: ${body.m_payment_id}, status: ${body.payment_status}, amount: ${body.amount_gross}`);
+    if (!body.m_payment_id || !body.pf_payment_id || !body.payment_status) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: 'Required webhook fields missing',
+        });
+    }
+    (0, utils_1.validatePayFastConfig)();
+    try {
+        if (utils_1.PAYFAST_CONFIG.PASSPHRASE) {
+            const isValidSignature = (0, utils_1.validateSignature)(body, utils_1.PAYFAST_CONFIG.PASSPHRASE);
+            if (!isValidSignature) {
+                console_1.logger.error('PAYFAST', 'ITN signature validation failed');
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: 'Invalid webhook signature',
+                });
+            }
+        }
+        const itnValidation = await (0, utils_1.validateITN)(body);
+        if (!itnValidation.valid) {
+            console_1.logger.warn('PAYFAST', `ITN validation failed: ${itnValidation.error}`);
+        }
+        const transaction = await db_1.models.transaction.findOne({
+            where: {
+                id: body.m_payment_id
+            },
+            include: [
+                {
+                    model: db_1.models.user,
+                    as: 'user',
+                    attributes: ['id', 'email', 'firstName', 'lastName']
+                }
+            ]
+        });
+        if (!transaction) {
+            console_1.logger.error('PAYFAST', `Transaction not found for ITN: ${body.m_payment_id}`);
+            throw (0, error_1.createError)({
+                statusCode: 404,
+                message: 'Transaction not found',
+            });
+        }
+        const currentStatus = transaction.status;
+        const newStatus = (0, utils_1.mapPayFastStatus)(body.payment_status);
+        if (currentStatus === newStatus) {
+            console_1.logger.debug('PAYFAST', 'ITN: Status unchanged, skipping processing');
+            return 'OK';
+        }
+        const grossAmount = (0, utils_1.parsePayFastAmount)(body.amount_gross);
+        const feeAmount = (0, utils_1.parsePayFastAmount)(body.amount_fee || '0');
+        const netAmount = (0, utils_1.parsePayFastAmount)(body.amount_net || body.amount_gross) - feeAmount;
+        const dbTransaction = await db_1.sequelize.transaction();
+        try {
+            const existingMetadata = typeof transaction.metadata === 'string'
+                ? JSON.parse(transaction.metadata || '{}')
+                : (transaction.metadata || {});
+            await transaction.update({
+                status: newStatus,
+                fee: feeAmount,
+                metadata: JSON.stringify({
+                    ...existingMetadata,
+                    payfast: {
+                        ...((existingMetadata === null || existingMetadata === void 0 ? void 0 : existingMetadata.payfast) || {}),
+                        pf_payment_id: body.pf_payment_id,
+                        payment_status: body.payment_status,
+                        amount_gross: grossAmount,
+                        amount_fee: feeAmount,
+                        amount_net: netAmount,
+                        itn_received_at: new Date().toISOString(),
+                        signature_valid: true,
+                        itn_valid: itnValidation.valid,
+                        webhook_data: body
+                    }
+                })
+            }, { transaction: dbTransaction });
+            if (newStatus === 'COMPLETED' && currentStatus !== 'COMPLETED') {
+                const currency = (existingMetadata === null || existingMetadata === void 0 ? void 0 : existingMetadata.currency) || 'ZAR';
+                const walletResult = await wallet_1.walletCreationService.getOrCreateWallet(transaction.userId, 'FIAT', currency, dbTransaction);
+                const wallet = walletResult.wallet;
+                if (!wallet) {
+                    throw (0, error_1.createError)({
+                        statusCode: 500,
+                        message: 'Failed to get or create wallet',
+                    });
+                }
+                const idempotencyKey = `payfast_webhook_${body.pf_payment_id}`;
+                await wallet_1.walletService.credit({
+                    idempotencyKey,
+                    userId: transaction.userId,
+                    walletId: wallet.id,
+                    walletType: 'FIAT',
+                    currency,
+                    amount: netAmount,
+                    operationType: 'DEPOSIT',
+                    referenceId: body.pf_payment_id,
+                    description: `PayFast deposit - ${netAmount} ${currency}`,
+                    metadata: {
+                        method: 'PAYFAST',
+                        pfPaymentId: body.pf_payment_id,
+                        grossAmount,
+                        feeAmount,
+                    },
+                    transaction: dbTransaction,
+                });
+                const newBalance = parseFloat(String(wallet.balance)) + netAmount;
+                if (feeAmount > 0) {
+                    try {
+                        await db_1.models.adminProfit.create({
+                            type: 'DEPOSIT',
+                            amount: feeAmount,
+                            currency: currency,
+                            transactionId: transaction.id,
+                            description: `PayFast processing fee for transaction ${transaction.id}`,
+                        }, { transaction: dbTransaction });
+                    }
+                    catch (profitError) {
+                        console_1.logger.error('PAYFAST', 'Failed to record admin profit', profitError);
+                    }
+                }
+                try {
+                    await (0, emails_1.sendFiatTransactionEmail)(transaction.user, transaction, currency, newBalance);
+                }
+                catch (emailError) {
+                    console_1.logger.error('PAYFAST', 'Failed to send confirmation email', emailError);
+                }
+            }
+            await dbTransaction.commit();
+            console_1.logger.success('PAYFAST', `ITN processed: Transaction ${transaction.id}, ${currentStatus} → ${newStatus}, amount: ${grossAmount}, fee: ${feeAmount}`);
+            return 'OK';
+        }
+        catch (dbError) {
+            await dbTransaction.rollback();
+            throw dbError;
+        }
+    }
+    catch (error) {
+        console_1.logger.error('PAYFAST', 'ITN processing error', error);
+        throw (0, error_1.createError)({
+            statusCode: error.statusCode || 500,
+            message: 'Webhook processing failed',
+        });
+    }
+};

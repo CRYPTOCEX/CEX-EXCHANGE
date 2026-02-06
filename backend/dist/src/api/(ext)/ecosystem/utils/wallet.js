@@ -1,1 +1,1456 @@
-"use strict";async function checkBlockchainExtensions(){const e=await(0,safe_imports_1.getSolanaService)(),a=await(0,safe_imports_1.getTronService)(),t=await(0,safe_imports_1.getMoneroService)(),r=await(0,safe_imports_1.getTonService)();return{solana:(0,safe_imports_1.isServiceAvailable)(e),tron:(0,safe_imports_1.isServiceAvailable)(a),monero:(0,safe_imports_1.isServiceAvailable)(t),ton:(0,safe_imports_1.isServiceAvailable)(r)}}async function getActiveTokensByCurrency(e){const a=(await db_1.models.ecosystemToken.findAll({where:{currency:e,status:!0}})).filter(e=>{if(["XMR","TON","SOL","TRON","BTC","LTC","DOGE","DASH"].includes(e.chain))return!0;const a=`${e.chain.toUpperCase()}_NETWORK`,t=process.env[a];if(!t)return!1;if(e.network===t)return!0;return e.network===e.chain&&"mainnet"===t||{BSC:"mainnet",ETH:"mainnet",POLYGON:"mainnet",ARBITRUM:"mainnet",OPTIMISM:"mainnet",AVALANCHE:"mainnet",FANTOM:"mainnet"}[e.chain]===e.network&&"mainnet"===t});if(0===a.length)throw(0,error_1.createError)({statusCode:500,message:"No enabled tokens found for this currency"});return a}async function getWalletByUserIdAndCurrency(e,a,t="ECO",r,n){let s=await db_1.models.wallet.findOne({where:{userId:e,currency:a,type:t},attributes:["id","type","currency","balance","inOrder","address"],...r&&{transaction:r},...r&&n&&{lock:r.LOCK.UPDATE}});if("COPY_TRADING"===t)return s;s||(s=await(0,exports.storeWallet)({id:e},a));if(!s)throw(0,error_1.createError)(404,"Wallet not found");const o=await getActiveTokensByCurrency(a);let i={};try{if(s.address){i="string"==typeof s.address?JSON.parse(s.address):s.address;"string"==typeof i&&(i=JSON.parse(i))}}catch(e){console_1.logger.error("WALLET",`Failed to parse wallet address for wallet ${s.id}: ${e.message}`);console_1.logger.debug("WALLET",`Raw address value: ${s.address}`);if("string"==typeof s.address)try{const e=s.address.replace(/"(\w+)"(\d+\.?\d*)/g,'"$1":$2');i=JSON.parse(e);console_1.logger.success("WALLET",`Repaired corrupted wallet address JSON for wallet ${s.id}`);await db_1.models.wallet.update({address:JSON.stringify(i)},{where:{id:s.id}})}catch(e){console_1.logger.error("WALLET",`Failed to repair wallet address: ${e.message}`);i={}}}if(!i||i&&Object.keys(i).length<o.length){const e=o.filter(e=>!i||!i.hasOwnProperty(e.chain));e.length>0&&await db_1.sequelize.transaction(async a=>{await(0,exports.generateAndAddAddresses)(s,e,a)});const a=await db_1.models.wallet.findOne({where:{id:s.id},attributes:["id","type","currency","balance","inOrder","address"]});if(!a)throw(0,error_1.createError)(500,"Failed to update wallet with new addresses");return a}return s}async function getMasterWalletByChain(e){try{return await db_1.models.ecosystemMasterWallet.findOne({where:{chain:e},attributes:exports.walletResponseAttributes})}catch(e){console_1.logger.error("WALLET","Failed to get master wallet by chain",e);throw e}}async function getMasterWalletByChainFull(e){try{const a=await db_1.models.ecosystemMasterWallet.findOne({where:{chain:e}});if(!a)throw(0,error_1.createError)({statusCode:404,message:`Master wallet not found for chain: ${e}`});return a}catch(e){console_1.logger.error("WALLET","Failed to get master wallet by chain",e);throw e}}async function checkEcosystemAvailableFunds(e,a,t){try{console_1.logger.debug("WALLET",`Checking funds availability: walletId=${e.id}, totalAmount=${t}, currentBalance=${e.balance}`);const r=await getTotalAvailable(e,a);console_1.logger.debug("WALLET",`Total available: ${r}`);if(r<t){console_1.logger.error("WALLET",`Insufficient funds: available ${r} < required ${t}`);throw(0,error_1.createError)({statusCode:400,message:"Insufficient funds for withdrawal including fee"})}return r}catch(e){console_1.logger.error("WALLET","Error checking funds",e);if(400===e.statusCode)throw e;throw(0,error_1.createError)({statusCode:500,message:"Withdrawal failed - please try again later"})}}async function getGasPayer(e,a){try{console_1.logger.debug("WALLET",`Getting gas payer for chain: ${e}`);const t=await getMasterWalletByChainFull(e);if(!t){console_1.logger.error("WALLET",`Master wallet not found for chain: ${e}`);throw(0,error_1.createError)({statusCode:404,message:"Master wallet not found"})}const{data:r}=t;if(!r){console_1.logger.error("WALLET",`Master wallet data not found for chain: ${e}`);throw(0,error_1.createError)({statusCode:404,message:"Master wallet data not found"})}console_1.logger.debug("WALLET","Decrypting master wallet data");const n=JSON.parse((0,encrypt_1.decrypt)(r));return new ethers_1.ethers.Wallet(n.privateKey,a)}catch(e){console_1.logger.error("WALLET","Error getting gas payer",e);throw(0,error_1.createError)({statusCode:500,message:"Withdrawal failed - please try again later"})}}async function getAndValidateTokenOwner(e,a,t,r){try{let n=!1;const s=await(0,exports.getEcosystemTokenOwner)(e,r);let o=s,i=null;if(await t.balanceOf(s.address)<a){const t=await findAlternativeWalletData(e,(0,blockchain_1.fromBigInt)(a));i=t;o=(0,exports.getEcosystemTokenOwner)(t,r);n=!0}(0,exports.validateEcosystemBalances)(t,o,a);return{actualTokenOwner:o,alternativeWalletUsed:n,alternativeWallet:i}}catch(e){console_1.logger.error("WALLET","Failed to get and validate token owner",e);throw e}}async function getAndValidateNativeTokenOwner(e,a,t){try{const r=await(0,exports.getEcosystemTokenOwner)(e,t);if(await t.getBalance(r.address)<a)throw(0,error_1.createError)({statusCode:400,message:"Insufficient funds in the wallet for withdrawal"});return r}catch(e){console_1.logger.error("WALLET","Failed to get and validate native token owner",e);throw e}}async function getWalletData(e,a){try{return await db_1.models.walletData.findOne({where:{walletId:e,chain:a}})}catch(e){console_1.logger.error("WALLET","Failed to get wallet data",e);throw e}}async function findAlternativeWalletData(e,a){try{const t=await db_1.models.walletData.findOne({where:{currency:e.currency,chain:e.chain,balance:{[sequelize_1.Op.gte]:a}}});if(!t)throw(0,error_1.createError)({statusCode:404,message:"No alternative wallet with sufficient balance found"});return t}catch(e){console_1.logger.error("WALLET","Failed to find alternative wallet data",e);throw e}}async function getEcosystemPendingTransactions(){try{return await db_1.models.transaction.findAll({where:{type:"WITHDRAW",status:"PENDING"},include:[{model:db_1.models.wallet,where:{type:"ECO"}}]})}catch(e){console_1.logger.error("WALLET","Failed to get ecosystem pending transactions",e);throw e}}async function updatePrivateLedger(e,a,t,r,n){try{return await wallet_1.ledgerService.updateLedger({walletId:e,index:a,currency:t,chain:r,amount:n})}catch(e){console_1.logger.error("WALLET","Failed to update private ledger",e);throw e}}async function createPendingTransaction(e,a,t,r,n,s,o,i,l){try{const c={userId:e,walletId:a,type:"WITHDRAW",status:"PENDING",amount:n,fee:o,description:`Pending withdrawal of ${n} ${t} to ${s}`,metadata:JSON.stringify({toAddress:s,chain:r,contractType:i.contractType,contract:i.contract,decimals:i.decimals})};return l?await db_1.models.transaction.create(c,{transaction:l}):await db_1.models.transaction.create(c)}catch(e){console_1.logger.error("WALLET","Failed to create pending transaction",e);throw e}}async function updateWalletBalance(e,a,t,r,n){try{if(!e)throw(0,error_1.createError)({statusCode:404,message:"Wallet not found"});if(!r)throw(0,error_1.createError)({statusCode:400,message:"idempotencyKey is required for updateWalletBalance"});"subtract"===t?await wallet_1.walletService.hold({idempotencyKey:r,userId:e.userId,walletId:e.id,walletType:e.type||"ECO",currency:e.currency,amount:a,reason:"Order placement",transaction:n}):await wallet_1.walletService.release({idempotencyKey:r,userId:e.userId,walletId:e.id,walletType:e.type||"ECO",currency:e.currency,amount:a,reason:"Order cancelled/filled",transaction:n})}catch(e){console_1.logger.error("WALLET","Failed to update wallet balance",e);throw e}}async function updateWalletForFill(e,a,t,r,n){try{if(!e)throw(0,error_1.createError)({statusCode:404,message:"Wallet not found"});if(!n)throw(0,error_1.createError)({statusCode:400,message:"idempotencyKey is required for updateWalletForFill"});a>0?await wallet_1.walletService.credit({idempotencyKey:`${n}_credit`,userId:e.userId,walletId:e.id,walletType:e.type||"ECO",currency:e.currency,amount:a,operationType:"TRADE_CREDIT",description:r}):a<0&&await wallet_1.walletService.debit({idempotencyKey:`${n}_debit`,userId:e.userId,walletId:e.id,walletType:e.type||"ECO",currency:e.currency,amount:Math.abs(a),operationType:"TRADE_DEBIT",description:r});t<0&&await wallet_1.walletService.executeFromHold({idempotencyKey:`${n}_execute`,userId:e.userId,walletId:e.id,walletType:e.type||"ECO",currency:e.currency,amount:Math.abs(t),operationType:"RELEASE",description:`Execute from hold: ${r}`,reason:r})}catch(e){console_1.logger.error("WALLET","Failed to update wallet for fill",e);throw e}}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.updateAlternativeWallet=exports.refundUser=exports.decrementWalletBalance=exports.handleEcosystemDeposit=exports.executeNativeWithdrawal=exports.executePermit=exports.executeNoPermitWithdrawal=exports.executeEcosystemWithdrawal=exports.initializeContracts=exports.getEcosystemTokenOwner=exports.validateEcosystemBalances=exports.validateAddress=exports.generateAndAddAddresses=exports.storeWallet=exports.walletResponseAttributes=void 0;exports.checkBlockchainExtensions=checkBlockchainExtensions;exports.getActiveTokensByCurrency=getActiveTokensByCurrency;exports.getWalletByUserIdAndCurrency=getWalletByUserIdAndCurrency;exports.getMasterWalletByChain=getMasterWalletByChain;exports.getMasterWalletByChainFull=getMasterWalletByChainFull;exports.checkEcosystemAvailableFunds=checkEcosystemAvailableFunds;exports.getGasPayer=getGasPayer;exports.getAndValidateTokenOwner=getAndValidateTokenOwner;exports.getAndValidateNativeTokenOwner=getAndValidateNativeTokenOwner;exports.getWalletData=getWalletData;exports.findAlternativeWalletData=findAlternativeWalletData;exports.getEcosystemPendingTransactions=getEcosystemPendingTransactions;exports.updatePrivateLedger=updatePrivateLedger;exports.createPendingTransaction=createPendingTransaction;exports.updateWalletBalance=updateWalletBalance;exports.updateWalletForFill=updateWalletForFill;const db_1=require("@b/db"),error_1=require("@b/utils/error"),encrypt_1=require("@b/utils/encrypt"),safe_imports_1=require("@b/utils/safe-imports"),ethers_1=require("ethers"),tonweb_1=__importDefault(require("tonweb")),blockchain_1=require("./blockchain"),gas_1=require("./gas"),tokens_1=require("./tokens"),smartContract_1=require("./smartContract"),chains_1=require("./chains"),sequelize_1=require("sequelize"),custodialWallet_1=require("./custodialWallet"),console_1=require("@b/utils/console"),wallet_1=require("@b/services/wallet");exports.walletResponseAttributes=["id","currency","chain","address","status","balance"];const web3_js_1=require("@solana/web3.js"),utxo_1=require("./utxo"),storeWallet=async(e,a)=>{const t=await getActiveTokensByCurrency(a);t.length||handleError("No enabled tokens found for this currency");try{(0,encrypt_1.encrypt)("test")}catch(e){handleError("Encryption key is not set")}return await db_1.sequelize.transaction(async r=>{const n=(await wallet_1.walletCreationService.getOrCreateWallet(e.id,"ECO",a,r)).wallet;let s=n.address?"string"==typeof n.address?JSON.parse(n.address):n.address:{};"string"==typeof s&&(s=JSON.parse(s));if(s&&Object.keys(s).length>0)return await db_1.models.wallet.findByPk(n.id,{transaction:r});const o=await db_1.models.wallet.findByPk(n.id,{transaction:r});if(!o)throw(0,error_1.createError)({statusCode:500,message:"Failed to retrieve wallet for address generation"});return await(0,exports.generateAndAddAddresses)(o,t,r)})};exports.storeWallet=storeWallet;const generateAndAddAddresses=async(e,a,t)=>{let r=e.address?"string"==typeof e.address?JSON.parse(e.address):e.address:{};"string"==typeof r&&(r=JSON.parse(r));for(const n of a)try{switch(n.contractType){case"PERMIT":"SOL"===n.chain?await handleSolanaWallet(e,r,t):await handlePermitContract(n,e,r,t);break;case"NO_PERMIT":await handleNoPermitContract(n,e,r);break;case"NATIVE":"SOL"===n.chain?await handleSolanaNativeWallet(e,r,t):"TRON"===n.chain?await handleTronNativeWallet(e,r,t):"XMR"===n.chain?await handleMoneroNativeWallet(e,r,t):"TON"===n.chain?await handleTonNativeWallet(e,r,t):await handleNativeContract(n,e,r,t);break;default:handleError(`Unknown contract type for token ${n.name}`,!1)}}catch(e){handleError(`Failed to generate address for token ${n.name}: ${e.message}`,!1)}0===Object.keys(r).length&&handleError("Failed to generate any addresses for the wallet");await db_1.models.wallet.update({address:JSON.stringify(r)},{where:{id:e.id},transaction:t});const n=await db_1.models.wallet.findOne({where:{id:e.id},transaction:t});n||handleError("Failed to update wallet with new addresses");return n};exports.generateAndAddAddresses=generateAndAddAddresses;const handleNativeContract=async(e,a,t,r)=>{let n;if(["BTC","LTC","DOGE","DASH"].includes(e.chain)){const a=(0,utxo_1.createUTXOWallet)(e.chain);t[e.chain]={address:a.address,network:e.network,balance:0};n=(0,encrypt_1.encrypt)(JSON.stringify(a.data))}else{const a=ethers_1.ethers.Wallet.createRandom();if(!a.mnemonic)throw(0,error_1.createError)({statusCode:500,message:"Mnemonic not found"});const r=ethers_1.ethers.HDNodeWallet.fromPhrase(a.mnemonic.phrase);t[e.chain]={address:r.address,network:e.network,balance:0};if(!r.mnemonic)throw(0,error_1.createError)({statusCode:500,message:"Mnemonic not found"});n=(0,encrypt_1.encrypt)(JSON.stringify({mnemonic:r.mnemonic.phrase,publicKey:r.publicKey,privateKey:r.privateKey,xprv:r.extendedKey,xpub:r.neuter().extendedKey,chainCode:r.chainCode,path:r.path}))}const s=await db_1.models.walletData.findOne({where:{walletId:a.id,currency:e.currency,chain:e.chain},transaction:r});s?await s.update({balance:0,index:0,data:n},r):await db_1.models.walletData.create({walletId:a.id,currency:e.currency,chain:e.chain,balance:0,index:0,data:n},{transaction:r})},handleSolanaNativeWallet=async(e,a,t)=>{const r=await(0,safe_imports_1.getSolanaService)();if(!r)throw(0,error_1.createError)({statusCode:500,message:"Solana service not available"});const n=await r.getInstance(),{address:s,data:o}=n.createWallet();a.SOL={address:s,network:process.env.SOLANA_NETWORK||"mainnet",balance:0};const i=(0,encrypt_1.encrypt)(JSON.stringify(o)),l=await db_1.models.walletData.findOne({where:{walletId:e.id,currency:"SOL",chain:"SOL"},transaction:t});l?await l.update({balance:0,data:i},{transaction:t}):await db_1.models.walletData.create({walletId:e.id,currency:"SOL",chain:"SOL",balance:0,data:i},{transaction:t})},handleSolanaWallet=async(e,a,t)=>{const r=await(0,safe_imports_1.getSolanaService)();if(!r)throw(0,error_1.createError)({statusCode:500,message:"Solana service not available"});const n=await r.getInstance(),{address:s,data:o}=n.createWallet();a.SOL={address:s,network:process.env.SOLANA_NETWORK||"mainnet",balance:0};const i=(0,encrypt_1.encrypt)(JSON.stringify(o)),l=await db_1.models.walletData.findOne({where:{walletId:e.id,currency:e.currency,chain:"SOL"},transaction:t});l?await l.update({balance:0,data:i},{transaction:t}):await db_1.models.walletData.create({walletId:e.id,currency:e.currency,chain:"SOL",balance:0,data:i},{transaction:t})},handleTronNativeWallet=async(e,a,t)=>{const r=await(0,safe_imports_1.getTronService)();if(!r)throw(0,error_1.createError)({statusCode:500,message:"Tron service not available"});const n=await r.getInstance(),{address:s,data:o}=n.createWallet();a.TRON={address:s,network:process.env.TRON_NETWORK||"mainnet",balance:0};const i=(0,encrypt_1.encrypt)(JSON.stringify(o)),l=await db_1.models.walletData.findOne({where:{walletId:e.id,currency:"TRX",chain:"TRON"},transaction:t});l?await l.update({balance:0,data:i},{transaction:t}):await db_1.models.walletData.create({walletId:e.id,currency:"TRX",chain:"TRON",balance:0,data:i},{transaction:t})},handleMoneroNativeWallet=async(e,a,t)=>{const r=await(0,safe_imports_1.getMoneroService)();if(!r)throw(0,error_1.createError)({statusCode:500,message:"Monero service not available"});const n=await r.getInstance(),{address:s,data:o}=await n.createWallet(e.id);a.XMR={address:s,network:process.env.MONERO_NETWORK||"mainnet",balance:0};const i=(0,encrypt_1.encrypt)(JSON.stringify(o)),l=await db_1.models.walletData.findOne({where:{walletId:e.id,currency:"XMR",chain:"XMR"},transaction:t});l?await l.update({balance:0,data:i},{transaction:t}):await db_1.models.walletData.create({walletId:e.id,currency:"XMR",chain:"XMR",balance:0,data:i},{transaction:t})},handleTonNativeWallet=async(e,a,t)=>{const r=await(0,safe_imports_1.getTonService)();if(!r)throw(0,error_1.createError)({statusCode:500,message:"TON service not available"});const n=await r.getInstance(),{address:s,data:o}=await n.createWallet();a.TON={address:s,network:process.env.TON_NETWORK||"mainnet",balance:0};const i=(0,encrypt_1.encrypt)(JSON.stringify(o)),l=await db_1.models.walletData.findOne({where:{walletId:e.id,currency:"TON",chain:"TON"},transaction:t});l?await l.update({balance:0,data:i},{transaction:t}):await db_1.models.walletData.create({walletId:e.id,currency:"TON",chain:"TON",balance:0,data:i},{transaction:t})},handleError=(e,a=!0)=>{console_1.logger.error("WALLET",e);if(a)throw(0,error_1.createError)({statusCode:500,message:e})},handlePermitContract=async(e,a,t,r)=>{const n=await db_1.models.ecosystemMasterWallet.findOne({where:{chain:e.chain,status:!0},transaction:r});if(!n||!n.data){console_1.logger.warn("WALLET",`Skipping chain ${e.chain} - Master wallet not found or not enabled`);return}const s=null!=n.lastIndex?n.lastIndex+1:1;await db_1.models.ecosystemMasterWallet.update({lastIndex:s},{where:{id:n.id},transaction:r});const o=JSON.parse((0,encrypt_1.decrypt)(n.data)),i=ethers_1.ethers.HDNodeWallet.fromPhrase(o.mnemonic).deriveChild(s);if(!i.address)throw(0,error_1.createError)({statusCode:500,message:"Address failed to generate"});t[e.chain]={address:i.address,network:e.network,balance:0};const l=(0,encrypt_1.encrypt)(JSON.stringify({address:i.address,publicKey:i.publicKey,privateKey:i.privateKey})),c=await db_1.models.walletData.findOne({where:{walletId:a.id,currency:e.currency,chain:e.chain},transaction:r});c?await c.update({balance:0,index:s,data:l},{transaction:r}):await db_1.models.walletData.create({walletId:a.id,currency:e.currency,chain:e.chain,balance:0,index:s,data:l},{transaction:r})},handleNoPermitContract=async(e,a,t)=>{t[e.chain]={balance:0}},getTotalAvailable=async(e,a)=>{const t=await db_1.models.ecosystemPrivateLedger.findOne({where:{walletId:e.id,index:a.index,currency:e.currency,chain:a.chain}});return e.balance+(t?t.offchainDifference:0)},validateAddress=(e,a)=>{if("SOL"===a)try{new web3_js_1.PublicKey(e)}catch(a){throw(0,error_1.createError)({statusCode:400,message:`Invalid Solana address: ${e}`})}else if("TRON"===a){if(!e.startsWith("T"))throw(0,error_1.createError)({statusCode:400,message:`Invalid Tron address: ${e}`})}else if("XMR"===a){if(!e.startsWith("4")&&!e.startsWith("8"))throw(0,error_1.createError)({statusCode:400,message:`Invalid Monero address: ${e}`})}else if("TON"===a)try{const a=new tonweb_1.default.utils.Address(e);if(!a||!a.toString())throw(0,error_1.createError)({statusCode:400,message:`Invalid TON address: ${e}`})}catch(a){throw(0,error_1.createError)({statusCode:400,message:`Invalid TON address: ${e}`})}else if(!ethers_1.ethers.isAddress(e))throw(0,error_1.createError)({statusCode:400,message:`Invalid target wallet address: ${e}`})};exports.validateAddress=validateAddress;const validateEcosystemBalances=async(e,a,t)=>{try{if((await e.balanceOf(a.address)).toString()<t)throw(0,error_1.createError)({statusCode:400,message:"Insufficient funds in the wallet for withdrawal"});return!0}catch(e){console_1.logger.error("WALLET","Failed to validate ecosystem balances",e);throw e}};exports.validateEcosystemBalances=validateEcosystemBalances;const getEcosystemTokenOwner=(e,a)=>{const{data:t}=e,r=JSON.parse((0,encrypt_1.decrypt)(t)),{privateKey:n}=r;return new ethers_1.ethers.Wallet(n,a)};exports.getEcosystemTokenOwner=getEcosystemTokenOwner;const initializeContracts=async(e,a,t)=>{try{const{contractAddress:r,contractType:n,tokenDecimals:s}=await(0,tokens_1.getTokenContractAddress)(e,a),o=await getGasPayer(e,t),{abi:i}=await(0,smartContract_1.getSmartContract)("token","ERC20");return{contract:new ethers_1.ethers.Contract(r,i,t),contractAddress:r,gasPayer:o,contractType:n,tokenDecimals:s}}catch(e){console_1.logger.error("WALLET","Failed to initialize contracts",e);throw e}};exports.initializeContracts=initializeContracts;const executeEcosystemWithdrawal=async(e,a,t,r,n,s,o)=>{try{const i=await(0,gas_1.getAdjustedGasPrice)(o),l={to:a,from:t.address,data:e.interface.encodeFunctionData("transferFrom",[r.address,n,s])},c=await(0,gas_1.estimateGas)(l,o),d=await e.connect(t).getFunction("transferFrom").send(r.address,n,s,{gasPrice:i,gasLimit:c});await d.wait(2);return d}catch(e){console_1.logger.error("WALLET","Failed to execute ecosystem withdrawal",e);throw e}};exports.executeEcosystemWithdrawal=executeEcosystemWithdrawal;const executeNoPermitWithdrawal=async(e,a,t,r,n,s,o)=>{try{const i=await(0,custodialWallet_1.getActiveCustodialWallets)(e);if(!i||0===i.length)throw(0,error_1.createError)({statusCode:404,message:"No custodial wallets found"});let l,c,d,u;for(const e of i){const t=await(0,custodialWallet_1.getCustodialWalletContract)(e.address,s),r=await(0,custodialWallet_1.getCustodialWalletTokenBalance)(t,a);if(BigInt(r)>=n){l=e;c=t;d=e.address;break}}if(!l)throw(0,error_1.createError)({statusCode:404,message:"No custodial wallets found"});u=o?await c.connect(t).getFunction("transferNative").send(r,n):await c.connect(t).getFunction("transferTokens").send(a,r,n);await u.wait(2);return u}catch(e){console_1.logger.error("WALLET","Failed to execute no permit withdrawal",e);throw e}};exports.executeNoPermitWithdrawal=executeNoPermitWithdrawal;const executePermit=async(e,a,t,r,n,s)=>{try{const o=await e.nonces(r.address),i=(0,chains_1.getTimestampInSeconds)()+4200,l={chainId:await(0,chains_1.getChainId)(s),name:await e.name(),verifyingContract:a,version:"1"},c={Permit:[{name:"owner",type:"address"},{name:"spender",type:"address"},{name:"value",type:"uint256"},{name:"nonce",type:"uint256"},{name:"deadline",type:"uint256"}]},d={owner:r.address,spender:t.address,value:n,nonce:o,deadline:i},u=await r.signTypedData(l,c,d),w=ethers_1.ethers.Signature.from(u);if(ethers_1.ethers.verifyTypedData(l,c,d,w)!==r.address)throw(0,error_1.createError)({statusCode:400,message:"Invalid signature"});const g=await(0,gas_1.getAdjustedGasPrice)(s),h={to:a,from:r.address,nonce:o,data:e.interface.encodeFunctionData("permit",[r.address,t.address,n,i,w.v,w.r,w.s])},y=await(0,gas_1.estimateGas)(h,s),p=(await e.balanceOf(t.address)).toString();if(BigInt(p)<BigInt(y)*g*BigInt(2))throw(0,error_1.createError)({statusCode:500,message:"Withdrawal failed, Please contact support team."});const m=await e.connect(t).getFunction("permit").send(r.address,t.address,n,i,w.v,w.r,w.s,{gasPrice:g,gasLimit:y});await m.wait(2);return m}catch(e){console_1.logger.error("WALLET","Failed to execute permit",e);throw e}};exports.executePermit=executePermit;const executeNativeWithdrawal=async(e,a,t,r)=>{try{if(await r.getBalance(e.address)<t)throw(0,error_1.createError)({statusCode:400,message:"Insufficient funds for withdrawal"});const n={to:a,value:t},s=await e.sendTransaction(n);await s.wait(2);return s}catch(e){console_1.logger.error("WALLET","Failed to execute native withdrawal",e);throw e}};exports.executeNativeWithdrawal=executeNativeWithdrawal;const handleEcosystemDeposit=async e=>{try{const a=await db_1.models.wallet.findOne({where:{id:e.id}});if(!a)throw(0,error_1.createError)({statusCode:404,message:"Wallet not found"});if(await db_1.models.transaction.findOne({where:{trxId:e.hash,walletId:a.id}}))throw(0,error_1.createError)({statusCode:409,message:"Transaction already processed for this wallet"});const t=JSON.parse(a.address)[e.chain];if(!t)throw(0,error_1.createError)({statusCode:404,message:"Address not found for the given chain"});const r=parseFloat(e.amount);console_1.logger.debug("DEPOSIT",`Processing deposit for wallet ${a.id}`);console_1.logger.debug("DEPOSIT",`Current wallet balance: ${a.balance} ${a.currency}`);console_1.logger.debug("DEPOSIT",`Current chain balance: ${t.balance||0} ${a.currency}`);console_1.logger.debug("DEPOSIT",`Deposit amount (trx.amount): ${e.amount} ${a.currency}`);console_1.logger.debug("DEPOSIT",`Parsed deposit amount: ${r} ${a.currency}`);let n=0;const s=["BTC","DOGE","LTC","DASH"];if(s.includes(e.chain)){const a=e.inputs.reduce((e,a)=>{const t=a.output_value||a.value||0;return e+parseFloat(t)},0);n=a-e.outputs.reduce((e,a)=>{const t=a.value||0;return e+parseFloat(t)},0)}else n=isNaN(parseFloat(e.gasUsed))||isNaN(parseFloat(e.gasPrice))?0:parseFloat(e.gasUsed)*parseFloat(e.gasPrice);const o=`eco_deposit_${e.hash}_${a.id}`,i=await wallet_1.walletService.ecoCredit({idempotencyKey:o,userId:a.userId,walletId:a.id,currency:a.currency,chain:e.chain,amount:r,operationType:"ECO_DEPOSIT",fee:n,description:`Deposit of ${e.amount} ${a.currency} from ${Array.isArray(e.from)?e.from[0]||"Unknown":e.from||"Unknown"}`,txHash:e.hash,fromAddress:e.from,toAddress:e.to,metadata:{gasLimit:e.gasLimit,gasPrice:e.gasPrice,gasUsed:e.gasUsed,inputs:e.inputs,outputs:e.outputs}});console_1.logger.debug("DEPOSIT",`New chain balance: ${i.newChainBalance} ${a.currency}`);console_1.logger.debug("DEPOSIT",`New wallet balance: ${i.newBalance} ${a.currency}`);if(s.includes(e.chain)&&e.outputs&&Array.isArray(e.outputs)){console_1.logger.debug("UTXO",`Saving UTXOs for ${e.chain} transaction ${e.hash}`);const r=t.address,n=e.outputs.filter(e=>e.addresses&&e.addresses.includes(r));console_1.logger.debug("UTXO",`Found ${n.length} outputs for wallet address ${r}`);for(let t=0;t<e.outputs.length;t++){const n=e.outputs[t];if(n.addresses&&n.addresses.includes(r))try{await db_1.models.ecosystemUtxo.create({walletId:a.id,transactionId:e.hash,index:t,amount:parseFloat(n.value),script:n.script||"",status:!1});console_1.logger.debug("UTXO",`Saved UTXO: ${e.hash}:${t} amount=${n.value} ${a.currency}`)}catch(a){console_1.logger.error("UTXO",`Failed to save UTXO ${e.hash}:${t}: ${a.message}`)}}console_1.logger.debug("UTXO",`Completed UTXO save for transaction ${e.hash}`)}const l=await db_1.models.wallet.findOne({where:{id:a.id}});console_1.logger.debug("DEPOSIT",`Updating wallet_data for walletId: ${a.id}, chain: ${e.chain}`);const c=await db_1.models.walletData.findOne({where:{walletId:a.id,chain:e.chain}});if(c){console_1.logger.debug("DEPOSIT",`Current wallet_data balance: ${c.balance}`);console_1.logger.debug("DEPOSIT",`Deposit amount: ${e.amount}`);const t=parseFloat(c.balance)||0,r=parseFloat(e.amount);console_1.logger.debug("DEPOSIT",`Parsed current balance: ${t}`);console_1.logger.debug("DEPOSIT",`Parsed deposit amount: ${r}`);const n=updateBalancePrecision(t+r,e.chain);console_1.logger.debug("DEPOSIT",`New wallet_data balance: ${n}`);await db_1.models.walletData.update({balance:n},{where:{walletId:a.id,chain:e.chain}});console_1.logger.debug("DEPOSIT","Successfully updated wallet_data balance")}else console_1.logger.error("DEPOSIT",`No wallet_data found for walletId: ${a.id}, chain: ${e.chain}`);return{transactionId:i.transactionId,wallet:l}}catch(e){console_1.logger.error("WALLET","Failed to handle ecosystem deposit",e);throw e}};exports.handleEcosystemDeposit=handleEcosystemDeposit;const satoshiToBTC=e=>e/1e8,updateBalancePrecision=(e,a)=>{const t={BTC:8,LTC:8,DOGE:8,DASH:8,SOL:8,TRON:6,XMR:12,BSC:8,ETH:8,POLYGON:8,ARBITRUM:8,OPTIMISM:8,BASE:8,AVAX:8,FTM:8,CELO:8,RSK:8};return void 0!==t[a]?parseFloat(e.toFixed(t[a])):e},decrementWalletBalance=async(e,a,t,r)=>{try{const n=`eco_debit_${e.id}_${a}_${t}`;return await wallet_1.walletService.ecoDebit({idempotencyKey:n,userId:e.userId,walletId:e.id,currency:e.currency,chain:a,amount:t,operationType:"ECO_WITHDRAW",description:`Withdrawal of ${t} ${e.currency} on ${a}`,transaction:r})}catch(e){console_1.logger.error("WALLET","Failed to decrement wallet balance",e);throw e}};exports.decrementWalletBalance=decrementWalletBalance;const refundUser=async e=>{try{await db_1.models.transaction.update({status:"FAILED",description:`Refund of ${e.amount}`},{where:{id:e.id}});const a=await db_1.models.wallet.findOne({where:{id:e.walletId}});if(!a)throw(0,error_1.createError)({statusCode:404,message:"Wallet not found"});const t=JSON.parse(e.metadata),r=e.amount+e.fee,n=null==t?void 0:t.chain,s=`eco_refund_${e.id}`;await wallet_1.walletService.ecoRefund({idempotencyKey:s,userId:a.userId,walletId:a.id,currency:a.currency,chain:n,amount:r,operationType:"ECO_REFUND",description:`Refund of ${r} ${a.currency} for failed withdrawal`,referenceId:e.id,metadata:{originalTransactionId:e.id,reason:"withdrawal_failed"}})}catch(e){console_1.logger.error("WALLET","Failed to refund user",e);throw e}};exports.refundUser=refundUser;const updateAlternativeWallet=async(e,a,t)=>{try{const r=await db_1.models.walletData.findOne({where:{currency:e,chain:a}});if(!r)throw(0,error_1.createError)({statusCode:404,message:"Alternative wallet not found"});const n=updateBalancePrecision(parseFloat(r.balance)-t,a);await db_1.models.walletData.update({balance:n},{where:{id:r.id}});await updatePrivateLedger(r.walletId,r.index,e,a,-t)}catch(e){console_1.logger.error("WALLET","Failed to update alternative wallet",e);throw e}};exports.updateAlternativeWallet=updateAlternativeWallet;
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateAlternativeWallet = exports.refundUser = exports.decrementWalletBalance = exports.handleEcosystemDeposit = exports.executeNativeWithdrawal = exports.executePermit = exports.executeNoPermitWithdrawal = exports.executeEcosystemWithdrawal = exports.initializeContracts = exports.getEcosystemTokenOwner = exports.validateEcosystemBalances = exports.validateAddress = exports.generateAndAddAddresses = exports.storeWallet = exports.walletResponseAttributes = void 0;
+exports.checkBlockchainExtensions = checkBlockchainExtensions;
+exports.getActiveTokensByCurrency = getActiveTokensByCurrency;
+exports.getWalletByUserIdAndCurrency = getWalletByUserIdAndCurrency;
+exports.getMasterWalletByChain = getMasterWalletByChain;
+exports.getMasterWalletByChainFull = getMasterWalletByChainFull;
+exports.checkEcosystemAvailableFunds = checkEcosystemAvailableFunds;
+exports.getGasPayer = getGasPayer;
+exports.getAndValidateTokenOwner = getAndValidateTokenOwner;
+exports.getAndValidateNativeTokenOwner = getAndValidateNativeTokenOwner;
+exports.getWalletData = getWalletData;
+exports.findAlternativeWalletData = findAlternativeWalletData;
+exports.getEcosystemPendingTransactions = getEcosystemPendingTransactions;
+exports.updatePrivateLedger = updatePrivateLedger;
+exports.createPendingTransaction = createPendingTransaction;
+exports.updateWalletBalance = updateWalletBalance;
+exports.updateWalletForFill = updateWalletForFill;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const encrypt_1 = require("@b/utils/encrypt");
+const safe_imports_1 = require("@b/utils/safe-imports");
+const ethers_1 = require("ethers");
+const tonweb_1 = __importDefault(require("tonweb"));
+const blockchain_1 = require("./blockchain");
+const gas_1 = require("./gas");
+const tokens_1 = require("./tokens");
+const smartContract_1 = require("./smartContract");
+const chains_1 = require("./chains");
+const custodialWallet_1 = require("./custodialWallet");
+const console_1 = require("@b/utils/console");
+const wallet_1 = require("@b/services/wallet");
+async function checkBlockchainExtensions() {
+    const solanaService = await (0, safe_imports_1.getSolanaService)();
+    const tronService = await (0, safe_imports_1.getTronService)();
+    const moneroService = await (0, safe_imports_1.getMoneroService)();
+    const tonService = await (0, safe_imports_1.getTonService)();
+    return {
+        solana: (0, safe_imports_1.isServiceAvailable)(solanaService),
+        tron: (0, safe_imports_1.isServiceAvailable)(tronService),
+        monero: (0, safe_imports_1.isServiceAvailable)(moneroService),
+        ton: (0, safe_imports_1.isServiceAvailable)(tonService),
+    };
+}
+exports.walletResponseAttributes = [
+    "id",
+    "currency",
+    "chain",
+    "address",
+    "status",
+    "balance",
+];
+const web3_js_1 = require("@solana/web3.js");
+const utxo_1 = require("./utxo");
+async function getActiveTokensByCurrency(currency) {
+    const tokens = await db_1.models.ecosystemToken.findAll({
+        where: { currency, status: true },
+    });
+    const filteredTokens = tokens.filter((token) => {
+        const specialChains = ['XMR', 'TON', 'SOL', 'TRON', 'BTC', 'LTC', 'DOGE', 'DASH'];
+        if (specialChains.includes(token.chain)) {
+            return true;
+        }
+        const chainEnvVar = `${token.chain.toUpperCase()}_NETWORK`;
+        const expectedNetwork = process.env[chainEnvVar];
+        if (!expectedNetwork) {
+            return false;
+        }
+        if (token.network === expectedNetwork) {
+            return true;
+        }
+        const networkMappings = {
+            'BSC': 'mainnet',
+            'ETH': 'mainnet',
+            'POLYGON': 'mainnet',
+            'ARBITRUM': 'mainnet',
+            'OPTIMISM': 'mainnet',
+            'AVALANCHE': 'mainnet',
+            'FANTOM': 'mainnet'
+        };
+        if (token.network === token.chain && expectedNetwork === 'mainnet') {
+            return true;
+        }
+        if (networkMappings[token.chain] === token.network && expectedNetwork === 'mainnet') {
+            return true;
+        }
+        return false;
+    });
+    if (filteredTokens.length === 0) {
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: "No enabled tokens found for this currency",
+        });
+    }
+    return filteredTokens;
+}
+async function getWalletByUserIdAndCurrency(userId, currency, type = "ECO", transaction, lock) {
+    let wallet = await db_1.models.wallet.findOne({
+        where: {
+            userId,
+            currency,
+            type,
+        },
+        attributes: ["id", "type", "currency", "balance", "inOrder", "address"],
+        ...(transaction && { transaction }),
+        ...(transaction && lock && { lock: transaction.LOCK.UPDATE }),
+    });
+    if (type === "COPY_TRADING") {
+        return wallet;
+    }
+    if (!wallet) {
+        const newWallet = await (0, exports.storeWallet)({ id: userId }, currency);
+        if (newWallet) {
+            wallet = newWallet;
+        }
+    }
+    if (!wallet) {
+        throw (0, error_1.createError)(404, "Wallet not found");
+    }
+    const tokens = await getActiveTokensByCurrency(currency);
+    let addresses = {};
+    try {
+        if (wallet.address) {
+            if (typeof wallet.address === "string") {
+                addresses = JSON.parse(wallet.address);
+            }
+            else {
+                addresses = wallet.address;
+            }
+            if (typeof addresses === "string") {
+                addresses = JSON.parse(addresses);
+            }
+        }
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", `Failed to parse wallet address for wallet ${wallet.id}: ${error.message}`);
+        console_1.logger.debug("WALLET", `Raw address value: ${wallet.address}`);
+        if (typeof wallet.address === "string") {
+            try {
+                const addressStr = wallet.address;
+                const repairedAddress = addressStr.replace(/"(\w+)"(\d+\.?\d*)/g, '"$1":$2');
+                addresses = JSON.parse(repairedAddress);
+                console_1.logger.success("WALLET", `Repaired corrupted wallet address JSON for wallet ${wallet.id}`);
+                await db_1.models.wallet.update({ address: JSON.stringify(addresses) }, { where: { id: wallet.id } });
+            }
+            catch (repairError) {
+                console_1.logger.error("WALLET", `Failed to repair wallet address: ${repairError.message}`);
+                addresses = {};
+            }
+        }
+    }
+    if (!addresses ||
+        (addresses && Object.keys(addresses).length < tokens.length)) {
+        const tokensWithoutAddress = tokens.filter((token) => !addresses || !addresses.hasOwnProperty(token.chain));
+        if (tokensWithoutAddress.length > 0) {
+            await db_1.sequelize.transaction(async (transaction) => {
+                await (0, exports.generateAndAddAddresses)(wallet, tokensWithoutAddress, transaction);
+            });
+        }
+        const updatedWallet = await db_1.models.wallet.findOne({
+            where: { id: wallet.id },
+            attributes: ["id", "type", "currency", "balance", "inOrder", "address"],
+        });
+        if (!updatedWallet) {
+            throw (0, error_1.createError)(500, "Failed to update wallet with new addresses");
+        }
+        return updatedWallet;
+    }
+    return wallet;
+}
+const storeWallet = async (user, currency) => {
+    const tokens = await getActiveTokensByCurrency(currency);
+    if (!tokens.length) {
+        handleError("No enabled tokens found for this currency");
+    }
+    try {
+        (0, encrypt_1.encrypt)("test");
+    }
+    catch (error) {
+        handleError("Encryption key is not set");
+    }
+    return await db_1.sequelize.transaction(async (transaction) => {
+        const walletResult = await wallet_1.walletCreationService.getOrCreateWallet(user.id, "ECO", currency, transaction);
+        const wallet = walletResult.wallet;
+        let addresses = wallet.address
+            ? typeof wallet.address === "string"
+                ? JSON.parse(wallet.address)
+                : wallet.address
+            : {};
+        if (typeof addresses === "string") {
+            addresses = JSON.parse(addresses);
+        }
+        if (addresses && Object.keys(addresses).length > 0) {
+            return await db_1.models.wallet.findByPk(wallet.id, { transaction });
+        }
+        const walletModel = await db_1.models.wallet.findByPk(wallet.id, { transaction });
+        if (!walletModel) {
+            throw (0, error_1.createError)({ statusCode: 500, message: "Failed to retrieve wallet for address generation" });
+        }
+        return await (0, exports.generateAndAddAddresses)(walletModel, tokens, transaction);
+    });
+};
+exports.storeWallet = storeWallet;
+const generateAndAddAddresses = async (wallet, tokens, transaction) => {
+    let addresses = wallet.address
+        ? typeof wallet.address === "string"
+            ? JSON.parse(wallet.address)
+            : wallet.address
+        : {};
+    if (typeof addresses === "string") {
+        addresses = JSON.parse(addresses);
+    }
+    for (const token of tokens) {
+        try {
+            switch (token.contractType) {
+                case "PERMIT":
+                    if (token.chain === "SOL") {
+                        await handleSolanaWallet(wallet, addresses, transaction);
+                    }
+                    else {
+                        await handlePermitContract(token, wallet, addresses, transaction);
+                    }
+                    break;
+                case "NO_PERMIT":
+                    await handleNoPermitContract(token, wallet, addresses);
+                    break;
+                case "NATIVE":
+                    if (token.chain === "SOL") {
+                        await handleSolanaNativeWallet(wallet, addresses, transaction);
+                    }
+                    else if (token.chain === "TRON") {
+                        await handleTronNativeWallet(wallet, addresses, transaction);
+                    }
+                    else if (token.chain === "XMR") {
+                        await handleMoneroNativeWallet(wallet, addresses, transaction);
+                    }
+                    else if (token.chain === "TON") {
+                        await handleTonNativeWallet(wallet, addresses, transaction);
+                    }
+                    else {
+                        await handleNativeContract(token, wallet, addresses, transaction);
+                    }
+                    break;
+                default:
+                    handleError(`Unknown contract type for token ${token.name}`, false);
+            }
+        }
+        catch (error) {
+            handleError(`Failed to generate address for token ${token.name}: ${error.message}`, false);
+        }
+    }
+    if (Object.keys(addresses).length === 0) {
+        handleError("Failed to generate any addresses for the wallet");
+    }
+    await db_1.models.wallet.update({ address: JSON.stringify(addresses) }, {
+        where: { id: wallet.id },
+        transaction,
+    });
+    const updatedWallet = await db_1.models.wallet.findOne({
+        where: { id: wallet.id },
+        transaction,
+    });
+    if (!updatedWallet) {
+        handleError("Failed to update wallet with new addresses");
+    }
+    return updatedWallet;
+};
+exports.generateAndAddAddresses = generateAndAddAddresses;
+const handleNativeContract = async (token, newWallet, addresses, transaction) => {
+    let encryptedWalletData;
+    if (["BTC", "LTC", "DOGE", "DASH"].includes(token.chain)) {
+        const wallet = (0, utxo_1.createUTXOWallet)(token.chain);
+        addresses[token.chain] = {
+            address: wallet.address,
+            network: token.network,
+            balance: 0,
+        };
+        encryptedWalletData = (0, encrypt_1.encrypt)(JSON.stringify(wallet.data));
+    }
+    else {
+        const wallet = ethers_1.ethers.Wallet.createRandom();
+        if (!wallet.mnemonic)
+            throw (0, error_1.createError)({ statusCode: 500, message: "Mnemonic not found" });
+        const hdNode = ethers_1.ethers.HDNodeWallet.fromPhrase(wallet.mnemonic.phrase);
+        addresses[token.chain] = {
+            address: hdNode.address,
+            network: token.network,
+            balance: 0,
+        };
+        if (!hdNode.mnemonic)
+            throw (0, error_1.createError)({ statusCode: 500, message: "Mnemonic not found" });
+        encryptedWalletData = (0, encrypt_1.encrypt)(JSON.stringify({
+            mnemonic: hdNode.mnemonic.phrase,
+            publicKey: hdNode.publicKey,
+            privateKey: hdNode.privateKey,
+            xprv: hdNode.extendedKey,
+            xpub: hdNode.neuter().extendedKey,
+            chainCode: hdNode.chainCode,
+            path: hdNode.path,
+        }));
+    }
+    const walletData = await db_1.models.walletData.findOne({
+        where: {
+            walletId: newWallet.id,
+            currency: token.currency,
+            chain: token.chain,
+        },
+        transaction,
+    });
+    if (walletData) {
+        await walletData.update({
+            balance: 0,
+            index: 0,
+            data: encryptedWalletData,
+        }, transaction);
+    }
+    else {
+        await db_1.models.walletData.create({
+            walletId: newWallet.id,
+            currency: token.currency,
+            chain: token.chain,
+            balance: 0,
+            index: 0,
+            data: encryptedWalletData,
+        }, { transaction });
+    }
+};
+const handleSolanaNativeWallet = async (wallet, addresses, transaction) => {
+    const SolanaService = await (0, safe_imports_1.getSolanaService)();
+    if (!SolanaService) {
+        throw (0, error_1.createError)({ statusCode: 500, message: "Solana service not available" });
+    }
+    const solanaService = await SolanaService.getInstance();
+    const { address, data } = solanaService.createWallet();
+    addresses["SOL"] = {
+        address,
+        network: process.env.SOLANA_NETWORK || "mainnet",
+        balance: 0,
+    };
+    const encryptedWalletData = (0, encrypt_1.encrypt)(JSON.stringify(data));
+    const walletData = await db_1.models.walletData.findOne({
+        where: {
+            walletId: wallet.id,
+            currency: "SOL",
+            chain: "SOL",
+        },
+        transaction,
+    });
+    if (walletData) {
+        await walletData.update({
+            balance: 0,
+            data: encryptedWalletData,
+        }, { transaction });
+    }
+    else {
+        await db_1.models.walletData.create({
+            walletId: wallet.id,
+            currency: "SOL",
+            chain: "SOL",
+            balance: 0,
+            index: 0,
+            data: encryptedWalletData,
+        }, { transaction });
+    }
+};
+const handleSolanaWallet = async (wallet, addresses, transaction) => {
+    const SolanaService = await (0, safe_imports_1.getSolanaService)();
+    if (!SolanaService) {
+        throw (0, error_1.createError)({ statusCode: 500, message: "Solana service not available" });
+    }
+    const solanaService = await SolanaService.getInstance();
+    const { address, data } = solanaService.createWallet();
+    addresses["SOL"] = {
+        address,
+        network: process.env.SOLANA_NETWORK || "mainnet",
+        balance: 0,
+    };
+    const encryptedWalletData = (0, encrypt_1.encrypt)(JSON.stringify(data));
+    const walletData = await db_1.models.walletData.findOne({
+        where: {
+            walletId: wallet.id,
+            currency: wallet.currency,
+            chain: "SOL",
+        },
+        transaction,
+    });
+    if (walletData) {
+        await walletData.update({
+            balance: 0,
+            data: encryptedWalletData,
+        }, { transaction });
+    }
+    else {
+        await db_1.models.walletData.create({
+            walletId: wallet.id,
+            currency: wallet.currency,
+            chain: "SOL",
+            balance: 0,
+            index: 0,
+            data: encryptedWalletData,
+        }, { transaction });
+    }
+};
+const handleTronNativeWallet = async (wallet, addresses, transaction) => {
+    const TronService = await (0, safe_imports_1.getTronService)();
+    if (!TronService) {
+        throw (0, error_1.createError)({ statusCode: 500, message: "Tron service not available" });
+    }
+    const tronService = await TronService.getInstance();
+    const { address, data } = tronService.createWallet();
+    addresses["TRON"] = {
+        address,
+        network: process.env.TRON_NETWORK || "mainnet",
+        balance: 0,
+    };
+    const encryptedWalletData = (0, encrypt_1.encrypt)(JSON.stringify(data));
+    const walletData = await db_1.models.walletData.findOne({
+        where: {
+            walletId: wallet.id,
+            currency: "TRX",
+            chain: "TRON",
+        },
+        transaction,
+    });
+    if (walletData) {
+        await walletData.update({
+            balance: 0,
+            data: encryptedWalletData,
+        }, { transaction });
+    }
+    else {
+        await db_1.models.walletData.create({
+            walletId: wallet.id,
+            currency: "TRX",
+            chain: "TRON",
+            balance: 0,
+            index: 0,
+            data: encryptedWalletData,
+        }, { transaction });
+    }
+};
+const handleMoneroNativeWallet = async (wallet, addresses, transaction) => {
+    const MoneroService = await (0, safe_imports_1.getMoneroService)();
+    if (!MoneroService) {
+        throw (0, error_1.createError)({ statusCode: 500, message: "Monero service not available" });
+    }
+    const moneroService = await MoneroService.getInstance();
+    const { address, data } = await moneroService.createWallet(wallet.id);
+    addresses["XMR"] = {
+        address,
+        network: process.env.MONERO_NETWORK || "mainnet",
+        balance: 0,
+    };
+    const encryptedWalletData = (0, encrypt_1.encrypt)(JSON.stringify(data));
+    const walletData = await db_1.models.walletData.findOne({
+        where: {
+            walletId: wallet.id,
+            currency: "XMR",
+            chain: "XMR",
+        },
+        transaction,
+    });
+    if (walletData) {
+        await walletData.update({
+            balance: 0,
+            data: encryptedWalletData,
+        }, { transaction });
+    }
+    else {
+        await db_1.models.walletData.create({
+            walletId: wallet.id,
+            currency: "XMR",
+            chain: "XMR",
+            balance: 0,
+            index: 0,
+            data: encryptedWalletData,
+        }, { transaction });
+    }
+};
+const handleTonNativeWallet = async (wallet, addresses, transaction) => {
+    const TonService = await (0, safe_imports_1.getTonService)();
+    if (!TonService) {
+        throw (0, error_1.createError)({ statusCode: 500, message: "TON service not available" });
+    }
+    const tonService = await TonService.getInstance();
+    const { address, data } = await tonService.createWallet();
+    addresses["TON"] = {
+        address,
+        network: process.env.TON_NETWORK || "mainnet",
+        balance: 0,
+    };
+    const encryptedWalletData = (0, encrypt_1.encrypt)(JSON.stringify(data));
+    const walletData = await db_1.models.walletData.findOne({
+        where: {
+            walletId: wallet.id,
+            currency: "TON",
+            chain: "TON",
+        },
+        transaction,
+    });
+    if (walletData) {
+        await walletData.update({
+            balance: 0,
+            data: encryptedWalletData,
+        }, { transaction });
+    }
+    else {
+        await db_1.models.walletData.create({
+            walletId: wallet.id,
+            currency: "TON",
+            chain: "TON",
+            balance: 0,
+            index: 0,
+            data: encryptedWalletData,
+        }, { transaction });
+    }
+};
+const handleError = (message, throwIt = true) => {
+    console_1.logger.error("WALLET", message);
+    if (throwIt) {
+        throw (0, error_1.createError)({ statusCode: 500, message });
+    }
+};
+const handlePermitContract = async (token, newWallet, addresses, transaction) => {
+    const masterWallet = await db_1.models.ecosystemMasterWallet.findOne({
+        where: { chain: token.chain, status: true },
+        transaction,
+    });
+    if (!masterWallet || !masterWallet.data) {
+        console_1.logger.warn("WALLET", `Skipping chain ${token.chain} - Master wallet not found or not enabled`);
+        return;
+    }
+    const nextIndex = masterWallet.lastIndex != null ? masterWallet.lastIndex + 1 : 1;
+    await db_1.models.ecosystemMasterWallet.update({ lastIndex: nextIndex }, {
+        where: { id: masterWallet.id },
+        transaction,
+    });
+    const decryptedMasterData = JSON.parse((0, encrypt_1.decrypt)(masterWallet.data));
+    const hdNode = ethers_1.ethers.HDNodeWallet.fromPhrase(decryptedMasterData.mnemonic);
+    const childNode = hdNode.deriveChild(nextIndex);
+    if (!childNode.address) {
+        throw (0, error_1.createError)({ statusCode: 500, message: "Address failed to generate" });
+    }
+    addresses[token.chain] = {
+        address: childNode.address,
+        network: token.network,
+        balance: 0,
+    };
+    const encryptedChildData = (0, encrypt_1.encrypt)(JSON.stringify({
+        address: childNode.address,
+        publicKey: childNode.publicKey,
+        privateKey: childNode.privateKey,
+    }));
+    const walletData = await db_1.models.walletData.findOne({
+        where: {
+            walletId: newWallet.id,
+            currency: token.currency,
+            chain: token.chain,
+        },
+        transaction,
+    });
+    if (walletData) {
+        await walletData.update({
+            balance: 0,
+            index: nextIndex,
+            data: encryptedChildData,
+        }, { transaction });
+    }
+    else {
+        await db_1.models.walletData.create({
+            walletId: newWallet.id,
+            currency: token.currency,
+            chain: token.chain,
+            balance: 0,
+            index: nextIndex,
+            data: encryptedChildData,
+        }, { transaction });
+    }
+};
+const handleNoPermitContract = async (token, newWallet, addresses) => {
+    addresses[token.chain] = {
+        balance: 0,
+    };
+};
+async function getMasterWalletByChain(chain) {
+    try {
+        return await db_1.models.ecosystemMasterWallet.findOne({
+            where: { chain },
+            attributes: exports.walletResponseAttributes,
+        });
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to get master wallet by chain", error);
+        throw error;
+    }
+}
+async function getMasterWalletByChainFull(chain) {
+    try {
+        const wallet = await db_1.models.ecosystemMasterWallet.findOne({
+            where: { chain },
+        });
+        if (!wallet) {
+            throw (0, error_1.createError)({ statusCode: 404, message: `Master wallet not found for chain: ${chain}` });
+        }
+        return wallet;
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to get master wallet by chain", error);
+        throw error;
+    }
+}
+async function checkEcosystemAvailableFunds(userWallet, walletData, totalAmount) {
+    try {
+        console_1.logger.debug("WALLET", `Checking funds availability: walletId=${userWallet.id}, totalAmount=${totalAmount}, currentBalance=${userWallet.balance}`);
+        const totalAvailable = await getTotalAvailable(userWallet, walletData);
+        console_1.logger.debug("WALLET", `Total available: ${totalAvailable}`);
+        if (totalAvailable < totalAmount) {
+            console_1.logger.error("WALLET", `Insufficient funds: available ${totalAvailable} < required ${totalAmount}`);
+            throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient funds for withdrawal including fee" });
+        }
+        return totalAvailable;
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Error checking funds", error);
+        if (error.statusCode === 400) {
+            throw error;
+        }
+        throw (0, error_1.createError)({ statusCode: 500, message: "Withdrawal failed - please try again later" });
+    }
+}
+const getTotalAvailable = async (userWallet, walletData) => {
+    const pvEntry = await db_1.models.ecosystemPrivateLedger.findOne({
+        where: {
+            walletId: userWallet.id,
+            index: walletData.index,
+            currency: userWallet.currency,
+            chain: walletData.chain,
+        },
+    });
+    return userWallet.balance + (pvEntry ? pvEntry.offchainDifference : 0);
+};
+async function getGasPayer(chain, provider) {
+    try {
+        console_1.logger.debug("WALLET", `Getting gas payer for chain: ${chain}`);
+        const masterWallet = await getMasterWalletByChainFull(chain);
+        if (!masterWallet) {
+            console_1.logger.error("WALLET", `Master wallet not found for chain: ${chain}`);
+            throw (0, error_1.createError)({ statusCode: 404, message: "Master wallet not found" });
+        }
+        const { data } = masterWallet;
+        if (!data) {
+            console_1.logger.error("WALLET", `Master wallet data not found for chain: ${chain}`);
+            throw (0, error_1.createError)({ statusCode: 404, message: "Master wallet data not found" });
+        }
+        console_1.logger.debug("WALLET", `Decrypting master wallet data`);
+        const decryptedMasterData = JSON.parse((0, encrypt_1.decrypt)(data));
+        return new ethers_1.ethers.Wallet(decryptedMasterData.privateKey, provider);
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Error getting gas payer", error);
+        throw (0, error_1.createError)({ statusCode: 500, message: "Withdrawal failed - please try again later" });
+    }
+}
+const validateAddress = (toAddress, chain) => {
+    if (chain === "SOL") {
+        try {
+            new web3_js_1.PublicKey(toAddress);
+        }
+        catch (error) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Invalid Solana address: ${toAddress}` });
+        }
+    }
+    else if (chain === "TRON") {
+        if (!toAddress.startsWith("T")) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Invalid Tron address: ${toAddress}` });
+        }
+    }
+    else if (chain === "XMR") {
+        if (!toAddress.startsWith("4") && !toAddress.startsWith("8")) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Invalid Monero address: ${toAddress}` });
+        }
+    }
+    else if (chain === "TON") {
+        try {
+            const tonAddress = new tonweb_1.default.utils.Address(toAddress);
+            if (!tonAddress || !tonAddress.toString()) {
+                throw (0, error_1.createError)({ statusCode: 400, message: `Invalid TON address: ${toAddress}` });
+            }
+        }
+        catch (error) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Invalid TON address: ${toAddress}` });
+        }
+    }
+    else {
+        if (!ethers_1.ethers.isAddress(toAddress)) {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Invalid target wallet address: ${toAddress}` });
+        }
+    }
+};
+exports.validateAddress = validateAddress;
+const validateEcosystemBalances = async (tokenContract, actualTokenOwner, amount) => {
+    try {
+        const tokenOwnerBalance = (await tokenContract.balanceOf(actualTokenOwner.address)).toString();
+        if (tokenOwnerBalance < amount) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient funds in the wallet for withdrawal" });
+        }
+        return true;
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to validate ecosystem balances", error);
+        throw error;
+    }
+};
+exports.validateEcosystemBalances = validateEcosystemBalances;
+const getEcosystemTokenOwner = (walletData, provider) => {
+    const { data } = walletData;
+    const decryptedData = JSON.parse((0, encrypt_1.decrypt)(data));
+    const { privateKey } = decryptedData;
+    return new ethers_1.ethers.Wallet(privateKey, provider);
+};
+exports.getEcosystemTokenOwner = getEcosystemTokenOwner;
+const initializeContracts = async (chain, currency, provider) => {
+    try {
+        const { contractAddress, contractType, tokenDecimals } = await (0, tokens_1.getTokenContractAddress)(chain, currency);
+        const gasPayer = await getGasPayer(chain, provider);
+        const { abi } = await (0, smartContract_1.getSmartContract)("token", "ERC20");
+        const contract = new ethers_1.ethers.Contract(contractAddress, abi, provider);
+        return {
+            contract,
+            contractAddress,
+            gasPayer,
+            contractType,
+            tokenDecimals,
+        };
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to initialize contracts", error);
+        throw error;
+    }
+};
+exports.initializeContracts = initializeContracts;
+const executeEcosystemWithdrawal = async (tokenContract, tokenContractAddress, gasPayer, tokenOwner, toAddress, amount, provider) => {
+    try {
+        const gasPrice = await (0, gas_1.getAdjustedGasPrice)(provider);
+        const transferFromTransaction = {
+            to: tokenContractAddress,
+            from: gasPayer.address,
+            data: tokenContract.interface.encodeFunctionData("transferFrom", [
+                tokenOwner.address,
+                toAddress,
+                amount,
+            ]),
+        };
+        const gasLimitForTransferFrom = await (0, gas_1.estimateGas)(transferFromTransaction, provider);
+        const trx = await tokenContract
+            .connect(gasPayer)
+            .getFunction("transferFrom")
+            .send(tokenOwner.address, toAddress, amount, {
+            gasPrice: gasPrice,
+            gasLimit: gasLimitForTransferFrom,
+        });
+        await trx.wait(2);
+        return trx;
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to execute ecosystem withdrawal", error);
+        throw error;
+    }
+};
+exports.executeEcosystemWithdrawal = executeEcosystemWithdrawal;
+const executeNoPermitWithdrawal = async (chain, tokenContractAddress, gasPayer, toAddress, amount, provider, isNative) => {
+    try {
+        const custodialWallets = await (0, custodialWallet_1.getActiveCustodialWallets)(chain);
+        if (!custodialWallets || custodialWallets.length === 0) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "No custodial wallets found" });
+        }
+        let tokenOwner, custodialContract, custodialContractAddress;
+        for (const custodialWallet of custodialWallets) {
+            const custodialWalletContract = await (0, custodialWallet_1.getCustodialWalletContract)(custodialWallet.address, provider);
+            const balance = await (0, custodialWallet_1.getCustodialWalletTokenBalance)(custodialWalletContract, tokenContractAddress);
+            if (BigInt(balance) >= amount) {
+                tokenOwner = custodialWallet;
+                custodialContract = custodialWalletContract;
+                custodialContractAddress = custodialWallet.address;
+                break;
+            }
+        }
+        if (!tokenOwner) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "No custodial wallets found" });
+        }
+        let trx;
+        if (isNative) {
+            trx = await custodialContract
+                .connect(gasPayer)
+                .getFunction("transferNative")
+                .send(toAddress, amount);
+        }
+        else {
+            trx = await custodialContract
+                .connect(gasPayer)
+                .getFunction("transferTokens")
+                .send(tokenContractAddress, toAddress, amount);
+        }
+        await trx.wait(2);
+        return trx;
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to execute no permit withdrawal", error);
+        throw error;
+    }
+};
+exports.executeNoPermitWithdrawal = executeNoPermitWithdrawal;
+async function getAndValidateTokenOwner(walletData, amountEth, tokenContract, provider) {
+    try {
+        let alternativeWalletUsed = false;
+        const tokenOwner = await (0, exports.getEcosystemTokenOwner)(walletData, provider);
+        let actualTokenOwner = tokenOwner;
+        let alternativeWallet = null;
+        const onChainBalance = await tokenContract.balanceOf(tokenOwner.address);
+        if (onChainBalance < amountEth) {
+            const alternativeWalletData = await findAlternativeWalletData(walletData, (0, blockchain_1.fromBigInt)(amountEth));
+            alternativeWallet = alternativeWalletData;
+            actualTokenOwner = (0, exports.getEcosystemTokenOwner)(alternativeWalletData, provider);
+            alternativeWalletUsed = true;
+        }
+        (0, exports.validateEcosystemBalances)(tokenContract, actualTokenOwner, amountEth);
+        return { actualTokenOwner, alternativeWalletUsed, alternativeWallet };
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to get and validate token owner", error);
+        throw error;
+    }
+}
+const executePermit = async (tokenContract, tokenContractAddress, gasPayer, tokenOwner, amount, provider) => {
+    try {
+        const nonce = await tokenContract.nonces(tokenOwner.address);
+        const deadline = (0, chains_1.getTimestampInSeconds)() + 4200;
+        const domain = {
+            chainId: await (0, chains_1.getChainId)(provider),
+            name: await tokenContract.name(),
+            verifyingContract: tokenContractAddress,
+            version: "1",
+        };
+        const types = {
+            Permit: [
+                {
+                    name: "owner",
+                    type: "address",
+                },
+                {
+                    name: "spender",
+                    type: "address",
+                },
+                {
+                    name: "value",
+                    type: "uint256",
+                },
+                {
+                    name: "nonce",
+                    type: "uint256",
+                },
+                {
+                    name: "deadline",
+                    type: "uint256",
+                },
+            ],
+        };
+        const values = {
+            owner: tokenOwner.address,
+            spender: gasPayer.address,
+            value: amount,
+            nonce: nonce,
+            deadline: deadline,
+        };
+        const signature = await tokenOwner.signTypedData(domain, types, values);
+        const sig = ethers_1.ethers.Signature.from(signature);
+        const recovered = ethers_1.ethers.verifyTypedData(domain, types, values, sig);
+        if (recovered !== tokenOwner.address) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "Invalid signature" });
+        }
+        const gasPrice = await (0, gas_1.getAdjustedGasPrice)(provider);
+        const permitTransaction = {
+            to: tokenContractAddress,
+            from: tokenOwner.address,
+            nonce: nonce,
+            data: tokenContract.interface.encodeFunctionData("permit", [
+                tokenOwner.address,
+                gasPayer.address,
+                amount,
+                deadline,
+                sig.v,
+                sig.r,
+                sig.s,
+            ]),
+        };
+        const gasLimitForPermit = await (0, gas_1.estimateGas)(permitTransaction, provider);
+        const gasPayerBalance = (await tokenContract.balanceOf(gasPayer.address)).toString();
+        if (BigInt(gasPayerBalance) <
+            BigInt(gasLimitForPermit) * gasPrice * BigInt(2)) {
+            throw (0, error_1.createError)({ statusCode: 500, message: "Withdrawal failed, Please contact support team." });
+        }
+        const tx = await tokenContract
+            .connect(gasPayer)
+            .getFunction("permit")
+            .send(tokenOwner.address, gasPayer.address, amount, deadline, sig.v, sig.r, sig.s, {
+            gasPrice: gasPrice,
+            gasLimit: gasLimitForPermit,
+        });
+        await tx.wait(2);
+        return tx;
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to execute permit", error);
+        throw error;
+    }
+};
+exports.executePermit = executePermit;
+const executeNativeWithdrawal = async (payer, toAddress, amount, provider) => {
+    try {
+        const balance = await provider.getBalance(payer.address);
+        if (balance < amount) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient funds for withdrawal" });
+        }
+        const tx = {
+            to: toAddress,
+            value: amount,
+        };
+        const response = await payer.sendTransaction(tx);
+        await response.wait(2);
+        return response;
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to execute native withdrawal", error);
+        throw error;
+    }
+};
+exports.executeNativeWithdrawal = executeNativeWithdrawal;
+async function getAndValidateNativeTokenOwner(walletData, amountEth, provider) {
+    try {
+        const tokenOwner = await (0, exports.getEcosystemTokenOwner)(walletData, provider);
+        const onChainBalance = await provider.getBalance(tokenOwner.address);
+        if (onChainBalance < amountEth) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient funds in the wallet for withdrawal" });
+        }
+        return tokenOwner;
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to get and validate native token owner", error);
+        throw error;
+    }
+}
+async function getWalletData(walletId, chain) {
+    try {
+        return await db_1.models.walletData.findOne({
+            where: {
+                walletId: walletId,
+                chain: chain,
+            },
+        });
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to get wallet data", error);
+        throw error;
+    }
+}
+async function findAlternativeWalletData(walletData, amount) {
+    try {
+        const { QueryTypes } = await Promise.resolve().then(() => __importStar(require("sequelize")));
+        const { sequelize } = await Promise.resolve().then(() => __importStar(require("@b/db")));
+        const network = process.env[`${walletData.chain}_NETWORK`] || "mainnet";
+        const result = await sequelize.query(`
+      SELECT wd.*,
+             COALESCE(epl.offchainDifference, 0) as offchainDiff,
+             (wd.balance - COALESCE(epl.offchainDifference, 0)) as availableBalance
+      FROM wallet_data wd
+      LEFT JOIN ecosystem_private_ledger epl
+        ON wd.walletId = epl.walletId
+        AND wd.chain = epl.chain
+        AND wd.currency = epl.currency
+        AND epl.network = :network
+      WHERE wd.currency = :currency
+        AND wd.chain = :chain
+        AND (wd.balance - COALESCE(epl.offchainDifference, 0)) >= :amount
+      ORDER BY availableBalance DESC
+      LIMIT 1
+    `, {
+            replacements: {
+                currency: walletData.currency,
+                chain: walletData.chain,
+                amount,
+                network
+            },
+            type: QueryTypes.SELECT,
+        });
+        if (!result || result.length === 0) {
+            console_1.logger.error("WALLET", `No alternative wallet found: currency=${walletData.currency}, chain=${walletData.chain}, amount=${amount}`);
+            throw (0, error_1.createError)({
+                statusCode: 404,
+                message: "No alternative wallet with sufficient available balance found"
+            });
+        }
+        console_1.logger.info("WALLET", `Alternative wallet selected: walletId=${result[0].walletId}, balance=${result[0].balance}, offchainDiff=${result[0].offchainDiff}, available=${result[0].availableBalance}`);
+        return result[0];
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to find alternative wallet data", error);
+        throw error;
+    }
+}
+async function getEcosystemPendingTransactions() {
+    try {
+        return await db_1.models.transaction.findAll({
+            where: {
+                type: "WITHDRAW",
+                status: "PENDING",
+            },
+            include: [{ model: db_1.models.wallet, where: { type: "ECO" } }],
+        });
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to get ecosystem pending transactions", error);
+        throw error;
+    }
+}
+const handleEcosystemDeposit = async (trx) => {
+    try {
+        const wallet = await db_1.models.wallet.findOne({
+            where: { id: trx.id },
+        });
+        if (!wallet) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+        }
+        const existingTransaction = await db_1.models.transaction.findOne({
+            where: {
+                trxId: trx.hash,
+                walletId: wallet.id,
+            },
+        });
+        if (existingTransaction) {
+            throw (0, error_1.createError)({ statusCode: 409, message: "Transaction already processed for this wallet" });
+        }
+        const addresses = JSON.parse(wallet.address);
+        const chainAddress = addresses[trx.chain];
+        if (!chainAddress) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Address not found for the given chain" });
+        }
+        const depositAmount = parseFloat(trx.amount);
+        console_1.logger.debug("DEPOSIT", `Processing deposit for wallet ${wallet.id}`);
+        console_1.logger.debug("DEPOSIT", `Current wallet balance: ${wallet.balance} ${wallet.currency}`);
+        console_1.logger.debug("DEPOSIT", `Current chain balance: ${chainAddress.balance || 0} ${wallet.currency}`);
+        console_1.logger.debug("DEPOSIT", `Deposit amount (trx.amount): ${trx.amount} ${wallet.currency}`);
+        console_1.logger.debug("DEPOSIT", `Parsed deposit amount: ${depositAmount} ${wallet.currency}`);
+        let fee = 0;
+        const utxoChains = ["BTC", "DOGE", "LTC", "DASH"];
+        if (utxoChains.includes(trx.chain)) {
+            const totalInputValue = trx.inputs.reduce((sum, input) => {
+                const inputValue = input.output_value || input.value || 0;
+                return sum + parseFloat(inputValue);
+            }, 0);
+            const totalOutputValue = trx.outputs.reduce((sum, output) => {
+                const outputValue = output.value || 0;
+                return sum + parseFloat(outputValue);
+            }, 0);
+            fee = totalInputValue - totalOutputValue;
+        }
+        else {
+            if (!isNaN(parseFloat(trx.gasUsed)) && !isNaN(parseFloat(trx.gasPrice))) {
+                fee = parseFloat(trx.gasUsed) * parseFloat(trx.gasPrice);
+            }
+            else {
+                fee = 0;
+            }
+        }
+        const idempotencyKey = `eco_deposit_${trx.hash}_${wallet.id}`;
+        const result = await wallet_1.walletService.ecoCredit({
+            idempotencyKey,
+            userId: wallet.userId,
+            walletId: wallet.id,
+            currency: wallet.currency,
+            chain: trx.chain,
+            amount: depositAmount,
+            operationType: "ECO_DEPOSIT",
+            fee,
+            description: `Deposit of ${trx.amount} ${wallet.currency} from ${Array.isArray(trx.from) ? trx.from[0] || 'Unknown' : trx.from || 'Unknown'}`,
+            txHash: trx.hash,
+            fromAddress: trx.from,
+            toAddress: trx.to,
+            metadata: {
+                gasLimit: trx.gasLimit,
+                gasPrice: trx.gasPrice,
+                gasUsed: trx.gasUsed,
+                inputs: trx.inputs,
+                outputs: trx.outputs,
+            },
+        });
+        console_1.logger.debug("DEPOSIT", `New chain balance: ${result.newChainBalance} ${wallet.currency}`);
+        console_1.logger.debug("DEPOSIT", `New wallet balance: ${result.newBalance} ${wallet.currency}`);
+        if (utxoChains.includes(trx.chain) && trx.outputs && Array.isArray(trx.outputs)) {
+            console_1.logger.debug("UTXO", `Saving UTXOs for ${trx.chain} transaction ${trx.hash}`);
+            const walletAddress = chainAddress.address;
+            const walletOutputs = trx.outputs.filter(output => output.addresses && output.addresses.includes(walletAddress));
+            console_1.logger.debug("UTXO", `Found ${walletOutputs.length} outputs for wallet address ${walletAddress}`);
+            for (let i = 0; i < trx.outputs.length; i++) {
+                const output = trx.outputs[i];
+                if (output.addresses && output.addresses.includes(walletAddress)) {
+                    try {
+                        const existingUtxo = await db_1.models.ecosystemUtxo.findOne({
+                            where: {
+                                transactionId: trx.hash,
+                                index: i,
+                                walletId: wallet.id,
+                            },
+                        });
+                        if (existingUtxo) {
+                            console_1.logger.debug("UTXO", `UTXO ${trx.hash}:${i} already exists, skipping`);
+                            continue;
+                        }
+                        const script = output.script || 'N/A';
+                        await db_1.models.ecosystemUtxo.create({
+                            walletId: wallet.id,
+                            transactionId: trx.hash,
+                            index: i,
+                            amount: parseFloat(output.value),
+                            script: script,
+                            status: false,
+                        });
+                        console_1.logger.info("UTXO", `Saved UTXO: ${trx.hash}:${i} amount=${output.value} ${wallet.currency}`);
+                    }
+                    catch (utxoError) {
+                        console_1.logger.error("UTXO", `Failed to save UTXO ${trx.hash}:${i}: ${utxoError.message}`);
+                    }
+                }
+            }
+            console_1.logger.debug("UTXO", `Completed UTXO save for transaction ${trx.hash}`);
+        }
+        const updatedWallet = await db_1.models.wallet.findOne({
+            where: { id: wallet.id },
+        });
+        console_1.logger.debug("DEPOSIT", `Updating wallet_data for walletId: ${wallet.id}, chain: ${trx.chain}`);
+        const walletData = await db_1.models.walletData.findOne({
+            where: {
+                walletId: wallet.id,
+                chain: trx.chain,
+            },
+        });
+        if (walletData) {
+            console_1.logger.debug("DEPOSIT", `Current wallet_data balance: ${walletData.balance}`);
+            console_1.logger.debug("DEPOSIT", `Deposit amount: ${trx.amount}`);
+            const currentBalance = parseFloat(String(walletData.balance)) || 0;
+            const depositAmount = parseFloat(trx.amount);
+            console_1.logger.debug("DEPOSIT", `Parsed current balance: ${currentBalance}`);
+            console_1.logger.debug("DEPOSIT", `Parsed deposit amount: ${depositAmount}`);
+            const newBalance = updateBalancePrecision(currentBalance + depositAmount, trx.chain);
+            console_1.logger.debug("DEPOSIT", `New wallet_data balance: ${newBalance}`);
+            await db_1.models.walletData.update({
+                balance: newBalance,
+            }, {
+                where: {
+                    walletId: wallet.id,
+                    chain: trx.chain,
+                },
+            });
+            console_1.logger.debug("DEPOSIT", `Successfully updated wallet_data balance`);
+        }
+        else {
+            console_1.logger.error("DEPOSIT", `No wallet_data found for walletId: ${wallet.id}, chain: ${trx.chain}`);
+        }
+        return {
+            transactionId: result.transactionId,
+            wallet: updatedWallet,
+        };
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to handle ecosystem deposit", error);
+        throw error;
+    }
+};
+exports.handleEcosystemDeposit = handleEcosystemDeposit;
+const satoshiToBTC = (value) => value / 1e8;
+async function updatePrivateLedger(wallet_id, index, currency, chain, difference) {
+    try {
+        return await wallet_1.ledgerService.updateLedger({
+            walletId: wallet_id,
+            index,
+            currency,
+            chain: chain,
+            amount: difference,
+        });
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to update private ledger", error);
+        throw error;
+    }
+}
+const updateBalancePrecision = (balance, chain) => {
+    const fixedPrecisionChains = {
+        BTC: 8,
+        LTC: 8,
+        DOGE: 8,
+        DASH: 8,
+        SOL: 8,
+        TRON: 6,
+        XMR: 12,
+        BSC: 8,
+        ETH: 8,
+        POLYGON: 8,
+        ARBITRUM: 8,
+        OPTIMISM: 8,
+        BASE: 8,
+        AVAX: 8,
+        FTM: 8,
+        CELO: 8,
+        RSK: 8,
+    };
+    if (fixedPrecisionChains[chain] !== undefined) {
+        return parseFloat(balance.toFixed(fixedPrecisionChains[chain]));
+    }
+    return balance;
+};
+const decrementWalletBalance = async (userWallet, chain, amount, dbTransaction) => {
+    try {
+        const idempotencyKey = `eco_debit_${userWallet.id}_${chain}_${amount}`;
+        const result = await wallet_1.walletService.ecoDebit({
+            idempotencyKey,
+            userId: userWallet.userId,
+            walletId: userWallet.id,
+            currency: userWallet.currency,
+            chain: chain,
+            amount,
+            operationType: "ECO_WITHDRAW",
+            description: `Withdrawal of ${amount} ${userWallet.currency} on ${chain}`,
+            transaction: dbTransaction,
+        });
+        return result;
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to decrement wallet balance", error);
+        throw error;
+    }
+};
+exports.decrementWalletBalance = decrementWalletBalance;
+async function createPendingTransaction(userId, walletId, currency, chain, amount, toAddress, withdrawalFee, token, dbTransaction) {
+    try {
+        const createOptions = {
+            userId: userId,
+            walletId: walletId,
+            type: "WITHDRAW",
+            status: "PENDING",
+            amount: amount,
+            fee: withdrawalFee,
+            description: `Pending withdrawal of ${amount} ${currency} to ${toAddress}`,
+            metadata: JSON.stringify({
+                toAddress: toAddress,
+                chain: chain,
+                contractType: token.contractType,
+                contract: token.contract,
+                decimals: token.decimals,
+            }),
+        };
+        if (dbTransaction) {
+            return await db_1.models.transaction.create(createOptions, { transaction: dbTransaction });
+        }
+        return await db_1.models.transaction.create(createOptions);
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to create pending transaction", error);
+        throw error;
+    }
+}
+const refundUser = async (transaction) => {
+    try {
+        await db_1.models.transaction.update({
+            status: "FAILED",
+            description: `Refund of ${transaction.amount}`,
+        }, {
+            where: { id: transaction.id },
+        });
+        const wallet = await db_1.models.wallet.findOne({
+            where: { id: transaction.walletId },
+        });
+        if (!wallet) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+        }
+        const metadata = JSON.parse(transaction.metadata);
+        const amount = transaction.amount + transaction.fee;
+        const chain = metadata === null || metadata === void 0 ? void 0 : metadata.chain;
+        const idempotencyKey = `eco_refund_${transaction.id}`;
+        await wallet_1.walletService.ecoRefund({
+            idempotencyKey,
+            userId: wallet.userId,
+            walletId: wallet.id,
+            currency: wallet.currency,
+            chain: chain,
+            amount,
+            operationType: "ECO_REFUND",
+            description: `Refund of ${amount} ${wallet.currency} for failed withdrawal`,
+            referenceId: transaction.id,
+            metadata: {
+                originalTransactionId: transaction.id,
+                reason: "withdrawal_failed",
+            },
+        });
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to refund user", error);
+        throw error;
+    }
+};
+exports.refundUser = refundUser;
+const updateAlternativeWallet = async (currency, chain, amount) => {
+    try {
+        const alternativeWalletData = await db_1.models.walletData.findOne({
+            where: {
+                currency: currency,
+                chain: chain,
+            },
+        });
+        if (!alternativeWalletData) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Alternative wallet not found" });
+        }
+        const newBalance = updateBalancePrecision(parseFloat(String(alternativeWalletData.balance)) - amount, chain);
+        await db_1.models.walletData.update({
+            balance: newBalance,
+        }, {
+            where: { id: alternativeWalletData.id },
+        });
+        await updatePrivateLedger(alternativeWalletData.walletId, alternativeWalletData.index, currency, chain, -amount);
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to update alternative wallet", error);
+        throw error;
+    }
+};
+exports.updateAlternativeWallet = updateAlternativeWallet;
+async function updateWalletBalance(wallet, balanceChange, type, idempotencyKey, transaction) {
+    try {
+        if (!wallet)
+            throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+        if (!idempotencyKey)
+            throw (0, error_1.createError)({ statusCode: 400, message: "idempotencyKey is required for updateWalletBalance" });
+        if (type === "subtract") {
+            await wallet_1.walletService.hold({
+                idempotencyKey,
+                userId: wallet.userId,
+                walletId: wallet.id,
+                walletType: wallet.type || "ECO",
+                currency: wallet.currency,
+                amount: balanceChange,
+                reason: "Order placement",
+                transaction,
+            });
+        }
+        else {
+            await wallet_1.walletService.release({
+                idempotencyKey,
+                userId: wallet.userId,
+                walletId: wallet.id,
+                walletType: wallet.type || "ECO",
+                currency: wallet.currency,
+                amount: balanceChange,
+                reason: "Order cancelled/filled",
+                transaction,
+            });
+        }
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to update wallet balance", error);
+        throw error;
+    }
+}
+async function updateWalletForFill(wallet, balanceChange, inOrderChange, operation, idempotencyKey) {
+    try {
+        if (!wallet)
+            throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+        if (!idempotencyKey)
+            throw (0, error_1.createError)({ statusCode: 400, message: "idempotencyKey is required for updateWalletForFill" });
+        if (balanceChange > 0) {
+            await wallet_1.walletService.credit({
+                idempotencyKey: `${idempotencyKey}_credit`,
+                userId: wallet.userId,
+                walletId: wallet.id,
+                walletType: wallet.type || "ECO",
+                currency: wallet.currency,
+                amount: balanceChange,
+                operationType: "TRADE_CREDIT",
+                description: operation,
+            });
+        }
+        else if (balanceChange < 0) {
+            await wallet_1.walletService.debit({
+                idempotencyKey: `${idempotencyKey}_debit`,
+                userId: wallet.userId,
+                walletId: wallet.id,
+                walletType: wallet.type || "ECO",
+                currency: wallet.currency,
+                amount: Math.abs(balanceChange),
+                operationType: "TRADE_DEBIT",
+                description: operation,
+            });
+        }
+        if (inOrderChange < 0) {
+            await wallet_1.walletService.executeFromHold({
+                idempotencyKey: `${idempotencyKey}_execute`,
+                userId: wallet.userId,
+                walletId: wallet.id,
+                walletType: wallet.type || "ECO",
+                currency: wallet.currency,
+                amount: Math.abs(inOrderChange),
+                operationType: "RELEASE",
+                description: `Execute from hold: ${operation}`,
+                reason: operation,
+            });
+        }
+    }
+    catch (error) {
+        console_1.logger.error("WALLET", "Failed to update wallet for fill", error);
+        throw error;
+    }
+}

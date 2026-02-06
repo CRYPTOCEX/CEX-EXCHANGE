@@ -1,1 +1,318 @@
-"use strict";async function handleAuthorisation({pspReference:e,merchantReference:t,success:n,amount:a,additionalData:r}){try{const a=await db_1.models.transaction.findOne({where:{uuid:t,type:"DEPOSIT",status:{[sequelize_1.Op.in]:["PENDING","PROCESSING"]}},include:[{model:db_1.models.user,as:"user"}]});if(!a){console_1.logger.warn("ADYEN",`Transaction not found for reference: ${t}`);return}const o=n?"COMPLETED":"FAILED";await db_1.models.transaction.update({status:o,metadata:JSON.stringify({...a.metadata,pspReference:e,webhookProcessedAt:(new Date).toISOString(),eventCode:"AUTHORISATION",success:n,additionalData:r})},{where:{id:a.id}});if(n){const t=a.user,n=a.metadata,r=(null==n?void 0:n.currency)||"USD";await db_1.sequelize.transaction(async n=>{let o=await db_1.models.wallet.findOne({where:{userId:t.id,currency:r,type:"FIAT"},transaction:n});o||(o=await wallet_1.walletCreationService.getOrCreateWallet(t.id,"FIAT",r,n));const i=a.amount-(a.fee||0),s=`adyen_auth_${e}`;await wallet_1.walletService.credit({idempotencyKey:s,userId:t.id,walletId:o.id,walletType:"FIAT",currency:r,amount:i,operationType:"DEPOSIT",referenceId:e,description:`Adyen deposit - ${i} ${r}`,metadata:{method:"ADYEN",pspReference:e,eventCode:"AUTHORISATION"},transaction:n});console_1.logger.success("ADYEN",`Deposit completed: ${i} ${r} for user ${t.id}`)})}}catch(e){console_1.logger.error("ADYEN","Error handling authorisation",e);throw e}}async function handleCapture({pspReference:e,merchantReference:t,success:n,amount:a,additionalData:r}){try{const a=await db_1.models.transaction.findOne({where:{uuid:t,type:"DEPOSIT"}});a&&await db_1.models.transaction.update({metadata:JSON.stringify({...a.metadata,captureProcessedAt:(new Date).toISOString(),captureSuccess:n,capturePspReference:e})},{where:{id:a.id}})}catch(e){console_1.logger.error("ADYEN","Error handling capture",e)}}async function handleRefund({pspReference:e,merchantReference:t,success:n,amount:a,additionalData:r}){console_1.logger.info("ADYEN",`Refund notification: ${e} - ${n?"Success":"Failed"}`)}async function handleCancellation({pspReference:e,merchantReference:t,success:n,amount:a,additionalData:r}){try{const n=await db_1.models.transaction.findOne({where:{uuid:t,type:"DEPOSIT",status:{[sequelize_1.Op.in]:["PENDING","PROCESSING"]}}});n&&await db_1.models.transaction.update({status:"CANCELLED",metadata:JSON.stringify({...n.metadata,pspReference:e,cancelledAt:(new Date).toISOString(),eventCode:"CANCELLATION"})},{where:{id:n.id}})}catch(e){console_1.logger.error("ADYEN","Error handling cancellation",e)}}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),sequelize_1=require("sequelize"),utils_1=require("./utils"),console_1=require("@b/utils/console"),error_1=require("@b/utils/error"),wallet_1=require("@b/services/wallet");exports.metadata={summary:"Handles Adyen webhook notifications",description:"Processes Adyen webhook notifications for payment events. This endpoint handles automatic payment status updates, wallet balance updates, and transaction processing based on Adyen's notification system.",operationId:"handleAdyenWebhook",tags:["Finance","Webhook"],logModule:"WEBHOOK",logTitle:"Adyen webhook",requestBody:{description:"Adyen webhook notification data",content:{"application/json":{schema:{type:"object",properties:{live:{type:"string",description:"Whether this is a live notification"},notificationItems:{type:"array",items:{type:"object",properties:{NotificationRequestItem:{type:"object",properties:{pspReference:{type:"string",description:"Adyen PSP reference"},merchantReference:{type:"string",description:"Merchant reference"},eventCode:{type:"string",description:"Event type"},success:{type:"string",description:"Success status"},amount:{type:"object",properties:{value:{type:"number",description:"Amount in minor units"},currency:{type:"string",description:"Currency code"}}},additionalData:{type:"object",description:"Additional data including HMAC signature"}}}}}}}}}}},responses:{200:{description:"Webhook processed successfully",content:{"text/plain":{schema:{type:"string",example:"[accepted]"}}}},400:{description:"Invalid webhook data or signature verification failed"},500:{description:"Internal server error"}},requiresAuth:!1};exports.default=async e=>{const{body:t,headers:n,ctx:a}=e;try{const e=(0,utils_1.getAdyenConfig)();if(e.hmacKey&&n){const a=n["hmac-signature"]||n.HmacSignature;if(a){const n=JSON.stringify(t);if(!(0,utils_1.verifyHmacSignature)(n,a,e.hmacKey)){console_1.logger.error("ADYEN","Invalid HMAC signature");throw(0,error_1.createError)({statusCode:400,message:"Invalid HMAC signature"})}}}if(t.notificationItems&&Array.isArray(t.notificationItems))for(const e of t.notificationItems){const t=e.NotificationRequestItem;if(!t)continue;const{pspReference:n,merchantReference:a,eventCode:r,success:o,amount:i,additionalData:s}=t;console_1.logger.info("ADYEN",`Processing webhook: ${r} for ${a}`);"AUTHORISATION"===r?await handleAuthorisation({pspReference:n,merchantReference:a,success:"true"===o,amount:i,additionalData:s}):"CAPTURE"===r?await handleCapture({pspReference:n,merchantReference:a,success:"true"===o,amount:i,additionalData:s}):"REFUND"===r?await handleRefund({pspReference:n,merchantReference:a,success:"true"===o,amount:i,additionalData:s}):"CANCELLATION"===r&&await handleCancellation({pspReference:n,merchantReference:a,success:"true"===o,amount:i,additionalData:s})}return"[accepted]"}catch(e){console_1.logger.error("ADYEN","Webhook processing error",e);throw(0,error_1.createError)({statusCode:500,message:`Webhook processing failed: ${e.message}`})}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
+const utils_1 = require("./utils");
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+const wallet_1 = require("@b/services/wallet");
+exports.metadata = {
+    summary: "Handles Adyen webhook notifications",
+    description: "Processes Adyen webhook notifications for payment events. This endpoint handles automatic payment status updates, wallet balance updates, and transaction processing based on Adyen's notification system.",
+    operationId: "handleAdyenWebhook",
+    tags: ["Finance", "Webhook"],
+    logModule: "WEBHOOK",
+    logTitle: "Adyen webhook",
+    requestBody: {
+        description: "Adyen webhook notification data",
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        live: {
+                            type: "string",
+                            description: "Whether this is a live notification",
+                        },
+                        notificationItems: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    NotificationRequestItem: {
+                                        type: "object",
+                                        properties: {
+                                            pspReference: {
+                                                type: "string",
+                                                description: "Adyen PSP reference",
+                                            },
+                                            merchantReference: {
+                                                type: "string",
+                                                description: "Merchant reference",
+                                            },
+                                            eventCode: {
+                                                type: "string",
+                                                description: "Event type",
+                                            },
+                                            success: {
+                                                type: "string",
+                                                description: "Success status",
+                                            },
+                                            amount: {
+                                                type: "object",
+                                                properties: {
+                                                    value: {
+                                                        type: "number",
+                                                        description: "Amount in minor units",
+                                                    },
+                                                    currency: {
+                                                        type: "string",
+                                                        description: "Currency code",
+                                                    },
+                                                },
+                                            },
+                                            additionalData: {
+                                                type: "object",
+                                                description: "Additional data including HMAC signature",
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Webhook processed successfully",
+            content: {
+                "text/plain": {
+                    schema: {
+                        type: "string",
+                        example: "[accepted]",
+                    },
+                },
+            },
+        },
+        400: {
+            description: "Invalid webhook data or signature verification failed",
+        },
+        500: {
+            description: "Internal server error",
+        },
+    },
+    requiresAuth: false,
+};
+exports.default = async (data) => {
+    const { body, headers, ctx } = data;
+    try {
+        const config = (0, utils_1.getAdyenConfig)();
+        if (config.hmacKey && headers) {
+            const hmacSignature = headers["hmac-signature"] || headers["HmacSignature"];
+            if (hmacSignature) {
+                const rawBody = JSON.stringify(body);
+                const isValidSignature = (0, utils_1.verifyHmacSignature)(rawBody, hmacSignature, config.hmacKey);
+                if (!isValidSignature) {
+                    console_1.logger.error("ADYEN", "Invalid HMAC signature");
+                    throw (0, error_1.createError)({ statusCode: 400, message: "Invalid HMAC signature" });
+                }
+            }
+        }
+        if (body.notificationItems && Array.isArray(body.notificationItems)) {
+            for (const item of body.notificationItems) {
+                const notification = item.NotificationRequestItem;
+                if (!notification)
+                    continue;
+                const { pspReference, merchantReference, eventCode, success, amount, additionalData, } = notification;
+                console_1.logger.info("ADYEN", `Processing webhook: ${eventCode} for ${merchantReference}`);
+                if (eventCode === "AUTHORISATION") {
+                    await handleAuthorisation({
+                        pspReference,
+                        merchantReference,
+                        success: success === "true",
+                        amount,
+                        additionalData,
+                    });
+                }
+                else if (eventCode === "CAPTURE") {
+                    await handleCapture({
+                        pspReference,
+                        merchantReference,
+                        success: success === "true",
+                        amount,
+                        additionalData,
+                    });
+                }
+                else if (eventCode === "REFUND") {
+                    await handleRefund({
+                        pspReference,
+                        merchantReference,
+                        success: success === "true",
+                        amount,
+                        additionalData,
+                    });
+                }
+                else if (eventCode === "CANCELLATION") {
+                    await handleCancellation({
+                        pspReference,
+                        merchantReference,
+                        success: success === "true",
+                        amount,
+                        additionalData,
+                    });
+                }
+            }
+        }
+        return "[accepted]";
+    }
+    catch (error) {
+        console_1.logger.error("ADYEN", "Webhook processing error", error);
+        throw (0, error_1.createError)({ statusCode: 500, message: `Webhook processing failed: ${error instanceof Error ? error.message : String(error)}` });
+    }
+};
+async function handleAuthorisation({ pspReference, merchantReference, success, amount, additionalData, }) {
+    try {
+        const transaction = await db_1.models.transaction.findOne({
+            where: {
+                referenceId: merchantReference,
+                type: "DEPOSIT",
+                status: {
+                    [sequelize_1.Op.in]: ["PENDING", "PROCESSING"],
+                },
+            },
+            include: [
+                {
+                    model: db_1.models.user,
+                    as: "user",
+                },
+            ],
+        });
+        if (!transaction) {
+            console_1.logger.warn("ADYEN", `Transaction not found for reference: ${merchantReference}`);
+            return;
+        }
+        const newStatus = success ? "COMPLETED" : "FAILED";
+        const existingMetadata = typeof transaction.metadata === 'string'
+            ? JSON.parse(transaction.metadata || '{}')
+            : (transaction.metadata || {});
+        await db_1.models.transaction.update({
+            status: newStatus,
+            metadata: JSON.stringify({
+                ...existingMetadata,
+                pspReference,
+                webhookProcessedAt: new Date().toISOString(),
+                eventCode: "AUTHORISATION",
+                success,
+                additionalData,
+            }),
+        }, {
+            where: { id: transaction.id },
+        });
+        if (success) {
+            const user = transaction.user;
+            if (!user) {
+                console_1.logger.warn("ADYEN", `User not found for transaction: ${merchantReference}`);
+                return;
+            }
+            const currency = (existingMetadata === null || existingMetadata === void 0 ? void 0 : existingMetadata.currency) || "USD";
+            await db_1.sequelize.transaction(async (dbTransaction) => {
+                let wallet = await db_1.models.wallet.findOne({
+                    where: {
+                        userId: user.id,
+                        currency,
+                        type: "FIAT",
+                    },
+                    transaction: dbTransaction,
+                });
+                if (!wallet) {
+                    const walletResult = await wallet_1.walletCreationService.getOrCreateWallet(user.id, "FIAT", currency, dbTransaction);
+                    wallet = walletResult.wallet;
+                }
+                if (!wallet) {
+                    throw new Error("Failed to get or create wallet");
+                }
+                const depositAmount = transaction.amount - (transaction.fee || 0);
+                const idempotencyKey = `adyen_auth_${pspReference}`;
+                await wallet_1.walletService.credit({
+                    idempotencyKey,
+                    userId: user.id,
+                    walletId: wallet.id,
+                    walletType: "FIAT",
+                    currency,
+                    amount: depositAmount,
+                    operationType: "DEPOSIT",
+                    referenceId: pspReference,
+                    description: `Adyen deposit - ${depositAmount} ${currency}`,
+                    metadata: {
+                        method: "ADYEN",
+                        pspReference,
+                        eventCode: "AUTHORISATION",
+                    },
+                    transaction: dbTransaction,
+                });
+                console_1.logger.success("ADYEN", `Deposit completed: ${depositAmount} ${currency} for user ${user.id}`);
+            });
+        }
+    }
+    catch (error) {
+        console_1.logger.error("ADYEN", "Error handling authorisation", error);
+        throw error;
+    }
+}
+async function handleCapture({ pspReference, merchantReference, success, amount, additionalData, }) {
+    try {
+        const transaction = await db_1.models.transaction.findOne({
+            where: {
+                referenceId: merchantReference,
+                type: "DEPOSIT",
+            },
+        });
+        if (transaction) {
+            const existingMetadata = typeof transaction.metadata === 'string'
+                ? JSON.parse(transaction.metadata || '{}')
+                : (transaction.metadata || {});
+            await db_1.models.transaction.update({
+                metadata: JSON.stringify({
+                    ...existingMetadata,
+                    captureProcessedAt: new Date().toISOString(),
+                    captureSuccess: success,
+                    capturePspReference: pspReference,
+                }),
+            }, {
+                where: { id: transaction.id },
+            });
+        }
+    }
+    catch (error) {
+        console_1.logger.error("ADYEN", "Error handling capture", error);
+    }
+}
+async function handleRefund({ pspReference, merchantReference, success, amount, additionalData, }) {
+    console_1.logger.info("ADYEN", `Refund notification: ${pspReference} - ${success ? "Success" : "Failed"}`);
+}
+async function handleCancellation({ pspReference, merchantReference, success, amount, additionalData, }) {
+    try {
+        const transaction = await db_1.models.transaction.findOne({
+            where: {
+                referenceId: merchantReference,
+                type: "DEPOSIT",
+                status: {
+                    [sequelize_1.Op.in]: ["PENDING", "PROCESSING"],
+                },
+            },
+        });
+        if (transaction) {
+            const existingMetadata = typeof transaction.metadata === 'string'
+                ? JSON.parse(transaction.metadata || '{}')
+                : (transaction.metadata || {});
+            await db_1.models.transaction.update({
+                status: "CANCELLED",
+                metadata: JSON.stringify({
+                    ...existingMetadata,
+                    pspReference,
+                    cancelledAt: new Date().toISOString(),
+                    eventCode: "CANCELLATION",
+                }),
+            }, {
+                where: { id: transaction.id },
+            });
+        }
+    }
+    catch (error) {
+        console_1.logger.error("ADYEN", "Error handling cancellation", error);
+    }
+}

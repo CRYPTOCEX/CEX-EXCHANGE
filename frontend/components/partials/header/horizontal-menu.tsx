@@ -12,7 +12,7 @@ import { useSettings } from "@/hooks/use-settings";
 import { useMenuTranslations } from "@/components/partials/menu-translator";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
-import { getGradientStyle, getColorHex, NAV_COLOR_SCHEMAS } from "@/lib/nav-color-schema";
+import { getGradientStyle, getColorHex, NAV_COLOR_SCHEMAS, type NavColorSchema } from "@/lib/nav-color-schema";
 
 import ChildMenu from "./menu/child-menu";
 import MegaMenu from "./menu/mega-menu";

@@ -34,7 +34,9 @@ export const useStakingAdminPositionsStore = create<PositionsState>((set) => ({
         silentSuccess: true,
       });
       if (error) throw new Error(error);
-      set({ positions: data || [], isLoading: false });
+      // Handle both array and paginated responses
+      const positions = Array.isArray(data) ? data : (data?.items || []);
+      set({ positions, isLoading: false });
     } catch (err) {
       console.error("Error fetching staking positions:", err);
       set({

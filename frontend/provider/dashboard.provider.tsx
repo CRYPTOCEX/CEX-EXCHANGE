@@ -61,7 +61,8 @@ const DashBoardLayoutProvider = ({
     "/admin/system/update",
     "/admin/finance/binary/settings",
     "/admin/system/notification/template",
-    "/admin/trading/settings"
+    "/admin/trading/settings",
+    "/forex/trade/[id]"
   ];
 
   // Check if the current path should exclude the layout components using our helper.

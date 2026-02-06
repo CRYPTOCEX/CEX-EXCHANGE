@@ -1,1 +1,166 @@
-"use strict";async function storeAndBroadcastTransaction(e,o,s=!1){var t,r,i,a,n,c,d,l,u,g,f;try{console_1.logger.info("DEPOSIT",`Processing deposit for immediate broadcast: ${o}`);if(s&&"pending_confirmation"===e.type){console_1.logger.info("DEPOSIT",`Broadcasting pending transaction update for ${o}`);const s=(null===(t=e.address)||void 0===t?void 0:t.toLowerCase())||(null===(r=e.to)||void 0===r?void 0:r.toLowerCase()),i=e.currency||e.chain,a={currency:i,chain:e.chain,address:s};console_1.logger.debug("DEPOSIT",`Broadcasting to subscribed clients with payload: ${JSON.stringify(a)}`);Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/deposit",a,{stream:"verification",data:{type:"pending_confirmation",transactionHash:e.transactionHash,hash:e.hash,confirmations:e.confirmations,requiredConfirmations:e.requiredConfirmations,amount:e.amount,fee:e.fee,status:"PENDING",chain:e.chain,walletId:e.walletId}});console_1.logger.success("DEPOSIT",`Broadcasted pending transaction ${o} with ${e.confirmations}/${e.requiredConfirmations} confirmations to currency:${i}, chain:${e.chain}, address:${s}`);return}const y=await(0,wallet_1.handleEcosystemDeposit)(e);if(y.transactionId){console_1.logger.success("DEPOSIT",`Deposit processed immediately for ${o}, broadcasting to WebSocket`);let s;s="MO"===e.chain?Array.isArray(e.to)?null===(i=e.to[0])||void 0===i?void 0:i.toLowerCase():null===(a=e.to)||void 0===a?void 0:a.toLowerCase():(null===(n=e.address)||void 0===n?void 0:n.toLowerCase())||(Array.isArray(e.to)?null===(c=e.to[0])||void 0===c?void 0:c.toLowerCase():null===(d=e.to)||void 0===d?void 0:d.toLowerCase());const t={currency:null===(l=y.wallet)||void 0===l?void 0:l.currency,chain:e.chain,address:s};Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/deposit",t,{stream:"verification",data:{status:200,message:"Deposit confirmed",transactionId:y.transactionId,wallet:y.wallet,trx:e,balance:null===(u=y.wallet)||void 0===u?void 0:u.balance,currency:null===(g=y.wallet)||void 0===g?void 0:g.currency,chain:e.chain,method:"Wallet Deposit"}});if("NO_PERMIT"===e.contractType&&e.to)try{await(0,utils_1.unlockAddress)(e.to);console_1.logger.success("DEPOSIT",`Address ${e.to} unlocked for NO_PERMIT transaction ${o}`)}catch(o){console_1.logger.error("DEPOSIT",`Failed to unlock address ${e.to}`,o)}if(null===(f=y.wallet)||void 0===f?void 0:f.userId)try{await(0,notifications_1.createNotification)({userId:y.wallet.userId,relatedId:y.transactionId,title:"Deposit Confirmation",message:`Your deposit of ${e.amount} ${y.wallet.currency} has been confirmed.`,type:"system",link:"/finance/history",actions:[{label:"View Deposit",link:"/finance/history",primary:!0}]});console_1.logger.success("DEPOSIT",`Notification created for user ${y.wallet.userId}`)}catch(e){console_1.logger.error("DEPOSIT","Failed to create notification",e)}console_1.logger.success("DEPOSIT",`Deposit ${o} processed and broadcast immediately`);return}console_1.logger.info("DEPOSIT",`Deposit ${o} couldn't be processed immediately, storing as pending`)}catch(e){console_1.logger.error("DEPOSIT",`Error in immediate deposit processing for ${o}`,e)}console_1.logger.info("DEPOSIT",`Storing ${o} as pending for verification worker`);const y=await loadFromRedis("pendingTransactions")||{};y[o]=e;await offloadToRedis("pendingTransactions",y)}async function offloadToRedis(e,o){const s=JSON.stringify(o);await setAsync(e,s)}async function loadKeysFromRedis(e){try{return await keysAsync(e)}catch(e){console_1.logger.error("REDIS","Failed to fetch keys",e);return[]}}async function loadFromRedis(e){const o=await getAsync(e);if(!o)return null;try{return JSON.parse(o)}catch(e){console_1.logger.error("REDIS","Failed to parse JSON",e);return null}}async function removeFromRedis(e){try{const o=await delAsync(e);console_1.logger.debug("REDIS",`Delete Result for key ${e}: ${o}`)}catch(o){console_1.logger.error("REDIS",`Failed to delete key ${e}`,o)}}Object.defineProperty(exports,"__esModule",{value:!0});exports.storeAndBroadcastTransaction=storeAndBroadcastTransaction;exports.offloadToRedis=offloadToRedis;exports.loadKeysFromRedis=loadKeysFromRedis;exports.loadFromRedis=loadFromRedis;exports.removeFromRedis=removeFromRedis;const redis_1=require("@b/utils/redis"),Websocket_1=require("@b/handler/Websocket"),wallet_1=require("@b/api/(ext)/ecosystem/utils/wallet"),notifications_1=require("@b/utils/notifications"),utils_1=require("@b/api/(ext)/ecosystem/wallet/utils"),console_1=require("@b/utils/console"),redis=redis_1.RedisSingleton.getInstance(),setAsync=(e,o)=>redis.set(e,o),getAsync=e=>redis.get(e),delAsync=e=>redis.del(e),keysAsync=e=>redis.keys(e);
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.storeAndBroadcastTransaction = storeAndBroadcastTransaction;
+exports.offloadToRedis = offloadToRedis;
+exports.loadKeysFromRedis = loadKeysFromRedis;
+exports.loadFromRedis = loadFromRedis;
+exports.removeFromRedis = removeFromRedis;
+const redis_1 = require("@b/utils/redis");
+const Websocket_1 = require("@b/handler/Websocket");
+const wallet_1 = require("@b/api/(ext)/ecosystem/utils/wallet");
+const notifications_1 = require("@b/utils/notifications");
+const utils_1 = require("@b/api/(ext)/ecosystem/wallet/utils");
+const console_1 = require("@b/utils/console");
+const redis = redis_1.RedisSingleton.getInstance();
+const setAsync = (key, value) => redis.set(key, value);
+const getAsync = (key) => redis.get(key);
+const delAsync = (key) => redis.del(key);
+const keysAsync = (pattern) => redis.keys(pattern);
+async function storeAndBroadcastTransaction(txDetails, txHash, isPending = false) {
+    var _a, _b, _c, _d;
+    try {
+        console_1.logger.info("DEPOSIT", `Processing deposit for immediate broadcast: ${txHash}`);
+        if (isPending && txDetails.type === "pending_confirmation") {
+            console_1.logger.info("DEPOSIT", `Broadcasting pending transaction update for ${txHash}`);
+            const rawAddress = txDetails.address || txDetails.to;
+            const address = typeof rawAddress === 'string' ? rawAddress.toLowerCase() : rawAddress;
+            const currency = txDetails.currency || txDetails.chain;
+            const broadcastPayload = {
+                currency: currency,
+                chain: txDetails.chain,
+                address: address,
+            };
+            console_1.logger.debug("DEPOSIT", `Broadcasting to subscribed clients with payload: ${JSON.stringify(broadcastPayload)}`);
+            Websocket_1.messageBroker.broadcastToSubscribedClients("/ws/ecosystem/deposit", broadcastPayload, {
+                stream: "verification",
+                data: {
+                    type: "pending_confirmation",
+                    transactionHash: txDetails.transactionHash,
+                    hash: txDetails.hash,
+                    confirmations: txDetails.confirmations,
+                    requiredConfirmations: txDetails.requiredConfirmations,
+                    amount: txDetails.amount,
+                    fee: txDetails.fee,
+                    status: "PENDING",
+                    chain: txDetails.chain,
+                    walletId: txDetails.walletId,
+                },
+            });
+            console_1.logger.success("DEPOSIT", `Broadcasted pending transaction ${txHash} with ${txDetails.confirmations}/${txDetails.requiredConfirmations} confirmations to currency:${currency}, chain:${txDetails.chain}, address:${address}`);
+            return;
+        }
+        const response = await (0, wallet_1.handleEcosystemDeposit)(txDetails);
+        if (response.transactionId) {
+            console_1.logger.success("DEPOSIT", `Deposit processed immediately for ${txHash}, broadcasting to WebSocket`);
+            let rawAddress;
+            if (txDetails.chain === "MO") {
+                rawAddress = Array.isArray(txDetails.to)
+                    ? txDetails.to[0]
+                    : txDetails.to;
+            }
+            else {
+                rawAddress = txDetails.address ||
+                    (Array.isArray(txDetails.to) ? txDetails.to[0] : txDetails.to);
+            }
+            const address = typeof rawAddress === 'string' ? rawAddress.toLowerCase() : rawAddress;
+            const broadcastPayload = {
+                currency: (_a = response.wallet) === null || _a === void 0 ? void 0 : _a.currency,
+                chain: txDetails.chain,
+                address: address,
+            };
+            Websocket_1.messageBroker.broadcastToSubscribedClients("/ws/ecosystem/deposit", broadcastPayload, {
+                stream: "verification",
+                data: {
+                    status: 200,
+                    message: "Deposit confirmed",
+                    transactionId: response.transactionId,
+                    wallet: response.wallet,
+                    trx: txDetails,
+                    balance: (_b = response.wallet) === null || _b === void 0 ? void 0 : _b.balance,
+                    currency: (_c = response.wallet) === null || _c === void 0 ? void 0 : _c.currency,
+                    chain: txDetails.chain,
+                    method: "Wallet Deposit",
+                },
+            });
+            if (txDetails.contractType === "NO_PERMIT" && txDetails.to) {
+                try {
+                    await (0, utils_1.unlockAddress)(txDetails.to);
+                    console_1.logger.success("DEPOSIT", `Address ${txDetails.to} unlocked for NO_PERMIT transaction ${txHash}`);
+                }
+                catch (unlockError) {
+                    console_1.logger.error("DEPOSIT", `Failed to unlock address ${txDetails.to}`, unlockError);
+                }
+            }
+            if ((_d = response.wallet) === null || _d === void 0 ? void 0 : _d.userId) {
+                try {
+                    await (0, notifications_1.createNotification)({
+                        userId: response.wallet.userId,
+                        relatedId: response.transactionId,
+                        title: "Deposit Confirmation",
+                        message: `Your deposit of ${txDetails.amount} ${response.wallet.currency} has been confirmed.`,
+                        type: "system",
+                        link: `/finance/history`,
+                        actions: [
+                            {
+                                label: "View Deposit",
+                                link: `/finance/history`,
+                                primary: true,
+                            },
+                        ],
+                    });
+                    console_1.logger.success("DEPOSIT", `Notification created for user ${response.wallet.userId}`);
+                }
+                catch (notificationError) {
+                    console_1.logger.error("DEPOSIT", "Failed to create notification", notificationError);
+                }
+            }
+            console_1.logger.success("DEPOSIT", `Deposit ${txHash} processed and broadcast immediately`);
+            return;
+        }
+        else {
+            console_1.logger.info("DEPOSIT", `Deposit ${txHash} couldn't be processed immediately, storing as pending`);
+        }
+    }
+    catch (error) {
+        console_1.logger.error("DEPOSIT", `Error in immediate deposit processing for ${txHash}`, error);
+    }
+    console_1.logger.info("DEPOSIT", `Storing ${txHash} as pending for verification worker`);
+    const pendingTransactions = (await loadFromRedis("pendingTransactions")) || {};
+    pendingTransactions[txHash] = txDetails;
+    await offloadToRedis("pendingTransactions", pendingTransactions);
+}
+async function offloadToRedis(key, value) {
+    const serializedValue = JSON.stringify(value);
+    await setAsync(key, serializedValue);
+}
+async function loadKeysFromRedis(pattern) {
+    try {
+        const keys = await keysAsync(pattern);
+        return keys;
+    }
+    catch (error) {
+        console_1.logger.error("REDIS", "Failed to fetch keys", error);
+        return [];
+    }
+}
+async function loadFromRedis(identifier) {
+    const dataStr = await getAsync(identifier);
+    if (!dataStr)
+        return null;
+    try {
+        return JSON.parse(dataStr);
+    }
+    catch (error) {
+        console_1.logger.error("REDIS", "Failed to parse JSON", error);
+        return null;
+    }
+}
+async function removeFromRedis(key) {
+    try {
+        const delResult = await delAsync(key);
+        console_1.logger.debug("REDIS", `Delete Result for key ${key}: ${delResult}`);
+    }
+    catch (error) {
+        console_1.logger.error("REDIS", `Failed to delete key ${key}`, error);
+    }
+}

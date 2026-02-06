@@ -1,1 +1,99 @@
-"use strict";async function checkLicenseFileExists(e){if(!e)return!1;const t=process.cwd(),a=t.endsWith("backend")||t.endsWith("backend/")||t.endsWith("backend\\")?path_1.default.dirname(t):t,s=path_1.default.join(a,"lic",`${e}.lic`);try{await fs_1.promises.access(s);return!0}catch(e){return!1}}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),query_1=require("@b/utils/query"),sequelize_1=require("sequelize"),fs_1=require("fs"),path_1=__importDefault(require("path"));exports.metadata={summary:"Updates the status of an Exchange",operationId:"updateExchangeStatus",tags:["Admin","Exchanges"],parameters:[{index:0,name:"id",in:"path",required:!0,description:"ID of the exchange to update",schema:{type:"string"}}],requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{status:{type:"boolean",description:"New status to apply (true for active, false for inactive)"}},required:["status"]}}}},responses:(0,query_1.updateRecordResponses)("Exchange"),requiresAuth:!0,permission:"edit.exchange",logModule:"ADMIN_FIN",logTitle:"Update Exchange Provider Status"};exports.default=async e=>{const{body:t,params:a,ctx:s}=e,{id:i}=a,{status:n}=t;if(!0===n){null==s||s.step("Checking exchange provider license");const e=await db_1.models.exchange.findByPk(i);if(null==e?void 0:e.productId){if(!await checkLicenseFileExists(e.productId))return{statusCode:403,body:{message:"Cannot enable exchange provider: License not activated. Please activate your license first.",licenseRequired:!0,productId:e.productId}}}}null==s||s.step("Starting transaction");const r=await db_1.sequelize.transaction();try{if(n){null==s||s.step("Deactivating other exchanges");await db_1.models.exchange.update({status:!1},{where:{id:{[sequelize_1.Op.ne]:i}},transaction:r})}null==s||s.step("Updating exchange status");await db_1.models.exchange.update({status:n},{where:{id:i},transaction:r});null==s||s.step("Committing transaction");await r.commit();null==s||s.success();return{statusCode:200,body:{message:"Exchange status updated successfully"}}}catch(e){await r.rollback();return{statusCode:500,body:{message:"Failed to update exchange status",error:e.message}}}};
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const query_1 = require("@b/utils/query");
+const sequelize_1 = require("sequelize");
+const fs_1 = require("fs");
+const path_1 = __importDefault(require("path"));
+exports.metadata = {
+    summary: "Updates the status of an Exchange",
+    operationId: "updateExchangeStatus",
+    tags: ["Admin", "Exchanges"],
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            required: true,
+            description: "ID of the exchange to update",
+            schema: { type: "string" },
+        },
+    ],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        status: {
+                            type: "boolean",
+                            description: "New status to apply (true for active, false for inactive)",
+                        },
+                    },
+                    required: ["status"],
+                },
+            },
+        },
+    },
+    responses: (0, query_1.updateRecordResponses)("Exchange"),
+    requiresAuth: true,
+    permission: "edit.exchange",
+    logModule: "ADMIN_FIN",
+    logTitle: "Update Exchange Provider Status",
+};
+async function checkLicenseFileExists(productId) {
+    if (!productId)
+        return false;
+    const cwd = process.cwd();
+    const rootPath = cwd.endsWith("backend") || cwd.endsWith("backend/") || cwd.endsWith("backend\\")
+        ? path_1.default.dirname(cwd)
+        : cwd;
+    const licFilePath = path_1.default.join(rootPath, "lic", `${productId}.lic`);
+    try {
+        await fs_1.promises.access(licFilePath);
+        return true;
+    }
+    catch (_a) {
+        return false;
+    }
+}
+exports.default = async (data) => {
+    const { body, params, ctx } = data;
+    const { id } = params;
+    const { status } = body;
+    // License check bypassed
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Starting transaction");
+    const transaction = await db_1.sequelize.transaction();
+    try {
+        if (status) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Deactivating other exchanges");
+            await db_1.models.exchange.update({ status: false }, { where: { id: { [sequelize_1.Op.ne]: id } }, transaction });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating exchange status");
+        await db_1.models.exchange.update({ status }, { where: { id }, transaction });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Committing transaction");
+        await transaction.commit();
+        ctx === null || ctx === void 0 ? void 0 : ctx.success();
+        return {
+            statusCode: 200,
+            body: {
+                message: "Exchange status updated successfully",
+            },
+        };
+    }
+    catch (error) {
+        await transaction.rollback();
+        return {
+            statusCode: 500,
+            body: {
+                message: "Failed to update exchange status",
+                error: error.message,
+            },
+        };
+    }
+};

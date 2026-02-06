@@ -100,47 +100,76 @@ export const createTradeSlice = (
   fetchTradeDashboardData: async () => {
     try {
       set({ isLoadingTradeDashboardData: true, tradeDashboardDataError: null });
-      const { data, error } = await $fetch({
-        url: "/api/p2p/trade",
-        silentSuccess: true,
-      });
 
-      if (error) {
+      // Fetch both trades and dashboard stats
+      const [tradesResponse, dashboardResponse] = await Promise.all([
+        $fetch({ url: "/api/p2p/trade", silentSuccess: true }),
+        $fetch({ url: "/api/p2p/dashboard", silentSuccess: true }),
+      ]);
+
+      if (tradesResponse.error && dashboardResponse.error) {
         set({
-          tradeDashboardDataError: "Failed to fetch trade dashboard data",
+          tradeDashboardDataError: "Failed to fetch trade data",
           isLoadingTradeDashboardData: false,
         });
         return;
       }
 
-      // Convert string times to Date objects
+      // Helper to safely process array with timeline
+      const processTradesWithTimeline = (trades: any[] | undefined) => {
+        if (!Array.isArray(trades)) return [];
+        return trades.map((trade: any) => ({
+          ...trade,
+          timeline: Array.isArray(trade.timeline)
+            ? trade.timeline.map((event: any) => ({
+                ...event,
+                createdAt: new Date(event.time || event.createdAt),
+              }))
+            : [],
+        }));
+      };
+
+      // Get trades from /api/p2p/trade response (returns { trades: [...] })
+      const tradesData = tradesResponse.data;
+      const allTrades = Array.isArray(tradesData?.trades) ? tradesData.trades : [];
+
+      // Separate trades by status
+      const activeTrades = allTrades.filter((t: any) =>
+        ['PENDING', 'PAYMENT_SENT', 'DISPUTED'].includes(t.status)
+      );
+      const completedTrades = allTrades.filter((t: any) => t.status === 'COMPLETED');
+      const disputedTrades = allTrades.filter((t: any) => t.status === 'DISPUTED');
+      const pendingTrades = allTrades.filter((t: any) => t.status === 'PENDING');
+
+      // Get dashboard stats from /api/p2p/dashboard response
+      const dashboardData = dashboardResponse.data || {};
+
+      // Map API response to frontend expected structure
       const processedData = {
-        ...data,
-        recentActivity: data.recentActivity.map((activity: any) => ({
-          ...activity,
-          createdAt: new Date(activity.time || activity.createdAt),
-        })),
-        activeTrades: data.activeTrades.map((trade: any) => ({
-          ...trade,
-          timeline: trade.timeline?.map((event: any) => ({
-            ...event,
-            createdAt: new Date(event.time || event.createdAt),
-          })),
-        })),
-        completedTrades: data.completedTrades.map((trade: any) => ({
-          ...trade,
-          timeline: trade.timeline?.map((event: any) => ({
-            ...event,
-            createdAt: new Date(event.time || event.createdAt),
-          })),
-        })),
-        disputedTrades: data.disputedTrades.map((trade: any) => ({
-          ...trade,
-          timeline: trade.timeline?.map((event: any) => ({
-            ...event,
-            createdAt: new Date(event.time || event.createdAt),
-          })),
-        })),
+        // Map stats from dashboard API response
+        tradeStats: dashboardData.stats || {
+          totalTrades: allTrades.length,
+          completedTrades: completedTrades.length,
+          activeTrades: activeTrades.length,
+          totalVolume: 0,
+          completionRate: 0,
+          averageTradeValue: 0,
+          totalOffers: 0,
+          activeOffers: 0,
+        },
+        // Map recent activity from dashboard
+        recentActivity: Array.isArray(dashboardData.recentActivity)
+          ? dashboardData.recentActivity.map((activity: any) => ({
+              ...activity,
+              createdAt: new Date(activity.time || activity.createdAt),
+            }))
+          : [],
+        // Map trades
+        activeTrades: processTradesWithTimeline(activeTrades),
+        completedTrades: processTradesWithTimeline(completedTrades),
+        disputedTrades: processTradesWithTimeline(disputedTrades),
+        pendingTrades: processTradesWithTimeline(pendingTrades),
+        availableCurrencies: dashboardData.availableCurrencies || [],
       };
 
       set({

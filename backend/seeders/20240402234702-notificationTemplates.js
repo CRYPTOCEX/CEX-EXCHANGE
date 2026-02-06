@@ -4372,6 +4372,316 @@ const notificationTemplates = [
     sms: false,
     push: true,
   },
+  // Trading Bot Templates
+  {
+    id: 107,
+    name: "TradingBotStarted",
+    subject: "Trading Bot Started",
+    emailBody: `
+<h1>Trading Bot Started</h1>
+<p>Dear %FIRSTNAME%,</p>
+<p>Your trading bot <strong>%BOT_NAME%</strong> has been started successfully.</p>
+
+<div class="info-card">
+  <div class="info-card-title">Bot Details</div>
+  <div class="info-card-content">
+    <p><strong>Symbol:</strong> %SYMBOL%</p>
+    <p><strong>Mode:</strong> %MODE%</p>
+    <p><strong>Allocated Amount:</strong> %AMOUNT%</p>
+  </div>
+</div>
+
+<p>Your bot is now actively trading. You can monitor its performance from your dashboard.</p>`,
+    smsBody: `Your trading bot %BOT_NAME% has started trading on %SYMBOL%.`,
+    pushBody: `Trading bot %BOT_NAME% started on %SYMBOL%`,
+    shortCodes: ["FIRSTNAME", "BOT_NAME", "SYMBOL", "MODE", "AMOUNT"],
+    email: true,
+    sms: true,
+    push: true,
+  },
+  {
+    id: 108,
+    name: "TradingBotStopped",
+    subject: "Trading Bot Stopped",
+    emailBody: `
+<h1>Trading Bot Stopped</h1>
+<p>Dear %FIRSTNAME%,</p>
+<p>Your trading bot <strong>%BOT_NAME%</strong> has been stopped.</p>
+
+<div class="info-card">
+  <div class="info-card-title">Performance Summary</div>
+  <div class="info-card-content">
+    <p><strong>Total Profit:</strong> %TOTAL_PROFIT%</p>
+    <p><strong>Total Trades:</strong> %TOTAL_TRADES%</p>
+    <p><strong>Win Rate:</strong> %WIN_RATE%</p>
+  </div>
+</div>
+
+<p>You can restart the bot anytime from your dashboard.</p>`,
+    smsBody: `Trading bot %BOT_NAME% stopped. Profit: %TOTAL_PROFIT%`,
+    pushBody: `Trading bot %BOT_NAME% stopped. Total profit: %TOTAL_PROFIT%`,
+    shortCodes: ["FIRSTNAME", "BOT_NAME", "TOTAL_PROFIT", "TOTAL_TRADES", "WIN_RATE"],
+    email: true,
+    sms: true,
+    push: true,
+  },
+  {
+    id: 109,
+    name: "TradingBotTradeExecuted",
+    subject: "Trade Executed",
+    emailBody: `
+<h1>Trade Executed</h1>
+<p>Dear %FIRSTNAME%,</p>
+<p>Your trading bot <strong>%BOT_NAME%</strong> executed a trade.</p>
+
+<div class="info-card">
+  <div class="info-card-title">Trade Details</div>
+  <div class="info-card-content">
+    <p><strong>Symbol:</strong> %SYMBOL%</p>
+    <p><strong>Side:</strong> %SIDE%</p>
+    <p><strong>Amount:</strong> %AMOUNT%</p>
+    <p><strong>Price:</strong> %PRICE%</p>
+    <p><strong>Cost:</strong> %COST%</p>
+  </div>
+</div>`,
+    smsBody: `Bot %BOT_NAME%: %SIDE% %AMOUNT% %SYMBOL% at %PRICE%`,
+    pushBody: `%BOT_NAME%: %SIDE% %AMOUNT% %SYMBOL% @ %PRICE%`,
+    shortCodes: ["FIRSTNAME", "BOT_NAME", "SYMBOL", "SIDE", "AMOUNT", "PRICE", "COST"],
+    email: true,
+    sms: true,
+    push: true,
+  },
+  {
+    id: 110,
+    name: "TradingBotStopLossHit",
+    subject: "Stop Loss Triggered",
+    emailBody: `
+<h1>Stop Loss Triggered</h1>
+<p>Dear %FIRSTNAME%,</p>
+<p>A stop loss has been triggered for your trading bot <strong>%BOT_NAME%</strong>.</p>
+
+<div class="alert alert-warning">
+  <strong>Position Closed</strong>
+  <p>Symbol: %SYMBOL%</p>
+  <p>Loss: %LOSS%</p>
+</div>
+
+<p>The bot will continue operating. Review your risk settings if needed.</p>`,
+    smsBody: `Stop loss triggered for %BOT_NAME% on %SYMBOL%. Loss: %LOSS%`,
+    pushBody: `Stop loss hit: %BOT_NAME% %SYMBOL% -%LOSS%`,
+    shortCodes: ["FIRSTNAME", "BOT_NAME", "SYMBOL", "LOSS"],
+    email: true,
+    sms: true,
+    push: true,
+  },
+  {
+    id: 111,
+    name: "TradingBotTakeProfitHit",
+    subject: "Take Profit Triggered",
+    emailBody: `
+<h1>Take Profit Triggered</h1>
+<p>Dear %FIRSTNAME%,</p>
+<p>A take profit has been triggered for your trading bot <strong>%BOT_NAME%</strong>.</p>
+
+<div class="alert alert-success">
+  <strong>Profit Secured!</strong>
+  <p>Symbol: %SYMBOL%</p>
+  <p>Profit: %PROFIT%</p>
+</div>
+
+<p>Great job! The bot will continue looking for new opportunities.</p>`,
+    smsBody: `Take profit reached for %BOT_NAME% on %SYMBOL%. Profit: %PROFIT%`,
+    pushBody: `Take profit hit: %BOT_NAME% %SYMBOL% +%PROFIT%`,
+    shortCodes: ["FIRSTNAME", "BOT_NAME", "SYMBOL", "PROFIT"],
+    email: true,
+    sms: true,
+    push: true,
+  },
+  {
+    id: 112,
+    name: "TradingBotError",
+    subject: "Trading Bot Error",
+    emailBody: `
+<h1>Trading Bot Error</h1>
+<p>Dear %FIRSTNAME%,</p>
+<p>Your trading bot <strong>%BOT_NAME%</strong> has encountered an error.</p>
+
+<div class="alert alert-danger">
+  <strong>Error Details</strong>
+  <p>%ERROR_MESSAGE%</p>
+</div>
+
+<p>The bot has been paused. Please review and restart when ready.</p>`,
+    smsBody: `Bot error: %BOT_NAME% - %ERROR_MESSAGE%`,
+    pushBody: `Bot error: %BOT_NAME% stopped due to error`,
+    shortCodes: ["FIRSTNAME", "BOT_NAME", "ERROR_MESSAGE"],
+    email: true,
+    sms: true,
+    push: true,
+  },
+  {
+    id: 113,
+    name: "TradingBotDailyLimitReached",
+    subject: "Daily Loss Limit Reached",
+    emailBody: `
+<h1>Daily Loss Limit Reached</h1>
+<p>Dear %FIRSTNAME%,</p>
+<p>Your trading bot <strong>%BOT_NAME%</strong> has reached its daily loss limit.</p>
+
+<div class="alert alert-warning">
+  <p><strong>Daily Loss:</strong> %DAILY_LOSS%</p>
+  <p><strong>Limit:</strong> %DAILY_LIMIT%</p>
+</div>
+
+<p>The bot has been paused and will resume tomorrow. You can adjust the limit in settings.</p>`,
+    smsBody: `Bot %BOT_NAME% paused - daily loss limit reached: %DAILY_LOSS%`,
+    pushBody: `%BOT_NAME% paused: daily loss limit reached`,
+    shortCodes: ["FIRSTNAME", "BOT_NAME", "DAILY_LOSS", "DAILY_LIMIT"],
+    email: true,
+    sms: true,
+    push: true,
+  },
+  {
+    id: 114,
+    name: "TradingBotDrawdownLimitReached",
+    subject: "Maximum Drawdown Reached",
+    emailBody: `
+<h1>Maximum Drawdown Reached</h1>
+<p>Dear %FIRSTNAME%,</p>
+<p>Your trading bot <strong>%BOT_NAME%</strong> has reached its maximum drawdown limit.</p>
+
+<div class="alert alert-danger">
+  <p><strong>Current Drawdown:</strong> %DRAWDOWN%</p>
+  <p><strong>Maximum Allowed:</strong> %MAX_DRAWDOWN%</p>
+</div>
+
+<p>The bot has been stopped for your protection. Please review performance before restarting.</p>`,
+    smsBody: `Bot %BOT_NAME% stopped - max drawdown reached: %DRAWDOWN%`,
+    pushBody: `%BOT_NAME% stopped: maximum drawdown limit reached`,
+    shortCodes: ["FIRSTNAME", "BOT_NAME", "DRAWDOWN", "MAX_DRAWDOWN"],
+    email: true,
+    sms: true,
+    push: true,
+  },
+  {
+    id: 115,
+    name: "TradingBotStrategyPurchased",
+    subject: "Strategy Purchased",
+    emailBody: `
+<h1>Strategy Purchased</h1>
+<p>Dear %FIRSTNAME%,</p>
+<p>You have successfully purchased the trading strategy <strong>%STRATEGY_NAME%</strong>.</p>
+
+<div class="info-card">
+  <div class="info-card-title">Purchase Details</div>
+  <div class="info-card-content">
+    <p><strong>Strategy:</strong> %STRATEGY_NAME%</p>
+    <p><strong>Type:</strong> %STRATEGY_TYPE%</p>
+    <p><strong>Price:</strong> %PRICE%</p>
+  </div>
+</div>
+
+<p>You can now create bots using this strategy from your dashboard.</p>`,
+    smsBody: `Strategy %STRATEGY_NAME% purchased for %PRICE%`,
+    pushBody: `Strategy purchased: %STRATEGY_NAME%`,
+    shortCodes: ["FIRSTNAME", "STRATEGY_NAME", "STRATEGY_TYPE", "PRICE"],
+    email: true,
+    sms: true,
+    push: true,
+  },
+  {
+    id: 116,
+    name: "TradingBotStrategyReview",
+    subject: "New Strategy Review",
+    emailBody: `
+<h1>New Review Received</h1>
+<p>Dear %FIRSTNAME%,</p>
+<p>Your strategy <strong>%STRATEGY_NAME%</strong> received a new review.</p>
+
+<div class="info-card">
+  <div class="info-card-title">Review</div>
+  <div class="info-card-content">
+    <p><strong>Rating:</strong> %RATING%/5</p>
+    <p><strong>Comment:</strong> %COMMENT%</p>
+  </div>
+</div>`,
+    smsBody: `New %RATING% star review for %STRATEGY_NAME%`,
+    pushBody: `New review: %STRATEGY_NAME% - %RATING% stars`,
+    shortCodes: ["FIRSTNAME", "STRATEGY_NAME", "RATING", "COMMENT"],
+    email: true,
+    sms: true,
+    push: true,
+  },
+  {
+    id: 117,
+    name: "TradingBotDailySummary",
+    subject: "Daily Trading Summary",
+    emailBody: `
+<h1>Daily Trading Summary</h1>
+<p>Dear %FIRSTNAME%,</p>
+<p>Here's your trading bot performance summary for %DATE%.</p>
+
+<div class="info-card">
+  <div class="info-card-title">Summary</div>
+  <div class="info-card-content">
+    <p><strong>Total Trades:</strong> %TOTAL_TRADES%</p>
+    <p><strong>Winning Trades:</strong> %WINNING_TRADES%</p>
+    <p><strong>Daily P&L:</strong> %DAILY_PNL%</p>
+    <p><strong>Active Bots:</strong> %ACTIVE_BOTS%</p>
+  </div>
+</div>`,
+    smsBody: `Daily summary: %TOTAL_TRADES% trades, P&L: %DAILY_PNL%`,
+    pushBody: `Daily P&L: %DAILY_PNL% (%TOTAL_TRADES% trades)`,
+    shortCodes: ["FIRSTNAME", "DATE", "TOTAL_TRADES", "WINNING_TRADES", "DAILY_PNL", "ACTIVE_BOTS"],
+    email: true,
+    sms: false,
+    push: true,
+  },
+  {
+    id: 118,
+    name: "TradingBotStrategyApproved",
+    subject: "Strategy Approved",
+    emailBody: `
+<h1>Strategy Approved!</h1>
+<p>Dear %FIRSTNAME%,</p>
+<p>Great news! Your strategy <strong>%STRATEGY_NAME%</strong> has been approved for the marketplace.</p>
+
+<div class="alert alert-success">
+  Your strategy is now live and available for purchase.
+</div>
+
+<p>You'll receive notifications when users purchase your strategy.</p>`,
+    smsBody: `Strategy %STRATEGY_NAME% approved for marketplace!`,
+    pushBody: `Your strategy %STRATEGY_NAME% is now live!`,
+    shortCodes: ["FIRSTNAME", "STRATEGY_NAME"],
+    email: true,
+    sms: true,
+    push: true,
+  },
+  {
+    id: 119,
+    name: "TradingBotStrategyRejected",
+    subject: "Strategy Review Update",
+    emailBody: `
+<h1>Strategy Review Update</h1>
+<p>Dear %FIRSTNAME%,</p>
+<p>Your strategy <strong>%STRATEGY_NAME%</strong> requires some changes before approval.</p>
+
+<div class="info-card">
+  <div class="info-card-title">Feedback</div>
+  <div class="info-card-content">
+    <p>%REJECTION_REASON%</p>
+  </div>
+</div>
+
+<p>Please update your strategy and resubmit for review.</p>`,
+    smsBody: `Strategy %STRATEGY_NAME% needs changes. Check email for details.`,
+    pushBody: `Strategy %STRATEGY_NAME% requires updates`,
+    shortCodes: ["FIRSTNAME", "STRATEGY_NAME", "REJECTION_REASON"],
+    email: true,
+    sms: true,
+    push: true,
+  },
 ];
 
 /** @type {import('sequelize-cli').Migration} */

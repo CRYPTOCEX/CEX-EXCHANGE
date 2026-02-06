@@ -1,1 +1,132 @@
-"use strict";function countDecimals(t){if(Math.floor(t)===t)return 0;const a=t.toString(),e=/^(\d+\.?\d*|\.\d+)e([+-]\d+)$/.exec(a);if(e){let t=(e[1].split(".")[1]||"").length+parseInt(e[2]);t=Math.abs(t);return Math.min(t,8)}{const t=a.split(".")[1]||"";return Math.min(t.length,8)}}async function saveLicense(t,a){await db_1.sequelize.transaction(async e=>{await db_1.models.exchange.update({status:!1},{where:{status:!0,productId:{[sequelize_1.Op.not]:t}},transaction:e});await db_1.models.exchange.update({licenseStatus:!0,status:!0,username:a},{where:{productId:t},transaction:e})}).catch(t=>{console_1.logger.error("EXCHANGE","Error in saveLicense",t);throw(0,error_1.createError)({statusCode:500,message:`Failed to save license: ${t.message}`})})}Object.defineProperty(exports,"__esModule",{value:!0});exports.standardizeOkxData=exports.standardizeXtData=exports.standardizeKucoinData=exports.standardizeBinanceData=void 0;exports.countDecimals=countDecimals;exports.saveLicense=saveLicense;const db_1=require("@b/db"),sequelize_1=require("sequelize"),console_1=require("@b/utils/console"),error_1=require("@b/utils/error"),standardizeBinanceData=t=>t&&"object"==typeof t&&!Array.isArray(t)?Object.values(t).map(t=>{const a=t.info;return{network:t.network,withdrawStatus:t.withdraw,depositStatus:t.deposit,minWithdraw:parseFloat(a.withdrawMin),maxWithdraw:parseFloat(a.withdrawMax),withdrawFee:parseFloat(a.withdrawFee),withdrawMemo:!(!a.memoRegex||""===a.memoRegex.trim())}}):[];exports.standardizeBinanceData=standardizeBinanceData;const standardizeKucoinData=t=>Object.values(t.networks||[]).map(t=>{var a,e,i,r,s;return{network:t.name,withdrawStatus:t.withdraw,depositStatus:t.deposit,minWithdraw:parseFloat(null!==(i=null===(e=null===(a=t.limits)||void 0===a?void 0:a.withdrawal)||void 0===e?void 0:e.min)&&void 0!==i?i:0),maxWithdraw:null,withdrawFee:parseFloat(null!==(r=t.fee)&&void 0!==r?r:0),withdrawMemo:!(!t.contractAddress||""===t.contractAddress.trim()),chainId:t.id?t.id.toUpperCase():null,precision:countDecimals(null!==(s=t.precision)&&void 0!==s?s:0)||8}});exports.standardizeKucoinData=standardizeKucoinData;const standardizeXtData=t=>{var a,e,i,r,s,o;const n=[];if(t&&"object"==typeof t)for(const d in t.networks||{}){const l=t.networks[d],w=parseFloat(t.fee),c=isNaN(w)?null:w;n.push({network:d,withdrawStatus:"1"===t.info.withdrawStatus,depositStatus:"1"===t.info.depositStatus,minWithdraw:parseFloat(null!==(i=null===(e=null===(a=l.limits)||void 0===a?void 0:a.withdraw)||void 0===e?void 0:e.min)&&void 0!==i?i:"0"),maxWithdraw:(null===(s=null===(r=l.limits)||void 0===r?void 0:r.withdraw)||void 0===s?void 0:s.max)?parseFloat(l.limits.withdraw.max):null,withdrawFee:null!=c?c:0,withdrawMemo:!1,chainId:d.toUpperCase(),precision:countDecimals(null!==(o=t.precision)&&void 0!==o?o:1e-8)})}return n};exports.standardizeXtData=standardizeXtData;const standardizeOkxData=t=>t&&"object"==typeof t&&!Array.isArray(t)?Object.values(t).map(t=>({network:t.network,withdrawStatus:t.withdraw,depositStatus:t.deposit,minWithdraw:parseFloat(t.minWithdrawal),maxWithdraw:parseFloat(t.maxWithdrawal),withdrawFee:parseFloat(t.withdrawalFee),withdrawMemo:!(!t.memoRegex||""===t.memoRegex.trim())})):[];exports.standardizeOkxData=standardizeOkxData;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.standardizeOkxData = exports.standardizeXtData = exports.standardizeKucoinData = exports.standardizeBinanceData = void 0;
+exports.countDecimals = countDecimals;
+exports.saveLicense = saveLicense;
+const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+const standardizeBinanceData = (data) => {
+    if (data && typeof data === "object" && !Array.isArray(data)) {
+        return Object.values(data).map((item) => {
+            const info = item.info;
+            return {
+                network: item.network,
+                withdrawStatus: item.withdraw,
+                depositStatus: item.deposit,
+                minWithdraw: parseFloat(info.withdrawMin),
+                maxWithdraw: parseFloat(info.withdrawMax),
+                withdrawFee: parseFloat(info.withdrawFee),
+                withdrawMemo: info.memoRegex && info.memoRegex.trim() !== "" ? true : false,
+            };
+        });
+    }
+    return [];
+};
+exports.standardizeBinanceData = standardizeBinanceData;
+const standardizeKucoinData = (data) => {
+    const standardizedData = Object.values(data.networks || []);
+    return standardizedData.map((network) => {
+        var _a, _b, _c, _d, _e;
+        return ({
+            network: network.name,
+            withdrawStatus: network.withdraw,
+            depositStatus: network.deposit,
+            minWithdraw: parseFloat((_c = (_b = (_a = network.limits) === null || _a === void 0 ? void 0 : _a.withdrawal) === null || _b === void 0 ? void 0 : _b.min) !== null && _c !== void 0 ? _c : 0),
+            maxWithdraw: null,
+            withdrawFee: parseFloat((_d = network.fee) !== null && _d !== void 0 ? _d : 0),
+            withdrawMemo: network.contractAddress && network.contractAddress.trim() !== ""
+                ? true
+                : false,
+            chainId: network.id ? network.id.toUpperCase() : null,
+            precision: countDecimals((_e = network.precision) !== null && _e !== void 0 ? _e : 0) || 8,
+        });
+    });
+};
+exports.standardizeKucoinData = standardizeKucoinData;
+const standardizeXtData = (data) => {
+    var _a, _b, _c, _d, _e, _f;
+    const standardizedData = [];
+    if (data && typeof data === "object") {
+        for (const networkKey in data.networks || {}) {
+            const network = data.networks[networkKey];
+            const fee = parseFloat(data.fee);
+            const validFee = !isNaN(fee) ? fee : null;
+            standardizedData.push({
+                network: networkKey,
+                withdrawStatus: data.info.withdrawStatus === "1",
+                depositStatus: data.info.depositStatus === "1",
+                minWithdraw: parseFloat((_c = (_b = (_a = network.limits) === null || _a === void 0 ? void 0 : _a.withdraw) === null || _b === void 0 ? void 0 : _b.min) !== null && _c !== void 0 ? _c : "0"),
+                maxWithdraw: ((_e = (_d = network.limits) === null || _d === void 0 ? void 0 : _d.withdraw) === null || _e === void 0 ? void 0 : _e.max)
+                    ? parseFloat(network.limits.withdraw.max)
+                    : null,
+                withdrawFee: validFee !== null && validFee !== void 0 ? validFee : 0,
+                withdrawMemo: false,
+                chainId: networkKey.toUpperCase(),
+                precision: countDecimals((_f = data.precision) !== null && _f !== void 0 ? _f : 1e-8),
+            });
+        }
+    }
+    return standardizedData;
+};
+exports.standardizeXtData = standardizeXtData;
+function countDecimals(num) {
+    if (Math.floor(num) === num)
+        return 0;
+    const str = num.toString();
+    const scientificNotationMatch = /^(\d+\.?\d*|\.\d+)e([+-]\d+)$/.exec(str);
+    if (scientificNotationMatch) {
+        const decimalStr = scientificNotationMatch[1].split(".")[1] || "";
+        let decimalCount = decimalStr.length + parseInt(scientificNotationMatch[2]);
+        decimalCount = Math.abs(decimalCount);
+        return Math.min(decimalCount, 8);
+    }
+    else {
+        const decimalStr = str.split(".")[1] || "";
+        return Math.min(decimalStr.length, 8);
+    }
+}
+const standardizeOkxData = (data) => {
+    if (data && typeof data === "object" && !Array.isArray(data)) {
+        return Object.values(data).map((item) => {
+            return {
+                network: item.network,
+                withdrawStatus: item.withdraw,
+                depositStatus: item.deposit,
+                minWithdraw: parseFloat(item.minWithdrawal),
+                maxWithdraw: parseFloat(item.maxWithdrawal),
+                withdrawFee: parseFloat(item.withdrawalFee),
+                withdrawMemo: item.memoRegex && item.memoRegex.trim() !== "" ? true : false,
+            };
+        });
+    }
+    return [];
+};
+exports.standardizeOkxData = standardizeOkxData;
+async function saveLicense(productId, username) {
+    await db_1.sequelize
+        .transaction(async (transaction) => {
+        await db_1.models.exchange.update({
+            status: false,
+        }, {
+            where: {
+                status: true,
+                productId: { [sequelize_1.Op.not]: productId },
+            },
+            transaction,
+        });
+        await db_1.models.exchange.update({
+            licenseStatus: true,
+            status: true,
+            username: username,
+        }, {
+            where: { productId: productId },
+            transaction,
+        });
+    })
+        .catch((error) => {
+        console_1.logger.error("EXCHANGE", "Error in saveLicense", error);
+        throw (0, error_1.createError)({ statusCode: 500, message: `Failed to save license: ${error.message}` });
+    });
+}
